@@ -15,5 +15,3 @@ env:
 script:
   - cd $CRATE
   - cargo test -v
-  - cargo bench -v
-  - cargo doc
