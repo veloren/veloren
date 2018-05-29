@@ -1,8 +1,10 @@
+use bincode::{serialize, deserialize};
+
 pub trait Serialize {
-    fn serialize(&self) -> Vec<u8>;
+    fn serialize(&self) -> Option<Vec<u8>>;
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ServerPacket {
     Connected,
     Shutdown,
@@ -11,12 +13,12 @@ pub enum ServerPacket {
 }
 
 impl Serialize for ServerPacket {
-    fn serialize(&self) -> Vec<u8> {
-        vec!()
+    fn serialize(&self) -> Option<Vec<u8>> {
+        serialize(&self).ok()
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ClientPacket {
     Connect { alias: String },
     Disconnect,
@@ -25,7 +27,7 @@ pub enum ClientPacket {
 }
 
 impl Serialize for ClientPacket {
-    fn serialize(&self) -> Vec<u8> {
-        vec!()
+    fn serialize(&self) -> Option<Vec<u8>> {
+        serialize(&self).ok()
     }
 }

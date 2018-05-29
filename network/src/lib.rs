@@ -1,3 +1,8 @@
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+extern crate bincode;
+
 mod packet;
 
 // Reexports
@@ -19,9 +24,11 @@ impl ServerConn {
         })
     }
 
-    pub fn send(&self, addr: &str, pack: ServerPacket) -> io::Result<()> {
-        self.sock.send(&pack.serialize())?;
-        Ok(())
+    pub fn send(&self, addr: &str, pack: ServerPacket) -> bool{
+        match pack.serialize() {
+            Some(data) => self.sock.send(&data).is_ok(),
+            None => false,
+        }
     }
 }
 
@@ -43,8 +50,10 @@ impl ClientConn {
         })
     }
 
-    pub fn send(&self, pack: ServerPacket) -> io::Result<()> {
-        self.sock.send(&pack.serialize())?;
-        Ok(())
+    pub fn send(&self, pack: ServerPacket) -> bool {
+        match pack.serialize() {
+            Some(data) => self.sock.send(&data).is_ok(),
+            None => false,
+        }
     }
 }
