@@ -1,5 +1,7 @@
 # Welcome to veloren
 
+[![Build Status](https://travis-ci.org/veloren/game.svg?branch=master)](https://travis-ci.org/veloren/game)
+
 ## What is veloren
 veloren is a multiplayer voxelbased game which is heavily influenced by cubeworld.
 
