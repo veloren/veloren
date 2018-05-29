@@ -4,10 +4,11 @@ rust:
 before_install:
   - sudo apt-get install -y libsfml-dev libcsfml-dev
 script:
-  - ( cd worldgen && cargo build )
-  - ( cd worldsim && cargo build )
-  - ( cd worldtest && cargo build )
-  - ( cd server && cargo build )
-  - ( cd frontend && cargo build )
-  - ( cd client && cargo build )
-  - ./frontend/target/debug/frontend
+  - ( cd worldgen && cargo test )
+  - ( cd worldsim && cargo test )
+  - ( cd worldtest && cargo test )
+  - ( cd server && cargo test )
+  - ( cd server-cli && cargo test )
+  - ( cd frontend && cargo test )
+  - ( cd client && cargo test )
+  - ( cd network && cargo test )
