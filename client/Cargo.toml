@@ -4,5 +4,4 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gmail.com>"]
 
 [dependencies]
-worldgen = { path = "../worldgen" }
 network = { path = "../network" }
