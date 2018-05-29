@@ -6,3 +6,5 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gm
 [dependencies]
 worldgen = { path = "../worldgen" }
 worldsim = { path = "../worldsim" }
+network = { path = "../network" }
+specs = "0.11.2"
