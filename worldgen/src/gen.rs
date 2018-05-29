@@ -1,4 +1,5 @@
 use noise::{NoiseFn, OpenSimplex, Seedable};
+use super::Biome;
 
 pub struct Generator {
     alt_noise: [OpenSimplex; 4],
@@ -26,5 +27,19 @@ impl Generator {
             self.alt_noise[3].get([x * 0.1, y * 0.1]) * 0.1;
 
         ((sum + 1.) * 128.) as u32
+    }
+
+    pub fn biome(&self, pos: [u32; 2]) -> Biome {
+        let alt = self.altitude(pos);
+
+        if alt < 100 {
+            Biome::Ocean
+        } else if alt < 110 {
+            Biome::Sand
+        } else if alt < 170 {
+            Biome::Grassland
+        } else {
+            Biome::Mountain
+        }
     }
 }

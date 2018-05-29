@@ -4,12 +4,23 @@ mod gen;
 
 use gen::Generator;
 
+#[derive(Copy, Clone)]
+pub enum Biome {
+    Grassland,
+    Ocean,
+    Sand,
+    River,
+    Mountain,
+}
+
 pub struct MacroChunk {
     alt: u32,
+    biome: Biome,
 }
 
 impl MacroChunk {
     pub fn altitude(&self) -> u32 { self.alt }
+    pub fn biome(&self) -> Biome { self.biome }
 }
 
 pub struct MacroWorld {
@@ -28,6 +39,7 @@ impl MacroWorld {
             for y in 0..size {
                 chunks.push(MacroChunk {
                     alt: gen.altitude([x, y]),
+                    biome: gen.biome([x, y]),
                 });
             }
         }

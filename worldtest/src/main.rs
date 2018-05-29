@@ -5,7 +5,7 @@ use sfml::system::Vector2f;
 use sfml::window::{ContextSettings, VideoMode, Event, Style};
 use sfml::graphics::{RectangleShape, Color, RenderTarget, RenderWindow, Shape, Transformable};
 
-use worldgen::MacroWorld;
+use worldgen::{MacroWorld, Biome};
 
 const WORLD_SEED: u32 = 1337;
 const WORLD_SIZE: u32 = 800;
@@ -34,8 +34,16 @@ fn main() {
         let mut pixel = RectangleShape::with_size(Vector2f::new(1., 1.));
         for x in 0..mw.size() {
             for y in 0..mw.size() {
-                let alt = mw.get(x, y).unwrap().altitude() as u8;
-                pixel.set_fill_color(&Color::rgb(alt, alt, alt));
+                let chunk = mw.get(x, y).unwrap();
+                let alt = chunk.altitude() as u8;
+                match chunk.biome() {
+                    Biome::Ocean => pixel.set_fill_color(&Color::rgba(0, 50, 255, alt)),
+                    Biome::Grassland => pixel.set_fill_color(&Color::rgba(50, 255, 0, alt)),
+                    Biome::River => pixel.set_fill_color(&Color::rgba(0, 50, 255, alt)),
+                    Biome::Sand => pixel.set_fill_color(&Color::rgba(255, 255, 0, alt)),
+                    Biome::Mountain => pixel.set_fill_color(&Color::rgba(150, 150, 150, alt)),
+                }
+
                 pixel.set_position(Vector2f::new(x as f32, y as f32));
                 win.draw(&pixel);
             }
