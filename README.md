@@ -12,17 +12,17 @@ pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.
 pacman -S csfml
 ```
 
-2. compile crates
+2. compile and run tests
 ```bash
-( cd worldgen && cargo build )
-( cd worldsim && cargo build )
-( cd worldtest && cargo build )
-( cd server && cargo build )
-( cd frontend && cargo build )
-( cd client && cargo build )
+( cd worldtest && cargo run )
 ```
-3. run it
+
+3. compile and run server
 ```bash
-./frontend/target/debug/frontend
-#the output "A simulation tick has occured." apears
+( cd server-cli && cargo run )
+```
+
+4. compile and run client
+```bash
+( cd frontend && cargo run )
 ```
