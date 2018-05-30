@@ -1,6 +1,6 @@
 extern crate network;
 
-use network::ClientConn;
+use network::client::ClientConn;
 
 #[derive(Debug)]
 pub enum Error {

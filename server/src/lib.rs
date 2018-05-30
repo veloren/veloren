@@ -1,16 +1,20 @@
 extern crate worldgen;
 extern crate worldsim;
+extern crate network;
 
 use std::{thread, time};
+use network::server::ServerConn;
 use worldgen::MacroWorld;
 
 pub struct Server {
+    conn: ServerConn,
     mw: MacroWorld,
 }
 
 impl Server {
-    pub fn new(seed: u32, world_size: u32) -> Server {
+    pub fn new(bind_addr: &str, seed: u32, world_size: u32) -> Server {
         Server {
+            conn: ServerConn::new(bind_addr),
             mw: MacroWorld::new(seed, world_size),
         }
     }
