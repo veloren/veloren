@@ -1,5 +1,6 @@
 extern crate network;
 
+use std::net::ToSocketAddrs;
 use network::client::ClientConn;
 
 #[derive(Debug)]
@@ -17,10 +18,10 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(mode: ClientMode, bind_addr: &str, remote_addr: &str) -> Result<Client, Error> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, bind_addr: T, remote_addr: U) -> Result<Client, Error> {
         let conn = match ClientConn::new(bind_addr, remote_addr) {
             Ok(conn) => conn,
-            Err(_) => return Err(Error::ConnectionErr),
+            Err(e) => panic!("ERR: {:?}", e), //return Err(Error::ConnectionErr),
         };
 
         Ok(Client {

@@ -17,6 +17,6 @@ fn main() {
 
     let mut client = match Client::new(ClientMode::Headless, &bind_addr, &remote_addr) {
         Ok(c) => c,
-        Err(_) => panic!("An error occured when attempting to initiate the client"),
+        Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
 }

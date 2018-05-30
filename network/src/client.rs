@@ -1,5 +1,5 @@
 use std::io;
-use std::net::UdpSocket;
+use std::net::{UdpSocket, ToSocketAddrs};
 use packet::{ClientPacket, ServerPacket};
 
 pub struct ClientConn {
@@ -7,7 +7,7 @@ pub struct ClientConn {
 }
 
 impl ClientConn {
-    pub fn new(bind_addr: &str, remote_addr: &str) -> io::Result<ClientConn> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> io::Result<ClientConn> {
         let sock = UdpSocket::bind(bind_addr)?;
         sock.connect(remote_addr)?;
 

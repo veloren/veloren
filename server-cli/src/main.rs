@@ -1,5 +1,6 @@
 extern crate server;
 
+use std::net::ToSocketAddrs;
 use server::Server;
 
 fn main() {
