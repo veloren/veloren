@@ -2,5 +2,6 @@
 members = [
     "server-cli",
     "frontend",
-    "worldtest"
+    "worldtest",
+    "headless"
 ]
