@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "server",
+	"client",
+	"network",
+    "worldgen",
+    "worldsim",
+
+    "frontend",
+    "server-cli",
+    "worldtest",
+	"headless"
+]
