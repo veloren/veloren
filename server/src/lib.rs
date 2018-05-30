@@ -13,7 +13,7 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new<A: ToSocketAddrs>(bind_addr: ToSocketAddrs, seed: u32, world_size: u32) -> Option<Server> {
+    pub fn new<A: ToSocketAddrs>(bind_addr: A, seed: u32, world_size: u32) -> Option<Server> {
         Some(Server {
             conn: match ServerConn::new(bind_addr) {
                 Ok(c) => c,
