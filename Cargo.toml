@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "server-cli",
+    "frontend",
+    "worldtest"
+]
