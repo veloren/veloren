@@ -1,6 +1,6 @@
 use std::io;
-use std::net::{UdpSocket, SocketAddr, IpAddr, Ipv4Addr};
-use packet::{ClientPacket, ServerPacket, Serialize};
+use std::net::UdpSocket;
+use packet::{ClientPacket, ServerPacket};
 
 pub struct ClientConn {
     sock: UdpSocket,
@@ -20,6 +20,14 @@ impl ClientConn {
         match pack.serialize() {
             Some(ref data) => self.sock.send(data).is_ok(),
             None => false,
+        }
+    }
+
+    pub fn recv(&self) -> Option<ServerPacket> {
+        let mut data = [0; 4096];
+        match self.sock.recv(&mut data) {
+            Ok(_) => ServerPacket::from(&data),
+            Err(_) => None, // TODO: Handle error?
         }
     }
 }

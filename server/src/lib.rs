@@ -12,11 +12,14 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(bind_addr: &str, seed: u32, world_size: u32) -> Server {
-        Server {
-            conn: ServerConn::new(bind_addr),
+    pub fn new(bind_addr: &str, seed: u32, world_size: u32) -> Option<Server> {
+        Some(Server {
+            conn: match ServerConn::new(bind_addr) {
+                Ok(c) => c,
+                Err(_) => return None, // TODO: Handle errors correctly
+            },
             mw: MacroWorld::new(seed, world_size),
-        }
+        })
     }
 
     pub fn next_tick(&mut self) -> bool {

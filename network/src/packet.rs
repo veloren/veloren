@@ -1,9 +1,5 @@
 use bincode::{serialize, deserialize};
 
-pub trait Serialize {
-    fn serialize(&self) -> Option<Vec<u8>>;
-}
-
 #[derive(Clone, Serialize, Deserialize)]
 pub enum ServerPacket {
     Connected,
@@ -12,9 +8,13 @@ pub enum ServerPacket {
     RecvChatMsg { alias: String, msg: String },
 }
 
-impl Serialize for ServerPacket {
-    fn serialize(&self) -> Option<Vec<u8>> {
-        serialize(&self).ok()
+impl ServerPacket {
+    pub fn from(data: &[u8]) -> Option<ServerPacket> {
+        deserialize(data).ok() // TODO: Handle error?
+    }
+
+    pub fn serialize(&self) -> Option<Vec<u8>> {
+        serialize(&self).ok() // TODO: Handle error?
     }
 }
 
@@ -26,8 +26,12 @@ pub enum ClientPacket {
     SendChatMsg { msg: String },
 }
 
-impl Serialize for ClientPacket {
-    fn serialize(&self) -> Option<Vec<u8>> {
-        serialize(&self).ok()
+impl ClientPacket {
+    pub fn from(data: &[u8]) -> Option<ClientPacket> {
+        deserialize(data).ok() // TODO: Handle error?
+    }
+
+    pub fn serialize(&self) -> Option<Vec<u8>> {
+        serialize(&self).ok() // TODO: Handle error?
     }
 }
