@@ -1,7 +1,17 @@
 # Rust
+
+/target/
+/Cargo.lock
 /*/target/
 /*/Cargo.lock
 
 # IntelliJ
+
 */.idea/
 */*.iml
+
+# VSCode
+
+/.vscode/
+*.code-workspace
+
