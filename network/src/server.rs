@@ -18,25 +18,16 @@ impl ServerConn {
         })
     }
 
-    pub fn listen(&mut self) -> Option<Arc<PlayerHandle>> {
+    pub fn recv(&mut self) -> (SocketAddr, ClientPacket) {
         let mut buff = [0; 1024];
-        match self.sock.recv_from(&mut buff) {
-            Ok((_, addr)) => match ClientPacket::from(&buff) {
-                Some(ClientPacket::Connect { ref alias }) => match PlayerHandle::new(&alias, &self.bind_addr, addr) {
-                    Ok(ph) => {
-                        println!("Player connected!");
-                        let handle = Arc::new(ph);
-                        self.players.push(handle.clone());
-
-                        handle.send(ServerPacket::Connected);
-
-                        Some(handle)
-                    }
-                    Err(_) => None, // TODO: Handle errors properly
+        loop {
+            match self.sock.recv_from(&mut buff) {
+                Ok((_, addr)) => match ClientPacket::from(&buff) {
+                    Some(packet) => return (addr, packet),
+                    _ => {},
                 },
-                _ => None,
-            },
-            Err(_) => None, // TODO: Handle errors properly
+                Err(_) => {}, // TODO: Handle errors properly
+            }
         }
     }
 

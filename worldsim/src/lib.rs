@@ -4,7 +4,7 @@ use worldgen::MacroWorld;
 
 pub fn simulate(mw: &mut MacroWorld, ticks: u32) {
     for i in 0..ticks {
-        println!("A simulation tick has occured.");
+        // Nothing yet
     }
 }
 

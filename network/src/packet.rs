@@ -1,6 +1,6 @@
 use bincode::{serialize, deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
     Connected,
     Shutdown,
@@ -18,7 +18,7 @@ impl ServerPacket {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ClientPacket {
     Connect { alias: String },
     Disconnect,

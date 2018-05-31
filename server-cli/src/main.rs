@@ -1,8 +1,8 @@
 extern crate server;
 extern crate local_ip;
 
-use std::net::{SocketAddr, IpAddr, Ipv4Addr};
-use server::Server;
+use std::net::SocketAddr;
+use server::ServerHandle;
 
 const PORT: u16 = 59003;
 
@@ -13,6 +13,8 @@ fn main() {
 
     println!("Hosting on {}:{}...", ip.to_string(), PORT);
 
-    let mut server = Server::new(SocketAddr::new(ip, PORT), 1227, 1024).expect("Could not create server");
-    while server.next_tick() {}
+    let mut server = ServerHandle::new(SocketAddr::new(ip, PORT), 1227, 1024)
+        .expect("Could not create server");
+
+    server.run();
 }
