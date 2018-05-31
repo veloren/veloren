@@ -5,6 +5,7 @@ extern crate network;
 mod server;
 mod player;
 
+use std::time;
 use std::thread;
 use std::sync::{Mutex, Arc};
 use std::net::ToSocketAddrs;
@@ -32,7 +33,8 @@ impl ServerHandle {
         });
 
         while self.server.lock().unwrap().running() {
-            self.server.lock().unwrap().next_tick();
+            self.server.lock().unwrap().next_tick(0.20);
+            thread::sleep(time::Duration::from_millis(20));
         }
     }
 }
