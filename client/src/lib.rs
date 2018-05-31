@@ -2,6 +2,7 @@ extern crate network;
 
 use std::net::ToSocketAddrs;
 use network::client::ClientConn;
+use network::packet::ClientPacket;
 
 #[derive(Debug)]
 pub enum Error {
@@ -26,6 +27,18 @@ impl Client {
 
         Ok(Client {
             conn,
+        })
+    }
+
+    pub fn connect(&mut self) -> bool {
+        self.conn.send(ClientPacket::Connect{
+            alias: "test-player".to_string(),
+        })
+    }
+
+    pub fn send_chat_message(&mut self, msg: &str) -> bool {
+        self.conn.send(ClientPacket::SendChatMsg{
+            msg: msg.to_string(),
         })
     }
 }

@@ -19,16 +19,22 @@ impl ServerConn {
     }
 
     pub fn listen(&mut self) -> Option<Arc<PlayerHandle>> {
-        let mut buff: [u8; 256] = [0; 256];
+        let mut buff = [0; 1024];
         match self.sock.recv_from(&mut buff) {
-            Ok((_, addr)) => match PlayerHandle::new(&self.bind_addr, addr) {
-                Ok(ph) => {
-                    println!("Player connected!");
-                    let handle = Arc::new(ph);
-                    self.players.push(handle.clone());
-                    Some(handle)
-                }
-                Err(_) => None, // TODO: Handle errors properly
+            Ok((_, addr)) => match ClientPacket::from(&buff) {
+                Some(ClientPacket::Connect { ref alias }) => match PlayerHandle::new(&alias, &self.bind_addr, addr) {
+                    Ok(ph) => {
+                        println!("Player connected!");
+                        let handle = Arc::new(ph);
+                        self.players.push(handle.clone());
+
+                        handle.send(ServerPacket::Connected);
+
+                        Some(handle)
+                    }
+                    Err(_) => None, // TODO: Handle errors properly
+                },
+                _ => None,
             },
             Err(_) => None, // TODO: Handle errors properly
         }
@@ -43,20 +49,22 @@ impl ServerConn {
 }
 
 pub struct PlayerHandle {
+    alias: String,
     sock: UdpSocket,
 }
 
 impl PlayerHandle {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, addr: U) -> io::Result<PlayerHandle> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(alias: &str, bind_addr: T, addr: U) -> io::Result<PlayerHandle> {
         let sock = UdpSocket::bind(bind_addr)?;
         sock.connect(addr)?;
 
         Ok(PlayerHandle {
+            alias: alias.to_string(),
             sock,
         })
     }
 
-    pub fn send(&self, pack: ClientPacket) -> bool{
+    pub fn send(&self, pack: ServerPacket) -> bool{
         match pack.serialize() {
             Some(ref data) => self.sock.send(data).is_ok(),
             None => false,

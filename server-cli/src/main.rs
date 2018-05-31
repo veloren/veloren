@@ -1,7 +1,7 @@
-extern crate local_ip;
 extern crate server;
+extern crate local_ip;
 
-use std::net::SocketAddr;
+use std::net::{SocketAddr, IpAddr, Ipv4Addr};
 use server::Server;
 
 const PORT: u16 = 59003;

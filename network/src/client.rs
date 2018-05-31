@@ -8,7 +8,9 @@ pub struct ClientConn {
 
 impl ClientConn {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> io::Result<ClientConn> {
+        println!("BIND = {}, REMOTE = {}", bind_addr.to_socket_addrs().unwrap().next().unwrap().to_string(), remote_addr.to_socket_addrs().unwrap().next().unwrap().to_string());
         let sock = UdpSocket::bind(bind_addr)?;
+        println!("BIND WORKED");
         sock.connect(remote_addr)?;
 
         Ok(ClientConn {
