@@ -31,9 +31,9 @@ impl ServerConn {
         }
     }
 
-    pub fn send_to<A: ToSocketAddrs>(&self, tgt_addr: A, pack: ServerPacket) -> bool{
+    pub fn send_to<A: ToSocketAddrs>(&self, sock_addr: A, pack: ServerPacket) -> bool{
         match pack.serialize() {
-            Some(ref data) => self.sock.send_to(data, tgt_addr).is_ok(),
+            Some(ref data) => self.sock.send_to(data, sock_addr).is_ok(),
             None => false,
         }
     }
