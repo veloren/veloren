@@ -4,14 +4,15 @@ rust:
 before_install:
   - sudo apt-get install -y libsfml-dev libcsfml-dev
 env:
-  - CRATE="worldgen"
-  - CRATE="worldsim"
-  - CRATE="worldtest"
-  - CRATE="server"
-  - CRATE="server-cli"
-  - CRATE="frontend"
-  - CRATE="client"
+  - CRATE="world"
+  - CRATE="region"
   - CRATE="network"
+  - CRATE="server"
+  - CRATE="client"
+  - CRATE="server-cli"
+  - CRATE="headless"
+  - CRATE="frontend"
+  - CRATE="worldtest"
 script:
   - cd $CRATE
   - cargo test -v
