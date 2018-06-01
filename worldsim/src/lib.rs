@@ -2,10 +2,9 @@ extern crate worldgen;
 
 use worldgen::MacroWorld;
 
-pub fn simulate(mw: &mut MacroWorld, ticks: u32) {
-    for i in 0..ticks {
-        // Nothing yet
-    }
+pub fn simulate(mw: &mut MacroWorld, dt: f64) {
+    mw.tick(dt);
+    mw.calc_wind();
 }
 
 #[cfg(test)]

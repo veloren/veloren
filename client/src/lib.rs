@@ -33,7 +33,7 @@ impl ClientHandle {
     pub fn run(&mut self) {
         let client_ref = self.client.clone();
         thread::spawn(move || {
-            let mut conn = client_ref.lock().unwrap().conn();
+            let conn = client_ref.lock().unwrap().conn();
             while client_ref.lock().unwrap().running() {
                 let data = conn.recv();
                 client_ref.lock().unwrap().handle_packet(data);

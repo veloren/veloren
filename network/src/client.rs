@@ -23,7 +23,7 @@ impl ClientConn {
         }
     }
 
-    pub fn send(&self, pack: ClientPacket) -> bool {
+    pub fn send(&self, pack: &ClientPacket) -> bool {
         match pack.serialize() {
             Some(ref data) => self.sock.send(data).is_ok(),
             None => false,

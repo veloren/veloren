@@ -5,3 +5,4 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 noise = "0.5.1"
+euler = "0.3.0"

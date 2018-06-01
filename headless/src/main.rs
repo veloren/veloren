@@ -10,15 +10,13 @@ use syrup::Window;
 
 use client::{ClientHandle, ClientMode};
 
-const PORT: u16 = 59002;
-
 fn main() {
     println!("Starting headless client...");
 
     let ip = local_ip::get().unwrap();
 
     let mut port = String::new();
-    println!("Port:");
+    println!("Local port [59001]:");
     io::stdin().read_line(&mut port).unwrap();
     let port = u16::from_str_radix(&port.trim(), 10).unwrap();
 

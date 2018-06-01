@@ -91,3 +91,11 @@ impl Server {
         self.time += dt;
     }
 }
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        for sock_addr in self.players.keys() {
+            self.conn.send_to(sock_addr, &ServerPacket::Shutdown);
+        }
+    }
+}
