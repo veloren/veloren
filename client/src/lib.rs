@@ -1,9 +1,11 @@
 extern crate network;
+extern crate region;
 
 mod client;
 
 // Reexports
 pub use client::ClientMode as ClientMode;
+pub use region::Volume as Volume;
 
 use std::thread;
 use std::sync::{Mutex, Arc};

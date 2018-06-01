@@ -1,0 +1,6 @@
+[package]
+name = "region"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+
+[dependencies]
