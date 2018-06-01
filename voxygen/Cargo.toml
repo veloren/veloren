@@ -6,3 +6,6 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 [dependencies]
 client = { path = "../client" }
 local-ip = "0.1"
+gfx = "0.17.1"
+gfx_window_glutin = "0.24.0"
+glutin = "0.16.0"

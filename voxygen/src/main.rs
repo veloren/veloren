@@ -1,9 +1,17 @@
-extern crate client;
+#[macro_use]
+extern crate gfx;
+extern crate gfx_window_glutin;
+extern crate glutin;
 extern crate local_ip;
 
-mod game;
+extern crate client;
 
-use game::GameHandle;
+mod game;
+mod window;
+
+// Reexports
+use game::GameHandle as GameHandle;
+use window::RenderWindow as RenderWindow;
 
 fn main() {
     println!("Starting Voxygen...");
