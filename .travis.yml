@@ -11,7 +11,7 @@ env:
   - CRATE="client"
   - CRATE="server-cli"
   - CRATE="headless"
-  - CRATE="frontend"
+  - CRATE="voxygen"
   - CRATE="worldtest"
 script:
   - cd $CRATE

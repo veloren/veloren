@@ -5,7 +5,7 @@ members = [
 	"network",
 	"world",
 
-    "frontend",
+    "voxygen",
     "server-cli",
     "worldtest",
 	"headless"

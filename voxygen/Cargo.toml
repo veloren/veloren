@@ -1,7 +1,8 @@
 [package]
-name = "frontend"
+name = "voxygen"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 client = { path = "../client" }
+local-ip = "0.1"
