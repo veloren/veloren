@@ -3,14 +3,14 @@ use std::collections::HashMap;
 
 use network::server::ServerConn;
 use network::packet::{ClientPacket, ServerPacket};
-use worldgen::MacroWorld;
-use worldsim;
+use world::World;
 use player::Player;
 
 pub struct Server {
     running: bool,
     time: f64,
-    mw: MacroWorld,
+    world: World,
+
     conn: ServerConn,
     players: HashMap<SocketAddr, Player>,
 }
@@ -20,7 +20,7 @@ impl Server {
         let server = Server {
             running: true,
             time: 0.0,
-            mw: MacroWorld::new(seed, world_size),
+            world: World::new(seed, world_size),
             conn: match ServerConn::new(bind_addr) {
                 Ok(c) => c,
                 Err(_) => return None, // TODO: Handle errors correctly
@@ -87,7 +87,7 @@ impl Server {
     }
 
     pub fn next_tick(&mut self, dt: f64) {
-        worldsim::simulate(&mut self.mw, 1);
+        self.world.tick(dt);
         self.time += dt;
     }
 }

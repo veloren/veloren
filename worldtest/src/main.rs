@@ -1,21 +1,20 @@
-extern crate worldgen;
-extern crate worldsim;
+extern crate world;
 extern crate sfml;
 
 use sfml::system::Vector2f;
 use sfml::window::{ContextSettings, VideoMode, Event, Style};
 use sfml::graphics::{RectangleShape, Vertex, PrimitiveType, Color, RenderTarget, RenderStates, RenderWindow, Shape, Transformable};
 
-use worldgen::{MacroWorld, Biome};
+use world::{World, Biome};
 
 const WORLD_SEED: u32 = 1337;
 const WORLD_SIZE: u32 = 256;
 
 fn main() {
-    let mut mw = MacroWorld::new(WORLD_SEED, WORLD_SIZE);
+    let mut world = World::new(WORLD_SEED, WORLD_SIZE);
 
     let mut win = RenderWindow::new(
-        VideoMode::new(mw.size(), mw.size(), 32),
+        VideoMode::new(world.map().size(), world.map().size(), 32),
         "Veloren World Test",
         Style::CLOSE,
         &ContextSettings::default()
@@ -30,14 +29,14 @@ fn main() {
             }
         }
 
-        worldsim::simulate(&mut mw, 8.0);
+        world.tick(8.0);
 
         win.clear(&Color::rgb(0, 0, 0));
 
         let mut pixel = RectangleShape::with_size(Vector2f::new(1., 1.));
-        for x in 0..mw.size() {
-            for y in 0..mw.size() {
-                let chunk = mw.get(x, y).unwrap();
+        for x in 0..world.map().size() {
+            for y in 0..world.map().size() {
+                let chunk = world.map().get(x, y).unwrap();
                 let alt = chunk.altitude() as u8;
                 let (hue, sat) = match chunk.biome() {
                     Biome::Ocean => (250.0, 1.0),

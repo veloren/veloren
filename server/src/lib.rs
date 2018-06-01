@@ -1,5 +1,4 @@
-extern crate worldgen;
-extern crate worldsim;
+extern crate world;
 extern crate network;
 
 mod server;

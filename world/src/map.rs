@@ -1,8 +1,3 @@
-extern crate noise;
-#[macro_use]
-extern crate euler;
-
-mod gen;
 
 use euler::*;
 
@@ -17,13 +12,13 @@ pub enum Biome {
     Mountain,
 }
 
-pub struct MacroChunk {
+pub struct MapChunk {
     alt: u32,
     biome: Biome,
     wind: Vec2,
 }
 
-impl MacroChunk {
+impl MapChunk {
     pub fn altitude(&self) -> u32 { self.alt }
     pub fn biome(&self) -> Biome { self.biome }
 
@@ -34,25 +29,25 @@ impl MacroChunk {
     }
 }
 
-pub struct MacroWorld {
+pub struct Map {
     seed: u32,
     gen: Generator,
 
     time: f64,
 
     size: u32,
-    chunks: Vec<MacroChunk>,
+    chunks: Vec<MapChunk>,
 }
 
-impl MacroWorld {
-    pub fn new(seed: u32, size: u32) -> MacroWorld {
+impl Map {
+    pub fn new(seed: u32, size: u32) -> Map {
         let mut chunks = Vec::new();
 
         let gen = Generator::new(seed);
 
         for x in 0..size {
             for y in 0..size {
-                chunks.push(MacroChunk {
+                chunks.push(MapChunk {
                     alt: gen.altitude([x, y]),
                     biome: gen.biome([x, y]),
                     wind: gen.wind([x, y, 0]),
@@ -60,7 +55,7 @@ impl MacroWorld {
             }
         }
 
-        MacroWorld {
+        Map {
             seed,
             gen,
             time: 0.0,
@@ -71,6 +66,7 @@ impl MacroWorld {
 
     pub fn tick(&mut self, dt: f64) {
         self.time += dt;
+        self.calc_wind();
     }
 
     pub fn calc_wind(&mut self) {
@@ -88,21 +84,11 @@ impl MacroWorld {
 
     pub fn size(&self) -> u32 { self.size }
 
-    pub fn get<'a>(&'a self, x: u32, y: u32) -> Option<&'a MacroChunk> {
+    pub fn get<'a>(&'a self, x: u32, y: u32) -> Option<&'a MapChunk> {
         self.chunks.get(self.size as usize * x as usize + y as usize)
     }
 
-    pub fn get_mut<'a>(&'a mut self, x: u32, y: u32) -> Option<&'a mut MacroChunk> {
+    pub fn get_mut<'a>(&'a mut self, x: u32, y: u32) -> Option<&'a mut MapChunk> {
         self.chunks.get_mut(self.size as usize * x as usize + y as usize)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::MacroWorld;
-
-    #[test]
-    fn new_world() {
-        let _mw = MacroWorld::new(1337, 4);
     }
 }

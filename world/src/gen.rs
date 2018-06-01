@@ -1,6 +1,6 @@
 use noise::{NoiseFn, OpenSimplex, Seedable};
 use euler::*;
-use super::Biome;
+use Biome;
 
 #[derive(Copy, Clone)]
 pub struct Generator {
