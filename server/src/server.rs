@@ -1,4 +1,3 @@
-use std::sync::{Mutex, Arc};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::collections::HashMap;
 
@@ -17,8 +16,8 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new<A: ToSocketAddrs>(bind_addr: A, seed: u32, world_size: u32) -> Option<Arc<Mutex<Server>>> {
-        let server = Arc::new(Mutex::new(Server {
+    pub fn new<A: ToSocketAddrs>(bind_addr: A, seed: u32, world_size: u32) -> Option<Server> {
+        let server = Server {
             running: true,
             time: 0.0,
             mw: MacroWorld::new(seed, world_size),
@@ -27,7 +26,7 @@ impl Server {
                 Err(_) => return None, // TODO: Handle errors correctly
             },
             players: HashMap::new(),
-        }));
+        };
 
         Some(server)
     }
@@ -36,8 +35,12 @@ impl Server {
         self.running
     }
 
-    pub fn handle_packet(&mut self) {
-        let (sock_addr, packet) = self.conn.recv();
+    pub fn conn(&self) -> ServerConn {
+        self.conn.clone()
+    }
+
+    pub fn handle_packet(&mut self, data: (SocketAddr, ClientPacket)) {
+        let (sock_addr, packet) = data;
 
         match packet {
             ClientPacket::Connect { alias } => {
@@ -70,6 +73,8 @@ impl Server {
                         Some(p) => p.alias().to_string(),
                         None => "<unknown>".to_string(),
                     };
+
+                    println!("[MSG] {}: {}", alias, msg);
 
                     let packet = ServerPacket::RecvChatMsg{ alias, msg };
 

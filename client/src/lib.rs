@@ -1,44 +1,51 @@
 extern crate network;
 
+mod client;
+
+// Reexports
+pub use client::ClientMode as ClientMode;
+
+use std::thread;
+use std::sync::{Mutex, Arc};
 use std::net::ToSocketAddrs;
-use network::client::ClientConn;
-use network::packet::ClientPacket;
+
+use client::Client;
 
 #[derive(Debug)]
 pub enum Error {
     ConnectionErr,
 }
 
-pub enum ClientMode {
-    Game,
-    Headless,
+pub struct ClientHandle {
+    client: Arc<Mutex<Client>>,
 }
 
-pub struct Client {
-    conn: ClientConn,
-}
-
-impl Client {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, bind_addr: T, remote_addr: U) -> Result<Client, Error> {
-        let conn = match ClientConn::new(bind_addr, remote_addr) {
-            Ok(conn) => conn,
-            Err(e) => panic!("ERR: {:?}", e), //return Err(Error::ConnectionErr),
-        };
-
-        Ok(Client {
-            conn,
+impl ClientHandle {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, bind_addr: T, remote_addr: U) -> Result<ClientHandle, Error> {
+        Ok(ClientHandle {
+            client: Arc::new(Mutex::new(match client::Client::new(mode, bind_addr, remote_addr) {
+                Ok(c) => c,
+                Err(e) => return Err(e),
+            })),
         })
     }
 
-    pub fn connect(&mut self) -> bool {
-        self.conn.send(ClientPacket::Connect{
-            alias: "test-player".to_string(),
-        })
+    pub fn run(&mut self) {
+        let client_ref = self.client.clone();
+        thread::spawn(move || {
+            let mut conn = client_ref.lock().unwrap().conn();
+            while client_ref.lock().unwrap().running() {
+                let data = conn.recv();
+                client_ref.lock().unwrap().handle_packet(data);
+            }
+        });
     }
 
-    pub fn send_chat_message(&mut self, msg: &str) -> bool {
-        self.conn.send(ClientPacket::SendChatMsg{
-            msg: msg.to_string(),
-        })
+    pub fn set_chat_callback<F: 'static + Fn(&str, &str) + Send>(&self, f: F) {
+        self.client.lock().unwrap().set_chat_callback(f);
+    }
+
+    pub fn send_chat_msg(&self, msg: &str) -> bool {
+        self.client.lock().unwrap().send_chat_msg(msg)
     }
 }

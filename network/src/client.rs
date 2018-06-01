@@ -1,6 +1,7 @@
 use std::io;
-use std::net::{UdpSocket, ToSocketAddrs};
+use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
 use packet::{ClientPacket, ServerPacket};
+
 
 pub struct ClientConn {
     sock: UdpSocket,
@@ -8,14 +9,18 @@ pub struct ClientConn {
 
 impl ClientConn {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> io::Result<ClientConn> {
-        println!("BIND = {}, REMOTE = {}", bind_addr.to_socket_addrs().unwrap().next().unwrap().to_string(), remote_addr.to_socket_addrs().unwrap().next().unwrap().to_string());
         let sock = UdpSocket::bind(bind_addr)?;
-        println!("BIND WORKED");
         sock.connect(remote_addr)?;
 
         Ok(ClientConn {
             sock,
         })
+    }
+
+    pub fn clone(&self) -> ClientConn {
+        ClientConn {
+            sock: self.sock.try_clone().unwrap(),
+        }
     }
 
     pub fn send(&self, pack: ClientPacket) -> bool {
@@ -25,11 +30,16 @@ impl ClientConn {
         }
     }
 
-    pub fn recv(&self) -> Option<ServerPacket> {
-        let mut data = [0; 4096];
-        match self.sock.recv(&mut data) {
-            Ok(_) => ServerPacket::from(&data),
-            Err(_) => None, // TODO: Handle error?
+    pub fn recv(&self) -> (SocketAddr, ServerPacket) {
+        let mut buff = [0; 1024];
+        loop {
+            match self.sock.recv_from(&mut buff) {
+                Ok((_, addr)) => match ServerPacket::from(&buff) {
+                    Some(packet) => return (addr, packet),
+                    _ => {},
+                },
+                Err(_) => {}, // TODO: Handle errors properly
+            }
         }
     }
 }

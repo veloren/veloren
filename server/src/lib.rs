@@ -17,18 +17,20 @@ pub struct ServerHandle {
 impl ServerHandle {
     pub fn new<A: ToSocketAddrs>(bind_addr: A, seed: u32, world_size: u32) -> Option<ServerHandle> {
         Some(ServerHandle {
-            server: match server::Server::new(bind_addr, seed, world_size) {
+            server: Arc::new(Mutex::new(match server::Server::new(bind_addr, seed, world_size) {
                 Some(s) => s,
                 None => return None,
-            },
+            })),
         })
     }
 
     pub fn run(&mut self) {
         let server_ref = self.server.clone();
         thread::spawn(move || {
+            let mut conn = server_ref.lock().unwrap().conn();
             while server_ref.lock().unwrap().running() {
-                server_ref.lock().unwrap().handle_packet();
+                let data = conn.recv();
+                server_ref.lock().unwrap().handle_packet(data);
             }
         });
 
