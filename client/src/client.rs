@@ -14,23 +14,25 @@ pub enum ClientMode {
 pub struct Client {
     running: bool,
     conn: ClientConn,
+    alias: String,
     chat_callback: Box<Fn(&str, &str) + Send>,
 }
 
 impl Client {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, bind_addr: T, remote_addr: U) -> Result<Client, Error> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: T, remote_addr: U) -> Result<Client, Error> {
         let conn = match ClientConn::new(bind_addr, remote_addr) {
             Ok(conn) => conn,
             Err(e) => return Err(Error::ConnectionErr),
         };
 
-        if !conn.send(ClientPacket::Connect{ alias: "test-player".to_string() }) {
+        if !conn.send(ClientPacket::Connect{ alias: alias.to_string() }) {
             return Err(Error::ConnectionErr);
         }
 
         Ok(Client {
             running: true,
             conn,
+            alias: alias.to_string(),
             chat_callback: Box::new(|a, m| {}),
         })
     }

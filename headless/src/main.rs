@@ -17,14 +17,23 @@ fn main() {
 
     let ip = local_ip::get().unwrap();
 
+    let mut port = String::new();
+    println!("Port:");
+    io::stdin().read_line(&mut port).unwrap();
+    let port = u16::from_str_radix(&port.trim(), 10).unwrap();
+
     let mut remote_addr = String::new();
     println!("Remote server address:");
     io::stdin().read_line(&mut remote_addr).unwrap();
 
+    let mut alias = String::new();
+    println!("Alias:");
+    io::stdin().read_line(&mut alias).unwrap();
+
     let mut win = Window::initscr();
     win.writeln("Welcome to the Verloren headless client.");
 
-    let mut client = match ClientHandle::new(ClientMode::Headless, SocketAddr::new(ip, PORT), &remote_addr.trim()) {
+    let mut client = match ClientHandle::new(ClientMode::Headless, &alias.trim(), SocketAddr::new(ip, port), &remote_addr.trim()) {
         Ok(c) => c,
         Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
@@ -38,7 +47,7 @@ fn main() {
 
     loop {
         if let Ok(msg) = rx.try_recv() {
-            win.writeln(format!("> {:?}", msg));
+            win.writeln(format!("{}", msg));
         }
 
         if let Some(msg) = win.get() {

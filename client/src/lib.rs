@@ -21,9 +21,9 @@ pub struct ClientHandle {
 }
 
 impl ClientHandle {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, bind_addr: T, remote_addr: U) -> Result<ClientHandle, Error> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: T, remote_addr: U) -> Result<ClientHandle, Error> {
         Ok(ClientHandle {
-            client: Arc::new(Mutex::new(match client::Client::new(mode, bind_addr, remote_addr) {
+            client: Arc::new(Mutex::new(match client::Client::new(mode, alias, bind_addr, remote_addr) {
                 Ok(c) => c,
                 Err(e) => return Err(e),
             })),
