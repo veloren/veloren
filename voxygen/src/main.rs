@@ -8,6 +8,7 @@ extern crate glutin;
 extern crate local_ip;
 
 extern crate client;
+extern crate region;
 
 mod game;
 mod window;

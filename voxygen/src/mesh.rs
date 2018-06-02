@@ -1,5 +1,6 @@
 use gfx;
 
+use region::{TerrainChunk, Voxel, BlockMaterial};
 use renderer::ColorFormat;
 
 gfx_defines! {
@@ -29,6 +30,11 @@ impl Mesh {
         Mesh {
             vertices: Vec::new(),
         }
+    }
+
+    pub fn from(chunk: &TerrainChunk) -> Mesh {
+        // TODO: Make this mesh the chunk
+        unimplemented!();
     }
 
     pub fn vert_count(&self) -> u32 {

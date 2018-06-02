@@ -5,9 +5,11 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 client = { path = "../client" }
+region = { path = "../region" }
 local-ip = "0.1"
 gfx = "0.17.1"
 gfx_macros = "0.2.1"
 gfx_window_glutin = "0.24.0"
 gfx_device_gl = "0.15.0"
 glutin = "0.16.0"
+enum-map = "0.2.31"
