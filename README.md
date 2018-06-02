@@ -9,9 +9,9 @@ Verloren is a multiplayer voxel game inspired by Cube World. It aims to emulate 
 
 Verloren is an open-source community project licensed under the General Public License version 3. We gratefully welcome community contributions, both technical and editorial.
 
-## Why so many directories?
+## Why so many crates?
 
-Verloren is designed in a modular manner. The client and server crates (libraries, for those not acquainted with Rust) make no assumptions about what interface will be used on top of them. Here follows a description of each crate.
+Verloren is designed in a modular manner. The various crates (libraries, for those not acquainted with Rust) of the project try to make no assumptions about what they will be used by and how.
 
 ### 'Core' crates
 
@@ -37,19 +37,19 @@ This crate provides code to manage networking on both the client and server ends
 
 ### 'Frontend' crates
 
-### `headless`
+#### `headless`
 
 This crate is a simple 'headless' (i.e: chat only) client frontend that connects to a server and allows the player to send and receive chat messages without having a physical character in the world. It uses the `client` crate.
 
-### `voxygen`
+#### `voxygen`
 
 The `voxygen` crate contains the official 3D frontend for Verloren. It allows players to connect to servers, play as a character within those server, and will eventually also support single player worlds via the network abstraction within the `network` crate (note: this isn't implemented yet). It uses the `client` crate. It uses the `server` crate.
 
-### `server-cli`
+#### `server-cli`
 
 This crate is a simple command-line interface (CLI) server frontend. It allows the hosting of a server in a headless environment such as a dedicated server.
 
-### `server-gui` (not yet implemented)
+#### `server-gui` (not yet implemented)
 
 This crate is a graphical user interface (GUI) server frontend. It allows the hosting of a server front an ordinary desktop PC with minimal effort and is designed for use by ordinary players wanting to host a server. It uses the `server` crate.
 
