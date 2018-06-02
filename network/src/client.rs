@@ -2,13 +2,14 @@ use std::io;
 use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
 use packet::{ClientPacket, ServerPacket};
 
+use Error;
 
 pub struct ClientConn {
     sock: UdpSocket,
 }
 
 impl ClientConn {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> io::Result<ClientConn> {
+    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> Result<ClientConn, Error> {
         let sock = UdpSocket::bind(bind_addr)?;
         sock.connect(remote_addr)?;
 
@@ -23,23 +24,18 @@ impl ClientConn {
         }
     }
 
-    pub fn send(&self, pack: &ClientPacket) -> bool {
-        match pack.serialize() {
-            Some(ref data) => self.sock.send(data).is_ok(),
-            None => false,
+    pub fn recv(&self) -> Result<(SocketAddr, ServerPacket), Error> {
+        let mut buff = [0; 1024];
+        match self.sock.recv_from(&mut buff) {
+            Ok((_, addr)) => Ok((addr, ServerPacket::from(&buff)?)),
+            Err(e) => Err(Error::NetworkErr(e)),
         }
     }
 
-    pub fn recv(&self) -> (SocketAddr, ServerPacket) {
-        let mut buff = [0; 1024];
-        loop {
-            match self.sock.recv_from(&mut buff) {
-                Ok((_, addr)) => match ServerPacket::from(&buff) {
-                    Some(packet) => return (addr, packet),
-                    _ => {},
-                },
-                Err(_) => {}, // TODO: Handle errors properly
-            }
+    pub fn send(&self, pack: &ClientPacket) -> Result<(), Error> {
+        match pack.serialize() {
+            Ok(ref data) => { self.sock.send(data)?; Ok(()) },
+            Err(e) => Err(e),
         }
     }
 }

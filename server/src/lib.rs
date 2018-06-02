@@ -11,6 +11,9 @@ use std::thread;
 use std::sync::{Mutex, Arc};
 use std::net::ToSocketAddrs;
 
+// Reexports
+pub use network::ClientMode;
+
 pub struct ServerHandle {
     server: Arc<Mutex<server::Server>>,
 }
@@ -30,8 +33,10 @@ impl ServerHandle {
         thread::spawn(move || {
             let mut conn = server_ref.lock().unwrap().conn();
             while server_ref.lock().unwrap().running() {
-                let data = conn.recv();
-                server_ref.lock().unwrap().handle_packet(data);
+                match conn.recv() {
+                    Ok(data) => server_ref.lock().unwrap().handle_packet(data),
+                    Err(_) => {}, // There was a packet error, but there's nothing we can or should do about it
+                }
             }
         });
 

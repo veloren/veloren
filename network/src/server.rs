@@ -2,13 +2,14 @@ use std::io;
 use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
 use packet::{ClientPacket, ServerPacket};
 
+use Error;
 
 pub struct ServerConn {
     sock: UdpSocket,
 }
 
 impl ServerConn {
-    pub fn new<A: ToSocketAddrs>(bind_addr: A) -> io::Result<ServerConn> {
+    pub fn new<A: ToSocketAddrs>(bind_addr: A) -> Result<ServerConn, Error> {
         Ok(ServerConn {
             sock: UdpSocket::bind(bind_addr)?,
         })
@@ -20,23 +21,18 @@ impl ServerConn {
         }
     }
 
-    pub fn recv(&mut self) -> (SocketAddr, ClientPacket) {
+    pub fn recv(&mut self) -> Result<(SocketAddr, ClientPacket), Error> {
         let mut buff = [0; 1024];
-        loop {
-            match self.sock.recv_from(&mut buff) {
-                Ok((_, addr)) => match ClientPacket::from(&buff) {
-                    Some(packet) => return (addr, packet),
-                    _ => {},
-                },
-                Err(_) => {}, // TODO: Handle errors properly
-            }
+        match self.sock.recv_from(&mut buff) {
+            Ok((_, addr)) => Ok((addr, ClientPacket::from(&buff)?)),
+            Err(e) => Err(Error::NetworkErr(e)),
         }
     }
 
-    pub fn send_to<A: ToSocketAddrs>(&self, sock_addr: A, pack: &ServerPacket) -> bool{
+    pub fn send_to<A: ToSocketAddrs>(&self, sock_addr: A, pack: &ServerPacket) -> Result<(), Error> {
         match pack.serialize() {
-            Some(ref data) => self.sock.send_to(data, sock_addr).is_ok(),
-            None => false,
+            Ok(ref data) => { self.sock.send_to(data, sock_addr)?; Ok(()) },
+            Err(e) => Err(e),
         }
     }
 }

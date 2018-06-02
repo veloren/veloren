@@ -1,5 +1,8 @@
 use bincode::{serialize, deserialize};
 
+use ClientMode;
+use Error;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
     Connected,
@@ -9,29 +12,41 @@ pub enum ServerPacket {
 }
 
 impl ServerPacket {
-    pub fn from(data: &[u8]) -> Option<ServerPacket> {
-        deserialize(data).ok() // TODO: Handle error?
+    pub fn from(data: &[u8]) -> Result<ServerPacket, Error> {
+        match deserialize(data) {
+            Ok(sp) => Ok(sp),
+            Err(_) => Err(Error::CannotDeserialize),
+        }
     }
 
-    pub fn serialize(&self) -> Option<Vec<u8>> {
-        serialize(&self).ok() // TODO: Handle error?
+    pub fn serialize(&self) -> Result<Vec<u8>, Error> {
+        match serialize(&self) {
+            Ok(data) => Ok(data),
+            Err(_) => Err(Error::CannotSerialize),
+        }
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ClientPacket {
-    Connect { alias: String },
+    Connect { mode: ClientMode, alias: String },
     Disconnect,
     Ping,
     SendChatMsg { msg: String },
 }
 
 impl ClientPacket {
-    pub fn from(data: &[u8]) -> Option<ClientPacket> {
-        deserialize(data).ok() // TODO: Handle error?
+    pub fn from(data: &[u8]) -> Result<ClientPacket, Error> {
+        match deserialize(data) {
+            Ok(sp) => Ok(sp),
+            Err(_) => Err(Error::CannotDeserialize),
+        }
     }
 
-    pub fn serialize(&self) -> Option<Vec<u8>> {
-        serialize(&self).ok() // TODO: Handle error?
+    pub fn serialize(&self) -> Result<Vec<u8>, Error> {
+        match serialize(&self) {
+            Ok(data) => Ok(data),
+            Err(_) => Err(Error::CannotSerialize),
+        }
     }
 }

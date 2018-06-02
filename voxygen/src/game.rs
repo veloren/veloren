@@ -9,7 +9,7 @@ use client::{ClientHandle, ClientMode};
 use window::{RenderWindow, Event};
 use camera::Camera;
 
-pub struct Game {
+struct Game {
     pub client: ClientHandle,
     pub window: RenderWindow,
     pub camera: Camera,
@@ -39,7 +39,7 @@ impl GameHandle {
 
         GameHandle {
             game: Arc::new(Mutex::new(Game {
-                client: ClientHandle::new(ClientMode::Game, &alias, SocketAddr::new(ip, port), remote_addr.trim())
+                client: ClientHandle::new(ClientMode::Player, &alias, SocketAddr::new(ip, port), remote_addr.trim())
                     .expect("Could not start client"),
                 window: RenderWindow::new(),
                 camera: Camera::new(),
@@ -48,23 +48,33 @@ impl GameHandle {
     }
 
     pub fn next_frame(&self) -> bool {
-        // Handle window events
         let mut running = true;
 
-        self.game.lock().unwrap().window.handle_events(|event| {
-            match event {
-                Event::CloseRequest => running = false,
-                Event::CursorMoved { dx, dy } => {}, //game.camera.rotate_by((dx as f32, dy as f32)),
-                _ => {},
-            }
-        });
+        // Handle window events
+        {
+            let mut game = self.game.lock().unwrap();
+
+            let mut cam_rot = (0.0, 0.0);
+            game.window.handle_events(|event| {
+                match event {
+                    Event::CloseRequest => running = false,
+                    Event::CursorMoved { dx, dy } => cam_rot = (dx as f32, dy as f32),
+                    _ => {},
+                }
+            });
+
+            game.camera.rotate_by(cam_rot);
+        }
 
         // Renderer the game
         self.game.lock().unwrap().window.renderer_mut().begin_frame();
 
         // Swap buffers, clean things up
-        self.game.lock().unwrap().window.swap_buffers();
-        self.game.lock().unwrap().window.renderer_mut().end_frame();
+        {
+            let mut game = self.game.lock().unwrap();
+            game.window.swap_buffers();
+            game.window.renderer_mut().end_frame();
+        }
 
         running
     }

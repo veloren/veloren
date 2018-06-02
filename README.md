@@ -43,7 +43,7 @@ This crate is a simple 'headless' (i.e: chat only) client frontend that connects
 
 #### `voxygen`
 
-The `voxygen` crate contains the official 3D frontend for Verloren. It allows players to connect to servers, play as a character within those server, and will eventually also support single player worlds via the network abstraction within the `network` crate (note: this isn't implemented yet). It uses the `client` crate. It uses the `server` crate.
+The `voxygen` crate contains the official 3D frontend for Verloren. It allows players to connect to servers, play as a character within those servers, and will eventually also support single player worlds via the network abstraction within the `network` crate (note: this isn't implemented yet). It uses the `client` crate. It uses the `server` crate.
 
 #### `server-cli`
 

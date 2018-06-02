@@ -1,15 +1,11 @@
 use std::boxed::Box;
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::ToSocketAddrs;
 
 use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
 
+use ClientMode;
 use Error;
-
-pub enum ClientMode {
-    Game,
-    Headless,
-}
 
 pub struct Client {
     running: bool,
@@ -20,20 +16,14 @@ pub struct Client {
 
 impl Client {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: T, remote_addr: U) -> Result<Client, Error> {
-        let conn = match ClientConn::new(bind_addr, remote_addr) {
-            Ok(conn) => conn,
-            Err(_) => return Err(Error::ConnectionErr),
-        };
-
-        if !conn.send(&ClientPacket::Connect{ alias: alias.to_string() }) {
-            return Err(Error::ConnectionErr);
-        }
+        let conn = ClientConn::new(bind_addr, remote_addr)?;
+        conn.send(&ClientPacket::Connect{ mode, alias: alias.to_string() })?;
 
         Ok(Client {
             running: true,
             conn,
             alias: alias.to_string(),
-            chat_callback: Box::new(|_, _| {}),
+            chat_callback: Box::new(|_a, _s| {}),
         })
     }
 
@@ -49,9 +39,7 @@ impl Client {
         self.conn.clone()
     }
 
-    pub fn handle_packet(&mut self, data: (SocketAddr, ServerPacket)) {
-        let (sock_addr, packet) = data;
-
+    pub fn handle_packet(&mut self, packet: ServerPacket) {
         match packet {
             ServerPacket::Connected => {
                 // Nothing yet
@@ -68,15 +56,16 @@ impl Client {
         self.chat_callback = Box::new(f);
     }
 
-    pub fn send_chat_msg(&mut self, msg: &str) -> bool {
+    pub fn send_chat_msg(&mut self, msg: &str) -> Result<(), Error> {
         self.conn.send(&ClientPacket::SendChatMsg{
             msg: msg.to_string(),
-        })
+        })?;
+        Ok(())
     }
 }
 
 impl Drop for Client {
     fn drop(&mut self) {
-        self.conn.send(&ClientPacket::Disconnect);
+        self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
     }
 }

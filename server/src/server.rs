@@ -43,14 +43,14 @@ impl Server {
         let (sock_addr, packet) = data;
 
         match packet {
-            ClientPacket::Connect { alias } => {
+            ClientPacket::Connect { mode, alias } => {
                 if self.players.contains_key(&sock_addr) {
                     match self.players.get(&sock_addr) {
                         Some(p) => println!("[WARNING] Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
                         None => {},
                     }
                 } else {
-                    self.players.insert(sock_addr, Player::new(&alias));
+                    self.players.insert(sock_addr, Player::new(mode, &alias));
                     println!("[INFO] Player '{}' connected!", alias);
                 }
             },
@@ -62,7 +62,7 @@ impl Server {
             },
             ClientPacket::Ping => {
                 if self.players.contains_key(&sock_addr) {
-                    self.conn.send_to(sock_addr, &ServerPacket::Ping);
+                    let _ = self.conn.send_to(sock_addr, &ServerPacket::Ping);
                 } else {
                     println!("[WARNING] A ping was received from an unconnected player");
                 }
@@ -79,7 +79,7 @@ impl Server {
                     let packet = ServerPacket::RecvChatMsg{ alias, msg };
 
                     for sock_addr in self.players.keys() {
-                        self.conn.send_to(sock_addr, &packet);
+                        let _ = self.conn.send_to(sock_addr, &packet);
                     }
                 }
             },
@@ -94,8 +94,10 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
-        for sock_addr in self.players.keys() {
-            self.conn.send_to(sock_addr, &ServerPacket::Shutdown);
+        for (sock_addr, player) in &self.players {
+            self.conn.send_to(sock_addr, &ServerPacket::Shutdown).unwrap_or_else(|e| {
+                println!("[WARNING] Failed to send shutdown packet to player '{}' ({}): {:?}", player.alias(), sock_addr.to_string(), e);
+            });
         }
     }
 }
