@@ -10,6 +10,7 @@ extern crate client;
 mod game;
 mod window;
 mod renderer;
+mod mesh;
 
 // Reexports
 use game::GameHandle;

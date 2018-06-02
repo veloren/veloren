@@ -3,6 +3,9 @@ use gfx_device_gl;
 
 use window::{RenderWindow, ColorView, DepthView};
 
+pub use window::ColorFormat;
+pub use window::DepthFormat;
+
 pub struct Renderer {
     window: RenderWindow,
     color_view: ColorView,

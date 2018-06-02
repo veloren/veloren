@@ -33,16 +33,7 @@ impl RenderWindow {
         let (gl_window, device, factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
-        (
-            RenderWindow {
-                events_loop,
-                gl_window,
-            },
-            device,
-            factory,
-            color_view,
-            depth_view,
-        )
+        (RenderWindow { events_loop, gl_window }, device, factory, color_view, depth_view)
     }
 
     pub fn handle_events(&mut self) -> bool {
