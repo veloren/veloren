@@ -51,17 +51,13 @@ impl GameHandle {
         // Handle window events
         let mut running = true;
 
-        let mut game = self.game.lock().unwrap();
-        {
-            game.window.handle_events(move |event| {
-                match event {
-                    Event::CloseRequest => running = false,
-                    Event::CursorMoved { dx, dy } => game.camera.rotate_by((dx as f32, dy as f32)),
-                    _ => {},
-                }
-                println!("Event occured!");
-            });
-        }
+        self.game.lock().unwrap().window.handle_events(|event| {
+            match event {
+                Event::CloseRequest => running = false,
+                Event::CursorMoved { dx, dy } => {}, //game.camera.rotate_by((dx as f32, dy as f32)),
+                _ => {},
+            }
+        });
 
         // Renderer the game
         self.game.lock().unwrap().window.renderer_mut().begin_frame();
