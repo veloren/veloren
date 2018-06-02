@@ -2,7 +2,7 @@ use std::io;
 use std::sync::{Arc, Mutex};
 use std::net::SocketAddr;
 
-use local_ip;
+use get_if_addrs;
 
 use client::{ClientHandle, ClientMode};
 
@@ -19,14 +19,16 @@ pub struct GameHandle {
 
 impl GameHandle {
     pub fn new(alias: &str) -> GameHandle {
-        let ip = local_ip::get().unwrap();
-
         // TODO: Seriously? This needs to go. Make it auto-detect this stuff
         // <rubbish>
+        let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
+
         let mut port = String::new();
         println!("Local port [59001]:");
         io::stdin().read_line(&mut port).unwrap();
         let port = u16::from_str_radix(&port.trim(), 10).unwrap();
+
+        println!("Binding to {}:{}...", ip.to_string(), port);
 
         let mut remote_addr = String::new();
         println!("Remote server address:");

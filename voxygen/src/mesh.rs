@@ -1,4 +1,5 @@
 use gfx;
+use enum_map::EnumMap;
 
 use region::{TerrainChunk, Voxel, BlockMaterial};
 use renderer::ColorFormat;
@@ -33,6 +34,12 @@ impl Mesh {
     }
 
     pub fn from(chunk: &TerrainChunk) -> Mesh {
+        let color_map = enum_map! {
+            BlockMaterial::Air => vec4!(0.0, 0.0, 0.0, 0.0),
+            BlockMaterial::Grass => vec4!(0.0, 1.0, 0.0, 1.0),
+            BlockMaterial::Stone => vec4!(0.5, 0.5, 0.5, 1.0),
+        };
+
         // TODO: Make this mesh the chunk
         unimplemented!();
     }

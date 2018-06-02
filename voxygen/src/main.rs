@@ -1,11 +1,13 @@
 #[macro_use]
 extern crate gfx;
-#[macro_use]
-extern crate gfx_macros;
 extern crate gfx_window_glutin;
 extern crate gfx_device_gl;
 extern crate glutin;
-extern crate local_ip;
+extern crate get_if_addrs;
+#[macro_use]
+extern crate enum_map;
+#[macro_use]
+extern crate euler;
 
 extern crate client;
 extern crate region;

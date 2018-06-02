@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
+enum-map = "0.2.31"

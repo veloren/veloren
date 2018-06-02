@@ -1,5 +1,5 @@
 extern crate server;
-extern crate local_ip;
+extern crate get_if_addrs;
 
 use std::net::SocketAddr;
 use server::ServerHandle;
@@ -9,7 +9,7 @@ const PORT: u16 = 59003;
 fn main() {
     println!("Started server-cli...");
 
-    let ip = local_ip::get().unwrap();
+    let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
 
     println!("Hosting on {}:{}...", ip.to_string(), PORT);
 
