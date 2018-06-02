@@ -5,9 +5,53 @@
 ## What is Verloren?
 Verloren is a multiplayer voxel game inspired by Cube World. It aims to emulate the feel of Cube World while deviating in its features.
 
-## Licensing and Contribution
+## Licensing and contribution
 
 Verloren is an open-source community project licensed under the General Public License version 3. We gratefully welcome community contributions, both technical and editorial.
+
+## Why so many directories?
+
+Verloren is designed in a modular manner. The client and server crates (libraries, for those not acquainted with Rust) make no assumptions about what interface will be used on top of them. Here follows a description of each crate.
+
+### 'Core' crates
+
+#### `client`
+
+The client crate. Used by client 'frontends' to manage all the low-level details of running a Verloren client like handling the server connection, entity physics predictions, terrain updates, etc.
+
+#### `server`
+
+The server crate. Like the `client` crate, it's used by server frontends to manage the low-level details of running a Verloren server like handling client connections, entity physics, terrain generation, world simulation, etc.
+
+#### `world`
+
+This crate provides code that relates to large-scale world generation and simulation. It contains code that manages weather systems, the virtual economy, quest generation, civilisation simulation, etc. Currently, it is only used by the `server` crate, but we're keeping it separate since we anticipate that it may be used by third-party tools.
+
+#### `region`
+
+This crate provides code that relates to local world simulation (i.e: that which occurs close to a player). It contains code that manages entity physics, chunk updates, NPC AI, etc. It is used by both the `client` and `server` crates.
+
+#### `network`
+
+This crate provides code to manage networking on both the client and server ends. It includes things like connection management, packet serialization/deserialization, etc. It is used by both the `client` and `server` crates.
+
+### 'Frontend' crates
+
+### `headless`
+
+This crate is a simple 'headless' (i.e: chat only) client frontend that connects to a server and allows the player to send and receive chat messages without having a physical character in the world. It uses the `client` crate.
+
+### `voxygen`
+
+The `voxygen` crate contains the official 3D frontend for Verloren. It allows players to connect to servers, play as a character within those server, and will eventually also support single player worlds via the network abstraction within the `network` crate (note: this isn't implemented yet). It uses the `client` crate. It uses the `server` crate.
+
+### `server-cli`
+
+This crate is a simple command-line interface (CLI) server frontend. It allows the hosting of a server in a headless environment such as a dedicated server.
+
+### `server-gui` (not yet implemented)
+
+This crate is a graphical user interface (GUI) server frontend. It allows the hosting of a server front an ordinary desktop PC with minimal effort and is designed for use by ordinary players wanting to host a server. It uses the `server` crate.
 
 ## Compilation
 

@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate client;
 extern crate local_ip;
 extern crate syrup;

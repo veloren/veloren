@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 #[macro_use]
 extern crate gfx;
 extern crate gfx_window_glutin;
@@ -18,10 +20,9 @@ mod renderer;
 mod mesh;
 mod vertex_buffer;
 mod pipeline;
+mod camera;
 
-// Reexports
 use game::GameHandle;
-use window::RenderWindow;
 
 fn main() {
     println!("Starting Voxygen...");

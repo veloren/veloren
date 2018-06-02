@@ -6,11 +6,13 @@ use get_if_addrs;
 
 use client::{ClientHandle, ClientMode};
 
-use RenderWindow;
+use window::{RenderWindow, Event};
+use camera::Camera;
 
 pub struct Game {
     pub client: ClientHandle,
     pub window: RenderWindow,
+    pub camera: Camera,
 }
 
 pub struct GameHandle {
@@ -40,13 +42,26 @@ impl GameHandle {
                 client: ClientHandle::new(ClientMode::Game, &alias, SocketAddr::new(ip, port), remote_addr.trim())
                     .expect("Could not start client"),
                 window: RenderWindow::new(),
+                camera: Camera::new(),
             })),
         }
     }
 
     pub fn next_frame(&self) -> bool {
         // Handle window events
-        let running = self.game.lock().unwrap().window.handle_events();
+        let mut running = true;
+
+        let mut game = self.game.lock().unwrap();
+        {
+            game.window.handle_events(move |event| {
+                match event {
+                    Event::CloseRequest => running = false,
+                    Event::CursorMoved { dx, dy } => game.camera.rotate_by((dx as f32, dy as f32)),
+                    _ => {},
+                }
+                println!("Event occured!");
+            });
+        }
 
         // Renderer the game
         self.game.lock().unwrap().window.renderer_mut().begin_frame();

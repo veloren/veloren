@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate noise;
 #[macro_use]
 extern crate euler;

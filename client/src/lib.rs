@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate network;
 extern crate region;
 

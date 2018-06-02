@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate server;
 extern crate get_if_addrs;
 

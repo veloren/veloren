@@ -3,6 +3,7 @@ rust:
   - stable
 before_install:
   - sudo apt-get install -y libsfml-dev libcsfml-dev
+  - rustup default nightly
 env:
   - CRATE="world"
   - CRATE="region"

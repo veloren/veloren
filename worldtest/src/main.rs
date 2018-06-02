@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate world;
 extern crate sfml;
 

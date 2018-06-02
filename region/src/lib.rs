@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 #[macro_use]
 extern crate enum_map;
 
