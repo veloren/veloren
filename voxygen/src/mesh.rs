@@ -9,14 +9,14 @@ gfx_defines! {
         col: [f32; 3] = "vert_col",
     }
 
-    constant Transform {
+    constant Uniforms {
         trans: [[f32; 4]; 4] = "uni_trans",
     }
 
     pipeline pipe {
-        vert_buf: gfx::VertexBuffer<Vertex> = (),
-        trans: gfx::ConstantBuffer<Transform> = "trans",
-        out: gfx::RenderTarget<ColorFormat> = "tgt0",
+        vbuf: gfx::VertexBuffer<Vertex> = (),
+        uniforms: gfx::ConstantBuffer<Uniforms> = "uniform",
+        out: gfx::RenderTarget<ColorFormat> = "target",
     }
 }
 
@@ -29,5 +29,9 @@ impl Mesh {
         Mesh {
             vertices: Vec::new(),
         }
+    }
+
+    pub fn vertices<'a>(&'a self) -> &'a Vec<Vertex> {
+        &self.vertices
     }
 }

@@ -27,13 +27,17 @@ impl Renderer {
         }
     }
 
+    pub fn factory_mut<'a>(&'a mut self) -> &'a mut gfx_device_gl::Factory {
+        &mut self.factory
+    }
+
     pub fn begin_frame(&mut self) {
         self.encoder.clear(&self.color_view, [0.3, 0.3, 0.6, 1.0]);
         self.encoder.clear_depth(&self.depth_view, 1.0);
-        self.encoder.flush(&mut self.device);
     }
 
     pub fn end_frame(&mut self) {
+        self.encoder.flush(&mut self.device);
         self.device.cleanup();
     }
 }

@@ -11,6 +11,8 @@ mod game;
 mod window;
 mod renderer;
 mod mesh;
+mod vertex_buffer;
+mod pipeline;
 
 // Reexports
 use game::GameHandle;
