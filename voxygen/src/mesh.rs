@@ -9,13 +9,13 @@ gfx_defines! {
         col: [f32; 3] = "vert_col",
     }
 
-    constant Uniforms {
+    constant Constants {
         trans: [[f32; 4]; 4] = "uni_trans",
     }
 
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
-        uniforms: gfx::ConstantBuffer<Uniforms> = "uniform",
+        constants: gfx::ConstantBuffer<Constants> = "constants",
         out: gfx::RenderTarget<ColorFormat> = "target",
     }
 }
@@ -31,7 +31,15 @@ impl Mesh {
         }
     }
 
+    pub fn vert_count(&self) -> u32 {
+        self.vertices.len() as u32
+    }
+
     pub fn vertices<'a>(&'a self) -> &'a Vec<Vertex> {
         &self.vertices
+    }
+
+    pub fn add(&mut self, verts: &[Vertex]) {
+        self.vertices.extend_from_slice(verts);
     }
 }

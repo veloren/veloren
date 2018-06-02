@@ -24,7 +24,7 @@ impl RenderWindow {
             .with_gl(GlRequest::Specific(OpenGl, (3, 2)))
             .with_vsync(true);
 
-        let (gl_window, device, mut factory, color_view, depth_view) =
+        let (gl_window, device, factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
         RenderWindow {
