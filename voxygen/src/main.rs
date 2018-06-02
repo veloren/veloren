@@ -14,7 +14,7 @@ mod mesh;
 
 // Reexports
 use game::GameHandle;
-use renderer::Renderer;
+use window::RenderWindow;
 
 fn main() {
     println!("Starting Voxygen...");

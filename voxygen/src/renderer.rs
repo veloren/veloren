@@ -1,35 +1,30 @@
-use gfx::{Device, Encoder};
+use gfx;
+use gfx::{Device, Encoder, handle::RenderTargetView, handle::DepthStencilView};
 use gfx_device_gl;
 
-use window::{RenderWindow, ColorView, DepthView};
+pub type ColorFormat = gfx::format::Srgba8;
+pub type DepthFormat = gfx::format::DepthStencil;
 
-pub use window::ColorFormat;
-pub use window::DepthFormat;
+pub type ColorView = RenderTargetView<gfx_device_gl::Resources, ColorFormat>;
+pub type DepthView = DepthStencilView<gfx_device_gl::Resources, DepthFormat>;
 
 pub struct Renderer {
-    window: RenderWindow,
+    device: gfx_device_gl::Device,
     color_view: ColorView,
     depth_view: DepthView,
-    device: gfx_device_gl::Device,
     factory: gfx_device_gl::Factory,
     encoder: Encoder<gfx_device_gl::Resources, gfx_device_gl::CommandBuffer>,
 }
 
 impl Renderer {
-    pub fn new() -> Renderer {
-        let (window, device, mut factory, color_view, depth_view) = RenderWindow::new();
+    pub fn new(device: gfx_device_gl::Device, mut factory: gfx_device_gl::Factory, color_view: ColorView, depth_view: DepthView) -> Renderer {
         Renderer {
+            device,
             color_view,
             depth_view,
             encoder: factory.create_command_buffer().into(),
-            device,
             factory,
-            window,
         }
-    }
-
-    pub fn window<'a>(&'a mut self) -> &'a mut RenderWindow {
-        &mut self.window
     }
 
     pub fn begin_frame(&mut self) {
@@ -39,7 +34,6 @@ impl Renderer {
     }
 
     pub fn end_frame(&mut self) {
-        self.window.swap_buffers();
         self.device.cleanup();
     }
 }

@@ -6,11 +6,11 @@ use local_ip;
 
 use client::{ClientHandle, ClientMode};
 
-use Renderer;
+use RenderWindow;
 
 pub struct Game {
     pub client: ClientHandle,
-    pub renderer: Renderer,
+    pub window: RenderWindow,
 }
 
 pub struct GameHandle {
@@ -37,20 +37,21 @@ impl GameHandle {
             game: Arc::new(Mutex::new(Game {
                 client: ClientHandle::new(ClientMode::Game, &alias, SocketAddr::new(ip, port), remote_addr.trim())
                     .expect("Could not start client"),
-                renderer: Renderer::new(),
+                window: RenderWindow::new(),
             })),
         }
     }
 
     pub fn next_frame(&self) -> bool {
         // Handle window events
-        let running = self.game.lock().unwrap().renderer.window().handle_events();
+        let running = self.game.lock().unwrap().window.handle_events();
 
         // Renderer the game
-        self.game.lock().unwrap().renderer.begin_frame();
+        self.game.lock().unwrap().window.renderer_mut().begin_frame();
 
         // Swap buffers, clean things up
-        self.game.lock().unwrap().renderer.end_frame();
+        self.game.lock().unwrap().window.swap_buffers();
+        self.game.lock().unwrap().window.renderer_mut().end_frame();
 
         running
     }

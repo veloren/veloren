@@ -1,25 +1,19 @@
-use gfx;
 use gfx_window_glutin;
 use glutin;
 
-use gfx::{handle::RenderTargetView, handle::DepthStencilView};
 use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow};
-use gfx_device_gl;
 use glutin::Api::OpenGl;
 
-pub type ColorFormat = gfx::format::Srgba8;
-pub type DepthFormat = gfx::format::DepthStencil;
-
-pub type ColorView = RenderTargetView<gfx_device_gl::Resources, ColorFormat>;
-pub type DepthView = DepthStencilView<gfx_device_gl::Resources, DepthFormat>;
+use renderer::{Renderer, ColorFormat, DepthFormat};
 
 pub struct RenderWindow {
     events_loop: EventsLoop,
     gl_window: GlWindow,
+    renderer: Renderer,
 }
 
 impl RenderWindow {
-    pub fn new() -> (RenderWindow, gfx_device_gl::Device, gfx_device_gl::Factory, ColorView, DepthView) {
+    pub fn new() -> RenderWindow {
         let events_loop = EventsLoop::new();
         let win_builder = WindowBuilder::new()
             .with_title("Verloren (Voxygen)")
@@ -30,10 +24,18 @@ impl RenderWindow {
             .with_gl(GlRequest::Specific(OpenGl, (3, 2)))
             .with_vsync(true);
 
-        let (gl_window, device, factory, color_view, depth_view) =
+        let (gl_window, device, mut factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
-        (RenderWindow { events_loop, gl_window }, device, factory, color_view, depth_view)
+        RenderWindow {
+            events_loop,
+            gl_window,
+            renderer: Renderer::new(device, factory, color_view, depth_view),
+        }
+    }
+
+    pub fn renderer_mut<'a>(&'a mut self) -> &'a mut Renderer {
+        &mut self.renderer
     }
 
     pub fn handle_events(&mut self) -> bool {
