@@ -50,7 +50,7 @@ impl Server {
                         None => {},
                     }
                 } else {
-                    self.players.insert(sock_addr, Player::new(mode, &alias));
+                    self.players.insert(sock_addr, Player::new(mode, &alias, Coordinate::new(0.0, 0.0, 0.0)));
                     println!("[INFO] Player '{}' connected!", alias);
                 }
             },
