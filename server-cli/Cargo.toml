@@ -2,7 +2,10 @@
 name = "server-cli"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gmail.com>"]
+RUST_LOG = info
 
 [dependencies]
 server = { path = "../server" }
 get_if_addrs = "0.5.2"
+log = "0.4.1"
+pretty_env_logger = "0.2.3"

@@ -1,5 +1,6 @@
 #![feature(nll)]
-
+#[macro_use]
+extern crate log;
 extern crate world;
 extern crate network;
 
