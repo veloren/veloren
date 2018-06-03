@@ -1,9 +1,8 @@
-use gfx::{handle::Buffer, traits::FactoryExt, Slice, IndexBuffer};
-use gfx::pso::PipelineState;
+use gfx::{traits::FactoryExt, Slice, IndexBuffer};
 use gfx_device_gl;
 
 use renderer::ColorView;
-use mesh::{Mesh, Vertex, pipe};
+use mesh::{Mesh, pipe};
 
 type Data = pipe::Data<gfx_device_gl::Resources>;
 

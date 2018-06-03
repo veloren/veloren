@@ -1,81 +1,58 @@
-use std::io;
+use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
-use std::net::SocketAddr;
-
-use get_if_addrs;
 
 use client::{ClientHandle, ClientMode};
-
-use window::{RenderWindow, Event};
 use camera::Camera;
+use window::{RenderWindow, Event};
 
-struct Game {
-    pub client: ClientHandle,
-    pub window: RenderWindow,
-    pub camera: Camera,
+pub struct Game {
+    pub client: Arc<Mutex<ClientHandle>>,
+    pub window: Arc<Mutex<RenderWindow>>,
+    pub camera: Arc<Mutex<Camera>>,
 }
 
-pub struct GameHandle {
-    game: Arc<Mutex<Game>>,
-}
-
-impl GameHandle {
-    pub fn new(alias: &str) -> GameHandle {
-        // TODO: Seriously? This needs to go. Make it auto-detect this stuff
-        // <rubbish>
-        let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
-
-        let mut port = String::new();
-        println!("Local port [59001]:");
-        io::stdin().read_line(&mut port).unwrap();
-        let port = u16::from_str_radix(&port.trim(), 10).unwrap();
-
-        println!("Binding to {}:{}...", ip.to_string(), port);
-
-        let mut remote_addr = String::new();
-        println!("Remote server address:");
-        io::stdin().read_line(&mut remote_addr).unwrap();
-        // </rubbish>
-
-        GameHandle {
-            game: Arc::new(Mutex::new(Game {
-                client: ClientHandle::new(ClientMode::Player, &alias, SocketAddr::new(ip, port), remote_addr.trim())
-                    .expect("Could not start client"),
-                window: RenderWindow::new(),
-                camera: Camera::new(),
-            })),
+impl Game {
+    pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
+        Game {
+            client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
+                .expect("Could not start client"))),
+            window: Arc::new(Mutex::new(RenderWindow::new())),
+            camera: Arc::new(Mutex::new(Camera::new())),
         }
     }
 
-    pub fn next_frame(&self) -> bool {
-        let mut running = true;
+    pub fn handle_window_events(&self) -> bool {
+        let mut keep_running = true;
 
-        // Handle window events
-        {
-            let mut game = self.game.lock().unwrap();
+        let mut cam_rot = (0.0, 0.0);
+        self.window.lock().unwrap().handle_events(|event| {
+            match event {
+                Event::CloseRequest => keep_running = false,
+                Event::CursorMoved { dx, dy } => cam_rot = (dx as f32, dy as f32),
+                _ => {},
+            }
+        });
 
-            let mut cam_rot = (0.0, 0.0);
-            game.window.handle_events(|event| {
-                match event {
-                    Event::CloseRequest => running = false,
-                    Event::CursorMoved { dx, dy } => cam_rot = (dx as f32, dy as f32),
-                    _ => {},
-                }
-            });
+        self.camera.lock().unwrap().rotate_by(cam_rot);
 
-            game.camera.rotate_by(cam_rot);
+        keep_running
+    }
+
+    pub fn update_logic(&self) {
+        // Nothing yet
+    }
+
+    pub fn render_frame(&self) {
+        let mut window = self.window.lock().unwrap();
+        window.renderer_mut().begin_frame();
+        window.swap_buffers();
+        window.renderer_mut().end_frame();
+    }
+
+    pub fn run(&self) {
+        while self.handle_window_events() {
+            self.update_logic();
+            self.render_frame();
         }
-
-        // Renderer the game
-        self.game.lock().unwrap().window.renderer_mut().begin_frame();
-
-        // Swap buffers, clean things up
-        {
-            let mut game = self.game.lock().unwrap();
-            game.window.swap_buffers();
-            game.window.renderer_mut().end_frame();
-        }
-
-        running
     }
 }

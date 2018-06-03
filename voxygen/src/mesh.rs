@@ -1,5 +1,4 @@
 use gfx;
-use enum_map::EnumMap;
 
 use region::{TerrainChunk, Voxel, BlockMaterial};
 use renderer::ColorFormat;

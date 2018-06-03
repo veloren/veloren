@@ -46,7 +46,7 @@ impl RenderWindow {
     }
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
-        let mut last_cursor_pos = self.last_cursor_pos; // We do this because Rust doesn't have intelligent mutable reference checking yet
+        let last_cursor_pos = &mut self.last_cursor_pos; // We need to change this inside the closure, so we take a mutable reference
 
         self.events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -56,15 +56,13 @@ impl RenderWindow {
                             dx: position.0 - last_cursor_pos.0,
                             dy: position.1 - last_cursor_pos.1
                         });
-                        last_cursor_pos = position; // We calculate the difference in the cursor position between frames
+                        *last_cursor_pos = position; // Current cursor position becomes last position
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},
                 }
             }
         });
-
-        self.last_cursor_pos = last_cursor_pos;
     }
 
     pub fn swap_buffers(&mut self) {
