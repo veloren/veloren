@@ -1,7 +1,7 @@
 use gfx_window_glutin;
 use glutin;
 
-use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, WindowEvent};
+use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, WindowEvent, CursorState};
 use glutin::Api::OpenGl;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
@@ -15,7 +15,6 @@ pub struct RenderWindow {
     events_loop: EventsLoop,
     gl_window: GlWindow,
     renderer: Renderer,
-    last_cursor_pos: (f64, f64),
 }
 
 impl RenderWindow {
@@ -33,11 +32,12 @@ impl RenderWindow {
         let (gl_window, device, factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
+        gl_window.set_cursor_state(CursorState::Hide);
+
         RenderWindow {
             events_loop,
             gl_window,
             renderer: Renderer::new(device, factory, color_view, depth_view),
-            last_cursor_pos: (0.0, 0.0),
         }
     }
 
@@ -46,17 +46,24 @@ impl RenderWindow {
     }
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
-        let last_cursor_pos = &mut self.last_cursor_pos; // We need to change this inside the closure, so we take a mutable reference
+        // We need to change this inside the closure, so we take a mutable reference
+        let window = &mut self.gl_window;
 
         self.events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
                     WindowEvent::CursorMoved { position, .. } => {
-                        func(Event::CursorMoved {
-                            dx: position.0 - last_cursor_pos.0,
-                            dy: position.1 - last_cursor_pos.1
-                        });
-                        *last_cursor_pos = position; // Current cursor position becomes last position
+                        match window.get_inner_size() {
+                            Some((x, y)) => {
+                                func(Event::CursorMoved {
+                                    dx: position.0 - x as f64 * 0.5,
+                                    dy: position.1 - y as f64 * 0.5,
+                                });
+                                // TODO: Should we handle this result?
+                                let _ = window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                            },
+                            None => {},
+                        }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},

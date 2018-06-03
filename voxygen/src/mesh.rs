@@ -1,4 +1,4 @@
-use gfx;
+use nalgebra::Vector4;
 
 use region::{TerrainChunk, Voxel, BlockMaterial};
 
@@ -23,9 +23,9 @@ impl Mesh {
 
     pub fn from(chunk: &TerrainChunk) -> Mesh {
         let color_map = enum_map! {
-            BlockMaterial::Air => vec4!(0.0, 0.0, 0.0, 0.0),
-            BlockMaterial::Grass => vec4!(0.0, 1.0, 0.0, 1.0),
-            BlockMaterial::Stone => vec4!(0.5, 0.5, 0.5, 1.0),
+            BlockMaterial::Air => Vector4::new(0.0, 0.0, 0.0, 0.0),
+            BlockMaterial::Grass => Vector4::new(0.0, 1.0, 0.0, 1.0),
+            BlockMaterial::Stone => Vector4::new(0.5, 0.5, 0.5, 1.0),
         };
 
         // TODO: Make this mesh the chunk

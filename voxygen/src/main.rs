@@ -9,7 +9,7 @@ extern crate get_if_addrs;
 #[macro_use]
 extern crate enum_map;
 #[macro_use]
-extern crate euler;
+extern crate nalgebra;
 
 extern crate client;
 extern crate region;

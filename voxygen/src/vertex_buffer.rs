@@ -1,6 +1,7 @@
 use gfx;
 use gfx::{traits::FactoryExt, Slice, IndexBuffer};
 use gfx_device_gl;
+use nalgebra::Matrix4;
 
 use mesh::{Mesh, Vertex};
 use renderer::{Renderer, ColorFormat};
@@ -9,13 +10,33 @@ type Data = pipe::Data<gfx_device_gl::Resources>;
 
 gfx_defines! {
     constant Constants {
-        trans: [[f32; 4]; 4] = "uni_trans",
+        camera_mat: [[f32; 4]; 4] = "camera_mat",
+        model_mat: [[f32; 4]; 4] = "model_mat",
     }
 
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
         constants: gfx::ConstantBuffer<Constants> = "constants",
         out: gfx::RenderTarget<ColorFormat> = "target",
+    }
+}
+
+fn mat4_to_array(mat: &Matrix4<f32>) -> [[f32; 4]; 4] {
+    let s = mat.as_slice();
+    [
+        [s[0],  s[1],  s[2],  s[3]],
+        [s[4],  s[5],  s[6],  s[7]],
+        [s[8],  s[9],  s[10], s[11]],
+        [s[12], s[13], s[14], s[15]],
+    ]
+}
+
+impl Constants {
+    pub fn new(camera_mat: &Matrix4<f32>, model_mat: &Matrix4<f32>) -> Constants {
+        Constants {
+            camera_mat: mat4_to_array(&camera_mat),
+            model_mat: mat4_to_array(&camera_mat),
+        }
     }
 }
 

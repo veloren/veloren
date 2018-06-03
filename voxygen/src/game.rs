@@ -1,6 +1,8 @@
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 
+use nalgebra::{Vector2, Matrix4};
+
 use client::{ClientHandle, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
@@ -27,6 +29,10 @@ impl Game {
             Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0.] },
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0.] },
             Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1.] },
+
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0.] },
         ]);
 
         Game {
@@ -49,7 +55,9 @@ impl Game {
         self.window.lock().unwrap().handle_events(|event| {
             match event {
                 Event::CloseRequest => keep_running = false,
-                Event::CursorMoved { dx, dy } => self.data.lock().unwrap().camera.rotate_by((dx as f32, dy as f32)),
+                Event::CursorMoved { dx, dy } => {
+                    self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * -0.005, dy as f32 * 0.005))
+                },
                 _ => {},
             }
         });
@@ -66,16 +74,13 @@ impl Game {
 
         window.renderer_mut().begin_frame();
 
-        const CONSTANTS: Constants = Constants {
-            trans: [
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0]
-            ],
-        };
+        let camera_mat = self.data.lock().unwrap().camera.get_mat();
 
-        window.renderer_mut().render_vertex_buffer(&self.data.lock().unwrap().test_model, CONSTANTS);
+        // Render the test model
+        window.renderer_mut().render_vertex_buffer(
+            &self.data.lock().unwrap().test_model,
+            Constants::new(&camera_mat, &Matrix4::<f32>::identity()),
+        );
 
         window.swap_buffers();
         window.renderer_mut().end_frame();
