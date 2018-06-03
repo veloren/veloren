@@ -1,9 +1,11 @@
+
+
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::collections::HashMap;
 
 use network::server::ServerConn;
 use network::packet::{ClientPacket, ServerPacket};
-use world::World;
+use world::{World, Coordinate};
 use player::Player;
 
 pub struct Server {
@@ -46,25 +48,25 @@ impl Server {
             ClientPacket::Connect { mode, alias } => {
                 if self.players.contains_key(&sock_addr) {
                     match self.players.get(&sock_addr) {
-                        Some(p) => println!("[WARNING] Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
+                        Some(p) => warn!("Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
                         None => {},
                     }
                 } else {
                     self.players.insert(sock_addr, Player::new(mode, &alias, Coordinate::new(0.0, 0.0, 0.0)));
-                    println!("[INFO] Player '{}' connected!", alias);
+                    info!("Player '{}' connected!", alias);
                 }
             },
             ClientPacket::Disconnect => {
                 match self.players.remove(&sock_addr) {
-                    Some(p) => println!("[INFO] Player '{}' disconnected!", p.alias()),
-                    None => println!("[WARNING] A player attempted to disconnect without being connected"),
+                    Some(p) => info!("Player '{}' disconnected!", p.alias()),
+                    None => warn!("A player attempted to disconnect without being connected"),
                 }
             },
             ClientPacket::Ping => {
                 if self.players.contains_key(&sock_addr) {
                     let _ = self.conn.send_to(sock_addr, &ServerPacket::Ping);
                 } else {
-                    println!("[WARNING] A ping was received from an unconnected player");
+                    warn!("A ping was received from an unconnected player");
                 }
             },
             ClientPacket::SendChatMsg { msg } => {
@@ -74,7 +76,7 @@ impl Server {
                         None => "<unknown>".to_string(),
                     };
 
-                    println!("[MSG] {}: {}", alias, msg);
+                    info!("[MSG] {}: {}", alias, msg);
 
                     let packet = ServerPacket::RecvChatMsg{ alias, msg };
 
@@ -96,7 +98,7 @@ impl Drop for Server {
     fn drop(&mut self) {
         for (sock_addr, player) in &self.players {
             self.conn.send_to(sock_addr, &ServerPacket::Shutdown).unwrap_or_else(|e| {
-                println!("[WARNING] Failed to send shutdown packet to player '{}' ({}): {:?}", player.alias(), sock_addr.to_string(), e);
+                error!("[WARNING] Failed to send shutdown packet to player '{}' ({}): {:?}", player.alias(), sock_addr.to_string(), e);
             });
         }
     }
