@@ -86,10 +86,10 @@ Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/H
 (cd server-cli && cargo run)
 ```
 
-4. Compile and run `frontend`
+4. Compile and run `voxygen`
 
 ```bash
-(cd frontend && cargo run)
+(cd voxygen && cargo run)
 ```
 
 ## Task list
