@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate enum_map;
 extern crate rand;
+extern crate noise;
 
 mod block;
 mod chunk;

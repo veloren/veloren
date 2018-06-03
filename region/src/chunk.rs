@@ -1,4 +1,5 @@
 use rand;
+use noise::{NoiseFn, OpenSimplex, Seedable};
 
 use {Volume, Voxel, Block, BlockMaterial};
 
@@ -9,15 +10,24 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn test(size: (i32, i32, i32)) -> Chunk {
+
+        let mut noise = OpenSimplex::new().set_seed(1337);
+
         let mut voxels = Vec::new();
-        for i in 0..(size.0 * size.1 * size.2) {
-            voxels.push(Block::new(
-                if rand::random::<bool>() {
-                    BlockMaterial::Air
-                } else {
-                    BlockMaterial::Stone
+
+        for i in 0..size.0 {
+            for j in 0..size.1 {
+                let height = ((noise.get([i as f64 * 0.05, j as f64 * 0.05]) * 0.5 + 0.5) * size.2 as f64) as i32;
+                for k in 0..size.2 {
+                    voxels.push(Block::new(
+                        if k < height {
+                            BlockMaterial::Air
+                        } else {
+                            BlockMaterial::Stone
+                        }
+                    ));
                 }
-            ));
+            }
         }
 
         Chunk {
