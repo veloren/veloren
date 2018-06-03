@@ -51,12 +51,7 @@ fn main() {
         }
 
         if let Some(msg) = win.get() {
-            if msg.starts_with("!") {
-                client.send_command(&msg[1..]);
-            }
-            else {
-                client.send_chat_msg(&msg);
-            }
+            client.send_chat_msg(&msg);
             
         }
     }
