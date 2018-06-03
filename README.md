@@ -57,12 +57,22 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 
 1. Install dependencies necessary for building
 
+**For Arch Linux:**
 ```bash
-# (Arch Linux):
-pacman -S rust
-pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
-pacman -S csfml
+$ pacman -S rust
+$ rustup default nightly # Configure rust nightly compiler
+$ pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
+$ pacman -S csfml
 ```
+
+**For Windows:**
+
+Install Rust from [here](https://www.rust-lang.org/en-US/install.html)
+```
+rustup default nightly
+```
+Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
+
 
 2. Compile and run `worldtest`
 
