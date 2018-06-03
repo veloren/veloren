@@ -4,7 +4,7 @@ use gfx_device_gl;
 use nalgebra::Matrix4;
 
 use mesh::{Mesh, Vertex};
-use renderer::{Renderer, ColorFormat};
+use renderer::{Renderer, ColorFormat, DepthFormat};
 
 type Data = pipe::Data<gfx_device_gl::Resources>;
 
@@ -17,7 +17,8 @@ gfx_defines! {
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
         constants: gfx::ConstantBuffer<Constants> = "constants",
-        out: gfx::RenderTarget<ColorFormat> = "target",
+        out_color: gfx::RenderTarget<ColorFormat> = "target",
+        out_depth: gfx::DepthTarget<DepthFormat> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
 
@@ -51,7 +52,8 @@ impl VertexBuffer {
             data: Data {
                 vbuf: renderer.factory_mut().create_vertex_buffer(mesh.vertices()),
                 constants: renderer.factory_mut().create_constant_buffer(1),
-                out: renderer.color_view().clone(),
+                out_color: renderer.color_view().clone(),
+                out_depth: renderer.depth_view().clone(),
             },
             len: mesh.vert_count(),
         }

@@ -18,6 +18,12 @@ pub struct Block {
 impl Voxel for Block {
     type Material = BlockMaterial;
 
+    fn new(mat: Self::Material) -> Self {
+        Block {
+            mat,
+        }
+    }
+
     fn empty() -> Self {
         Block {
             mat: BlockMaterial::Air,

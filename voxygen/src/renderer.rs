@@ -47,6 +47,10 @@ impl Renderer {
         &self.color_view
     }
 
+    pub fn depth_view<'a>(&'a self) -> &'a DepthView {
+        &self.depth_view
+    }
+
     pub fn begin_frame(&mut self) {
         self.encoder.clear(&self.color_view, [0.3, 0.3, 0.6, 1.0]);
         self.encoder.clear_depth(&self.depth_view, 1.0);

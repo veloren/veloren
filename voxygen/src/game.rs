@@ -8,6 +8,7 @@ use camera::Camera;
 use window::{RenderWindow, Event};
 use vertex_buffer::{VertexBuffer, Constants};
 use mesh::{Mesh, Vertex};
+use region::Chunk;
 
 pub struct Game {
     client: Arc<Mutex<ClientHandle>>,
@@ -24,15 +25,16 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let mut test_mesh = Mesh::new();
+        let chunk = Chunk::test((5, 5, 5));
+        let mut test_mesh = Mesh::from(&chunk);
         test_mesh.add(&[
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1.] },
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
 
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0.] },
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
         ]);
 
         Game {
@@ -56,7 +58,7 @@ impl Game {
             match event {
                 Event::CloseRequest => keep_running = false,
                 Event::CursorMoved { dx, dy } => {
-                    self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * -0.005, dy as f32 * 0.005))
+                    self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.005, dy as f32 * 0.005))
                 },
                 _ => {},
             }

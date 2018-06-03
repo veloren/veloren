@@ -21,6 +21,7 @@ mod mesh;
 mod vertex_buffer;
 mod pipeline;
 mod camera;
+mod render_volume;
 
 use std::io;
 use std::net::SocketAddr;
