@@ -25,7 +25,7 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test((1000, 1000, 10));
+        let chunk = Chunk::test((100, 100, 10));
         let mut test_mesh = Mesh::from(&chunk);
         test_mesh.add(&[
             Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },

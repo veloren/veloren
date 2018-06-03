@@ -1,9 +1,11 @@
 use nalgebra::{Vector3, Vector2, Matrix4, Translation3, Perspective3};
+use std::f32::consts::PI;
 
 pub struct Camera {
     focus: Vector3<f32>,
     ori: Vector2<f32>,
     zoom: f32,
+    correction_mat: Matrix4<f32>,
 }
 
 impl Camera {
@@ -12,6 +14,7 @@ impl Camera {
             focus: Vector3::<f32>::zeros(),
             ori: Vector2::<f32>::zeros(),
             zoom: 10.0,
+            correction_mat: Matrix4::from_scaled_axis(&Vector3::y() * PI / 2.0) * Matrix4::from_scaled_axis(&Vector3::x() * PI / 2.0),
         }
     }
 
@@ -23,6 +26,8 @@ impl Camera {
         mat *= Translation3::<f32>::from_vector(Vector3::<f32>::new(0.0, 0.0, -self.zoom)).to_homogeneous();
         mat *= Matrix4::from_scaled_axis(&Vector3::x() * self.ori.y) * Matrix4::from_scaled_axis(&Vector3::y() * self.ori.x);
         mat *= Translation3::<f32>::from_vector(-self.focus).to_homogeneous();
+
+        mat *= self.correction_mat;
 
         mat
     }

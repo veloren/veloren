@@ -32,6 +32,12 @@ impl RenderWindow {
         let (gl_window, device, factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
+        match gl_window.get_inner_size() {
+            Some((x, y)) => {
+                let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+            },
+            None => {},
+        }
         gl_window.set_cursor_state(CursorState::Hide);
 
         RenderWindow {
@@ -47,20 +53,20 @@ impl RenderWindow {
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
         // We need to change this inside the closure, so we take a mutable reference
-        let window = &mut self.gl_window;
+        let gl_window = &mut self.gl_window;
 
         self.events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
                     WindowEvent::CursorMoved { position, .. } => {
-                        match window.get_inner_size() {
+                        match gl_window.get_inner_size() {
                             Some((x, y)) => {
                                 func(Event::CursorMoved {
                                     dx: position.0 - x as f64 * 0.5,
                                     dy: position.1 - y as f64 * 0.5,
                                 });
                                 // TODO: Should we handle this result?
-                                let _ = window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
                             },
                             None => {},
                         }

@@ -36,7 +36,7 @@ impl Constants {
     pub fn new(camera_mat: &Matrix4<f32>, model_mat: &Matrix4<f32>) -> Constants {
         Constants {
             camera_mat: mat4_to_array(&camera_mat),
-            model_mat: mat4_to_array(&camera_mat),
+            model_mat: mat4_to_array(&model_mat),
         }
     }
 }
