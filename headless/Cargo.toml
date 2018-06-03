@@ -5,5 +5,5 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 client = { path = "../client" }
-local-ip = "0.1"
+get_if_addrs = "0.5.2"
 syrup = "0.1"

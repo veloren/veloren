@@ -1,7 +1,7 @@
 #![feature(nll)]
 
 extern crate client;
-extern crate local_ip;
+extern crate get_if_addrs;
 extern crate syrup;
 
 use std::io;
@@ -15,7 +15,7 @@ use client::{ClientHandle, ClientMode};
 fn main() {
     println!("Starting headless client...");
 
-    let ip = local_ip::get().unwrap();
+    let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();   
 
     let mut port = String::new();
     println!("Local port [59001]:");
@@ -51,7 +51,13 @@ fn main() {
         }
 
         if let Some(msg) = win.get() {
-            client.send_chat_msg(&msg);
+            if msg.starts_with("!") {
+                client.send_command(&msg[1..]);
+            }
+            else {
+                client.send_chat_msg(&msg);
+            }
+            
         }
     }
 }
