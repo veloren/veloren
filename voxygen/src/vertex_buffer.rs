@@ -1,10 +1,23 @@
+use gfx;
 use gfx::{traits::FactoryExt, Slice, IndexBuffer};
 use gfx_device_gl;
 
-use renderer::ColorView;
-use mesh::{Mesh, pipe};
+use mesh::{Mesh, Vertex};
+use renderer::{Renderer, ColorFormat};
 
 type Data = pipe::Data<gfx_device_gl::Resources>;
+
+gfx_defines! {
+    constant Constants {
+        trans: [[f32; 4]; 4] = "uni_trans",
+    }
+
+    pipeline pipe {
+        vbuf: gfx::VertexBuffer<Vertex> = (),
+        constants: gfx::ConstantBuffer<Constants> = "constants",
+        out: gfx::RenderTarget<ColorFormat> = "target",
+    }
+}
 
 pub struct VertexBuffer {
     data: Data,
@@ -12,12 +25,12 @@ pub struct VertexBuffer {
 }
 
 impl VertexBuffer {
-    pub fn new(factory: &mut gfx_device_gl::Factory, color_view: &ColorView, mesh: &Mesh) -> VertexBuffer {
+    pub fn new(renderer: &mut Renderer, mesh: &Mesh) -> VertexBuffer {
         VertexBuffer {
             data: Data {
-                vbuf: factory.create_vertex_buffer(mesh.vertices()),
-                constants: factory.create_constant_buffer(1),
-                out: color_view.clone(),
+                vbuf: renderer.factory_mut().create_vertex_buffer(mesh.vertices()),
+                constants: renderer.factory_mut().create_constant_buffer(1),
+                out: renderer.color_view().clone(),
             },
             len: mesh.vert_count(),
         }

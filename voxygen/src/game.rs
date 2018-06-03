@@ -4,36 +4,55 @@ use std::sync::{Arc, Mutex};
 use client::{ClientHandle, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
+use vertex_buffer::{VertexBuffer, Constants};
+use mesh::{Mesh, Vertex};
 
 pub struct Game {
-    pub client: Arc<Mutex<ClientHandle>>,
-    pub window: Arc<Mutex<RenderWindow>>,
-    pub camera: Arc<Mutex<Camera>>,
+    client: Arc<Mutex<ClientHandle>>,
+    window: Arc<Mutex<RenderWindow>>,
+    data: Arc<Mutex<Data>>,
+}
+
+struct Data {
+    camera: Camera,
+    test_model: VertexBuffer,
 }
 
 impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
+        let mut window = RenderWindow::new();
+
+        let mut test_mesh = Mesh::new();
+        test_mesh.add(&[
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1.] },
+        ]);
+
         Game {
+            data: Arc::new(Mutex::new(Data {
+                camera: Camera::new(),
+                test_model: VertexBuffer::new(
+                    window.renderer_mut(),
+                    &test_mesh,
+                ),
+            })),
             client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
                 .expect("Could not start client"))),
-            window: Arc::new(Mutex::new(RenderWindow::new())),
-            camera: Arc::new(Mutex::new(Camera::new())),
+            window: Arc::new(Mutex::new(window)),
         }
     }
 
     pub fn handle_window_events(&self) -> bool {
         let mut keep_running = true;
 
-        let mut cam_rot = (0.0, 0.0);
         self.window.lock().unwrap().handle_events(|event| {
             match event {
                 Event::CloseRequest => keep_running = false,
-                Event::CursorMoved { dx, dy } => cam_rot = (dx as f32, dy as f32),
+                Event::CursorMoved { dx, dy } => self.data.lock().unwrap().camera.rotate_by((dx as f32, dy as f32)),
                 _ => {},
             }
         });
-
-        self.camera.lock().unwrap().rotate_by(cam_rot);
 
         keep_running
     }
@@ -44,7 +63,20 @@ impl Game {
 
     pub fn render_frame(&self) {
         let mut window = self.window.lock().unwrap();
+
         window.renderer_mut().begin_frame();
+
+        const CONSTANTS: Constants = Constants {
+            trans: [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
+            ],
+        };
+
+        window.renderer_mut().render_vertex_buffer(&self.data.lock().unwrap().test_model, CONSTANTS);
+
         window.swap_buffers();
         window.renderer_mut().end_frame();
     }

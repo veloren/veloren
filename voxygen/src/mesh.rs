@@ -1,23 +1,12 @@
 use gfx;
 
 use region::{TerrainChunk, Voxel, BlockMaterial};
-use renderer::ColorFormat;
 
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "vert_pos",
         norm: [f32; 3] = "vert_norm",
         col: [f32; 3] = "vert_col",
-    }
-
-    constant Constants {
-        trans: [[f32; 4]; 4] = "uni_trans",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-        constants: gfx::ConstantBuffer<Constants> = "constants",
-        out: gfx::RenderTarget<ColorFormat> = "target",
     }
 }
 
