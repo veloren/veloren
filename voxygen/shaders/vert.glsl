@@ -2,15 +2,18 @@
 
 in vec3 vert_pos;
 in vec3 vert_norm;
-in vec3 vert_col;
+in vec4 vert_col;
 
 uniform constants {
-    mat4 uni_trans;
+    mat4 camera_mat;
+	mat4 model_mat;
 };
 
-out vec3 frag_col;
+out vec4 frag_col;
+out vec3 frag_norm;
 
 void main() {
     frag_col = vert_col;
-    gl_Position = vec4(vert_pos, 1) * uni_trans;
+	frag_norm = vert_norm;
+    gl_Position = camera_mat * vec4(vert_pos, 1);
 }

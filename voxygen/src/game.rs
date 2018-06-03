@@ -1,81 +1,97 @@
-use std::io;
+use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
-use std::net::SocketAddr;
 
-use get_if_addrs;
+use nalgebra::{Vector2, Matrix4};
 
 use client::{ClientHandle, ClientMode};
-
-use window::{RenderWindow, Event};
 use camera::Camera;
+use window::{RenderWindow, Event};
+use vertex_buffer::{VertexBuffer, Constants};
+use mesh::{Mesh, Vertex};
+use region::Chunk;
 
-struct Game {
-    pub client: ClientHandle,
-    pub window: RenderWindow,
-    pub camera: Camera,
+pub struct Game {
+    client: Arc<Mutex<ClientHandle>>,
+    window: Arc<Mutex<RenderWindow>>,
+    data: Arc<Mutex<Data>>,
 }
 
-pub struct GameHandle {
-    game: Arc<Mutex<Game>>,
+struct Data {
+    camera: Camera,
+    test_model: VertexBuffer,
 }
 
-impl GameHandle {
-    pub fn new(alias: &str) -> GameHandle {
-        // TODO: Seriously? This needs to go. Make it auto-detect this stuff
-        // <rubbish>
-        let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
+impl Game {
+    pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
+        let mut window = RenderWindow::new();
 
-        let mut port = String::new();
-        println!("Local port [59001]:");
-        io::stdin().read_line(&mut port).unwrap();
-        let port = u16::from_str_radix(&port.trim(), 10).unwrap();
+        let chunk = Chunk::test((5, 5, 5));
+        let mut test_mesh = Mesh::from(&chunk);
+        test_mesh.add(&[
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
 
-        println!("Binding to {}:{}...", ip.to_string(), port);
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
+        ]);
 
-        let mut remote_addr = String::new();
-        println!("Remote server address:");
-        io::stdin().read_line(&mut remote_addr).unwrap();
-        // </rubbish>
-
-        GameHandle {
-            game: Arc::new(Mutex::new(Game {
-                client: ClientHandle::new(ClientMode::Player, &alias, SocketAddr::new(ip, port), remote_addr.trim())
-                    .expect("Could not start client"),
-                window: RenderWindow::new(),
+        Game {
+            data: Arc::new(Mutex::new(Data {
                 camera: Camera::new(),
+                test_model: VertexBuffer::new(
+                    window.renderer_mut(),
+                    &test_mesh,
+                ),
             })),
+            client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
+                .expect("Could not start client"))),
+            window: Arc::new(Mutex::new(window)),
         }
     }
 
-    pub fn next_frame(&self) -> bool {
-        let mut running = true;
+    pub fn handle_window_events(&self) -> bool {
+        let mut keep_running = true;
 
-        // Handle window events
-        {
-            let mut game = self.game.lock().unwrap();
+        self.window.lock().unwrap().handle_events(|event| {
+            match event {
+                Event::CloseRequest => keep_running = false,
+                Event::CursorMoved { dx, dy } => {
+                    self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.005, dy as f32 * 0.005))
+                },
+                _ => {},
+            }
+        });
 
-            let mut cam_rot = (0.0, 0.0);
-            game.window.handle_events(|event| {
-                match event {
-                    Event::CloseRequest => running = false,
-                    Event::CursorMoved { dx, dy } => cam_rot = (dx as f32, dy as f32),
-                    _ => {},
-                }
-            });
+        keep_running
+    }
 
-            game.camera.rotate_by(cam_rot);
+    pub fn update_logic(&self) {
+        // Nothing yet
+    }
+
+    pub fn render_frame(&self) {
+        let mut window = self.window.lock().unwrap();
+
+        window.renderer_mut().begin_frame();
+
+        let camera_mat = self.data.lock().unwrap().camera.get_mat();
+
+        // Render the test model
+        window.renderer_mut().render_vertex_buffer(
+            &self.data.lock().unwrap().test_model,
+            Constants::new(&camera_mat, &Matrix4::<f32>::identity()),
+        );
+
+        window.swap_buffers();
+        window.renderer_mut().end_frame();
+    }
+
+    pub fn run(&self) {
+        while self.handle_window_events() {
+            self.update_logic();
+            self.render_frame();
         }
-
-        // Renderer the game
-        self.game.lock().unwrap().window.renderer_mut().begin_frame();
-
-        // Swap buffers, clean things up
-        {
-            let mut game = self.game.lock().unwrap();
-            game.window.swap_buffers();
-            game.window.renderer_mut().end_frame();
-        }
-
-        running
     }
 }
