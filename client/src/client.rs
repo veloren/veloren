@@ -62,6 +62,13 @@ impl Client {
         })?;
         Ok(())
     }
+
+    pub fn send_command(&mut self, cmd: &str) -> Result<(), Error> {
+        self.conn.send(&ClientPacket::SendCommand{
+            cmd: cmd.to_string(),
+        })?;
+        Ok(())
+    }
 }
 
 impl Drop for Client {

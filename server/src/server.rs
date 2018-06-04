@@ -82,9 +82,42 @@ impl Server {
 
                     for sock_addr in self.players.keys() {
                         let _ = self.conn.send_to(sock_addr, &packet);
-                    }
+                    } 
                 }
             },
+            ClientPacket::SendCommand { cmd } => { // Temporary solution, needs breaking down into a command handler.
+                if self.players.contains_key(&sock_addr) {
+                    if let Some(p) = self.players.get_mut(&sock_addr) {
+                        debug!("Received command from {}: {}", p.alias(), cmd);
+                        let mut parts = cmd.split(" ");
+                        if let Some(command) = parts.next() {
+                            let response = match command {
+                                "move_by" => {
+                                    let str_args = parts.collect::<Vec<&str>>();
+                                    let args: Vec<f32> = str_args.iter()
+                                        .filter_map(|arg| arg.parse::<f32>().ok())
+                                        .collect();
+                                    if args.len() == 3 { // Check we have the right number of args
+                                        let x = args[0];
+                                        let y = args[1];
+                                        let z = args[2];
+                                        p.move_by(x, y, z);
+
+                                        info!("Moved player {} to {:#?}", p.alias(), p.position());
+                                        format!("Moved to {:#?}", p.position())                                       
+                                    } else {
+                                        // Handle invalid number of args?
+                                        String::from("Invalid number of arguments for move_by command")
+                                    }
+                                },
+                                _ => String::from("Command not recognised...")
+                            };
+                            let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
+                            let _ = self.conn.send_to(sock_addr, &packet);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -98,7 +131,7 @@ impl Drop for Server {
     fn drop(&mut self) {
         for (sock_addr, player) in &self.players {
             self.conn.send_to(sock_addr, &ServerPacket::Shutdown).unwrap_or_else(|e| {
-                error!("[WARNING] Failed to send shutdown packet to player '{}' ({}): {:?}", player.alias(), sock_addr.to_string(), e);
+                error!("Failed to send shutdown packet to player '{}' ({}): {:?}", player.alias(), sock_addr.to_string(), e);
             });
         }
     }

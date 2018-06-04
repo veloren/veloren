@@ -31,6 +31,7 @@ impl World {
     }
 }
 
+#[derive(Debug)]
 pub struct Coordinate {
     x: f32,
     y: f32,

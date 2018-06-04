@@ -63,4 +63,8 @@ impl ClientHandle {
     pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
         self.client.lock().unwrap().send_chat_msg(msg)
     }
+
+        pub fn send_command(&self, cmd: &str) -> Result<(), Error> {
+        self.client.lock().unwrap().send_command(cmd)
+    }
 }
