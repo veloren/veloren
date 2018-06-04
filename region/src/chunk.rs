@@ -17,12 +17,14 @@ impl Chunk {
 
         for i in 0..size.0 {
             for j in 0..size.1 {
-                let height = ((noise.get([i as f64 * 0.05, j as f64 * 0.05]) * 0.5 + 0.5) * size.2 as f64) as i32;
+                let height = ((noise.get([i as f64 * 0.1, j as f64 * 0.1]) * 0.5 + 0.5) * size.2 as f64) as i32;
                 for k in 0..size.2 {
                     voxels.push(Block::new(
                         if k <= height {
-                            if k < height {
+                            if k < height - 4 {
                                 BlockMaterial::Stone
+                            } else if k < height {
+                                BlockMaterial::Earth
                             } else {
                                 BlockMaterial::Grass
                             }

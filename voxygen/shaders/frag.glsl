@@ -14,10 +14,11 @@ out vec4 target;
 
 float diffuse_factor = 0.5;
 float ambient_factor = 0.4;
-vec3  sun_direction = normalize(vec3(1, -1, -1));
-vec3  sun_color     = vec3(1, 1, 1);
-float sun_factor    = 50;
-float sun_shine = 0;
+vec3  sun_direction  = normalize(vec3(1, -0.7, -1.4));
+vec3  sun_color      = vec3(1, 1, 1);
+float sun_specular   = 0.3;
+float sun_factor     = 10;
+float sun_shine      = 0;
 
 void main() {
     target = frag_col;
@@ -35,7 +36,7 @@ void main() {
 	// Specular light
 	vec3  reflect_vec = (view_mat * vec4(reflect(sun_direction, world_norm), 0)).xyz;
 	float specular_val = clamp(dot(-normalize(cam_pos), reflect_vec) + sun_shine, 0, 1);
-	vec3 specular = sun_color * pow(specular_val, sun_factor);
+	vec3 specular = sun_color * pow(specular_val, sun_factor) * sun_specular;
 
 	// Final fragment color
 	target = vec4(ambient + diffuse + specular, frag_col.w);
