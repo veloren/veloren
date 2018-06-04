@@ -14,7 +14,8 @@ pub struct Client {
     conn: ClientConn,
     alias: String,
 
-    entities: HashMap<u64, Entity>,
+    player_entity: Option<u64>, // TODO: Turn u64 into Uid
+    entities: HashMap<u64, Entity>, // TODO: Turn u64 into Uid
 
     chat_callback: Box<Fn(&str, &str) + Send>,
 }
@@ -29,6 +30,7 @@ impl Client {
             conn,
             alias: alias.to_string(),
 
+            player_entity: None,
             entities: HashMap::new(),
 
             chat_callback: Box::new(|_a, _s| {}),
@@ -49,9 +51,7 @@ impl Client {
 
     pub fn handle_packet(&mut self, packet: ServerPacket) {
         match packet {
-            ServerPacket::Connected => {
-                // Nothing yet
-            },
+            ServerPacket::Connected { player_entity } => self.player_entity = player_entity,
             ServerPacket::Shutdown => self.running = false,
             ServerPacket::RecvChatMsg { alias, msg } => {
                 (self.chat_callback)(&alias, &msg);

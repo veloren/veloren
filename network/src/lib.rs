@@ -11,7 +11,7 @@ pub mod client;
 pub mod server;
 
 use std::io;
- 
+
 #[derive(Debug)]
 pub enum Error {
     NetworkErr(io::Error),
@@ -28,5 +28,5 @@ impl From<io::Error> for Error {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ClientMode {
     Headless,
-    Player,
+    Character,
 }

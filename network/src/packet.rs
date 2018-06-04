@@ -5,7 +5,7 @@ use Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected,
+    Connected { player_entity: Option<u64> }, // TODO: Turn u64 into Uid
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
@@ -35,7 +35,7 @@ pub enum ClientPacket {
     Ping,
     SendChatMsg { msg: String },
     SendCommand { cmd: String },
-    PlayerUpdate { pos: Vector3<f32> }
+    PlayerEntityUpdate { pos: Vector3<f32> }
 }
 
 impl ClientPacket {

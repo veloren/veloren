@@ -2,15 +2,20 @@
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::collections::HashMap;
 
+use network::ClientMode;
 use network::server::ServerConn;
 use network::packet::{ClientPacket, ServerPacket};
 use world::World;
 use player::Player;
+use region::Entity;
 
 pub struct Server {
     running: bool,
     time: f64,
+
+    uid_count: u64, // TODO: Turn u64 into Uid
     world: World,
+    entities: HashMap<u64, Entity>, // TODO: Turn u64 into Uid
 
     conn: ServerConn,
     players: HashMap<SocketAddr, Player>,
@@ -21,7 +26,11 @@ impl Server {
         let server = Server {
             running: true,
             time: 0.0,
+
+            uid_count: 0,
             world: World::new(seed, world_size),
+            entities: HashMap::new(),
+
             conn: match ServerConn::new(bind_addr) {
                 Ok(c) => c,
                 Err(_) => return None, // TODO: Handle errors correctly
@@ -53,6 +62,13 @@ impl Server {
                 } else {
                     self.players.insert(sock_addr, Player::new(mode, &alias, 0.0, 0.0, 0.0));
                     info!("Player '{}' connected!", alias);
+
+                    let pe = match mode {
+                        ClientMode::Headless => None,
+                        ClientMode::Character => Some(self.add_entity(Entity::new())),
+                    };
+
+                    let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity: pe });
                 }
             },
             ClientPacket::Disconnect => {
@@ -93,10 +109,21 @@ impl Server {
                     self.handle_command(&sock_addr, cmd);
                 }
             },
-            ClientPacket::PlayerUpdate { pos } => {
+            ClientPacket::PlayerEntityUpdate { pos } => {
                 // TODO: Implement
             },
         }
+    }
+
+    pub fn new_uid(&mut self) -> u64 {
+        self.uid_count += 1;
+        self.uid_count
+    }
+
+    pub fn add_entity(&mut self, entity: Entity) -> u64 {
+        let uid = self.new_uid();
+        self.entities.insert(uid, entity);
+        uid
     }
 
     pub fn next_tick(&mut self, dt: f64) {

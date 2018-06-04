@@ -53,7 +53,7 @@ fn main() {
     // </rubbish>
 
     let game = Game::new(
-        ClientMode::Player,
+        ClientMode::Character,
         &"voxygen-test",
         SocketAddr::new(ip, port),
         remote_addr
