@@ -4,13 +4,16 @@
 extern crate enum_map;
 extern crate rand;
 extern crate noise;
+extern crate nalgebra;
 
 mod block;
 mod chunk;
+mod entity;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
 pub use chunk::Chunk;
+pub use entity::Entity;
 
 pub trait Voxel: Copy + Clone {
     type Material: Copy + Clone;

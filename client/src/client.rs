@@ -1,8 +1,10 @@
 use std::boxed::Box;
+use std::collections::HashMap;
 use std::net::ToSocketAddrs;
 
 use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
+use region::Entity;
 
 use ClientMode;
 use Error;
@@ -11,6 +13,9 @@ pub struct Client {
     running: bool,
     conn: ClientConn,
     alias: String,
+
+    entities: HashMap<u64, Entity>,
+
     chat_callback: Box<Fn(&str, &str) + Send>,
 }
 
@@ -23,6 +28,9 @@ impl Client {
             running: true,
             conn,
             alias: alias.to_string(),
+
+            entities: HashMap::new(),
+
             chat_callback: Box::new(|_a, _s| {}),
         })
     }
