@@ -25,17 +25,8 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test((100, 100, 10));
+        let chunk = Chunk::test((200, 200, 30));
         let mut test_mesh = Mesh::from(&chunk);
-        test_mesh.add(&[
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
-
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
-        ]);
 
         Game {
             data: Arc::new(Mutex::new(Data {
@@ -76,12 +67,12 @@ impl Game {
 
         window.renderer_mut().begin_frame();
 
-        let camera_mat = self.data.lock().unwrap().camera.get_mat();
+        let camera_mats = self.data.lock().unwrap().camera.get_mats();
 
         // Render the test model
         window.renderer_mut().render_vertex_buffer(
             &self.data.lock().unwrap().test_model,
-            Constants::new(&camera_mat, &Matrix4::<f32>::identity()),
+            Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1),
         );
 
         window.swap_buffers();

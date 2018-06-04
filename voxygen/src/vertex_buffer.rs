@@ -10,8 +10,9 @@ type Data = pipe::Data<gfx_device_gl::Resources>;
 
 gfx_defines! {
     constant Constants {
-        camera_mat: [[f32; 4]; 4] = "camera_mat",
         model_mat: [[f32; 4]; 4] = "model_mat",
+        view_mat: [[f32; 4]; 4] = "view_mat",
+        perspective_mat: [[f32; 4]; 4] = "perspective_mat",
     }
 
     pipeline pipe {
@@ -33,10 +34,11 @@ fn mat4_to_array(mat: &Matrix4<f32>) -> [[f32; 4]; 4] {
 }
 
 impl Constants {
-    pub fn new(camera_mat: &Matrix4<f32>, model_mat: &Matrix4<f32>) -> Constants {
+    pub fn new(model_mat: &Matrix4<f32>, view_mat: &Matrix4<f32>, perspective_mat: &Matrix4<f32>) -> Constants {
         Constants {
-            camera_mat: mat4_to_array(&camera_mat),
             model_mat: mat4_to_array(&model_mat),
+            view_mat: mat4_to_array(&view_mat),
+            perspective_mat: mat4_to_array(&perspective_mat),
         }
     }
 }

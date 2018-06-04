@@ -7,6 +7,7 @@ use Voxel;
 pub enum BlockMaterial {
     Air,
     Grass,
+    Earth,
     Stone,
 }
 
