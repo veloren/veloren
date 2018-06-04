@@ -1,4 +1,3 @@
-#![feature(nll)]
 
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::collections::HashMap;
@@ -119,11 +118,8 @@ impl Server {
                 let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
                 let _ = self.conn.send_to(sock_addr, &packet);
             }
-        }
-        
+        }  
     }
-
-    
 }
 
 fn handle_move_by_command<'a>(p: &'a mut Player, str_args: Vec<&str>) -> String {
