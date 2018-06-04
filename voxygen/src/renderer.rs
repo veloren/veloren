@@ -43,7 +43,7 @@ impl Renderer {
         &mut self.factory
     }
 
-    pub fn color_view<'a>(&'a mut self) -> &'a ColorView {
+    pub fn color_view<'a>(&'a self) -> &'a ColorView {
         &self.color_view
     }
 
