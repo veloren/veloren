@@ -12,7 +12,7 @@ use renderer::{Renderer, ColorFormat, DepthFormat};
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
-    Resized { dx: u32, dy: u32 },
+    Resized { w: u32, h: u32 },
 }
 
 pub struct RenderWindow {
@@ -79,22 +79,26 @@ impl RenderWindow {
                             None => {},
                         }
                     },
-                    WindowEvent::Resized { 0: x, 1: y } => {
+                    WindowEvent::Resized { 0: w, 1: h } => {
                         //gl_window.resize(x, y);
                         //gl_window.set_inner_size(x,y);
                         //println!("{} {}", x, y);
-                        //let (color_view, depth_view) =
-                        //    gfx_window_glutin::update_views_raw(&gl_window, (x as u16, y as u16 ,8,Single), ColorFormat::get_format(), DepthFormat::get_format()).unwrap();
+                        let (color_view, depth_view) = gfx_window_glutin::update_views_raw(
+                            &gl_window,
+                            (w as u16, h as u16 ,8,Single),
+                            ColorFormat::get_format(),
+                            DepthFormat::get_format()
+                        ).unwrap();
                         //gfx_window_glutin::update_views(&gl_window, color_view, depth_view);
                         /*if let Some((cv, dv)) = gfx_window_glutin::update_views_raw(&gl_window, (3 as u16, 11 as u16 ,8,Single), ColorFormat::get_format(), DepthFormat::get_format()) {
                             *color_view = Typed::new(cv);
                             *depth_view = Typed::new(dv);
                         }*/
-                        //renderer.set(Typed::new(color_view), &mut depth_view);
+                        renderer.set_views(Typed::new(color_view), Typed::new(depth_view));
                         //renderer.set(&mut color_view, &mut depth_view);
                         func(Event::Resized {
-                            dx: x,
-                            dy: x,
+                            w: w,
+                            h: h,
                         });
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),

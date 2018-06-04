@@ -6,7 +6,7 @@ use nalgebra::{Vector2, Matrix4};
 use client::{ClientHandle, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
-use vertex_buffer::{VertexBuffer, Constants};
+use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
 
@@ -18,7 +18,7 @@ pub struct Game {
 
 struct Data {
     camera: Camera,
-    test_model: VertexBuffer,
+    test_model: ModelObject,
 }
 
 impl Game {
@@ -31,7 +31,7 @@ impl Game {
         Game {
             data: Arc::new(Mutex::new(Data {
                 camera: Camera::new(),
-                test_model: VertexBuffer::new(
+                test_model: ModelObject::new(
                     window.renderer_mut(),
                     &test_mesh,
                 ),
@@ -52,22 +52,12 @@ impl Game {
                 Event::CursorMoved { dx, dy } => {
                     self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.005, dy as f32 * 0.005))
                 },
-                Event::Resized  { dx, dy } => {
-                    resized = true;
+                Event::Resized { w, h } => {
+                    self.data.lock().unwrap().camera.set_aspect_ratio(w as f32 / h as f32);
                 },
                 _ => {},
             }
         });
-
-        if resized {
-            let chunk = Chunk::test((200, 200, 30));
-            let mut test_mesh = Mesh::from(&chunk);
-
-            self.data.lock().unwrap().test_model = VertexBuffer::new(
-                self.window.lock().unwrap().renderer_mut(),
-                &test_mesh,
-            );
-        }
 
         keep_running
     }
@@ -84,10 +74,11 @@ impl Game {
         let camera_mats = self.data.lock().unwrap().camera.get_mats();
 
         // Render the test model
-        window.renderer_mut().render_vertex_buffer(
+        window.renderer_mut().update_model_object(
             &self.data.lock().unwrap().test_model,
-            Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1),
+            Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1)
         );
+        window.renderer_mut().render_model_object(&self.data.lock().unwrap().test_model);
 
         window.swap_buffers();
         window.renderer_mut().end_frame();

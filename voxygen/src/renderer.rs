@@ -2,8 +2,8 @@ use gfx;
 use gfx::{Device, Encoder, handle::RenderTargetView, handle::DepthStencilView};
 use gfx_device_gl;
 
-use vertex_buffer;
-use vertex_buffer::{VertexBuffer, Constants};
+use model_object;
+use model_object::{ModelObject, Constants};
 use pipeline::Pipeline;
 
 pub type ColorFormat = gfx::format::Srgba8;
@@ -18,7 +18,7 @@ pub struct Renderer {
     depth_view: DepthView,
     factory: gfx_device_gl::Factory,
     encoder: Encoder<gfx_device_gl::Resources, gfx_device_gl::CommandBuffer>,
-    voxel_pipeline: Pipeline<vertex_buffer::pipe::Init<'static>>,
+    model_pipeline: Pipeline<model_object::pipe::Init<'static>>,
 }
 
 impl Renderer {
@@ -29,9 +29,9 @@ impl Renderer {
             color_view,
             depth_view,
             encoder: factory.create_command_buffer().into(),
-            voxel_pipeline: Pipeline::new(
+            model_pipeline: Pipeline::new(
                 &mut factory,
-                vertex_buffer::pipe::new(),
+                model_object::pipe::new(),
                 include_bytes!("../shaders/vert.glsl"),
                 include_bytes!("../shaders/frag.glsl"),
             ),
@@ -51,9 +51,9 @@ impl Renderer {
         &self.depth_view
     }
 
-    pub fn set<'a>(&'a mut self, cw: &ColorView, dw: &DepthView) {
-        self.color_view = cw.clone();
-        self.depth_view = dw.clone();
+    pub fn set_views<'a>(&'a mut self, cv: ColorView, dv: DepthView) {
+        self.color_view = cv;
+        self.depth_view = dv;
     }
 
     pub fn begin_frame(&mut self) {
@@ -61,10 +61,13 @@ impl Renderer {
         self.encoder.clear_depth(&self.depth_view, 1.0);
     }
 
-    // TODO: Make this accept a VoxelModel, not a VertexBuffer
-    pub fn render_vertex_buffer(&mut self, vbuf: &VertexBuffer, constants: Constants) {
-        self.encoder.update_buffer(&vbuf.data().constants, &[constants], 0).unwrap();
-        self.encoder.draw(&vbuf.slice(), self.voxel_pipeline.pso(), vbuf.data());
+    pub fn update_model_object(&mut self, mo: &ModelObject, constants: Constants) {
+        self.encoder.update_buffer(mo.constants(), &[constants], 0).unwrap();
+    }
+
+    pub fn render_model_object(&mut self, mo: &ModelObject) {
+        let pipeline_data = mo.get_pipeline_data(self);
+        self.encoder.draw(&mo.slice(), self.model_pipeline.pso(), &pipeline_data);
     }
 
     pub fn end_frame(&mut self) {

@@ -6,7 +6,7 @@ use nalgebra::Matrix4;
 use mesh::{Mesh, Vertex};
 use renderer::{Renderer, ColorFormat, DepthFormat};
 
-type Data = pipe::Data<gfx_device_gl::Resources>;
+type PipelineData = pipe::Data<gfx_device_gl::Resources>;
 
 gfx_defines! {
     constant Constants {
@@ -43,32 +43,41 @@ impl Constants {
     }
 }
 
-pub struct VertexBuffer {
-    data: Data,
-    len: u32,
+type VertexBuffer = gfx::handle::Buffer<gfx_device_gl::Resources, Vertex>;
+type ConstantBuffer = gfx::handle::Buffer<gfx_device_gl::Resources, Constants>;
+
+pub struct ModelObject {
+    vbuf: VertexBuffer,
+    constants: ConstantBuffer,
+    vert_count: u32,
 }
 
-impl VertexBuffer {
-    pub fn new(renderer: &mut Renderer, mesh: &Mesh) -> VertexBuffer {
-        VertexBuffer {
-            data: Data {
-                vbuf: renderer.factory_mut().create_vertex_buffer(mesh.vertices()),
-                constants: renderer.factory_mut().create_constant_buffer(1),
-                out_color: renderer.color_view().clone(),
-                out_depth: renderer.depth_view().clone(),
-            },
-            len: mesh.vert_count(),
+impl ModelObject {
+    pub fn new(renderer: &mut Renderer, mesh: &Mesh) -> ModelObject {
+        ModelObject {
+            vbuf: renderer.factory_mut().create_vertex_buffer(&mesh.vertices()),
+            constants: renderer.factory_mut().create_constant_buffer(1),
+            vert_count: mesh.vert_count(),
         }
     }
 
-    pub fn data<'a>(&'a self) -> &'a Data {
-        &self.data
+    pub fn constants<'a>(&'a self) -> &'a ConstantBuffer {
+        &self.constants
+    }
+
+    pub fn get_pipeline_data(&self, renderer: &mut Renderer) -> PipelineData {
+        PipelineData {
+            vbuf: self.vbuf.clone(),
+            constants: self.constants.clone(),
+            out_color: renderer.color_view().clone(),
+            out_depth: renderer.depth_view().clone(),
+        }
     }
 
     pub fn slice(&self) -> Slice<gfx_device_gl::Resources> {
         Slice::<gfx_device_gl::Resources> {
             start: 0,
-            end: self.len,
+            end: self.vert_count,
             base_vertex: 0,
             instances: None,
             buffer: IndexBuffer::Auto,

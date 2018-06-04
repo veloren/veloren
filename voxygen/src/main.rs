@@ -19,7 +19,7 @@ mod game;
 mod window;
 mod renderer;
 mod mesh;
-mod vertex_buffer;
+mod model_object;
 mod pipeline;
 mod camera;
 mod render_volume;
