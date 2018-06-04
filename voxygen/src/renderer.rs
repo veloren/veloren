@@ -43,12 +43,17 @@ impl Renderer {
         &mut self.factory
     }
 
-    pub fn color_view<'a>(&'a self) -> &'a ColorView {
+    pub fn color_view<'a>(&'a mut self) -> &'a ColorView {
         &self.color_view
     }
 
     pub fn depth_view<'a>(&'a self) -> &'a DepthView {
         &self.depth_view
+    }
+
+    pub fn set<'a>(&'a mut self, cw: &ColorView, dw: &DepthView) {
+        self.color_view = cw.clone();
+        self.depth_view = dw.clone();
     }
 
     pub fn begin_frame(&mut self) {
