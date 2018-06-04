@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use network::server::ServerConn;
 use network::packet::{ClientPacket, ServerPacket};
-use world::{World, Coordinate};
+use world::World;
 use player::Player;
 
 pub struct Server {
@@ -51,7 +51,7 @@ impl Server {
                         None => {},
                     }
                 } else {
-                    self.players.insert(sock_addr, Player::new(mode, &alias, Coordinate::new(0.0, 0.0, 0.0)));
+                    self.players.insert(sock_addr, Player::new(mode, &alias, 0.0, 0.0, 0.0));
                     info!("Player '{}' connected!", alias);
                 }
             },

@@ -3,6 +3,7 @@
 extern crate log;
 extern crate world;
 extern crate network;
+extern crate nalgebra;
 
 mod server;
 mod player;

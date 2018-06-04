@@ -30,25 +30,3 @@ impl World {
         &mut self.map
     }
 }
-
-#[derive(Debug)]
-pub struct Coordinate {
-    x: f32,
-    y: f32,
-    z: f32
-}
-
-impl Coordinate {
-    pub fn new(x: f32, y: f32, z: f32) -> Coordinate {
-        Coordinate {
-            x: x,
-            y: y,
-            z: z
-        }
-    }
-    pub fn translate(&mut self, x: f32, y: f32, z: f32) {
-        self.x += x;
-        self.y += y;
-        self.z += z;
-    }
-}
