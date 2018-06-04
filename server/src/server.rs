@@ -81,10 +81,10 @@ impl Server {
 
                     for sock_addr in self.players.keys() {
                         let _ = self.conn.send_to(sock_addr, &packet);
-                    } 
+                    }
                 }
             },
-            ClientPacket::SendCommand { cmd } => { 
+            ClientPacket::SendCommand { cmd } => {
                 if self.players.contains_key(&sock_addr) {
                     // Surely this can be cleaned up?
                     if let Some(p) = self.players.get(&sock_addr) {
@@ -93,7 +93,7 @@ impl Server {
                     self.handle_command(&sock_addr, cmd);
                 }
             }
-            ClientPacket::PlayerMovement { requested_position } => {
+            ClientPacket::PlayerUpdate { pos } => {
                 // TODO: Implement
             }
         }
@@ -121,13 +121,13 @@ impl Server {
                 let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
                 let _ = self.conn.send_to(sock_addr, &packet);
             }
-        }  
+        }
     }
 }
 
 fn handle_move_by_command<'a>(p: &'a mut Player, str_args: Vec<&str>) -> String {
     // Collect args as f32, if one of the str_args fails to convert, it is dropped.
-    // Potential issue as the command below is valid due to the dropped a. 
+    // Potential issue as the command below is valid due to the dropped a.
     // !move_by 5 a 3 2
     // TODO: Do some smarter error checking.
     let args: Vec<f32> = str_args.iter()
@@ -141,13 +141,13 @@ fn handle_move_by_command<'a>(p: &'a mut Player, str_args: Vec<&str>) -> String 
         p.move_by(x, y, z);
 
         info!("Moved player {} to {:#?}", p.alias(), p.position());
-        format!("Moved to {:#?}", p.position())                                       
+        format!("Moved to {:#?}", p.position())
     } else {
         // Handle invalid number of args?
         String::from("Invalid number of arguments for move_by command")
     }
 }
-    
+
 impl Drop for Server {
     fn drop(&mut self) {
         for (sock_addr, player) in &self.players {

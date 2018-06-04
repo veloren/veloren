@@ -9,7 +9,7 @@ pub enum ServerPacket {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    SetPlayerPosition { player_id: u32, position: Vector3<f32> }
+    EntityUpdate { uid: u32, pos: Vector3<f32> },
 }
 
 impl ServerPacket {
@@ -35,7 +35,7 @@ pub enum ClientPacket {
     Ping,
     SendChatMsg { msg: String },
     SendCommand { cmd: String },
-    PlayerMovement { requested_position: Vector3<f32> }
+    PlayerUpdate { pos: Vector3<f32> }
 }
 
 impl ClientPacket {
