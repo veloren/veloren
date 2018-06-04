@@ -53,12 +53,10 @@ impl RenderWindow {
     }
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
-        // We need to change this inside the closure, so we take a mutable reference
+        // We need to mutate these inside the closure, so we take a mutable reference
         let gl_window = &mut self.gl_window;
         let events_loop = &mut self.events_loop;
         let renderer = &mut self.renderer;
-        let color_view = &mut renderer.color_view().clone();
-        let depth_view = &mut renderer.depth_view().clone();
 
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -77,12 +75,14 @@ impl RenderWindow {
                         }
                     },
                     WindowEvent::Resized { 0: w, 1: h } => {
+                        let mut color_view = renderer.color_view().clone();
+                        let mut depth_view = renderer.depth_view().clone();
                         gfx_window_glutin::update_views(
                             &gl_window,
-                            color_view,
-                            depth_view,
+                            &mut color_view,
+                            &mut depth_view,
                         );
-                        renderer.set_views(color_view.clone(), depth_view.clone());
+                        renderer.set_views(color_view, depth_view);
                         func(Event::Resized {
                             w: w,
                             h: h,
