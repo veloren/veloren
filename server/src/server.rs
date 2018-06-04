@@ -93,6 +93,9 @@ impl Server {
                     self.handle_command(&sock_addr, cmd);
                 }
             }
+            ClientPacket::PlayerMovement { requested_position } => {
+                // TODO: Implement
+            }
         }
     }
 
