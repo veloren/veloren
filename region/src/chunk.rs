@@ -20,10 +20,14 @@ impl Chunk {
                 let height = ((noise.get([i as f64 * 0.05, j as f64 * 0.05]) * 0.5 + 0.5) * size.2 as f64) as i32;
                 for k in 0..size.2 {
                     voxels.push(Block::new(
-                        if k < height {
-                            BlockMaterial::Air
+                        if k <= height {
+                            if k < height {
+                                BlockMaterial::Stone
+                            } else {
+                                BlockMaterial::Grass
+                            }
                         } else {
-                            BlockMaterial::Stone
+                            BlockMaterial::Air
                         }
                     ));
                 }

@@ -1,11 +1,13 @@
 #version 330 core
 
-in vec4 frag_col;
+in vec3 frag_pos;
 in vec3 frag_norm;
+in vec4 frag_col;
 
 uniform constants {
-    mat4 camera_mat;
 	mat4 model_mat;
+    mat4 view_mat;
+	mat4 perspective_mat;
 };
 
 out vec4 target;
@@ -22,13 +24,19 @@ void main() {
 
 	// Geometry
 	vec3 world_norm = normalize((model_mat * vec4(frag_norm, 0)).xyz);
+	vec3 cam_pos = (view_mat * vec4(frag_pos, 1)).xyz;
 
 	// Ambiant light
-	vec3 ambient_light = frag_col.xyz * ambient_factor * sun_color;
+	vec3 ambient = frag_col.xyz * ambient_factor * sun_color;
 
 	// Diffuse light
-	vec3 diffuse_light = frag_col.xyz * diffuse_factor * sun_color * max(0, dot(world_norm, -normalize(sun_direction)));
+	vec3 diffuse = frag_col.xyz * diffuse_factor * sun_color * max(0, dot(world_norm, -normalize(sun_direction)));
+
+	// Specular light
+	vec3  reflect_vec = (view_mat * vec4(reflect(sun_direction, world_norm), 0)).xyz;
+	float specular_val = clamp(dot(-normalize(cam_pos), reflect_vec) + sun_shine, 0, 1);
+	vec3 specular = sun_color * pow(specular_val, sun_factor);
 
 	// Final fragment color
-	target = vec4(ambient_light + diffuse_light, frag_col.w);
+	target = vec4(ambient + diffuse + specular, frag_col.w);
 }

@@ -5,31 +5,29 @@ pub struct Camera {
     focus: Vector3<f32>,
     ori: Vector2<f32>,
     zoom: f32,
-    correction_mat: Matrix4<f32>,
 }
 
 impl Camera {
     pub fn new() -> Camera {
         Camera {
-            focus: Vector3::<f32>::zeros(),
+            focus: Vector3::<f32>::new(100.0, 100.0, 20.0),
             ori: Vector2::<f32>::zeros(),
             zoom: 10.0,
-            correction_mat: Matrix4::from_scaled_axis(&Vector3::y() * PI / 2.0) * Matrix4::from_scaled_axis(&Vector3::x() * PI / 2.0),
         }
     }
 
-    pub fn get_mat(&self) -> Matrix4<f32> {
-
+    pub fn get_mats(&self) -> (Matrix4<f32>, Matrix4<f32>) {
         let mut mat = Matrix4::<f32>::identity();
 
-        mat *= Perspective3::<f32>::new(1.6, 1.5, 0.1, 1000.0).as_matrix();
         mat *= Translation3::<f32>::from_vector(Vector3::<f32>::new(0.0, 0.0, -self.zoom)).to_homogeneous();
         mat *= Matrix4::from_scaled_axis(&Vector3::x() * self.ori.y) * Matrix4::from_scaled_axis(&Vector3::y() * self.ori.x);
+
+        // Apply anti-OpenGL correction
+        mat *= Matrix4::from_scaled_axis(-&Vector3::x() * PI / 2.0);
+
         mat *= Translation3::<f32>::from_vector(-self.focus).to_homogeneous();
 
-        mat *= self.correction_mat;
-
-        mat
+        (mat, *Perspective3::<f32>::new(1.6, 1.5, 0.1, 1000.0).as_matrix())
     }
 
     pub fn rotate_by(&mut self, dangle: Vector2<f32>) {

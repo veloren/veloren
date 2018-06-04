@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/veloren/game.svg?branch=master)](https://travis-ci.org/veloren/game)
 
+<p align="center">
+	<img alt="Veloren" src="https://raw.github.com/veloren/game/master/misc/screenshot0.png">
+</p>
+
 ## What is Veloren?
 Veloren is a multiplayer voxel game inspired by Cube World. It aims to emulate the feel of Cube World while deviating in its features.
 
