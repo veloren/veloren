@@ -60,7 +60,7 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	**Arch Linux**
 
 	```bash
-	# pacman -S rustup
+	$ sudo pacman -S rustup
 	$ rustup default nightly # Configure rust nightly compiler
 	```
 
@@ -78,8 +78,8 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	**Arch Linux**
 
 	```bash
-	# pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
-	# pacman -S csfml
+	$ sudo pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
+	$ sudo pacman -S csfml
 	```
 
 	**Windows**
@@ -87,10 +87,12 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
 
 
-3. Compile and run `voxygen`
+3. Compile and run a frontend
+
+	Currently, the only officially supported frontend is `voxygen`.
 
 	```bash
-	(cd voxygen && cargo run)
+	$ cd voxygen && cargo run
 	```
 
 ## Task list
