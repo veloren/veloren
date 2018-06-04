@@ -1,3 +1,6 @@
+use gfx::texture::AaMode::Single;
+use gfx::format::Formatted;
+use gfx_core::memory::Typed;
 use gfx_window_glutin;
 use glutin;
 
@@ -9,6 +12,7 @@ use renderer::{Renderer, ColorFormat, DepthFormat};
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
+    Resized { dx: u32, dy: u32 },
 }
 
 pub struct RenderWindow {
@@ -53,9 +57,13 @@ impl RenderWindow {
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
         // We need to change this inside the closure, so we take a mutable reference
-        let gl_window = &mut self.gl_window;
+        let mut gl_window = &mut self.gl_window;
+        let mut events_loop = &mut self.events_loop;
+        let mut renderer = &mut self.renderer;
+        let mut color_view = &mut renderer.color_view().clone();
+        let mut depth_view = &mut renderer.depth_view().clone();
 
-        self.events_loop.poll_events(|event| {
+        events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
                     WindowEvent::CursorMoved { position, .. } => {
@@ -71,11 +79,35 @@ impl RenderWindow {
                             None => {},
                         }
                     },
+                    WindowEvent::Resized { 0: x, 1: y } => {
+                        //gl_window.resize(x, y);
+                        //gl_window.set_inner_size(x,y);
+                        //println!("{} {}", x, y);
+                        //let (color_view, depth_view) =
+                        //    gfx_window_glutin::update_views_raw(&gl_window, (x as u16, y as u16 ,8,Single), ColorFormat::get_format(), DepthFormat::get_format()).unwrap();
+                        //gfx_window_glutin::update_views(&gl_window, color_view, depth_view);
+                        /*if let Some((cv, dv)) = gfx_window_glutin::update_views_raw(&gl_window, (3 as u16, 11 as u16 ,8,Single), ColorFormat::get_format(), DepthFormat::get_format()) {
+                            *color_view = Typed::new(cv);
+                            *depth_view = Typed::new(dv);
+                        }*/
+                        //renderer.set(Typed::new(color_view), &mut depth_view);
+                        //renderer.set(&mut color_view, &mut depth_view);
+                        func(Event::Resized {
+                            dx: x,
+                            dy: x,
+                        });
+                    },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},
                 }
             }
         });
+        // BRUTE FORCE APROACH
+        gl_window.resize(1200, 300);
+        let (mut device, mut factory, color_view2, depth_view2) =
+            gfx_window_glutin::init_existing::<ColorFormat, DepthFormat>(&gl_window);
+        self.renderer = Renderer::new(device, factory, color_view2, depth_view2);
+
     }
 
     pub fn swap_buffers(&mut self) {

@@ -44,6 +44,7 @@ impl Game {
 
     pub fn handle_window_events(&self) -> bool {
         let mut keep_running = true;
+        let mut resized = false;
 
         self.window.lock().unwrap().handle_events(|event| {
             match event {
@@ -51,9 +52,22 @@ impl Game {
                 Event::CursorMoved { dx, dy } => {
                     self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.005, dy as f32 * 0.005))
                 },
+                Event::Resized  { dx, dy } => {
+                    resized = true;
+                },
                 _ => {},
             }
         });
+
+        if resized {
+            let chunk = Chunk::test((200, 200, 30));
+            let mut test_mesh = Mesh::from(&chunk);
+
+            self.data.lock().unwrap().test_model = VertexBuffer::new(
+                self.window.lock().unwrap().renderer_mut(),
+                &test_mesh,
+            );
+        }
 
         keep_running
     }
