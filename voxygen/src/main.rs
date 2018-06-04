@@ -39,19 +39,23 @@ fn main() {
     let mut port = String::new();
     println!("Local port [59001]:");
     io::stdin().read_line(&mut port).unwrap();
-    let port = u16::from_str_radix(&port.trim(), 10).unwrap();
+    let port = u16::from_str_radix(&port.trim(), 10).unwrap_or(59001);
 
     println!("Binding to {}:{}...", ip.to_string(), port);
 
     let mut remote_addr = String::new();
-    println!("Remote server address:");
+    println!("Remote server address [127.0.0.1:59003]:");
     io::stdin().read_line(&mut remote_addr).unwrap();
+    remote_addr = remote_addr.trim().to_string();
+    if remote_addr.len() == 0 {
+        remote_addr = "127.0.0.1:59003".to_string();
+    }
     // </rubbish>
 
     let game = Game::new(
         ClientMode::Player,
         &"voxygen-test",
         SocketAddr::new(ip, port),
-        remote_addr.trim()
+        remote_addr
     ).run();
 }
