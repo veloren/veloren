@@ -1,5 +1,5 @@
 use bincode::{serialize, deserialize};
-
+use nalgebra::Vector3;
 use ClientMode;
 use Error;
 
@@ -9,6 +9,7 @@ pub enum ServerPacket {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
+    SetPlayerPosition { player_id: u32, position: Vector3<f32> }
 }
 
 impl ServerPacket {
@@ -34,6 +35,7 @@ pub enum ClientPacket {
     Ping,
     SendChatMsg { msg: String },
     SendCommand { cmd: String },
+    PlayerMovement { requested_position: Vector3<f32> }
 }
 
 impl ClientPacket {
