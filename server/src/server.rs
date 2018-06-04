@@ -92,10 +92,10 @@ impl Server {
                     }
                     self.handle_command(&sock_addr, cmd);
                 }
-            }
+            },
             ClientPacket::PlayerUpdate { pos } => {
                 // TODO: Implement
-            }
+            },
         }
     }
 
