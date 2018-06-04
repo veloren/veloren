@@ -55,42 +55,43 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 
 ## Compilation
 
-1. Install dependencies necessary for building
+1. Install Rust
 
-**For Arch Linux:**
-```bash
-$ pacman -S rust
-$ rustup default nightly # Configure rust nightly compiler
-$ pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
-$ pacman -S csfml
-```
+	**Arch Linux**
 
-**For Windows:**
+	```bash
+	# pacman -S rustup
+	$ rustup default nightly # Configure rust nightly compiler
+	```
 
-Install Rust from [here](https://www.rust-lang.org/en-US/install.html)
-```
-rustup default nightly
-```
-Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
+	**Windows**
+
+	Install Rust from [here](https://www.rust-lang.org/en-US/install.html)
+
+	```
+	> rustup default nightly
+	```
+	Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
+
+2. Install SFML
+
+	**Arch Linux**
+
+	```bash
+	# pacman -U https://archive.archlinux.org/packages/s/sfml/sfml-2.4.2-5-x86_64.pkg.tar.xz #needed for now, because sfml is normaly 2.5 and csfml only 2.4
+	# pacman -S csfml
+	```
+
+	**Windows**
+
+	Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
 
 
-2. Compile and run `worldtest`
+3. Compile and run `voxygen`
 
-```bash
-(cd worldtest && cargo run)
-```
-
-3. Compile and run `server-cli`
-
-```bash
-(cd server-cli && cargo run)
-```
-
-4. Compile and run `voxygen`
-
-```bash
-(cd voxygen && cargo run)
-```
+	```bash
+	(cd voxygen && cargo run)
+	```
 
 ## Task list
 
