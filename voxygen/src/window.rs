@@ -3,16 +3,14 @@ use glutin;
 
 use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, WindowEvent, CursorState};
 use glutin::Api::OpenGl;
-use glutin::MouseScrollDelta::LineDelta;
-use glutin::MouseScrollDelta::PixelDelta;
-use glutin::ModifiersState;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
 
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
-    MouseWheel { dx: f64, dy: f64, modifiers: ModifiersState },
+    MouseWheel { dx: f64, dy: f64, modifiers: glutin::ModifiersState },
+    KeyboardInput { i: glutin::KeyboardInput, device: glutin::DeviceId },
     Resized { w: u32, h: u32 },
 }
 
@@ -20,6 +18,7 @@ pub struct RenderWindow {
     events_loop: EventsLoop,
     gl_window: GlWindow,
     renderer: Renderer,
+    has_cursor_lock: bool,
 }
 
 impl RenderWindow {
@@ -49,6 +48,7 @@ impl RenderWindow {
             events_loop,
             gl_window,
             renderer: Renderer::new(device, factory, color_view, depth_view),
+            has_cursor_lock: true,
         }
     }
 
@@ -61,6 +61,7 @@ impl RenderWindow {
         let gl_window = &mut self.gl_window;
         let events_loop = &mut self.events_loop;
         let renderer = &mut self.renderer;
+        let has_cursor_lock = &mut self.has_cursor_lock;
 
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -73,7 +74,9 @@ impl RenderWindow {
                                     dy: position.1 - y as f64 * 0.5,
                                 });
                                 // TODO: Should we handle this result?
-                                let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                if *has_cursor_lock {
+                                    let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                }
                             },
                             None => {},
                         }
@@ -96,11 +99,11 @@ impl RenderWindow {
                         let dx: f64;
                         let dy: f64;
                         match delta {
-                            LineDelta(x,y) => {
+                            glutin::MouseScrollDelta::LineDelta(x,y) => {
                                 dx = f64::from(x) * 8.0;
                                 dy = f64::from(y) * 8.0;
                             },
-                            PixelDelta(x,y) => {
+                            glutin::MouseScrollDelta::PixelDelta(x,y) => {
                                 dx = x.into();
                                 dy = y.into();
                             },
@@ -110,6 +113,23 @@ impl RenderWindow {
                             dy,
                             modifiers,
                         });
+                    },
+                    WindowEvent::KeyboardInput { device_id, input } => {
+                        // keeping the device_id here to allow players using multiple keyboards
+                        if input.scancode == 1 { // ESC to remove focus
+                            *has_cursor_lock = false;
+                            let _ = gl_window.set_cursor_state(CursorState::Normal);
+                        }
+                        func(Event::KeyboardInput {
+                            device: device_id,
+                            i: input,
+                        });
+                    },
+                    WindowEvent::MouseInput { device_id, state, button, modifiers } => {
+                        if button == glutin::MouseButton::Left {
+                            *has_cursor_lock = true;
+                            let _ = gl_window.set_cursor_state(CursorState::Hide);
+                        }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},

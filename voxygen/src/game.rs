@@ -59,6 +59,16 @@ impl Game {
                 Event::MouseWheel { dy, .. } => {
                     self.data.lock().unwrap().camera.zoom_by(dy as f32);
                 },
+                Event::KeyboardInput { i, .. } => {
+                    println!("pressed: {}", i.scancode);
+                    match i.scancode {
+                        //W 17 => {},
+                        //A 30 => {},
+                        //S 31 => {},
+                        //D 32 => {},
+                        _ => (),
+                    }
+                },
                 Event::Resized { w, h } => {
                     self.data.lock().unwrap().camera.set_aspect_ratio(w as f32 / h as f32);
                 },
