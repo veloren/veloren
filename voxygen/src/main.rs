@@ -31,16 +31,10 @@ use game::Game;
 fn main() {
     println!("Starting Voxygen...");
 
-    // TODO: Seriously? This needs to go. Make it auto-detect this stuff
-    // <rubbish>
     let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
+    let port: u16 = 59001;
 
-    let mut port = String::new();
-    println!("Local port [59001]:");
-    io::stdin().read_line(&mut port).unwrap();
-    let port = u16::from_str_radix(&port.trim(), 10).unwrap_or(59001);
-
-    println!("Binding to {}:{}...", ip.to_string(), port);
+    println!("Binding local port to {}:{}...", ip.to_string(), port);
 
     let mut remote_addr = String::new();
     println!("Remote server address [127.0.0.1:59003]:");
@@ -49,7 +43,6 @@ fn main() {
     if remote_addr.len() == 0 {
         remote_addr = "127.0.0.1:59003".to_string();
     }
-    // </rubbish>
 
     let game = Game::new(
         ClientMode::Character,

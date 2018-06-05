@@ -1,5 +1,7 @@
+use std::thread::JoinHandle;
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
 
@@ -12,9 +14,10 @@ use region::Chunk;
 use glutin::ElementState;
 
 pub struct Game {
+    running: AtomicBool,
     client: Arc<Client>,
     window: Arc<Mutex<RenderWindow>>,
-    data: Arc<Mutex<Data>>,
+    data: Mutex<Data>,
 }
 
 // "Data" includes mutable state
@@ -29,7 +32,7 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test((200, 200, 100));
+        let chunk = Chunk::test((100, 100, 100));
         let test_mesh = Mesh::from(&chunk);
 
         let mut player_mesh = Mesh::new();
@@ -43,8 +46,13 @@ impl Game {
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
         ]);
 
-        let game = Game {
-            data: Arc::new(Mutex::new(Data {
+        let client = Client::new(mode, alias.to_string(), bind_addr, remote_addr)
+            .expect("Could not create new client");
+        Client::start(client.clone());
+
+        Game {
+            running: AtomicBool::new(true),
+            data: Mutex::new(Data {
                 camera: Camera::new(),
                 player_model: ModelObject::new(
                     window.renderer_mut(),
@@ -55,23 +63,16 @@ impl Game {
                     &test_mesh,
                 ),
                 cursor_trapped: true,
-            })),
-            client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
-                .expect("Could not create new client"),
+            }),
+            client,
             window: Arc::new(Mutex::new(window)),
-        };
-
-        Client::start(game.client.clone());
-
-        game
+        }
     }
 
     pub fn handle_window_events(&self) -> bool {
-        let mut keep_running = true;
-
         self.window.lock().unwrap().handle_events(|event| {
             match event {
-                Event::CloseRequest => keep_running = false,
+                Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
                 Event::CursorMoved { dx, dy } => {
                     let mut data = self.data.lock().unwrap();
 
@@ -88,38 +89,38 @@ impl Game {
                         1 => self.data.lock().unwrap().cursor_trapped = false,
                         17 => { //W
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(1.0, 0.0, 0.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(1.0, 0.0, 0.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         30 => { // A
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, -1.0, 0.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, -1.0, 0.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         31 => { // S
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(-1.0, 0.0, 0.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(-1.0, 0.0, 0.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         32 => { // D
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 1.0, 0.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 1.0, 0.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         57 => { // Space
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 1.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 0.0, 1.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         42 => { // Shift
                             match i.state {
-                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, -1.0)),
-                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 0.0, -1.0)),
+                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
                             }
                         },
                         _ => (),
@@ -132,7 +133,7 @@ impl Game {
             }
         });
 
-        keep_running
+        self.running.load(Ordering::Relaxed)
     }
 
     pub fn render_frame(&self) {
@@ -140,11 +141,10 @@ impl Game {
 
         window.renderer_mut().begin_frame();
 
-        {
-            let entity_uid = &self.client.player_entity_uid().unwrap();
-            let entities = self.client.entities();
-            let entity = entities.get(entity_uid);
-            self.data.lock().unwrap().camera.set_focus(*entity.unwrap().pos());
+        if let Some(uid) = self.client.player_entity_uid() {
+            if let Some(e) = self.client.entities().get(&uid) {
+                self.data.lock().unwrap().camera.set_focus(*e.pos());
+            }
         }
 
         let camera_mats = self.data.lock().unwrap().camera.get_mats();
@@ -176,5 +176,11 @@ impl Game {
         while self.handle_window_events() {
             self.render_frame();
         }
+    }
+}
+
+impl Drop for Game {
+    fn drop(&mut self) {
+        Client::stop(self.client.clone());
     }
 }

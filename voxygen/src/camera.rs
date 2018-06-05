@@ -47,7 +47,7 @@ impl Camera {
         self.fov = fov;
     }
 
-    pub fn set_focus(&mut self, focus: Vector3::<f32>) {
+    pub fn set_focus(&mut self, focus: Vector3<f32>) {
         self.focus = focus;
     }
 
