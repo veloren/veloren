@@ -18,6 +18,22 @@ impl ClientConn {
         })
     }
 
+    pub fn canBindUdp<T: ToSocketAddrs>(bind_addr: T) -> bool {
+        let sock = UdpSocket::bind(bind_addr);
+        match sock {
+            Ok(_) => {true},
+            _ => {false},
+        }
+    }
+/*
+    pub fn getFreeUdpPort<T: ToSocketAddrs>(bind_addr: T) -> T {
+        let sock = UdpSocket::bind(bind_addr);
+        match sock {
+            Ok(_) => {true},
+            _ => {false},
+        }
+    }*/
+
     pub fn clone(&self) -> ClientConn {
         ClientConn {
             sock: self.sock.try_clone().unwrap(),

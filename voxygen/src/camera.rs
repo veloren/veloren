@@ -47,6 +47,10 @@ impl Camera {
         self.fov = fov;
     }
 
+    pub fn set_focus(&mut self, focus: Vector3::<f32>) {
+        self.focus = focus;
+    }
+
     pub fn set_zoom(&mut self, zoom: f32) {
         self.zoom = zoom;
     }
