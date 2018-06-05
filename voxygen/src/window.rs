@@ -9,6 +9,8 @@ use renderer::{Renderer, ColorFormat, DepthFormat};
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
+    MouseWheel { dx: f64, dy: f64, modifiers: glutin::ModifiersState },
+    KeyboardInput { i: glutin::KeyboardInput, device: glutin::DeviceId },
     Resized { w: u32, h: u32 },
 }
 
@@ -16,6 +18,7 @@ pub struct RenderWindow {
     events_loop: EventsLoop,
     gl_window: GlWindow,
     renderer: Renderer,
+    cursor_trapped: bool,
 }
 
 impl RenderWindow {
@@ -45,6 +48,7 @@ impl RenderWindow {
             events_loop,
             gl_window,
             renderer: Renderer::new(device, factory, color_view, depth_view),
+            cursor_trapped: true,
         }
     }
 
@@ -52,11 +56,16 @@ impl RenderWindow {
         &mut self.renderer
     }
 
+    pub fn cursor_trapped<'a>(&'a mut self) -> &'a mut bool {
+        &mut self.cursor_trapped
+    }
+
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
         // We need to mutate these inside the closure, so we take a mutable reference
         let gl_window = &mut self.gl_window;
         let events_loop = &mut self.events_loop;
         let renderer = &mut self.renderer;
+        let cursor_trapped = &mut self.cursor_trapped;
 
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -69,7 +78,9 @@ impl RenderWindow {
                                     dy: position.1 - y as f64 * 0.5,
                                 });
                                 // TODO: Should we handle this result?
-                                let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                if *cursor_trapped {
+                                    let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                }
                             },
                             None => {},
                         }
@@ -87,6 +98,42 @@ impl RenderWindow {
                             w,
                             h,
                         });
+                    },
+                    WindowEvent::MouseWheel { delta, modifiers, .. } => {
+                        let dx: f64;
+                        let dy: f64;
+                        match delta {
+                            glutin::MouseScrollDelta::LineDelta(x,y) => {
+                                dx = f64::from(x) * 8.0;
+                                dy = f64::from(y) * 8.0;
+                            },
+                            glutin::MouseScrollDelta::PixelDelta(x,y) => {
+                                dx = x.into();
+                                dy = y.into();
+                            },
+                        }
+                        func(Event::MouseWheel {
+                            dx,
+                            dy,
+                            modifiers,
+                        });
+                    },
+                    WindowEvent::KeyboardInput { device_id, input } => {
+                        // keeping the device_id here to allow players using multiple keyboards
+                        if input.scancode == 1 { // ESC to remove focus
+                            *cursor_trapped = false;
+                            let _ = gl_window.set_cursor_state(CursorState::Normal);
+                        }
+                        func(Event::KeyboardInput {
+                            device: device_id,
+                            i: input,
+                        });
+                    },
+                    WindowEvent::MouseInput { device_id, state, button, modifiers } => {
+                        if button == glutin::MouseButton::Left {
+                            *cursor_trapped = true;
+                            let _ = gl_window.set_cursor_state(CursorState::Hide);
+                        }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},

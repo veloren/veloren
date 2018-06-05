@@ -46,4 +46,12 @@ impl Camera {
     pub fn set_fov(&mut self, fov: f32) {
         self.fov = fov;
     }
+
+    pub fn set_zoom(&mut self, zoom: f32) {
+        self.zoom = zoom;
+    }
+
+    pub fn zoom_by(&mut self, delta: f32) {
+        self.zoom += delta;
+    }
 }
