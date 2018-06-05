@@ -7,8 +7,10 @@ use Voxel;
 pub enum BlockMaterial {
     Air,
     Grass,
+    Sand,
     Earth,
     Stone,
+    Water,
 }
 
 #[derive(Copy, Clone)]

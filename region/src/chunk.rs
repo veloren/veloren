@@ -11,13 +11,15 @@ pub struct Chunk {
 impl Chunk {
     pub fn test(size: (i32, i32, i32)) -> Chunk {
 
-        let mut noise = OpenSimplex::new().set_seed(1337);
+        let mut noise0 = OpenSimplex::new().set_seed(1337);
+        let mut noise1 = OpenSimplex::new().set_seed(1338);
 
         let mut voxels = Vec::new();
 
         for i in 0..size.0 {
             for j in 0..size.1 {
-                let height = ((noise.get([i as f64 * 0.1, j as f64 * 0.1]) * 0.5 + 0.5) * size.2 as f64) as i32;
+                let noise = noise0.get([i as f64 * 0.02, j as f64 * 0.02]) + 0.2 * noise1.get([i as f64 * 0.1, j as f64 * 0.1]);
+                let height = ((noise * 0.5 + 0.5) * size.2 as f64) as i32;
                 for k in 0..size.2 {
                     voxels.push(Block::new(
                         if k <= height {
@@ -25,11 +27,19 @@ impl Chunk {
                                 BlockMaterial::Stone
                             } else if k < height {
                                 BlockMaterial::Earth
+                            } else if k <= size.2 / 3 + 3 {
+                                BlockMaterial::Sand
+                            } else if k > (size.2 * 2) / 3 {
+                                BlockMaterial::Stone
                             } else {
                                 BlockMaterial::Grass
                             }
                         } else {
-                            BlockMaterial::Air
+                            if k <= size.2 / 3 {
+                                BlockMaterial::Water
+                            } else {
+                                BlockMaterial::Air
+                            }
                         }
                     ));
                 }

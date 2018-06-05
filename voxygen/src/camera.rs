@@ -12,7 +12,7 @@ pub struct Camera {
 impl Camera {
     pub fn new() -> Camera {
         Camera {
-            focus: Vector3::<f32>::new(100.0, 100.0, 20.0),
+            focus: Vector3::<f32>::new(100.0, 100.0, 50.0),
             ori: Vector2::<f32>::zeros(),
             aspect_ratio: 1.618,
             fov: 1.5,

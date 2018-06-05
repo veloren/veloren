@@ -18,8 +18,10 @@ impl RenderVoxel for Block {
         let color_map = enum_map! {
             BlockMaterial::Air => Vector4::new(0.0, 0.0, 0.0, 0.0),
             BlockMaterial::Grass => Vector4::new(0.2, 0.7, 0.0, 1.0),
+            BlockMaterial::Sand  => Vector4::new(1.0, 0.8, 0.5, 1.0),
             BlockMaterial::Earth => Vector4::new(0.5, 0.2, 0.0, 1.0),
             BlockMaterial::Stone => Vector4::new(0.5, 0.5, 0.5, 1.0),
+            BlockMaterial::Water => Vector4::new(0.5, 0.7, 1.0, 1.0),
         };
 
         color_map[self.material()]

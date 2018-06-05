@@ -27,7 +27,7 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test((200, 200, 30));
+        let chunk = Chunk::test((200, 200, 100));
         let test_mesh = Mesh::from(&chunk);
 
         let game = Game {
