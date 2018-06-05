@@ -18,7 +18,7 @@ pub struct RenderWindow {
     events_loop: EventsLoop,
     gl_window: GlWindow,
     renderer: Renderer,
-    has_cursor_lock: bool,
+    cursor_trapped: bool,
 }
 
 impl RenderWindow {
@@ -48,7 +48,7 @@ impl RenderWindow {
             events_loop,
             gl_window,
             renderer: Renderer::new(device, factory, color_view, depth_view),
-            has_cursor_lock: true,
+            cursor_trapped: true,
         }
     }
 
@@ -56,12 +56,16 @@ impl RenderWindow {
         &mut self.renderer
     }
 
+    pub fn cursor_trapped<'a>(&'a mut self) -> &'a mut bool {
+        &mut self.cursor_trapped
+    }
+
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
         // We need to mutate these inside the closure, so we take a mutable reference
         let gl_window = &mut self.gl_window;
         let events_loop = &mut self.events_loop;
         let renderer = &mut self.renderer;
-        let has_cursor_lock = &mut self.has_cursor_lock;
+        let cursor_trapped = &mut self.cursor_trapped;
 
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -74,7 +78,7 @@ impl RenderWindow {
                                     dy: position.1 - y as f64 * 0.5,
                                 });
                                 // TODO: Should we handle this result?
-                                if *has_cursor_lock {
+                                if *cursor_trapped {
                                     let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
                                 }
                             },
@@ -117,7 +121,7 @@ impl RenderWindow {
                     WindowEvent::KeyboardInput { device_id, input } => {
                         // keeping the device_id here to allow players using multiple keyboards
                         if input.scancode == 1 { // ESC to remove focus
-                            *has_cursor_lock = false;
+                            *cursor_trapped = false;
                             let _ = gl_window.set_cursor_state(CursorState::Normal);
                         }
                         func(Event::KeyboardInput {
@@ -127,7 +131,7 @@ impl RenderWindow {
                     },
                     WindowEvent::MouseInput { device_id, state, button, modifiers } => {
                         if button == glutin::MouseButton::Left {
-                            *has_cursor_lock = true;
+                            *cursor_trapped = true;
                             let _ = gl_window.set_cursor_state(CursorState::Hide);
                         }
                     },
