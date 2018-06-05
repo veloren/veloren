@@ -1,13 +1,13 @@
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 
-use nalgebra::{Vector2, Matrix4};
+use nalgebra::{Vector2, Matrix4, Translation3};
 
 use client::{Client, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
-use mesh::Mesh;
+use mesh::{Mesh, Vertex};
 use region::Chunk;
 
 pub struct Game {
@@ -19,6 +19,7 @@ pub struct Game {
 // "Data" includes mutable state
 struct Data {
     camera: Camera,
+    player_model: ModelObject,
     test_model: ModelObject,
     cursor_trapped: bool,
 }
@@ -30,9 +31,24 @@ impl Game {
         let chunk = Chunk::test((200, 200, 100));
         let test_mesh = Mesh::from(&chunk);
 
+        let mut player_mesh = Mesh::new();
+        player_mesh.add(&[
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
+
+            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
+            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
+            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
+        ]);
+
         let game = Game {
             data: Arc::new(Mutex::new(Data {
                 camera: Camera::new(),
+                player_model: ModelObject::new(
+                    window.renderer_mut(),
+                    &player_mesh,
+                ),
                 test_model: ModelObject::new(
                     window.renderer_mut(),
                     &test_mesh,
@@ -103,6 +119,18 @@ impl Game {
             Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1)
         );
         window.renderer_mut().render_model_object(&self.data.lock().unwrap().test_model);
+
+        for (uid, entity) in self.client.entities().iter() {
+            window.renderer_mut().update_model_object(
+                &self.data.lock().unwrap().player_model,
+                Constants::new(
+                    &Translation3::<f32>::from_vector(*entity.pos()).to_homogeneous(),
+                    &camera_mats.0,
+                    &camera_mats.1
+                )
+            );
+            window.renderer_mut().render_model_object(&self.data.lock().unwrap().player_model);
+        }
 
         window.swap_buffers();
         window.renderer_mut().end_frame();

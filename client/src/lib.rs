@@ -16,7 +16,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::net::ToSocketAddrs;
 
-use spin::{Mutex, MutexGuard, RwLock};
+use spin::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 
 use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
@@ -66,7 +66,11 @@ impl Client {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn alias(&self) -> MutexGuard<String> {
+    pub fn entities<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<u64, Entity>> {
+        self.entities.read()
+    }
+
+    pub fn alias<'a>(&'a self) -> MutexGuard<'a, String> {
         self.alias.lock()
     }
 
@@ -85,7 +89,15 @@ impl Client {
                 Some(ref f) => (f)(&alias, &msg),
                 None => {}
             },
-            ServerPacket::EntityUpdate { uid, pos } => info!("Entity Update: uid:{} at pos:{:#?}", uid, pos),
+            ServerPacket::EntityUpdate { uid, pos } => {
+                info!("Entity Update: uid:{} at pos:{:#?}", uid, pos);
+
+                let mut entities = self.entities.write();
+                match entities.get_mut(&uid) {
+                    Some(e) => *e.pos_mut() = pos,
+                    None => { entities.insert(uid, Entity::new(pos)); },
+                }
+            },
             _ => {},
         }
     }

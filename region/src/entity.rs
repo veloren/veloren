@@ -5,13 +5,17 @@ pub struct Entity {
 }
 
 impl Entity {
-    pub fn new() -> Entity {
+    pub fn new(pos: Vector3<f32>) -> Entity {
         Entity {
-            pos: Vector3::new(0.0, 0.0, 0.0),
+            pos,
         }
     }
 
     pub fn pos(&self) -> &Vector3<f32> {
         &self.pos
+    }
+
+    pub fn pos_mut<'a>(&'a mut self) -> &'a mut Vector3<f32> {
+        &mut self.pos
     }
 }

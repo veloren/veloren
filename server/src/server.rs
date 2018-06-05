@@ -2,6 +2,8 @@
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::collections::HashMap;
 
+use nalgebra::Vector3;
+
 use network::ClientMode;
 use network::server::ServerConn;
 use network::packet::{ClientPacket, ServerPacket};
@@ -63,7 +65,7 @@ impl Server {
                                 None
                             },
                             ClientMode::Character => {
-                                let player_entity = self.add_entity(Entity::new());
+                                let player_entity = self.add_entity(Entity::new(Vector3::new(0.0, 0.0, 0.0)));
                                 info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, player_entity);
                                 Some(player_entity)
                             },
