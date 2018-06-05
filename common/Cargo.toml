@@ -1,0 +1,8 @@
+[package]
+name = "common"
+version = "0.1.0"
+authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
+
+[dependencies]
+time = "0.1.40"
+log = "0.4"

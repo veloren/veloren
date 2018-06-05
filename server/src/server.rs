@@ -10,10 +10,12 @@ use network::packet::{ClientPacket, ServerPacket};
 use world::World;
 use player::Player;
 use region::Entity;
+use common::Clock;
+use std::time::Duration;
 
 pub struct Server {
     running: bool,
-    time: f64,
+    clock: Clock,
 
     uid_count: u64, // TODO: Turn u64 into Uid
     world: World,
@@ -27,7 +29,7 @@ impl Server {
     pub fn new<A: ToSocketAddrs>(bind_addr: A, seed: u32, world_size: u32) -> Option<Server> {
         let server = Server {
             running: true,
-            time: 0.0,
+            clock: Clock::new(),
 
             uid_count: 0,
             world: World::new(seed, world_size),
@@ -132,9 +134,9 @@ impl Server {
         uid
     }
 
-    pub fn next_tick(&mut self, dt: f64) {
+    pub fn next_tick(&mut self, dt: Duration) {
         //self.world.tick(dt); // TODO: Fix issue #11 and uncomment
-        self.time += dt;
+        self.clock.tick(dt);
         debug!("TICK!");
         // Send Entity Updates
         // For each entity
