@@ -157,18 +157,36 @@ impl Server {
 
     fn handle_command(&mut self, sock_addr: &SocketAddr, command_str: String) {
         // TODO: Implement some sort of command structure with a hashmap of Commands.
-        let players = &mut self.players;
-        if let Some(ref mut p) = players.get_mut(&sock_addr) {
+        if let Some(p) = self.players.get(&sock_addr) {
             debug!("Received command from {}: {}", p.alias(), command_str);
             // Split command into parts, seperated by space.
             let mut parts = command_str.split(" ");
             if let Some(command) = parts.next() {
-                let response = match command {
+                let response: String;
+                match command {
                     "move_by" => {
                         let str_args = parts.collect::<Vec<&str>>();
-                        handle_move_by_command(p, str_args)
+                        
+                        match p.entity_uid() {
+                            Some(entity_id) => match self.entities.get_mut(&entity_id) {
+                                Some(entity) => {
+                                    // TODO: Parse these args without discarding non f32 elements. 
+                                    
+
+                                    response = handle_move_packet(entity, str_args);
+                                },
+                                None => {
+                                    debug!("Entity does not exist within hashmap.");
+                                    response = String::from("You do not have an entity to move!.");
+                                },
+                            },
+                            None => {
+                                debug!("Player does not have entity to move.");
+                                response = String::from("You do not have an entity to move!.");
+                            },
+                        }
                     },
-                    _ => String::from("Command not recognised..."),
+                    _ => response = String::from("Command not recognised..."),
                 };
                 let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
                 let _ = self.conn.send_to(sock_addr, &packet);
@@ -177,31 +195,24 @@ impl Server {
     }
 }
 
-fn handle_move_by_command<'a>(p: &'a mut Player, str_args: Vec<&str>) -> String {
-    // Collect args as f32, if one of the str_args fails to convert, it is dropped.
-    // Potential issue as the command below is valid due to the dropped a.
-    // !move_by 5 a 3 2
-    // TODO: Do some smarter error checking.
-    let args: Vec<f32> = str_args.iter()
-        .filter_map(|arg| arg.parse::<f32>().ok())
-        .collect();
-
-    if args.len() == 3 { // Check we have the right number of args
-        let x = args[0];
-        let y = args[1];
-        let z = args[2];
-
-        // TODO: Fix this later, positions are entity attributes now
-        //p.move_by(x, y, z);
-        //info!("Moved player {} to {:#?}", p.alias(), p.position());
-        //format!("Moved to {:#?}", p.position())
-    } else {
-        // Handle invalid number of args?
-        warn!("Invalid number of arguments for move_by command");
+fn handle_move_packet(entity: &mut Entity, str_args: Vec<&str>) -> String {
+        let args: Vec<f32> = str_args.iter()
+                            .filter_map(|arg| arg.parse::<f32>().ok())
+                            .collect();
+        let response: String;
+        if args.len() == 3 { // Check we have the right number of args
+            let x = args[0];
+            let y = args[1];
+            let z = args[2];
+            *entity.pos_mut() = (Vector3::new(x, y, z));
+            response = String::from("Moved successfully!")
+        } else {
+            // Handle invalid number of args?
+            warn!("Invalid number of arguments for move_by command");
+            response = String::from("Invalid number of arguments for move_by command!");
+        }
+        response
     }
-
-    unimplemented!();
-}
 
 impl Drop for Server {
     fn drop(&mut self) {
