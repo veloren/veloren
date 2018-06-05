@@ -1,4 +1,4 @@
-use region::{Volume, Voxel};
+use region::Voxel;
 use render_volume::{RenderVoxel, RenderVolume};
 
 gfx_defines! {

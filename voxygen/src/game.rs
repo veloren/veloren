@@ -3,15 +3,15 @@ use std::sync::{Arc, Mutex};
 
 use nalgebra::{Vector2, Matrix4};
 
-use client::{ClientHandle, ClientMode};
+use client::{Client, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
-use mesh::{Mesh, Vertex};
+use mesh::Mesh;
 use region::Chunk;
 
 pub struct Game {
-    client: Arc<Mutex<ClientHandle>>,
+    client: Arc<Client>,
     window: Arc<Mutex<RenderWindow>>,
     data: Arc<Mutex<Data>>,
 }
@@ -39,12 +39,12 @@ impl Game {
                 ),
                 cursor_trapped: true,
             })),
-            client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
-                .expect("Could not start client"))),
+            client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
+                .expect("Could not create new client"),
             window: Arc::new(Mutex::new(window)),
         };
 
-        game.client.lock().unwrap().run();
+        Client::start(game.client.clone());
 
         game
     }

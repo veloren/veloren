@@ -10,12 +10,12 @@ use std::net::SocketAddr;
 
 use syrup::Window;
 
-use client::{ClientHandle, ClientMode};
+use client::{Client, ClientMode};
 
 fn main() {
     println!("Starting headless client...");
 
-    let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();   
+    let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
 
     let mut port = String::new();
     println!("Local port [59001]:");
@@ -33,7 +33,7 @@ fn main() {
     let mut win = Window::initscr();
     win.writeln("Welcome to the Verloren headless client.");
 
-    let mut client = match ClientHandle::new(ClientMode::Headless, &alias.trim(), SocketAddr::new(ip, port), &remote_addr.trim()) {
+    let client = match Client::new(ClientMode::Headless, alias.trim().to_string(), SocketAddr::new(ip, port), &remote_addr.trim()) {
         Ok(c) => c,
         Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
@@ -43,7 +43,7 @@ fn main() {
         tx.send(format!("{}: {}", alias, msg)).unwrap();
     });
 
-    client.run();
+    Client::start(client.clone());
 
     loop {
         if let Ok(msg) = rx.try_recv() {
