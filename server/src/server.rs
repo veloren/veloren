@@ -60,13 +60,16 @@ impl Server {
                         None => {},
                     }
                 } else {
-                    self.players.insert(sock_addr, Player::new(mode, &alias, 0.0, 0.0, 0.0));
-                    info!("Player '{}' connected!", alias);
-
                     let pe = match mode {
                         ClientMode::Headless => None,
                         ClientMode::Character => Some(self.add_entity(Entity::new())),
                     };
+
+                    self.players.insert(sock_addr, Player::new(pe, mode, &alias, 0.0, 0.0, 0.0));
+                    match pe {
+                        None => info!("Player '{}' connected!", alias),
+                        Some(entity_id) => info!("Player '{}' connected! Assigned Entity id: {}", alias, entity_id),
+                    }                   
 
                     let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity: pe });
                 }
@@ -85,32 +88,28 @@ impl Server {
                 }
             },
             ClientPacket::SendChatMsg { msg } => {
-                if self.players.contains_key(&sock_addr) {
-                    let alias = match self.players.get(&sock_addr) {
-                        Some(p) => p.alias().to_string(),
-                        None => "<unknown>".to_string(),
-                    };
+                let alias = match self.players.get(&sock_addr) {
+                    Some(p) => p.alias().to_string(),
+                    None => "<unknown>".to_string(),
+                };
 
-                    info!("[MSG] {}: {}", alias, msg);
+                info!("[MSG] {}: {}", alias, msg);
 
-                    let packet = ServerPacket::RecvChatMsg{ alias, msg };
+                let packet = ServerPacket::RecvChatMsg{ alias, msg };
 
-                    for sock_addr in self.players.keys() {
-                        let _ = self.conn.send_to(sock_addr, &packet);
-                    }
+                for sock_addr in self.players.keys() {
+                    let _ = self.conn.send_to(sock_addr, &packet);
                 }
+                
             },
-            ClientPacket::SendCommand { cmd } => {
-                if self.players.contains_key(&sock_addr) {
-                    // Surely this can be cleaned up?
-                    if let Some(p) = self.players.get(&sock_addr) {
-                        debug!("Received command from {}: {}", p.alias(), cmd);
-                    }
-                    self.handle_command(&sock_addr, cmd);
-                }
-            },
+            ClientPacket::SendCommand { cmd } => self.handle_command(&sock_addr, cmd),
             ClientPacket::PlayerEntityUpdate { pos } => {
-                // TODO: Implement
+                if self.players.contains_key(&sock_addr) {
+                    if let Some(ref mut p) = self.players.get_mut(&sock_addr) {
+                        // TODO: Check this movement is acceptable.
+                        p.set_position(pos);
+                    }
+                }
             },
         }
     }
@@ -127,14 +126,37 @@ impl Server {
     }
 
     pub fn next_tick(&mut self, dt: f64) {
-        self.world.tick(dt);
+        //self.world.tick(dt); // TODO: Fix issue #11 and uncomment
         self.time += dt;
+        debug!("TICK!");
+        // Send Entity Updates
+        // For each entity
+        for uid in self.entities.keys() {
+            if let Some(entity) = self.entities.get(uid) {
+                // Send their Entity data
+                let packet = ServerPacket::EntityUpdate{ uid: *uid, pos: *entity.pos() };
+                // To OTHER players.
+                for (sock_addr, player) in self.players.iter() {
+                    // Check that the player has an entity
+                    if let Some(player_entity) = player.entity_id() {
+                        // Check we aren't telling the player his own entity data
+                        if player_entity != uid {
+                            debug!("Sending update of entity [{}] to {}!", uid, player.alias());
+                            let _ = self.conn.send_to(sock_addr, &packet);
+                        }
+                    }
+                }
+
+            }
+            
+        }
     }
 
     fn handle_command(&mut self, sock_addr: &SocketAddr, command_str: String) {
         // TODO: Implement some sort of command structure with a hashmap of Commands.
         let players = &mut self.players;
         if let Some(ref mut p) = players.get_mut(&sock_addr) {
+            debug!("Received command from {}: {}", p.alias(), command_str);
             // Split command into parts, seperated by space.
             let mut parts = command_str.split(" ");
             if let Some(command) = parts.next() {

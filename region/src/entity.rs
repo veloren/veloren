@@ -10,4 +10,8 @@ impl Entity {
             pos: Vector3::new(0.0, 0.0, 0.0),
         }
     }
+
+    pub fn pos(&self) -> &Vector3<f32> {
+        &self.pos
+    }
 }

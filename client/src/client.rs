@@ -56,6 +56,7 @@ impl Client {
             ServerPacket::RecvChatMsg { alias, msg } => {
                 (self.chat_callback)(&alias, &msg);
             },
+            ServerPacket::EntityUpdate { uid, pos } => println!("Entity Update: uid:{} at pos:{:#?}", uid, pos),
             _ => {},
         }
     }

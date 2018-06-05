@@ -9,7 +9,7 @@ pub enum ServerPacket {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: u32, pos: Vector3<f32> },
+    EntityUpdate { uid: u64, pos: Vector3<f32> },
 }
 
 impl ServerPacket {
