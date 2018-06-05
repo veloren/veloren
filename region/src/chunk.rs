@@ -13,14 +13,21 @@ impl Chunk {
 
         let mut noise0 = OpenSimplex::new().set_seed(1337);
         let mut noise1 = OpenSimplex::new().set_seed(1338);
+        let mut noise2 = OpenSimplex::new().set_seed(1339);
+        let mut noise3 = OpenSimplex::new().set_seed(1340);
 
         let mut voxels = Vec::new();
 
         for i in 0..size.0 {
             for j in 0..size.1 {
-                let noise = noise0.get([i as f64 * 0.02, j as f64 * 0.02]) + 0.2 * noise1.get([i as f64 * 0.1, j as f64 * 0.1]);
-                let height = ((noise * 0.5 + 0.5) * size.2 as f64) as i32;
                 for k in 0..size.2 {
+                    let (x, y) = (
+                        i as f64 + noise2.get([i as f64 * 0.02, j as f64 * 0.02, k as f64 * 0.05]) * 16.0,
+                        j as f64 + noise3.get([i as f64 * 0.02, j as f64 * 0.02, k as f64 * 0.05]) * 16.0
+                    );
+                    let noise = noise0.get([x as f64 * 0.02, y as f64 * 0.02]) + 0.2 * noise1.get([x as f64 * 0.1, y as f64 * 0.1]);
+                    let height = ((noise * 0.5 + 0.5) * size.2 as f64) as i32;
+
                     voxels.push(Block::new(
                         if k <= height {
                             if k < height - 4 {
