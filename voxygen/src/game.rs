@@ -1,7 +1,7 @@
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 
-use nalgebra::{Vector2, Matrix4, Translation3};
+use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
 
 use client::{Client, ClientMode};
 use camera::Camera;
@@ -9,6 +9,7 @@ use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
+use glutin::ElementState;
 
 pub struct Game {
     client: Arc<Client>,
@@ -85,10 +86,42 @@ impl Game {
                     println!("pressed: {}", i.scancode);
                     match i.scancode {
                         1 => self.data.lock().unwrap().cursor_trapped = false,
-                        //W 17 => {},
-                        //A 30 => {},
-                        //S 31 => {},
-                        //D 32 => {},
+                        17 => { //W
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(1.0, 0.0, 0.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
+                        30 => { // A
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, -1.0, 0.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
+                        31 => { // S
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(-1.0, 0.0, 0.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
+                        32 => { // D
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 1.0, 0.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
+                        57 => { // Space
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 1.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
+                        42 => { // Shift
+                            match i.state {
+                                ElementState::Pressed => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, -1.0)),
+                                ElementState::Released => self.client.set_absolute_movement(Vector3::new(0.0, 0.0, 0.0)),
+                            }
+                        },
                         _ => (),
                     }
                 },
@@ -102,14 +135,17 @@ impl Game {
         keep_running
     }
 
-    pub fn update_logic(&self) {
-        // Nothing yet
-    }
-
     pub fn render_frame(&self) {
         let mut window = self.window.lock().unwrap();
 
         window.renderer_mut().begin_frame();
+
+        {
+            let entity_uid = &self.client.player_entity_uid().unwrap();
+            let entities = self.client.entities();
+            let entity = entities.get(entity_uid);
+            self.data.lock().unwrap().camera.set_focus(*entity.unwrap().pos());
+        }
 
         let camera_mats = self.data.lock().unwrap().camera.get_mats();
 
@@ -138,7 +174,6 @@ impl Game {
 
     pub fn run(&self) {
         while self.handle_window_events() {
-            self.update_logic();
             self.render_frame();
         }
     }

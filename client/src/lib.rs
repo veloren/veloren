@@ -5,6 +5,7 @@ extern crate log;
 extern crate spin;
 extern crate network;
 extern crate region;
+extern crate nalgebra;
 
 // Reexports
 pub use network::ClientMode as ClientMode;
@@ -21,6 +22,8 @@ use spin::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
 use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
+
+use nalgebra::{Vector3};
 
 // Errors that may occur within this crate
 #[derive(Debug)]
@@ -41,6 +44,7 @@ pub struct Client {
 
     player_entity_uid: Mutex<Option<u64>>, // TODO: Turn u64 into Uid
     entities: RwLock<HashMap<u64, Entity>>, // TODO: Turn u64 into Uid
+    player_movement: Mutex<Vector3<f32>>,
 
     chat_callback: Mutex<Option<Box<Fn(&str, &str) + Send>>>,
 }
@@ -57,6 +61,7 @@ impl Client {
 
             player_entity_uid: Mutex::new(None),
             entities: RwLock::new(HashMap::new()),
+            player_movement: Mutex::new(Vector3::new(0.0, 0.0, 0.0)),
 
             chat_callback: Mutex::new(None),
         }))
@@ -68,6 +73,33 @@ impl Client {
 
     pub fn entities<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<u64, Entity>> {
         self.entities.read()
+    }
+
+    pub fn player_entity_uid<'a>(&'a self) -> MutexGuard<'a, Option<u64>> {
+        self.player_entity_uid.lock()
+    }
+
+    // sets the movement independent from current looking position
+    pub fn set_absolute_movement<'a>(&'a self, movement: Vector3<f32>) {
+        *self.player_movement.lock() = movement;
+    }
+
+    // sets the movement independent relative to the current looking position
+    pub fn set_relative_movement<'a>(&'a self, movement: Vector3<f32>) {
+        // rotate movement first
+        *self.player_movement.lock() = movement;
+    }
+
+    fn move_player<'a>(&'a self) {
+        let uid = self.player_entity_uid.lock().unwrap();
+        let mut entities = self.entities.write();
+        match entities.get_mut(&uid) {
+            Some(e) => {
+                *e.pos_mut() += *self.player_movement.lock() * /*make it slow this is player speed tick time magic const fixme*/0.04;
+                self.conn.send(&ClientPacket::PlayerEntityUpdate{pos: *e.pos()}).expect("Could not send player position packet");
+            },
+            None => { entities.insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));},
+        }
     }
 
     pub fn alias<'a>(&'a self) -> MutexGuard<'a, String> {
@@ -127,6 +159,7 @@ impl Client {
                     Ok(data) => client.handle_packet(data.1),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
+                client.move_player();
             }
         });
     }
