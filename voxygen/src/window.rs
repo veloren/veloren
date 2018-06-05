@@ -3,12 +3,16 @@ use glutin;
 
 use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, WindowEvent, CursorState};
 use glutin::Api::OpenGl;
+use glutin::MouseScrollDelta::LineDelta;
+use glutin::MouseScrollDelta::PixelDelta;
+use glutin::ModifiersState;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
 
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
+    MouseWheel { dx: f64, dy: f64, modifiers: ModifiersState },
     Resized { w: u32, h: u32 },
 }
 
@@ -86,6 +90,25 @@ impl RenderWindow {
                         func(Event::Resized {
                             w,
                             h,
+                        });
+                    },
+                    WindowEvent::MouseWheel { delta, modifiers, .. } => {
+                        let dx: f64;
+                        let dy: f64;
+                        match delta {
+                            LineDelta(x,y) => {
+                                dx = f64::from(x) * 8.0;
+                                dy = f64::from(y) * 8.0;
+                            },
+                            PixelDelta(x,y) => {
+                                dx = x.into();
+                                dy = y.into();
+                            },
+                        }
+                        func(Event::MouseWheel {
+                            dx,
+                            dy,
+                            modifiers,
                         });
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
