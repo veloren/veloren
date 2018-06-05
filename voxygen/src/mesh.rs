@@ -1,6 +1,6 @@
 use nalgebra::Vector4;
 
-use region::{Volume, Voxel, BlockMaterial};
+use region::{Volume, Voxel};
 use render_volume::{RenderVoxel, RenderVolume};
 
 gfx_defines! {

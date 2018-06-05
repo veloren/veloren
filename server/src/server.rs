@@ -54,24 +54,25 @@ impl Server {
 
         match packet {
             ClientPacket::Connect { mode, alias } => {
-                if self.players.contains_key(&sock_addr) {
-                    match self.players.get(&sock_addr) {
-                        Some(p) => warn!("Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
-                        None => {},
-                    }
-                } else {
-                    let pe = match mode {
-                        ClientMode::Headless => None,
-                        ClientMode::Character => Some(self.add_entity(Entity::new())),
-                    };
+                match self.players.get(&sock_addr) {
+                    Some(p) => warn!("Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
+                    None => {
+                        let player_entity_uid = match mode {
+                            ClientMode::Headless => {
+                                info!("Player '{}' connected in headless mode.", alias);
+                                None
+                            },
+                            ClientMode::Character => {
+                                let player_entity = self.add_entity(Entity::new());
+                                info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, player_entity);
+                                Some(player_entity)
+                            },
+                        };
 
-                    self.players.insert(sock_addr, Player::new(pe, mode, &alias, 0.0, 0.0, 0.0));
-                    match pe {
-                        None => info!("Player '{}' connected!", alias),
-                        Some(entity_id) => info!("Player '{}' connected! Assigned Entity id: {}", alias, entity_id),
-                    }                   
+                        self.players.insert(sock_addr, Player::new(player_entity_uid, mode, &alias));
 
-                    let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity: pe });
+                        let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity_uid });
+                    },
                 }
             },
             ClientPacket::Disconnect => {
@@ -88,27 +89,26 @@ impl Server {
                 }
             },
             ClientPacket::SendChatMsg { msg } => {
-                let alias = match self.players.get(&sock_addr) {
-                    Some(p) => p.alias().to_string(),
-                    None => "<unknown>".to_string(),
+                match self.players.get(&sock_addr) {
+                    Some(p) => {
+                        let alias = p.alias().to_string();
+
+                        info!("[MSG] {}: {}", alias, msg);
+
+                        let packet = ServerPacket::RecvChatMsg{ alias, msg };
+                        for sock_addr in self.players.keys() {
+                            let _ = self.conn.send_to(sock_addr, &packet);
+                        }
+                    },
+                    None => {},
                 };
 
-                info!("[MSG] {}: {}", alias, msg);
-
-                let packet = ServerPacket::RecvChatMsg{ alias, msg };
-
-                for sock_addr in self.players.keys() {
-                    let _ = self.conn.send_to(sock_addr, &packet);
-                }
-                
             },
             ClientPacket::SendCommand { cmd } => self.handle_command(&sock_addr, cmd),
             ClientPacket::PlayerEntityUpdate { pos } => {
-                if self.players.contains_key(&sock_addr) {
-                    if let Some(ref mut p) = self.players.get_mut(&sock_addr) {
-                        // TODO: Check this movement is acceptable.
-                        p.set_position(pos);
-                    }
+                if let Some(ref mut p) = self.players.get_mut(&sock_addr) {
+                    // TODO: Check this movement is acceptable.
+
                 }
             },
         }
@@ -131,24 +131,20 @@ impl Server {
         debug!("TICK!");
         // Send Entity Updates
         // For each entity
-        for uid in self.entities.keys() {
-            if let Some(entity) = self.entities.get(uid) {
-                // Send their Entity data
-                let packet = ServerPacket::EntityUpdate{ uid: *uid, pos: *entity.pos() };
-                // To OTHER players.
-                for (sock_addr, player) in self.players.iter() {
-                    // Check that the player has an entity
-                    if let Some(player_entity) = player.entity_id() {
-                        // Check we aren't telling the player his own entity data
-                        if player_entity != uid {
-                            debug!("Sending update of entity [{}] to {}!", uid, player.alias());
-                            let _ = self.conn.send_to(sock_addr, &packet);
-                        }
+        for (uid, entity) in self.entities.iter() {
+            // Send their Entity data
+            let packet = ServerPacket::EntityUpdate{ uid: *uid, pos: *entity.pos() };
+            // To OTHER players.
+            for (sock_addr, player) in self.players.iter() {
+                // Check that the player has an entity
+                if let Some(player_entity_uid) = player.entity_uid() {
+                    // Check we aren't telling the player his own entity data
+                    if player_entity_uid != *uid {
+                        debug!("Sending update of entity [{}] to {}!", uid, player.alias());
+                        let _ = self.conn.send_to(sock_addr, &packet);
                     }
                 }
-
             }
-            
         }
     }
 
@@ -165,7 +161,7 @@ impl Server {
                         let str_args = parts.collect::<Vec<&str>>();
                         handle_move_by_command(p, str_args)
                     },
-                    _ => String::from("Command not recognised...")
+                    _ => String::from("Command not recognised..."),
                 };
                 let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
                 let _ = self.conn.send_to(sock_addr, &packet);
@@ -187,14 +183,17 @@ fn handle_move_by_command<'a>(p: &'a mut Player, str_args: Vec<&str>) -> String 
         let x = args[0];
         let y = args[1];
         let z = args[2];
-        p.move_by(x, y, z);
 
-        info!("Moved player {} to {:#?}", p.alias(), p.position());
-        format!("Moved to {:#?}", p.position())
+        // TODO: Fix this later, positions are entity attributes now
+        //p.move_by(x, y, z);
+        //info!("Moved player {} to {:#?}", p.alias(), p.position());
+        //format!("Moved to {:#?}", p.position())
     } else {
         // Handle invalid number of args?
-        String::from("Invalid number of arguments for move_by command")
+        warn!("Invalid number of arguments for move_by command");
     }
+
+    unimplemented!();
 }
 
 impl Drop for Server {

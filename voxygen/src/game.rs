@@ -28,7 +28,7 @@ impl Game {
         let chunk = Chunk::test((200, 200, 30));
         let mut test_mesh = Mesh::from(&chunk);
 
-        Game {
+        let game = Game {
             data: Arc::new(Mutex::new(Data {
                 camera: Camera::new(),
                 test_model: ModelObject::new(
@@ -39,7 +39,11 @@ impl Game {
             client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
                 .expect("Could not start client"))),
             window: Arc::new(Mutex::new(window)),
-        }
+        };
+
+        game.client.lock().unwrap().run();
+
+        game
     }
 
     pub fn handle_window_events(&self) -> bool {

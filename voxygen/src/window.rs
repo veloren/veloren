@@ -39,7 +39,7 @@ impl RenderWindow {
             },
             None => {},
         }
-        gl_window.set_cursor_state(CursorState::Hide);
+        let _ = gl_window.set_cursor_state(CursorState::Hide);
 
         RenderWindow {
             events_loop,
@@ -84,8 +84,8 @@ impl RenderWindow {
                         );
                         renderer.set_views(color_view, depth_view);
                         func(Event::Resized {
-                            w: w,
-                            h: h,
+                            w,
+                            h,
                         });
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),

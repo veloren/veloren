@@ -5,7 +5,7 @@ use Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected { player_entity: Option<u64> }, // TODO: Turn u64 into Uid
+    Connected { player_entity_uid: Option<u64> }, // TODO: Turn u64 into Uid
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
