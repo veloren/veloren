@@ -12,6 +12,8 @@ pub use network::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
 use std::thread;
+use std::thread::JoinHandle;
+use std::time;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
@@ -44,7 +46,7 @@ pub struct Client {
 
     player_entity_uid: Mutex<Option<u64>>, // TODO: Turn u64 into Uid
     entities: RwLock<HashMap<u64, Entity>>, // TODO: Turn u64 into Uid
-    player_movement: Mutex<Vector3<f32>>,
+    player_vel: Mutex<Vector3<f32>>,
 
     chat_callback: Mutex<Option<Box<Fn(&str, &str) + Send>>>,
 }
@@ -61,7 +63,7 @@ impl Client {
 
             player_entity_uid: Mutex::new(None),
             entities: RwLock::new(HashMap::new()),
-            player_movement: Mutex::new(Vector3::new(0.0, 0.0, 0.0)),
+            player_vel: Mutex::new(Vector3::new(0.0, 0.0, 0.0)),
 
             chat_callback: Mutex::new(None),
         }))
@@ -75,34 +77,11 @@ impl Client {
         self.entities.read()
     }
 
-    pub fn player_entity_uid<'a>(&'a self) -> MutexGuard<'a, Option<u64>> {
-        self.player_entity_uid.lock()
+    pub fn player_entity_uid<'a>(&'a self) -> Option<u64> {
+        *self.player_entity_uid.lock()
     }
 
-    // sets the movement independent from current looking position
-    pub fn set_absolute_movement<'a>(&'a self, movement: Vector3<f32>) {
-        *self.player_movement.lock() = movement;
-    }
-
-    // sets the movement independent relative to the current looking position
-    pub fn set_relative_movement<'a>(&'a self, movement: Vector3<f32>) {
-        // rotate movement first
-        *self.player_movement.lock() = movement;
-    }
-
-    fn move_player<'a>(&'a self) {
-        let uid = self.player_entity_uid.lock().unwrap();
-        let mut entities = self.entities.write();
-        match entities.get_mut(&uid) {
-            Some(e) => {
-                *e.pos_mut() += *self.player_movement.lock() * /*make it slow this is player speed tick time magic const fixme*/0.04;
-                self.conn.send(&ClientPacket::PlayerEntityUpdate{pos: *e.pos()}).expect("Could not send player position packet");
-            },
-            None => { entities.insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));},
-        }
-    }
-
-    pub fn alias<'a>(&'a self) -> MutexGuard<'a, String> {
+    pub fn alias_mut<'a>(&'a self) -> MutexGuard<'a, String> {
         self.alias.lock()
     }
 
@@ -110,10 +89,33 @@ impl Client {
         &self.conn
     }
 
+    pub fn set_player_vel(&self, vel: Vector3<f32>) {
+        *self.player_vel.lock() = vel;
+    }
+
+    fn tick(&self, dt: f32) {
+        if let Some(uid) = *self.player_entity_uid.lock() {
+            if let Some(e) = self.entities.write().get_mut(&uid) {
+                *e.pos_mut() += *self.player_vel.lock() * dt;
+
+                self.conn.send(&ClientPacket::PlayerEntityUpdate {
+                    pos: *e.pos()
+                }).expect("Could not send player position packet");
+            }
+        }
+    }
+
     pub fn handle_packet(&self, packet: ServerPacket) {
         match packet {
             ServerPacket::Connected { player_entity_uid } => {
+                if let Some(uid) = player_entity_uid {
+                    if !self.entities.read().contains_key(&uid) {
+                        self.entities.write().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                    }
+                }
+
                 *self.player_entity_uid.lock() = player_entity_uid;
+
                 info!("Client connected");
             },
             ServerPacket::Shutdown => self.running.store(false, Ordering::Relaxed),
@@ -152,16 +154,31 @@ impl Client {
         Ok(())
     }
 
+    pub fn stop(client: Arc<Client>) {
+        client.running.store(false, Ordering::Relaxed);
+    }
+
+    // Todo: stop this being run twice?
     pub fn start(client: Arc<Client>) {
-        thread::spawn(move || {
-            while client.running() {
-                match client.conn().recv() {
-                    Ok(data) => client.handle_packet(data.1),
+        let client_ref = client.clone();
+        let recv_thread = thread::spawn(move || {
+            while client_ref.running() {
+                match client_ref.conn().recv() {
+                    Ok(data) => client_ref.handle_packet(data.1),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
-                client.move_player();
             }
         });
+
+        let client_ref = client.clone();
+        let tick_thread = thread::spawn(move || {
+            while client_ref.running() {
+                client.tick(0.2);
+                thread::sleep(time::Duration::from_millis(20));
+            }
+        });
+
+        // TODO: Make these join the main thread before closing!
     }
 }
 
@@ -170,45 +187,3 @@ impl Drop for Client {
         self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
     }
 }
-
-// // A thread-safe client handle
-// pub struct ClientHandle {
-//     client: Arc<Mutex<Client>>,
-// }
-
-// impl ClientHandle {
-//     // Create a new client from a set of parameters and return a handle to it
-//     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: T, remote_addr: U) -> Result<ClientHandle, Error> {
-//         Ok(ClientHandle {
-//             client: Arc::new(Mutex::new(match client::Client::new(mode, alias, bind_addr, remote_addr) {
-//                 Ok(c) => c,
-//                 Err(e) => return Err(e),
-//             })),
-//         })
-//     }
-
-//     pub fn run(&mut self) {
-//         let client_ref = self.client.clone();
-//         thread::spawn(move || {
-//             let conn = client_ref.lock().unwrap().conn();
-//             while client_ref.lock().unwrap().running() {
-//                 match conn.recv() {
-//                     Ok(data) => client_ref.lock().unwrap().handle_packet(data.1),
-//                     Err(e) => println!("[WARNING] Receive error: {:?}", e),
-//                 }
-//             }
-//         });
-//     }
-
-//     pub fn set_chat_callback<F: 'static + Fn(&str, &str) + Send>(&self, f: F) {
-//         self.client.lock().unwrap().set_chat_callback(f);
-//     }
-
-//     pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
-//         self.client.lock().unwrap().send_chat_msg(msg)
-//     }
-
-//         pub fn send_command(&self, cmd: &str) -> Result<(), Error> {
-//         self.client.lock().unwrap().send_command(cmd)
-//     }
-// }
