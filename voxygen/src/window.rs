@@ -36,14 +36,6 @@ impl RenderWindow {
         let (gl_window, device, factory, color_view, depth_view) =
             gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
 
-        match gl_window.get_inner_size() {
-            Some((x, y)) => {
-                let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
-            },
-            None => {},
-        }
-        let _ = gl_window.set_cursor_state(CursorState::Hide);
-
         RenderWindow {
             events_loop,
             gl_window,
@@ -56,8 +48,8 @@ impl RenderWindow {
         &mut self.renderer
     }
 
-    pub fn cursor_trapped<'a>(&'a mut self) -> &'a mut bool {
-        &mut self.cursor_trapped
+    pub fn set_cursor_trapped(&mut self, trapped: bool) {
+        self.cursor_trapped = trapped;
     }
 
     pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
@@ -80,6 +72,9 @@ impl RenderWindow {
                                 // TODO: Should we handle this result?
                                 if *cursor_trapped {
                                     let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                    let _ = gl_window.set_cursor_state(CursorState::Hide);
+                                } else {
+                                    let _ = gl_window.set_cursor_state(CursorState::Normal);
                                 }
                             },
                             None => {},
@@ -120,10 +115,6 @@ impl RenderWindow {
                     },
                     WindowEvent::KeyboardInput { device_id, input } => {
                         // keeping the device_id here to allow players using multiple keyboards
-                        if input.scancode == 1 { // ESC to remove focus
-                            *cursor_trapped = false;
-                            let _ = gl_window.set_cursor_state(CursorState::Normal);
-                        }
                         func(Event::KeyboardInput {
                             device: device_id,
                             i: input,

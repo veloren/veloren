@@ -1,5 +1,3 @@
-use nalgebra::Vector4;
-
 use region::{Volume, Voxel};
 use render_volume::{RenderVoxel, RenderVolume};
 

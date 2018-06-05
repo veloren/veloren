@@ -16,9 +16,11 @@ pub struct Game {
     data: Arc<Mutex<Data>>,
 }
 
+// "Data" includes mutable state
 struct Data {
     camera: Camera,
     test_model: ModelObject,
+    cursor_trapped: bool,
 }
 
 impl Game {
@@ -26,7 +28,7 @@ impl Game {
         let mut window = RenderWindow::new();
 
         let chunk = Chunk::test((200, 200, 30));
-        let mut test_mesh = Mesh::from(&chunk);
+        let test_mesh = Mesh::from(&chunk);
 
         let game = Game {
             data: Arc::new(Mutex::new(Data {
@@ -35,6 +37,7 @@ impl Game {
                     window.renderer_mut(),
                     &test_mesh,
                 ),
+                cursor_trapped: true,
             })),
             client: Arc::new(Mutex::new(ClientHandle::new(mode, alias, bind_addr, remote_addr)
                 .expect("Could not start client"))),
@@ -48,20 +51,24 @@ impl Game {
 
     pub fn handle_window_events(&self) -> bool {
         let mut keep_running = true;
-        let mut resized = false;
 
         self.window.lock().unwrap().handle_events(|event| {
             match event {
                 Event::CloseRequest => keep_running = false,
                 Event::CursorMoved { dx, dy } => {
-                    self.data.lock().unwrap().camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.005, dy as f32 * 0.005))
+                    let mut data = self.data.lock().unwrap();
+
+                    if data.cursor_trapped {
+                        data.camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
+                    }
                 },
                 Event::MouseWheel { dy, .. } => {
-                    self.data.lock().unwrap().camera.zoom_by(dy as f32);
+                    self.data.lock().unwrap().camera.zoom_by(-dy as f32);
                 },
                 Event::KeyboardInput { i, .. } => {
                     println!("pressed: {}", i.scancode);
                     match i.scancode {
+                        1 => self.data.lock().unwrap().cursor_trapped = false,
                         //W 17 => {},
                         //A 30 => {},
                         //S 31 => {},

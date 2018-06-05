@@ -53,5 +53,8 @@ impl Camera {
 
     pub fn zoom_by(&mut self, delta: f32) {
         self.zoom += delta;
+        if self.zoom < 0.0 {
+            self.zoom = 0.0;
+        }
     }
 }
