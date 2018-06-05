@@ -4,6 +4,8 @@ use std::f32::consts::PI;
 pub struct Camera {
     focus: Vector3<f32>,
     ori: Vector2<f32>,
+    aspect_ratio: f32,
+    fov: f32,
     zoom: f32,
 }
 
@@ -12,6 +14,8 @@ impl Camera {
         Camera {
             focus: Vector3::<f32>::new(100.0, 100.0, 20.0),
             ori: Vector2::<f32>::zeros(),
+            aspect_ratio: 1.618,
+            fov: 1.5,
             zoom: 10.0,
         }
     }
@@ -27,11 +31,19 @@ impl Camera {
 
         mat *= Translation3::<f32>::from_vector(-self.focus).to_homogeneous();
 
-        (mat, *Perspective3::<f32>::new(1.6, 1.5, 0.1, 1000.0).as_matrix())
+        (mat, *Perspective3::<f32>::new(self.aspect_ratio, self.fov, 0.1, 1000.0).as_matrix())
     }
 
     pub fn rotate_by(&mut self, dangle: Vector2<f32>) {
         //self.focus += Vector3::new(dangle.x * 0.05, dangle.y * 0.05, 0.0);
         self.ori += dangle;
+    }
+
+    pub fn set_aspect_ratio(&mut self, ratio: f32) {
+        self.aspect_ratio = ratio;
+    }
+
+    pub fn set_fov(&mut self, fov: f32) {
+        self.fov = fov;
     }
 }

@@ -2,7 +2,6 @@
 
 #[macro_use]
 extern crate gfx;
-extern crate gfx_core;
 extern crate gfx_window_glutin;
 extern crate gfx_device_gl;
 extern crate glutin;
@@ -19,7 +18,7 @@ mod game;
 mod window;
 mod renderer;
 mod mesh;
-mod vertex_buffer;
+mod model_object;
 mod pipeline;
 mod camera;
 mod render_volume;
