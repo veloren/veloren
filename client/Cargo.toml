@@ -8,3 +8,4 @@ network = { path = "../network" }
 region = { path = "../region" }
 spin = "0.4.8"
 log = "0.4"
+nalgebra = { version= "0.15.1", features = ["serde-serialize"] }

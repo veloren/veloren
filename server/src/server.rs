@@ -110,7 +110,12 @@ impl Server {
             ClientPacket::PlayerEntityUpdate { pos } => {
                 if let Some(ref mut p) = self.players.get_mut(&sock_addr) {
                     // TODO: Check this movement is acceptable.
-
+                    match self.entities.get_mut(&p.entity_uid().unwrap()) {
+                        Some(e) => {
+                            *e.pos_mut() = pos;
+                        },
+                        None => {},
+                    }
                 }
             },
         }
