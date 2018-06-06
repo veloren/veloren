@@ -13,7 +13,7 @@ impl ClientConn {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> Result<ClientConn, Error> {
         let sock = ClientConn::bind_udp(&bind_addr)?;
         sock.connect(remote_addr)?;
-        sock.set_nonblocking(true);
+        // sock.set_nonblocking(true);
 
         Ok(ClientConn {
             sock,

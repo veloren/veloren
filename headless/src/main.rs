@@ -15,12 +15,23 @@ use client::{Client, ClientMode};
 fn main() {
     println!("Starting headless client...");
 
-    let ip = get_if_addrs::get_if_addrs().unwrap()[0].ip();
+    let ifaces = get_if_addrs::get_if_addrs().unwrap();
+    for (i, iface) in ifaces.iter().enumerate() {
+        println!("[{}] {}", i, iface.ip().to_string());
+    }
+    let ip = loop {
+        let mut ip_index = String::new();
+        println!("Enter the number of the IP address you wish to choose.");
+        io::stdin().read_line(&mut ip_index).unwrap();
 
-    let mut port = String::new();
-    println!("Local port [59001]:");
-    io::stdin().read_line(&mut port).unwrap();
-    let port = u16::from_str_radix(&port.trim(), 10).unwrap();
+        if let Ok(index) = ip_index.trim().parse::<usize>() {
+            if let Some(iface) = ifaces.get(index) {
+                break iface.ip();
+            }
+        }
+        println!("Invalid number!");
+    };
+    let port: u16 = 59001;
 
     let mut remote_addr = String::new();
     println!("Remote server address:");
