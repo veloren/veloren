@@ -11,19 +11,19 @@ pub struct ClientConn {
 
 impl ClientConn {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(bind_addr: T, remote_addr: U) -> Result<ClientConn, Error> {
-        let sock = ClientConn::bind_test(&bind_addr)?;
-        // let sock = UdpSocket::bind(bind_addr)?;
+        let sock = ClientConn::bind_udp(&bind_addr)?;
         sock.connect(remote_addr)?;
+        sock.set_nonblocking(true);
 
         Ok(ClientConn {
             sock,
         })
     }
 
-    pub fn bind_test<T: ToSocketAddrs>(bind_addr: &T) -> Result<UdpSocket, Error> {
+    pub fn bind_udp<T: ToSocketAddrs>(bind_addr: &T) -> Result<UdpSocket, Error> {
         let sock = UdpSocket::bind(&bind_addr);
-        let sock = match sock {
-            Ok(s) => s,
+        match sock {
+            Ok(s) => Ok(s),
             Err(e) => {
                 let new_bind = bind_addr.to_socket_addrs()?
                                         .next().unwrap()
@@ -34,10 +34,9 @@ impl ClientConn {
                     new_bind
                 );
                 println!("Binding local port failed, trying {}", new_addr);
-                ClientConn::bind_test(&new_addr)?
+                ClientConn::bind_udp(&new_addr)
             },
-        };
-        Ok(sock)
+        }
     }
 
     pub fn clone(&self) -> ClientConn {
