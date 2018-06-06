@@ -25,7 +25,7 @@ impl RenderWindow {
     pub fn new() -> RenderWindow {
         let events_loop = EventsLoop::new();
         let win_builder = WindowBuilder::new()
-            .with_title("Verloren (Voxygen)")
+            .with_title("Veloren (Voxygen)")
             .with_dimensions(800, 500)
             .with_maximized(false);
 

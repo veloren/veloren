@@ -43,7 +43,7 @@ fn main() {
     io::stdin().read_line(&mut alias).unwrap();
 
     let mut win = Window::initscr();
-    win.writeln("Welcome to the Verloren headless client.");
+    win.writeln("Welcome to the Veloren headless client.");
 
     let client = match Client::new(ClientMode::Headless, alias.trim().to_string(), SocketAddr::new(ip, port), &remote_addr.trim()) {
         Ok(c) => c,
