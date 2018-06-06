@@ -20,12 +20,12 @@ pub struct Game {
     client: Arc<Client>,
     window: Arc<Mutex<RenderWindow>>,
     data: Mutex<Data>,
-    key_state: RwLock<KeyState>,
+    camera: Mutex<Camera>,
+    key_state: Mutex<KeyState>,
 }
 
 // "Data" includes mutable state
 struct Data {
-    camera: Camera,
     player_model: ModelObject,
     test_model: ModelObject,
     cursor_trapped: bool,
@@ -55,7 +55,6 @@ impl Game {
 
         Game {
             data: Mutex::new(Data {
-                camera: Camera::new(),
                 player_model: ModelObject::new(
                     window.renderer_mut(),
                     &player_mesh,
@@ -69,11 +68,12 @@ impl Game {
             running: AtomicBool::new(true),
             client,
             window: Arc::new(Mutex::new(window)),
-            key_state: RwLock::new(KeyState::new()),
+            camera: Mutex::new(Camera::new()),
+            key_state: Mutex::new(KeyState::new()),
         }
     }
 
-    pub fn handle_window_events(&self) -> bool {
+    pub fn handle_window_events(&mut self) -> bool {
         self.window.lock().unwrap().handle_events(|event| {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
@@ -81,37 +81,36 @@ impl Game {
                     let mut data = self.data.lock().unwrap();
 
                     if data.cursor_trapped {
-                        data.camera.rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
+                        self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
                     }
                 },
                 Event::MouseWheel { dy, .. } => {
-                    self.data.lock().unwrap().camera.zoom_by(-dy as f32);
+                    self.camera.lock().unwrap().zoom_by(-dy as f32);
                 },
                 Event::KeyboardInput { i, .. } => {
-                    println!("pressed: {}", i.scancode);
                     match i.scancode {
                         1 => self.data.lock().unwrap().cursor_trapped = false,
-                        17 => self.key_state.write().unwrap().up = match i.state { // W (up)
+                        17 => self.key_state.lock().unwrap().up = match i.state { // W (up)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        30 => self.key_state.write().unwrap().left = match i.state { // A (left)
+                        30 => self.key_state.lock().unwrap().left = match i.state { // A (left)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        31 => self.key_state.write().unwrap().down = match i.state { // S (down)
+                        31 => self.key_state.lock().unwrap().down = match i.state { // S (down)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        32 => self.key_state.write().unwrap().right = match i.state { // D (right)
+                        32 => self.key_state.lock().unwrap().right = match i.state { // D (right)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        57 => self.key_state.write().unwrap().fly = match i.state { // Space (fly)
+                        57 => self.key_state.lock().unwrap().fly = match i.state { // Space (fly)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        42 => self.key_state.write().unwrap().fall = match i.state { // Shift (fall)
+                        42 => self.key_state.lock().unwrap().fall = match i.state { // Shift (fall)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
@@ -119,23 +118,23 @@ impl Game {
                     }
                 },
                 Event::Resized { w, h } => {
-                    self.data.lock().unwrap().camera.set_aspect_ratio(w as f32 / h as f32);
+                    self.camera.lock().unwrap().set_aspect_ratio(w as f32 / h as f32);
                 },
                 _ => {},
             }
         });
 
-        let mv = self.key_state.read().unwrap().mov_vector();
-        let mv = self.data.lock().unwrap().camera.get_mats().0 * Vector4::<f32>::new(mv.x, mv.y, self.key_state.read().unwrap().fly_vector(), 0.0);
-
-        let ori = self.data.lock().unwrap().camera.ori();
+        // Calculate movement player movement vector
+        let ori = self.camera.lock().unwrap().ori();
         let unit_vecs = (
             Vector2::new(f32::cos(-ori.x), f32::sin(-ori.x)),
             Vector2::new(f32::sin(ori.x), f32::cos(ori.x))
         );
-        let mov_vec = unit_vecs.0 * self.key_state.read().unwrap().mov_vector().x + unit_vecs.1 * self.key_state.read().unwrap().mov_vector().y;
+        let dir_vec = self.key_state.lock().unwrap().dir_vec();
+        let mov_vec = unit_vecs.0 * dir_vec.x + unit_vecs.1 * dir_vec.y;
+        let fly_vec = self.key_state.lock().unwrap().fly_vec();
 
-        self.client.set_player_vel(Vector3::<f32>::new(mov_vec.x, mov_vec.y, self.key_state.read().unwrap().fly_vector()));
+        self.client.set_player_vel(Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec));
 
         self.running.load(Ordering::Relaxed)
     }
@@ -147,11 +146,11 @@ impl Game {
 
         if let Some(uid) = self.client.player_entity_uid() {
             if let Some(e) = self.client.entities().get(&uid) {
-                self.data.lock().unwrap().camera.set_focus(*e.pos());
+                self.camera.lock().unwrap().set_focus(*e.pos());
             }
         }
 
-        let camera_mats = self.data.lock().unwrap().camera.get_mats();
+        let camera_mats = self.camera.lock().unwrap().get_mats();
 
         // Render the test model
         window.renderer_mut().update_model_object(
@@ -176,7 +175,7 @@ impl Game {
         window.renderer_mut().end_frame();
     }
 
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         while self.handle_window_events() {
             self.render_frame();
         }

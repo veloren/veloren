@@ -21,14 +21,14 @@ impl KeyState {
         }
     }
 
-    pub fn mov_vector(&self) -> Vector2<f32> {
+    pub fn dir_vec(&self) -> Vector2<f32> {
         Vector2::<f32>::new(
             if self.right { 1.0 } else { 0.0 } + if self.left { -1.0 } else { 0.0 },
             if self.up { 1.0 } else { 0.0 } + if self.down { -1.0 } else { 0.0 },
         )
     }
 
-    pub fn fly_vector(&self) -> f32 {
+    pub fn fly_vec(&self) -> f32 {
         (if self.fly { 1.0 } else { 0.0 }) + (if self.fall { -1.0 } else { 0.0 })
     }
 }
