@@ -47,8 +47,8 @@ pub struct Client {
     conn: ClientConn,
     alias: Mutex<String>,
 
-    player_entity_uid: Mutex<Option<u64>>, // TODO: Turn u64 into Uid
-    entities: RwLock<HashMap<u64, Entity>>, // TODO: Turn u64 into Uid
+    player_entity_uid: Mutex<Option<Uid>>,
+    entities: RwLock<HashMap<Uid, Entity>>,
     player_vel: Mutex<Vector3<f32>>,
 
     chat_callback: Mutex<Option<Box<Fn(&str, &str) + Send>>>,
@@ -76,11 +76,11 @@ impl Client {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn entities<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<u64, Entity>> {
+    pub fn entities<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<Uid, Entity>> {
         self.entities.read()
     }
 
-    pub fn player_entity_uid<'a>(&'a self) -> Option<u64> {
+    pub fn player_entity_uid<'a>(&'a self) -> Option<Uid> {
         *self.player_entity_uid.lock()
     }
 

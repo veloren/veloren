@@ -2,13 +2,13 @@ use ClientMode;
 use nalgebra::Vector3;
 
 pub struct Player {
-    entity_uid: Option<u64>,
+    entity_uid: Option<Uid>,
     mode: ClientMode,
     alias: String,
 }
 
 impl Player {
-    pub fn new(entity_uid: Option<u64>, mode: ClientMode, alias: &str) -> Player {
+    pub fn new(entity_uid: Option<Uid>, mode: ClientMode, alias: &str) -> Player {
         Player {
             entity_uid,
             mode,
@@ -20,7 +20,7 @@ impl Player {
         &self.alias
     }
 
-    pub fn entity_uid(&self) -> Option<u64> {
+    pub fn entity_uid(&self) -> Option<Uid> {
         self.entity_uid
     }
 }

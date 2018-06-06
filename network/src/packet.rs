@@ -5,12 +5,12 @@ use Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected { player_entity_uid: Option<u64>, version: String }, // TODO: Turn u64 into Uid
+    Connected { player_entity_uid: Option<Uid>, version: String },
     Kicked { reason: String },
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: u64, pos: Vector3<f32> },
+    EntityUpdate { uid: Uid, pos: Vector3<f32> },
 }
 
 impl ServerPacket {

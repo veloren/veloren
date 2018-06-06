@@ -18,9 +18,9 @@ pub struct Server {
     running: bool,
     clock: Clock,
 
-    uid_count: u64, // TODO: Turn u64 into Uid
+    uid_count: Uid,
     world: World,
-    entities: HashMap<u64, Entity>, // TODO: Turn u64 into Uid
+    entities: HashMap<Uid, Entity>,
 
     conn: ServerConn,
     players: HashMap<SocketAddr, Player>,
@@ -114,12 +114,12 @@ impl Server {
         }
     }
 
-    pub fn new_uid(&mut self) -> u64 {
+    pub fn new_uid(&mut self) -> Uid {
         self.uid_count += 1;
         self.uid_count
     }
 
-    pub fn add_entity(&mut self, entity: Entity) -> u64 {
+    pub fn add_entity(&mut self, entity: Entity) -> Uid {
         let uid = self.new_uid();
         self.entities.insert(uid, entity);
         uid
