@@ -25,7 +25,7 @@ impl ServerConn {
         let mut buff = [0; 1024];
         match self.sock.recv_from(&mut buff) {
             Ok((_, addr)) => {
-                println!("Bytes: {:?}", &buff[0..20]);
+                debug!("Bytes: {:?}", &buff[0..20]);
                 Ok((addr, ClientPacket::from(&buff)?))
             },
             Err(e) => Err(Error::NetworkErr(e)),

@@ -9,8 +9,10 @@ extern crate get_if_addrs;
 #[macro_use]
 extern crate enum_map;
 extern crate nalgebra;
+extern crate time;
 
 extern crate client;
+extern crate common;
 extern crate region;
 
 mod game;
@@ -52,9 +54,10 @@ fn main() {
         remote_addr = "127.0.0.1:59003";
     }
 
+    let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
     let game = Game::new(
         ClientMode::Character,
-        &"voxygen-test",
+        &common::NameGenerator::new(name_seed).get(),
         SocketAddr::new(ip, port),
         remote_addr
     ).run();

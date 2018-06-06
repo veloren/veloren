@@ -5,6 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 client = { path = "../client" }
+common = { path = "../common" }
 region = { path = "../region" }
 gfx = "0.17.1"
 gfx_window_glutin = "0.24.0"
@@ -13,3 +14,4 @@ glutin = "0.16.0"
 get_if_addrs = "0.5.2"
 enum-map = "0.2.31"
 nalgebra = "0.15.1"
+time = "0.1.40"

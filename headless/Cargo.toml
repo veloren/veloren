@@ -5,5 +5,6 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
 client = { path = "../client" }
+common = { path = "../common" }
 get_if_addrs = "0.5.2"
 syrup = "0.1"

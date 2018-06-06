@@ -3,6 +3,7 @@
 extern crate client;
 extern crate get_if_addrs;
 extern crate syrup;
+extern crate common;
 
 use std::io;
 use std::sync::mpsc;
@@ -35,14 +36,21 @@ fn main() {
         remote_addr = "127.0.0.1:59003";
     }
 
+    let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
+    let default_alias = common::NameGenerator::new(name_seed).get().to_string();
     let mut alias = String::new();
-    println!("Alias:");
+
+    println!("Alias: [{}]", default_alias);
     io::stdin().read_line(&mut alias).unwrap();
+    let mut alias = alias.trim().to_string();
+    if alias.len() == 0 {
+        alias = default_alias;
+    }
 
     let mut win = Window::initscr();
     win.writeln("Welcome to the Veloren headless client.");
 
-    let client = match Client::new(ClientMode::Headless, alias.trim().to_string(), SocketAddr::new(ip, port), &remote_addr.trim()) {
+    let client = match Client::new(ClientMode::Headless, alias, SocketAddr::new(ip, port), &remote_addr.trim()) {
         Ok(c) => c,
         Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
