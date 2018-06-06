@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gmail.com>"]
 
 [dependencies]
+common = { path = "../common" }
 server = { path = "../server" }
 get_if_addrs = "0.5.2"
 log = "0.4.1"
