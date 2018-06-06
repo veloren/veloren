@@ -2,8 +2,9 @@ use std::thread::JoinHandle;
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
+//use std::f32::{sin, cos};
 
-use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
+use nalgebra::{Vector2, Vector3, Vector4, Matrix4, Translation3};
 use glutin::ElementState;
 
 use client::{Client, ClientMode};
@@ -125,7 +126,16 @@ impl Game {
         });
 
         let mv = self.key_state.read().unwrap().mov_vector();
-        self.client.set_player_vel(Vector3::<f32>::new(mv.x, mv.y, self.key_state.read().unwrap().fly_vector()));
+        let mv = self.data.lock().unwrap().camera.get_mats().0 * Vector4::<f32>::new(mv.x, mv.y, self.key_state.read().unwrap().fly_vector(), 0.0);
+
+        let ori = self.data.lock().unwrap().camera.ori();
+        let unit_vecs = (
+            Vector2::new(f32::cos(-ori.x), f32::sin(-ori.x)),
+            Vector2::new(f32::sin(ori.x), f32::cos(ori.x))
+        );
+        let mov_vec = unit_vecs.0 * self.key_state.read().unwrap().mov_vector().x + unit_vecs.1 * self.key_state.read().unwrap().mov_vector().y;
+
+        self.client.set_player_vel(Vector3::<f32>::new(mov_vec.x, mov_vec.y, self.key_state.read().unwrap().fly_vector()));
 
         self.running.load(Ordering::Relaxed)
     }

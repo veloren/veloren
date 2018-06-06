@@ -34,6 +34,10 @@ impl Camera {
         (mat, *Perspective3::<f32>::new(self.aspect_ratio, self.fov, 0.1, 1000.0).as_matrix())
     }
 
+    pub fn ori(&self) -> Vector2<f32> {
+        self.ori
+    }
+
     pub fn rotate_by(&mut self, dangle: Vector2<f32>) {
         self.ori += dangle;
         if self.ori.y < -PI / 2.0 {
