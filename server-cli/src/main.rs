@@ -4,16 +4,18 @@
 extern crate pretty_env_logger;
 extern crate server;
 extern crate get_if_addrs;
+extern crate common; 
 
 use std::io;
 use std::net::SocketAddr;
 use server::ServerHandle;
+use common::get_version;
 
 const PORT: u16 = 59003;
 
 fn main() {
     pretty_env_logger::init();
-    info!("Started server-cli...");
+    info!("Started server-cli... Version: {}", get_version());
 
     let ifaces = get_if_addrs::get_if_addrs().unwrap();
     for (i, iface) in ifaces.iter().enumerate() {

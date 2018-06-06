@@ -5,7 +5,8 @@ use Error;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected { player_entity_uid: Option<u64> }, // TODO: Turn u64 into Uid
+    Connected { player_entity_uid: Option<u64>, version: String }, // TODO: Turn u64 into Uid
+    Kicked { reason: String },
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
@@ -30,7 +31,7 @@ impl ServerPacket {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ClientPacket {
-    Connect { mode: ClientMode, alias: String },
+    Connect { mode: ClientMode, alias: String, version: String },
     Disconnect,
     Ping,
     SendChatMsg { msg: String },

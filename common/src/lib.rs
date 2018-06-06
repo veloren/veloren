@@ -8,3 +8,9 @@ mod clock;
 
 // Reexports
 pub use clock::Clock;
+
+const CARGO_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
+
+pub fn get_version() -> String {
+    CARGO_VERSION.unwrap_or("UNKNOWN VERSION").to_string()
+}

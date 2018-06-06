@@ -12,6 +12,7 @@ use player::Player;
 use region::Entity;
 use common::Clock;
 use std::time::Duration;
+use common::get_version;
 
 pub struct Server {
     running: bool,
@@ -57,27 +58,17 @@ impl Server {
         let (sock_addr, packet) = data;
 
         match packet {
-            ClientPacket::Connect { mode, alias } => {
-                match self.players.get(&sock_addr) {
-                    Some(p) => warn!("Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
-                    None => {
-                        let player_entity_uid = match mode {
-                            ClientMode::Headless => {
-                                info!("Player '{}' connected in headless mode.", alias);
-                                None
-                            },
-                            ClientMode::Character => {
-                                let player_entity = self.add_entity(Entity::new(Vector3::new(0.0, 0.0, 0.0)));
-                                info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, player_entity);
-                                Some(player_entity)
-                            },
-                        };
-
-                        self.players.insert(sock_addr, Player::new(player_entity_uid, mode, &alias));
-
-                        let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity_uid });
+            ClientPacket::Connect { mode, alias, version } => {
+                match version == get_version() {
+                    true => {
+                        self.handle_player_connect(sock_addr, mode, alias);
+                    },
+                    false => {
+                        println!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
+                        let _ = self.conn.send_to(sock_addr, &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) });
                     },
                 }
+                
             },
             ClientPacket::Disconnect => {
                 match self.players.remove(&sock_addr) {
@@ -154,6 +145,29 @@ impl Server {
                     }
                 }
             }
+        }
+    }
+
+    fn handle_player_connect(&mut self, sock_addr: SocketAddr, mode: ClientMode, alias: String) {
+        match self.players.get(&sock_addr) {
+            Some(p) => warn!("Player '{}' tried to connect twice with the new alias '{}'", p.alias(), &alias),
+            None => {
+                let player_entity_uid = match mode {
+                    ClientMode::Headless => {
+                        info!("Player '{}' connected in headless mode.", alias);
+                        None
+                    },
+                    ClientMode::Character => {
+                        let player_entity = self.add_entity(Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                        info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, player_entity);
+                        Some(player_entity)
+                    },
+                };
+
+                self.players.insert(sock_addr, Player::new(player_entity_uid, mode, &alias));
+
+                let _ = self.conn.send_to(sock_addr, &ServerPacket::Connected { player_entity_uid, version: get_version() });
+            },
         }
     }
 

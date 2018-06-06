@@ -26,6 +26,8 @@ use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
 
+use common::get_version;
+
 use nalgebra::{Vector3};
 
 // Errors that may occur within this crate
@@ -55,7 +57,7 @@ pub struct Client {
 impl Client {
     pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: String, bind_addr: T, remote_addr: U) -> Result<Arc<Client>, Error> {
         let conn = ClientConn::new(bind_addr, remote_addr)?;
-        conn.send(&ClientPacket::Connect{ mode, alias: alias.to_string() })?;
+        conn.send(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() })?;
 
         Ok(Arc::new(Client {
             running: AtomicBool::new(true),
@@ -108,17 +110,30 @@ impl Client {
 
     pub fn handle_packet(&self, packet: ServerPacket) {
         match packet {
-            ServerPacket::Connected { player_entity_uid } => {
-                if let Some(uid) = player_entity_uid {
-                    if !self.entities.read().contains_key(&uid) {
-                        self.entities.write().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+            ServerPacket::Connected { player_entity_uid, version } => {
+                match version == get_version() {
+                    true => {
+                        if let Some(uid) = player_entity_uid {
+                            if !self.entities.read().contains_key(&uid) {
+                                self.entities.write().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                            }
+                        }
+
+                        *self.player_entity_uid.lock() = player_entity_uid;
+
+                        info!("Client connected");
+                    },
+                    false => {
+                        warn!("Server version mismatch, Server is version {} exitting...", version);
+                        self.running.store(false, Ordering::Relaxed)
                     }
                 }
-
-                *self.player_entity_uid.lock() = player_entity_uid;
-
-                info!("Client connected");
+                
             },
+            ServerPacket::Kicked { reason } => {
+                warn!("Server kicked client for {}", reason);
+                self.running.store(false, Ordering::Relaxed)
+            }
             ServerPacket::Shutdown => self.running.store(false, Ordering::Relaxed),
             ServerPacket::RecvChatMsg { alias, msg } => match *self.chat_callback.lock() {
                 Some(ref f) => (f)(&alias, &msg),
