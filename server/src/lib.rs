@@ -46,8 +46,9 @@ impl ServerHandle {
         });
 
         while self.server.lock().unwrap().running() {
-            const SERVER_TICK: Duration = Duration::from_millis(10);
+            const SERVER_TICK: Duration = Duration::from_millis(100);
             self.server.lock().unwrap().next_tick(SERVER_TICK);
+            thread::sleep(Duration::from_millis(20));
         }
     }
 }
