@@ -2,6 +2,7 @@
 
 #[macro_use]
 extern crate log;
+extern crate common;
 extern crate spin;
 extern crate network;
 extern crate region;

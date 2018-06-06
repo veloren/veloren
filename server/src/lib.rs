@@ -1,6 +1,8 @@
 #![feature(nll)]
 #[macro_use]
 extern crate log;
+extern crate time;
+extern crate common;
 extern crate world;
 extern crate network;
 extern crate region;
@@ -9,7 +11,7 @@ extern crate nalgebra;
 mod server;
 mod player;
 
-use std::time;
+use std::time::Duration;
 use std::thread;
 use std::sync::{Mutex, Arc};
 use std::net::ToSocketAddrs;
@@ -44,8 +46,8 @@ impl ServerHandle {
         });
 
         while self.server.lock().unwrap().running() {
-            self.server.lock().unwrap().next_tick(0.20);
-            thread::sleep(time::Duration::from_millis(20));
+            const SERVER_TICK: Duration = Duration::from_millis(10);
+            self.server.lock().unwrap().next_tick(SERVER_TICK);
         }
     }
 }
