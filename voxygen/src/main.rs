@@ -21,6 +21,7 @@ mod model_object;
 mod pipeline;
 mod camera;
 mod render_volume;
+mod key_state;
 
 use std::io;
 use std::net::SocketAddr;

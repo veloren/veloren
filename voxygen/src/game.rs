@@ -1,9 +1,10 @@
 use std::thread::JoinHandle;
 use std::net::ToSocketAddrs;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
+use glutin::ElementState;
 
 use client::{Client, ClientMode};
 use camera::Camera;
@@ -11,13 +12,14 @@ use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
-use glutin::ElementState;
+use key_state::KeyState;
 
 pub struct Game {
     running: AtomicBool,
     client: Arc<Client>,
     window: Arc<Mutex<RenderWindow>>,
     data: Mutex<Data>,
+    key_state: RwLock<KeyState>,
 }
 
 // "Data" includes mutable state
@@ -51,7 +53,6 @@ impl Game {
         Client::start(client.clone());
 
         Game {
-            running: AtomicBool::new(true),
             data: Mutex::new(Data {
                 camera: Camera::new(),
                 player_model: ModelObject::new(
@@ -64,8 +65,10 @@ impl Game {
                 ),
                 cursor_trapped: true,
             }),
+            running: AtomicBool::new(true),
             client,
             window: Arc::new(Mutex::new(window)),
+            key_state: RwLock::new(KeyState::new()),
         }
     }
 
@@ -87,41 +90,29 @@ impl Game {
                     println!("pressed: {}", i.scancode);
                     match i.scancode {
                         1 => self.data.lock().unwrap().cursor_trapped = false,
-                        17 => { //W
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(1.0, 0.0, 0.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        17 => self.key_state.write().unwrap().up = match i.state { // W (up)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
-                        30 => { // A
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, -1.0, 0.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        30 => self.key_state.write().unwrap().left = match i.state { // A (left)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
-                        31 => { // S
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(-1.0, 0.0, 0.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        31 => self.key_state.write().unwrap().down = match i.state { // S (down)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
-                        32 => { // D
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 1.0, 0.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        32 => self.key_state.write().unwrap().right = match i.state { // D (right)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
-                        57 => { // Space
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 0.0, 1.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        57 => self.key_state.write().unwrap().fly = match i.state { // Space (fly)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
-                        42 => { // Shift
-                            match i.state {
-                                ElementState::Pressed => self.client.set_player_vel(Vector3::new(0.0, 0.0, -1.0)),
-                                ElementState::Released => self.client.set_player_vel(Vector3::new(0.0, 0.0, 0.0)),
-                            }
+                        42 => self.key_state.write().unwrap().fall = match i.state { // Shift (fall)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
                         },
                         _ => (),
                     }
@@ -132,6 +123,9 @@ impl Game {
                 _ => {},
             }
         });
+
+        let mv = self.key_state.read().unwrap().mov_vector();
+        self.client.set_player_vel(Vector3::<f32>::new(mv.x, mv.y, self.key_state.read().unwrap().fly_vector()));
 
         self.running.load(Ordering::Relaxed)
     }
