@@ -35,8 +35,12 @@ impl Camera {
     }
 
     pub fn rotate_by(&mut self, dangle: Vector2<f32>) {
-        //self.focus += Vector3::new(dangle.x * 0.05, dangle.y * 0.05, 0.0);
         self.ori += dangle;
+        if self.ori.y < -PI / 2.0 {
+            self.ori.y = -PI / 2.0;
+        } else if self.ori.y > PI / 2.0 {
+            self.ori.y = PI / 2.0;
+        }
     }
 
     pub fn set_aspect_ratio(&mut self, ratio: f32) {
