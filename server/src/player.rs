@@ -1,5 +1,6 @@
 use ClientMode;
 use nalgebra::Vector3;
+use common::Uid;
 
 pub struct Player {
     entity_uid: Option<Uid>,

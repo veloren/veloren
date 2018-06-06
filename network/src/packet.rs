@@ -2,6 +2,7 @@ use bincode::{serialize, deserialize};
 use nalgebra::Vector3;
 use ClientMode;
 use Error;
+use common::Uid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {

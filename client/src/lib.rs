@@ -27,6 +27,7 @@ use network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
 
 use common::get_version;
+use common::Uid;
 
 use nalgebra::{Vector3};
 

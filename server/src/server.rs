@@ -13,6 +13,7 @@ use region::Entity;
 use common::Clock;
 use std::time::Duration;
 use common::get_version;
+use common::Uid;
 
 pub struct Server {
     running: bool,
