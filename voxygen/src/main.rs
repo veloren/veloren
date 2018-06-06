@@ -30,9 +30,10 @@ use std::net::SocketAddr;
 
 use client::ClientMode;
 use game::Game;
+use common::get_version;
 
 fn main() {
-    println!("Starting Voxygen...");
+    println!("Starting Voxygen... Version: {}", get_version());
 
     let ip = std::net::IpAddr::V4(std::net::Ipv4Addr::new(0,0,0,0));
     let mut port = String::new();

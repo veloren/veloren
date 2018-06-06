@@ -2,14 +2,16 @@ use bincode::{serialize, deserialize};
 use nalgebra::Vector3;
 use ClientMode;
 use Error;
+use common::Uid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected { player_entity_uid: Option<u64> }, // TODO: Turn u64 into Uid
+    Connected { player_entity_uid: Option<Uid>, version: String },
+    Kicked { reason: String },
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: u64, pos: Vector3<f32> },
+    EntityUpdate { uid: Uid, pos: Vector3<f32> },
 }
 
 impl ServerPacket {
@@ -30,7 +32,7 @@ impl ServerPacket {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ClientPacket {
-    Connect { mode: ClientMode, alias: String },
+    Connect { mode: ClientMode, alias: String, version: String },
     Disconnect,
     Ping,
     SendChatMsg { msg: String },

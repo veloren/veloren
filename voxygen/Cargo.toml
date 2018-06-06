@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
-client = { path = "../client" }
 common = { path = "../common" }
+client = { path = "../client" }
 region = { path = "../region" }
 gfx = "0.17.1"
 gfx_window_glutin = "0.24.0"

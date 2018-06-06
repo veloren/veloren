@@ -8,6 +8,7 @@ extern crate serde_derive;
 extern crate bincode;
 extern crate get_if_addrs;
 extern crate nalgebra;
+extern crate common;
 
 pub mod packet;
 pub mod client;
