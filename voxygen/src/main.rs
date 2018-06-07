@@ -53,6 +53,8 @@ fn main() {
     let mut remote_addr = remote_addr.trim();
     if remote_addr.len() == 0 {
         remote_addr = "127.0.0.1:59003";
+    } else if remote_addr == "m" {
+        remote_addr = "91.67.21.222:38888";
     }
 
     let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
