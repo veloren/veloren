@@ -3,33 +3,30 @@
 #[macro_use]
 extern crate log;
 extern crate common;
-extern crate spin;
 extern crate network;
 extern crate region;
 extern crate nalgebra;
+
+mod player;
 
 // Reexports
 pub use network::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
 use std::thread;
-use std::thread::JoinHandle;
 use std::time;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard, Barrier};
 use std::collections::HashMap;
 use std::net::ToSocketAddrs;
 
-use spin::{Mutex, MutexGuard, RwLock, RwLockReadGuard};
+use nalgebra::Vector3;
 
 use network::client::ClientConn;
 use network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
+use common::{get_version, Uid};
 
-use common::get_version;
-use common::Uid;
-
-use nalgebra::{Vector3};
+use player::Player;
 
 // Errors that may occur within this crate
 #[derive(Debug)]
@@ -43,16 +40,24 @@ impl From<network::Error> for Error {
     }
 }
 
-pub struct Client {
-    running: AtomicBool,
-    conn: ClientConn,
-    alias: Mutex<String>,
+#[derive(PartialEq)]
+pub enum ClientStatus {
+	Connecting,
+	Connected,
+	Timeout,
+	Disconnected,
+}
 
-    player_entity_uid: Mutex<Option<Uid>>,
-    entities: RwLock<HashMap<Uid, Entity>>,
-    player_vel: Mutex<Vector3<f32>>,
+pub struct Client {
+    status: RwLock<ClientStatus>,
+    conn: ClientConn,
+
+	player: RwLock<Player>,
+	entities: RwLock<HashMap<Uid, Entity>>,
 
     chat_callback: Mutex<Option<Box<Fn(&str, &str) + Send>>>,
+
+	finished: Barrier, // We use this to synchronize client shutdown
 }
 
 impl Client {
@@ -60,47 +65,55 @@ impl Client {
         let conn = ClientConn::new(bind_addr, remote_addr)?;
         conn.send(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() })?;
 
-        Ok(Arc::new(Client {
-            running: AtomicBool::new(true),
+		let client = Arc::new(Client {
+            status: RwLock::new(ClientStatus::Connecting),
             conn,
-            alias: Mutex::new(alias),
 
-            player_entity_uid: Mutex::new(None),
+			player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
-            player_vel: Mutex::new(Vector3::new(0.0, 0.0, 0.0)),
 
             chat_callback: Mutex::new(None),
-        }))
+
+			finished: Barrier::new(2),
+        });
+
+		Self::start(client.clone());
+
+        Ok(client)
     }
 
-    pub fn running(&self) -> bool {
-        self.running.load(Ordering::Relaxed)
+	fn set_status(&self, status: ClientStatus) {
+		*self.status.write().unwrap() = status;
+	}
+
+	pub fn status<'a>(&'a self) -> RwLockReadGuard<'a, ClientStatus> {
+		self.status.read().unwrap()
+	}
+
+	pub fn player<'a>(&'a self) -> RwLockReadGuard<'a, Player> {
+        self.player.read().unwrap()
+    }
+
+	pub fn player_mut<'a>(&'a self) -> RwLockWriteGuard<'a, Player> {
+        self.player.write().unwrap()
     }
 
     pub fn entities<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<Uid, Entity>> {
-        self.entities.read()
+        self.entities.read().unwrap()
     }
 
-    pub fn player_entity_uid<'a>(&'a self) -> Option<Uid> {
-        *self.player_entity_uid.lock()
-    }
-
-    pub fn alias_mut<'a>(&'a self) -> MutexGuard<'a, String> {
-        self.alias.lock()
+	pub fn entities_mut<'a>(&'a self) -> RwLockWriteGuard<'a, HashMap<Uid, Entity>> {
+        self.entities.write().unwrap()
     }
 
     pub fn conn<'a>(&'a self) -> &'a ClientConn {
         &self.conn
     }
 
-    pub fn set_player_vel(&self, vel: Vector3<f32>) {
-        *self.player_vel.lock() = vel;
-    }
-
     fn tick(&self, dt: f32) {
-        if let Some(uid) = *self.player_entity_uid.lock() {
-            if let Some(e) = self.entities.write().get_mut(&uid) {
-                *e.pos_mut() += *self.player_vel.lock() * dt;
+        if let Some(uid) = self.player().entity_uid {
+            if let Some(e) = self.entities_mut().get_mut(&uid) {
+                *e.pos_mut() += self.player().dir_vec * dt;
 
                 self.conn.send(&ClientPacket::PlayerEntityUpdate {
                     pos: *e.pos()
@@ -109,41 +122,41 @@ impl Client {
         }
     }
 
-    pub fn handle_packet(&self, packet: ServerPacket) {
+    fn handle_packet(&self, packet: ServerPacket) {
         match packet {
             ServerPacket::Connected { player_entity_uid, version } => {
                 match version == get_version() {
                     true => {
                         if let Some(uid) = player_entity_uid {
-                            if !self.entities.read().contains_key(&uid) {
-                                self.entities.write().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                            if !self.entities().contains_key(&uid) {
+                                self.entities_mut().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
                             }
                         }
 
-                        *self.player_entity_uid.lock() = player_entity_uid;
+                        self.player_mut().entity_uid = player_entity_uid;
 
                         info!("Client connected");
                     },
                     false => {
-                        warn!("Server version mismatch, Server is version {} exitting...", version);
-                        self.running.store(false, Ordering::Relaxed)
+                        warn!("Server version mismatch: server is version {}. Disconnected.", version);
+                        self.set_status(ClientStatus::Disconnected);
                     }
                 }
-                
+				self.set_status(ClientStatus::Connected);
             },
             ServerPacket::Kicked { reason } => {
                 warn!("Server kicked client for {}", reason);
-                self.running.store(false, Ordering::Relaxed)
+                self.set_status(ClientStatus::Disconnected);
             }
-            ServerPacket::Shutdown => self.running.store(false, Ordering::Relaxed),
-            ServerPacket::RecvChatMsg { alias, msg } => match *self.chat_callback.lock() {
+            ServerPacket::Shutdown => self.set_status(ClientStatus::Disconnected),
+            ServerPacket::RecvChatMsg { alias, msg } => match *self.chat_callback.lock().unwrap() {
                 Some(ref f) => (f)(&alias, &msg),
                 None => {}
             },
             ServerPacket::EntityUpdate { uid, pos } => {
                 info!("Entity Update: uid:{} at pos:{:#?}", uid, pos);
 
-                let mut entities = self.entities.write();
+                let mut entities = self.entities_mut();
                 match entities.get_mut(&uid) {
                     Some(e) => *e.pos_mut() = pos,
                     None => { entities.insert(uid, Entity::new(pos)); },
@@ -154,7 +167,7 @@ impl Client {
     }
 
     pub fn set_chat_callback<F: 'static + Fn(&str, &str) + Send>(&self, f: F) {
-        *self.chat_callback.lock() = Some(Box::new(f));
+        *self.chat_callback.lock().unwrap() = Some(Box::new(f));
     }
 
     pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
@@ -171,36 +184,33 @@ impl Client {
         Ok(())
     }
 
-    pub fn stop(client: Arc<Client>) {
-        client.running.store(false, Ordering::Relaxed);
-    }
-
-    // Todo: stop this being run twice?
-    pub fn start(client: Arc<Client>) {
+    fn start(client: Arc<Client>) {
         let client_ref = client.clone();
-        let recv_thread = thread::spawn(move || {
-            while client_ref.running() {
+        thread::spawn(move || {
+            while *client_ref.status() != ClientStatus::Disconnected {
                 match client_ref.conn().recv() {
                     Ok(data) => client_ref.handle_packet(data.1),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
             }
+			// Notify anything else that we've finished networking
+			client_ref.finished.wait();
         });
 
         let client_ref = client.clone();
-        let tick_thread = thread::spawn(move || {
-            while client_ref.running() {
+        thread::spawn(move || {
+            while *client_ref.status() != ClientStatus::Disconnected {
                 client.tick(0.2);
                 thread::sleep(time::Duration::from_millis(20));
             }
+			// Notify anything else that we've finished ticking
+			client_ref.finished.wait();
         });
-
-        // TODO: Make these join the main thread before closing!
     }
-}
 
-impl Drop for Client {
-    fn drop(&mut self) {
-        self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
-    }
+	pub fn shutdown(&self) {
+		self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
+		self.set_status(ClientStatus::Disconnected);
+		self.finished.wait();
+	}
 }

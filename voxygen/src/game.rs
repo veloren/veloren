@@ -1,10 +1,9 @@
-use std::thread::JoinHandle;
 use std::net::ToSocketAddrs;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 //use std::f32::{sin, cos};
 
-use nalgebra::{Vector2, Vector3, Vector4, Matrix4, Translation3};
+use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
 use glutin::ElementState;
 
 use client::{Client, ClientMode};
@@ -49,10 +48,6 @@ impl Game {
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
         ]);
 
-        let client = Client::new(mode, alias.to_string(), bind_addr, remote_addr)
-            .expect("Could not create new client");
-        Client::start(client.clone());
-
         Game {
             data: Mutex::new(Data {
                 player_model: ModelObject::new(
@@ -66,14 +61,15 @@ impl Game {
                 cursor_trapped: true,
             }),
             running: AtomicBool::new(true),
-            client,
+            client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
+				.expect("Could not create new client"),
             window: Arc::new(Mutex::new(window)),
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
         }
     }
 
-    pub fn handle_window_events(&mut self) -> bool {
+    pub fn handle_window_events(&self) -> bool {
         self.window.lock().unwrap().handle_events(|event| {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
@@ -134,7 +130,7 @@ impl Game {
         let mov_vec = unit_vecs.0 * dir_vec.x + unit_vecs.1 * dir_vec.y;
         let fly_vec = self.key_state.lock().unwrap().fly_vec();
 
-        self.client.set_player_vel(Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec));
+        self.client.player_mut().dir_vec = Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec);
 
         self.running.load(Ordering::Relaxed)
     }
@@ -144,7 +140,7 @@ impl Game {
 
         window.renderer_mut().begin_frame();
 
-        if let Some(uid) = self.client.player_entity_uid() {
+        if let Some(uid) = self.client.player().entity_uid {
             if let Some(e) = self.client.entities().get(&uid) {
                 self.camera.lock().unwrap().set_focus(*e.pos());
             }
@@ -175,15 +171,11 @@ impl Game {
         window.renderer_mut().end_frame();
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&self) {
         while self.handle_window_events() {
             self.render_frame();
         }
-    }
-}
 
-impl Drop for Game {
-    fn drop(&mut self) {
-        Client::stop(self.client.clone());
+		self.client.shutdown();
     }
 }

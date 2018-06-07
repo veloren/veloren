@@ -3,9 +3,12 @@
 extern crate noise;
 #[macro_use]
 extern crate euler;
+extern crate region;
 
 mod gen;
 mod map;
+
+use region::Chunk;
 
 // Reexports
 pub use map::Map as Map;

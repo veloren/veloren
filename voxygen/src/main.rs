@@ -56,7 +56,7 @@ fn main() {
     }
 
     let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
-    let game = Game::new(
+    Game::new(
         ClientMode::Character,
         &common::NameGenerator::new(name_seed).get(),
         SocketAddr::new(ip, port),
