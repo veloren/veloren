@@ -69,7 +69,7 @@ impl Server {
                         let _ = self.conn.send_to(sock_addr, &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) });
                     },
                 }
-                
+
             },
             ClientPacket::Disconnect => {
                 match self.players.remove(&sock_addr) {
@@ -100,7 +100,7 @@ impl Server {
                 };
 
             },
-            ClientPacket::SendCommand { cmd } => self.handle_command(&sock_addr, cmd),
+            ClientPacket::SendCmd { cmd } => self.handle_command(&sock_addr, cmd),
             ClientPacket::PlayerEntityUpdate { pos } => {
                 if let Some(ref mut p) = self.players.get_mut(&sock_addr) {
                     // TODO: Check this movement is acceptable.
@@ -183,12 +183,12 @@ impl Server {
                 match command {
                     "move_by" => {
                         let str_args = parts.collect::<Vec<&str>>();
-                        
+
                         match p.entity_uid() {
                             Some(entity_id) => match self.entities.get_mut(&entity_id) {
                                 Some(entity) => {
-                                    // TODO: Parse these args without discarding non f32 elements. 
-                                    
+                                    // TODO: Parse these args without discarding non f32 elements.
+
 
                                     response = handle_move_packet(entity, str_args);
                                 },

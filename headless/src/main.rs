@@ -56,7 +56,7 @@ fn main() {
     };
 
     let (tx, rx) = mpsc::channel();
-    client.set_chat_callback(move |alias, msg| {
+    client.callbacks().set_recv_chat_msg(move |alias, msg| {
         tx.send(format!("{}: {}", alias, msg)).unwrap();
     });
 
@@ -67,7 +67,7 @@ fn main() {
 
         if let Some(msg) = win.get() {
             if msg.starts_with("!") {
-                client.send_command(&msg[1..]);
+                client.send_cmd(&msg[1..]);
             }
             else {
                 client.send_chat_msg(&msg);

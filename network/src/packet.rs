@@ -36,7 +36,7 @@ pub enum ClientPacket {
     Disconnect,
     Ping,
     SendChatMsg { msg: String },
-    SendCommand { cmd: String },
+    SendCmd { cmd: String },
     PlayerEntityUpdate { pos: Vector3<f32> }
 }
 
