@@ -60,8 +60,6 @@ fn main() {
         tx.send(format!("{}: {}", alias, msg)).unwrap();
     });
 
-    Client::start(client.clone());
-
     loop {
         if let Ok(msg) = rx.try_recv() {
             win.writeln(format!("{}", msg));
