@@ -98,18 +98,3 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	```bash
 	$ cd voxygen && cargo run
 	```
-
-## Task list
-
-There are a variety of things that need doing at the moment. You can help move the project forwards by contributing!
-
-- [ ] Get things ready for the 0.1.0 release
-	- [ ] Make `server` understand that players have a position in the world
-	- [ ] Make `server` generate chunks when players approach them
-	- [ ] Make `server` send nearby chunks over the network to `client` (only when requested)
-	- [ ] Add volume rendering to `voxygen`
-- [ ] Fix the *major* slowdown in `server` whereby the entire thing locks up when a world simulation update is occuring
-	- [ ] Make worldsim internally concurrent and externally concurrent (i.e: other things can still call functions on it while a world simulation update is occuring)
-- [ ] Investigate how best to build a menu GUI for `voxygen`
-	- [ ] Investigate font renderering vs texture rendering
-	- [ ] Investigate 2D texture rendering
