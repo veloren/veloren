@@ -17,7 +17,7 @@ use key_state::KeyState;
 pub struct Game {
     running: AtomicBool,
     client: Arc<Client>,
-    window: Arc<Mutex<RenderWindow>>,
+    window: RenderWindow,
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
@@ -27,7 +27,6 @@ pub struct Game {
 struct Data {
     player_model: ModelObject,
     test_model: ModelObject,
-    cursor_trapped: bool,
 }
 
 impl Game {
@@ -48,35 +47,38 @@ impl Game {
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
         ]);
 
+        let player_model = ModelObject::new(
+            &mut window.renderer_mut(),
+            &player_mesh,
+        );
+
+        let test_model = ModelObject::new(
+            &mut window.renderer_mut(),
+            &test_mesh,
+        );
+
         Game {
             data: Mutex::new(Data {
-                player_model: ModelObject::new(
-                    window.renderer_mut(),
-                    &player_mesh,
-                ),
-                test_model: ModelObject::new(
-                    window.renderer_mut(),
-                    &test_mesh,
-                ),
-                cursor_trapped: true,
+                player_model,
+                test_model,
             }),
             running: AtomicBool::new(true),
             client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
 				.expect("Could not create new client"),
-            window: Arc::new(Mutex::new(window)),
+            window,
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
         }
     }
 
     pub fn handle_window_events(&self) -> bool {
-        self.window.lock().unwrap().handle_events(|event| {
+        self.window.handle_events(|event| {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
                 Event::CursorMoved { dx, dy } => {
                     let mut data = self.data.lock().unwrap();
 
-                    if data.cursor_trapped {
+                    if self.window.cursor_trapped().load(Ordering::Relaxed) {
                         self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
                     }
                 },
@@ -85,7 +87,7 @@ impl Game {
                 },
                 Event::KeyboardInput { i, .. } => {
                     match i.scancode {
-                        1 => self.data.lock().unwrap().cursor_trapped = false,
+                        1 => self.window.cursor_trapped().store(false, Ordering::Relaxed),
                         17 => self.key_state.lock().unwrap().up = match i.state { // W (up)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
@@ -136,9 +138,8 @@ impl Game {
     }
 
     pub fn render_frame(&self) {
-        let mut window = self.window.lock().unwrap();
-
-        window.renderer_mut().begin_frame();
+        let mut renderer = self.window.renderer_mut();
+        renderer.begin_frame();
 
         if let Some(uid) = self.client.player().entity_uid {
             if let Some(e) = self.client.entities().get(&uid) {
@@ -149,14 +150,14 @@ impl Game {
         let camera_mats = self.camera.lock().unwrap().get_mats();
 
         // Render the test model
-        window.renderer_mut().update_model_object(
+        renderer.update_model_object(
             &self.data.lock().unwrap().test_model,
             Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1)
         );
-        window.renderer_mut().render_model_object(&self.data.lock().unwrap().test_model);
+        renderer.render_model_object(&self.data.lock().unwrap().test_model);
 
         for (uid, entity) in self.client.entities().iter() {
-            window.renderer_mut().update_model_object(
+            renderer.update_model_object(
                 &self.data.lock().unwrap().player_model,
                 Constants::new(
                     &Translation3::<f32>::from_vector(*entity.pos()).to_homogeneous(),
@@ -164,11 +165,11 @@ impl Game {
                     &camera_mats.1
                 )
             );
-            window.renderer_mut().render_model_object(&self.data.lock().unwrap().player_model);
+            renderer.render_model_object(&self.data.lock().unwrap().player_model);
         }
 
-        window.swap_buffers();
-        window.renderer_mut().end_frame();
+        self.window.swap_buffers();
+        renderer.end_frame();
     }
 
     pub fn run(&self) {
