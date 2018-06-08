@@ -17,7 +17,7 @@ use key_state::KeyState;
 pub struct Game {
     running: AtomicBool,
     client: Arc<Client>,
-    window: Arc<RenderWindow>,
+    window: RenderWindow,
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
@@ -65,7 +65,7 @@ impl Game {
             running: AtomicBool::new(true),
             client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
 				.expect("Could not create new client"),
-            window: Arc::new(window),
+            window,
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
         }
