@@ -5,7 +5,9 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gm
 
 [dependencies]
 common = { path = "../common" }
-network = { path = "../network" }
 region = { path = "../region" }
 log = "0.4"
 nalgebra = { version= "0.15.1", features = ["serde-serialize"] }
+
+# Network
+byteorder = "1.2.3"

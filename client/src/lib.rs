@@ -3,15 +3,16 @@
 #[macro_use]
 extern crate log;
 extern crate common;
-extern crate network;
 extern crate region;
 extern crate nalgebra;
+extern crate byteorder;
 
 mod player;
 mod callbacks;
+mod session;
 
 // Reexports
-pub use network::ClientMode as ClientMode;
+pub use common::network::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
 use std::thread;
@@ -22,22 +23,25 @@ use std::net::ToSocketAddrs;
 
 use nalgebra::Vector3;
 
-use network::client::ClientConn;
-use network::packet::{ClientPacket, ServerPacket};
+use common::network::client::ClientConn;
+use common::network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
 use common::{get_version, Uid};
 
 use player::Player;
 use callbacks::Callbacks;
+use std::net::TcpStream;
+use session::Session;
+use std::sync::Mutex;
 
 // Errors that may occur within this crate
 #[derive(Debug)]
 pub enum Error {
-    NetworkErr(network::Error),
+    NetworkErr(common::network::Error),
 }
 
-impl From<network::Error> for Error {
-    fn from(e: network::Error) -> Error {
+impl From<common::network::Error> for Error {
+    fn from(e: common::network::Error) -> Error {
         Error::NetworkErr(e)
     }
 }
@@ -52,7 +56,7 @@ pub enum ClientStatus {
 
 pub struct Client {
     status: RwLock<ClientStatus>,
-    conn: ClientConn,
+    session: Session,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
@@ -63,13 +67,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<T: ToSocketAddrs, U: ToSocketAddrs>(mode: ClientMode, alias: String, bind_addr: T, remote_addr: U) -> Result<Arc<Client>, Error> {
-        let conn = ClientConn::new(bind_addr, remote_addr)?;
-        conn.send(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() })?;
+    pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<RwLock<Client>>, Error> {
+        let stream = TcpStream::connect(remote_addr).unwrap();
+        let mut session = Session::new(stream);
+        session.send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
 
-        let client = Arc::new(Client {
+        let client = Arc::new(RwLock::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
-            conn,
+            session,
 
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
@@ -77,45 +82,48 @@ impl Client {
             callbacks: RwLock::new(Callbacks::new()),
 
             finished: Barrier::new(2),
-        });
+        }));
 
         Self::start(client.clone());
 
         Ok(client)
     }
 
-    fn conn<'a>(&'a self) -> &'a ClientConn {
-        &self.conn
+    fn session<'a>(&'a self) -> &'a Session {
+        &self.session
     }
 
     fn set_status(&self, status: ClientStatus) {
         *self.status.write().unwrap() = status;
     }
 
-    fn tick(&self, dt: f32) {
-        if let Some(uid) = self.player().entity_uid {
+    fn tick(&mut self, dt: f32) {
+
+        let packet = if let Some(uid) = self.player().entity_uid {
             if let Some(e) = self.entities_mut().get_mut(&uid) {
                 *e.pos_mut() += self.player().dir_vec * dt;
 
-                self.conn.send(&ClientPacket::PlayerEntityUpdate {
+                Some(ClientPacket::PlayerEntityUpdate {
                     pos: *e.pos()
-                }).expect("Could not send player position packet");
-            }
-        }
+                })
+            } else { None }
+        } else { None };
+
+        packet.map(|it| self.session.send_packet(&it).expect("Could not send player position packet"));
     }
 
     fn handle_packet(&self, packet: ServerPacket) {
         match packet {
-            ServerPacket::Connected { player_entity_uid, version } => {
+            ServerPacket::Connected { entity_uid, version } => {
                 match version == get_version() {
                     true => {
-                        if let Some(uid) = player_entity_uid {
+                        if let Some(uid) = entity_uid {
                             if !self.entities().contains_key(&uid) {
                                 self.entities_mut().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
                             }
                         }
 
-                        self.player_mut().entity_uid = player_entity_uid;
+                        self.player_mut().entity_uid = entity_uid;
 
                         info!("Client connected");
                     },
@@ -145,12 +153,16 @@ impl Client {
         }
     }
 
-    fn start(client: Arc<Client>) {
-        let client_ref = client.clone();
+    fn start(client: Arc<RwLock<Client>>) {
+        let mut client_ref = client.clone();
         thread::spawn(move || {
-            while *client_ref.status() != ClientStatus::Disconnected {
-                match client_ref.conn().recv() {
-                    Ok(data) => client_ref.handle_packet(data.1),
+            let mut client_ref = client_ref.write().unwrap();
+            loop {
+                if *client_ref.status() != ClientStatus::Disconnected {
+                    break;
+                }
+                match client_ref.session.recv_packet() {
+                    Ok(data) => client_ref.handle_packet(data),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
             }
@@ -158,10 +170,14 @@ impl Client {
             client_ref.finished.wait();
         });
 
-        let client_ref = client.clone();
+        let mut client_ref = client.clone();
         thread::spawn(move || {
-            while *client_ref.status() != ClientStatus::Disconnected {
-                client.tick(0.2);
+            let mut client_ref = client_ref.write().unwrap();
+            loop {
+                if *client_ref.status() != ClientStatus::Disconnected {
+                    break;
+                }
+                client_ref.tick(0.2);
                 thread::sleep(time::Duration::from_millis(20));
             }
             // Notify anything else that we've finished ticking
@@ -171,23 +187,23 @@ impl Client {
 
     // Public interface
 
-    pub fn shutdown(&self) {
-        self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
+    pub fn shutdown(&mut self) {
+        self.session.send_packet(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
     }
 
-    pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
-        self.conn.send(&ClientPacket::SendChatMsg{
+    pub fn send_chat_msg(&mut self, msg: &str) -> Result<(), Error> {
+        self.session.send_packet(&ClientPacket::ChatMsg {
             msg: msg.to_string(),
-        })?;
+        });
         Ok(())
     }
 
-    pub fn send_cmd(&self, cmd: &str) -> Result<(), Error> {
-        self.conn.send(&ClientPacket::SendCmd{
+    pub fn send_cmd(&mut self, cmd: &str) -> Result<(), Error> {
+        self.session.send_packet(&ClientPacket::SendCmd{
             cmd: cmd.to_string(),
-        })?;
+        });
         Ok(())
     }
 

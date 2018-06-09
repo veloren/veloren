@@ -2,8 +2,8 @@
 members = [
     "server",
 	"client",
-	"network",
-	"world",
+	"common",
+	"worldgen",
 
     "voxygen",
     "server-cli",

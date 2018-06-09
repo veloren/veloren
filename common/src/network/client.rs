@@ -1,9 +1,8 @@
-use std::io;
 use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
 use get_if_addrs;
-use packet::{ClientPacket, ServerPacket};
-
-use Error;
+use network::Error;
+use network::packet::ServerPacket;
+use network::packet::ClientPacket;
 
 pub struct ClientConn {
     sock: UdpSocket,

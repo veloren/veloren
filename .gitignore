@@ -16,3 +16,5 @@
 !/.vscode/launch.json
 *.code-workspace
 
+# Veloren
+**/server_conf.toml

@@ -1,18 +1,19 @@
-use ClientMode;
-use nalgebra::Vector3;
 use common::Uid;
+use nalgebra::Vector3;
 
 pub struct Player {
-    entity_uid: Option<Uid>,
-    mode: ClientMode,
+    session_id: u32,
+    uid: Uid,
+    entity_id: Option<Uid>,
     alias: String,
 }
 
 impl Player {
-    pub fn new(entity_uid: Option<Uid>, mode: ClientMode, alias: &str) -> Player {
+    pub fn new(session_id: u32, uid: Uid, entity_id: Option<Uid>, alias: &str) -> Player {
         Player {
-            entity_uid,
-            mode,
+            session_id,
+            uid,
+            entity_id,
             alias: alias.to_string(),
         }
     }
@@ -21,7 +22,9 @@ impl Player {
         &self.alias
     }
 
-    pub fn entity_uid(&self) -> Option<Uid> {
-        self.entity_uid
-    }
+    pub fn get_uid(&self) -> Uid { self.uid }
+
+    pub fn get_session_id(&self) -> u32 { self.session_id }
+
+    pub fn get_entity_id(&self) -> Option<Uid> { self.entity_id }
 }

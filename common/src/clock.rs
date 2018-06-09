@@ -1,5 +1,4 @@
 use std::time::{Duration, SystemTime};
-use std::thread;
 
 pub struct Clock {
     time: SystemTime,

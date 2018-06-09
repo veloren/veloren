@@ -13,10 +13,12 @@ use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
 use key_state::KeyState;
+use std::sync::RwLock;
+use std::sync::RwLockWriteGuard;
 
 pub struct Game {
     running: AtomicBool,
-    client: Arc<Client>,
+    client: Arc<RwLock<Client>>,
     window: Arc<Mutex<RenderWindow>>,
     data: Mutex<Data>,
     camera: Mutex<Camera>,
@@ -61,13 +63,15 @@ impl Game {
                 cursor_trapped: true,
             }),
             running: AtomicBool::new(true),
-            client: Client::new(mode, alias.to_string(), bind_addr, remote_addr)
+            client: Client::new(mode, alias.to_string(), remote_addr)
 				.expect("Could not create new client"),
             window: Arc::new(Mutex::new(window)),
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
         }
     }
+
+    pub fn get_client(&self) -> RwLockWriteGuard<Client> { self.client.write().unwrap() }
 
     pub fn handle_window_events(&self) -> bool {
         self.window.lock().unwrap().handle_events(|event| {
@@ -130,7 +134,7 @@ impl Game {
         let mov_vec = unit_vecs.0 * dir_vec.x + unit_vecs.1 * dir_vec.y;
         let fly_vec = self.key_state.lock().unwrap().fly_vec();
 
-        self.client.player_mut().dir_vec = Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec);
+        self.get_client().player_mut().dir_vec = Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec);
 
         self.running.load(Ordering::Relaxed)
     }
@@ -140,8 +144,8 @@ impl Game {
 
         window.renderer_mut().begin_frame();
 
-        if let Some(uid) = self.client.player().entity_uid {
-            if let Some(e) = self.client.entities().get(&uid) {
+        if let Some(uid) = self.get_client().player().entity_uid {
+            if let Some(e) = self.get_client().entities().get(&uid) {
                 self.camera.lock().unwrap().set_focus(*e.pos());
             }
         }
@@ -155,7 +159,7 @@ impl Game {
         );
         window.renderer_mut().render_model_object(&self.data.lock().unwrap().test_model);
 
-        for (uid, entity) in self.client.entities().iter() {
+        for (uid, entity) in self.get_client().entities().iter() {
             window.renderer_mut().update_model_object(
                 &self.data.lock().unwrap().player_model,
                 Constants::new(
@@ -176,6 +180,6 @@ impl Game {
             self.render_frame();
         }
 
-		self.client.shutdown();
+		self.get_client().shutdown();
     }
 }

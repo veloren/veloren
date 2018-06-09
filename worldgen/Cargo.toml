@@ -1,5 +1,5 @@
 [package]
-name = "world"
+name = "worldgen"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 

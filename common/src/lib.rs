@@ -1,17 +1,24 @@
 #![feature(nll)]
 
+extern crate bincode;
+extern crate get_if_addrs;
 #[macro_use]
 extern crate log;
-extern crate time;
+extern crate nalgebra;
 extern crate noise;
-
-mod clock;
-mod random_names;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate time;
 
 // Reexports
 pub use clock::Clock;
-
 pub use random_names::NameGenerator;
+
+mod clock;
+mod random_names;
+pub mod network;
 
 pub type Uid = u64;
 

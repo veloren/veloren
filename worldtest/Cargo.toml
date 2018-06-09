@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 
 [dependencies]
-world = { path = "../world" }
+worldgen = { path = "../worldgen" }
 sfml = "0.14.0"

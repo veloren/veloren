@@ -1,12 +1,12 @@
-use bincode::{serialize, deserialize};
+use bincode;
 use nalgebra::Vector3;
-use ClientMode;
-use Error;
-use common::Uid;
+use Uid;
+use network::Error;
+use network::ClientMode;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
-    Connected { player_entity_uid: Option<Uid>, version: String },
+    Connected { entity_uid: Option<Uid>, version: String },
     Kicked { reason: String },
     Shutdown,
     Ping,
@@ -16,14 +16,14 @@ pub enum ServerPacket {
 
 impl ServerPacket {
     pub fn from(data: &[u8]) -> Result<ServerPacket, Error> {
-        match deserialize(data) {
+        match bincode::deserialize(data) {
             Ok(sp) => Ok(sp),
             Err(_) => Err(Error::CannotDeserialize),
         }
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>, Error> {
-        match serialize(&self) {
+        match bincode::serialize(&self) {
             Ok(data) => Ok(data),
             Err(_) => Err(Error::CannotSerialize),
         }
@@ -35,21 +35,21 @@ pub enum ClientPacket {
     Connect { mode: ClientMode, alias: String, version: String },
     Disconnect,
     Ping,
-    SendChatMsg { msg: String },
+    ChatMsg { msg: String },
     SendCmd { cmd: String },
     PlayerEntityUpdate { pos: Vector3<f32> }
 }
 
 impl ClientPacket {
     pub fn from(data: &[u8]) -> Result<ClientPacket, Error> {
-        match deserialize(data) {
+        match bincode::deserialize(data) {
             Ok(sp) => Ok(sp),
             Err(_) => Err(Error::CannotDeserialize),
         }
     }
 
     pub fn serialize(&self) -> Result<Vec<u8>, Error> {
-        match serialize(&self) {
+        match bincode::serialize(&self) {
             Ok(data) => Ok(data),
             Err(_) => Err(Error::CannotSerialize),
         }

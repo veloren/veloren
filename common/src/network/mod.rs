@@ -1,20 +1,8 @@
-#![feature(nll)]
-
-extern crate serde;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate serde_derive;
-extern crate bincode;
-extern crate get_if_addrs;
-extern crate nalgebra;
-extern crate common;
+use std::io;
 
 pub mod packet;
 pub mod client;
 pub mod server;
-
-use std::io;
 
 #[derive(Debug)]
 pub enum Error {
