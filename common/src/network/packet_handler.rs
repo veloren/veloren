@@ -51,16 +51,20 @@ impl PacketHandler {
     }
 
     pub fn recv_packet(&mut self) -> Result<ServerPacket, Error> {
-        match self.stream.read_u32::<LittleEndian>() {
-            Ok(s) => {
-                // we store the size of the package in case of other bytes are not send yet
-                self.read_size = s as usize;
-                self.has_read_size = true;
-                if (s > 1000) {
-                    panic!("something wrong must have happened, we dont have so bug packages yet")
-                }
-            },
-            Err(e) => {},
+        if !self.has_read_size {
+            match self.stream.read_u32::<LittleEndian>() {
+                Ok(s) => {
+                    // we store the size of the package in case of other bytes are not send yet
+                    self.read_size = s as usize;
+                    self.has_read_size = true;
+                    println!("Recv Size: {}", s);
+                    if (s > 1000) {
+                        panic!("something wrong must have happened, we dont have so bug packages yet")
+                    }
+                },
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {return Err(Error::MessageInProgress);}
+                Err(e) => {println!("{}", e)},
+            }
         }
 
         if self.has_read_size {
@@ -69,7 +73,8 @@ impl PacketHandler {
             data.resize(self.read_size, 0);
             match self.stream.read_exact(data.as_mut()) {
                 Ok(s) => {},
-                Err(e) => {},
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {return Err(Error::MessageInProgress);}
+                Err(e) => {println!("{}", e)},
             }
             println!("Revc len{:?} {:?}", self.read_size, &data);
             self.has_read_size = false;
@@ -80,16 +85,20 @@ impl PacketHandler {
     }
 
     pub fn recv_packet_2(&mut self) -> Result<ClientPacket, Error> {
-        match self.stream.read_u32::<LittleEndian>() {
-            Ok(s) => {
-                // we store the size of the package in case of other bytes are not send yet
-                self.read_size = s as usize;
-                self.has_read_size = true;
-                if (s > 1000) {
-                    panic!("something wrong must have happened, we dont have so bug packages yet")
-                }
-            },
-            Err(e) => {},
+        if !self.has_read_size {
+            match self.stream.read_u32::<LittleEndian>() {
+                Ok(s) => {
+                    // we store the size of the package in case of other bytes are not send yet
+                    self.read_size = s as usize;
+                    self.has_read_size = true;
+                    println!("Recv Size: {}", s);
+                    if (s > 1000) {
+                        panic!("something wrong must have happened, we dont have so bug packages yet")
+                    }
+                },
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {return Err(Error::MessageInProgress);}
+                Err(e) => {println!("{}", e)},
+            }
         }
 
         if self.has_read_size {
@@ -98,7 +107,8 @@ impl PacketHandler {
             data.resize(self.read_size, 0);
             match self.stream.read_exact(data.as_mut()) {
                 Ok(s) => {},
-                Err(e) => {},
+                Err(ref e) if e.kind() == ErrorKind::WouldBlock => {return Err(Error::MessageInProgress);}
+                Err(e) => {println!("{}", e)},
             }
             println!("Revc len{:?} {:?}", self.read_size, &data);
             self.has_read_size = false;
