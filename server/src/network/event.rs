@@ -15,7 +15,7 @@ impl Event<World> for NewSessionEvent {
         let mut session = box Session::new(self.session_id, self.stream.try_clone().unwrap());
         session.start_listen_thread(relay.clone());
         ctx.add_session(session);
-        println!("New session !");
+        println!("New session ! id: {}", self.session_id);
     }
 }
 
@@ -29,10 +29,12 @@ impl Event<World> for PacketReceived {
     fn process(&self, relay: &Relay<World>, ctx: &mut World) {
         match ClientPacket::from(&self.data) {
             Ok(packet) => handle_packet(relay, ctx, self.session_id, &packet),
-            Err(_) => println!("Cannot parse packet !"),
+            Err(_) => {
+                    println!("Cannot parse packet !");
+                    println!("length {:?}", &self.data.len());
+                    println!("{:?}", &self.data);
+            },
         }
 
     }
 }
-
-

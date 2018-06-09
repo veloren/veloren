@@ -156,11 +156,13 @@ impl Client {
     fn start(client: Arc<RwLock<Client>>) {
         let mut client_ref = client.clone();
         thread::spawn(move || {
+            println!("wait for lock");
             let mut client_ref = client_ref.write().unwrap();
             loop {
                 if *client_ref.status() != ClientStatus::Disconnected {
                     break;
                 }
+                println!("recieved");
                 match client_ref.session.recv_packet() {
                     Ok(data) => client_ref.handle_packet(data),
                     Err(e) => warn!("Receive error: {:?}", e),
@@ -172,11 +174,13 @@ impl Client {
 
         let mut client_ref = client.clone();
         thread::spawn(move || {
+            println!("wait for lock2");
             let mut client_ref = client_ref.write().unwrap();
             loop {
                 if *client_ref.status() != ClientStatus::Disconnected {
                     break;
                 }
+                println!("tick");
                 client_ref.tick(0.2);
                 thread::sleep(time::Duration::from_millis(20));
             }
