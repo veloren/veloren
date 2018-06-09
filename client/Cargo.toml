@@ -8,6 +8,3 @@ common = { path = "../common" }
 region = { path = "../region" }
 log = "0.4"
 nalgebra = { version= "0.15.1", features = ["serde-serialize"] }
-
-# Network
-byteorder = "1.2.3"

@@ -31,13 +31,13 @@ pub fn handle_packet(relay: &Relay<World>, world: &mut World, session_id: u32, p
                     world.add_player(box Player::new(session_id, player_uid, entity_id, &alias));
                     world.get_session(session_id).unwrap().set_player_id(Some(player_uid));
 
-                    world.get_session(session_id).map(|it| it.send_packet(
+                    world.get_session(session_id).map(|it| it.get_handler().send_packet_2(
                         &ServerPacket::Connected { entity_uid: entity_id, version: get_version() }
                     ));
                 }
                 false => {
                     println!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
-                    world.get_session(session_id).map(|it| it.send_packet(
+                    world.get_session(session_id).map(|it| it.get_handler().send_packet_2(
                         &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
                     ));
                 }
@@ -57,7 +57,7 @@ pub fn handle_packet(relay: &Relay<World>, world: &mut World, session_id: u32, p
             }
         }
         &ClientPacket::Ping => {
-            world.get_session(session_id).map(|it| it.send_packet(
+            world.get_session(session_id).map(|it| it.get_handler().send_packet_2(
                 &ServerPacket::Ping
             ));
         }

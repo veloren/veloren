@@ -23,18 +23,10 @@ impl Event<World> for NewSessionEvent {
 
 pub struct PacketReceived {
     pub session_id: u32,
-    pub data: Vec<u8>,
+    pub data: ClientPacket,
 }
 impl Event<World> for PacketReceived {
     fn process(&self, relay: &Relay<World>, ctx: &mut World) {
-        match ClientPacket::from(&self.data) {
-            Ok(packet) => handle_packet(relay, ctx, self.session_id, &packet),
-            Err(_) => {
-                    println!("Cannot parse packet !");
-                    println!("length {:?}", &self.data.len());
-                    println!("{:?}", &self.data);
-            },
-        }
-
+        handle_packet(relay, ctx, self.session_id, &self.data);
     }
 }

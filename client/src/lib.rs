@@ -5,7 +5,6 @@ extern crate log;
 extern crate common;
 extern crate region;
 extern crate nalgebra;
-extern crate byteorder;
 
 mod player;
 mod callbacks;
@@ -70,9 +69,8 @@ pub struct Client {
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
         let stream = TcpStream::connect(remote_addr).unwrap();
-        stream.set_nonblocking(true);
         let mut session = Session::new(stream);
-        session.send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
+        session.get_handler().send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
 
         let client = Arc::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
@@ -111,7 +109,7 @@ impl Client {
             } else { None }
         } else { None };
 
-        packet.map(|it| self.session.lock().unwrap().send_packet(&it).expect("Could not send player position packet"));
+        packet.map(|it| self.session.lock().unwrap().get_handler().send_packet(&it).expect("Could not send player position packet"));
     }
 
     fn handle_packet(&self, packet: ServerPacket) {
@@ -163,7 +161,7 @@ impl Client {
                     debug!("Client Session Thread Disconnected");
                     break;
                 }
-                match client_ref.session.lock().unwrap().recv_packet() {
+                match client_ref.session.lock().unwrap().get_handler().recv_packet() {
                     Ok(data) => client_ref.handle_packet(data),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
@@ -192,20 +190,20 @@ impl Client {
     // Public interface
 
     pub fn shutdown(&self) {
-        self.session.lock().unwrap().send_packet(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
+        self.session.lock().unwrap().get_handler().send_packet(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
     }
 
     pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
-        self.session.lock().unwrap().send_packet(&ClientPacket::ChatMsg {
+        self.session.lock().unwrap().get_handler().send_packet(&ClientPacket::ChatMsg {
             msg: msg.to_string(),
         });
         Ok(())
     }
 
     pub fn send_cmd(&self, cmd: &str) -> Result<(), Error> {
-        self.session.lock().unwrap().send_packet(&ClientPacket::SendCmd{
+        self.session.lock().unwrap().get_handler().send_packet(&ClientPacket::SendCmd{
             cmd: cmd.to_string(),
         });
         Ok(())

@@ -76,9 +76,9 @@ impl World {
 
     // Network
 
-    pub fn send_packet(&mut self, session_id: u32, packet: &ServerPacket) { self.get_session(session_id).map(|it| it.send_packet(packet)); }
+    pub fn send_packet(&mut self, session_id: u32, packet: &ServerPacket) { self.get_session(session_id).map(|it| it.get_handler().send_packet_2(packet)); }
     pub fn broadcast_packet(&mut self, packet: &ServerPacket) {
-        self.sessions.iter_mut().for_each(|(_, ref mut it)| it.send_packet(packet));
+        self.sessions.iter_mut().for_each(|(_, ref mut it)| it.get_handler().send_packet_2(packet).unwrap());
     }
 }
 
@@ -97,7 +97,7 @@ pub fn update_world(relay: &Relay<World>, ctx: &mut World) {
     ctx.get_sessions_mut().for_each(|(_, session)| {
         if session.has_player() {
             updates.iter().for_each(|ref update| {
-                session.send_packet(update);
+                session.get_handler().send_packet_2(update);
             })
         }
     });

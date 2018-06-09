@@ -11,6 +11,7 @@ extern crate serde;
 extern crate serde_derive;
 #[macro_use]
 extern crate time;
+extern crate byteorder;
 
 // Reexports
 pub use clock::Clock;
