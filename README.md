@@ -75,7 +75,6 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	```
 	> rustup default nightly
 	```
-	Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
 
 2. Install SFML
 

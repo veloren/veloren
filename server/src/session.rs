@@ -42,8 +42,10 @@ impl Session {
     fn listen_for_packets(relay : Relay<World>, session_id: u32, mut stream: TcpStream) {
 
         loop {
-
             let size = stream.read_u32::<LittleEndian>().unwrap() as usize;
+            if (size > 1000) {
+                panic!("something wrong must have happened, we dont have so bug packages yet")
+            }
             let mut data: Vec<u8> = Vec::with_capacity(size);
             data.resize(size, 0);
             stream.read_exact(data.as_mut()).unwrap();

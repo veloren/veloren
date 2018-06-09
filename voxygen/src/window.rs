@@ -6,6 +6,9 @@ use glutin::Api::OpenGl;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
 
+use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::atomic::{AtomicBool, Ordering};
+
 pub enum Event {
     CloseRequest,
     CursorMoved { dx: f64, dy: f64 },
@@ -15,15 +18,15 @@ pub enum Event {
 }
 
 pub struct RenderWindow {
-    events_loop: EventsLoop,
-    gl_window: GlWindow,
-    renderer: Renderer,
-    cursor_trapped: bool,
+    events_loop: Mutex<EventsLoop>,
+    gl_window: Mutex<GlWindow>,
+    renderer: RwLock<Renderer>,
+    cursor_trapped: AtomicBool,
 }
 
 impl RenderWindow {
     pub fn new() -> RenderWindow {
-        let events_loop = EventsLoop::new();
+        let events_loop = Mutex::new(EventsLoop::new());
         let win_builder = WindowBuilder::new()
             .with_title("Veloren (Voxygen)")
             .with_dimensions(800, 500)
@@ -34,30 +37,27 @@ impl RenderWindow {
             .with_vsync(true);
 
         let (gl_window, device, factory, color_view, depth_view) =
-            gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop);
+            gfx_window_glutin::init::<ColorFormat, DepthFormat>(win_builder, ctx_builder, &events_loop.lock().unwrap());
 
         RenderWindow {
             events_loop,
-            gl_window,
-            renderer: Renderer::new(device, factory, color_view, depth_view),
-            cursor_trapped: true,
+            gl_window: Mutex::new(gl_window),
+            renderer: RwLock::new(Renderer::new(device, factory, color_view, depth_view)),
+            cursor_trapped: AtomicBool::new(true),
         }
     }
 
-    pub fn renderer_mut<'a>(&'a mut self) -> &'a mut Renderer {
-        &mut self.renderer
+    pub fn renderer<'a>(&'a self) -> RwLockReadGuard<'a, Renderer> { self.renderer.read().unwrap() }
+    pub fn renderer_mut<'a>(&'a self) -> RwLockWriteGuard<'a, Renderer> { self.renderer.write().unwrap() }
+
+    pub fn cursor_trapped(&self) -> &AtomicBool {
+        &self.cursor_trapped
     }
 
-    pub fn set_cursor_trapped(&mut self, trapped: bool) {
-        self.cursor_trapped = trapped;
-    }
-
-    pub fn handle_events<'a, F: FnMut(Event)>(&mut self, mut func: F) {
+    pub fn handle_events<'a, F: FnMut(Event)>(&self, mut func: F) {
         // We need to mutate these inside the closure, so we take a mutable reference
-        let gl_window = &mut self.gl_window;
-        let events_loop = &mut self.events_loop;
-        let renderer = &mut self.renderer;
-        let cursor_trapped = &mut self.cursor_trapped;
+        let gl_window = &mut self.gl_window.lock().unwrap();
+        let events_loop = &mut self.events_loop.lock().unwrap();
 
         events_loop.poll_events(|event| {
             if let glutin::Event::WindowEvent { event, .. } = event {
@@ -70,7 +70,7 @@ impl RenderWindow {
                                     dy: position.1 - y as f64 * 0.5,
                                 });
                                 // TODO: Should we handle this result?
-                                if *cursor_trapped {
+                                if self.cursor_trapped.load(Ordering::Relaxed) {
                                     let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
                                     let _ = gl_window.set_cursor_state(CursorState::Hide);
                                 } else {
@@ -81,14 +81,14 @@ impl RenderWindow {
                         }
                     },
                     WindowEvent::Resized { 0: w, 1: h } => {
-                        let mut color_view = renderer.color_view().clone();
-                        let mut depth_view = renderer.depth_view().clone();
+                        let mut color_view = self.renderer.read().unwrap().color_view().clone();
+                        let mut depth_view = self.renderer.read().unwrap().depth_view().clone();
                         gfx_window_glutin::update_views(
                             &gl_window,
                             &mut color_view,
                             &mut depth_view,
                         );
-                        renderer.set_views(color_view, depth_view);
+                        self.renderer.write().unwrap().set_views(color_view, depth_view);
                         func(Event::Resized {
                             w,
                             h,
@@ -122,7 +122,7 @@ impl RenderWindow {
                     },
                     WindowEvent::MouseInput { device_id, state, button, modifiers } => {
                         if button == glutin::MouseButton::Left {
-                            *cursor_trapped = true;
+                            self.cursor_trapped.store(true, Ordering::Relaxed);
                             let _ = gl_window.set_cursor_state(CursorState::Hide);
                         }
                     },
@@ -133,7 +133,7 @@ impl RenderWindow {
         });
     }
 
-    pub fn swap_buffers(&mut self) {
-        self.gl_window.swap_buffers().expect("Failed to swap window buffers");
+    pub fn swap_buffers(&self) {
+        self.gl_window.lock().unwrap().swap_buffers().expect("Failed to swap window buffers");
     }
 }

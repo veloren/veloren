@@ -9,6 +9,7 @@ pub enum Error {
     NetworkErr(io::Error),
     CannotSerialize,
     CannotDeserialize,
+    MessageInProgress,
 }
 
 impl From<io::Error> for Error {

@@ -12,6 +12,7 @@ mod callbacks;
 mod session;
 
 // Reexports
+use std::sync::MutexGuard;
 pub use common::network::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
@@ -56,7 +57,7 @@ pub enum ClientStatus {
 
 pub struct Client {
     status: RwLock<ClientStatus>,
-    session: Session,
+    session: Mutex<Session>,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
@@ -67,14 +68,15 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<RwLock<Client>>, Error> {
+    pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
         let stream = TcpStream::connect(remote_addr).unwrap();
+        stream.set_nonblocking(true);
         let mut session = Session::new(stream);
         session.send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
 
-        let client = Arc::new(RwLock::new(Client {
+        let client = Arc::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
-            session,
+            session: Mutex::new(session),
 
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
@@ -82,22 +84,22 @@ impl Client {
             callbacks: RwLock::new(Callbacks::new()),
 
             finished: Barrier::new(2),
-        }));
+        });
 
         Self::start(client.clone());
 
         Ok(client)
     }
 
-    fn session<'a>(&'a self) -> &'a Session {
-        &self.session
+    fn session<'a>(&'a self) -> MutexGuard<Session> {
+        self.session.lock().unwrap()
     }
 
     fn set_status(&self, status: ClientStatus) {
         *self.status.write().unwrap() = status;
     }
 
-    fn tick(&mut self, dt: f32) {
+    fn tick(&self, dt: f32) {
 
         let packet = if let Some(uid) = self.player().entity_uid {
             if let Some(e) = self.entities_mut().get_mut(&uid) {
@@ -109,7 +111,7 @@ impl Client {
             } else { None }
         } else { None };
 
-        packet.map(|it| self.session.send_packet(&it).expect("Could not send player position packet"));
+        packet.map(|it| self.session.lock().unwrap().send_packet(&it).expect("Could not send player position packet"));
     }
 
     fn handle_packet(&self, packet: ServerPacket) {
@@ -153,20 +155,20 @@ impl Client {
         }
     }
 
-    fn start(client: Arc<RwLock<Client>>) {
+    fn start(client: Arc<Client>) {
         let mut client_ref = client.clone();
         thread::spawn(move || {
-            println!("wait for lock");
-            let mut client_ref = client_ref.write().unwrap();
             loop {
-                if *client_ref.status() != ClientStatus::Disconnected {
+                if *client_ref.status() == ClientStatus::Disconnected {
+                    debug!("Client Session Thread Disconnected");
                     break;
                 }
-                println!("recieved");
-                match client_ref.session.recv_packet() {
+                match client_ref.session.lock().unwrap().recv_packet() {
                     Ok(data) => client_ref.handle_packet(data),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
+                // we need to sleep here, because otherwise we would almost always hold the lock on session.
+                thread::sleep(time::Duration::from_millis(10));
             }
             // Notify anything else that we've finished networking
             client_ref.finished.wait();
@@ -174,13 +176,11 @@ impl Client {
 
         let mut client_ref = client.clone();
         thread::spawn(move || {
-            println!("wait for lock2");
-            let mut client_ref = client_ref.write().unwrap();
             loop {
-                if *client_ref.status() != ClientStatus::Disconnected {
+                if *client_ref.status() == ClientStatus::Disconnected {
+                    debug!("Client Tick Thread Disconnected");
                     break;
                 }
-                println!("tick");
                 client_ref.tick(0.2);
                 thread::sleep(time::Duration::from_millis(20));
             }
@@ -191,21 +191,21 @@ impl Client {
 
     // Public interface
 
-    pub fn shutdown(&mut self) {
-        self.session.send_packet(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
+    pub fn shutdown(&self) {
+        self.session.lock().unwrap().send_packet(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
     }
 
-    pub fn send_chat_msg(&mut self, msg: &str) -> Result<(), Error> {
-        self.session.send_packet(&ClientPacket::ChatMsg {
+    pub fn send_chat_msg(&self, msg: &str) -> Result<(), Error> {
+        self.session.lock().unwrap().send_packet(&ClientPacket::ChatMsg {
             msg: msg.to_string(),
         });
         Ok(())
     }
 
-    pub fn send_cmd(&mut self, cmd: &str) -> Result<(), Error> {
-        self.session.send_packet(&ClientPacket::SendCmd{
+    pub fn send_cmd(&self, cmd: &str) -> Result<(), Error> {
+        self.session.lock().unwrap().send_packet(&ClientPacket::SendCmd{
             cmd: cmd.to_string(),
         });
         Ok(())

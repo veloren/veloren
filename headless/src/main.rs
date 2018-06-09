@@ -52,11 +52,10 @@ fn main() {
     let mut win = Window::initscr();
     win.writeln("Welcome to the Veloren headless client.");
 
-    let mut client = match Client::new(ClientMode::Headless, alias,  &remote_addr.trim()) {
+    let client = match Client::new(ClientMode::Headless, alias,  &remote_addr.trim()) {
         Ok(c) => c,
         Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
-    let mut client = client.write().unwrap();
 
     let (tx, rx) = mpsc::channel();
     client.callbacks().set_recv_chat_msg(move |alias, msg| {
