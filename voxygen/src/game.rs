@@ -75,12 +75,14 @@ impl Game {
 
     pub fn handle_window_events(&self) -> bool {
         self.window.handle_events(|event| {
+            use glutin::{VirtualKeyCode};
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
                 Event::CursorMoved { dx, dy } => {
                     let mut data = self.data.lock().unwrap();
 
                     if self.window.cursor_trapped().load(Ordering::Relaxed) {
+                        println!("dx: {}, dy: {}", dx, dy);
                         self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
                     }
                 },
@@ -88,29 +90,29 @@ impl Game {
                     self.camera.lock().unwrap().zoom_by(-dy as f32);
                 },
                 Event::KeyboardInput { i, .. } => {
-                    match i.scancode {
-                        1 => self.window.cursor_trapped().store(false, Ordering::Relaxed),
-                        17 => self.key_state.lock().unwrap().up = match i.state { // W (up)
+                    match i.virtual_keycode {
+                        Some(VirtualKeyCode::Escape) => self.window.cursor_trapped().store(false, Ordering::Relaxed),
+                        Some(VirtualKeyCode::W) => self.key_state.lock().unwrap().up = match i.state { // W (up)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        30 => self.key_state.lock().unwrap().left = match i.state { // A (left)
+                        Some(VirtualKeyCode::A) => self.key_state.lock().unwrap().left = match i.state { // A (left)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        31 => self.key_state.lock().unwrap().down = match i.state { // S (down)
+                        Some(VirtualKeyCode::S) => self.key_state.lock().unwrap().down = match i.state { // S (down)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        32 => self.key_state.lock().unwrap().right = match i.state { // D (right)
+                        Some(VirtualKeyCode::D) => self.key_state.lock().unwrap().right = match i.state { // D (right)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        57 => self.key_state.lock().unwrap().fly = match i.state { // Space (fly)
+                        Some(VirtualKeyCode::Space) => self.key_state.lock().unwrap().fly = match i.state { // Space (fly)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
-                        42 => self.key_state.lock().unwrap().fall = match i.state { // Shift (fall)
+                        Some(VirtualKeyCode::LShift) => self.key_state.lock().unwrap().fall = match i.state { // Shift (fall)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
                         },
