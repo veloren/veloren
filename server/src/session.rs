@@ -1,6 +1,5 @@
 use bifrost::Relay;
-use common::network::packet_handler::PacketHandler;
-use common::network::stream_helper::PacketSender;
+use common::network::packet_handler::{PacketSender, PacketReceiver};
 use common::Uid;
 use network::event::PacketReceived;
 use player::Player;
@@ -12,7 +11,6 @@ use std::sync::MutexGuard;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time;
-use common::network::stream_helper::PacketReceiver;
 use common::network::packet::ServerPacket;
 use std::cell::RefCell;
 use std::cell::Cell;
@@ -37,14 +35,14 @@ impl Session {
         Session {
             id,
             listen_thread_handle: None,
-            packet_sender: RefCell::new(PacketSender::new(stream)),
+            packet_sender: RefCell::new(PacketSender::new(Some(stream), None)),
             player_id: None,
             state: Cell::new(SessionState::Connected),
         }
     }
 
     pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {
-        let packet_receiver = PacketReceiver::new(self.packet_sender.borrow_mut().clone_stream());
+        let packet_receiver = PacketReceiver::new(Some(self.packet_sender.borrow_mut().clone_tcp_stream()), None);
         let id = self.id;
         self.listen_thread_handle = Some(thread::spawn(move || {
             Session::listen_for_packets(packet_receiver, relay, id);
