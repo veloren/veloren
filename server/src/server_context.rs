@@ -113,7 +113,7 @@ impl ServerContext {
 
     pub fn kick_player(&mut self, player_id: Uid) {
         if let Some(player) = self.get_player(player_id) {
-            println!("Player {} kicked", player.alias());
+            println!("Player '{}' disconnected!", player.alias()),
             player.get_entity_id().map(|entity_id| self.del_entity(entity_id));
         }
         self.del_player(player_id);

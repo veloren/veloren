@@ -45,17 +45,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
             }
         }
         &ClientPacket::Disconnect => {
-            match world.del_session(session_id) {
-                Some(session) => {
-                    session.get_player_id().map(|it| {
-                        match world.del_player(it) {
-                            None => (),
-                            Some(player) => println!("Player '{}' disconnected!", player.alias()),
-                        }
-                    });
-                },
-                None => println!("A player attempted to disconnect without being connected"),
-            }
+            world.kick_session(session_id);
         }
         &ClientPacket::Ping => {
             world.send_packet(
