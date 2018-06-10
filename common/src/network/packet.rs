@@ -4,6 +4,11 @@ use Uid;
 use network::Error;
 use network::ClientMode;
 
+pub trait Packet {
+    fn serialize(&self) -> Result<Vec<u8>, Error>;
+    fn from(data: &[u8]) -> Result<Self, Error> where Self: Sized;
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerPacket {
     Connected { entity_uid: Option<Uid>, version: String },
@@ -14,15 +19,15 @@ pub enum ServerPacket {
     EntityUpdate { uid: Uid, pos: Vector3<f32> },
 }
 
-impl ServerPacket {
-    pub fn from(data: &[u8]) -> Result<ServerPacket, Error> {
+impl Packet for ServerPacket {
+    fn from(data: &[u8]) -> Result<ServerPacket, Error> {
         match bincode::deserialize(data) {
             Ok(sp) => Ok(sp),
             Err(_) => Err(Error::CannotDeserialize),
         }
     }
 
-    pub fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn serialize(&self) -> Result<Vec<u8>, Error> {
         match bincode::serialize(&self) {
             Ok(data) => Ok(data),
             Err(_) => Err(Error::CannotSerialize),
@@ -40,15 +45,15 @@ pub enum ClientPacket {
     PlayerEntityUpdate { pos: Vector3<f32> }
 }
 
-impl ClientPacket {
-    pub fn from(data: &[u8]) -> Result<ClientPacket, Error> {
+impl Packet for ClientPacket {
+    fn from(data: &[u8]) -> Result<ClientPacket, Error> {
         match bincode::deserialize(data) {
             Ok(sp) => Ok(sp),
             Err(_) => Err(Error::CannotDeserialize),
         }
     }
 
-    pub fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn serialize(&self) -> Result<Vec<u8>, Error> {
         match bincode::serialize(&self) {
             Ok(data) => Ok(data),
             Err(_) => Err(Error::CannotSerialize),

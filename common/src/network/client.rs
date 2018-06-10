@@ -43,7 +43,7 @@ impl ClientConn {
             sock: self.sock.try_clone().unwrap(),
         }
     }
-
+    /*
     pub fn recv(&self) -> Result<(SocketAddr, ServerPacket), Error> {
         let mut buff = [0; 1024];
         match self.sock.recv_from(&mut buff) {
@@ -57,5 +57,5 @@ impl ClientConn {
             Ok(ref data) => { self.sock.send(data)?; Ok(()) },
             Err(e) => Err(e),
         }
-    }
+    }*/
 }

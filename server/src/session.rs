@@ -43,7 +43,7 @@ impl Session {
     fn listen_for_packets(handler: Arc<Mutex<PacketHandler>>, relay : Relay<World>, id: u32) {
 
         loop {
-            match handler.lock().unwrap().recv_packet_2() {
+            match handler.lock().unwrap().recv_packet() {
                 Ok(data) => {
                     relay.send(PacketReceived {
                         session_id: id,
