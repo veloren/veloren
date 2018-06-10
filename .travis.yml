@@ -8,7 +8,6 @@ env:
   - CRATE="world"
   - CRATE="common"
   - CRATE="region"
-  - CRATE="network"
   - CRATE="server"
   - CRATE="client"
   - CRATE="server-cli"
