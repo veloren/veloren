@@ -103,6 +103,21 @@ impl ServerContext {
             })
             .collect::<Vec<(Uid, ServerPacket)>>()
     }
+
+    pub fn kick_session(&mut self, session_id: u32) {
+        if let Some(session) = self.get_session(session_id) {
+            session.get_player_id().map(|player_id| self.kick_player(player_id));
+        }
+        self.del_session(session_id);
+    }
+
+    pub fn kick_player(&mut self, player_id: Uid) {
+        if let Some(player) = self.get_player(player_id) {
+            println!("Player {} kicked", player.alias());
+            player.get_entity_id().map(|entity_id| self.del_entity(entity_id));
+        }
+        self.del_player(player_id);
+    }
 }
 
 
@@ -113,6 +128,27 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     //println!("TICK!");
     // Send Entity Updates
 
+    remove_disconected_players(relay, ctx);
+
+    send_entities_update(relay, ctx);
+
+
+    relay.schedule(event(update_world), Duration::from_millis(WORLD_UPDATE_TICK));
+}
+
+fn remove_disconected_players(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
+
+    let mut sessions_id_to_kick = ctx.get_sessions()
+        .filter(|(_, session)| session.should_kick() )
+        .map(|(session_id, _)| *session_id)
+        .collect::<Vec<u32>>();
+
+    for session_id in sessions_id_to_kick {
+        ctx.kick_session(session_id);
+    }
+}
+
+fn send_entities_update(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     let updates = ctx.get_entity_updates();
     let sessions = ctx.get_sessions();
 
@@ -126,7 +162,4 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
             }
         }
     }
-
-
-    relay.schedule(event(update_world), Duration::from_millis(WORLD_UPDATE_TICK));
 }

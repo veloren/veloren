@@ -18,8 +18,6 @@ impl Event<ServerContext> for NewSessionEvent {
     }
 }
 
-
-
 pub struct PacketReceived {
     pub session_id: u32,
     pub data: ClientPacket,
@@ -27,5 +25,15 @@ pub struct PacketReceived {
 impl Event<ServerContext> for PacketReceived {
     fn process(&self, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
         handle_packet(relay, ctx, self.session_id, &self.data);
+    }
+}
+
+
+pub struct KickSession {
+    pub session_id: u32,
+}
+impl Event<ServerContext> for KickSession {
+    fn process(&self, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
+        ctx.kick_session(self.session_id);
     }
 }
