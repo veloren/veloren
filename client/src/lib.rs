@@ -24,6 +24,7 @@ use std::net::ToSocketAddrs;
 use nalgebra::Vector3;
 
 use common::network::packet::{ClientPacket, ServerPacket};
+use common::network::packet_handler::PacketHandler;
 use region::Entity;
 use common::{get_version, Uid};
 
@@ -55,7 +56,7 @@ pub enum ClientStatus {
 
 pub struct Client {
     status: RwLock<ClientStatus>,
-    session: Mutex<Session>,
+    packet_handler: PacketHandler,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
@@ -70,11 +71,11 @@ impl Client {
         let stream = TcpStream::connect(remote_addr).unwrap();
         stream.set_nodelay(true).unwrap();
         let mut session = Session::new(stream);
-        session.get_handler().send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
+        session.get_handler().send_packet(&ClientPacket::Connect { mode, alias: alias.to_string(), version: get_version() });
 
         let client = Arc::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
-            session: Mutex::new(session),
+            packet_handler: PacketHandler::new(Some(stream), None),
 
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
@@ -156,16 +157,12 @@ impl Client {
     fn start(client: Arc<Client>) {
         let mut client_ref = client.clone();
         thread::spawn(move || {
-            loop {
-                if *client_ref.status() == ClientStatus::Disconnected {
-                    debug!("Client Session Thread Disconnected");
-                    break;
-                }
+            while *client_ref.status() != ClientStatus::Disconnected{
                 match client_ref.session.lock().unwrap().get_handler().recv_packet() {
                     Ok(data) => client_ref.handle_packet(data),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
-                // we need to sleep here, because otherwise we would almost always hold the lock on session.
+                // We need to sleep here, because otherwise we would almost always hold the lock on session.
                 thread::sleep(time::Duration::from_millis(10));
             }
             // Notify anything else that we've finished networking
@@ -174,11 +171,7 @@ impl Client {
 
         let mut client_ref = client.clone();
         thread::spawn(move || {
-            loop {
-                if *client_ref.status() == ClientStatus::Disconnected {
-                    debug!("Client Tick Thread Disconnected");
-                    break;
-                }
+            while *client_ref.status() != ClientStatus::Disconnected {
                 client_ref.tick(0.2);
                 thread::sleep(time::Duration::from_millis(20));
             }

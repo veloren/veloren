@@ -1,5 +1,4 @@
 use std::net::TcpStream;
-use common::network::packet_handler::PacketHandler;
 
 pub struct Session {
     handler: PacketHandler,
