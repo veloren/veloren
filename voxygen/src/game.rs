@@ -9,6 +9,7 @@ use glutin::ElementState;
 use client::{Client, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
+use glutin::{VirtualKeyCode};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
@@ -75,7 +76,6 @@ impl Game {
 
     pub fn handle_window_events(&self) -> bool {
         self.window.handle_events(|event| {
-            use glutin::{VirtualKeyCode};
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
                 Event::CursorMoved { dx, dy } => {
