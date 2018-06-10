@@ -38,15 +38,13 @@ fn main() {
         remote_addr = "91.67.21.222:38888";
     }
 
-    let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
-    let default_alias = common::NameGenerator::new(name_seed).get().to_string();
-    let mut alias = String::new();
-
+    let default_alias = common::names::generate();
     println!("Alias: [{}]", default_alias);
+    let mut alias = String::new();
     io::stdin().read_line(&mut alias).unwrap();
     let mut alias = alias.trim().to_string();
     if alias.len() == 0 {
-        alias = default_alias;
+        alias = default_alias.to_string();
     }
 
     let mut win = Window::initscr();
