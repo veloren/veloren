@@ -27,7 +27,7 @@ impl Session {
         Session {
             id,
             listen_thread_handle: None,
-            handler: Arc::new(Mutex::new(PacketHandler::new(stream))),
+            handler: Arc::new(Mutex::new(PacketHandler::new(Some(stream), None))),
             player_id: None,
         }
     }

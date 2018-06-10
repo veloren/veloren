@@ -9,7 +9,7 @@ pub struct Session {
 impl Session {
     pub fn new(stream: TcpStream) -> Session {
         Session {
-            handler: PacketHandler::new(stream),
+            handler: PacketHandler::new(Some(stream), None),
         }
     }
 

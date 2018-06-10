@@ -1,8 +1,7 @@
 use std::io;
 
 pub mod packet;
-pub mod client;
-pub mod server;
+pub mod protocol_helper;
 pub mod packet_handler;
 
 #[derive(Debug)]

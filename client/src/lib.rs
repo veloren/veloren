@@ -23,7 +23,6 @@ use std::net::ToSocketAddrs;
 
 use nalgebra::Vector3;
 
-use common::network::client::ClientConn;
 use common::network::packet::{ClientPacket, ServerPacket};
 use region::Entity;
 use common::{get_version, Uid};
