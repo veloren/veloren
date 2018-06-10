@@ -68,6 +68,7 @@ pub struct Client {
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
         let stream = TcpStream::connect(remote_addr).unwrap();
+        stream.set_nodelay(true).unwrap();
         let mut session = Session::new(stream);
         session.get_handler().send_packet(&ClientPacket::Connect{ mode, alias: alias.to_string(), version: get_version() });
 

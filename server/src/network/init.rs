@@ -3,6 +3,8 @@ use std::net::{TcpListener, SocketAddr};
 use std::thread;
 use bifrost::Relay;
 use network::event::NewSessionEvent;
+use std::net::TcpStream;
+use std::io::Error;
 
 pub fn init_network(relay: Relay<World>, world: &mut World, port: u16) -> bool {
 
@@ -21,10 +23,23 @@ fn listen_for_connections(relay: Relay<World>, listener: TcpListener) {
     let mut id = 0;
 
     for stream in listener.incoming() {
-        relay.send(NewSessionEvent {
-            session_id: id,
-            stream: stream.unwrap(),
-        });
-        id += 1;
+        match stream {
+            Ok(stream) => {
+                match handle_new_connection(&relay, stream, id) {
+                    Ok(_) => id += 1,
+                    Err(e) => println!("New connection error : {}", e),
+                }
+            },
+            Err(e) => println!("New connection error : {}", e),
+        }
     }
+}
+
+fn handle_new_connection(relay: &Relay<World>, stream: TcpStream, id: u32) -> Result<(), Error> {
+    stream.set_nodelay(true)?;
+    relay.send(NewSessionEvent {
+        session_id: id,
+        stream,
+    });
+    Ok(())
 }
