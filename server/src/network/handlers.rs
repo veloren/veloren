@@ -5,7 +5,7 @@ use common::network::packet::{ClientPacket, ServerPacket};
 use nalgebra::Vector3;
 use player::Player;
 use region::Entity;
-use world::World;
+use world_context::World;
 
 pub fn handle_packet(relay: &Relay<World>, world: &mut World, session_id: u32, packet: &ClientPacket) {
     match packet {

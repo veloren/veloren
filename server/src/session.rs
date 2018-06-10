@@ -10,7 +10,7 @@ use std::sync::MutexGuard;
 use std::sync::Mutex;
 use common::network::packet_handler::PacketHandler;
 
-use world::World;
+use world_context::World;
 use player::Player;
 
 pub struct Session {

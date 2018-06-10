@@ -3,7 +3,7 @@ members = [
     "server",
 	"client",
 	"common",
-	"worldgen",
+	"world",
 
     "voxygen",
     "server-cli",

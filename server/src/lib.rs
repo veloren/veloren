@@ -2,7 +2,7 @@
 
 extern crate time;
 extern crate common;
-extern crate worldgen;
+extern crate world;
 extern crate region;
 extern crate nalgebra;
 extern crate bifrost;
@@ -15,7 +15,7 @@ extern crate serde;
 extern crate byteorder;
 
 pub mod server;
-mod world;
+mod world_context;
 mod init;
 mod config;
 mod player;
