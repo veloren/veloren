@@ -1,4 +1,4 @@
-use world::World;
+use world_context::World;
 use std::net::{TcpListener, SocketAddr};
 use std::thread;
 use bifrost::Relay;

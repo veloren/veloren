@@ -1,13 +1,13 @@
 #![feature(nll)]
 
-extern crate worldgen;
+extern crate world;
 extern crate sfml;
 
 use sfml::system::Vector2f;
 use sfml::window::{ContextSettings, VideoMode, Event, Style};
 use sfml::graphics::{RectangleShape, Vertex, PrimitiveType, Color, RenderTarget, RenderStates, RenderWindow, Shape, Transformable};
 
-use worldgen::{World, Biome};
+use world::{World, Biome};
 
 const WORLD_SEED: u32 = 1337;
 const WORLD_SIZE: u32 = 256;

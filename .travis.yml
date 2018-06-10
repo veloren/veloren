@@ -5,7 +5,7 @@ before_install:
   - sudo apt-get install -y libsfml-dev libcsfml-dev
   - rustup default nightly
 env:
-  - CRATE="worldgen"
+  - CRATE="world"
   - CRATE="common"
   - CRATE="region"
   - CRATE="server"

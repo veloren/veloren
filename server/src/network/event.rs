@@ -3,7 +3,7 @@ use bifrost::Relay;
 use std::net::TcpStream;
 use session::Session;
 use common::network::packet::ClientPacket;
-use world::World;
+use world_context::World;
 use network::handlers::handle_packet;
 
 pub struct NewSessionEvent {

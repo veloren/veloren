@@ -3,7 +3,7 @@ use bifrost::event::event;
 use init::init_server;
 use std::sync::mpsc;
 use std::thread;
-use world::World;
+use world_context::World;
 
 pub struct Server {
     relay: Relay<World>,

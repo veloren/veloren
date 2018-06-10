@@ -3,7 +3,7 @@ use bifrost::Relay;
 use config::load_config;
 use network::init::init_network;
 use std::time::Duration;
-use world::{update_world, World, WORLD_UPDATE_TICK};
+use world_context::{update_world, World, WORLD_UPDATE_TICK};
 
 
 pub fn init_server(relay: &Relay<World>, ctx: &mut World) {

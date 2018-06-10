@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gm
 
 [dependencies]
 common = { path = "../common" }
-worldgen = { path = "../worldgen" }
+world = { path = "../world" }
 region = { path = "../region" }
 nalgebra = "0.15.1"
 log = "0.4"
