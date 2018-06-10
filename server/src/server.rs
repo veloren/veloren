@@ -1,6 +1,5 @@
-use bifrost::Dispatcher;
+use bifrost::{Dispatcher, Relay};
 use bifrost::event::event;
-use bifrost::Relay;
 use init::init_server;
 use std::sync::mpsc;
 use std::thread;

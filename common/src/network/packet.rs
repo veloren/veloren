@@ -1,8 +1,7 @@
 use bincode;
-use nalgebra::Vector3;
 use Uid;
-use network::Error;
-use network::ClientMode;
+use nalgebra::Vector3;
+use network::{Error, ClientMode};
 
 pub trait Packet {
     fn serialize(&self) -> Result<Vec<u8>, Error>;

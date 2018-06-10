@@ -8,7 +8,7 @@ pub fn init_network(relay: Relay<World>, world: &mut World, port: u16) -> bool {
 
     let listener = TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], port))).unwrap();
 
-    let handle = thread::spawn(move || {
+    let _handle = thread::spawn(move || {
         listen_for_connections(relay, listener);
     });
 

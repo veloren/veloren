@@ -1,8 +1,7 @@
 use bifrost::relay::Relay;
 use common::get_version;
 use common::network::ClientMode;
-use common::network::packet::ClientPacket;
-use common::network::packet::ServerPacket;
+use common::network::packet::{ClientPacket, ServerPacket};
 use nalgebra::Vector3;
 use player::Player;
 use region::Entity;

@@ -1,18 +1,12 @@
 use network::packet_handler::Interface::{Tcp, Udp};
+use network::packet::{Packet};
 use network::Error::NetworkErr;
 use network::Error;
-use std::sync::Mutex;
-use std::net::TcpStream;
-use Uid;
-use std::thread::JoinHandle;
-use std::thread;
-use std::time;
 
-
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::io::{Read, Write, ErrorKind};
-use network::packet::{Packet, ClientPacket, ServerPacket};
+use std::net::TcpStream;
 use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 /*
 This PacketHandler abstracts away the underlying tcp_stream or tcp_streams.alloc
@@ -106,7 +100,7 @@ impl PacketHandler {
                     // we store the size of the package in case of other bytes are not send yet
                     self.read_size = s as usize;
                     self.has_read_size = true;
-                    if (s > 10000) {
+                    if s > 10000 {
                         panic!("something wrong must have happened, we dont have so bug packages yet")
                     }
                 },
@@ -120,7 +114,7 @@ impl PacketHandler {
             let mut data: Vec<u8> = Vec::with_capacity(self.read_size);
             data.resize(self.read_size, 0);
             match self.tcp_stream.as_mut().unwrap().read_exact(data.as_mut()) {
-                Ok(s) => {},
+                Ok(_s) => {},
                 Err(ref e) if e.kind() == ErrorKind::WouldBlock => {return Err(Error::MessageInProgress);}
                 Err(e) => {return Err(NetworkErr(e))},
             }

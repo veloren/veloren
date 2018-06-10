@@ -1,6 +1,6 @@
 use bifrost::relay::Relay;
-use common::network::packet::ClientPacket;
-use common::network::packet::ServerPacket;
+use bifrost::event::event;
+use common::network::packet::{ClientPacket, ServerPacket};
 use common::Uid;
 use config::PartialConfig;
 use player::Player;
@@ -9,7 +9,6 @@ use session::Session;
 use std::collections::hash_map::{Iter, IterMut};
 use std::collections::HashMap;
 use std::thread::JoinHandle;
-use bifrost::event::event;
 use std::time::Duration;
 
 pub struct World {
