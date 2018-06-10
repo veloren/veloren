@@ -3,7 +3,6 @@ use std::io;
 pub mod packet;
 pub mod protocol_helper;
 pub mod packet_handler;
-pub mod stream_helper;
 
 #[derive(Debug)]
 pub enum Error {
