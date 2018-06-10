@@ -1,14 +1,12 @@
 use std::net::{UdpSocket, SocketAddr, ToSocketAddrs};
 use get_if_addrs;
 use network::Error;
-use network::packet::ServerPacket;
-use network::packet::ClientPacket;
 
 pub fn bind_udp<T: ToSocketAddrs>(bind_addr: &T) -> Result<UdpSocket, Error> {
     let sock = UdpSocket::bind(&bind_addr);
     match sock {
         Ok(s) => Ok(s),
-        Err(e) => {
+        Err(_e) => {
             let new_bind = bind_addr.to_socket_addrs()?
                                     .next().unwrap()
                                     .port() + 1;

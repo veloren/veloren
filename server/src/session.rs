@@ -8,9 +8,7 @@ use std::thread;
 use std::time;
 use std::sync::MutexGuard;
 use std::sync::Mutex;
-use common::network::Error;
 use common::network::packet_handler::PacketHandler;
-use common::network::packet::{ClientPacket, ServerPacket};
 
 use world::World;
 use player::Player;

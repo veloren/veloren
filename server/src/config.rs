@@ -1,6 +1,5 @@
 use std::fs::File;
-use std::io::Read;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 use toml;
 
@@ -79,4 +78,3 @@ pub fn load_config() -> Config {
     config.write_to(config_path);
     config
 }
-
