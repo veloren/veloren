@@ -71,7 +71,10 @@ impl RenderWindow {
                                 });
                                 // TODO: Should we handle this result?
                                 if self.cursor_trapped.load(Ordering::Relaxed) {
-                                    let _ = gl_window.set_cursor_position(x as i32 / 2, y as i32 / 2);
+                                    // ratio calculated every event because window might be moved to other monitor
+                                    // kept as float because of fractional hidpi factors
+                                    let center_ratio = 2. * gl_window.hidpi_factor();
+                                    let _ = gl_window.set_cursor_position((x as f32 / center_ratio) as i32, (y as f32 / center_ratio) as i32);
                                     let _ = gl_window.set_cursor_state(CursorState::Hide);
                                 } else {
                                     let _ = gl_window.set_cursor_state(CursorState::Normal);
