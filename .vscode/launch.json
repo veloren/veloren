@@ -148,5 +148,11 @@
             "args": [],
             "cwd": "${workspaceFolder}/worldtest"
         },
+    ],
+    "compounds": [
+        {
+            "name": "Debug voxygen and server-cli",
+            "configurations": ["Debug server-cli", "Debug voxygen"]
+        }
     ]
 }
