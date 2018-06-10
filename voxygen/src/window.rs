@@ -1,7 +1,7 @@
 use gfx_window_glutin;
 use glutin;
 
-use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, WindowEvent, CursorState};
+use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, DeviceEvent, WindowEvent, CursorState};
 use glutin::Api::OpenGl;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
@@ -60,29 +60,27 @@ impl RenderWindow {
         let events_loop = &mut self.events_loop.lock().unwrap();
 
         events_loop.poll_events(|event| {
-            if let glutin::Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::CursorMoved { position, .. } => {
-                        match gl_window.get_inner_size() {
-                            Some((x, y)) => {
-                                // Ratio calculated every event because window might be moved to other monitor
-                                // Kept as float due to fractional hidpi factors
-                                let hidpi_ratio = 0.5 / gl_window.hidpi_factor() as f64;
+            match event {
+                glutin::Event::DeviceEvent { event, .. } => match event {
+                    DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
+                        let hidpi_ratio = 0.5 * gl_window.hidpi_factor() as f64;
+                        func(Event::CursorMoved {
+                            dx: dx * hidpi_ratio,
+                            dy: dy * hidpi_ratio,
+                        });
 
-                                func(Event::CursorMoved {
-                                    dx: position.0 - x as f64 * hidpi_ratio,
-                                    dy: position.1 - y as f64 * hidpi_ratio,
-                                });
-                                if self.cursor_trapped.load(Ordering::Relaxed) {
-                                    let _ = gl_window.set_cursor_position((x as f64 * hidpi_ratio) as i32, (y as f64 * hidpi_ratio) as i32);
-                                    let _ = gl_window.set_cursor_state(CursorState::Hide);
-                                } else {
-                                    let _ = gl_window.set_cursor_state(CursorState::Normal);
-                                }
-                            },
-                            None => {},
+                        if let Some((w, h)) = gl_window.get_inner_size_pixels() {
+                            if self.cursor_trapped.load(Ordering::Relaxed) {
+                                let _ = gl_window.set_cursor_position((w as f64 * hidpi_ratio) as i32, (h as f64 * hidpi_ratio) as i32);
+                                let _ = gl_window.set_cursor_state(CursorState::Hide);
+                            } else {
+                                let _ = gl_window.set_cursor_state(CursorState::Normal);
+                            }
                         }
-                    },
+                    }
+                    _ => {},
+                }
+                glutin::Event::WindowEvent { event, .. } => match event {
                     WindowEvent::Resized { 0: w, 1: h } => {
                         let mut color_view = self.renderer.read().unwrap().color_view().clone();
                         let mut depth_view = self.renderer.read().unwrap().depth_view().clone();
@@ -131,7 +129,8 @@ impl RenderWindow {
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
                     _ => {},
-                }
+                },
+                _ => {},
             }
         });
     }
