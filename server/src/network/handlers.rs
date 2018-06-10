@@ -1,4 +1,4 @@
-use bifrost::relay::Relay;
+use bifrost::Relay;
 use common::get_version;
 use common::network::ClientMode;
 use common::network::packet::{ClientPacket, ServerPacket};
@@ -28,17 +28,19 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                     let player_uid = world.new_uid();
                     println!("Player got playid {}", player_uid);
                     world.add_player(box Player::new(session_id, player_uid, entity_id, &alias));
-                    world.get_session(session_id).unwrap().set_player_id(Some(player_uid));
+                    world.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
 
-                    world.get_session(session_id).map(|it| it.get_handler().send_packet(
+                    world.send_packet(
+                        session_id,
                         &ServerPacket::Connected { entity_uid: entity_id, version: get_version() }
-                    ));
+                    );
                 }
                 false => {
                     println!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
-                    world.get_session(session_id).map(|it| it.get_handler().send_packet(
+                    world.send_packet(
+                        session_id,
                         &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
-                    ));
+                    );
                 }
             }
         }
@@ -56,9 +58,10 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
             }
         }
         &ClientPacket::Ping => {
-            world.get_session(session_id).map(|it| it.get_handler().send_packet(
+            world.send_packet(
+                session_id,
                 &ServerPacket::Ping
-            ));
+            );
         }
         ClientPacket::ChatMsg { msg } => {
             if let Some(ref mut player) = world.get_session(session_id)

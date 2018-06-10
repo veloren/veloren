@@ -1,5 +1,4 @@
-use bifrost::event::event;
-use bifrost::Relay;
+use bifrost::{Relay, event};
 use config::load_config;
 use network::init::init_network;
 use std::time::Duration;

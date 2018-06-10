@@ -1,22 +1,24 @@
-use std::sync::Arc;
-use network::event::PacketReceived;
 use bifrost::Relay;
-use std::net::TcpStream;
-use common::Uid;
-use std::thread::JoinHandle;
-use std::thread;
-use std::time;
-use std::sync::MutexGuard;
-use std::sync::Mutex;
 use common::network::packet_handler::PacketHandler;
-
-use server_context::ServerContext;
+use common::network::stream_helper::PacketSender;
+use common::Uid;
+use network::event::PacketReceived;
 use player::Player;
+use server_context::ServerContext;
+use std::net::TcpStream;
+use std::sync::Arc;
+use std::sync::Mutex;
+use std::sync::MutexGuard;
+use std::thread;
+use std::thread::JoinHandle;
+use std::time;
+use common::network::stream_helper::PacketReceiver;
+use common::network::packet::ServerPacket;
 
 pub struct Session {
     id: u32,
     listen_thread_handle: Option<JoinHandle<()>>,
-    handler: Arc<Mutex<PacketHandler>>,
+    packet_sender: PacketSender,
     player_id: Option<Uid>,
 }
 
@@ -25,38 +27,43 @@ impl Session {
         Session {
             id,
             listen_thread_handle: None,
-            handler: Arc::new(Mutex::new(PacketHandler::new(Some(stream), None))),
+            packet_sender: PacketSender::new(stream),
             player_id: None,
         }
     }
 
     pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {
-        let handler_ref = self.handler.clone();
+        let packet_receiver = PacketReceiver::new(self.packet_sender.clone_stream());
         let id = self.id;
         self.listen_thread_handle = Some(thread::spawn(move || {
-            Session::listen_for_packets(handler_ref, relay, id);
+            Session::listen_for_packets(packet_receiver, relay, id);
         }));
     }
 
-    fn listen_for_packets(handler: Arc<Mutex<PacketHandler>>, relay : Relay<ServerContext>, id: u32) {
-
+    fn listen_for_packets(mut packet_receiver: PacketReceiver, relay: Relay<ServerContext>, id: u32) {
         loop {
-            match handler.lock().unwrap().recv_packet() {
-                Ok(data) => {
+            match packet_receiver.recv_packet() {
+                Ok(packet) => {
                     relay.send(PacketReceived {
                         session_id: id,
-                        data,
+                        data: packet,
                     });
                 },
-                Err(e) => warn!("Receive error: {:?}", e),
+                Err(_) => {
+                    // TODO: Kick player
+                },
             }
-            // we need to sleep here, because otherwise we would almost always hold the lock on session.
-            thread::sleep(time::Duration::from_millis(10));
         }
-
     }
 
-    pub fn get_handler(&self) -> MutexGuard<PacketHandler> { self.handler.lock().unwrap() }
+    pub fn send_packet(&self, packet: &ServerPacket) {
+        match self.packet_sender.send_packet(packet) {
+            Err(_) => {
+                // TODO: Kick Player
+            },
+            _ => (),
+        }
+    }
 
     pub fn get_id(&self) -> u32 { self.id }
 

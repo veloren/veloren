@@ -1,5 +1,4 @@
-use bifrost::relay::Relay;
-use bifrost::event::event;
+use bifrost::{Relay, event};
 use common::network::packet::{ClientPacket, ServerPacket};
 use common::Uid;
 use config::PartialConfig;
@@ -52,7 +51,8 @@ impl ServerContext {
     // Sessions
 
     pub fn add_session(&mut self, session: Box<Session>) { self.sessions.insert(session.get_id(), session); }
-    pub fn get_session(&mut self, id: u32) -> Option<&mut Session> { self.sessions.get_mut(&id).map(|s| s.as_mut()) }
+    pub fn get_session(&self, id: u32) -> Option<&Session> { self.sessions.get(&id).map(|s| s.as_ref()) }
+    pub fn get_session_mut(&mut self, id: u32) -> Option<&mut Session> { self.sessions.get_mut(&id).map(|s| s.as_mut()) }
     pub fn del_session(&mut self, id: u32) -> Option<Box<Session>> { self.sessions.remove(&id) }
     pub fn get_sessions(&self) -> Iter<u32, Box<Session>> { self.sessions.iter() }
     pub fn get_sessions_mut(&mut self) -> IterMut<u32, Box<Session>> { self.sessions.iter_mut() }
@@ -76,9 +76,9 @@ impl ServerContext {
 
     // Network
 
-    pub fn send_packet(&mut self, session_id: u32, packet: &ServerPacket) { self.get_session(session_id).map(|it| it.get_handler().send_packet(packet)); }
-    pub fn broadcast_packet(&mut self, packet: &ServerPacket) {
-        self.sessions.iter_mut().for_each(|(_, ref mut it)| it.get_handler().send_packet(packet).unwrap());
+    pub fn send_packet(&self, session_id: u32, packet: &ServerPacket) { self.get_session(session_id).map(|it| it.send_packet(packet)); }
+    pub fn broadcast_packet(&self, packet: &ServerPacket) {
+        self.sessions.iter().for_each(|(_, ref it)| it.send_packet(packet));
     }
 
 
@@ -91,7 +91,7 @@ impl ServerContext {
         None
     }
 
-    pub fn get_session_from_player(&mut self, player: &Player) -> Option<&mut Session> { self.get_session(player.get_session_id()) }
+    pub fn get_session_from_player(&mut self, player: &Player) -> Option<&mut Session> { self.get_session_mut(player.get_session_id()) }
 
     // Updates
 
@@ -122,7 +122,7 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
 
         for (uid, update) in &updates {
             if *uid != player_entity_id {
-                session.get_handler().send_packet(update);
+                session.send_packet(update);
             }
         }
     }

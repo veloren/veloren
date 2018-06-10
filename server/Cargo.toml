@@ -16,7 +16,7 @@ time = "0.1.40"
 byteorder = "1.2.3"
 
 # Dispatcher system
-bifrost = "0.1.2"
+bifrost = "0.2.0"
 
 # TOML Config files
 toml = "0.4"

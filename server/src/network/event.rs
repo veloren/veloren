@@ -1,5 +1,4 @@
-use bifrost::event::Event;
-use bifrost::Relay;
+use bifrost::{Relay, Event};
 use std::net::TcpStream;
 use session::Session;
 use common::network::packet::ClientPacket;
