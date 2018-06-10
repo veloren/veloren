@@ -63,18 +63,14 @@ impl RenderWindow {
             if let glutin::Event::WindowEvent { event, .. } = event {
                 match event {
                     WindowEvent::CursorMoved { position, .. } => {
-                        match gl_window.get_inner_size() {
-                            Some((x, y)) => {
-                                // Ratio calculated every event because window might be moved to other monitor
-                                // Kept as float due to fractional hidpi factors
-                                let hidpi_ratio = 0.5 / gl_window.hidpi_factor() as f64;
-
+                        match gl_window.get_inner_size_pixels() {
+                            Some((w, h)) => {
                                 func(Event::CursorMoved {
-                                    dx: position.0 - x as f64 * hidpi_ratio,
-                                    dy: position.1 - y as f64 * hidpi_ratio,
+                                    dx: position.0 - w as f64 * 0.5,
+                                    dy: position.1 - h as f64 * 0.5,
                                 });
                                 if self.cursor_trapped.load(Ordering::Relaxed) {
-                                    let _ = gl_window.set_cursor_position((x as f64 * hidpi_ratio) as i32, (y as f64 * hidpi_ratio) as i32);
+                                    let _ = gl_window.set_cursor_position(w as i32 / 2, h as i32 / 2);
                                     let _ = gl_window.set_cursor_state(CursorState::Hide);
                                 } else {
                                     let _ = gl_window.set_cursor_state(CursorState::Normal);
