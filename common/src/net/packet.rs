@@ -22,17 +22,11 @@ pub enum ServerPacket {
 
 impl Packet for ServerPacket {
     fn from(data: &[u8]) -> Result<ServerPacket, Error> {
-        match bincode::deserialize(data) {
-            Ok(sp) => Ok(sp),
-            Err(_) => Err(Error::CannotDeserialize),
-        }
+        bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
     fn serialize(&self) -> Result<Vec<u8>, Error> {
-        match bincode::serialize(&self) {
-            Ok(data) => Ok(data),
-            Err(_) => Err(Error::CannotSerialize),
-        }
+        bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }
 
@@ -48,16 +42,10 @@ pub enum ClientPacket {
 
 impl Packet for ClientPacket {
     fn from(data: &[u8]) -> Result<ClientPacket, Error> {
-        match bincode::deserialize(data) {
-            Ok(sp) => Ok(sp),
-            Err(_) => Err(Error::CannotDeserialize),
-        }
+        bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
     fn serialize(&self) -> Result<Vec<u8>, Error> {
-        match bincode::serialize(&self) {
-            Ok(data) => Ok(data),
-            Err(_) => Err(Error::CannotSerialize),
-        }
+        bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }

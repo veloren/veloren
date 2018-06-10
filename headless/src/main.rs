@@ -67,10 +67,10 @@ fn main() {
 
         if let Some(msg) = win.get() {
             if msg.starts_with("!") {
-                client.send_cmd(&msg[1..]);
+                client.send_cmd(msg[1..].to_string());
             }
             else {
-                client.send_chat_msg(&msg);
+                client.send_chat_msg(msg.clone());
             }
         }
     }

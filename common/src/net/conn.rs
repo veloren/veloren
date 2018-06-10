@@ -5,7 +5,7 @@ use std::net::{TcpStream, ToSocketAddrs};
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use super::Error;
-use super::packet::Packet;
+use super::Packet;
 
 pub struct Conn {
     stream_in: Mutex<TcpStream>,
@@ -15,24 +15,25 @@ pub struct Conn {
 impl Conn {
     pub fn new<A: ToSocketAddrs>(remote: A) -> Result<Conn, Error> {
         let stream = TcpStream::connect(remote)?;
+        stream.set_nodelay(true)?;
         Ok(Conn {
             stream_in: Mutex::new(stream.try_clone()?),
             stream_out: Mutex::new(stream),
         })
     }
 
-    pub fn send<P: Packet>(&mut self, packet: P) -> Result<(), Error> {
+    pub fn send<P: Packet>(&self, packet: P) -> Result<(), Error> {
         let data = packet.serialize()?;
         let mut stream = self.stream_out.lock().unwrap();
         stream.write_u32::<LittleEndian>(data.len() as u32)?;
         Ok(stream.write_all(&data)?)
     }
 
-    pub fn recv<P: Packet>(&mut self, packet: P) -> Result<P, Error> {
-        let data = packet.serialize()?;
-        let mut stream = self.stream_out.lock().unwrap();
-        let mut buff = Vec::with_capacity(stream.read_u32::<LittleEndian>()? as usize);
-        stream.read_exact(buff.as_mut_slice())?;
+    pub fn recv<P: Packet>(&self) -> Result<P, Error> {
+        let mut stream = self.stream_in.lock().unwrap();
+        let packet_size = stream.read_u32::<LittleEndian>()? as usize;
+        let mut buff = vec![0; packet_size];
+        stream.read_exact(&mut buff)?;
         Ok(P::from(&buff)?)
     }
 }

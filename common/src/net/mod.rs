@@ -3,6 +3,10 @@ pub mod conn;
 
 use std::io;
 
+// Reexports
+pub use self::packet::{Packet, ServerPacket, ClientPacket};
+pub use self::conn::Conn;
+
 #[derive(Debug)]
 pub enum Error {
     NetworkErr(io::Error),
