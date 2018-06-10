@@ -11,7 +11,7 @@ use std::collections::HashMap;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-pub struct World {
+pub struct ServerContext {
     // Configuration
     config: Option<PartialConfig>,
 
@@ -25,9 +25,9 @@ pub struct World {
     players: HashMap<Uid, Box<Player>>,
 }
 
-impl World {
-    pub fn new() -> World {
-        World {
+impl ServerContext {
+    pub fn new() -> ServerContext {
+        ServerContext {
             // Config
             config: None,
 
@@ -108,7 +108,7 @@ impl World {
 
 pub const WORLD_UPDATE_TICK: u64 = 50;
 
-pub fn update_world(relay: &Relay<World>, ctx: &mut World) {
+pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     //self.world.tick(dt); // TODO: Fix issue #11 and uncomment
     //println!("TICK!");
     // Send Entity Updates

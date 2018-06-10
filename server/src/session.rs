@@ -10,7 +10,7 @@ use std::sync::MutexGuard;
 use std::sync::Mutex;
 use common::network::packet_handler::PacketHandler;
 
-use world_context::World;
+use server_context::ServerContext;
 use player::Player;
 
 pub struct Session {
@@ -30,7 +30,7 @@ impl Session {
         }
     }
 
-    pub fn start_listen_thread(&mut self, relay: Relay<World>) {
+    pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {
         let handler_ref = self.handler.clone();
         let id = self.id;
         self.listen_thread_handle = Some(thread::spawn(move || {
@@ -38,7 +38,7 @@ impl Session {
         }));
     }
 
-    fn listen_for_packets(handler: Arc<Mutex<PacketHandler>>, relay : Relay<World>, id: u32) {
+    fn listen_for_packets(handler: Arc<Mutex<PacketHandler>>, relay : Relay<ServerContext>, id: u32) {
 
         loop {
             match handler.lock().unwrap().recv_packet() {

@@ -3,10 +3,10 @@ use bifrost::Relay;
 use config::load_config;
 use network::init::init_network;
 use std::time::Duration;
-use world_context::{update_world, World, WORLD_UPDATE_TICK};
+use server_context::{update_world, ServerContext, WORLD_UPDATE_TICK};
 
 
-pub fn init_server(relay: &Relay<World>, ctx: &mut World) {
+pub fn init_server(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     let config = load_config();
 
     init_network(relay.clone(), ctx, config.network.port);

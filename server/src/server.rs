@@ -3,20 +3,20 @@ use bifrost::event::event;
 use init::init_server;
 use std::sync::mpsc;
 use std::thread;
-use world_context::World;
+use server_context::ServerContext;
 
 pub struct Server {
-    relay: Relay<World>,
+    relay: Relay<ServerContext>,
     handle: Option<thread::JoinHandle<()>>,
 }
 
 impl Server {
     pub fn new() -> Server {
-        let (tx, rx) = mpsc::channel::<Relay<World>>();
+        let (tx, rx) = mpsc::channel::<Relay<ServerContext>>();
 
         let handle = thread::spawn(move || {
-            let mut world = World::new();
-            let mut dispatcher = Dispatcher::<World>::new(&mut world);
+            let mut world = ServerContext::new();
+            let mut dispatcher = Dispatcher::<ServerContext>::new(&mut world);
             let relay = dispatcher.create_relay();
             tx.send(relay).unwrap();
 

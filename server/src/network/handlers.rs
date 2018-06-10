@@ -5,9 +5,9 @@ use common::network::packet::{ClientPacket, ServerPacket};
 use nalgebra::Vector3;
 use player::Player;
 use region::Entity;
-use world_context::World;
+use server_context::ServerContext;
 
-pub fn handle_packet(relay: &Relay<World>, world: &mut World, session_id: u32, packet: &ClientPacket) {
+pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, packet: &ClientPacket) {
     match packet {
         &ClientPacket::Connect { mode, ref alias, ref version } => {
             match *version == get_version() {
@@ -87,7 +87,7 @@ pub fn handle_packet(relay: &Relay<World>, world: &mut World, session_id: u32, p
 }
 
 
-fn handle_command(relay: &Relay<World>, world: &mut World, session_id: u32, command_str: String) {
+fn handle_command(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, command_str: String) {
     /*
     // TODO: Implement some sort of command structure with a hashmap of Commands.
     if let Some(p) = self.players.get(&sock_addr) {

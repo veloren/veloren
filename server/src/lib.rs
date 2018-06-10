@@ -15,7 +15,7 @@ extern crate serde;
 extern crate byteorder;
 
 pub mod server;
-mod world_context;
+mod server_context;
 mod init;
 mod config;
 mod player;
