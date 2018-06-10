@@ -63,20 +63,15 @@ impl RenderWindow {
             match event {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
-                        let hidpi_ratio = 0.5 * gl_window.hidpi_factor() as f64;
-                        func(Event::CursorMoved {
-                            dx: dx * hidpi_ratio,
-                            dy: dy * hidpi_ratio,
-                        });
-
                         if let Some((w, h)) = gl_window.get_inner_size_pixels() {
                             if self.cursor_trapped.load(Ordering::Relaxed) {
-                                let _ = gl_window.set_cursor_position((w as f64 * hidpi_ratio) as i32, (h as f64 * hidpi_ratio) as i32);
+                                let _ = gl_window.set_cursor_position(w as i32 / 2, h as i32 / 2);
                                 let _ = gl_window.set_cursor_state(CursorState::Hide);
                             } else {
                                 let _ = gl_window.set_cursor_state(CursorState::Normal);
                             }
                         }
+                        func(Event::CursorMoved { dx, dy });
                     }
                     _ => {},
                 }
