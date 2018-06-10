@@ -20,7 +20,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                         ClientMode::Character => {
                             let uid = world.new_uid();
                             println!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
-                            world.add_entity(uid, box Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                            world.add_entity(uid, box Entity::new(Vector3::new(0.0, 0.0, 60.0)));
                             Some(uid)
                         }
                     };
@@ -70,10 +70,24 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                 .and_then(|it| it.get_player_id())
                 .and_then(|id| world.get_player(id)) {
 
-                if let Some(entity_id) = player.get_entity_id() {
-                    world.get_entity(entity_id).map(|e| *e.pos_mut() = pos);
-                }
+                let player_name = player.alias().to_string();
 
+                if let Some(entity_id) = player.get_entity_id() {
+                    if let Some(e) = world.get_entity(entity_id) {
+                        let diff : Vector3<f32> = e.pos() - pos;
+                        let length = diff.norm();
+                        if length > 5.0 {
+                            info!("player: {} moved to fast, resetting him", player_name);
+                            let p = *e.pos();
+                            world.send_packet(
+                                session_id,
+                                &ServerPacket::EntityUpdate { uid: entity_id, pos: p }
+                            );
+                        } else {
+                            *e.pos_mut() = pos
+                        }
+                    }
+                }
             }
         }
     }
