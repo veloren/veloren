@@ -1,11 +1,14 @@
+use map::Map;
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 //use std::f32::{sin, cos};
 
-use nalgebra::{Vector2, Vector3, Matrix4, Translation3};
+use nalgebra::{Vector2, Vector3, Matrix4, Translation3, convert};
 use glutin::ElementState;
 
+
+use coord::vec3::Vec3;
 use client::{Client, ClientMode};
 use camera::Camera;
 use window::{RenderWindow, Event};
@@ -29,14 +32,14 @@ pub struct Game {
 // "Data" includes mutable state
 struct Data {
     player_model: ModelObject,
-    test_model: ModelObject,
+    map: Map,
 }
 
 impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test((100, 100, 100));
+        let chunk = Chunk::test(Vec3::from((0,0,0)),Vec3::from((100,100,100)));
         let test_mesh = Mesh::from(&chunk);
 
         let mut player_mesh = Mesh::new();
@@ -60,10 +63,23 @@ impl Game {
             &test_mesh,
         );
 
+        let mut map = Map::new();
+        map.chunks().insert(Vector3::new(0,0,0), test_model);
+
+        let chunk = Chunk::test(Vec3::from((100,0,0)),Vec3::from((100,100,100)));
+        let test_mesh = Mesh::from(&chunk);
+
+        let test_model = ModelObject::new(
+            &mut window.renderer_mut(),
+            &test_mesh,
+        );
+
+        map.chunks().insert(Vector3::new(100,0,0), test_model);
+
         Game {
             data: Mutex::new(Data {
                 player_model,
-                test_model,
+                map,
             }),
             running: AtomicBool::new(true),
             client: Client::new(mode, alias.to_string(), remote_addr)
@@ -154,11 +170,17 @@ impl Game {
         let camera_mats = self.camera.lock().unwrap().get_mats();
 
         // Render the test model
-        renderer.update_model_object(
-            &self.data.lock().unwrap().test_model,
-            Constants::new(&Matrix4::<f32>::identity(), &camera_mats.0, &camera_mats.1)
-        );
-        renderer.render_model_object(&self.data.lock().unwrap().test_model);
+
+        for (pos, model) in self.data.lock().unwrap().map.chunks() {
+            renderer.update_model_object(
+                &model,
+                Constants::new(//&Matrix4::<f32>::identity(),
+                    &Translation3::<f32>::from_vector(convert(*pos)).to_homogeneous(),
+                    &camera_mats.0,
+                    &camera_mats.1)
+            );
+            renderer.render_model_object(&model);
+        }
 
         for (uid, entity) in self.client.entities().iter() {
             renderer.update_model_object(

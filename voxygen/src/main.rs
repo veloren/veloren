@@ -14,6 +14,7 @@ extern crate time;
 extern crate client;
 extern crate common;
 extern crate region;
+extern crate coord;
 
 extern crate pretty_env_logger;
 #[macro_use] extern crate log;
@@ -27,6 +28,7 @@ mod pipeline;
 mod camera;
 mod render_volume;
 mod key_state;
+mod map;
 
 use std::io;
 use std::net::SocketAddr;
