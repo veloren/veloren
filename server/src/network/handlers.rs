@@ -14,19 +14,19 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                 true => {
                     let entity_id = match mode {
                         ClientMode::Headless => {
-                            println!("Player '{}' connected in headless mode.", alias);
+                            info!("Player '{}' connected in headless mode.", alias);
                             None
                         },
                         ClientMode::Character => {
                             let uid = world.new_uid();
-                            println!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
+                            info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
                             world.add_entity(uid, box Entity::new(Vector3::new(0.0, 0.0, 60.0)));
                             Some(uid)
                         }
                     };
 
                     let player_uid = world.new_uid();
-                    println!("Player got playid {}", player_uid);
+                    debug!("Player got playid {}", player_uid);
                     world.add_player(box Player::new(session_id, player_uid, entity_id, &alias));
                     world.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
 
@@ -36,7 +36,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                     );
                 }
                 false => {
-                    println!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
+                    info!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
                     world.send_packet(
                         session_id,
                         &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
@@ -59,7 +59,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                 .and_then(|id| world.get_player(id)) {
 
                 let alias = player.alias().to_string();
-                println!("[MSG] {}: {}", alias, &msg);
+                debug!("[MSG] {}: {}", alias, &msg);
                 let packet = ServerPacket::RecvChatMsg { alias, msg: msg.to_string() };
                 world.broadcast_packet(&packet);
             }

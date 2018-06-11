@@ -113,7 +113,7 @@ impl ServerContext {
 
     pub fn kick_player(&mut self, player_id: Uid) {
         if let Some(player) = self.get_player(player_id) {
-            println!("Player '{}' disconnected!", player.alias());
+            info!("Player '{}' disconnected!", player.alias());
             player.get_entity_id().map(|entity_id| self.del_entity(entity_id));
         }
         self.del_player(player_id);
@@ -125,7 +125,7 @@ pub const WORLD_UPDATE_TICK: u64 = 50;
 
 pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     //self.world.tick(dt); // TODO: Fix issue #11 and uncomment
-    //println!("TICK!");
+    //debug!("TICK!");
     // Send Entity Updates
 
     remove_disconected_players(relay, ctx);

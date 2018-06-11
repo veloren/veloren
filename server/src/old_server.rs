@@ -65,7 +65,7 @@ impl Server {
                         self.handle_player_connect(sock_addr, mode, alias);
                     },
                     false => {
-                        println!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
+                        info!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
                         let _ = self.conn.send_to(sock_addr, &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) });
                     },
                 }

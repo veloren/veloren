@@ -15,7 +15,7 @@ pub fn bind_udp<T: ToSocketAddrs>(bind_addr: &T) -> Result<UdpSocket, Error> {
                 ip,
                 new_bind
             );
-            println!("Binding local port failed, trying {}", new_addr);
+            warn!("Binding local port failed, trying {}", new_addr);
             bind_udp(&new_addr)
         },
     }
