@@ -63,13 +63,10 @@ impl RenderWindow {
             match event {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
-                        if let Some((w, h)) = gl_window.get_inner_size_pixels() {
-                            if self.cursor_trapped.load(Ordering::Relaxed) {
-                                let _ = gl_window.set_cursor_position(w as i32 / 2, h as i32 / 2);
-                                let _ = gl_window.set_cursor_state(CursorState::Hide);
-                            } else {
-                                let _ = gl_window.set_cursor_state(CursorState::Normal);
-                            }
+                        if self.cursor_trapped.load(Ordering::Relaxed) {
+                            let _ = gl_window.set_cursor_state(CursorState::Grab);
+                        } else {
+                            let _ = gl_window.set_cursor_state(CursorState::Normal);
                         }
                         func(Event::CursorMoved { dx, dy });
                     }
@@ -119,7 +116,7 @@ impl RenderWindow {
                     WindowEvent::MouseInput { device_id, state, button, modifiers } => {
                         if button == glutin::MouseButton::Left {
                             self.cursor_trapped.store(true, Ordering::Relaxed);
-                            let _ = gl_window.set_cursor_state(CursorState::Hide);
+                            let _ = gl_window.set_cursor_state(CursorState::Grab);
                         }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
