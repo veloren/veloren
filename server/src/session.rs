@@ -60,6 +60,7 @@ impl Session {
                 },
                 _ => {
                     relay.send(KickSession { session_id });
+                    break;
                 },
             }
         }
