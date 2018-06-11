@@ -14,7 +14,7 @@ pub fn init_network(relay: Relay<ServerContext>, world: &mut ServerContext, port
         listen_for_connections(relay, listener);
     });
 
-    println!("Server listening on port {}", port);
+    info!("Server listening on port {}", port);
     true
 }
 
@@ -27,10 +27,10 @@ fn listen_for_connections(relay: Relay<ServerContext>, listener: TcpListener) {
             Ok(stream) => {
                 match handle_new_connection(&relay, stream, id) {
                     Ok(_) => id += 1,
-                    Err(e) => println!("New connection error : {}", e),
+                    Err(e) => error!("New connection error : {}", e),
                 }
             },
-            Err(e) => println!("New connection error : {}", e),
+            Err(e) => error!("New connection error : {}", e),
         }
     }
 }

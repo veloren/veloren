@@ -90,10 +90,18 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	Follow instructions from [here](https://github.com/jeremyletang/rust-sfml/wiki/How-to-use-rust-sfml-on-Windows) to install SFML/CSFML libraries.
 
 
-3. Compile and run a frontend
+3. Compile and run a backend
+
+	Currently, the only officially supported backend is `server-cli`.
+
+	```bash
+	( cd server-cli && RUST_LOG=cargo=warning,server=debug,server-cli=debug,common=debug,region=debug,world=debug cargo run)
+	```
+
+4. Compile and run a frontend
 
 	Currently, the only officially supported frontend is `voxygen`.
 
 	```bash
-	$ cd voxygen && cargo run
+	( cd voxygen && RUST_LOG=cargo=warning,client=debug,voxygen=debug,common=debug,region=debug,world=debug cargo run)
 	```

@@ -14,6 +14,10 @@ extern crate time;
 extern crate client;
 extern crate common;
 extern crate region;
+extern crate coord;
+
+extern crate pretty_env_logger;
+#[macro_use] extern crate log;
 
 mod game;
 mod window;
@@ -24,6 +28,7 @@ mod pipeline;
 mod camera;
 mod render_volume;
 mod key_state;
+mod map;
 
 use std::io;
 use std::net::SocketAddr;
@@ -33,7 +38,9 @@ use game::Game;
 use common::get_version;
 
 fn main() {
-    println!("Starting Voxygen... Version: {}", get_version());
+    pretty_env_logger::init();
+
+    info!("Starting Voxygen... Version: {}", get_version());
 
     let ip = std::net::IpAddr::V4(std::net::Ipv4Addr::new(0,0,0,0));
     let mut port = String::new();
@@ -45,7 +52,7 @@ fn main() {
     }
     let port = u16::from_str_radix(&port.trim(), 10).unwrap();
 
-    println!("Binding local port to {}:{}...", ip.to_string(), port);
+    info!("Binding local port to {}:{}...", ip.to_string(), port);
 
     let mut remote_addr = String::new();
     println!("Remote server address [127.0.0.1:59003]:");

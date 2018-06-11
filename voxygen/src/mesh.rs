@@ -1,5 +1,6 @@
 use region::Voxel;
 use render_volume::{RenderVoxel, RenderVolume};
+use coord::vec3::Vec3;
 
 gfx_defines! {
     vertex Vertex {
@@ -71,14 +72,14 @@ impl Mesh {
     {
         let mut mesh = Mesh::new();
 
-        for x in 0..vol.size().0 {
-            for y in 0..vol.size().1 {
-                for z in 0..vol.size().2 {
-                    let vox = vol.at((x, y, z)).expect("Attempted to mesh voxel outside volume");
+        for x in 0..vol.size().x {
+            for y in 0..vol.size().y {
+                for z in 0..vol.size().z {
+                    let vox = vol.at(Vec3::from((x, y, z))).expect("Attempted to mesh voxel outside volume");
 
                     if vox.is_opaque() {
                         // +x
-                        if !vol.at((x + 1, y, z)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x + 1, y, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [1.0, 0.0, 0.0],
@@ -90,7 +91,7 @@ impl Mesh {
                             ).with_offset([x as f32, y as f32, z as f32])]);
                         }
                         // -x
-                        if !vol.at((x - 1, y, z)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x - 1, y, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [0.0, 1.0, 0.0],
@@ -102,7 +103,7 @@ impl Mesh {
                             ).with_offset([x as f32, y as f32, z as f32])]);
                         }
                         // +y
-                        if !vol.at((x, y + 1, z)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x, y + 1, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [1.0, 1.0, 0.0],
@@ -114,7 +115,7 @@ impl Mesh {
                             ).with_offset([x as f32, y as f32, z as f32])]);
                         }
                         // -y
-                        if !vol.at((x, y - 1, z)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x, y - 1, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [0.0, 0.0, 0.0],
@@ -126,7 +127,7 @@ impl Mesh {
                             ).with_offset([x as f32, y as f32, z as f32])]);
                         }
                         // +z
-                        if !vol.at((x, y, z + 1)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x, y, z + 1))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [0.0, 0.0, 1.0],
@@ -138,7 +139,7 @@ impl Mesh {
                             ).with_offset([x as f32, y as f32, z as f32])]);
                         }
                         // -z
-                        if !vol.at((x, y, z - 1)).unwrap_or(V::VoxelType::empty()).is_opaque() {
+                        if !vol.at(Vec3::from((x, y, z - 1))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [1.0, 0.0, 0.0],

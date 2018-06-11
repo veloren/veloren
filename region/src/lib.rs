@@ -5,6 +5,7 @@ extern crate enum_map;
 extern crate rand;
 extern crate noise;
 extern crate nalgebra;
+extern crate coord;
 
 mod block;
 mod chunk;
@@ -14,6 +15,8 @@ mod entity;
 pub use block::{Block, BlockMaterial};
 pub use chunk::Chunk;
 pub use entity::Entity;
+
+use coord::vec3::Vec3;
 
 pub trait Voxel: Copy + Clone {
     type Material: Copy + Clone;
@@ -27,8 +30,9 @@ pub trait Volume {
     type VoxelType: Voxel + Copy + Clone;
 
     fn empty() -> Self;
-    fn empty_with_size(size: (i32, i32, i32)) -> Self;
+    fn empty_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>) -> Self;
 
-    fn size(&self) -> (i32, i32, i32);
-    fn at(&self, pos: (i32, i32, i32)) -> Option<Self::VoxelType>;
+    fn size(&self) -> Vec3<i64>;
+    fn offset(&self) -> Vec3<i64>;
+    fn at(&self, pos: Vec3<i64>) -> Option<Self::VoxelType>;
 }

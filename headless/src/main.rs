@@ -4,6 +4,8 @@ extern crate client;
 extern crate get_if_addrs;
 extern crate syrup;
 extern crate common;
+extern crate pretty_env_logger;
+#[macro_use] extern crate log;
 
 use std::io;
 use std::sync::mpsc;
@@ -14,7 +16,7 @@ use syrup::Window;
 use client::{Client, ClientMode};
 
 fn main() {
-    println!("Starting headless client...");
+    info!("Starting headless client...");
 
     let ip = std::net::IpAddr::V4(std::net::Ipv4Addr::new(0,0,0,0));
     let mut port = String::new();
@@ -26,7 +28,7 @@ fn main() {
     }
     let port = u16::from_str_radix(&port.trim(), 10).unwrap();
 
-    println!("Binding local port to {}:{}...", ip.to_string(), port);
+    info!("Binding local port to {}:{}...", ip.to_string(), port);
 
     let mut remote_addr = String::new();
     println!("Remote server address [127.0.0.1:59003]:");

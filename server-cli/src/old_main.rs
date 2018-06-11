@@ -18,7 +18,7 @@ fn main() {
     info!("Started server-cli... Version: {}", get_version());
 
     let ip = std::net::IpAddr::V4(std::net::Ipv4Addr::new(0,0,0,0));
-    println!("Hosting on {}:{}...", ip.to_string(), PORT);
+    info!("Hosting on {}:{}...", ip.to_string(), PORT);
 
     let mut server = ServerHandle::new(SocketAddr::new(ip, PORT), 1227, 1024)
         .expect("Could not create server");

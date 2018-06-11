@@ -14,7 +14,7 @@ impl Event<ServerContext> for NewSessionEvent {
         let mut session = box Session::new(self.session_id, self.stream.try_clone().unwrap());
         session.start_listen_thread(relay.clone());
         ctx.add_session(session);
-        println!("New session ! id: {}", self.session_id);
+        info!("New session ! id: {}", self.session_id);
     }
 }
 
