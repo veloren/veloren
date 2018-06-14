@@ -98,7 +98,7 @@ impl Game {
                     let mut data = self.data.lock().unwrap();
 
                     if self.window.cursor_trapped().load(Ordering::Relaxed) {
-                        debug!("dx: {}, dy: {}", dx, dy);
+                        //debug!("dx: {}, dy: {}", dx, dy);
                         self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
                     }
                 },

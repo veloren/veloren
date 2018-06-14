@@ -1,11 +1,14 @@
 pub mod packet;
 pub mod conn;
+pub mod message;
+pub mod manager;
 
 use std::io;
 
 // Reexports
-pub use self::packet::{Packet, ServerPacket, ClientPacket};
+pub use self::message::{Message, ServerMessage, ClientMessage};
 pub use self::conn::Conn;
+pub use self::manager::Manager;
 
 #[derive(Debug)]
 pub enum Error {
