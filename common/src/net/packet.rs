@@ -1,8 +1,8 @@
 use net::message::Message;
 
 pub enum Frame {
-    Header { uid: u64, length: u64 },
-    Data { uid: u64, frame_no: u64, data: Vec<u8> },
+    Header { id: u64, length: u64 },
+    Data { id: u64, frame_no: u64, data: Vec<u8> },
 }
 
 pub enum FrameError {
@@ -30,11 +30,11 @@ pub struct IncommingPacket {
 }
 
 impl PacketData {
-    pub fn new<M: Message>(message: M) -> PacketData {
+    pub fn new<M: Message>(message: M, id: u64) -> PacketData {
         println!("{:?}", message.serialize().unwrap());
         PacketData {
             bytes: message.serialize().unwrap(),
-            id: 0,
+            id,
         }
     }
 
@@ -47,9 +47,9 @@ impl PacketData {
 }
 
 impl OutgoingPacket {
-    pub fn new<M: Message>(message: M) -> OutgoingPacket {
+    pub fn new<M: Message>(message: M, id: u64) -> OutgoingPacket {
         OutgoingPacket {
-            data: PacketData::new(message),
+            data: PacketData::new(message, id),
             pos: 0,
             headersend: false,
             dataframesno: 0,
@@ -62,7 +62,7 @@ impl OutgoingPacket {
         if !self.headersend {
             self.headersend = true;
             Ok(Frame::Header{
-                uid: self.data.id,
+                id: self.data.id,
                 length: self.data.bytes.len() as u64,
             })
         } else {
@@ -76,10 +76,13 @@ impl OutgoingPacket {
             } else {
                 to_send = size;
             }
+            println!("to_send {}" , to_send);
+            let end_pos = self.pos + to_send;
+            println!("daaaaa {:?}", self.data.bytes[self.pos as usize..end_pos as usize].to_vec());
             let frame = Frame::Data{
-                uid: self.data.id,
+                id: self.data.id,
                 frame_no: self.dataframesno,
-                data: self.data.bytes[to_send as usize..].to_vec(),
+                data: self.data.bytes[self.pos as usize..end_pos as usize].to_vec(),
             };
             self.pos += to_send as u64;
             self.dataframesno += 1;
@@ -91,9 +94,9 @@ impl OutgoingPacket {
 impl IncommingPacket {
     pub fn new(header: Frame) -> IncommingPacket {
         match header {
-            Frame::Header{uid, length} => {
+            Frame::Header{id, length} => {
                 IncommingPacket {
-                    data: PacketData::new_size(uid, length),
+                    data: PacketData::new_size(length, id),
                     pos: 0,
                     dataframesno: 0,
                 }
@@ -111,9 +114,9 @@ impl IncommingPacket {
             Frame::Header{ .. } => {
                 panic!("not implemented");
             },
-            Frame::Data{ uid, frame_no, data } => {
-                if uid != self.data.id {
-                    panic!("uid missmatch {} <> {}", uid, self.data.id);
+            Frame::Data{ id, frame_no, data } => {
+                if id != self.data.id {
+                    panic!("id missmatch {} <> {}", id, self.data.id);
                 }
                 if frame_no != self.dataframesno {
                     panic!("bufferin for frames not yet implemented");
@@ -125,8 +128,13 @@ impl IncommingPacket {
                 }
                 self.pos += data.len() as u64;
                 self.dataframesno += 1;
+                println!("pospos {} {} {}", self.pos , data.len(), self.data.bytes.len() as u64);
                 return self.pos == self.data.bytes.len() as u64;
             }
         }
+    }
+
+    pub fn data(&self) -> &Vec<u8> {
+        return &self.data.bytes;
     }
 }

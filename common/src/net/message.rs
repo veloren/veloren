@@ -2,7 +2,7 @@ use bincode;
 use nalgebra::Vector3;
 
 use Uid;
-use network::ClientMode;
+use net::ClientMode;
 use super::Error;
 
 pub trait Message {

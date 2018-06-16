@@ -12,7 +12,7 @@ mod session;
 
 // Reexports
 use std::sync::MutexGuard;
-pub use common::network::ClientMode as ClientMode;
+pub use common::net::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
 use std::thread;
@@ -27,7 +27,7 @@ use region::Entity;
 use common::{get_version, Uid};
 
 use common::net;
-use common::net::{Manager, ServerMessage, ClientMessage};
+use common::net::{Connection, ServerMessage, ClientMessage};
 
 use player::Player;
 use callbacks::Callbacks;
@@ -56,7 +56,7 @@ pub enum ClientStatus {
 
 pub struct Client {
     status: RwLock<ClientStatus>,
-    mngr: Arc<Manager>,
+    conn: Arc<Connection<ServerMessage>>,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
@@ -68,17 +68,16 @@ pub struct Client {
 
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
-        let mut mngr = Manager::new::<U, ClientMessage>(remote_addr, Box::new(|m| {
+        let mut conn = Connection::new::<U>(remote_addr, Box::new(|m| {
             //
-        }), Box::new(|m| {
-            //
+            //self.handle_packet(m);
         }))?;
-        mngr.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
-        Manager::start::<ServerMessage>(&mngr);
+        conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
+        Connection::start(&conn);
 
         let client = Arc::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
-            mngr,
+            conn,
 
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
@@ -87,6 +86,11 @@ impl Client {
 
             finished: Barrier::new(2),
         });
+
+        /*
+        *client.conn.callback() = Box::new(|m: Box<ServerMessage>| {
+            client.handle_packet(*m);
+        });*/
 
         Self::start(client.clone());
 
@@ -102,7 +106,7 @@ impl Client {
             if let Some(e) = self.entities_mut().get_mut(&uid) {
                 *e.pos_mut() += self.player().dir_vec * dt;
 
-                self.mngr.send(ClientMessage::PlayerEntityUpdate {
+                self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: *e.pos()
                 });
             }
@@ -175,17 +179,17 @@ impl Client {
     // Public interface
 
     pub fn shutdown(&self) {
-        self.mngr.send(ClientMessage::Disconnect);
+        self.conn.send(ClientMessage::Disconnect);
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
     }
 
     pub fn send_chat_msg(&self, msg: String) -> Result<(), Error> {
-        Ok(self.mngr.send(ClientMessage::ChatMsg { msg }))
+        Ok(self.conn.send(ClientMessage::ChatMsg { msg }))
     }
 
     pub fn send_cmd(&self, cmd: String) -> Result<(), Error> {
-        Ok(self.mngr.send(ClientMessage::SendCmd { cmd }))
+        Ok(self.conn.send(ClientMessage::SendCmd { cmd }))
     }
 
     pub fn status<'a>(&'a self) -> RwLockReadGuard<'a, ClientStatus> { self.status.read().unwrap() }

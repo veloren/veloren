@@ -1,5 +1,5 @@
 use bifrost::{Relay, event};
-use common::network::packet::{ClientPacket, ServerPacket};
+use common::net::message::{ClientMessage, ServerMessage};
 use common::Uid;
 use config::PartialConfig;
 use player::Player;
@@ -76,9 +76,9 @@ impl ServerContext {
 
     // Network
 
-    pub fn send_packet(&self, session_id: u32, packet: &ServerPacket) { self.get_session(session_id).map(|it| it.send_packet(packet)); }
-    pub fn broadcast_packet(&self, packet: &ServerPacket) {
-        self.sessions.iter().for_each(|(_, ref it)| it.send_packet(packet));
+    pub fn send_message(&self, session_id: u32, message: ServerMessage) { self.get_session(session_id).map(|it| it.send_message(message)); }
+    pub fn broadcast_packet(&self, message: ServerMessage) {
+        self.sessions.iter().for_each(|(_, ref it)| it.send_message(message.clone()));
     }
 
 
@@ -95,13 +95,13 @@ impl ServerContext {
 
     // Updates
 
-    pub fn get_entity_updates(&self) -> Vec<(Uid, ServerPacket)> {
+    pub fn get_entity_updates(&self) -> Vec<(Uid, ServerMessage)> {
 
         self.get_entities()
             .map(|(entity_id, entity)| {
-                (*entity_id, ServerPacket::EntityUpdate { uid: *entity_id, pos: *entity.pos()})
+                (*entity_id, ServerMessage::EntityUpdate { uid: *entity_id, pos: *entity.pos()})
             })
-            .collect::<Vec<(Uid, ServerPacket)>>()
+            .collect::<Vec<(Uid, ServerMessage)>>()
     }
 
     pub fn kick_session(&mut self, session_id: u32) {
@@ -158,7 +158,7 @@ fn send_entities_update(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
 
         for (uid, update) in &updates {
             if *uid != player_entity_id {
-                session.send_packet(update);
+                session.send_message(update.clone());
             }
         }
     }

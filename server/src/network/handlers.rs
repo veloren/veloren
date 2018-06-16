@@ -1,15 +1,15 @@
 use bifrost::Relay;
 use common::get_version;
-use common::network::ClientMode;
-use common::network::packet::{ClientPacket, ServerPacket};
+use common::net::ClientMode;
+use common::net::message::{ClientMessage, ServerMessage};
 use nalgebra::Vector3;
 use player::Player;
 use region::Entity;
 use server_context::ServerContext;
 
-pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, packet: &ClientPacket) {
-    match packet {
-        &ClientPacket::Connect { mode, ref alias, ref version } => {
+pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, message: &ClientMessage) {
+    match message {
+        &ClientMessage::Connect { mode, ref alias, ref version } => {
             match *version == get_version() {
                 true => {
                     let entity_id = match mode {
@@ -30,42 +30,42 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                     world.add_player(box Player::new(session_id, player_uid, entity_id, &alias));
                     world.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
 
-                    world.send_packet(
+                    world.send_message(
                         session_id,
-                        &ServerPacket::Connected { entity_uid: entity_id, version: get_version() }
+                        ServerMessage::Connected { entity_uid: entity_id, version: get_version() }
                     );
                 }
                 false => {
                     info!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
-                    world.send_packet(
+                    world.send_message(
                         session_id,
-                        &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
+                        ServerMessage::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
                     );
                 }
             }
         }
-        &ClientPacket::Disconnect => {
+        &ClientMessage::Disconnect => {
             world.kick_session(session_id);
         }
-        &ClientPacket::Ping => {
-            world.send_packet(
+        &ClientMessage::Ping => {
+            world.send_message(
                 session_id,
-                &ServerPacket::Ping
+                ServerMessage::Ping
             );
         }
-        ClientPacket::ChatMsg { msg } => {
+        ClientMessage::ChatMsg { msg } => {
             if let Some(ref mut player) = world.get_session(session_id)
                 .and_then(|it| it.get_player_id())
                 .and_then(|id| world.get_player(id)) {
 
                 let alias = player.alias().to_string();
                 debug!("[MSG] {}: {}", alias, &msg);
-                let packet = ServerPacket::RecvChatMsg { alias, msg: msg.to_string() };
-                world.broadcast_packet(&packet);
+                let message = ServerMessage::RecvChatMsg { alias, msg: msg.to_string() };
+                world.broadcast_packet(message);
             }
         }
-        &ClientPacket::SendCmd { ref cmd } => handle_command(relay, world, session_id, cmd.to_string()),
-        &ClientPacket::PlayerEntityUpdate { pos } => {
+        &ClientMessage::SendCmd { ref cmd } => handle_command(relay, world, session_id, cmd.to_string()),
+        &ClientMessage::PlayerEntityUpdate { pos } => {
             if let Some(ref player) = world.get_session(session_id)
                 .and_then(|it| it.get_player_id())
                 .and_then(|id| world.get_player(id)) {
@@ -79,9 +79,9 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                         if length > 5.0 {
                             info!("player: {} moved to fast, resetting him", player_name);
                             let p = *e.pos();
-                            world.send_packet(
+                            world.send_message(
                                 session_id,
-                                &ServerPacket::EntityUpdate { uid: entity_id, pos: p }
+                                ServerMessage::EntityUpdate { uid: entity_id, pos: p }
                             );
                         } else {
                             *e.pos_mut() = pos
@@ -128,7 +128,7 @@ fn handle_command(relay: &Relay<ServerContext>, world: &mut ServerContext, sessi
                 },
                 _ => response = String::from("Command not recognised..."),
             };
-            let packet = ServerPacket::RecvChatMsg{alias: String::from("Server"), msg: response};
+            let packet = ServerMessa::RecvChatMsg{alias: String::from("Server"), msg: response};
             let _ = self.conn.send_to(sock_addr, &packet);
         }
     }

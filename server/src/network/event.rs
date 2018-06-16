@@ -1,7 +1,7 @@
 use bifrost::{Relay, Event};
 use std::net::TcpStream;
 use session::Session;
-use common::network::packet::ClientPacket;
+use common::net::message::ClientMessage;
 use server_context::ServerContext;
 use network::handlers::handle_packet;
 
@@ -11,8 +11,7 @@ pub struct NewSessionEvent {
 }
 impl Event<ServerContext> for NewSessionEvent {
     fn process(&self, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
-        let mut session = box Session::new(self.session_id, self.stream.try_clone().unwrap());
-        session.start_listen_thread(relay.clone());
+        let mut session = box Session::new(self.session_id, self.stream.try_clone().unwrap(), relay);
         ctx.add_session(session);
         info!("New session ! id: {}", self.session_id);
     }
@@ -20,7 +19,7 @@ impl Event<ServerContext> for NewSessionEvent {
 
 pub struct PacketReceived {
     pub session_id: u32,
-    pub data: ClientPacket,
+    pub data: ClientMessage,
 }
 impl Event<ServerContext> for PacketReceived {
     fn process(&self, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {

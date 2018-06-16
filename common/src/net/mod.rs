@@ -1,14 +1,13 @@
-pub mod packet;
-pub mod conn;
+mod packet;
+pub mod connection;
 pub mod message;
-pub mod manager;
+mod tcp;
 
 use std::io;
 
 // Reexports
 pub use self::message::{Message, ServerMessage, ClientMessage};
-pub use self::conn::Conn;
-pub use self::manager::Manager;
+pub use self::connection::Connection;
 
 #[derive(Debug)]
 pub enum Error {
@@ -21,4 +20,10 @@ impl From<io::Error> for Error {
     fn from(e: io::Error) -> Error {
         Error::NetworkErr(e)
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum ClientMode {
+    Headless,
+    Character,
 }
