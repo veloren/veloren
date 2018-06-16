@@ -13,10 +13,15 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use super::Error;
 
+pub trait Callback<RM: Message> {
+    fn recv(&self, Box<RM>);
+}
+
 pub struct Connection<RM: Message> {
     // sorted by prio and then cronically
     tcp: Tcp,
     callback: Mutex<Box<Fn(Box<RM>)+ Send>>,
+    callbackobj: Mutex<Option<Box<Arc<Callback<RM> + Send + Sync>>>>,
     packet_in: Mutex<HashMap<u64, IncommingPacket>>,
     packet_out: Mutex<Vec<VecDeque<OutgoingPacket>>>,
     packet_out_count: RwLock<u64>,
@@ -26,7 +31,7 @@ pub struct Connection<RM: Message> {
 }
 
 impl<'a, RM: Message + 'static> Connection<RM> {
-    pub fn new<A: ToSocketAddrs>(remote: A, callback: Box<Fn(Box<RM>) + Send>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new<A: ToSocketAddrs>(remote: A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>) -> Result<Arc<Connection<RM>>, Error> {
         let mut packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for i in 0..255 {
@@ -36,6 +41,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         let m = Connection {
             tcp: Tcp::new(remote)?,
             callback:  Mutex::new(callback),
+            callbackobj: Mutex::new(cb),
             packet_in: Mutex::new(packet_in),
             packet_out_count: RwLock::new(0),
             packet_out: Mutex::new(packet_out),
@@ -47,7 +53,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         Ok(Arc::new(m))
     }
 
-    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<RM>) + Send>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>) -> Result<Arc<Connection<RM>>, Error> {
         let mut packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for i in 0..255 {
@@ -57,6 +63,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         let m = Connection {
             tcp: Tcp::new_stream(stream)?,
             callback:  Mutex::new(callback),
+            callbackobj: Mutex::new(cb),
             packet_in: Mutex::new(packet_in),
             packet_out_count: RwLock::new(0),
             packet_out: Mutex::new(packet_out),
@@ -69,41 +76,16 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         Ok(m)
     }
 
-    /*
-    pub fn start(&'static self) {
-        let m = self.clone();
-        let mut rt = self.recv_thread.lock().unwrap();
-        *self.recv_thread.lock().unwrap() = Some(thread::spawn(move || {
-            m.recv_worker();
-        }));
-
-        let m = self.clone();
-        let mut st = self.send_thread.lock().unwrap();
-        *st = Some(thread::spawn(move || {
-            m.send_worker();
-        }));
-    }*/
-/*
-    pub fn start<'b>(manager: &'b Arc<Connection<RM>>) {
-        let m = manager.clone();
-        let mut rt = manager.recv_thread.lock().unwrap();
-        *rt = Some(thread::spawn(move || {
-            m.recv_worker();
-        }));
-
-        let m = manager.clone();
-        let mut st = manager.send_thread.lock().unwrap();
-        *st = Some(thread::spawn(move || {
-            m.send_worker();
-        }));
-    }*/
-
-    pub fn set_callback(&mut self, callback: Box<Fn(Box<RM>) + Send>) {
+    pub fn set_callback(&mut self, callback: Box<Fn(Box<RM>) + Send + Sync>) {
         self.callback = Mutex::new(callback);
     }
 
     pub fn callback(&self) -> MutexGuard<Box<Fn(Box<RM>) + Send>> {
         self.callback.lock().unwrap()
+    }
+
+    pub fn callbackobj(&self) -> MutexGuard<Option<Box<Arc<Callback<RM> + Send + Sync>>>> {
+        self.callbackobj.lock().unwrap()
     }
 
     pub fn start<'b>(manager: &'b Arc<Connection<RM>>) {
@@ -183,7 +165,20 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                                 let msg = Box::new(msg.unwrap());
                                 //trigger callback
                                 let f = self.callback.lock().unwrap();
-                                f(msg);
+                                //f(msg);
+                                //let co = self.callbackobj.lock().unwrap();
+
+                                //self.callbackobj.lock().unwrap().as_mut().unwrap().recv(msg);
+                                let mut co = self.callbackobj.lock();
+                                match co.unwrap().as_mut() {
+                                    Some(cb) => {
+                                        //cb.recv(msg);
+                                        cb.recv(msg);
+                                    },
+                                    None => {
+                                        f(msg);
+                                    },
+                                }
                             }
                         }
                     }

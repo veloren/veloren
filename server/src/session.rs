@@ -41,15 +41,17 @@ impl Session {
                 session_id: id,
                 data: *m,
             });
-        })).unwrap();
+        }), None).unwrap();
         Connection::start(&conn);
-        Session {
+        let session = Session {
             id,
             listen_thread_handle: None,
             conn,
             player_id: None,
             state: Cell::new(SessionState::Connected),
-        }
+        };
+
+        return session;
     }
 /*
     pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {

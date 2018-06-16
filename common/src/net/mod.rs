@@ -8,6 +8,7 @@ use std::io;
 // Reexports
 pub use self::message::{Message, ServerMessage, ClientMessage};
 pub use self::connection::Connection;
+pub use self::connection::Callback;
 
 #[derive(Debug)]
 pub enum Error {

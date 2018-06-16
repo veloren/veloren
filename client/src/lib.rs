@@ -27,7 +27,7 @@ use region::Entity;
 use common::{get_version, Uid};
 
 use common::net;
-use common::net::{Connection, ServerMessage, ClientMessage};
+use common::net::{Connection, ServerMessage, ClientMessage, Callback};
 
 use player::Player;
 use callbacks::Callbacks;
@@ -66,12 +66,18 @@ pub struct Client {
     finished: Barrier, // We use this to synchronize client shutdown
 }
 
+impl Callback<ServerMessage> for Client {
+    fn recv(&self, msg: Box<ServerMessage>) {
+        self.handle_packet(*msg);
+    }
+}
+
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
         let mut conn = Connection::new::<U>(remote_addr, Box::new(|m| {
             //
             //self.handle_packet(m);
-        }))?;
+        }), None)?;
         conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
         Connection::start(&conn);
 
@@ -86,6 +92,8 @@ impl Client {
 
             finished: Barrier::new(2),
         });
+
+        *client.conn.callbackobj() = Some(Box::new(client.clone()));
 
         /*
         *client.conn.callback() = Box::new(|m: Box<ServerMessage>| {
@@ -164,7 +172,7 @@ impl Client {
         });
         */
 
-        /*
+
         let client_ref = client.clone();
         thread::spawn(move || {
             while *client_ref.status() != ClientStatus::Disconnected {
@@ -173,7 +181,7 @@ impl Client {
             }
             // Notify anything else that we've finished ticking
             client_ref.finished.wait();
-        });*/
+        });
     }
 
     // Public interface
