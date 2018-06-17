@@ -41,7 +41,6 @@ impl Tcp {
             }
             Frame::Data{id, frame_no, data} => {
                 stream.write_u8(2)?; // 2 is const for Data
-                println!("data {} {} {}", id, frame_no, data.len());
                 stream.write_u64::<LittleEndian>(id)?;
                 stream.write_u64::<LittleEndian>(frame_no)?;
                 stream.write_u64::<LittleEndian>(data.len() as u64)?;
@@ -59,7 +58,6 @@ impl Tcp {
             1 => {
                 let id = stream.read_u64::<LittleEndian>()? as u64;
                 let length = stream.read_u64::<LittleEndian>()? as u64;
-                println!("hhhh {} {}", id, length);
                 Ok(Frame::Header{
                     id,
                     length,
@@ -69,7 +67,6 @@ impl Tcp {
                 let id = stream.read_u64::<LittleEndian>()? as u64;
                 let frame_no = stream.read_u64::<LittleEndian>()? as u64;
                 let packet_size = stream.read_u64::<LittleEndian>()? as u64;
-                println!("ddd {} {} {}", id, frame_no, packet_size);
                 let mut data = vec![0; packet_size as usize];
                 stream.read_exact(&mut data)?;
                 Ok(Frame::Data{
@@ -83,10 +80,5 @@ impl Tcp {
                 Err(Error::CannotDeserialize)
             }
         }
-        /*
-        let packet_size = stream.read_u32::<LittleEndian>()? as usize;
-        let mut buff = vec![0; packet_size];
-        stream.read_exact(&mut buff)?;
-        Ok(P::from(&buff)?)*/
     }
 }

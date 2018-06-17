@@ -31,7 +31,6 @@ pub struct IncommingPacket {
 
 impl PacketData {
     pub fn new<M: Message>(message: M, id: u64) -> PacketData {
-        println!("{:?}", message.serialize().unwrap());
         PacketData {
             bytes: message.serialize().unwrap(),
             id,
@@ -76,9 +75,9 @@ impl OutgoingPacket {
             } else {
                 to_send = size;
             }
-            println!("to_send {}" , to_send);
+            //debug!("to_send {}" , to_send);
             let end_pos = self.pos + to_send;
-            println!("daaaaa {:?}", self.data.bytes[self.pos as usize..end_pos as usize].to_vec());
+            //debug!("daaaaa {:?}", self.data.bytes[self.pos as usize..end_pos as usize].to_vec());
             let frame = Frame::Data{
                 id: self.data.id,
                 frame_no: self.dataframesno,
@@ -128,7 +127,7 @@ impl IncommingPacket {
                 }
                 self.pos += data.len() as u64;
                 self.dataframesno += 1;
-                println!("pospos {} {} {}", self.pos , data.len(), self.data.bytes.len() as u64);
+                //println!("pospos {} {} {}", self.pos , data.len(), self.data.bytes.len() as u64);
                 return self.pos == self.data.bytes.len() as u64;
             }
         }

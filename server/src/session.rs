@@ -34,9 +34,7 @@ impl Session {
     pub fn new(id: u32, stream: TcpStream, relay: &Relay<ServerContext>) -> Session {
         let relay = relay.clone();
         let conn = Connection::new_stream(stream, Box::new(move |m| {
-            //
-            println!("yayayay2");
-
+            //callback message
             relay.send(PacketReceived {
                 session_id: id,
                 data: *m,

@@ -1,15 +1,13 @@
 use std::thread::JoinHandle;
 use super::tcp::Tcp;
-use super::message::{Message, ServerMessage, ClientMessage};
+use super::message::{Message};
 use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError, PacketData};
 use std::sync::{Arc, Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use std::io::{Write, Read};
 use std::net::{TcpStream, ToSocketAddrs};
 use std::thread;
 use std::time;
 use std::collections::vec_deque::VecDeque;
 use std::collections::HashMap;
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
 use super::Error;
 
@@ -108,14 +106,17 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         *id += 1;
         let mut p = self.packet_out_count.write().unwrap();
         *p += 1;
+        let mut rt = self.send_thread.lock();
+        if let Some(cb) = rt.unwrap().as_mut() {
+            //trigger sending
+            cb.thread().unpark();
+        }
     }
 
     fn send_worker(&self) {
         loop {
-            //println!("send");
-            // TODO: notice sender faster then activly pool for new packages
             if *self.packet_out_count.read().unwrap() == 0 {
-                thread::sleep(time::Duration::from_millis(1));
+                thread::park();
                 continue;
             }
             // find next package
@@ -123,15 +124,16 @@ impl<'a, RM: Message + 'static> Connection<RM> {
             for i in 0..255 {
                 if packets[i].len() != 0 {
                     // build part
-                    match packets[i][0].generateFrame(60000) {
+                    const SPLIT_SIZE: u64 = 2000;
+                    match packets[i][0].generateFrame(SPLIT_SIZE) {
                         Ok(frame) => {
                             // send it
-                            println!("yay");
                             self.tcp.send(frame);
                         },
                         Err(FrameError::SendDone) => {
-                            println!("nay");
                             packets[i].pop_front();
+                            let mut p = self.packet_out_count.write().unwrap();
+                            *p -= 1;
                         },
                     }
 
@@ -143,7 +145,6 @@ impl<'a, RM: Message + 'static> Connection<RM> {
 
     fn recv_worker(&self) {
         loop {
-            println!("recv");
             let frame = self.tcp.recv();
             match frame {
                 Ok(frame) => {
@@ -156,23 +157,18 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                         Frame::Data{id, ..} => {
                             let mut packets = self.packet_in.lock().unwrap();
                             let mut packet = packets.get_mut(&id);
-                            println!("load");
                             if packet.unwrap().loadDataFrame(frame) {
                                 //convert
-                                println!("finsihed");
                                 let packet = packets.get_mut(&id);
-                                let msg = RM::from(packet.unwrap().data());
+                                let data = packet.unwrap().data();
+                                debug!("received packet: {:?}", &data);
+                                let msg = RM::from(data);
                                 let msg = Box::new(msg.unwrap());
                                 //trigger callback
                                 let f = self.callback.lock().unwrap();
-                                //f(msg);
-                                //let co = self.callbackobj.lock().unwrap();
-
-                                //self.callbackobj.lock().unwrap().as_mut().unwrap().recv(msg);
                                 let mut co = self.callbackobj.lock();
                                 match co.unwrap().as_mut() {
                                     Some(cb) => {
-                                        //cb.recv(msg);
                                         cb.recv(msg);
                                     },
                                     None => {
@@ -185,6 +181,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                 },
                 Err(e) => {
                     error!("Error {:?}", e);
+                    thread::sleep(time::Duration::from_millis(1000));
                 }
             }
         }
