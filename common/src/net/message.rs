@@ -19,8 +19,8 @@ impl From<io::Error> for Error {
 }
 
 pub trait Message {
-    fn serialize(&self) -> Result<Vec<u8>, Error>;
-    fn from(data: &[u8]) -> Result<Self, Error> where Self: Sized;
+    fn to_bytes(&self) -> Result<Vec<u8>, Error>;
+    fn from_bytes(data: &[u8]) -> Result<Self, Error> where Self: Sized;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -30,16 +30,16 @@ pub enum ServerMessage {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: Uid, pos: Vec3f, ori: Vec1f },
+    EntityUpdate { uid: Uid, pos: Vec3f, ori: f32 },
     ChunkData {},
 }
 
 impl Message for ServerMessage {
-    fn from(data: &[u8]) -> Result<ServerMessage, Error> {
+    fn from_bytes(data: &[u8]) -> Result<ServerMessage, Error> {
         bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
-    fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }
@@ -51,15 +51,15 @@ pub enum ClientMessage {
     Ping,
     ChatMsg { msg: String },
     SendCmd { cmd: String },
-    PlayerEntityUpdate { pos: Vec3f, ori: Vec1f }
+    PlayerEntityUpdate { pos: Vec3f, ori: f32 }
 }
 
 impl Message for ClientMessage {
-    fn from(data: &[u8]) -> Result<ClientMessage, Error> {
+    fn from_bytes(data: &[u8]) -> Result<ClientMessage, Error> {
         bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
-    fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }

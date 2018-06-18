@@ -1,10 +1,17 @@
-use server_context::ServerContext;
+// Standard
 use std::net::{TcpListener, SocketAddr};
 use std::thread;
-use bifrost::Relay;
-use network::event::NewSessionEvent;
 use std::net::TcpStream;
 use std::io::Error;
+
+// Library
+use bifrost::Relay;
+
+// Project
+
+// Local
+use network::event::NewSessionEvent;
+use server_context::ServerContext;
 
 pub fn init_network(relay: Relay<ServerContext>, world: &mut ServerContext, port: u16) -> bool {
 
@@ -17,6 +24,7 @@ pub fn init_network(relay: Relay<ServerContext>, world: &mut ServerContext, port
     info!("Server listening on port {}", port);
     true
 }
+
 
 fn listen_for_connections(relay: Relay<ServerContext>, listener: TcpListener) {
 
@@ -36,7 +44,6 @@ fn listen_for_connections(relay: Relay<ServerContext>, listener: TcpListener) {
 }
 
 fn handle_new_connection(relay: &Relay<ServerContext>, stream: TcpStream, id: u32) -> Result<(), Error> {
-    stream.set_nodelay(true)?;
     relay.send(NewSessionEvent {
         session_id: id,
         stream,

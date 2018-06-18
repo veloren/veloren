@@ -1,19 +1,22 @@
+// Library
+use coord::prelude::*;
+
+// Project
 use common::Uid;
-use nalgebra::Vector3;
 
 pub struct Player {
     session_id: u32,
     uid: Uid,
-    entity_id: Option<Uid>,
+    entity_uid: Option<Uid>,
     alias: String,
 }
 
 impl Player {
-    pub fn new(session_id: u32, uid: Uid, entity_id: Option<Uid>, alias: &str) -> Player {
+    pub fn new(session_id: u32, uid: Uid, entity_uid: Option<Uid>, alias: &str) -> Player {
         Player {
             session_id,
             uid,
-            entity_id,
+            entity_uid,
             alias: alias.to_string(),
         }
     }
@@ -26,5 +29,5 @@ impl Player {
 
     pub fn get_session_id(&self) -> u32 { self.session_id }
 
-    pub fn get_entity_id(&self) -> Option<Uid> { self.entity_id }
+    pub fn get_entity_uid(&self) -> Option<Uid> { self.entity_uid }
 }

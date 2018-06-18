@@ -1,20 +1,22 @@
-use network::event::PacketReceived;
-use std::net::ToSocketAddrs;
-use bifrost::Relay;
-use common::net::{Connection, ServerMessage, ClientMessage, Message};
-use common::Uid;
-use player::Player;
-use server_context::ServerContext;
+// Standard
 use std::net::TcpStream;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::MutexGuard;
+use std::sync::{Arc, Mutex, MutexGuard};
+use std::cell::{RefCell, Cell};
 use std::thread;
 use std::thread::JoinHandle;
 use std::time;
-use std::cell::RefCell;
-use std::cell::Cell;
-use network::event::KickSession;
+
+// Library
+use bifrost::Relay;
+
+// Project
+use common::net::{Connection, ServerMessage, ClientMessage, Message};
+use common::Uid;
+
+// Local
+use network::event::{PacketReceived, KickSession};
+use player::Player;
+use server_context::ServerContext;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum SessionState {
@@ -56,13 +58,13 @@ impl Session {
         let packet_receiver = PacketReceiver::new(Some(self.packet_sender.borrow_mut().clone_tcp_stream()), None);
         let id = self.id;
         self.listen_thread_handle = Some(thread::spawn(move || {
-            Session::listen_for_packets(packet_receiver, relay, id);
+            Session::listen_for_packets(recv_conn, relay, id);
         }));
     }
 
-    fn listen_for_packets(mut packet_receiver: PacketReceiver, relay: Relay<ServerContext>, session_id: u32) {
+    fn listen_for_packets(recv_conn: RecvConn, relay: Relay<ServerContext>, session_id: u32) {
         loop {
-            match packet_receiver.recv_packet() {
+            match recv_conn.recv() {
                 Ok(packet) => {
                     relay.send(PacketReceived {
                         session_id,

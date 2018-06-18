@@ -6,15 +6,14 @@ extern crate gfx_window_glutin;
 extern crate gfx_device_gl;
 extern crate glutin;
 extern crate get_if_addrs;
-#[macro_use]
-extern crate enum_map;
+#[macro_use] extern crate enum_map;
 extern crate nalgebra;
 extern crate time;
+#[macro_use] extern crate coord;
 
 extern crate client;
 extern crate common;
 extern crate region;
-extern crate coord;
 
 extern crate pretty_env_logger;
 #[macro_use] extern crate log;

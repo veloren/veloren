@@ -1,10 +1,10 @@
-use nalgebra::Vector3;
+use coord::prelude::*;
 use common::Uid;
 
 pub struct Player {
 	pub alias: String,
 	pub entity_uid: Option<Uid>,
-	pub dir_vec: Vector3<f32>,
+	pub dir_vec: Vec3f,
 }
 
 impl Player {
@@ -12,7 +12,7 @@ impl Player {
 		Player {
 			alias,
 			entity_uid: None,
-			dir_vec: Vector3::new(0.0, 0.0, 0.0),
+			dir_vec: vec3!(0.0, 0.0, 0.0),
 		}
 	}
 }

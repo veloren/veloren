@@ -1,38 +1,41 @@
 #![feature(nll)]
 
+// Crates
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate coord;
 extern crate common;
 extern crate region;
-extern crate nalgebra;
 
+// Modules
 mod player;
 mod callbacks;
 mod session;
 
-// Reexports
-use std::sync::MutexGuard;
+// Reexport
 pub use common::net::ClientMode as ClientMode;
 pub use region::Volume as Volume;
 
+// Standard
 use std::thread;
 use std::time;
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, Barrier};
+use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard, Barrier};
 use std::collections::HashMap;
-use std::net::ToSocketAddrs;
+use std::net::{ToSocketAddrs, TcpStream};
 
-use nalgebra::Vector3;
+// Library
+use coord::prelude::*;
 
+// Project
 use region::Entity;
 use common::{get_version, Uid};
-
 use common::net;
 use common::net::{Connection, ServerMessage, ClientMessage, Callback};
 
+// Local
 use player::Player;
 use callbacks::Callbacks;
-use std::net::TcpStream;
-use std::sync::Mutex;
 
 // Errors that may occur within this crate
 #[derive(Debug)]
@@ -115,7 +118,8 @@ impl Client {
                 *e.pos_mut() += self.player().dir_vec * dt;
 
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
-                    pos: *e.pos()
+                    pos: e.pos(),
+                    ori: e.ori(),
                 });
             }
         }
@@ -127,7 +131,7 @@ impl Client {
                 if version == get_version() {
                     if let Some(uid) = entity_uid {
                         if !self.entities().contains_key(&uid) {
-                            self.entities_mut().insert(uid, Entity::new(Vector3::new(0.0, 0.0, 0.0)));
+                            self.entities_mut().insert(uid, Entity::new(vec3!(0.0, 0.0, 0.0), 0.0));
                         }
                     }
                     self.player_mut().entity_uid = entity_uid;
@@ -144,13 +148,13 @@ impl Client {
             }
             ServerMessage::Shutdown => self.set_status(ClientStatus::Disconnected),
             ServerMessage::RecvChatMsg { alias, msg } => self.callbacks().call_recv_chat_msg(&alias, &msg),
-            ServerMessage::EntityUpdate { uid, pos } => {
+            ServerMessage::EntityUpdate { uid, pos, ori } => {
                 info!("Entity Update: uid:{} at pos:{:#?}", uid, pos);
 
                 let mut entities = self.entities_mut();
                 match entities.get_mut(&uid) {
                     Some(e) => *e.pos_mut() = pos,
-                    None => { entities.insert(uid, Entity::new(pos)); },
+                    None => { entities.insert(uid, Entity::new(pos, ori)); },
                 }
             },
             _ => {},

@@ -1,43 +1,48 @@
+// Library
 use bifrost::Relay;
+use coord::prelude::*;
+
+// Project
 use common::get_version;
 use common::net::ClientMode;
 use common::net::message::{ClientMessage, ServerMessage};
-use nalgebra::Vector3;
-use player::Player;
 use region::Entity;
+
+// Local
+use player::Player;
 use server_context::ServerContext;
 
-pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, message: &ClientMessage) {
+pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, session_id: u32, message: &ClientMessage) {
     match message {
         &ClientMessage::Connect { mode, ref alias, ref version } => {
             match *version == get_version() {
                 true => {
-                    let entity_id = match mode {
+                    let entity_uid = match mode {
                         ClientMode::Headless => {
                             info!("Player '{}' connected in headless mode.", alias);
                             None
                         },
                         ClientMode::Character => {
-                            let uid = world.new_uid();
+                            let uid = ctx.new_uid();
                             info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
-                            world.add_entity(uid, box Entity::new(Vector3::new(0.0, 0.0, 60.0)));
+                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), 0.0));
                             Some(uid)
                         }
                     };
 
-                    let player_uid = world.new_uid();
+                    let player_uid = ctx.new_uid();
                     debug!("Player got playid {}", player_uid);
-                    world.add_player(box Player::new(session_id, player_uid, entity_id, &alias));
-                    world.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
+                    ctx.add_player(box Player::new(session_id, player_uid, entity_uid, &alias));
+                    ctx.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
 
-                    world.send_message(
+                    ctx.send_message(
                         session_id,
-                        ServerMessage::Connected { entity_uid: entity_id, version: get_version() }
+                        ServerMessage::Connected { entity_uid: entity_uid, version: get_version() }
                     );
                 }
                 false => {
                     info!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
-                    world.send_message(
+                    ctx.send_message(
                         session_id,
                         ServerMessage::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
                     );
@@ -45,54 +50,53 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
             }
         }
         &ClientMessage::Disconnect => {
-            world.kick_session(session_id);
+            ctx.kick_session(session_id);
         }
         &ClientMessage::Ping => {
-            world.send_message(
+            ctx.send_message(
                 session_id,
                 ServerMessage::Ping
             );
         }
         ClientMessage::ChatMsg { msg } => {
-            if let Some(ref mut player) = world.get_session(session_id)
+            if let Some(ref mut player) = ctx.get_session(session_id)
                 .and_then(|it| it.get_player_id())
-                .and_then(|id| world.get_player(id)) {
+                .and_then(|id| ctx.get_player(id)) {
 
                 let alias = player.alias().to_string();
                 debug!("[MSG] {}: {}", alias, &msg);
                 let message = ServerMessage::RecvChatMsg { alias, msg: msg.to_string() };
-                world.broadcast_packet(message);
+                ctx.broadcast_packet(message);
             }
         }
-        &ClientMessage::SendCmd { ref cmd } => handle_command(relay, world, session_id, cmd.to_string()),
-        &ClientMessage::PlayerEntityUpdate { pos } => {
-            if let Some(ref player) = world.get_session(session_id)
+        &ClientMessage::SendCmd { ref cmd } => handle_command(relay, ctx, session_id, cmd.to_string()),
+        &ClientMessage::PlayerEntityUpdate { pos, ori } => {
+            if let Some(ref player) = ctx.get_session(session_id)
                 .and_then(|it| it.get_player_id())
-                .and_then(|id| world.get_player(id)) {
+                .and_then(|id| ctx.get_player(id)) {
 
                 let player_name = player.alias().to_string();
 
-                if let Some(entity_id) = player.get_entity_id() {
-                    if let Some(e) = world.get_entity(entity_id) {
-                        let diff : Vector3<f32> = e.pos() - pos;
-                        let length = diff.norm();
-                        if length > 5.0 {
+                if let Some(entity_uid) = player.get_entity_uid() {
+                    if let Some(e) = ctx.get_entity(entity_uid) {
+                        let dist = (e.pos() - pos).length();
+                        if dist > 5.0 {
                             info!("player: {} moved to fast, resetting him", player_name);
-                            let p = *e.pos();
-                            world.send_message(
+                            let (pos, ori) = (e.pos(), e.ori());
+                            ctx.send_message(
                                 session_id,
-                                ServerMessage::EntityUpdate { uid: entity_id, pos: p }
+                                ServerMessage::EntityUpdate { uid: entity_uid, pos, ori }
                             );
                         } else {
-                            *e.pos_mut() = pos
+                            *e.pos_mut() = pos;
+                            *e.ori_mut() = ori;
                         }
                     }
                 }
             }
-        }
+        },
     }
 }
-
 
 fn handle_command(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, command_str: String) {
     /*

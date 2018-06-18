@@ -7,7 +7,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gm
 common = { path = "../common" }
 world = { path = "../world" }
 region = { path = "../region" }
-nalgebra = "0.15.1"
+coord = "0.8.1"
 log = "0.4"
 pretty_env_logger = "0.2.3"
 time = "0.1.40"
@@ -16,7 +16,7 @@ time = "0.1.40"
 byteorder = "1.2.3"
 
 # Dispatcher system
-bifrost = "0.2.0"
+bifrost = { git = "https://github.com/zesterer/bifrost" }
 
 # TOML Config files
 toml = "0.4"

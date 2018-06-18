@@ -1,21 +1,31 @@
-use nalgebra::Vector3;
+use coord::prelude::*;
 
 pub struct Entity {
-    pos: Vector3<f32>,
+    pos: Vec3f,
+    ori: f32,
 }
 
 impl Entity {
-    pub fn new(pos: Vector3<f32>) -> Entity {
+    pub fn new(pos: Vec3f, ori: f32) -> Entity {
         Entity {
             pos,
+            ori,
         }
     }
 
-    pub fn pos(&self) -> &Vector3<f32> {
-        &self.pos
+    pub fn pos(&self) -> Vec3f {
+        self.pos
     }
 
-    pub fn pos_mut<'a>(&'a mut self) -> &'a mut Vector3<f32> {
+    pub fn ori(&self) -> f32 {
+        self.ori
+    }
+
+    pub fn pos_mut<'a>(&'a mut self) -> &'a mut Vec3f {
         &mut self.pos
+    }
+
+    pub fn ori_mut<'a>(&'a mut self) -> &'a mut f32 {
+        &mut self.ori
     }
 }

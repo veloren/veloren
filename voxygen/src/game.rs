@@ -1,24 +1,25 @@
-use map::Map;
+// Standard
 use std::net::ToSocketAddrs;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock, RwLockWriteGuard};
 use std::sync::atomic::{AtomicBool, Ordering};
 //use std::f32::{sin, cos};
 
+// Library
 use nalgebra::{Vector2, Vector3, Matrix4, Translation3, convert};
-use glutin::ElementState;
+use coord::prelude::*;
+use glutin::{ElementState, VirtualKeyCode};
 
-
-use coord::vec3::Vec3;
+// Project
 use client::{Client, ClientMode};
+
+// Local
+use map::Map;
 use camera::Camera;
 use window::{RenderWindow, Event};
-use glutin::{VirtualKeyCode};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
 use key_state::KeyState;
-use std::sync::RwLock;
-use std::sync::RwLockWriteGuard;
 
 pub struct Game {
     running: AtomicBool,
@@ -39,7 +40,7 @@ impl Game {
     pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
-        let chunk = Chunk::test(Vec3::from((0,0,0)),Vec3::from((100,100,100)));
+        let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));
         let test_mesh = Mesh::from(&chunk);
 
         let mut player_mesh = Mesh::new();
@@ -152,7 +153,7 @@ impl Game {
         let mov_vec = unit_vecs.0 * dir_vec.x + unit_vecs.1 * dir_vec.y;
         let fly_vec = self.key_state.lock().unwrap().fly_vec();
 
-        self.client.player_mut().dir_vec = Vector3::<f32>::new(mov_vec.x, mov_vec.y, fly_vec);
+        self.client.player_mut().dir_vec = vec3!(mov_vec.x, mov_vec.y, fly_vec);
 
         self.running.load(Ordering::Relaxed)
     }
@@ -163,7 +164,7 @@ impl Game {
 
         if let Some(uid) = self.client.player().entity_uid {
             if let Some(e) = self.client.entities().get(&uid) {
-                self.camera.lock().unwrap().set_focus(*e.pos());
+                self.camera.lock().unwrap().set_focus(Vector3::<f32>::new(e.pos().x, e.pos().y, e.pos().z)); // TODO: Improve this
             }
         }
 
@@ -186,7 +187,7 @@ impl Game {
             renderer.update_model_object(
                 &self.data.lock().unwrap().player_model,
                 Constants::new(
-                    &Translation3::<f32>::from_vector(*entity.pos()).to_homogeneous(),
+                    &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous(), // TODO: Improve this
                     &camera_mats.0,
                     &camera_mats.1
                 )

@@ -1,14 +1,21 @@
-use bifrost::{Relay, event};
-use common::net::message::{ClientMessage, ServerMessage};
-use common::Uid;
-use config::PartialConfig;
-use player::Player;
-use region::Entity;
-use session::Session;
+// Standard
 use std::collections::hash_map::{Iter, IterMut};
 use std::collections::HashMap;
 use std::thread::JoinHandle;
 use std::time::Duration;
+
+// Library
+use bifrost::{Relay, event};
+use config::PartialConfig;
+
+// Project
+use common::net::message::{ClientMessage, ServerMessage};
+use common::Uid;
+use region::Entity;
+
+// Local
+use player::Player;
+use session::Session;
 
 pub struct ServerContext {
     // Configuration
@@ -96,10 +103,9 @@ impl ServerContext {
     // Updates
 
     pub fn get_entity_updates(&self) -> Vec<(Uid, ServerMessage)> {
-
         self.get_entities()
             .map(|(entity_id, entity)| {
-                (*entity_id, ServerMessage::EntityUpdate { uid: *entity_id, pos: *entity.pos()})
+                (*entity_id, ServerMessage::EntityUpdate { uid: *entity_id, pos: entity.pos(), ori: entity.ori() })
             })
             .collect::<Vec<(Uid, ServerMessage)>>()
     }
@@ -114,7 +120,7 @@ impl ServerContext {
     pub fn kick_player(&mut self, player_id: Uid) {
         if let Some(player) = self.get_player(player_id) {
             info!("Player '{}' disconnected!", player.alias());
-            player.get_entity_id().map(|entity_id| self.del_entity(entity_id));
+            player.get_entity_uid().map(|entity_id| self.del_entity(entity_id));
         }
         self.del_player(player_id);
     }
@@ -128,6 +134,10 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     //debug!("TICK!");
     // Send Entity Updates
 
+    println!("Players: {}", ctx.players.len());
+    println!("Entities: {}", ctx.entities.len());
+    println!("Sessions: {}", ctx.sessions.len());
+
     remove_disconected_players(relay, ctx);
 
     send_entities_update(relay, ctx);
@@ -138,7 +148,7 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
 
 fn remove_disconected_players(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
 
-    let mut sessions_id_to_kick = ctx.get_sessions()
+    let sessions_id_to_kick = ctx.get_sessions()
         .filter(|(_, session)| session.should_kick() )
         .map(|(session_id, _)| *session_id)
         .collect::<Vec<u32>>();
@@ -154,12 +164,14 @@ fn send_entities_update(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
 
     for (_, session) in sessions {
         let player = ctx.get_player_from_session(session.as_ref());
-        let player_entity_id = player.and_then(|p| p.get_entity_id()).unwrap_or(0);
-
-        for (uid, update) in &updates {
-            if *uid != player_entity_id {
-                session.send_message(update.clone());
-            }
+        match player.and_then(|p| p.get_entity_uid()) {
+            Some(player_entity_id) => for (uid, update) in &updates {
+                if *uid != player_entity_id {
+                    let up = update.clone();
+                    session.send_message(up);
+                }
+            },
+            _ => {},
         }
     }
 }

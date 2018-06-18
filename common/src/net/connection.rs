@@ -162,7 +162,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                                 let packet = packets.get_mut(&id);
                                 let data = packet.unwrap().data();
                                 debug!("received packet: {:?}", &data);
-                                let msg = RM::from(data);
+                                let msg = RM::from_bytes(data);
                                 let msg = Box::new(msg.unwrap());
                                 //trigger callback
                                 let f = self.callback.lock().unwrap();

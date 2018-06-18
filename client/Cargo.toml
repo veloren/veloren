@@ -7,4 +7,4 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Terah <terah.dev@gm
 common = { path = "../common" }
 region = { path = "../region" }
 log = "0.4"
-nalgebra = { version= "0.15.1", features = ["serde-serialize"] }
+coord = "0.8.1"

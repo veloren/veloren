@@ -33,7 +33,7 @@ pub struct IncommingPacket {
 impl PacketData {
     pub fn new<M: Message>(message: M, id: u64) -> PacketData {
         PacketData {
-            bytes: message.serialize().unwrap(),
+            bytes: message.to_bytes().unwrap(),
             id,
         }
     }
