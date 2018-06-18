@@ -10,7 +10,7 @@ use std::time;
 use bifrost::Relay;
 
 // Project
-use common::net::{Conn, SendConn, RecvConn, ServerPacket};
+use common::net::{Connection, ServerMessage, ClientMessage, Message};
 use common::Uid;
 
 // Local
@@ -27,23 +27,35 @@ pub enum SessionState {
 pub struct Session {
     id: u32,
     listen_thread_handle: Option<JoinHandle<()>>,
-    send_conn: SendConn,
+    conn: Arc<Connection<ClientMessage>>,
     player_id: Option<Uid>,
     state: Cell<SessionState>,
 }
 
 impl Session {
-    pub fn new(id: u32, send_conn: SendConn) -> Session {
-        Session {
+    pub fn new(id: u32, stream: TcpStream, relay: &Relay<ServerContext>) -> Session {
+        let relay = relay.clone();
+        let conn = Connection::new_stream(stream, Box::new(move |m| {
+            //callback message
+            relay.send(PacketReceived {
+                session_id: id,
+                data: *m,
+            });
+        }), None).unwrap();
+        Connection::start(&conn);
+        let session = Session {
             id,
             listen_thread_handle: None,
-            send_conn,
+            conn,
             player_id: None,
             state: Cell::new(SessionState::Connected),
-        }
-    }
+        };
 
-    pub fn start_listen_thread(&mut self, recv_conn: RecvConn, relay: Relay<ServerContext>) {
+        return session;
+    }
+/*
+    pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {
+        let packet_receiver = PacketReceiver::new(Some(self.packet_sender.borrow_mut().clone_tcp_stream()), None);
         let id = self.id;
         self.listen_thread_handle = Some(thread::spawn(move || {
             Session::listen_for_packets(recv_conn, relay, id);
@@ -66,12 +78,14 @@ impl Session {
             }
         }
     }
-
-    pub fn send_packet(&self, packet: &ServerPacket) {
-        match self.send_conn.send(packet) {
+*/
+    pub fn send_message(&self, message: ServerMessage) {
+        self.conn.send(message);
+        /*
+        match self.packet_sender.borrow_mut().send_packet(packet) {
             Ok(_) => {},
             Err(_) => self.state.set(SessionState::ShouldKick),
-        }
+        }*/
     }
 
     pub fn get_id(&self) -> u32 { self.id }

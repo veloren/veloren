@@ -1,9 +1,16 @@
 language: rust
+sudo: required
 rust:
   - nightly
-before_install:
-  - sudo apt-get install -y libsfml-dev libcsfml-dev
-  - rustup default nightly
+addons:
+    apt:
+        packages:
+            - libssl-dev
+            - libsfml-dev
+            - libcsfml-dev
+            - pkg-config
+            - cmake
+            - zlib1g-dev
 env:
   - CRATE="world"
   - CRATE="common"
@@ -17,3 +24,4 @@ env:
 script:
   - cd $CRATE
   - cargo test -v
+  - if [[ "$CRATE" == common ]] ; then RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin ; cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID ; else echo "No Code Coverage" ; fi

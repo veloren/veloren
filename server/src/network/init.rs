@@ -8,7 +8,6 @@ use std::io::Error;
 use bifrost::Relay;
 
 // Project
-use common::net::Conn;
 
 // Local
 use network::event::NewSessionEvent;
@@ -26,28 +25,28 @@ pub fn init_network(relay: Relay<ServerContext>, world: &mut ServerContext, port
     true
 }
 
+
 fn listen_for_connections(relay: Relay<ServerContext>, listener: TcpListener) {
 
     let mut id = 0;
 
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => match Conn::from_stream(stream) {
-                Ok(conn) => match handle_new_connection(&relay, conn, id) {
+            Ok(stream) => {
+                match handle_new_connection(&relay, stream, id) {
                     Ok(_) => id += 1,
                     Err(e) => error!("New connection error : {}", e),
-                },
-                Err(e) => error!("Connection creation error: {:?}", e),
+                }
             },
             Err(e) => error!("New connection error : {}", e),
         }
     }
 }
 
-fn handle_new_connection(relay: &Relay<ServerContext>, conn: Conn, id: u32) -> Result<(), Error> {
+fn handle_new_connection(relay: &Relay<ServerContext>, stream: TcpStream, id: u32) -> Result<(), Error> {
     relay.send(NewSessionEvent {
         session_id: id,
-        conn,
+        stream,
     });
     Ok(())
 }

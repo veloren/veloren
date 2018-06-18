@@ -31,7 +31,7 @@ use coord::prelude::*;
 use region::Entity;
 use common::{get_version, Uid};
 use common::net;
-use common::net::{Conn, Packet, ServerPacket, ClientPacket};
+use common::net::{Connection, ServerMessage, ClientMessage, Callback};
 
 // Local
 use player::Player;
@@ -59,7 +59,7 @@ pub enum ClientStatus {
 
 pub struct Client {
     status: RwLock<ClientStatus>,
-    conn: Conn,
+    conn: Arc<Connection<ServerMessage>>,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
@@ -69,10 +69,20 @@ pub struct Client {
     finished: Barrier, // We use this to synchronize client shutdown
 }
 
+impl Callback<ServerMessage> for Client {
+    fn recv(&self, msg: Box<ServerMessage>) {
+        self.handle_packet(*msg);
+    }
+}
+
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
-        let conn = Conn::new(remote_addr)?;
-        conn.send(&ClientPacket::Connect{ mode, alias: alias.clone(), version: get_version() })?;
+        let mut conn = Connection::new::<U>(remote_addr, Box::new(|m| {
+            //
+            //self.handle_packet(m);
+        }), None)?;
+        conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
+        Connection::start(&conn);
 
         let client = Arc::new(Client {
             status: RwLock::new(ClientStatus::Connecting),
@@ -85,6 +95,13 @@ impl Client {
 
             finished: Barrier::new(2),
         });
+
+        *client.conn.callbackobj() = Some(Box::new(client.clone()));
+
+        /*
+        *client.conn.callback() = Box::new(|m: Box<ServerMessage>| {
+            client.handle_packet(*m);
+        });*/
 
         Self::start(client.clone());
 
@@ -100,17 +117,17 @@ impl Client {
             if let Some(e) = self.entities_mut().get_mut(&uid) {
                 *e.pos_mut() += self.player().dir_vec * dt;
 
-                self.conn.send(&ClientPacket::PlayerEntityUpdate {
+                self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: e.pos(),
                     ori: e.ori(),
-                }).expect("Could not send player position");
+                });
             }
         }
     }
 
-    fn handle_packet(&self, packet: ServerPacket) {
+    fn handle_packet(&self, packet: ServerMessage) {
         match packet {
-            ServerPacket::Connected { entity_uid, version } => {
+            ServerMessage::Connected { entity_uid, version } => {
                 if version == get_version() {
                     if let Some(uid) = entity_uid {
                         if !self.entities().contains_key(&uid) {
@@ -125,13 +142,13 @@ impl Client {
                     self.set_status(ClientStatus::Disconnected);
                 }
             },
-            ServerPacket::Kicked { reason } => {
+            ServerMessage::Kicked { reason } => {
                 warn!("Server kicked client for {}", reason);
                 self.set_status(ClientStatus::Disconnected);
             }
-            ServerPacket::Shutdown => self.set_status(ClientStatus::Disconnected),
-            ServerPacket::RecvChatMsg { alias, msg } => self.callbacks().call_recv_chat_msg(&alias, &msg),
-            ServerPacket::EntityUpdate { uid, pos, ori } => {
+            ServerMessage::Shutdown => self.set_status(ClientStatus::Disconnected),
+            ServerMessage::RecvChatMsg { alias, msg } => self.callbacks().call_recv_chat_msg(&alias, &msg),
+            ServerMessage::EntityUpdate { uid, pos, ori } => {
                 info!("Entity Update: uid:{} at pos:{:#?}", uid, pos);
 
                 let mut entities = self.entities_mut();
@@ -145,10 +162,11 @@ impl Client {
     }
 
     fn start(client: Arc<Client>) {
-        let client_ref = client.clone();
+        /*let client_ref = client.clone();
+
         thread::spawn(move || {
             while *client_ref.status() != ClientStatus::Disconnected {
-                match client_ref.conn.recv() {
+                match client_ref.mngr.recv() {
                     Ok(p) => client_ref.handle_packet(p),
                     Err(e) => warn!("Receive error: {:?}", e),
                 }
@@ -156,6 +174,8 @@ impl Client {
             // Notify anything else that we've finished networking
             client_ref.finished.wait();
         });
+        */
+
 
         let client_ref = client.clone();
         thread::spawn(move || {
@@ -171,17 +191,17 @@ impl Client {
     // Public interface
 
     pub fn shutdown(&self) {
-        self.conn.send(&ClientPacket::Disconnect).expect("Could not send disconnect packet");
+        self.conn.send(ClientMessage::Disconnect);
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
     }
 
     pub fn send_chat_msg(&self, msg: String) -> Result<(), Error> {
-        Ok(self.conn.send(&ClientPacket::ChatMsg { msg })?)
+        Ok(self.conn.send(ClientMessage::ChatMsg { msg }))
     }
 
     pub fn send_cmd(&self, cmd: String) -> Result<(), Error> {
-        Ok(self.conn.send(&ClientPacket::SendCmd { cmd })?)
+        Ok(self.conn.send(ClientMessage::SendCmd { cmd }))
     }
 
     pub fn status<'a>(&'a self) -> RwLockReadGuard<'a, ClientStatus> { self.status.read().unwrap() }

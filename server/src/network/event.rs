@@ -1,8 +1,11 @@
+// Standard
+use std::net::TcpStream;
+
 // Library
 use bifrost::{Relay, Event};
 
 // Project
-use common::net::{Conn, ClientPacket};
+use common::net::{Connection, ClientMessage};
 
 // Local
 use session::Session;
@@ -11,13 +14,12 @@ use network::handlers::handle_packet;
 
 pub struct NewSessionEvent {
     pub session_id: u32,
-    pub conn: Conn,
+    pub stream: TcpStream,
 }
+
 impl Event<ServerContext> for NewSessionEvent {
     fn process(self: Box<Self>, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
-        let (send_conn, recv_conn) = self.conn.split();
-        let mut session = box Session::new(self.session_id, send_conn);
-        session.start_listen_thread(recv_conn, relay.clone());
+        let mut session = box Session::new(self.session_id, self.stream.try_clone().unwrap(), relay);
         ctx.add_session(session);
         info!("New session ! id: {}", self.session_id);
     }
@@ -25,11 +27,11 @@ impl Event<ServerContext> for NewSessionEvent {
 
 pub struct PacketReceived {
     pub session_id: u32,
-    pub data: ClientPacket,
+    pub data: ClientMessage,
 }
 impl Event<ServerContext> for PacketReceived {
     fn process(self: Box<Self>, relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
-        handle_packet(relay, ctx, self.session_id, self.data);
+        handle_packet(relay, ctx, self.session_id, &self.data);
     }
 }
 
