@@ -1,6 +1,6 @@
 language: rust
 rust:
-  - stable
+  - nightly
 before_install:
   - sudo apt-get install -y libsfml-dev libcsfml-dev
   - rustup default nightly
