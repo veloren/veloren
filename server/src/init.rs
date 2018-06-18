@@ -1,9 +1,16 @@
+// Standard
+use std::time::Duration;
+
+// Library
 use bifrost::{Relay, event};
 use config::load_config;
-use network::init::init_network;
-use std::time::Duration;
-use server_context::{update_world, ServerContext, WORLD_UPDATE_TICK};
+
+// Project
 //use common::logger::ConsoleLogger;
+
+// Local
+use network::init::init_network;
+use server_context::{update_world, ServerContext, WORLD_UPDATE_TICK};
 
 
 pub fn init_server(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {

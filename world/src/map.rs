@@ -3,6 +3,8 @@ use euler::*;
 
 use gen::Generator;
 
+const CHUNKS_PER_TRACT: i32 = 16;
+
 #[derive(Copy, Clone)]
 pub enum Biome {
     Grassland,
@@ -12,13 +14,13 @@ pub enum Biome {
     Mountain,
 }
 
-pub struct MapChunk {
+pub struct Tract {
     alt: u32,
     biome: Biome,
     wind: Vec2,
 }
 
-impl MapChunk {
+impl Tract {
     pub fn altitude(&self) -> u32 { self.alt }
     pub fn biome(&self) -> Biome { self.biome }
 
@@ -36,18 +38,18 @@ pub struct Map {
     time: f64,
 
     size: u32,
-    chunks: Vec<MapChunk>,
+    tracts: Vec<Tract>,
 }
 
 impl Map {
     pub fn new(seed: u32, size: u32) -> Map {
-        let mut chunks = Vec::new();
+        let mut tracts = Vec::new();
 
         let gen = Generator::new(seed);
 
         for x in 0..size {
             for y in 0..size {
-                chunks.push(MapChunk {
+                tracts.push(Tract {
                     alt: gen.altitude([x, y]),
                     biome: gen.biome([x, y]),
                     wind: gen.wind([x, y, 0]),
@@ -60,7 +62,7 @@ impl Map {
             gen,
             time: 0.0,
             size,
-            chunks,
+            tracts,
         }
     }
 
@@ -84,11 +86,11 @@ impl Map {
 
     pub fn size(&self) -> u32 { self.size }
 
-    pub fn get<'a>(&'a self, x: u32, y: u32) -> Option<&'a MapChunk> {
-        self.chunks.get(self.size as usize * x as usize + y as usize)
+    pub fn get<'a>(&'a self, x: u32, y: u32) -> Option<&'a Tract> {
+        self.tracts.get(self.size as usize * x as usize + y as usize)
     }
 
-    pub fn get_mut<'a>(&'a mut self, x: u32, y: u32) -> Option<&'a mut MapChunk> {
-        self.chunks.get_mut(self.size as usize * x as usize + y as usize)
+    pub fn get_mut<'a>(&'a mut self, x: u32, y: u32) -> Option<&'a mut Tract> {
+        self.tracts.get_mut(self.size as usize * x as usize + y as usize)
     }
 }

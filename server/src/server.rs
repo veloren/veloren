@@ -1,7 +1,12 @@
-use bifrost::{Dispatcher, Relay, event};
-use init::init_server;
-use std::sync::mpsc;
+// Standard
 use std::thread;
+use std::sync::mpsc;
+
+// Library
+use bifrost::{Dispatcher, Relay, event};
+
+// Local
+use init::init_server;
 use server_context::ServerContext;
 
 pub struct Server {

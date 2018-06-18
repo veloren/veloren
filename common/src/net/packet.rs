@@ -4,7 +4,7 @@ use coord::prelude::*;
 use Uid;
 use super::{Error, ClientMode};
 
-pub trait Packet: {
+pub trait Packet: Clone {
     fn from_bytes(data: &[u8]) -> Result<Self, Error> where Self: Sized;
     fn to_bytes(&self) -> Result<Vec<u8>, Error>;
 }
@@ -16,7 +16,7 @@ pub enum ServerPacket {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: Uid, pos: Vec3f, ori: Vec1f },
+    EntityUpdate { uid: Uid, pos: Vec3f, ori: f32 },
     ChunkData {},
 }
 
@@ -37,7 +37,7 @@ pub enum ClientPacket {
     Ping,
     ChatMsg { msg: String },
     SendCmd { cmd: String },
-    PlayerEntityUpdate { pos: Vec3f, ori: Vec1f }
+    PlayerEntityUpdate { pos: Vec3f, ori: f32 }
 }
 
 impl Packet for ClientPacket {

@@ -1,8 +1,8 @@
 use rand;
 use noise::{NoiseFn, OpenSimplex, Seedable};
+use coord::prelude::*;
 
 use {Volume, Voxel, Block, BlockMaterial};
-use coord::vec3::Vec3;
 
 pub struct Chunk {
     size: Vec3<i64>,

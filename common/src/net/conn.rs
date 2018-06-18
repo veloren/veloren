@@ -12,15 +12,7 @@ pub struct SendConn {
 }
 
 impl SendConn {
-    pub fn new<A: ToSocketAddrs>(remote: A) -> Result<SendConn, Error> {
-        let stream = TcpStream::connect(remote)?;
-        stream.set_nodelay(true)?;
-        Ok(SendConn {
-            stream_out: Mutex::new(stream),
-        })
-    }
-
-    pub fn send<P: Packet>(&self, packet: P) -> Result<(), Error> {
+    pub fn send<P: Packet>(&self, packet: &P) -> Result<(), Error> {
         let data = packet.to_bytes()?;
         let mut stream = self.stream_out.lock().unwrap();
         stream.write_u32::<LittleEndian>(data.len() as u32)?;
@@ -33,14 +25,6 @@ pub struct RecvConn {
 }
 
 impl RecvConn {
-    pub fn new<A: ToSocketAddrs>(remote: A) -> Result<RecvConn, Error> {
-        let stream = TcpStream::connect(remote)?;
-        stream.set_nodelay(true)?;
-        Ok(RecvConn {
-            stream_in: Mutex::new(stream),
-        })
-    }
-
     pub fn recv<P: Packet>(&self) -> Result<P, Error> {
         let mut stream = self.stream_in.lock().unwrap();
         let packet_size = stream.read_u32::<LittleEndian>()? as usize;
@@ -65,7 +49,15 @@ impl Conn {
         })
     }
 
-    pub fn send<P: Packet>(&self, packet: P) -> Result<(), Error> {
+    pub fn from_stream(stream: TcpStream) -> Result<Conn, Error> {
+        stream.set_nodelay(true)?;
+        Ok(Conn {
+            send_conn: SendConn { stream_out: Mutex::new(stream.try_clone()?) },
+            recv_conn: RecvConn { stream_in: Mutex::new(stream) },
+        })
+    }
+
+    pub fn send<P: Packet>(&self, packet: &P) -> Result<(), Error> {
         self.send_conn.send(packet)
     }
 
