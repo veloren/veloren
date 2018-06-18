@@ -5,7 +5,7 @@ use std::io;
 
 // Reexports
 pub use self::packet::{Packet, ServerPacket, ClientPacket};
-pub use self::conn::Conn;
+pub use self::conn::{Conn, SendConn, RecvConn};
 
 #[derive(Debug)]
 pub enum Error {
