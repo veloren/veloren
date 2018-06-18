@@ -41,7 +41,7 @@ impl Clock {
         if self.last_tps_time + Duration::from_millis(5000) < self.time {
             let tps_duration = self.time.duration_since(self.last_tps_time).unwrap();
             // get real time that happen scince last tps, not only 5000 ms
-            let seconds: f64 = (tps_duration.as_secs() as f64 + tps_duration.subsec_micros() as f64 / 1000000.0);
+            let seconds: f64 = tps_duration.as_secs() as f64 + tps_duration.subsec_micros() as f64 / 1000000.0;
             self.last_tps = self.tps_counter as f64 / seconds;
             self.tps_counter = 0;
             self.last_tps_time = self.time;

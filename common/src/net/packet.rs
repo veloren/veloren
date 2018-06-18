@@ -1,13 +1,12 @@
 use bincode;
-use nalgebra::Vector3;
+use coord::prelude::*;
 
 use Uid;
-use network::ClientMode;
-use super::Error;
+use super::{Error, ClientMode};
 
-pub trait Packet {
-    fn serialize(&self) -> Result<Vec<u8>, Error>;
-    fn from(data: &[u8]) -> Result<Self, Error> where Self: Sized;
+pub trait Packet: {
+    fn from_bytes(data: &[u8]) -> Result<Self, Error> where Self: Sized;
+    fn to_bytes(&self) -> Result<Vec<u8>, Error>;
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -17,15 +16,16 @@ pub enum ServerPacket {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: Uid, pos: Vector3<f32> },
+    EntityUpdate { uid: Uid, pos: Vec3f, ori: Vec1f },
+    ChunkData {},
 }
 
 impl Packet for ServerPacket {
-    fn from(data: &[u8]) -> Result<ServerPacket, Error> {
+    fn from_bytes(data: &[u8]) -> Result<ServerPacket, Error> {
         bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
-    fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }
@@ -37,15 +37,15 @@ pub enum ClientPacket {
     Ping,
     ChatMsg { msg: String },
     SendCmd { cmd: String },
-    PlayerEntityUpdate { pos: Vector3<f32> }
+    PlayerEntityUpdate { pos: Vec3f, ori: Vec1f }
 }
 
 impl Packet for ClientPacket {
-    fn from(data: &[u8]) -> Result<ClientPacket, Error> {
+    fn from_bytes(data: &[u8]) -> Result<ClientPacket, Error> {
         bincode::deserialize(data).map_err(|_e| Error::CannotDeserialize)
     }
 
-    fn serialize(&self) -> Result<Vec<u8>, Error> {
+    fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         bincode::serialize(&self).map_err(|_e| Error::CannotSerialize)
     }
 }

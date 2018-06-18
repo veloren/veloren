@@ -19,3 +19,9 @@ impl From<io::Error> for Error {
         Error::NetworkErr(e)
     }
 }
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum ClientMode {
+    Headless,
+    Character,
+}
