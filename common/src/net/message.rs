@@ -3,7 +3,20 @@ use nalgebra::Vector3;
 
 use Uid;
 use net::ClientMode;
-use super::Error;
+use std::io;
+
+#[derive(Debug)]
+pub enum Error {
+    NetworkErr(io::Error),
+    CannotSerialize,
+    CannotDeserialize,
+}
+
+impl From<io::Error> for Error {
+    fn from(e: io::Error) -> Error {
+        Error::NetworkErr(e)
+    }
+}
 
 pub trait Message {
     fn serialize(&self) -> Result<Vec<u8>, Error>;

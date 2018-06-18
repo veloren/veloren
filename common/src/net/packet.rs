@@ -5,6 +5,7 @@ pub enum Frame {
     Data { id: u64, frame_no: u64, data: Vec<u8> },
 }
 
+#[derive(Debug)]
 pub enum FrameError {
     SendDone,
 }

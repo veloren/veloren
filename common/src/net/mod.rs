@@ -2,26 +2,13 @@ mod packet;
 pub mod connection;
 pub mod message;
 mod tcp;
-
-use std::io;
+#[cfg(test)]
+mod tests;
 
 // Reexports
-pub use self::message::{Message, ServerMessage, ClientMessage};
+pub use self::message::{Message, ServerMessage, ClientMessage, Error};
 pub use self::connection::Connection;
 pub use self::connection::Callback;
-
-#[derive(Debug)]
-pub enum Error {
-    NetworkErr(io::Error),
-    CannotSerialize,
-    CannotDeserialize,
-}
-
-impl From<io::Error> for Error {
-    fn from(e: io::Error) -> Error {
-        Error::NetworkErr(e)
-    }
-}
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum ClientMode {
