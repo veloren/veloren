@@ -1,5 +1,5 @@
 use bincode;
-use nalgebra::Vector3;
+use coord::prelude::*;
 
 use Uid;
 use net::ClientMode;
@@ -30,7 +30,8 @@ pub enum ServerMessage {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: Uid, pos: Vector3<f32> },
+    EntityUpdate { uid: Uid, pos: Vec3f, ori: Vec1f },
+    ChunkData {},
 }
 
 impl Message for ServerMessage {
@@ -50,7 +51,7 @@ pub enum ClientMessage {
     Ping,
     ChatMsg { msg: String },
     SendCmd { cmd: String },
-    PlayerEntityUpdate { pos: Vector3<f32> }
+    PlayerEntityUpdate { pos: Vec3f, ori: Vec1f }
 }
 
 impl Message for ClientMessage {
