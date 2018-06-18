@@ -12,7 +12,7 @@ use region::Entity;
 use player::Player;
 use server_context::ServerContext;
 
-pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, packet: ClientPacket) {
+pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, session_id: u32, packet: ClientPacket) {
     match packet {
         ClientPacket::Connect { mode, ref alias, ref version } => {
             match *version == get_version() {
@@ -23,26 +23,26 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
                             None
                         },
                         ClientMode::Character => {
-                            let uid = world.new_uid();
+                            let uid = ctx.new_uid();
                             info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
-                            world.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), 0.0));
+                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), 0.0));
                             Some(uid)
                         }
                     };
 
-                    let player_uid = world.new_uid();
+                    let player_uid = ctx.new_uid();
                     debug!("Player got playid {}", player_uid);
-                    world.add_player(box Player::new(session_id, player_uid, entity_uid, &alias));
-                    world.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
+                    ctx.add_player(box Player::new(session_id, player_uid, entity_uid, &alias));
+                    ctx.get_session_mut(session_id).unwrap().set_player_id(Some(player_uid));
 
-                    world.send_packet(
+                    ctx.send_packet(
                         session_id,
                         &ServerPacket::Connected { entity_uid, version: get_version() }
                     );
                 }
                 false => {
                     info!("Player attempted to connect with {} but was rejected due to incompatible version ({})", alias, version);
-                    world.send_packet(
+                    ctx.send_packet(
                         session_id,
                         &ServerPacket::Kicked { reason: format!("Incompatible version! Server is running version ({})", get_version()) }
                     );
@@ -50,40 +50,41 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
             }
         },
         ClientPacket::Disconnect => {
-            world.kick_session(session_id);
+            ctx.kick_session(session_id);
         },
         ClientPacket::Ping => {
-            world.send_packet(
+            ctx.send_packet(
                 session_id,
                 &ServerPacket::Ping
             );
         },
         ClientPacket::ChatMsg { msg } => {
-            if let Some(ref mut player) = world.get_session(session_id)
+            if let Some(ref mut player) = ctx.get_session(session_id)
                 .and_then(|it| it.get_player_id())
-                .and_then(|id| world.get_player(id)) {
+                .and_then(|id| ctx.get_player(id)) {
 
                 let alias = player.alias().to_string();
                 debug!("[MSG] {}: {}", alias, &msg);
-                world.broadcast_packet(&ServerPacket::RecvChatMsg { alias, msg: msg.to_string() });
+                ctx.broadcast_packet(&ServerPacket::RecvChatMsg { alias, msg: msg.to_string() });
             }
         },
-        ClientPacket::SendCmd { ref cmd } => handle_command(relay, world, session_id, cmd.to_string()),
+        ClientPacket::SendCmd { ref cmd } => handle_command(relay, ctx, session_id, cmd.to_string()),
         ClientPacket::PlayerEntityUpdate { pos, ori } => {
-            if let Some(ref player) = world.get_session(session_id)
+            if let Some(ref player) = ctx.get_session(session_id)
                 .and_then(|it| it.get_player_id())
-                .and_then(|id| world.get_player(id)) {
+                .and_then(|id| ctx.get_player(id)) {
 
                 let player_name = player.alias().to_string();
 
                 if let Some(entity_uid) = player.get_entity_uid() {
-                    if let Some(e) = world.get_entity(entity_uid) {
+                    if let Some(e) = ctx.get_entity(entity_uid) {
                         let dist = (e.pos() - pos).length();
                         if dist > 5.0 {
                             info!("player: {} moved to fast, resetting him", player_name);
-                            world.send_packet(
+                            let (pos, ori) = (e.pos(), e.ori());
+                            ctx.send_packet(
                                 session_id,
-                                &ServerPacket::EntityUpdate { uid: entity_uid, pos: e.pos(), ori: e.ori() }
+                                &ServerPacket::EntityUpdate { uid: entity_uid, pos, ori }
                             );
                         } else {
                             *e.pos_mut() = pos;
@@ -95,7 +96,6 @@ pub fn handle_packet(relay: &Relay<ServerContext>, world: &mut ServerContext, se
         },
     }
 }
-
 
 fn handle_command(relay: &Relay<ServerContext>, world: &mut ServerContext, session_id: u32, command_str: String) {
     /*
