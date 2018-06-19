@@ -1,7 +1,9 @@
 mod packet;
 pub mod connection;
 pub mod message;
+mod protocol;
 mod tcp;
+mod udp;
 #[cfg(test)]
 mod tests;
 

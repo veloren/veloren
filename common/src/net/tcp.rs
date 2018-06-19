@@ -1,3 +1,4 @@
+use net::protocol::Protocol;
 use std::sync::Mutex;
 use std::io::{Write, Read};
 use std::net::{TcpStream, ToSocketAddrs};
@@ -29,8 +30,10 @@ impl Tcp {
             stream_out: Mutex::new(stream),
         })
     }
+}
 
-    pub fn send(&self, frame: Frame) -> Result<(), Error> {
+impl Protocol for Tcp {
+    fn send(&self, frame: Frame) -> Result<(), Error> {
         let mut stream = self.stream_out.lock().unwrap();
         match frame {
             Frame::Header{id, length} => {
@@ -51,7 +54,7 @@ impl Tcp {
     }
 
     //blocking
-    pub fn recv(&self) -> Result<Frame, Error> {
+    fn recv(&self) -> Result<Frame, Error> {
         let mut stream = self.stream_in.lock().unwrap();
         let frame = stream.read_u8()? as u8;
         match frame {
