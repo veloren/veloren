@@ -134,12 +134,9 @@ pub fn update_world(relay: &Relay<ServerContext>, ctx: &mut ServerContext) {
     //debug!("TICK!");
     // Send Entity Updates
 
-    println!("Players: {}", ctx.players.len());
-    println!("Entities: {}", ctx.entities.len());
-    println!("Sessions: {}", ctx.sessions.len());
+    debug!("Players Entities Sessions: {} {} {}", ctx.players.len(), ctx.entities.len(), ctx.sessions.len());
 
     remove_disconected_players(relay, ctx);
-
     send_entities_update(relay, ctx);
 
 
