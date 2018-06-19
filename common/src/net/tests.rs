@@ -1,6 +1,11 @@
 use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError, PacketData};
 use super::message::{Message, Error};
 use bincode;
+use super::tcp::Tcp;
+use super::udp::Udp;
+use super::protocol::Protocol;
+use std::net::{TcpStream, TcpListener};
+use std::thread;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TestMessage {
@@ -182,28 +187,34 @@ fn construct_message_wrong_order() {
 
 #[test]
 fn tcp_pingpong() {
-    let mut p = OutgoingPacket::new(TestMessage::largeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
-    let f1 = p.generateFrame(10);
-    check_header(&f1, 123, 110);
-    let f2= p.generateFrame(40);
-    check_data(&f2, 123, 0, vec!(1, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 65, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 66, 49, 50, 51, 52, 53, 54) );
-    let f3 = p.generateFrame(10);
-    check_data(&f3, 123, 1, vec!(55, 56, 57, 48, 67, 49, 50, 51, 52, 53) );
-    let f4 = p.generateFrame(0);
-    check_data(&f4, 123, 2, vec!() );
-    let f5 = p.generateFrame(50);
-    check_data(&f5, 123, 3, vec!(54, 55, 56, 57, 48, 68, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 69, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 70, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 71, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 72) );
-    let f6 = p.generateFrame(50);
-    check_data(&f6, 123, 4, vec!(49, 50, 51, 52, 53, 54, 55, 56, 57, 48) );
-    let f7 = p.generateFrame(10);
-    check_done(&f7);
-    let mut i = IncommingPacket::new(f1.unwrap());
-    assert!(!i.loadDataFrame(f2.unwrap()));
-    assert!(!i.loadDataFrame(f3.unwrap()));
-    assert!(!i.loadDataFrame(f4.unwrap()));
-    assert!(!i.loadDataFrame(f5.unwrap())); //false
-    assert!(i.loadDataFrame(f6.unwrap())); //true
-    let data = i.data();
-    assert_eq!(*data, vec!(1, 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 65, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 66, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 67, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 68, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 69, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 70, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 71, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48, 72, 49, 50, 51, 52, 53, 54, 55, 56, 57, 48));
-    assert_eq!(data.len(), 110);
+    let mut listen = TcpListener::bind("127.0.0.1:51234").unwrap();
+    let _handle = thread::spawn(move || {
+        let mut stream = listen.accept().unwrap().0; //blocks until client connected
+        let mut server = Tcp::new_stream(stream).unwrap();
+        let frame = server.recv().unwrap(); //wait for ping
+        match frame {
+            Frame::Header{id, length} => {
+                assert_eq!(id, 123);
+                assert_eq!(length, 9876);
+            }
+            Frame::Data{id, frame_no, data} => {
+                assert!(false);
+            }
+        }
+        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}); //send pong
+    });
+    let mut client = Tcp::new("127.0.0.1:51234").unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}); //send ping
+    let frame = client.recv().unwrap(); //wait for pong
+    match frame {
+        Frame::Header{id, length} => {
+            assert!(false);
+        }
+        Frame::Data{id, frame_no, data} => {
+            assert_eq!(id, 777);
+            assert_eq!(frame_no, 333);
+            assert_eq!(data, vec!(0, 10));
+            assert_ne!(data, vec!(0, 11));
+        }
+    }
 }
