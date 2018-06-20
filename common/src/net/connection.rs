@@ -40,7 +40,7 @@ impl Message for ConnectionMessage {
 pub struct Connection<RM: Message> {
     // sorted by prio and then cronically
     tcp: Tcp,
-    udp: Mutex<Option<Udp>>,
+    udp: Mutex<Option<Udp<SocketAddr>>>,
     callback: Mutex<Box<Fn(Box<RM>)+ Send>>,
     callbackobj: Mutex<Option<Box<Arc<Callback<RM> + Send + Sync>>>>,
     packet_in: Mutex<HashMap<u64, IncommingPacket>>,

@@ -1,5 +1,6 @@
+use std::net::SocketAddr;
 use net::protocol::Protocol;
-use std::sync::Mutex;
+use std::sync::{Mutex, RwLock};
 use std::io::{Write, Read, Cursor};
 use std::net::{UdpSocket, ToSocketAddrs};
 
@@ -8,39 +9,39 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use super::Error;
 use super::packet::{Frame};
 
-pub struct Udp {
-    socket_in: Mutex<UdpSocket>,
-    socket_out: Mutex<UdpSocket>,
+pub struct Udp<A: ToSocketAddrs> {
+    socket: RwLock<UdpSocket>,
+    remote: A,
 }
 
-impl Udp {
-    pub fn new<A: ToSocketAddrs>(listen: A, remote: A) -> Result<Udp, Error> {
-        let socket_in = UdpSocket::bind(listen)?;
-        let socket_out = UdpSocket::bind(remote)?;
+impl<A: ToSocketAddrs> Udp<A> {
+    pub fn new(listen: A, remote: A) -> Result<Udp<A>, Error> {
+        let socket = UdpSocket::bind(listen)?;
+        socket.connect(&remote);
         Ok(Udp {
-            socket_in: Mutex::new(socket_in),
-            socket_out: Mutex::new(socket_out),
+            socket: RwLock::new(socket),
+            remote: remote,
         })
     }
 
-    pub fn new_stream(listenSocket: UdpSocket, remoteSocket: UdpSocket) -> Result<Udp, Error> {
+    pub fn new_stream(socket: UdpSocket, remote: A) -> Result<Udp<A>, Error> {
         Ok(Udp {
-            socket_in: Mutex::new(listenSocket),
-            socket_out: Mutex::new(remoteSocket),
+            socket: RwLock::new(socket),
+            remote,
         })
     }
 }
 
-impl Protocol for Udp {
+impl<A: ToSocketAddrs> Protocol for Udp<A> {
     fn send(&self, frame: Frame) -> Result<(), Error> {
-        let socket = self.socket_out.lock().unwrap();
+        let socket = self.socket.read().unwrap();
         match frame {
             Frame::Header{id, length} => {
                 let mut buff = Vec::with_capacity(17);
                 buff.write_u8(1)?; // 1 is const for Header
                 buff.write_u64::<LittleEndian>(id)?;
                 buff.write_u64::<LittleEndian>(length)?;
-                socket.send(&buff)?;
+                socket.send_to(&buff, &self.remote)?;
                 Ok(())
             }
             Frame::Data{id, frame_no, data} => {
@@ -50,7 +51,7 @@ impl Protocol for Udp {
                 buff.write_u64::<LittleEndian>(frame_no)?;
                 buff.write_u64::<LittleEndian>(data.len() as u64)?;
                 buff.write_all(&data)?;
-                socket.send(&buff)?;
+                socket.send_to(&buff, &self.remote)?;
                 Ok(())
             }
         }
@@ -58,8 +59,15 @@ impl Protocol for Udp {
 
     //blocking
     fn recv(&self) -> Result<Frame, Error> {
-        let socket = self.socket_in.lock().unwrap();
-        let mut buff = Vec::with_capacity(1024);
+        let socket = self.socket.read().unwrap();
+        const MAX_UDP_SIZE : usize = 65535; // might not work in IPv6 Jumbograms
+        //TODO: maybe on demand resizing might be more efficient. and maybe its needed to not read multiple frames and drop all but the first here
+        let mut buff = Vec::with_capacity(MAX_UDP_SIZE);
+        buff.resize(MAX_UDP_SIZE, 0);
+        /*let ret = socket.peek_from(&mut buff)?;
+        if ret.1 == self.remote {
+
+        }*/
         socket.recv(&mut buff)?;
         let mut cur = Cursor::new(buff);
         let frame = cur.read_u8()? as u8;

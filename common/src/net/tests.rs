@@ -4,7 +4,7 @@ use bincode;
 use super::tcp::Tcp;
 use super::udp::Udp;
 use super::protocol::Protocol;
-use std::net::{TcpStream, TcpListener};
+use std::net::{TcpStream, TcpListener, UdpSocket};
 use std::thread;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -188,7 +188,7 @@ fn construct_message_wrong_order() {
 #[test]
 fn tcp_pingpong() {
     let mut listen = TcpListener::bind("127.0.0.1:51234").unwrap();
-    let _handle = thread::spawn(move || {
+    let handle = thread::spawn(move || {
         let mut stream = listen.accept().unwrap().0; //blocks until client connected
         let mut server = Tcp::new_stream(stream).unwrap();
         let frame = server.recv().unwrap(); //wait for ping
@@ -217,4 +217,90 @@ fn tcp_pingpong() {
             assert_ne!(data, vec!(0, 11));
         }
     }
+    handle.join().unwrap();
+}
+
+#[test]
+fn udp_pingpong() {
+    let serversock = UdpSocket::bind("127.0.0.1:51234").unwrap();
+    let clientsock = UdpSocket::bind("127.0.0.1:51235").unwrap();
+    clientsock.connect("127.0.0.1:51234").unwrap();
+    let client = Udp::new_stream(clientsock, "127.0.0.1:51234").unwrap();
+    let server = Udp::new_stream(serversock, "127.0.0.1:51235").unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
+    let frame = server.recv().unwrap(); //wait for ping
+    match frame {
+        Frame::Header{id, length} => {
+            assert_eq!(id, 123);
+            assert_eq!(length, 9876);
+        }
+        Frame::Data{..} => {
+            assert!(false);
+        }
+    }
+    server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}).unwrap(); //send pong
+    let frame = client.recv().unwrap(); //wait for pong
+    match frame {
+        Frame::Header{..} => {
+            assert!(false);
+        }
+        Frame::Data{id, frame_no, data} => {
+            assert_eq!(id, 777);
+            assert_eq!(frame_no, 333);
+            assert_eq!(data, vec!(0, 10));
+            assert_ne!(data, vec!(0, 11));
+        }
+    }
+}
+
+#[test]
+fn udp_pingpong_2clients() {
+    let serversock = UdpSocket::bind("127.0.0.1:51234").unwrap();
+    let clientsock = UdpSocket::bind("127.0.0.1:51235").unwrap();
+    let client2sock = UdpSocket::bind("127.0.0.1:51236").unwrap();
+    clientsock.connect("127.0.0.1:51234").unwrap();
+    let client = Udp::new_stream(clientsock, "127.0.0.1:51234").unwrap();
+    let client2 = Udp::new_stream(client2sock, "127.0.0.1:51234").unwrap();
+    let server = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51235").unwrap();
+    let server2 = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51236").unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
+    let frame = server2.recv().unwrap(); //wait for ping
+    match frame {
+        Frame::Header{id, length} => {
+            assert_eq!(id, 123);
+            assert_eq!(length, 9876);
+        }
+        Frame::Data{..} => {
+            assert!(false);
+        }
+    }
+    server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}).unwrap(); //send pong
+    let frame = client.recv().unwrap(); //wait for pong
+    match frame {
+        Frame::Header{..} => {
+            assert!(false);
+        }
+        Frame::Data{id, frame_no, data} => {
+            assert_eq!(id, 777);
+            assert_eq!(frame_no, 333);
+            assert_eq!(data, vec!(0, 10));
+            assert_ne!(data, vec!(0, 11));
+        }
+    }
+}
+
+//this test should not succed, it should hang. try it manual
+//#[test]
+fn udp_pingpong_2clients_negative() {
+    let serversock = UdpSocket::bind("127.0.0.1:51234").unwrap();
+    let clientsock = UdpSocket::bind("127.0.0.1:51235").unwrap();
+    let client2sock = UdpSocket::bind("127.0.0.1:51236").unwrap();
+    clientsock.connect("127.0.0.1:51234").unwrap();
+    let client = Udp::new_stream(clientsock, "127.0.0.1:51234").unwrap();
+    let client2 = Udp::new_stream(client2sock, "127.0.0.1:51234").unwrap();
+    let server = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51235").unwrap();
+    let server2 = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51236").unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
+    let frame = server2.recv().unwrap(); //wait for ping from other client
+    assert!(false);
 }
