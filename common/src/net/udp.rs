@@ -1,8 +1,11 @@
+use std::thread::ThreadId;
+use std::thread;
 use std::net::SocketAddr;
 use net::protocol::Protocol;
 use std::sync::{Mutex, RwLock};
 use std::io::{Write, Read, Cursor};
 use std::net::{UdpSocket, ToSocketAddrs};
+use std::collections::vec_deque::VecDeque;
 
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
@@ -12,6 +15,8 @@ use super::packet::{Frame};
 pub struct Udp<A: ToSocketAddrs> {
     socket: RwLock<UdpSocket>,
     remote: A,
+    in_buffer: RwLock<VecDeque<Vec<u8>>>,
+    waiting_threads: RwLock<Vec<ThreadId>>, //is a vec really needed here
 }
 
 impl<A: ToSocketAddrs> Udp<A> {
@@ -21,6 +26,8 @@ impl<A: ToSocketAddrs> Udp<A> {
         Ok(Udp {
             socket: RwLock::new(socket),
             remote: remote,
+            in_buffer: RwLock::new(VecDeque::new()),
+            waiting_threads: RwLock::new(Vec::new()),
         })
     }
 
@@ -28,7 +35,13 @@ impl<A: ToSocketAddrs> Udp<A> {
         Ok(Udp {
             socket: RwLock::new(socket),
             remote,
+            in_buffer: RwLock::new(VecDeque::new()),
+            waiting_threads: RwLock::new(Vec::new()),
         })
+    }
+
+    pub fn received_raw_packet(&self, rawpacket: Vec<u8>) {
+        self.in_buffer.write().unwrap().push_back(rawpacket);
     }
 }
 
@@ -59,17 +72,18 @@ impl<A: ToSocketAddrs> Protocol for Udp<A> {
 
     //blocking
     fn recv(&self) -> Result<Frame, Error> {
-        let socket = self.socket.read().unwrap();
-        const MAX_UDP_SIZE : usize = 65535; // might not work in IPv6 Jumbograms
-        //TODO: maybe on demand resizing might be more efficient. and maybe its needed to not read multiple frames and drop all but the first here
-        let mut buff = Vec::with_capacity(MAX_UDP_SIZE);
-        buff.resize(MAX_UDP_SIZE, 0);
-        /*let ret = socket.peek_from(&mut buff)?;
-        if ret.1 == self.remote {
-
-        }*/
-        socket.recv(&mut buff)?;
-        let mut cur = Cursor::new(buff);
+        {
+            if self.in_buffer.read().unwrap().is_empty() {
+                self.waiting_threads.write().unwrap().push(thread::current().id());
+                while self.in_buffer.read().unwrap().is_empty() {
+                    // hope a unpark does never happen in between those two statements
+                    thread::park();
+                }
+            }
+        }
+        let lock = self.in_buffer.read().unwrap();
+        let data = lock.front().unwrap();
+        let mut cur = Cursor::new(data);
         let frame = cur.read_u8()? as u8;
         match frame {
             1 => {
