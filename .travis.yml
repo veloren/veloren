@@ -23,5 +23,5 @@ env:
   - CRATE="worldtest"
 script:
   - cd $CRATE
-  - cargo test -v
+  - RUST_BACKTRACE=1 cargo test -v
   - if [[ "$CRATE" == common ]] ; then RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin ; cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID ; else echo "No Code Coverage" ; fi
