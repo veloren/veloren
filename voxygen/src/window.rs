@@ -1,7 +1,7 @@
 use gfx_window_glutin;
 use glutin;
 
-use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, DeviceEvent, WindowEvent, CursorState};
+use glutin::{EventsLoop, WindowBuilder, ContextBuilder, GlContext, GlRequest, GlWindow, DeviceEvent, WindowEvent, CursorState, MouseCursor};
 use glutin::Api::OpenGl;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
@@ -64,9 +64,11 @@ impl RenderWindow {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
                         if self.cursor_trapped.load(Ordering::Relaxed) {
-                            let _ = gl_window.set_cursor_state(CursorState::Grab);
+                            gl_window.set_cursor_state(CursorState::Grab).expect("Could not grab cursor");
+                            gl_window.set_cursor(MouseCursor::NoneCursor);
                         } else {
-                            let _ = gl_window.set_cursor_state(CursorState::Normal);
+                            gl_window.set_cursor_state(CursorState::Normal).expect("Could not ungrab cursor");
+                            gl_window.set_cursor(MouseCursor::Default);
                         }
                         func(Event::CursorMoved { dx, dy });
                     }
