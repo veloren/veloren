@@ -10,6 +10,7 @@ extern crate coord;
 mod block;
 mod chunk;
 mod entity;
+mod volume_reg;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
