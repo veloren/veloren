@@ -2,6 +2,7 @@ use get_if_addrs::get_if_addrs;
 use std::net::UdpSocket;
 use std::thread::JoinHandle;
 use super::tcp::Tcp;
+use super::udpmgr::UdpMgr;
 use super::udp::Udp;
 use super::protocol::Protocol;
 use super::message::{Message};
@@ -40,7 +41,8 @@ impl Message for ConnectionMessage {
 pub struct Connection<RM: Message> {
     // sorted by prio and then cronically
     tcp: Tcp,
-    udp: Mutex<Option<Udp<SocketAddr>>>,
+    udpmgr: Arc<UdpMgr>,
+    udp: Mutex<Option<Udp>>,
     callback: Mutex<Box<Fn(Box<RM>)+ Send>>,
     callbackobj: Mutex<Option<Box<Arc<Callback<RM> + Send + Sync>>>>,
     packet_in: Mutex<HashMap<u64, IncommingPacket>>,
@@ -54,7 +56,7 @@ pub struct Connection<RM: Message> {
 }
 
 impl<'a, RM: Message + 'static> Connection<RM> {
-    pub fn new<A: ToSocketAddrs>(remote: A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new<A: ToSocketAddrs>(remote: A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let mut packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for i in 0..255 {
@@ -63,6 +65,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
 
         let m = Connection {
             tcp: Tcp::new(remote)?,
+            udpmgr,
             udp: Mutex::new(None),
             callback:  Mutex::new(callback),
             callbackobj: Mutex::new(cb),
@@ -79,7 +82,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         Ok(Arc::new(m))
     }
 
-    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let mut packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for i in 0..255 {
@@ -88,6 +91,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
 
         let m = Connection {
             tcp: Tcp::new_stream(stream)?,
+            udpmgr,
             udp: Mutex::new(None),
             callback:  Mutex::new(callback),
             callbackobj: Mutex::new(cb),

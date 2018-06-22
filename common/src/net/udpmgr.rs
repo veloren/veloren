@@ -18,103 +18,94 @@ use bincode;
 use super::Error;
 
 struct UdpInfo {
-    socket: UdpSocket,
+    socket_info: Arc<SocketInfo>,
     remote: SocketAddr,
-    udp: Arc<Udp<SocketAddr>>,
-    recv_threads: Arc<JoinHandle<()>>,
+    udp: Arc<Udp>,
 }
 
-//Some things need to be syncronized between Udp, recieving for example. there can only be one thread receiving on one UDP socket. and UDP sockets are shared between Connections
+struct SocketInfo {
+    socket: UdpSocket,
+    recv_thread: JoinHandle<()>,
+}
+
 pub struct UdpMgr {
     subscriber: RwLock<Vec<UdpInfo>>,
+    sockets: RwLock<Vec<Arc<SocketInfo>>>,
 }
 
+// One Socket can handle multiple receivers, thats why we need a Manager here
+// Receiving can only be done onces and must be routed to the correct recveiver
 impl UdpMgr {
-    pub fn new() -> UdpMgr {
-        UdpMgr{
+    pub fn new() -> Arc<UdpMgr> {
+        Arc::new(UdpMgr{
             subscriber: RwLock::new(Vec::new()),
-        }
+            sockets: RwLock::new(Vec::new()),
+        })
     }
 
-    pub fn start_udp(&self, listen: SocketAddr, remote: SocketAddr) {
-        let mut socket = None;
-        let mut recv_threads = None;
+    pub fn start_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: A, remote: A) -> Arc<Udp> {
+        let mut socket_info = None;
+        let listen = listen.to_socket_addrs().unwrap().next().unwrap();
+        let remote = remote.to_socket_addrs().unwrap().next().unwrap();
         {
-            let subscriber = self.subscriber.read().unwrap();
+            let subscriber = mgr.subscriber.read().unwrap();
             for c in &(*subscriber) {
-                if c.socket.local_addr().unwrap() == listen {
-                    socket = Some(c.socket.try_clone().unwrap());
-                    recv_threads = Some(c.recv_threads.clone());
+                if c.socket_info.socket.local_addr().unwrap() == listen {
+                    socket_info = Some(c.socket_info.clone());
                     break;
                 }
             }
         }
 
-        if let None = socket {
-            socket = Some(UdpSocket::bind(listen).unwrap());
+        if let None = socket_info {
+            // if non eist for this socket create
+            let socket = UdpSocket::bind(listen).unwrap();
+            let socketclone = socket.try_clone().unwrap();
+            let mgrclone = mgr.clone();
+            let recv_thread = thread::spawn(move || {
+                mgrclone.recv_worker_udp(socketclone);
+            });
+            let socketclone = socket.try_clone().unwrap();
+            let si = Arc::new(SocketInfo {
+                socket: socketclone,
+                recv_thread,
+            });
+            mgr.sockets.write().as_mut().unwrap().push(si.clone());
+            socket_info = Some(si.clone());
+            debug!("listen on new udp socket, started a new thread {}", listen);
         }
-        let socket = socket.unwrap();
-        let udp = Arc::new(Udp::new_stream(socket, remote).unwrap());
-        if let None = recv_threads {
-            recv_threads = Some(Arc::new(thread::spawn(move || {
-                self.recv_worker_udp(udp.clone(), socket.try_clone().unwrap());
-            })));
-        }
-        let recv_threads = recv_threads.unwrap();
+        let socket_info = socket_info.unwrap();
 
-        let conn_info = UdpInfo{
-            socket,
+        let udp = Arc::new(Udp::new_stream(socket_info.socket.try_clone().unwrap(), remote).unwrap());
+        debug!("created udp listnen on {} for remote {}", listen, remote);
+        let ui = UdpInfo{
+            socket_info,
             remote,
-            udp,
-            recv_threads,
+            udp: udp.clone(),
         };
 
-        self.subscriber.write().as_mut().unwrap().push(conn_info);
+        mgr.subscriber.write().as_mut().unwrap().push(ui);
+        return udp.clone();
         /*
         manager.send(ConnectionMessage::OpenedUdp{ host: listen });*/
     }
 
-    fn recv_worker_udp(&self, udp: Arc<Udp<SocketAddr>>, socket: UdpSocket) {
+    fn recv_worker_udp(&self, socket: UdpSocket) {
         loop {
             const MAX_UDP_SIZE : usize = 65535; // might not work in IPv6 Jumbograms
             //TODO: not read multiple frames and drop all but the first here
-            let mut buff = Vec::with_capacity(MAX_UDP_SIZE);
-            buff.resize(MAX_UDP_SIZE, 0);
+            let mut buff = vec![0; MAX_UDP_SIZE];
+            println!("lock for msg");
             let (size, remote) = socket.recv_from(&mut buff).unwrap();
+            buff.resize(size, 0);
+            println!("rcved sth of  {} bytes on {}", size, socket.local_addr().unwrap());
             let subscriber = self.subscriber.read().unwrap();
-            for c in *subscriber {
-                if remote == c.remote {
-                    c.udp.received_raw_packet(buff);
+            for c in subscriber.iter() {
+                if remote == c.remote && socket.local_addr().unwrap() == c.socket_info.socket.local_addr().unwrap() {
+                    println!("forwarded it {} - {}", c.remote, c.socket_info.socket.local_addr().unwrap());
+                    c.udp.received_raw_packet(buff.clone());
                 }
             }
         }
     }
-
-    fn bind_udp<T: ToSocketAddrs>(bind_addr: &T) -> Result<UdpSocket, Error> {
-        let sock = UdpSocket::bind(&bind_addr);
-        match sock {
-            Ok(s) => Ok(s),
-            Err(_e) => {
-                let new_bind = bind_addr.to_socket_addrs()?
-                                        .next().unwrap()
-                                        .port() + 1;
-                let ip = get_if_addrs().unwrap()[0].ip();
-                let new_addr = SocketAddr::new(
-                    ip,
-                    new_bind
-                );
-                warn!("Binding local port failed, trying {}", new_addr);
-                UdpMgr::bind_udp(&new_addr)
-            },
-        }
-    }
-
-/*
-    pub fn recv<P: Packet>(&self) -> Result<P, Error> {
-        let mut stream = self.stream_in.lock().unwrap();
-        let packet_size = stream.read_u32::<LittleEndian>()? as usize;
-        let mut buff = vec![0; packet_size];
-        stream.read_exact(&mut buff)?;
-        Ok(P::from(&buff)?)
-    }*/
 }

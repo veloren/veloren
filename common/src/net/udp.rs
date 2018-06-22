@@ -1,4 +1,4 @@
-use std::thread::ThreadId;
+use std::thread::Thread;
 use std::thread;
 use std::net::SocketAddr;
 use net::protocol::Protocol;
@@ -12,16 +12,17 @@ use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use super::Error;
 use super::packet::{Frame};
 
-pub struct Udp<A: ToSocketAddrs> {
+pub struct Udp {
     socket: RwLock<UdpSocket>,
-    remote: A,
+    remote: SocketAddr,
     in_buffer: RwLock<VecDeque<Vec<u8>>>,
-    waiting_threads: RwLock<Vec<ThreadId>>, //is a vec really needed here
+    waiting_threads: RwLock<Vec<Thread>>, //is a vec really needed here
 }
 
-impl<A: ToSocketAddrs> Udp<A> {
-    pub fn new(listen: A, remote: A) -> Result<Udp<A>, Error> {
+impl Udp {
+    pub fn new<A: ToSocketAddrs>(listen: A, remote: A) -> Result<Udp, Error> {
         let socket = UdpSocket::bind(listen)?;
+        let remote = remote.to_socket_addrs().unwrap().next().unwrap();
         socket.connect(&remote);
         Ok(Udp {
             socket: RwLock::new(socket),
@@ -31,7 +32,8 @@ impl<A: ToSocketAddrs> Udp<A> {
         })
     }
 
-    pub fn new_stream(socket: UdpSocket, remote: A) -> Result<Udp<A>, Error> {
+    pub fn new_stream<A: ToSocketAddrs>(socket: UdpSocket, remote: A) -> Result<Udp, Error> {
+        let remote = remote.to_socket_addrs().unwrap().next().unwrap();
         Ok(Udp {
             socket: RwLock::new(socket),
             remote,
@@ -42,10 +44,14 @@ impl<A: ToSocketAddrs> Udp<A> {
 
     pub fn received_raw_packet(&self, rawpacket: Vec<u8>) {
         self.in_buffer.write().unwrap().push_back(rawpacket);
+        let lock = self.waiting_threads.read().unwrap();
+        for t in lock.iter() {
+            t.unpark();
+        }
     }
 }
 
-impl<A: ToSocketAddrs> Protocol for Udp<A> {
+impl Protocol for Udp {
     fn send(&self, frame: Frame) -> Result<(), Error> {
         let socket = self.socket.read().unwrap();
         match frame {
@@ -74,7 +80,7 @@ impl<A: ToSocketAddrs> Protocol for Udp<A> {
     fn recv(&self) -> Result<Frame, Error> {
         {
             if self.in_buffer.read().unwrap().is_empty() {
-                self.waiting_threads.write().unwrap().push(thread::current().id());
+                self.waiting_threads.write().unwrap().push(thread::current());
                 while self.in_buffer.read().unwrap().is_empty() {
                     // hope a unpark does never happen in between those two statements
                     thread::park();
