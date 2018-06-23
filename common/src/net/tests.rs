@@ -339,6 +339,8 @@ fn udp_pingpong() {
             assert_ne!(data, vec!(0, 11));
         }
     }
+    UdpMgr::stop_udp(mgr.clone(), server);
+    UdpMgr::stop_udp(mgr.clone(), client);
 }
 
 #[test]
@@ -377,6 +379,10 @@ fn udp_pingpong_2clients() {
             assert_ne!(data, vec!(0, 11));
         }
     }
+    UdpMgr::stop_udp(mgr.clone(), server);
+    UdpMgr::stop_udp(mgr.clone(), client);
+    UdpMgr::stop_udp(mgr.clone(), server2);
+    UdpMgr::stop_udp(mgr.clone(), client2);
 }
 
 #[test]
@@ -386,9 +392,11 @@ fn udp_pingpong_1000() {
     let clientip = PORTS.next();
     let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
     let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
+    let clientclone = client.clone();
+    let serverclone = server.clone();
     let handle = thread::spawn(move || {
-        for i in 0 .. 1000 {
-            client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
+        for i in 0 .. 1 {
+            clientclone.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
             if i % 80 == 0 {
                 thread::sleep(Duration::from_millis(150));
                 // i cant send to much because then packages get droped by the udp UdpSocket
@@ -399,9 +407,9 @@ fn udp_pingpong_1000() {
         println!(" -------- finished sending");
     });
     let handle2 = thread::spawn(move || {
-        for i in 0 .. 1000 {
+        for i in 0 .. 1 {
             println!("{}", i);
-            let frame = server.recv().unwrap(); //wait for ping
+            let frame = serverclone.recv().unwrap(); //wait for ping
             match frame {
                 Frame::Header{id, length} => {
                     assert_eq!(id, 123);
@@ -419,19 +427,21 @@ fn udp_pingpong_1000() {
     });
     handle.join().unwrap();
     handle2.join().unwrap();
+    UdpMgr::stop_udp(mgr.clone(), server);
+    UdpMgr::stop_udp(mgr.clone(), client);
 }
 
 //this test should not succed, it should hang. try it manual
 //#[test]
 fn udp_pingpong_2clients_negative() {
-    let serversock = UdpSocket::bind("127.0.0.1:51234").unwrap();
-    let clientsock = UdpSocket::bind("127.0.0.1:51235").unwrap();
-    let client2sock = UdpSocket::bind("127.0.0.1:51236").unwrap();
-    clientsock.connect("127.0.0.1:51234").unwrap();
-    let client = Udp::new_stream(clientsock, "127.0.0.1:51234").unwrap();
-    let client2 = Udp::new_stream(client2sock, "127.0.0.1:51234").unwrap();
-    let server = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51235").unwrap();
-    let server2 = Udp::new_stream(serversock.try_clone().unwrap(), "127.0.0.1:51236").unwrap();
+    let mgr = UdpMgr::new();
+    let serverip = PORTS.next();
+    let clientip = PORTS.next();
+    let clientip2 = PORTS.next();
+    let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
+    let server2 = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip2); // server has to know client ip
+    let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
+    let client2 = UdpMgr::start_udp(mgr.clone(), &clientip2, &serverip);
     client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
     let frame = server2.recv().unwrap(); //wait for ping from other client
     assert!(false);

@@ -1,7 +1,7 @@
 use std::net::UdpSocket;
 use std::thread::JoinHandle;
 use super::udp::Udp;
-use std::sync::{Arc, Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLock};
 use std::net::{ToSocketAddrs, SocketAddr};
 use std::thread;
 
@@ -77,10 +77,32 @@ impl UdpMgr {
         /*
         manager.send(ConnectionMessage::OpenedUdp{ host: listen });*/
     }
-    /*
-    pub fn stop_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: &A, remote: &A) -> Arc<Udp> {
 
-    }*/
+    pub fn stop_udp(mgr: Arc<UdpMgr>, udp: Arc<Udp>) {
+        let mut subscriber = mgr.subscriber.write();
+        let subscriber = subscriber.as_mut().unwrap();
+        let _sockets = mgr.sockets.write().as_mut().unwrap();
+        let mut udp_info = None;
+        for s in subscriber.iter() {
+            if Arc::ptr_eq(&s.udp, &udp) {
+                udp_info = Some(s);
+                break;
+            }
+        }
+        let udp_info = udp_info.expect("udp does not exist");
+        let mut socketusers = 0;
+        for ref s in subscriber.iter() {
+            if Arc::ptr_eq(&s.socket_info, &udp_info.socket_info) {
+                socketusers += 1;
+            }
+        }
+        if socketusers == 1 {
+            // stop socket
+            //actually i am to lazy to stop them now. sorry
+        }
+        let index = subscriber.iter().position(|x| Arc::ptr_eq(&x.udp, &udp_info.udp)).unwrap();
+        subscriber.remove(index);
+    }
 
     fn recv_worker_udp(&self, socket: UdpSocket) {
         loop {
