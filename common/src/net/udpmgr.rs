@@ -89,6 +89,10 @@ impl UdpMgr {
         /*
         manager.send(ConnectionMessage::OpenedUdp{ host: listen });*/
     }
+    /*
+    pub fn stop_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: &A, remote: &A) -> Arc<Udp> {
+        
+    }*/
 
     fn recv_worker_udp(&self, socket: UdpSocket) {
         loop {

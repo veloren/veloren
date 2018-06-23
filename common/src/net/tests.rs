@@ -245,6 +245,68 @@ fn tcp_pingpong() {
     handle.join().unwrap();
 }
 
+//test for manual testing
+//#[test]
+fn tcp_doublerecv() {
+    // Server waits for ping
+    // then server will send a pong
+    // but there are 2 threads listening on the same client
+    // only one will recv it, the other one will panic
+    let serverip = PORTS.next();
+    let mut listen = TcpListener::bind(&serverip).unwrap();
+    let handle = thread::spawn(move || {
+        let mut stream = listen.accept().unwrap().0; //blocks until client connected
+        let mut server = Tcp::new_stream(stream).unwrap();
+        let frame = server.recv().unwrap(); //wait for ping
+        match frame {
+            Frame::Header{id, length} => {
+                assert_eq!(id, 123);
+                assert_eq!(length, 9876);
+            }
+            Frame::Data{id, frame_no, data} => {
+                assert!(false);
+            }
+        }
+        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}); //send pong
+    });
+    let clientstream = TcpStream::connect(&serverip).unwrap();
+    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    let handle2 = thread::spawn(move || {
+        let frame = client.recv().unwrap(); //wait for pong
+        match frame {
+            Frame::Header{id, length} => {
+                assert!(false);
+            }
+            Frame::Data{id, frame_no, data} => {
+                assert_eq!(id, 777);
+                assert_eq!(frame_no, 333);
+                assert_eq!(data, vec!(0, 10));
+                assert_ne!(data, vec!(0, 11));
+            }
+        }
+    });
+    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    let handle3 = thread::spawn(move || {
+        let frame = client.recv().unwrap(); //wait for pong
+        match frame {
+            Frame::Header{id, length} => {
+                assert!(false);
+            }
+            Frame::Data{id, frame_no, data} => {
+                assert_eq!(id, 777);
+                assert_eq!(frame_no, 333);
+                assert_eq!(data, vec!(0, 10));
+                assert_ne!(data, vec!(0, 11));
+            }
+        }
+    });
+    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}); //send ping
+    handle.join().unwrap();
+    handle2.join().unwrap();
+    handle3.join().unwrap();
+}
+
 #[test]
 fn udp_pingpong() {
     let mgr = UdpMgr::new();
