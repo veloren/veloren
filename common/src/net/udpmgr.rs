@@ -87,7 +87,6 @@ impl UdpMgr {
             const MAX_UDP_SIZE : usize = 65535; // might not work in IPv6 Jumbograms
             //TODO: not read multiple frames and drop all but the first here
             let mut buff = vec![0; MAX_UDP_SIZE];
-            println!("lock for msg");
             let (size, remote) = socket.recv_from(&mut buff).unwrap();
             buff.resize(size, 0);
             println!("rcved sth of  {} bytes on {}", size, socket.local_addr().unwrap());
@@ -95,7 +94,7 @@ impl UdpMgr {
             for c in subscriber.iter() {
                 if remote == c.remote && socket.local_addr().unwrap() == c.socket_info.socket.local_addr().unwrap() {
                     println!("forwarded it {} - {}", c.remote, c.socket_info.socket.local_addr().unwrap());
-                    c.udp.received_raw_packet(buff.clone());
+                    c.udp.received_raw_packet(&buff);
                 }
             }
         }

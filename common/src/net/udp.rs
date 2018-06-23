@@ -2,7 +2,7 @@ use std::thread::Thread;
 use std::thread;
 use std::net::SocketAddr;
 use net::protocol::Protocol;
-use std::sync::{RwLock};
+use std::sync::{RwLock, Mutex};
 use std::io::{Write, Read, Cursor};
 use std::net::{UdpSocket, ToSocketAddrs};
 use std::collections::vec_deque::VecDeque;
@@ -16,7 +16,7 @@ pub struct Udp {
     socket: RwLock<UdpSocket>,
     remote: SocketAddr,
     in_buffer: RwLock<VecDeque<Vec<u8>>>,
-    waiting_threads: RwLock<Vec<Thread>>, //is a vec really needed here
+    waiting_thread: Mutex<Option<Thread>>, //is a vec really needed here
 }
 
 impl Udp {
@@ -28,7 +28,7 @@ impl Udp {
             socket: RwLock::new(socket),
             remote: remote,
             in_buffer: RwLock::new(VecDeque::new()),
-            waiting_threads: RwLock::new(Vec::new()),
+            waiting_thread: Mutex::new(None),
         })
     }
 
@@ -38,16 +38,17 @@ impl Udp {
             socket: RwLock::new(socket),
             remote,
             in_buffer: RwLock::new(VecDeque::new()),
-            waiting_threads: RwLock::new(Vec::new()),
+            waiting_thread: Mutex::new(None),
         })
     }
 
-    pub fn received_raw_packet(&self, rawpacket: Vec<u8>) {
-        self.in_buffer.write().unwrap().push_back(rawpacket);
-        let lock = self.waiting_threads.read().unwrap();
-        for t in lock.iter() {
+    pub fn received_raw_packet(&self, rawpacket: &Vec<u8>) {
+        self.in_buffer.write().unwrap().push_back(rawpacket.clone());
+        let mut lock = self.waiting_thread.lock().unwrap();
+        if let Some(ref t) = *lock {
             t.unpark();
         }
+        *lock = None;
     }
 }
 
@@ -78,17 +79,33 @@ impl Protocol for Udp {
 
     //blocking
     fn recv(&self) -> Result<Frame, Error> {
+        println!("r1");
         {
             if self.in_buffer.read().unwrap().is_empty() {
-                self.waiting_threads.write().unwrap().push(thread::current());
+                {
+                    let mut lock = self.waiting_thread.lock().unwrap();
+                    match *lock {
+                        Some(..) => panic!("Only one thread may wait for recv on udp"),
+                        None => {
+                            *lock = Some(thread::current());
+                        }
+                    }
+                }
                 while self.in_buffer.read().unwrap().is_empty() {
                     // hope a unpark does never happen in between those two statements
+                    println!("parked");
                     thread::park();
+                    println!("unparked");
                 }
             }
         }
-        let lock = self.in_buffer.read().unwrap();
-        let data = lock.front().unwrap();
+        println!("r2");
+        let data;
+        {
+            let mut lock = self.in_buffer.write().unwrap();
+            data = lock.pop_front().unwrap();
+
+        }
         let mut cur = Cursor::new(data);
         let frame = cur.read_u8()? as u8;
         match frame {

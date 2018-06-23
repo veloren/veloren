@@ -8,6 +8,7 @@ use super::protocol::Protocol;
 use std::net::{TcpStream, TcpListener, UdpSocket};
 use std::thread;
 use std::sync::{Arc, Mutex, MutexGuard};
+use std::time::Duration;
 
 struct TestPorts {
     next: Mutex<u32>,
@@ -376,6 +377,48 @@ fn udp_pingpong_2clients() {
             assert_ne!(data, vec!(0, 11));
         }
     }
+}
+
+#[test]
+fn udp_pingpong_1000() {
+    let mgr = UdpMgr::new();
+    let serverip = PORTS.next();
+    let clientip = PORTS.next();
+    let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
+    let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
+    let handle = thread::spawn(move || {
+        for i in 0 .. 1000 {
+            client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
+            if i % 80 == 0 {
+                thread::sleep(Duration::from_millis(150));
+                // i cant send to much because then packages get droped by the udp UdpSocket
+                // Its still a no guarantee protocol, and we expect that 1000 packets arive without loss
+
+            }
+        }
+        println!(" -------- finished sending");
+    });
+    let handle2 = thread::spawn(move || {
+        for i in 0 .. 1000 {
+            println!("{}", i);
+            let frame = server.recv().unwrap(); //wait for ping
+            match frame {
+                Frame::Header{id, length} => {
+                    assert_eq!(id, 123);
+                    assert_eq!(length, 9876);
+                }
+                Frame::Data{..} => {
+                    assert!(false);
+                }
+            }
+            if i % 60 == 0 {
+                thread::sleep(Duration::from_millis(10));
+            }
+        }
+        println!("finished receiving");
+    });
+    handle.join().unwrap();
+    handle2.join().unwrap();
 }
 
 //this test should not succed, it should hang. try it manual
