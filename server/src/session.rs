@@ -10,7 +10,7 @@ use std::time;
 use bifrost::Relay;
 
 // Project
-use common::net::{Connection, ServerMessage, ClientMessage, Message};
+use common::net::{Connection, ServerMessage, ClientMessage, Message, UdpMgr};
 use common::Uid;
 
 // Local
@@ -33,7 +33,7 @@ pub struct Session {
 }
 
 impl Session {
-    pub fn new(id: u32, stream: TcpStream, relay: &Relay<ServerContext>) -> Session {
+    pub fn new(id: u32, stream: TcpStream, udpmgr: Arc<UdpMgr>, relay: &Relay<ServerContext>) -> Session {
         let relay = relay.clone();
         let conn = Connection::new_stream(stream, Box::new(move |m| {
             //callback message
@@ -41,7 +41,7 @@ impl Session {
                 session_id: id,
                 data: *m,
             });
-        }), None).unwrap();
+        }), None, udpmgr).unwrap();
         Connection::start(&conn);
         let session = Session {
             id,

@@ -31,7 +31,7 @@ use coord::prelude::*;
 use region::Entity;
 use common::{get_version, Uid};
 use common::net;
-use common::net::{Connection, ServerMessage, ClientMessage, Callback};
+use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
 
 // Local
 use player::Player;
@@ -77,10 +77,10 @@ impl Callback<ServerMessage> for Client {
 
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
-        let mut conn = Connection::new::<U>(remote_addr, Box::new(|m| {
+        let mut conn = Connection::new::<U>(&remote_addr, Box::new(|m| {
             //
             //self.handle_packet(m);
-        }), None)?;
+        }), None, UdpMgr::new())?;
         conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
         Connection::start(&conn);
 
