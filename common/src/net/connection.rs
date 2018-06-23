@@ -56,7 +56,7 @@ pub struct Connection<RM: Message> {
 }
 
 impl<'a, RM: Message + 'static> Connection<RM> {
-    pub fn new<A: ToSocketAddrs>(remote: A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new<A: ToSocketAddrs>(remote: &A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let mut packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for i in 0..255 {
@@ -64,7 +64,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         }
 
         let m = Connection {
-            tcp: Tcp::new(remote)?,
+            tcp: Tcp::new(&remote)?,
             udpmgr,
             udp: Mutex::new(None),
             callback:  Mutex::new(callback),

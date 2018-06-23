@@ -43,7 +43,7 @@ impl UdpMgr {
         })
     }
 
-    pub fn start_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: A, remote: A) -> Arc<Udp> {
+    pub fn start_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: &A, remote: &A) -> Arc<Udp> {
         let mut socket_info = None;
         let listen = listen.to_socket_addrs().unwrap().next().unwrap();
         let remote = remote.to_socket_addrs().unwrap().next().unwrap();

@@ -7,6 +7,29 @@ use super::udpmgr::UdpMgr;
 use super::protocol::Protocol;
 use std::net::{TcpStream, TcpListener, UdpSocket};
 use std::thread;
+use std::sync::{Arc, Mutex, MutexGuard};
+
+struct TestPorts {
+    next: Mutex<u32>,
+}
+
+impl TestPorts {
+    pub fn new() -> TestPorts {
+        TestPorts {
+            next: Mutex::new(50000),
+        }
+    }
+
+    pub fn next(&self) -> String {
+        let mut n = self.next.lock().unwrap();
+        *n += 1;
+        format!("127.0.0.1:{}", *n)
+    }
+}
+
+lazy_static! {
+    static ref PORTS: TestPorts = TestPorts::new();
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TestMessage {
@@ -186,9 +209,10 @@ fn construct_message_wrong_order() {
     assert_eq!(data.len(), 110);
 }
 
-//#[test]
+#[test]
 fn tcp_pingpong() {
-    let mut listen = TcpListener::bind("127.0.0.1:51234").unwrap();
+    let serverip = PORTS.next();
+    let mut listen = TcpListener::bind(&serverip).unwrap();
     let handle = thread::spawn(move || {
         let mut stream = listen.accept().unwrap().0; //blocks until client connected
         let mut server = Tcp::new_stream(stream).unwrap();
@@ -204,7 +228,7 @@ fn tcp_pingpong() {
         }
         server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}); //send pong
     });
-    let mut client = Tcp::new("127.0.0.1:51234").unwrap();
+    let mut client = Tcp::new(&serverip).unwrap();
     client.send(Frame::Header{id: 123, length: 9876}); //send ping
     let frame = client.recv().unwrap(); //wait for pong
     match frame {
@@ -221,13 +245,13 @@ fn tcp_pingpong() {
     handle.join().unwrap();
 }
 
-//#[test]
+#[test]
 fn udp_pingpong() {
-    let serversock = UdpSocket::bind("127.0.0.1:51234").unwrap();
-    let clientsock = UdpSocket::bind("127.0.0.1:51235").unwrap();
-    clientsock.connect("127.0.0.1:51234").unwrap();
-    let client = Udp::new_stream(clientsock, "127.0.0.1:51234").unwrap();
-    let server = Udp::new_stream(serversock, "127.0.0.1:51235").unwrap();
+    let mgr = UdpMgr::new();
+    let serverip = PORTS.next();
+    let clientip = PORTS.next();
+    let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
+    let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
     client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
     let frame = server.recv().unwrap(); //wait for ping
     match frame {
@@ -257,10 +281,13 @@ fn udp_pingpong() {
 #[test]
 fn udp_pingpong_2clients() {
     let mgr = UdpMgr::new();
-    let server = UdpMgr::start_udp(mgr.clone(), "127.0.0.1:51234", "127.0.0.1:51235");
-    let server2 = UdpMgr::start_udp(mgr.clone(), "127.0.0.1:51234", "127.0.0.1:51236");
-    let client = UdpMgr::start_udp(mgr.clone(), "127.0.0.1:51235", "127.0.0.1:51234");
-    let client2 = UdpMgr::start_udp(mgr.clone(), "127.0.0.1:51236", "127.0.0.1:51234");
+    let serverip = PORTS.next();
+    let clientip = PORTS.next();
+    let clientip2 = PORTS.next();
+    let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip);
+    let server2 = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip2);
+    let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
+    let client2 = UdpMgr::start_udp(mgr.clone(), &clientip2, &serverip);
     client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
     println!("send");
     let frame = server.recv().unwrap(); //wait for ping

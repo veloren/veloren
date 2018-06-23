@@ -14,6 +14,8 @@ extern crate byteorder;
 extern crate rand;
 #[macro_use]
 extern crate coord;
+#[macro_use]
+extern crate lazy_static;
 
 // Reexports
 pub use clock::Clock;
