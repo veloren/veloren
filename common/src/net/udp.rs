@@ -2,7 +2,7 @@ use std::thread::Thread;
 use std::thread;
 use std::net::SocketAddr;
 use net::protocol::Protocol;
-use std::sync::{Mutex, RwLock};
+use std::sync::{RwLock};
 use std::io::{Write, Read, Cursor};
 use std::net::{UdpSocket, ToSocketAddrs};
 use std::collections::vec_deque::VecDeque;
@@ -23,7 +23,7 @@ impl Udp {
     pub fn new<A: ToSocketAddrs>(listen: A, remote: A) -> Result<Udp, Error> {
         let socket = UdpSocket::bind(listen)?;
         let remote = remote.to_socket_addrs().unwrap().next().unwrap();
-        socket.connect(&remote);
+        socket.connect(&remote).unwrap();
         Ok(Udp {
             socket: RwLock::new(socket),
             remote: remote,

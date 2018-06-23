@@ -1,21 +1,9 @@
-use get_if_addrs::get_if_addrs;
 use std::net::UdpSocket;
 use std::thread::JoinHandle;
-use super::tcp::Tcp;
 use super::udp::Udp;
-use super::protocol::Protocol;
-use super::message::{Message};
-use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError, PacketData};
-use super::connection::{Connection};
 use std::sync::{Arc, Mutex, MutexGuard, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use std::net::{TcpStream, ToSocketAddrs, SocketAddr};
+use std::net::{ToSocketAddrs, SocketAddr};
 use std::thread;
-use std::time;
-use std::collections::vec_deque::VecDeque;
-use std::collections::HashMap;
-use bincode;
-
-use super::Error;
 
 struct UdpInfo {
     socket_info: Arc<SocketInfo>,
@@ -91,7 +79,7 @@ impl UdpMgr {
     }
     /*
     pub fn stop_udp<A: ToSocketAddrs>(mgr: Arc<UdpMgr>, listen: &A, remote: &A) -> Arc<Udp> {
-        
+
     }*/
 
     fn recv_worker_udp(&self, socket: UdpSocket) {

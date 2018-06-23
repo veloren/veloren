@@ -57,9 +57,9 @@ pub struct Connection<RM: Message> {
 
 impl<'a, RM: Message + 'static> Connection<RM> {
     pub fn new<A: ToSocketAddrs>(remote: &A, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
-        let mut packet_in = HashMap::new();
+        let packet_in = HashMap::new();
         let mut packet_out = Vec::new();
-        for i in 0..255 {
+        for _i in 0..255 {
             packet_out.push(VecDeque::new());
         }
 
@@ -83,9 +83,9 @@ impl<'a, RM: Message + 'static> Connection<RM> {
     }
 
     pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<RM>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
-        let mut packet_in = HashMap::new();
+        let packet_in = HashMap::new();
         let mut packet_out = Vec::new();
-        for i in 0..255 {
+        for _i in 0..255 {
             packet_out.push(VecDeque::new());
         }
 
@@ -161,7 +161,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         *id += 1;
         let mut p = self.packet_out_count.write().unwrap();
         *p += 1;
-        let mut rt = self.send_thread.lock();
+        let rt = self.send_thread.lock();
         if let Some(cb) = rt.unwrap().as_mut() {
             //trigger sending
             cb.thread().unpark();
@@ -180,10 +180,10 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                 if packets[i].len() != 0 {
                     // build part
                     const SPLIT_SIZE: u64 = 2000;
-                    match packets[i][0].generateFrame(SPLIT_SIZE) {
+                    match packets[i][0].generate_frame(SPLIT_SIZE) {
                         Ok(frame) => {
                             // send it
-                            self.tcp.send(frame);
+                            self.tcp.send(frame).unwrap();
                         },
                         Err(FrameError::SendDone) => {
                             packets[i].pop_front();
@@ -211,8 +211,8 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                         }
                         Frame::Data{id, ..} => {
                             let mut packets = self.packet_in.lock().unwrap();
-                            let mut packet = packets.get_mut(&id);
-                            if packet.unwrap().loadDataFrame(frame) {
+                            let packet = packets.get_mut(&id);
+                            if packet.unwrap().load_data_frame(frame) {
                                 //convert
                                 let packet = packets.get_mut(&id);
                                 let data = packet.unwrap().data();
@@ -221,7 +221,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                                 let msg = Box::new(msg.unwrap());
                                 //trigger callback
                                 let f = self.callback.lock().unwrap();
-                                let mut co = self.callbackobj.lock();
+                                let co = self.callbackobj.lock();
                                 match co.unwrap().as_mut() {
                                     Some(cb) => {
                                         cb.recv(msg);
@@ -254,11 +254,11 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                 if packets[i].len() != 0 {
                     // build part
                     const SPLIT_SIZE: u64 = 2000;
-                    match packets[i][0].generateFrame(SPLIT_SIZE) {
+                    match packets[i][0].generate_frame(SPLIT_SIZE) {
                         Ok(frame) => {
                             // send it
                             let mut udp = self.udp.lock().unwrap();
-                            udp.as_mut().unwrap().send(frame);
+                            udp.as_mut().unwrap().send(frame).unwrap();
                         },
                         Err(FrameError::SendDone) => {
                             packets[i].pop_front();
@@ -287,8 +287,8 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                         }
                         Frame::Data{id, ..} => {
                             let mut packets = self.packet_in.lock().unwrap();
-                            let mut packet = packets.get_mut(&id);
-                            if packet.unwrap().loadDataFrame(frame) {
+                            let packet = packets.get_mut(&id);
+                            if packet.unwrap().load_data_frame(frame) {
                                 //convert
                                 let packet = packets.get_mut(&id);
                                 let data = packet.unwrap().data();
@@ -297,7 +297,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
                                 let msg = Box::new(msg.unwrap());
                                 //trigger callback
                                 let f = self.callback.lock().unwrap();
-                                let mut co = self.callbackobj.lock();
+                                let co = self.callbackobj.lock();
                                 match co.unwrap().as_mut() {
                                     Some(cb) => {
                                         cb.recv(msg);
