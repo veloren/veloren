@@ -10,6 +10,7 @@ extern crate get_if_addrs;
 extern crate nalgebra;
 extern crate time;
 #[macro_use] extern crate coord;
+extern crate dot_vox;
 
 extern crate client;
 extern crate common;
@@ -28,6 +29,7 @@ mod camera;
 mod render_volume;
 mod key_state;
 mod map;
+mod vox;
 
 use std::io;
 use std::net::SocketAddr;

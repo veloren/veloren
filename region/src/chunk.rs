@@ -61,6 +61,10 @@ impl Chunk {
             voxels,
         }
     }
+
+    fn pos_to_index(&self, pos: Vec3<i64>) -> usize {
+        (pos.x * self.size.y * self.size.z + pos.y * self.size.z + pos.z) as usize
+    }
 }
 
 impl Volume for Chunk {
@@ -82,6 +86,14 @@ impl Volume for Chunk {
         }
     }
 
+    fn filled_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>, block: Block) -> Self {
+        Chunk {
+            size,
+            offset,
+            voxels: vec![block; (size.x * size.y * size.z) as usize],
+        }
+    }
+
     fn size(&self) -> Vec3<i64> {
         self.size
     }
@@ -92,15 +104,21 @@ impl Volume for Chunk {
 
     fn at(&self, pos: Vec3<i64>) -> Option<Block> {
         if pos.x < 0 || pos.y < 0 || pos.z < 0 ||
-            pos.x >= self.size.x || pos.y >= self.size.y || pos.x >= self.size.y
+            pos.x >= self.size.x || pos.y >= self.size.y || pos.z >= self.size.z
         {
             None
         } else {
-            Some(self.voxels[(
-                pos.x * self.size.y * self.size.z +
-                pos.y * self.size.z +
-                pos.z
-            ) as usize])
+            Some(self.voxels[self.pos_to_index(pos)])
+        }
+    }
+
+    fn set(&mut self, pos: Vec3<i64>, vt: Block) {
+        if pos.x < 0 || pos.y < 0 || pos.z < 0 ||
+            pos.x >= self.size.x || pos.y >= self.size.y || pos.z >= self.size.z
+        {
+        } else {
+            let i = self.pos_to_index(pos);
+            self.voxels[i] = vt;
         }
     }
 }

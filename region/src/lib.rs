@@ -32,8 +32,10 @@ pub trait Volume {
 
     fn empty() -> Self;
     fn empty_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>) -> Self;
+    fn filled_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>, block: Self::VoxelType) -> Self;
 
     fn size(&self) -> Vec3<i64>;
     fn offset(&self) -> Vec3<i64>;
     fn at(&self, pos: Vec3<i64>) -> Option<Self::VoxelType>;
+    fn set(&mut self, pos: Vec3<i64>, vt: Self::VoxelType);
 }
