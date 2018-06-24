@@ -37,10 +37,18 @@ impl Session {
         let relay = relay.clone();
         let conn = Connection::new_stream(stream, Box::new(move |m| {
             //callback message
-            relay.send(PacketReceived {
-                session_id: id,
-                data: *m,
-            });
+            let ret = *m;
+            match ret {
+                Ok(message) => {
+                    relay.send(PacketReceived {
+                        session_id: id,
+                        data: message,
+                    });
+                },
+                _ => {
+                    relay.send(KickSession { session_id: id });
+                },
+            };
         }), None, udpmgr).unwrap();
         Connection::start(&conn);
         let session = Session {
@@ -53,32 +61,7 @@ impl Session {
 
         return session;
     }
-/*
-    pub fn start_listen_thread(&mut self, relay: Relay<ServerContext>) {
-        let packet_receiver = PacketReceiver::new(Some(self.packet_sender.borrow_mut().clone_tcp_stream()), None);
-        let id = self.id;
-        self.listen_thread_handle = Some(thread::spawn(move || {
-            Session::listen_for_packets(recv_conn, relay, id);
-        }));
-    }
 
-    fn listen_for_packets(recv_conn: RecvConn, relay: Relay<ServerContext>, session_id: u32) {
-        loop {
-            match recv_conn.recv() {
-                Ok(packet) => {
-                    relay.send(PacketReceived {
-                        session_id,
-                        data: packet,
-                    });
-                },
-                _ => {
-                    relay.send(KickSession { session_id });
-                    break;
-                },
-            }
-        }
-    }
-*/
     pub fn send_message(&self, message: ServerMessage) {
         self.conn.send(message);
         /*
@@ -86,6 +69,10 @@ impl Session {
             Ok(_) => {},
             Err(_) => self.state.set(SessionState::ShouldKick),
         }*/
+    }
+
+    pub fn stop_conn(&self) {
+        Connection::stop(&self.conn);
     }
 
     pub fn get_id(&self) -> u32 { self.id }

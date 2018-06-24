@@ -1,11 +1,12 @@
+use std::io::ErrorKind::UnexpectedEof;
 use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError, PacketData};
-use super::message::{Message, Error};
+use super::message::{Message, Error, Error::NetworkErr};
 use bincode;
 use super::tcp::Tcp;
 use super::udp::Udp;
 use super::udpmgr::UdpMgr;
 use super::protocol::Protocol;
-use std::net::{TcpStream, TcpListener, UdpSocket};
+use std::net::{TcpStream, TcpListener, Shutdown::Both};
 use std::thread;
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
@@ -243,6 +244,30 @@ fn tcp_pingpong() {
             assert_ne!(data, vec!(0, 11));
         }
     }
+    handle.join().unwrap();
+}
+
+#[test]
+fn tcp_disconnect() {
+    let serverip = PORTS.next();
+    let mut listen = TcpListener::bind(&serverip).unwrap();
+    let handle = thread::spawn(move || {
+        let mut stream = listen.accept().unwrap().0; //blocks until client connected
+        let mut server = Tcp::new_stream(stream).unwrap();
+        let msg = server.recv(); //wait for ping
+        match msg {
+            Err(NetworkErr(ref e)) if e.kind() == UnexpectedEof =>{
+                assert!(true);
+            },
+            _ => {
+                assert!(false);
+            }
+        }
+    });
+    let mut clientstream = TcpStream::connect(&serverip).unwrap();
+    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    thread::sleep(Duration::from_millis(150));
+    clientstream.shutdown(Both);
     handle.join().unwrap();
 }
 

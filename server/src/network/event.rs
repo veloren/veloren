@@ -6,7 +6,7 @@ use std::net::TcpStream;
 use bifrost::{Relay, Event};
 
 // Project
-use common::net::{Connection, ClientMessage, UdpMgr};
+use common::net::{Error, Connection, ClientMessage, UdpMgr};
 
 // Local
 use session::Session;

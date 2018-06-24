@@ -70,8 +70,8 @@ pub struct Client {
 }
 
 impl Callback<ServerMessage> for Client {
-    fn recv(&self, msg: Box<ServerMessage>) {
-        self.handle_packet(*msg);
+    fn recv(&self, msg: Box<Result<ServerMessage, common::net::Error>>) {
+        self.handle_packet(msg.unwrap());
     }
 }
 
@@ -194,6 +194,7 @@ impl Client {
         self.conn.send(ClientMessage::Disconnect);
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
+        //thread::sleep(time::Duration::from_millis(50)); // workaround for making sure that networking sends the Disconnect Msg
     }
 
     pub fn send_chat_msg(&self, msg: String) -> Result<(), Error> {

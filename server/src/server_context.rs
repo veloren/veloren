@@ -112,6 +112,8 @@ impl ServerContext {
 
     pub fn kick_session(&mut self, session_id: u32) {
         if let Some(session) = self.get_session(session_id) {
+            info!("Session '{}' disconnected!", session_id);
+            session.stop_conn();
             session.get_player_id().map(|player_id| self.kick_player(player_id));
         }
         self.del_session(session_id);
