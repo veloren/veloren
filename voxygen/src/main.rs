@@ -41,20 +41,8 @@ fn main() {
 
     info!("Starting Voxygen... Version: {}", get_version());
 
-    let ip = std::net::IpAddr::V4(std::net::Ipv4Addr::new(0,0,0,0));
-    let mut port = String::new();
-    println!("Local port [autodetect-59001]:");
-    io::stdin().read_line(&mut port).unwrap();
-    let mut port = port.trim();
-    if port.len() == 0 {
-        port = "59001";
-    }
-    let port = u16::from_str_radix(&port.trim(), 10).unwrap();
-
-    info!("Binding local port to {}:{}...", ip.to_string(), port);
-
     let mut remote_addr = String::new();
-    println!("Remote server address [127.0.0.1:59003]:");
+    println!("Remote server address [127.0.0.1:59003] (use m for testserver):");
     io::stdin().read_line(&mut remote_addr).unwrap();
     let mut remote_addr = remote_addr.trim();
     if remote_addr.len() == 0 {
@@ -67,7 +55,6 @@ fn main() {
     Game::new(
         ClientMode::Character,
         common::names::generate(),
-        SocketAddr::new(ip, port),
         remote_addr
     ).run();
 }
