@@ -37,7 +37,7 @@ struct Data {
 }
 
 impl Game {
-    pub fn new<B: ToSocketAddrs, R: ToSocketAddrs>(mode: ClientMode, alias: &str, bind_addr: B, remote_addr: R) -> Game {
+    pub fn new<R: ToSocketAddrs>(mode: ClientMode, alias: &str, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
         let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));

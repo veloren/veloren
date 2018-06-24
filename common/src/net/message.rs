@@ -1,9 +1,15 @@
+// Standard
+use std::io;
+
+// Library
 use bincode;
 use coord::prelude::*;
 
+// Local
 use Uid;
-use net::ClientMode;
-use std::io;
+
+// Parent
+use super::ClientMode;
 
 #[derive(Debug)]
 pub enum Error {

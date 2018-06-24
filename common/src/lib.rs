@@ -8,12 +8,13 @@ extern crate nalgebra;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-#[macro_use]
 extern crate time;
 extern crate byteorder;
 extern crate rand;
 #[macro_use]
 extern crate coord;
+#[macro_use]
+extern crate lazy_static;
 
 // Reexports
 pub use clock::Clock;

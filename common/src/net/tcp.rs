@@ -1,12 +1,15 @@
-use net::protocol::Protocol;
+// Standard
 use std::sync::Mutex;
 use std::io::{Write, Read};
 use std::net::{TcpStream, ToSocketAddrs};
 
+// Library
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
+// Parent
+use super::protocol::Protocol;
 use super::Error;
-use super::packet::{Frame};
+use super::packet::Frame;
 
 pub struct Tcp {
     stream_in: Mutex<TcpStream>,
@@ -14,8 +17,8 @@ pub struct Tcp {
 }
 
 impl Tcp {
-    pub fn new<A: ToSocketAddrs>(remote: A) -> Result<Tcp, Error> {
-        let stream = TcpStream::connect(remote)?;
+    pub fn new<A: ToSocketAddrs>(remote: &A) -> Result<Tcp, Error> {
+        let stream = TcpStream::connect(&remote)?;
         stream.set_nodelay(true)?;
         Ok(Tcp {
             stream_in: Mutex::new(stream.try_clone()?),

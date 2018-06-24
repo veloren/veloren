@@ -31,7 +31,7 @@ use coord::prelude::*;
 use region::Entity;
 use common::{get_version, Uid};
 use common::net;
-use common::net::{Connection, ServerMessage, ClientMessage, Callback};
+use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
 
 // Local
 use player::Player;
@@ -70,17 +70,17 @@ pub struct Client {
 }
 
 impl Callback<ServerMessage> for Client {
-    fn recv(&self, msg: Box<ServerMessage>) {
-        self.handle_packet(*msg);
+    fn recv(&self, msg: Box<Result<ServerMessage, common::net::Error>>) {
+        self.handle_packet(msg.unwrap());
     }
 }
 
 impl Client {
     pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
-        let mut conn = Connection::new::<U>(remote_addr, Box::new(|m| {
+        let mut conn = Connection::new::<U>(&remote_addr, Box::new(|m| {
             //
             //self.handle_packet(m);
-        }), None)?;
+        }), None, UdpMgr::new())?;
         conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
         Connection::start(&conn);
 
@@ -194,6 +194,7 @@ impl Client {
         self.conn.send(ClientMessage::Disconnect);
         self.set_status(ClientStatus::Disconnected);
         self.finished.wait();
+        //thread::sleep(time::Duration::from_millis(50)); // workaround for making sure that networking sends the Disconnect Msg
     }
 
     pub fn send_chat_msg(&self, msg: String) -> Result<(), Error> {

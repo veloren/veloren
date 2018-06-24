@@ -1,4 +1,5 @@
-use net::message::Message;
+// Parent
+use super::message::Message;
 
 #[derive(Debug)]
 pub enum Frame {
@@ -59,7 +60,7 @@ impl OutgoingPacket {
     }
 
     // maximal size of the frame (implementation aprox)
-    pub fn generateFrame(&mut self, size: u64) -> Result<Frame, FrameError> {
+    pub fn generate_frame(&mut self, size: u64) -> Result<Frame, FrameError> {
         if !self.headersend {
             self.headersend = true;
             Ok(Frame::Header{
@@ -110,7 +111,7 @@ impl IncommingPacket {
     }
 
     // returns finished
-    pub fn loadDataFrame(&mut self, data: Frame) -> bool {
+    pub fn load_data_frame(&mut self, data: Frame) -> bool {
         match data {
             Frame::Header{ .. } => {
                 panic!("not implemented");
