@@ -1,21 +1,24 @@
-use get_if_addrs::get_if_addrs;
+// Standard
 use std::net::UdpSocket;
 use std::thread::JoinHandle;
+use std::sync::{Arc, Mutex, MutexGuard, RwLock};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::net::{TcpStream, ToSocketAddrs, SocketAddr};
+use std::thread;
+use std::collections::vec_deque::VecDeque;
+use std::collections::HashMap;
+
+// Library
+use bincode;
+use get_if_addrs::get_if_addrs;
+
+// Parent
 use super::tcp::Tcp;
 use super::udpmgr::UdpMgr;
 use super::udp::Udp;
 use super::protocol::Protocol;
 use super::message::{Message};
 use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError};
-use std::sync::{Arc, Mutex, MutexGuard, RwLock};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::net::{TcpStream, ToSocketAddrs, SocketAddr};
-use std::thread;
-use std::time;
-use std::collections::vec_deque::VecDeque;
-use std::collections::HashMap;
-use bincode;
-
 use super::Error;
 
 pub trait Callback<RM: Message> {

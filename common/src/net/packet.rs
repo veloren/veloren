@@ -1,4 +1,5 @@
-use net::message::Message;
+// Parent
+use super::message::Message;
 
 #[derive(Debug)]
 pub enum Frame {

@@ -1,12 +1,15 @@
-use net::protocol::Protocol;
+// Standard
 use std::sync::Mutex;
 use std::io::{Write, Read};
 use std::net::{TcpStream, ToSocketAddrs};
 
+// Library
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
+// Parent
+use super::protocol::Protocol;
 use super::Error;
-use super::packet::{Frame};
+use super::packet::Frame;
 
 pub struct Tcp {
     stream_in: Mutex<TcpStream>,

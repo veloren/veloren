@@ -1,16 +1,19 @@
+// Standard
 use std::thread::Thread;
 use std::thread;
 use std::net::SocketAddr;
-use net::protocol::Protocol;
 use std::sync::{RwLock, Mutex};
 use std::io::{Write, Read, Cursor};
 use std::net::{UdpSocket, ToSocketAddrs};
 use std::collections::vec_deque::VecDeque;
 
+// Library
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
+// Parent
 use super::Error;
-use super::packet::{Frame};
+use super::packet::Frame;
+use super::protocol::Protocol;
 
 pub struct Udp {
     socket: RwLock<UdpSocket>,

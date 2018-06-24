@@ -1,15 +1,19 @@
+// Standard
 use std::io::ErrorKind::UnexpectedEof;
-use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError, PacketData};
-use super::message::{Message, Error, Error::NetworkErr};
-use bincode;
-use super::tcp::Tcp;
-use super::udp::Udp;
-use super::udpmgr::UdpMgr;
-use super::protocol::Protocol;
 use std::net::{TcpStream, TcpListener, Shutdown::Both};
 use std::thread;
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Mutex};
 use std::time::Duration;
+
+// Library
+use bincode;
+
+// Parent
+use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError};
+use super::message::{Message, Error, Error::NetworkErr};
+use super::tcp::Tcp;
+use super::udpmgr::UdpMgr;
+use super::protocol::Protocol;
 
 struct TestPorts {
     next: Mutex<u32>,

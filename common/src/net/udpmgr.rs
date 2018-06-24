@@ -1,9 +1,12 @@
+// Standard
 use std::net::UdpSocket;
 use std::thread::JoinHandle;
-use super::udp::Udp;
 use std::sync::{Arc, RwLock};
 use std::net::{ToSocketAddrs, SocketAddr};
 use std::thread;
+
+// Parent
+use super::udp::Udp;
 
 struct UdpInfo {
     socket_info: Arc<SocketInfo>,
