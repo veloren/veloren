@@ -37,8 +37,7 @@ impl Session {
         let relay = relay.clone();
         let conn = Connection::new_stream(stream, Box::new(move |m| {
             //callback message
-            let ret = *m;
-            match ret {
+            match m {
                 Ok(message) => {
                     relay.send(PacketReceived {
                         session_id: id,

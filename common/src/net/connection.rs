@@ -22,7 +22,7 @@ use super::packet::{OutgoingPacket, IncommingPacket, Frame, FrameError};
 use super::Error;
 
 pub trait Callback<RM: Message> {
-    fn recv(&self, Box<Result<RM, Error>>);
+    fn recv(&self, Result<RM, Error>);
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -47,8 +47,8 @@ pub struct Connection<RM: Message> {
     tcp: Tcp,
     udpmgr: Arc<UdpMgr>,
     udp: Mutex<Option<Udp>>,
-    callback: Mutex<Box<Fn(Box<Result<RM, Error>>)+ Send>>,
-    callbackobj: Mutex<Option<Box<Arc<Callback<RM> + Send + Sync>>>>,
+    callback: Mutex<Box<Fn(Result<RM, Error>)+ Send>>,
+    callbackobj: Mutex<Option<Arc<Callback<RM> + Send + Sync>>>,
     packet_in: Mutex<HashMap<u64, IncommingPacket>>,
     packet_out: Mutex<Vec<VecDeque<OutgoingPacket>>>,
     packet_out_count: RwLock<u64>,
@@ -61,7 +61,7 @@ pub struct Connection<RM: Message> {
 }
 
 impl<'a, RM: Message + 'static> Connection<RM> {
-    pub fn new<A: ToSocketAddrs>(remote: &A, callback: Box<Fn(Box<Result<RM, Error>>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new<A: ToSocketAddrs>(remote: &A, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for _i in 0..255 {
@@ -88,7 +88,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         Ok(Arc::new(m))
     }
 
-    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Box<Result<RM, Error>>) + Send>, cb: Option<Box<Arc<Callback<RM> + Send + Sync>>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
+    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for _i in 0..255 {
@@ -116,11 +116,11 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         Ok(m)
     }
 
-    pub fn set_callback(&mut self, callback: Box<Fn(Box<Result<RM, Error>>) + Send + Sync>) {
+    pub fn set_callback(&mut self, callback: Box<Fn(Result<RM, Error>) + Send + Sync>) {
         self.callback = Mutex::new(callback);
     }
 
-    pub fn callback(&self) -> MutexGuard<Box<Fn(Box<Result<RM, Error>>) + Send>> {
+    pub fn callback(&self) -> MutexGuard<Box<Fn(Result<RM, Error>) + Send>> {
         self.callback.lock().unwrap()
     }
 
@@ -144,7 +144,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         }));
     }
 
-    pub fn callbackobj(&self) -> MutexGuard<Option<Box<Arc<Callback<RM> + Send + Sync>>>> {
+    pub fn callbackobj(&self) -> MutexGuard<Option<Arc<Callback<RM> + Send + Sync>>> {
         self.callbackobj.lock().unwrap()
     }
 
@@ -182,7 +182,6 @@ impl<'a, RM: Message + 'static> Connection<RM> {
     }
 
     fn trigger_callback(&self, msg: Result<RM, Error>) {
-        let msg = Box::new(msg);
         //trigger callback
         let f = self.callback.lock().unwrap();
         let co = self.callbackobj.lock();

@@ -70,7 +70,7 @@ pub struct Client {
 }
 
 impl Callback<ServerMessage> for Client {
-    fn recv(&self, msg: Box<Result<ServerMessage, common::net::Error>>) {
+    fn recv(&self, msg: Result<ServerMessage, common::net::Error>) {
         self.handle_packet(msg.unwrap());
     }
 }
@@ -96,7 +96,7 @@ impl Client {
             finished: Barrier::new(2),
         });
 
-        *client.conn.callbackobj() = Some(Box::new(client.clone()));
+        *client.conn.callbackobj() = Some(client.clone());
 
         /*
         *client.conn.callback() = Box::new(|m: Box<ServerMessage>| {

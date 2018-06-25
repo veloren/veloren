@@ -18,7 +18,6 @@ pub fn vox_to_model(vox: DotVoxData) -> Chunk {
     for ref v in model.voxels.iter() {
         let pos = vec3!(v.x as i64, v.y as i64, v.z as i64);
         //let ref mut block = chunk.at(vec3!(v.x as i64, v.y as i64, v.z as i64)).unwrap();
-        println!("{:?}", pos);
         let nblock = <Block as OurVoxel>::new( BlockMaterial::Stone );
         chunk.set(pos, nblock);
     }
