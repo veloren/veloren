@@ -39,8 +39,8 @@ lazy_static! {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TestMessage {
-    smallMessage { value: u64 },
-    largeMessage { text: String },
+    SmallMessage { value: u64 },
+    LargeMessage { text: String },
 }
 
 impl Message for TestMessage {
@@ -105,7 +105,7 @@ fn check_done(frame: &Result<Frame, FrameError>,) {
 
 #[test]
 fn construct_frame() {
-    let mut p = OutgoingPacket::new(TestMessage::smallMessage{ value: 7 }, 3);
+    let mut p = OutgoingPacket::new(TestMessage::SmallMessage{ value: 7 }, 3);
     let f = p.generate_frame(10);
     check_header(&f, 3, 12);
     let f = p.generate_frame(12);
@@ -116,7 +116,7 @@ fn construct_frame() {
 
 #[test]
 fn construct_frame2() {
-    let mut p = OutgoingPacket::new(TestMessage::smallMessage{ value: 7 }, 3);
+    let mut p = OutgoingPacket::new(TestMessage::SmallMessage{ value: 7 }, 3);
     let f = p.generate_frame(10);
     check_header(&f, 3, 12);
     let f = p.generate_frame(100);
@@ -128,7 +128,7 @@ fn construct_frame2() {
 
 #[test]
 fn construct_splitframe() {
-    let mut p = OutgoingPacket::new(TestMessage::smallMessage{ value: 7 }, 3);
+    let mut p = OutgoingPacket::new(TestMessage::SmallMessage{ value: 7 }, 3);
     let f = p.generate_frame(10);
     check_header(&f, 3, 12);
     let f = p.generate_frame(10);
@@ -141,7 +141,7 @@ fn construct_splitframe() {
 
 #[test]
 fn construct_largeframe() {
-    let mut p = OutgoingPacket::new(TestMessage::largeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
+    let mut p = OutgoingPacket::new(TestMessage::LargeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
     let f = p.generate_frame(10);
     check_header(&f, 123, 110);
     let f = p.generate_frame(40);
@@ -160,7 +160,7 @@ fn construct_largeframe() {
 
 #[test]
 fn construct_message() {
-    let mut p = OutgoingPacket::new(TestMessage::largeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
+    let mut p = OutgoingPacket::new(TestMessage::LargeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
     let f1 = p.generate_frame(10);
     check_header(&f1, 123, 110);
     let f2= p.generate_frame(40);
@@ -189,7 +189,7 @@ fn construct_message() {
 #[test]
 #[should_panic]
 fn construct_message_wrong_order() {
-    let mut p = OutgoingPacket::new(TestMessage::largeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
+    let mut p = OutgoingPacket::new(TestMessage::LargeMessage{ text: "1234567890A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890".to_string() }, 123);
     let f1 = p.generate_frame(10);
     check_header(&f1, 123, 110);
     let f2= p.generate_frame(40);
@@ -218,27 +218,27 @@ fn construct_message_wrong_order() {
 #[test]
 fn tcp_pingpong() {
     let serverip = PORTS.next();
-    let mut listen = TcpListener::bind(&serverip).unwrap();
+    let listen = TcpListener::bind(&serverip).unwrap();
     let handle = thread::spawn(move || {
-        let mut stream = listen.accept().unwrap().0; //blocks until client connected
-        let mut server = Tcp::new_stream(stream).unwrap();
+        let stream = listen.accept().unwrap().0; //blocks until client connected
+        let server = Tcp::new_stream(stream).unwrap();
         let frame = server.recv().unwrap(); //wait for ping
         match frame {
             Frame::Header{id, length} => {
                 assert_eq!(id, 123);
                 assert_eq!(length, 9876);
             }
-            Frame::Data{id, frame_no, data} => {
+            Frame::Data{..} => {
                 assert!(false);
             }
         }
-        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}); //send pong
+        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}).unwrap(); //send pong
     });
-    let mut client = Tcp::new(&serverip).unwrap();
-    client.send(Frame::Header{id: 123, length: 9876}); //send ping
+    let client = Tcp::new(&serverip).unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
     let frame = client.recv().unwrap(); //wait for pong
     match frame {
-        Frame::Header{id, length} => {
+        Frame::Header{..} => {
             assert!(false);
         }
         Frame::Data{id, frame_no, data} => {
@@ -254,10 +254,10 @@ fn tcp_pingpong() {
 #[test]
 fn tcp_disconnect() {
     let serverip = PORTS.next();
-    let mut listen = TcpListener::bind(&serverip).unwrap();
+    let listen = TcpListener::bind(&serverip).unwrap();
     let handle = thread::spawn(move || {
-        let mut stream = listen.accept().unwrap().0; //blocks until client connected
-        let mut server = Tcp::new_stream(stream).unwrap();
+        let stream = listen.accept().unwrap().0; //blocks until client connected
+        let server = Tcp::new_stream(stream).unwrap();
         let msg = server.recv(); //wait for ping
         match msg {
             Err(NetworkErr(ref e)) if e.kind() == UnexpectedEof =>{
@@ -268,10 +268,10 @@ fn tcp_disconnect() {
             }
         }
     });
-    let mut clientstream = TcpStream::connect(&serverip).unwrap();
-    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    let clientstream = TcpStream::connect(&serverip).unwrap();
+    let _client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
     thread::sleep(Duration::from_millis(150));
-    clientstream.shutdown(Both);
+    clientstream.shutdown(Both).unwrap();
     handle.join().unwrap();
 }
 
@@ -283,28 +283,28 @@ fn tcp_doublerecv() {
     // but there are 2 threads listening on the same client
     // only one will recv it, the other one will panic
     let serverip = PORTS.next();
-    let mut listen = TcpListener::bind(&serverip).unwrap();
+    let listen = TcpListener::bind(&serverip).unwrap();
     let handle = thread::spawn(move || {
-        let mut stream = listen.accept().unwrap().0; //blocks until client connected
-        let mut server = Tcp::new_stream(stream).unwrap();
+        let stream = listen.accept().unwrap().0; //blocks until client connected
+        let server = Tcp::new_stream(stream).unwrap();
         let frame = server.recv().unwrap(); //wait for ping
         match frame {
             Frame::Header{id, length} => {
                 assert_eq!(id, 123);
                 assert_eq!(length, 9876);
             }
-            Frame::Data{id, frame_no, data} => {
+            Frame::Data{..} => {
                 assert!(false);
             }
         }
-        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}); //send pong
+        server.send(Frame::Data{id: 777, frame_no: 333, data: vec!(0, 10)}).unwrap(); //send pong
     });
     let clientstream = TcpStream::connect(&serverip).unwrap();
-    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    let client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
     let handle2 = thread::spawn(move || {
         let frame = client.recv().unwrap(); //wait for pong
         match frame {
-            Frame::Header{id, length} => {
+            Frame::Header{..} => {
                 assert!(false);
             }
             Frame::Data{id, frame_no, data} => {
@@ -315,11 +315,11 @@ fn tcp_doublerecv() {
             }
         }
     });
-    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    let client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
     let handle3 = thread::spawn(move || {
         let frame = client.recv().unwrap(); //wait for pong
         match frame {
-            Frame::Header{id, length} => {
+            Frame::Header{..} => {
                 assert!(false);
             }
             Frame::Data{id, frame_no, data} => {
@@ -330,8 +330,8 @@ fn tcp_doublerecv() {
             }
         }
     });
-    let mut client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
-    client.send(Frame::Header{id: 123, length: 9876}); //send ping
+    let client = Tcp::new_stream(clientstream.try_clone().unwrap()).unwrap();
+    client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
     handle.join().unwrap();
     handle2.join().unwrap();
     handle3.join().unwrap();
@@ -467,11 +467,11 @@ fn udp_pingpong_2clients_negative() {
     let serverip = PORTS.next();
     let clientip = PORTS.next();
     let clientip2 = PORTS.next();
-    let server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
+    let _server = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip); // server has to know client ip
     let server2 = UdpMgr::start_udp(mgr.clone(), &serverip, &clientip2); // server has to know client ip
     let client = UdpMgr::start_udp(mgr.clone(), &clientip, &serverip);
-    let client2 = UdpMgr::start_udp(mgr.clone(), &clientip2, &serverip);
+    let _client2 = UdpMgr::start_udp(mgr.clone(), &clientip2, &serverip);
     client.send(Frame::Header{id: 123, length: 9876}).unwrap(); //send ping
-    let frame = server2.recv().unwrap(); //wait for ping from other client
+    let _frame = server2.recv().unwrap(); //wait for ping from other client
     assert!(false);
 }

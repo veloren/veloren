@@ -20,9 +20,9 @@ pub use region::Volume as Volume;
 // Standard
 use std::thread;
 use std::time;
-use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard, Barrier};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, Barrier};
 use std::collections::HashMap;
-use std::net::{ToSocketAddrs, TcpStream};
+use std::net::{ToSocketAddrs};
 
 // Library
 use coord::prelude::*;
@@ -162,20 +162,6 @@ impl Client {
     }
 
     fn start(client: Arc<Client>) {
-        /*let client_ref = client.clone();
-
-        thread::spawn(move || {
-            while *client_ref.status() != ClientStatus::Disconnected {
-                match client_ref.mngr.recv() {
-                    Ok(p) => client_ref.handle_packet(p),
-                    Err(e) => warn!("Receive error: {:?}", e),
-                }
-            }
-            // Notify anything else that we've finished networking
-            client_ref.finished.wait();
-        });
-        */
-
 
         let client_ref = client.clone();
         thread::spawn(move || {

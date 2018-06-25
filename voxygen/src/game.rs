@@ -1,11 +1,11 @@
 // Standard
 use std::net::ToSocketAddrs;
-use std::sync::{Arc, Mutex, RwLock, RwLockWriteGuard};
+use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 //use std::f32::{sin, cos};
 
 // Library
-use nalgebra::{Vector2, Vector3, Matrix4, Translation3, convert};
+use nalgebra::{Vector2, Vector3, Translation3, convert};
 use coord::prelude::*;
 use glutin::{ElementState, VirtualKeyCode};
 use dot_vox;
@@ -18,7 +18,7 @@ use map::Map;
 use camera::Camera;
 use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
-use mesh::{Mesh, Vertex};
+use mesh::{Mesh};
 use region::Chunk;
 use key_state::KeyState;
 use vox::vox_to_model;
@@ -40,7 +40,7 @@ struct Data {
 
 impl Game {
     pub fn new<R: ToSocketAddrs>(mode: ClientMode, alias: &str, remote_addr: R) -> Game {
-        let mut window = RenderWindow::new();
+        let window = RenderWindow::new();
 
         let vox = dot_vox::load("vox/3.vox").unwrap();
         let voxmodel = vox_to_model(vox);
@@ -58,7 +58,7 @@ impl Game {
             Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
         ]);*/
-        let mut player_mesh = Mesh::from(&voxmodel);
+        let player_mesh = Mesh::from(&voxmodel);
 
         let player_model = ModelObject::new(
             &mut window.renderer_mut(),
@@ -102,7 +102,7 @@ impl Game {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
                 Event::CursorMoved { dx, dy } => {
-                    let mut data = self.data.lock().unwrap();
+                    let data = self.data.lock().unwrap();
 
                     if self.window.cursor_trapped().load(Ordering::Relaxed) {
                         //debug!("dx: {}, dy: {}", dx, dy);
@@ -145,7 +145,7 @@ impl Game {
                 Event::Resized { w, h } => {
                     self.camera.lock().unwrap().set_aspect_ratio(w as f32 / h as f32);
                 },
-                _ => {},
+                //_ => {},
             }
         });
 
@@ -189,7 +189,7 @@ impl Game {
             renderer.render_model_object(&model);
         }
 
-        for (uid, entity) in self.client.entities().iter() {
+        for (.., entity) in self.client.entities().iter() {
             renderer.update_model_object(
                 &self.data.lock().unwrap().player_model,
                 Constants::new(

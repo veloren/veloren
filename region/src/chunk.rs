@@ -1,4 +1,3 @@
-use rand;
 use noise::{NoiseFn, OpenSimplex, Seedable};
 use coord::prelude::*;
 
@@ -13,10 +12,10 @@ pub struct Chunk {
 impl Chunk {
     pub fn test(offset: Vec3<i64>, size: Vec3<i64>) -> Chunk {
 
-        let mut noise0 = OpenSimplex::new().set_seed(1337);
-        let mut noise1 = OpenSimplex::new().set_seed(1338);
-        let mut noise2 = OpenSimplex::new().set_seed(1339);
-        let mut noise3 = OpenSimplex::new().set_seed(1340);
+        let noise0 = OpenSimplex::new().set_seed(1337);
+        let noise1 = OpenSimplex::new().set_seed(1338);
+        let noise2 = OpenSimplex::new().set_seed(1339);
+        let noise3 = OpenSimplex::new().set_seed(1340);
 
         let mut voxels = Vec::new();
 

@@ -6,7 +6,7 @@ use glutin::Api::OpenGl;
 
 use renderer::{Renderer, ColorFormat, DepthFormat};
 
-use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub enum Event {
@@ -115,7 +115,7 @@ impl RenderWindow {
                             i: input,
                         });
                     },
-                    WindowEvent::MouseInput { device_id, state, button, modifiers } => {
+                    WindowEvent::MouseInput { button, .. } => {
                         if button == glutin::MouseButton::Left {
                             self.cursor_trapped.store(true, Ordering::Relaxed);
                             let _ = gl_window.set_cursor_state(CursorState::Grab);

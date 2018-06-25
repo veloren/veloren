@@ -1,8 +1,4 @@
 // Standard
-use std::net::ToSocketAddrs;
-use std::sync::{Arc, Mutex, RwLock, RwLockWriteGuard};
-use std::sync::atomic::{AtomicBool, Ordering};
-//use std::f32::{sin, cos};
 
 // Library
 use coord::prelude::*;
@@ -13,7 +9,6 @@ use client::Volume;
 
 // Local
 use model_object::{ModelObject, Constants};
-use mesh::{Mesh, Vertex};
 use dot_vox::{DotVoxData, Model, Voxel};
 
 pub fn vox_to_model(vox: DotVoxData) -> Chunk {

@@ -32,7 +32,6 @@ mod map;
 mod vox;
 
 use std::io;
-use std::net::SocketAddr;
 
 use client::ClientMode;
 use game::Game;
@@ -53,7 +52,6 @@ fn main() {
         remote_addr = "91.67.21.222:38888";
     }
 
-    let name_seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().subsec_micros();
     Game::new(
         ClientMode::Character,
         common::names::generate(),
