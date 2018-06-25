@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use nalgebra::{Vector2, Vector3, Matrix4, Translation3, convert};
 use coord::prelude::*;
 use glutin::{ElementState, VirtualKeyCode};
+use dot_vox;
 
 // Project
 use client::{Client, ClientMode};
@@ -20,6 +21,7 @@ use model_object::{ModelObject, Constants};
 use mesh::{Mesh, Vertex};
 use region::Chunk;
 use key_state::KeyState;
+use vox::vox_to_model;
 
 pub struct Game {
     running: AtomicBool,
@@ -40,9 +42,12 @@ impl Game {
     pub fn new<R: ToSocketAddrs>(mode: ClientMode, alias: &str, remote_addr: R) -> Game {
         let mut window = RenderWindow::new();
 
+        let vox = dot_vox::load("vox/3.vox").unwrap();
+        let voxmodel = vox_to_model(vox);
+
         let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));
         let test_mesh = Mesh::from(&chunk);
-
+/*
         let mut player_mesh = Mesh::new();
         player_mesh.add(&[
             Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
@@ -52,7 +57,8 @@ impl Game {
             Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
             Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
             Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
-        ]);
+        ]);*/
+        let mut player_mesh = Mesh::from(&voxmodel);
 
         let player_model = ModelObject::new(
             &mut window.renderer_mut(),
