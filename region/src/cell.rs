@@ -18,12 +18,12 @@ impl Voxel for Cell {
 
     fn empty() -> Self {
         Cell {
-            color: 0,
+            color: 255,
         }
     }
 
     fn is_solid(&self) -> bool {
-        self.color != 0
+        self.color != 255
     }
 
     fn material(&self) -> Self::Material {

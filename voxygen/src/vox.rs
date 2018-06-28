@@ -15,7 +15,7 @@ pub fn vox_to_model(vox: DotVoxData) -> OurModel {
     let model = vox.models.first().unwrap();
     let block = <Cell as OurVoxel>::new( 255 );
     let mut chunk = OurModel::new();
-    chunk.set_size(vec3!((model.size.x+1) as i64, (model.size.y+1) as i64, (model.size.z+1) as i64));
+    chunk.set_size(vec3!((model.size.x) as i64, (model.size.y) as i64, (model.size.z) as i64));
     chunk.set_offset(vec3!(0,0,0));
     chunk.set_scale(vec3!(0.1,0.1,0.1));
     chunk.fill(block);
