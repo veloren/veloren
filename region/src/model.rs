@@ -7,7 +7,7 @@ pub struct Model {
     size: Vec3<i64>,
     offset: Vec3<i64>,
     rotation: Vec3<f64>,
-    zoom: Vec3<f64>,
+    scale: Vec3<f64>,
     voxels: Vec<Cell>,
 }
 
@@ -29,7 +29,7 @@ impl Model {
             offset,
             voxels,
             rotation: Vec3::new(0.0, 0.0, 0.0),
-            zoom: Vec3::new(1.0, 1.0, 1.0),
+            scale: Vec3::new(1.0, 1.0, 1.0),
         }
     }
 
@@ -47,7 +47,7 @@ impl Volume for Model {
             offset: Vec3::from((0, 0, 0)),
             voxels: Vec::new(),
             rotation: Vec3::new(0.0, 0.0, 0.0),
-            zoom: Vec3::new(1.0, 1.0, 1.0),
+            scale: Vec3::new(1.0, 1.0, 1.0),
         }
     }
 
@@ -69,8 +69,8 @@ impl Volume for Model {
         self.rotation
     }
 
-    fn zoom(&self) -> Vec3<f64> {
-        self.zoom
+    fn scale(&self) -> Vec3<f64> {
+        self.scale
     }
 
     fn set_size(&mut self, size: Vec3<i64>) {
@@ -100,5 +100,16 @@ impl Volume for Model {
             let i = self.pos_to_index(pos);
             self.voxels[i] = vt;
         }
+    }
+}
+
+
+impl Model {
+    pub fn set_rotation(&mut self, rotation: Vec3<f64>) {
+        self.rotation = rotation;
+    }
+
+    pub fn set_scale(&mut self, scale: Vec3<f64>) {
+        self.scale = scale;
     }
 }

@@ -95,7 +95,7 @@ impl Volume for Chunk {
         Vec3::new(0.0, 0.0, 0.0)
     }
 
-    fn zoom(&self) -> Vec3<f64> {
+    fn scale(&self) -> Vec3<f64> {
         Vec3::new(1.0, 1.0, 1.0)
     }
 

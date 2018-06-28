@@ -1,6 +1,7 @@
 use region::Voxel;
 use render_volume::{RenderVoxel, RenderVolume};
 use coord::vec3::Vec3;
+use coord::prelude::*;
 
 gfx_defines! {
     vertex Vertex {
@@ -71,84 +72,87 @@ impl Mesh {
         where V::VoxelType : RenderVoxel
     {
         let mut mesh = Mesh::new();
+        let scale = vol.scale();
+        let scale = Vec3::new(scale.x as f32, scale.y as f32, scale.z as f32);
 
         for x in 0..vol.size().x {
             for y in 0..vol.size().y {
                 for z in 0..vol.size().z {
                     let vox = vol.at(Vec3::from((x, y, z))).expect("Attempted to mesh voxel outside volume");
+                    let offset = Vec3::new(x as f32 * scale.x, y as f32 * scale.y, z as f32 * scale.z);
 
                     if vox.is_opaque() {
                         // +x
                         if !vol.at(Vec3::from((x + 1, y, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
-                                [1.0, 0.0, 0.0],
-                                [1.0, 1.0, 0.0],
-                                [1.0, 1.0, 1.0],
-                                [1.0, 0.0, 1.0],
+                                [scale.x, 0.0, 0.0],
+                                [scale.x, scale.y, 0.0],
+                                [scale.x, scale.y, scale.z],
+                                [scale.x, 0.0, scale.z],
                                 [1.0, 0.0, 0.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                         // -x
                         if !vol.at(Vec3::from((x - 1, y, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
-                                [0.0, 1.0, 0.0],
+                                [0.0, scale.y, 0.0],
                                 [0.0, 0.0, 0.0],
-                                [0.0, 0.0, 1.0],
-                                [0.0, 1.0, 1.0],
+                                [0.0, 0.0, scale.z],
+                                [0.0, scale.y, scale.z],
                                 [-1.0, 0.0, 0.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                         // +y
                         if !vol.at(Vec3::from((x, y + 1, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
-                                [1.0, 1.0, 0.0],
-                                [0.0, 1.0, 0.0],
-                                [0.0, 1.0, 1.0],
-                                [1.0, 1.0, 1.0],
+                                [scale.x, scale.y, 0.0],
+                                [0.0, scale.y, 0.0],
+                                [0.0, scale.y, scale.z],
+                                [scale.x, scale.y, scale.z],
                                 [0.0, 1.0, 0.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                         // -y
                         if !vol.at(Vec3::from((x, y - 1, z))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
                                 [0.0, 0.0, 0.0],
-                                [1.0, 0.0, 0.0],
-                                [1.0, 0.0, 1.0],
-                                [0.0, 0.0, 1.0],
+                                [scale.x, 0.0, 0.0],
+                                [scale.x, 0.0, scale.z],
+                                [0.0, 0.0, scale.z],
                                 [0.0, -1.0, 0.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                         // +z
                         if !vol.at(Vec3::from((x, y, z + 1))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
-                                [0.0, 0.0, 1.0],
-                                [1.0, 0.0, 1.0],
-                                [1.0, 1.0, 1.0],
-                                [0.0, 1.0, 1.0],
+                                [0.0, 0.0, scale.z],
+                                [scale.x, 0.0, scale.z],
+                                [scale.x, scale.y, scale.z],
+                                [0.0, scale.y, scale.z],
                                 [0.0, 0.0, 1.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                         // -z
                         if !vol.at(Vec3::from((x, y, z - 1))).unwrap_or(V::VoxelType::empty()).is_opaque() {
                             let col = vox.get_color();
                             mesh.add_quads(&[Quad::flat_with_color(
-                                [1.0, 0.0, 0.0],
+                                [scale.x, 0.0, 0.0],
                                 [0.0, 0.0, 0.0],
-                                [0.0, 1.0, 0.0],
-                                [1.0, 1.0, 0.0],
+                                [0.0, scale.y, 0.0],
+                                [scale.x, scale.y, 0.0],
                                 [0.0, 0.0, -1.0], // Normal
                                 [col.x, col.y, col.z, col.w], // Color
-                            ).with_offset([x as f32, y as f32, z as f32])]);
+                            ).with_offset([offset.x, offset.y, offset.z])]);
                         }
                     }
                 }

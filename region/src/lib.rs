@@ -40,7 +40,7 @@ pub trait Volume {
     fn size(&self) -> Vec3<i64>;
     fn offset(&self) -> Vec3<i64>;
     fn rotation(&self) -> Vec3<f64>;
-    fn zoom(&self) -> Vec3<f64>;
+    fn scale(&self) -> Vec3<f64>;
 
     fn set_size(&mut self, size: Vec3<i64>);
     fn set_offset(&mut self, offset: Vec3<i64>);

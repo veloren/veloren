@@ -110,7 +110,7 @@ impl Game {
                     }
                 },
                 Event::MouseWheel { dy, .. } => {
-                    self.camera.lock().unwrap().zoom_by(-dy as f32);
+                    self.camera.lock().unwrap().zoom_by((-dy / 4.0) as f32);
                 },
                 Event::KeyboardInput { i, .. } => {
                     match i.virtual_keycode {
@@ -195,7 +195,7 @@ impl Game {
                 Constants::new(
                     &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous(), // TODO: Improve this
                     &camera_mats.0,
-                    &camera_mats.1
+                    &camera_mats.1,
                 )
             );
             renderer.render_model_object(&self.data.lock().unwrap().player_model);
