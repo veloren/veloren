@@ -69,7 +69,7 @@ impl Chunk {
 impl Volume for Chunk {
     type VoxelType = Block;
 
-    fn empty() -> Self {
+    fn new() -> Self {
         Chunk {
             size: Vec3::from((0, 0, 0)),
             offset: Vec3::from((0, 0, 0)),
@@ -77,20 +77,10 @@ impl Volume for Chunk {
         }
     }
 
-    fn empty_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>) -> Self {
-        Chunk {
-            size,
-            offset,
-            voxels: Vec::new(),
-        }
-    }
-
-    fn filled_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>, block: Block) -> Self {
-        Chunk {
-            size,
-            offset,
-            voxels: vec![block; (size.x * size.y * size.z) as usize],
-        }
+    fn fill(&mut self, block: Block) {
+        for v in self.voxels.iter_mut() {
+            *v = block;
+        };
     }
 
     fn size(&self) -> Vec3<i64> {
@@ -99,6 +89,23 @@ impl Volume for Chunk {
 
     fn offset(&self) -> Vec3<i64> {
         self.offset
+    }
+
+    fn rotation(&self) -> Vec3<f64> {
+        Vec3::new(0.0, 0.0, 0.0)
+    }
+
+    fn zoom(&self) -> Vec3<f64> {
+        Vec3::new(1.0, 1.0, 1.0)
+    }
+
+    fn set_size(&mut self, size: Vec3<i64>) {
+        self.size = size;
+        self.voxels.resize((size.x * size.y * size.z) as usize, Block::new(BlockMaterial::Air));
+    }
+
+    fn set_offset(&mut self, offset: Vec3<i64>) {
+        self.offset = offset;
     }
 
     fn at(&self, pos: Vec3<i64>) -> Option<Block> {

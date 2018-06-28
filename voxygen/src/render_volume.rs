@@ -1,6 +1,6 @@
 use nalgebra::Vector4;
 
-use region::{Voxel, Volume, Block, BlockMaterial, Chunk};
+use region::{Voxel, Volume, Block, BlockMaterial, Chunk, Cell, Model};
 
 pub trait RenderVoxel: Voxel {
     fn get_color(&self) -> Vector4<f32>;
@@ -33,3 +33,25 @@ impl RenderVoxel for Block {
 }
 
 impl RenderVolume for Chunk {}
+
+impl RenderVoxel for Cell {
+    fn get_color(&self) -> Vector4<f32> {
+        let color_map = enum_map! {
+            0 => Vector4::new(0.0, 0.0, 0.0, 0.0),
+            1 => Vector4::new(1.0, 0.0, 0.0, 1.0),
+            2 => Vector4::new(1.0, 1.0, 0.0, 1.0),
+            3 => Vector4::new(0.0, 1.0, 0.0, 1.0),
+            4 => Vector4::new(0.0, 0.5, 0.5, 1.0),
+            5 => Vector4::new(0.0, 1.0, 1.0, 1.0),
+            _ => Vector4::new(1.0, 0.3, 0.3, 1.0),
+        };
+
+        color_map[self.material()]
+    }
+
+    fn is_opaque(&self) -> bool {
+        self.material() != 0
+    }
+}
+
+impl RenderVolume for Model {}

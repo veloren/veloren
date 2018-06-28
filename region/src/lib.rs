@@ -9,12 +9,16 @@ extern crate coord;
 
 mod block;
 mod chunk;
+mod cell;
+mod model;
 mod entity;
 mod volume_reg;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
 pub use chunk::Chunk;
+pub use cell::{Cell};
+pub use model::Model;
 pub use entity::Entity;
 
 use coord::vec3::Vec3;
@@ -30,12 +34,17 @@ pub trait Voxel: Copy + Clone {
 pub trait Volume {
     type VoxelType: Voxel + Copy + Clone;
 
-    fn empty() -> Self;
-    fn empty_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>) -> Self;
-    fn filled_with_size_offset(size: Vec3<i64>, offset: Vec3<i64>, block: Self::VoxelType) -> Self;
+    fn new() -> Self;
+    fn fill(&mut self, block: Self::VoxelType);
 
     fn size(&self) -> Vec3<i64>;
     fn offset(&self) -> Vec3<i64>;
+    fn rotation(&self) -> Vec3<f64>;
+    fn zoom(&self) -> Vec3<f64>;
+
+    fn set_size(&mut self, size: Vec3<i64>);
+    fn set_offset(&mut self, offset: Vec3<i64>);
+
     fn at(&self, pos: Vec3<i64>) -> Option<Self::VoxelType>;
     fn set(&mut self, pos: Vec3<i64>, vt: Self::VoxelType);
 }
