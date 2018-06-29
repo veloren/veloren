@@ -98,11 +98,6 @@ impl Client {
 
         *client.conn.callbackobj() = Some(client.clone());
 
-        /*
-        *client.conn.callback() = Box::new(|m: Box<ServerMessage>| {
-            client.handle_packet(*m);
-        });*/
-
         Self::start(client.clone());
 
         Ok(client)
@@ -114,12 +109,14 @@ impl Client {
 
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
-            if let Some(e) = self.entities_mut().get_mut(&uid) {
-                *e.pos_mut() += self.player().dir_vec * dt;
+            if let Some(player_entry) = self.entities_mut().get_mut(&uid) {
+                let move_dir = player_entry.move_dir();
+                *player_entry.pos_mut() += move_dir * dt;
 
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
-                    pos: e.pos(),
-                    ori: e.ori(),
+                    pos: player_entry.pos(),
+                    move_dir: player_entry.move_dir(),
+                    look_dir: player_entry.look_dir(),
                 });
             }
         }
@@ -131,7 +128,7 @@ impl Client {
                 if version == get_version() {
                     if let Some(uid) = entity_uid {
                         if !self.entities().contains_key(&uid) {
-                            self.entities_mut().insert(uid, Entity::new(vec3!(0.0, 0.0, 0.0), 0.0));
+                            self.entities_mut().insert(uid, Entity::new(vec3!(0.0, 0.0, 0.0), vec3!(0.0, 0.0, 0.0), vec2!(0.0, 0.0)));
                         }
                     }
                     self.player_mut().entity_uid = entity_uid;
@@ -148,13 +145,17 @@ impl Client {
             }
             ServerMessage::Shutdown => self.set_status(ClientStatus::Disconnected),
             ServerMessage::RecvChatMsg { alias, msg } => self.callbacks().call_recv_chat_msg(&alias, &msg),
-            ServerMessage::EntityUpdate { uid, pos, ori } => {
-                info!("Entity Update: uid:{} at pos:{:#?}", uid, pos);
+            ServerMessage::EntityUpdate { uid, pos, move_dir, look_dir } => {
+                info!("Entity Update: uid:{} at pos:{:#?}, move_dir:{:#?}, look_dir:{:#?}", uid, pos, move_dir, look_dir);
 
                 let mut entities = self.entities_mut();
                 match entities.get_mut(&uid) {
-                    Some(e) => *e.pos_mut() = pos,
-                    None => { entities.insert(uid, Entity::new(pos, ori)); },
+                    Some(e) => {
+                        *e.pos_mut() = pos;
+                        *e.move_dir_mut() = move_dir;
+                        *e.look_dir_mut() = look_dir;
+                    }
+                    None => { entities.insert(uid, Entity::new(pos, move_dir, look_dir)); },
                 }
             },
             _ => {},

@@ -25,7 +25,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, sess
                         ClientMode::Character => {
                             let uid = ctx.new_uid();
                             info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
-                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), 0.0));
+                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), vec3!(0.0, 0.0, 0.0), vec2!(0.0, 0.0)));
                             Some(uid)
                         }
                     };
@@ -70,7 +70,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, sess
             }
         }
         &ClientMessage::SendCmd { ref cmd } => handle_command(relay, ctx, session_id, cmd.to_string()),
-        &ClientMessage::PlayerEntityUpdate { pos, ori } => {
+        &ClientMessage::PlayerEntityUpdate { pos, move_dir, look_dir } => {
             if let Some(ref player) = ctx.get_session(session_id)
                 .and_then(|it| it.get_player_id())
                 .and_then(|id| ctx.get_player(id)) {
@@ -82,14 +82,15 @@ pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, sess
                         let dist = (e.pos() - pos).length();
                         if dist > 5.0 {
                             info!("player: {} moved to fast, resetting him", player_name);
-                            let (pos, ori) = (e.pos(), e.ori());
+                            let (pos, move_dir, look_dir) = (e.pos(), e.move_dir(), e.look_dir());
                             ctx.send_message(
                                 session_id,
-                                ServerMessage::EntityUpdate { uid: entity_uid, pos, ori }
+                                ServerMessage::EntityUpdate { uid: entity_uid, pos, move_dir, look_dir }
                             );
                         } else {
                             *e.pos_mut() = pos;
-                            *e.ori_mut() = ori;
+                            *e.move_dir_mut() = move_dir;
+                            *e.look_dir_mut() = look_dir;
                         }
                     }
                 }

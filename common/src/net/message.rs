@@ -36,7 +36,7 @@ pub enum ServerMessage {
     Shutdown,
     Ping,
     RecvChatMsg { alias: String, msg: String },
-    EntityUpdate { uid: Uid, pos: Vec3f, ori: f32 },
+    EntityUpdate { uid: Uid, pos: Vec3f, move_dir: Vec3f, look_dir: Vec2f },
     ChunkData {},
 }
 
@@ -57,7 +57,7 @@ pub enum ClientMessage {
     Ping,
     ChatMsg { msg: String },
     SendCmd { cmd: String },
-    PlayerEntityUpdate { pos: Vec3f, ori: f32 }
+    PlayerEntityUpdate { pos: Vec3f, move_dir: Vec3f, look_dir: Vec2f },
 }
 
 impl Message for ClientMessage {

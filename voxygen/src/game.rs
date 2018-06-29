@@ -107,7 +107,7 @@ impl Game {
 
                     if self.window.cursor_trapped().load(Ordering::Relaxed) {
                         //debug!("dx: {}, dy: {}", dx, dy);
-                        self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002))
+                        self.camera.lock().unwrap().rotate_by(Vector2::<f32>::new(dx as f32 * 0.002, dy as f32 * 0.002));
                     }
                 },
                 Event::MouseWheel { dy, .. } => {
@@ -160,7 +160,16 @@ impl Game {
         let mov_vec = unit_vecs.0 * dir_vec.x + unit_vecs.1 * dir_vec.y;
         let fly_vec = self.key_state.lock().unwrap().fly_vec();
 
-        self.client.player_mut().dir_vec = vec3!(mov_vec.x, mov_vec.y, fly_vec);
+        //self.client.player_mut().dir_vec = vec3!(mov_vec.x, mov_vec.y, fly_vec);
+
+        let mut entries = self.client.entities_mut();
+        if let Some(eid) = self.client.player().entity_uid {
+            if let Some(player_entry) = entries.get_mut(&eid) {
+                *player_entry.move_dir_mut() = vec3!(mov_vec.x, mov_vec.y, fly_vec);
+                let ori = self.camera.lock().unwrap().ori();
+                *player_entry.look_dir_mut() = vec2!(ori.x, ori.y);
+            }
+        }
 
         self.running.load(Ordering::Relaxed)
     }
@@ -193,8 +202,8 @@ impl Game {
 
         for (.., entity) in self.client.entities().iter() {
             let model = &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous();
-            //let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, entity.ori())).to_homogeneous();
-            let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - camera_ori.x)).to_homogeneous();
+            let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - entity.look_dir().x)).to_homogeneous();
+            //let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - camera_ori.x)).to_homogeneous();
             let model = model * rot;
             renderer.update_model_object(
                 &self.data.lock().unwrap().player_model,

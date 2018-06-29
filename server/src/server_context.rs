@@ -105,7 +105,7 @@ impl ServerContext {
     pub fn get_entity_updates(&self) -> Vec<(Uid, ServerMessage)> {
         self.get_entities()
             .map(|(entity_id, entity)| {
-                (*entity_id, ServerMessage::EntityUpdate { uid: *entity_id, pos: entity.pos(), ori: entity.ori() })
+                (*entity_id, ServerMessage::EntityUpdate { uid: *entity_id, pos: entity.pos(), move_dir: entity.move_dir(), look_dir: entity.look_dir() })
             })
             .collect::<Vec<(Uid, ServerMessage)>>()
     }

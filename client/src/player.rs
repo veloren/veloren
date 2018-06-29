@@ -4,7 +4,6 @@ use common::Uid;
 pub struct Player {
 	pub alias: String,
 	pub entity_uid: Option<Uid>,
-	pub dir_vec: Vec3f,
 }
 
 impl Player {
@@ -12,7 +11,6 @@ impl Player {
 		Player {
 			alias,
 			entity_uid: None,
-			dir_vec: vec3!(0.0, 0.0, 0.0),
 		}
 	}
 }
