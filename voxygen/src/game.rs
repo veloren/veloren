@@ -36,6 +36,7 @@ pub struct Game {
 // "Data" includes mutable state
 struct Data {
     player_model: ModelObject,
+    other_player_model: ModelObject,
     map: Map,
 }
 
@@ -46,25 +47,25 @@ impl Game {
         let vox = dot_vox::load("vox/3.vox").unwrap();
         let voxmodel = vox_to_model(vox);
 
-        let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));
-        let test_mesh = Mesh::from(&chunk);
-/*
-        let mut player_mesh = Mesh::new();
-        player_mesh.add(&[
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
-
-            Vertex { pos: [0., 1., 0.], norm: [0., 0., 1.], col: [1., 0., 0., 1.] },
-            Vertex { pos: [1., -1., 0.], norm: [0., 0., 1.], col: [0., 0., 1., 1.] },
-            Vertex { pos: [-1., -1., 0.], norm: [0., 0., 1.], col: [0., 1., 0., 1.] },
-        ]);*/
         let player_mesh = Mesh::from(&voxmodel);
 
         let player_model = ModelObject::new(
             &mut window.renderer_mut(),
             &player_mesh,
         );
+
+        let vox = dot_vox::load("vox/2.vox").unwrap();
+        let voxmodel = vox_to_model(vox);
+
+        let other_player_mesh = Mesh::from(&voxmodel);
+
+        let other_player_model = ModelObject::new(
+            &mut window.renderer_mut(),
+            &other_player_mesh,
+        );
+
+        let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));
+        let test_mesh = Mesh::from(&chunk);
 
         let test_model = ModelObject::new(
             &mut window.renderer_mut(),
@@ -87,6 +88,7 @@ impl Game {
         Game {
             data: Mutex::new(Data {
                 player_model,
+                other_player_model,
                 map,
             }),
             running: AtomicBool::new(true),
@@ -200,20 +202,25 @@ impl Game {
             renderer.render_model_object(&model);
         }
 
-        for (.., entity) in self.client.entities().iter() {
-            let model = &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous();
+        for (eid, entity) in self.client.entities().iter() {
+            let model_mat = &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous();
             let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - entity.look_dir().x)).to_homogeneous();
-            //let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - camera_ori.x)).to_homogeneous();
-            let model = model * rot;
+            let model_mat = model_mat * rot;
+            let mut data = self.data.lock().unwrap();
+            let ref mut model;
+            match self.client.player().entity_uid {
+                Some(uid) if uid == *eid => model = &mut data.player_model,
+                _ => model = &mut data.other_player_model,
+            }
             renderer.update_model_object(
-                &self.data.lock().unwrap().player_model,
+                &model,
                 Constants::new(
-                    &model, // TODO: Improve this
+                    &model_mat, // TODO: Improve this
                     &camera_mats.0,
                     &camera_mats.1,
                 )
             );
-            renderer.render_model_object(&self.data.lock().unwrap().player_model);
+            renderer.render_model_object(&model);
         }
 
         self.window.swap_buffers();
