@@ -2,10 +2,11 @@
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::f32::consts::PI;
 //use std::f32::{sin, cos};
 
 // Library
-use nalgebra::{Vector2, Vector3, Translation3, convert};
+use nalgebra::{Vector2, Vector3, Translation3, Rotation3, convert, dot};
 use coord::prelude::*;
 use glutin::{ElementState, VirtualKeyCode};
 use dot_vox;
@@ -175,6 +176,7 @@ impl Game {
         }
 
         let camera_mats = self.camera.lock().unwrap().get_mats();
+        let camera_ori = self.camera.lock().unwrap().ori();
 
         // Render the test model
 
@@ -190,10 +192,14 @@ impl Game {
         }
 
         for (.., entity) in self.client.entities().iter() {
+            let model = &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous();
+            //let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, entity.ori())).to_homogeneous();
+            let rot = Rotation3::<f32>::new(Vector3::<f32>::new(0.0, 0.0, PI - camera_ori.x)).to_homogeneous();
+            let model = model * rot;
             renderer.update_model_object(
                 &self.data.lock().unwrap().player_model,
                 Constants::new(
-                    &Translation3::<f32>::from_vector(Vector3::<f32>::new(entity.pos().x, entity.pos().y, entity.pos().z)).to_homogeneous(), // TODO: Improve this
+                    &model, // TODO: Improve this
                     &camera_mats.0,
                     &camera_mats.1,
                 )
