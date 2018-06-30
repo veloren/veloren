@@ -54,7 +54,7 @@ impl Game {
             &player_mesh,
         );
 
-        let vox = dot_vox::load("vox/2.vox").unwrap();
+        let vox = dot_vox::load("vox/5.vox").unwrap();
         let voxmodel = vox_to_model(vox);
 
         let other_player_mesh = Mesh::from(&voxmodel);
