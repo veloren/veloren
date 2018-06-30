@@ -1,6 +1,5 @@
 use region::Voxel;
 use render_volume::{RenderVoxel, RenderVolume};
-use coord::vec3::Vec3;
 use coord::prelude::*;
 
 gfx_defines! {
