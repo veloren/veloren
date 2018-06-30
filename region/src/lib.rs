@@ -1,11 +1,10 @@
-#![feature(nll)]
+#![feature(nll, euclidean_division)]
 
-#[macro_use]
-extern crate enum_map;
+#[macro_use] extern crate enum_map;
 extern crate rand;
 extern crate noise;
 extern crate nalgebra;
-extern crate coord;
+#[macro_use] extern crate coord;
 
 mod block;
 mod chunk;
