@@ -12,7 +12,7 @@ mod chunk;
 mod cell;
 mod model;
 mod entity;
-mod volume_reg;
+mod volume_mgr;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
