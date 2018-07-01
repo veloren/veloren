@@ -7,6 +7,5 @@ members = [
 
     "voxygen",
     "server-cli",
-    "worldtest",
-	"headless"
+    "headless"
 ]

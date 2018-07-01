@@ -20,7 +20,6 @@ env:
   - CRATE="server-cli"
   - CRATE="headless"
   - CRATE="voxygen"
-  - CRATE="worldtest"
 script:
   - cd $CRATE
   - RUST_BACKTRACE=1 cargo test -v

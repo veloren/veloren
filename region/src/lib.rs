@@ -11,7 +11,7 @@ mod chunk;
 mod cell;
 mod model;
 mod entity;
-mod volume_mgr;
+mod vol_mgr;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
@@ -30,7 +30,7 @@ pub trait Voxel: Copy + Clone {
     fn material(&self) -> Self::Material;
 }
 
-pub trait Volume {
+pub trait Volume: Send + Sync {
     type VoxelType: Voxel + Copy + Clone;
 
     fn new() -> Self;
