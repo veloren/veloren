@@ -30,6 +30,11 @@ build-voxygen:
   script:
     - (cd voxygen && cargo build)
 
+build-voxygen:
+  stage: build
+  script:
+    - (cd headless && cargo build)
+
 build-server-cli:
   stage: build
   script:
@@ -40,20 +45,22 @@ unittests:
   script:
     - cargo test
 
-benchmarktests:
-  stage: test
-  script:
-    - cargo bench
+#benchmarktests:
+#  stage: test
+#  script:
+#    - cargo bench
 
 package-debug:
   stage: deploy
   script:
     - (cd voxygen && cargo build)
     - (cd server-cli && cargo build)
+    - (cd headless && cargo build)
     - rm -r -f package
     - mkdir package
     - cp target/debug/server-cli package
     - cp target/debug/voxygen package
+    - cp target/debug/headless package
     - cp -r voxygen/vox package/vox
     - rm -f package-debug.tar.bz2
     - tar -cvjSf package-debug.tar.bz2 package
@@ -68,16 +75,37 @@ package-release:
   script:
     - (cd voxygen && cargo build --release)
     - (cd server-cli && cargo build --release)
+    - (cd headless && cargo build --release)
     - rm -r -f package
     - mkdir package
     - cp target/release/server-cli package
     - cp target/release/voxygen package
+    - cp target/release/headless package
     - cp -r voxygen/vox package/vox
     - rm -f package-release.tar.gz
     - tar -zcvf package-release.tar.gz package
   artifacts:
     paths:
       - package-release.tar.gz
+    expire_in: 1 week
+
+package-windows-debug:
+  stage: deploy
+  script:
+    - (cd voxygen && cargo build --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && cargo build --target=x86_64-pc-windows-gnu)
+    - (cd headless && cargo build --target=x86_64-pc-windows-gnu)
+    - rm -r -f package
+    - mkdir package
+    - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe package
+    - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe package
+    - cp target/x86_64-pc-windows-gnu/debug/headless package
+    - cp -r voxygen/vox package/vox
+    - rm -f package-windows-debug.zip
+    - zip -r package-windows-debug.zip package
+  artifacts:
+    paths:
+      - package-windows-debug.zip
     expire_in: 1 week
 
 coverage:

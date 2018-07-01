@@ -124,12 +124,22 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 ## Provide a gitlab destroy_upgraded_shared_port_when_sender_still_active
 If you have a spare computer or vhost you can help the veloren team by providing a gitlab runner to increase test speed for developers.
 Follow the following steps on your machine. Keep in mind that this basically allows remote execution of any code on your machine.
-1. Follow all steps for comiling the project like descriped above. make sure you can compile the code
-2. Install gitlab runner on your host: https://docs.gitlab.com/runner/install/linux-repository.html
-3. register your runner https://docs.gitlab.com/runner/register/
+1. Follow all steps for comiling the project like descriped above. make sure you can compile the code as gitlab-runner user
+2. install gcc crosscompiler for windows and zip `sudo apt-get install gcc-mingw-w64-x86-64 zip -y`
+(https://stackoverflow.com/a/39184296/4311928)
+3. put in `~/.cargo/config` of gitlab-runner user:
+```bash
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
+ar = "x86_64-w64-mingw32-gcc-ar"
+```
+4. get a Iphlpapi.dll from windows and put it here: ~/.multirust/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-pc-windows-gnu/lib
+	make sure only the I is capital. if you have no windows to get this file, ask in the discord chat
+5. Install gitlab runner on your host: https://docs.gitlab.com/runner/install/linux-repository.html
+6. register your runner https://docs.gitlab.com/runner/register/
 	- https://gitlab.com
 	- take the token from: https://gitlab.com/veloren/game/settings/ci_cd
 	- description: veloren <your user name>
 	- tags: <none, just press enter>
 	- executor: shell
-4. check of your runner appears here: https://gitlab.com/veloren/game/settings/ci_cd
+7. check of your runner appears here: https://gitlab.com/veloren/game/settings/ci_cd
