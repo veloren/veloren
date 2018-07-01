@@ -10,48 +10,26 @@ use coord::prelude::*;
 // Local
 use {Volume, Voxel};
 
+pub trait VolPayload: Send + Sync {}
+
 pub enum VolState<V: Volume> {
     Loading,
-    Exists(V),
+    Exists(V, Box<VolPayload>),
 }
 
 pub struct VolGen<V: Volume> {
-    func: Arc<fn(Vec2<i64>) -> V>,
+    gen_func: Arc<fn(Vec2<i64>) -> V>,
+    payload_func: Arc<fn(&V) -> Box<VolPayload>>,
 }
 
 impl <V: Volume> VolGen<V> {
-    pub fn new(f: fn(Vec2<i64>) -> V) -> VolGen<V> {
+    pub fn new(gen_func: fn(Vec2<i64>) -> V, payload_func: fn(&V) -> Box<VolPayload>) -> VolGen<V> {
         VolGen {
-            func: Arc::new(f),
+            gen_func: Arc::new(gen_func),
+            payload_func: Arc::new(payload_func),
         }
     }
 }
-
-// pub struct VolGen<V: 'static + Volume, F: Fn(Vec2<i64>) -> V>
-//     where F: 'static + Send + Sync + Sized + Fn(Vec2<i64>, Arc<RwLock<VolState<V>>>) -> Arc<RwLock<VolState<V>>>
-// {
-//     gen_func: Arc<F>,
-//     _marker: PhantomData<V>,
-// }
-
-// impl<V: 'static + Volume, F> VolGen<V, F>
-//     where F: 'static + Send + Sync + Sized + Fn(Vec2<i64>, Arc<RwLock<VolState<V>>>) -> Arc<RwLock<VolState<V>>>
-// {
-//     pub fn new(f: F) -> VolGen<V, F> {
-//         VolGen {
-//             gen_func: Arc::new(f),
-//             _marker: PhantomData,
-//         }
-//     }
-
-//     fn generate(&self, pos: Vec2<i64>, vol: Arc<RwLock<VolState<V>>>) {
-//         let vol_clone = vol.clone();
-//         let gen_func_clone = self.gen_func.clone();
-//         *vol.write().unwrap() = VolState::Loading(
-//             thread::spawn(move || { let vol = vol_clone; (*gen_func_clone)(pos, vol) })
-//         );
-//     }
-// }
 
 pub struct VolMgr<V: 'static + Volume> {
     vol_size: i64,
@@ -76,17 +54,28 @@ impl<V: 'static + Volume> VolMgr<V> {
         self.vols.read().unwrap().contains_key(&pos)
     }
 
+    pub fn remove(&self, pos: Vec2<i64>) -> bool {
+        self.vols.write().unwrap().remove(&pos).is_some()
+    }
+
     pub fn gen(&self, pos: Vec2<i64>) {
-        let gen = self.gen.func.clone();
-        let vol = Arc::new(RwLock::new(VolState::Loading));
-        self.vols.write().unwrap().insert(pos, vol.clone());
+        if self.contains(pos) {
+            return; // Don't try to generate the same chunk twice
+        }
+
+        let gen_func = self.gen.gen_func.clone();
+        let payload_func = self.gen.payload_func.clone();
+        let vol_state = Arc::new(RwLock::new(VolState::Loading));
+        self.vols.write().unwrap().insert(pos, vol_state.clone());
         thread::spawn(move || {
-            *vol.write().unwrap() = VolState::Exists(gen(pos));
+            let vol = gen_func(pos);
+            let payload = payload_func(&vol);
+            *vol_state.write().unwrap() = VolState::Exists(vol, payload);
         });
     }
 
-    pub fn set(&self, pos: Vec2<i64>, vol: V) {
-        self.vols.write().unwrap().insert(pos, Arc::new(RwLock::new(VolState::Exists(vol))));
+    pub fn set(&self, pos: Vec2<i64>, vol: V, payload: Box<VolPayload>) {
+        self.vols.write().unwrap().insert(pos, Arc::new(RwLock::new(VolState::Exists(vol, payload))));
     }
 
     pub fn get_voxel(&self, pos: Vec3<i64>) -> V::VoxelType {
@@ -105,7 +94,7 @@ impl<V: 'static + Volume> VolMgr<V> {
             .get(&vol_pos)
             .map(|v| match *v.read().unwrap() {
                 VolState::Loading => V::VoxelType::empty(),
-                VolState::Exists(ref v) => v
+                VolState::Exists(ref v, _) => v
                     .at(vox_pos)
                     .unwrap_or(V::VoxelType::empty()),
                 }
