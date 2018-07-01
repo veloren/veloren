@@ -99,7 +99,7 @@ package-windows-debug:
     - mkdir package
     - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe package
     - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe package
-    - cp target/x86_64-pc-windows-gnu/debug/headless package
+    - cp target/x86_64-pc-windows-gnu/debug/headless.exe package
     - cp -r voxygen/vox package/vox
     - rm -f package-windows-debug.zip
     - zip -r package-windows-debug.zip package
