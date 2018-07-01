@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/veloren/game.svg?branch=master)](https://travis-ci.org/veloren/game)
 
 <p align="center">
-	<img alt="Veloren" src="https://raw.github.com/veloren/game/master/misc/screenshot0.png">
+	<img alt="Veloren" src="https://raw.github.com/veloren/game/master/misc/screenshot1.png">
 </p>
 
 ## What is Veloren?
