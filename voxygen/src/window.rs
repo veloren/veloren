@@ -65,13 +65,13 @@ impl RenderWindow {
                     DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
                         if self.cursor_trapped.load(Ordering::Relaxed) {
                             if let Err(_) = gl_window.set_cursor_state(CursorState::Grab) {
-                                warning!("Could not grap cursor");
+                                warn!("Could not grap cursor");
                                 self.cursor_trapped.store(false, Ordering::Relaxed)
                             }
                             gl_window.set_cursor(MouseCursor::NoneCursor);
                         } else {
                             if let Err(_) = gl_window.set_cursor_state(CursorState::Normal) {
-                                warning!("Could not ungrap cursor");
+                                warn!("Could not ungrap cursor");
                                 self.cursor_trapped.store(true, Ordering::Relaxed)
                             }
                             gl_window.set_cursor(MouseCursor::Default);
