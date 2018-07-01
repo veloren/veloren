@@ -158,6 +158,7 @@ impl Client {
                     None => { entities.insert(uid, Entity::new(pos, move_dir, look_dir)); },
                 }
             },
+            ServerMessage::Ping => self.conn.send(ClientMessage::Ping),
             _ => {},
         }
     }
