@@ -64,10 +64,16 @@ impl RenderWindow {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     DeviceEvent::MouseMotion { delta: (dx, dy), .. } => {
                         if self.cursor_trapped.load(Ordering::Relaxed) {
-                            gl_window.set_cursor_state(CursorState::Grab).expect("Could not grab cursor");
+                            if let Err(_) = gl_window.set_cursor_state(CursorState::Grab) {
+                                warning!("Could not grap cursor");
+                                self.cursor_trapped.store(false, Ordering::Relaxed)
+                            }
                             gl_window.set_cursor(MouseCursor::NoneCursor);
                         } else {
-                            gl_window.set_cursor_state(CursorState::Normal).expect("Could not ungrab cursor");
+                            if let Err(_) = gl_window.set_cursor_state(CursorState::Normal) {
+                                warning!("Could not ungrap cursor");
+                                self.cursor_trapped.store(true, Ordering::Relaxed)
+                            }
                             gl_window.set_cursor(MouseCursor::Default);
                         }
                         func(Event::CursorMoved { dx, dy });
