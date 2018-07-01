@@ -1,6 +1,8 @@
 # Welcome to Veloren
 
 [![Build Status](https://travis-ci.org/veloren/game.svg?branch=master)](https://travis-ci.org/veloren/game)
+[![build status](https://gitlab.com/veloren/game/badges/master/build.svg)](https://gitlab.com/veloren/game)
+[![coverage](https://gitlab.com/veloren/game/badges/master/coverage.svg)](https://gitlab.com/veloren/game/pipelines)
 
 <p align="center">
 	<img alt="Veloren" src="https://raw.github.com/veloren/game/master/misc/screenshot1.png">
@@ -68,6 +70,19 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	$ rustup default nightly # Configure rust nightly compiler
 	```
 
+	**Ubuntu**
+
+	```bash
+	$ su <user> # log in to user which should build the project
+	$ curl https://sh.rustup.rs -sSf | sh
+	$ # select 2) Customize installation
+	$ # select nightly toolchain, and allow modify PATH variable
+	$ # proceed with installation
+	$ # open a new terminal and make sure that you can type:
+	$ cargo --version # if it cannot find it, look at the ~/.profile file and conside moving the PATH variable at the end of ~/.bashrc, open a new terminal and try again
+	$ rustup default nightly # Configure rust nightly compiler
+	```
+
 	**Windows**
 
 	Install Rust from [here](https://www.rust-lang.org/en-US/install.html)
@@ -105,3 +120,16 @@ This crate is a graphical user interface (GUI) server frontend. It allows the ho
 	```bash
 	( cd voxygen && RUST_LOG=cargo=warning,client=debug,voxygen=debug,common=debug,region=debug,world=debug cargo run)
 	```
+
+## Provide a gitlab destroy_upgraded_shared_port_when_sender_still_active
+If you have a spare computer or vhost you can help the veloren team by providing a gitlab runner to increase test speed for developers.
+Follow the following steps on your machine. Keep in mind that this basically allows remote execution of any code on your machine.
+1. Follow all steps for comiling the project like descriped above. make sure you can compile the code
+2. Install gitlab runner on your host: https://docs.gitlab.com/runner/install/linux-repository.html
+3. register your runner https://docs.gitlab.com/runner/register/
+	- https://gitlab.com
+	- take the token from: https://gitlab.com/veloren/game/settings/ci_cd
+	- description: veloren <your user name>
+	- tags: <none, just press enter>
+	- executor: shell
+4. check of your runner appears here: https://gitlab.com/veloren/game/settings/ci_cd
