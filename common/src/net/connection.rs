@@ -62,6 +62,14 @@ pub struct Connection<RM: Message> {
 
 impl<'a, RM: Message + 'static> Connection<RM> {
     pub fn new<A: ToSocketAddrs>(remote: &A, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
+        Connection::new_internal(Tcp::new(&remote)?, callback, cb, udpmgr)
+    }
+
+    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
+        Connection::new_internal(Tcp::new_stream(stream)?, callback, cb, udpmgr)
+    }
+
+    fn new_internal(tcp: Tcp, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
         let packet_in = HashMap::new();
         let mut packet_out = Vec::new();
         for _i in 0..255 {
@@ -69,7 +77,7 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         }
 
         let m = Connection {
-            tcp: Tcp::new(&remote)?,
+            tcp,
             udpmgr,
             udp: Mutex::new(None),
             callback:  Mutex::new(callback),
@@ -86,42 +94,6 @@ impl<'a, RM: Message + 'static> Connection<RM> {
         };
 
         Ok(Arc::new(m))
-    }
-
-    pub fn new_stream(stream: TcpStream, callback: Box<Fn(Result<RM, Error>) + Send>, cb: Option<Arc<Callback<RM> + Send + Sync>>, udpmgr: Arc<UdpMgr>) -> Result<Arc<Connection<RM>>, Error> {
-        let packet_in = HashMap::new();
-        let mut packet_out = Vec::new();
-        for _i in 0..255 {
-            packet_out.push(VecDeque::new());
-        }
-
-        let m = Connection {
-            tcp: Tcp::new_stream(stream)?,
-            udpmgr,
-            udp: Mutex::new(None),
-            callback:  Mutex::new(callback),
-            callbackobj: Mutex::new(cb),
-            packet_in: Mutex::new(packet_in),
-            packet_out_count: RwLock::new(0),
-            packet_out: Mutex::new(packet_out),
-            running: AtomicBool::new(true),
-            send_thread: Mutex::new(None),
-            recv_thread: Mutex::new(None),
-            send_thread_udp: Mutex::new(None),
-            recv_thread_udp: Mutex::new(None),
-            next_id: Mutex::new(1),
-        };
-
-        let m = Arc::new(m);
-        Ok(m)
-    }
-
-    pub fn set_callback(&mut self, callback: Box<Fn(Result<RM, Error>) + Send + Sync>) {
-        self.callback = Mutex::new(callback);
-    }
-
-    pub fn callback(&self) -> MutexGuard<Box<Fn(Result<RM, Error>) + Send>> {
-        self.callback.lock().unwrap()
     }
 
     pub fn open_udp<'b>(manager: &'b Arc<Connection<RM>>, listen: SocketAddr, sender: SocketAddr) {
