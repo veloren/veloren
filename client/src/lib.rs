@@ -14,8 +14,8 @@ mod callbacks;
 mod session;
 
 // Reexport
-pub use common::net::ClientMode as ClientMode;
-pub use region::Volume as Volume;
+pub use common::net::ClientMode;
+pub use region::{Volume, Chunk, FnPayloadFunc};
 
 // Standard
 use std::thread;
@@ -28,7 +28,7 @@ use std::net::{ToSocketAddrs};
 use coord::prelude::*;
 
 // Project
-use region::{Entity, Chunk, VolMgr, VolGen, FnPayloadFunc};
+use region::{Entity, VolMgr, VolGen};
 use common::{get_version, Uid};
 use common::net;
 use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};

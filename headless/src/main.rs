@@ -13,7 +13,16 @@ use std::net::SocketAddr;
 
 use syrup::Window;
 
-use client::{Client, ClientMode};
+use client::{Client, ClientMode, Chunk, FnPayloadFunc};
+
+struct Payloads {}
+impl client::Payloads for Payloads {
+    type Chunk = ();
+}
+
+fn gen_payload(_: &Chunk) -> <Payloads as client::Payloads>::Chunk {
+    ()
+}
 
 fn main() {
     info!("Starting headless client...");
@@ -52,7 +61,7 @@ fn main() {
     let mut win = Window::initscr();
     win.writeln("Welcome to the Veloren headless client.");
 
-    let client = match Client::new(ClientMode::Headless, alias,  &remote_addr.trim()) {
+    let client = match Client::<Payloads>::new(ClientMode::Headless, alias,  &remote_addr.trim(), gen_payload) {
         Ok(c) => c,
         Err(e) => panic!("An error occured when attempting to initiate the client: {:?}", e),
     };
