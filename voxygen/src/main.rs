@@ -51,12 +51,12 @@ fn main() {
     if args.len() == 2 {
         remote_addr = args.nth(1).expect("No argument");
     }
-        else {
-            // If args aren't correct then read from stdin
-            print!("Enter address (blank for default): ");
-            io::stdout().flush().expect("Failed to flush");
-            io::stdin().read_line(&mut remote_addr).unwrap();
-        }
+    else {
+        // If args aren't correct then read from stdin
+        print!("Enter address (blank for default): ");
+        io::stdout().flush().expect("Failed to flush");
+        io::stdin().read_line(&mut remote_addr).unwrap();
+    }
 
     let mut remote_addr = remote_addr.trim();
     if remote_addr.len() == 0 {
