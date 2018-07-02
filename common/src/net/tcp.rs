@@ -19,11 +19,7 @@ pub struct Tcp {
 impl Tcp {
     pub fn new<A: ToSocketAddrs>(remote: &A) -> Result<Tcp, Error> {
         let stream = TcpStream::connect(&remote)?;
-        stream.set_nodelay(true)?;
-        Ok(Tcp {
-            stream_in: Mutex::new(stream.try_clone()?),
-            stream_out: Mutex::new(stream),
-        })
+        Tcp::new_stream(stream)
     }
 
     pub fn new_stream(stream: TcpStream) -> Result<Tcp, Error> {
