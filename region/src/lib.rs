@@ -19,6 +19,7 @@ pub use chunk::Chunk;
 pub use cell::{Cell};
 pub use model::Model;
 pub use entity::Entity;
+pub use vol_mgr::{VolMgr, VolGen, VolState, FnGenFunc, FnPayloadFunc};
 
 use coord::vec3::Vec3;
 

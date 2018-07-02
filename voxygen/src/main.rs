@@ -28,7 +28,6 @@ mod pipeline;
 mod camera;
 mod render_volume;
 mod key_state;
-mod map;
 mod vox;
 
 use std::io;

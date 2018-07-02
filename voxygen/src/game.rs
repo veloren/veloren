@@ -3,6 +3,7 @@ use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::f32::consts::PI;
+use std::collections::HashMap;
 //use std::f32::{sin, cos};
 
 // Library
@@ -12,21 +13,26 @@ use glutin::{ElementState, VirtualKeyCode};
 use dot_vox;
 
 // Project
+use client;
 use client::{Client, ClientMode};
 
 // Local
-use map::Map;
 use camera::Camera;
 use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh};
-use region::Chunk;
+use region::{Chunk, VolState};
 use key_state::KeyState;
 use vox::vox_to_model;
 
+struct Payloads {}
+impl client::Payloads for Payloads {
+    type Chunk = (Mesh, Option<ModelObject>);
+}
+
 pub struct Game {
     running: AtomicBool,
-    client: Arc<Client>,
+    client: Arc<Client<Payloads>>,
     window: RenderWindow,
     data: Mutex<Data>,
     camera: Mutex<Camera>,
@@ -37,7 +43,10 @@ pub struct Game {
 struct Data {
     player_model: ModelObject,
     other_player_model: ModelObject,
-    map: Map,
+}
+
+fn gen_payload(chunk: &Chunk) -> <Payloads as client::Payloads>::Chunk {
+    (Mesh::from(chunk), None)
 }
 
 impl Game {
@@ -64,35 +73,13 @@ impl Game {
             &other_player_mesh,
         );
 
-        let chunk = Chunk::test(vec3!(0, 0, 0), vec3!(100,100,100));
-        let test_mesh = Mesh::from(&chunk);
-
-        let test_model = ModelObject::new(
-            &mut window.renderer_mut(),
-            &test_mesh,
-        );
-
-        let mut map = Map::new();
-        map.chunks().insert(Vector3::new(0,0,0), test_model);
-
-        let chunk = Chunk::test(Vec3::from((100,0,0)),Vec3::from((100,100,100)));
-        let test_mesh = Mesh::from(&chunk);
-
-        let test_model = ModelObject::new(
-            &mut window.renderer_mut(),
-            &test_mesh,
-        );
-
-        map.chunks().insert(Vector3::new(100,0,0), test_model);
-
         Game {
             data: Mutex::new(Data {
                 player_model,
                 other_player_model,
-                map,
             }),
             running: AtomicBool::new(true),
-            client: Client::new(mode, alias.to_string(), remote_addr)
+            client: Client::new(mode, alias.to_string(), remote_addr, gen_payload)
 				.expect("Could not create new client"),
             window,
             camera: Mutex::new(Camera::new()),
@@ -176,6 +163,19 @@ impl Game {
         self.running.load(Ordering::Relaxed)
     }
 
+    pub fn mesh_chunks(&self) {
+        for (pos, vol) in self.client.chunk_mgr().volumes().iter() {
+            if let VolState::Exists(ref chunk, ref mut payload) = *vol.write().unwrap() {
+                if let None = payload.1 {
+                    payload.1 = Some(ModelObject::new(
+                        &mut self.window.renderer_mut(),
+                        &payload.0,
+                    ));
+                }
+            }
+        }
+    }
+
     pub fn render_frame(&self) {
         let mut renderer = self.window.renderer_mut();
         renderer.begin_frame();
@@ -189,17 +189,26 @@ impl Game {
         let camera_mats = self.camera.lock().unwrap().get_mats();
         let camera_ori = self.camera.lock().unwrap().ori();
 
-        // Render the test model
+        for (pos, vol) in self.client.chunk_mgr().volumes().iter() {
+            if let VolState::Exists(ref chunk, ref payload) = *vol.read().unwrap() {
+                if let Some(ref model) = payload.1 {
+                    let model_mat = &Translation3::<f32>::from_vector(Vector3::<f32>::new(
+                        pos.x as f32 * 16.0,
+                        pos.y as f32 * 16.0,
+                        0.0
+                    )).to_homogeneous();
 
-        for (pos, model) in self.data.lock().unwrap().map.chunks() {
-            renderer.update_model_object(
-                &model,
-                Constants::new(//&Matrix4::<f32>::identity(),
-                    &Translation3::<f32>::from_vector(convert(*pos)).to_homogeneous(),
-                    &camera_mats.0,
-                    &camera_mats.1)
-            );
-            renderer.render_model_object(&model);
+                    renderer.update_model_object(
+                        &model,
+                        Constants::new(
+                            &model_mat, // TODO: Improve this
+                            &camera_mats.0,
+                            &camera_mats.1,
+                        )
+                    );
+                    renderer.render_model_object(&model);
+                }
+            }
         }
 
         for (eid, entity) in self.client.entities().iter() {
@@ -229,6 +238,7 @@ impl Game {
 
     pub fn run(&self) {
         while self.handle_window_events() {
+            self.mesh_chunks();
             self.render_frame();
         }
 

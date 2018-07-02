@@ -1,4 +1,4 @@
-#![feature(nll)]
+#![feature(nll, euclidean_division)]
 
 // Crates
 #[macro_use]
@@ -28,7 +28,7 @@ use std::net::{ToSocketAddrs};
 use coord::prelude::*;
 
 // Project
-use region::Entity;
+use region::{Entity, Chunk, VolMgr, VolGen, FnPayloadFunc};
 use common::{get_version, Uid};
 use common::net;
 use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
@@ -57,26 +57,36 @@ pub enum ClientStatus {
     Disconnected,
 }
 
-pub struct Client {
+pub trait Payloads: 'static {
+    type Chunk: Send + Sync + 'static;
+}
+
+pub struct Client<P: Payloads> {
     status: RwLock<ClientStatus>,
     conn: Arc<Connection<ServerMessage>>,
 
     player: RwLock<Player>,
     entities: RwLock<HashMap<Uid, Entity>>,
 
+    chunk_mgr: VolMgr<Chunk, <P as Payloads>::Chunk>,
+
     callbacks: RwLock<Callbacks>,
 
     finished: Barrier, // We use this to synchronize client shutdown
 }
 
-impl Callback<ServerMessage> for Client {
+impl<P: Payloads> Callback<ServerMessage> for Client<P> {
     fn recv(&self, msg: Result<ServerMessage, common::net::Error>) {
         self.handle_packet(msg.unwrap());
     }
 }
 
-impl Client {
-    pub fn new<U: ToSocketAddrs>(mode: ClientMode, alias: String, remote_addr: U) -> Result<Arc<Client>, Error> {
+fn gen_chunk(pos: Vec2<i64>) -> Chunk {
+    Chunk::test(vec3!(pos.x * 16, pos.y * 16, 0), vec3!(16, 16, 128))
+}
+
+impl<P: Payloads> Client<P> {
+    pub fn new<U: ToSocketAddrs, GF: FnPayloadFunc<Chunk, P::Chunk, Output=P::Chunk>>(mode: ClientMode, alias: String, remote_addr: U, gen_payload: GF) -> Result<Arc<Client<P>>, Error> {
         let mut conn = Connection::new::<U>(&remote_addr, Box::new(|m| {
             //
             //self.handle_packet(m);
@@ -90,6 +100,8 @@ impl Client {
 
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
+
+            chunk_mgr: VolMgr::new(16, VolGen::new(gen_chunk, gen_payload)),
 
             callbacks: RwLock::new(Callbacks::new()),
 
@@ -109,12 +121,44 @@ impl Client {
 
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
-            if let Some(player_entry) = self.entities_mut().get_mut(&uid) {
+            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
-                    pos: player_entry.pos(),
-                    move_dir: player_entry.move_dir(),
-                    look_dir: player_entry.look_dir(),
+                    pos: player_entity.pos(),
+                    move_dir: player_entity.move_dir(),
+                    look_dir: player_entity.look_dir(),
                 });
+            }
+        }
+
+        // Generate terrain around the player
+        if let Some(uid) = self.player().entity_uid {
+            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+                let (x, y) = (
+                    (player_entity.pos().x as i64).div_euc(16),
+                    (player_entity.pos().y as i64).div_euc(16)
+                );
+
+                // TODO: define a view distance?!
+                for i in x - 3 .. x + 4 {
+                    for j in y - 3 .. y + 4 {
+                        if !self.chunk_mgr().contains(vec2!(i, j)) {
+                            self.chunk_mgr().gen(vec2!(i, j));
+                        }
+                    }
+                }
+
+                // This should also be tied to view distance, and could be more efficient
+                // (maybe? careful: deadlocks)
+                let chunk_pos = self.chunk_mgr()
+                    .volumes()
+                    .keys()
+                    .map(|p| *p)
+                    .collect::<Vec<_>>();
+                for pos in chunk_pos {
+                    if (pos - vec2!(x, y)).snake_length() > 10 {
+                        self.chunk_mgr().remove(pos);
+                    }
+                }
             }
         }
 
@@ -165,7 +209,7 @@ impl Client {
         }
     }
 
-    fn start(client: Arc<Client>) {
+    fn start(client: Arc<Client<P>>) {
 
         let client_ref = client.clone();
         thread::spawn(move || {
@@ -194,6 +238,8 @@ impl Client {
     pub fn send_cmd(&self, cmd: String) -> Result<(), Error> {
         Ok(self.conn.send(ClientMessage::SendCmd { cmd }))
     }
+
+    pub fn chunk_mgr<'a>(&'a self) -> &'a VolMgr<Chunk, P::Chunk> { &self.chunk_mgr }
 
     pub fn status<'a>(&'a self) -> RwLockReadGuard<'a, ClientStatus> { self.status.read().unwrap() }
 

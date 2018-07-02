@@ -1,8 +1,9 @@
 // Standard
 use std::thread;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, RwLockReadGuard};
 use std::collections::HashMap;
 use std::marker::PhantomData;
+use std::any::Any;
 
 // Library
 use coord::prelude::*;
@@ -10,20 +11,24 @@ use coord::prelude::*;
 // Local
 use {Volume, Voxel};
 
-pub trait VolPayload: Send + Sync {}
-
-pub enum VolState<V: Volume> {
+pub enum VolState<V: Volume, P> {
     Loading,
-    Exists(V, Box<VolPayload>),
+    Exists(V, P),
 }
 
-pub struct VolGen<V: Volume> {
-    gen_func: Arc<fn(Vec2<i64>) -> V>,
-    payload_func: Arc<fn(&V) -> Box<VolPayload>>,
+pub trait FnGenFunc<V>: Fn(Vec2<i64>) -> V + Send + Sync + 'static {}
+impl<V, T: Fn(Vec2<i64>) -> V + Send + Sync + 'static> FnGenFunc<V> for T {}
+
+pub trait FnPayloadFunc<V, P: Send + Sync + 'static>: Fn(&V) -> P + Send + Sync + 'static {}
+impl<V, P: Send + Sync + 'static, T: Fn(&V) -> P + Send + Sync + 'static> FnPayloadFunc<V, P> for T {}
+
+pub struct VolGen<V: Volume, P: Send + Sync + 'static> {
+    gen_func: Arc<FnGenFunc<V, Output=V>>,
+    payload_func: Arc<FnPayloadFunc<V, P, Output=P>>,
 }
 
-impl <V: Volume> VolGen<V> {
-    pub fn new(gen_func: fn(Vec2<i64>) -> V, payload_func: fn(&V) -> Box<VolPayload>) -> VolGen<V> {
+impl<V: Volume, P: Send + Sync + 'static> VolGen<V, P> {
+    pub fn new<GF: FnGenFunc<V>, PF: FnPayloadFunc<V, P>>(gen_func: GF, payload_func: PF) -> VolGen<V, P> {
         VolGen {
             gen_func: Arc::new(gen_func),
             payload_func: Arc::new(payload_func),
@@ -31,14 +36,14 @@ impl <V: Volume> VolGen<V> {
     }
 }
 
-pub struct VolMgr<V: 'static + Volume> {
+pub struct VolMgr<V: 'static + Volume, P: Send + Sync + 'static> {
     vol_size: i64,
-    vols: RwLock<HashMap<Vec2<i64>, Arc<RwLock<VolState<V>>>>>,
-    gen: VolGen<V>,
+    vols: RwLock<HashMap<Vec2<i64>, Arc<RwLock<VolState<V, P>>>>>,
+    gen: VolGen<V, P>,
 }
 
-impl<V: 'static + Volume> VolMgr<V> {
-    pub fn new(vol_size: i64, gen: VolGen<V>) -> VolMgr<V> {
+impl<V: 'static + Volume, P: Send + Sync + 'static> VolMgr<V, P> {
+    pub fn new(vol_size: i64, gen: VolGen<V, P>) -> VolMgr<V, P> {
         VolMgr {
             vol_size,
             vols: RwLock::new(HashMap::new()),
@@ -46,8 +51,12 @@ impl<V: 'static + Volume> VolMgr<V> {
         }
     }
 
-    pub fn at(&self, pos: Vec2<i64>) -> Option<Arc<RwLock<VolState<V>>>> {
+    pub fn at(&self, pos: Vec2<i64>) -> Option<Arc<RwLock<VolState<V, P>>>> {
         self.vols.read().unwrap().get(&pos).map(|v| v.clone())
+    }
+
+    pub fn volumes<'a>(&'a self) -> RwLockReadGuard<'a, HashMap<Vec2<i64>, Arc<RwLock<VolState<V, P>>>>> {
+        self.vols.read().unwrap()
     }
 
     pub fn contains(&self, pos: Vec2<i64>) -> bool {
@@ -74,7 +83,7 @@ impl<V: 'static + Volume> VolMgr<V> {
         });
     }
 
-    pub fn set(&self, pos: Vec2<i64>, vol: V, payload: Box<VolPayload>) {
+    pub fn set(&self, pos: Vec2<i64>, vol: V, payload: P) {
         self.vols.write().unwrap().insert(pos, Arc::new(RwLock::new(VolState::Exists(vol, payload))));
     }
 
