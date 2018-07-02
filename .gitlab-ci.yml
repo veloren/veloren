@@ -13,6 +13,11 @@ stages:
 variables:
   GIT_STRATEGY: none
 before_script:
+  - if [ -d .git ]; then
+       echo "is git dir";
+    else
+       git clone $CI_REPOSITORY_URL . ;
+    fi;
   - rm -f .git/index.lock
   - rm -f .git/shallow.lock
   - rm -f .git/HEAD.lock
@@ -21,7 +26,9 @@ before_script:
   - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
   - git checkout -f -q $CI_COMMIT_SHA
   - git status
-  - ls -la target
+  - if [ -d target ]; then
+       ls -la target;
+    fi;
 #  - git submodule update --init --recursive
 
 build-voxygen:
@@ -49,62 +56,62 @@ unittests:
 #  script:
 #    - cargo bench
 
-package-debug:
+nightly-debug:
   stage: deploy
   script:
     - (cd voxygen && cargo build)
     - (cd server-cli && cargo build)
     - (cd headless && cargo build)
-    - rm -r -f package
-    - mkdir package
-    - cp target/debug/server-cli package
-    - cp target/debug/voxygen package
-    - cp target/debug/headless package
-    - cp -r voxygen/vox package/vox
-    - rm -f package-debug.tar.bz2
-    - tar -cvjSf package-debug.tar.bz2 package
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/debug/server-cli nightly
+    - cp target/debug/voxygen nightly
+    - cp target/debug/headless nightly
+    - cp -r voxygen/vox nightly/vox
+    - rm -f nightly-debug.tar.bz2
+    - tar -cvjSf nightly-debug.tar.bz2 nightly
   when: always
   artifacts:
     paths:
-      - package-debug.tar.bz2
+      - nightly-debug.tar.bz2
     expire_in: 1 week
 
-package-release:
+nightly-release:
   stage: deploy
   script:
     - (cd voxygen && cargo build --release)
     - (cd server-cli && cargo build --release)
     - (cd headless && cargo build --release)
-    - rm -r -f package
-    - mkdir package
-    - cp target/release/server-cli package
-    - cp target/release/voxygen package
-    - cp target/release/headless package
-    - cp -r voxygen/vox package/vox
-    - rm -f package-release.tar.gz
-    - tar -zcvf package-release.tar.gz package
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/release/server-cli nightly
+    - cp target/release/voxygen nightly
+    - cp target/release/headless nightly
+    - cp -r voxygen/vox nightly/vox
+    - rm -f nightly-release.tar.gz
+    - tar -zcvf nightly-release.tar.gz nightly
   artifacts:
     paths:
-      - package-release.tar.gz
+      - nightly-release.tar.gz
     expire_in: 1 week
 
-package-windows-debug:
+nightly-windows-debug:
   stage: deploy
   script:
     - (cd voxygen && cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && cargo build --target=x86_64-pc-windows-gnu)
     - (cd headless && cargo build --target=x86_64-pc-windows-gnu)
-    - rm -r -f package
-    - mkdir package
-    - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe package
-    - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe package
-    - cp target/x86_64-pc-windows-gnu/debug/headless.exe package
-    - cp -r voxygen/vox package/vox
-    - rm -f package-windows-debug.zip
-    - zip -r package-windows-debug.zip package
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe nightly
+    - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe nightly
+    - cp target/x86_64-pc-windows-gnu/debug/headless.exe nightly
+    - cp -r voxygen/vox nightly/vox
+    - rm -f nightly-windows-debug.zip
+    - zip -r nightly-windows-debug.zip nightly
   artifacts:
     paths:
-      - package-windows-debug.zip
+      - nightly-windows-debug.zip
     expire_in: 1 week
 
 coverage:
