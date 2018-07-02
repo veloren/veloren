@@ -159,7 +159,8 @@ impl Game {
         let mut entries = self.client.entities_mut();
         if let Some(eid) = self.client.player().entity_uid {
             if let Some(player_entry) = entries.get_mut(&eid) {
-                *player_entry.move_dir_mut() = vec3!(mov_vec.x, mov_vec.y, fly_vec);
+                player_entry.move_dir_mut().x = mov_vec.x;
+                player_entry.move_dir_mut().y = mov_vec.y;
                 let ori = self.camera.lock().unwrap().ori();
                 *player_entry.look_dir_mut() = vec2!(ori.x, ori.y);
             }

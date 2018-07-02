@@ -15,7 +15,7 @@ mod session;
 
 // Reexport
 pub use common::net::ClientMode;
-pub use region::{Volume, Chunk, FnPayloadFunc};
+pub use region::{Volume, Voxel, Chunk, Block, FnPayloadFunc};
 
 // Standard
 use std::thread;
@@ -28,7 +28,7 @@ use std::net::{ToSocketAddrs};
 use coord::prelude::*;
 
 // Project
-use region::{Entity, VolMgr, VolGen};
+use region::{Entity, VolMgr, VolGen, VolState};
 use common::{get_version, Uid};
 use common::net;
 use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
@@ -122,6 +122,29 @@ impl<P: Payloads> Client<P> {
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+                let (chunk_x, chunk_y) = (
+                    (player_entity.pos().x as i64).div_euc(16),
+                    (player_entity.pos().y as i64).div_euc(16)
+                );
+
+                // Gravity
+                match self.chunk_mgr().at(vec2!(chunk_x, chunk_y)) {
+                    Some(c) => match *c.read().unwrap() {
+                        VolState::Exists(_, _) => player_entity.move_dir_mut().z -= 0.2,
+                        _ => {},
+                    }
+                    None => {},
+                }
+
+                while self.chunk_mgr().get_voxel(vec3!(
+                    (player_entity.pos().x as i64),
+                    (player_entity.pos().y as i64),
+                    (player_entity.pos().z as i64)
+                )).is_solid() {
+                    player_entity.move_dir_mut().z = 0.0;
+                    player_entity.pos_mut().z += 0.025;
+                }
+
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: player_entity.pos(),
                     move_dir: player_entity.move_dir(),
