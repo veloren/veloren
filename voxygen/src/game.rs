@@ -118,6 +118,11 @@ impl Game {
                 Event::KeyboardInput { i, .. } => {
                     match i.virtual_keycode {
                         Some(VirtualKeyCode::Escape) => self.window.cursor_trapped().store(false, Ordering::Relaxed),
+                        Some(VirtualKeyCode::Q) => {
+                            if i.modifiers.ctrl {
+                                self.running.store(false, Ordering::Relaxed);
+                            }
+                        },
                         Some(VirtualKeyCode::W) => self.key_state.lock().unwrap().up = match i.state { // W (up)
                             ElementState::Pressed => true,
                             ElementState::Released => false,
