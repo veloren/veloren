@@ -31,7 +31,7 @@ mod key_state;
 mod map;
 mod vox;
 
-use std::io;
+use std::io::{self, Write};
 
 use client::ClientMode;
 use game::Game;
@@ -43,14 +43,29 @@ fn main() {
     info!("Starting Voxygen... Version: {}", get_version());
 
     let mut remote_addr = String::new();
-    println!("Remote server address [127.0.0.1:59003] (use m for testserver):");
-    io::stdin().read_line(&mut remote_addr).unwrap();
+    println!("Remote server address [Default: 127.0.0.1:59003] (use m for testserver):");
+
+    let mut args = std::env::args();
+
+    // expects single command line argument that is the remote_addr
+    if args.len() == 2 {
+        remote_addr = args.nth(1).expect("No argument");
+    }
+        else {
+            // If args aren't correct then read from stdin
+            print!("Enter address (blank for default): ");
+            io::stdout().flush().expect("Failed to flush");
+            io::stdin().read_line(&mut remote_addr).unwrap();
+        }
+
     let mut remote_addr = remote_addr.trim();
     if remote_addr.len() == 0 {
         remote_addr = "127.0.0.1:59003";
     } else if remote_addr == "m" {
         remote_addr = "91.67.21.222:38888";
     }
+
+    println!("Connecting to {}", remote_addr);
 
     Game::new(
         ClientMode::Character,
