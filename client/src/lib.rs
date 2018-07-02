@@ -110,15 +110,17 @@ impl Client {
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entry) = self.entities_mut().get_mut(&uid) {
-                let move_dir = player_entry.move_dir();
-                *player_entry.pos_mut() += move_dir * dt;
-
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: player_entry.pos(),
                     move_dir: player_entry.move_dir(),
                     look_dir: player_entry.look_dir(),
                 });
             }
+        }
+
+        for (uid, entity) in self.entities_mut().iter_mut() {
+            let move_dir = entity.move_dir();
+            *entity.pos_mut() += move_dir * dt;
         }
     }
 
