@@ -17,6 +17,9 @@ mod session;
 pub use common::net::ClientMode;
 pub use region::{Volume, Voxel, Chunk, Block, FnPayloadFunc};
 
+// Constants
+pub const CHUNK_SIZE: i64 = 16;
+
 // Standard
 use std::thread;
 use std::time;
@@ -82,7 +85,7 @@ impl<P: Payloads> Callback<ServerMessage> for Client<P> {
 }
 
 fn gen_chunk(pos: Vec2<i64>) -> Chunk {
-    Chunk::test(vec3!(pos.x * 16, pos.y * 16, 0), vec3!(16, 16, 128))
+    Chunk::test(vec3!(pos.x * CHUNK_SIZE, pos.y * CHUNK_SIZE, 0), vec3!(CHUNK_SIZE, CHUNK_SIZE, 128))
 }
 
 impl<P: Payloads> Client<P> {
@@ -101,7 +104,7 @@ impl<P: Payloads> Client<P> {
             player: RwLock::new(Player::new(alias)),
             entities: RwLock::new(HashMap::new()),
 
-            chunk_mgr: VolMgr::new(16, VolGen::new(gen_chunk, gen_payload)),
+            chunk_mgr: VolMgr::new(CHUNK_SIZE, VolGen::new(gen_chunk, gen_payload)),
 
             callbacks: RwLock::new(Callbacks::new()),
 
@@ -123,8 +126,8 @@ impl<P: Payloads> Client<P> {
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
                 let (chunk_x, chunk_y) = (
-                    (player_entity.pos().x as i64).div_euc(16),
-                    (player_entity.pos().y as i64).div_euc(16)
+                    (player_entity.pos().x as i64).div_euc(CHUNK_SIZE),
+                    (player_entity.pos().y as i64).div_euc(CHUNK_SIZE)
                 );
 
                 // Gravity
@@ -157,8 +160,8 @@ impl<P: Payloads> Client<P> {
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
                 let (x, y) = (
-                    (player_entity.pos().x as i64).div_euc(16),
-                    (player_entity.pos().y as i64).div_euc(16)
+                    (player_entity.pos().x as i64).div_euc(CHUNK_SIZE),
+                    (player_entity.pos().y as i64).div_euc(CHUNK_SIZE)
                 );
 
                 // TODO: define a view distance?!
