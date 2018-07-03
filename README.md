@@ -128,7 +128,7 @@ Follow the following steps on your machine. Keep in mind that this basically all
 2. Follow all steps for comiling the project like descriped above. make sure you can compile the code as gitlab-runner user
 3. install gcc crosscompiler for windows and zip
 ```bash
-sudo apt-get install gcc-mingw-w64-x86-64 zip libssl-dev pkg-config cmake zlib1g-dev -y
+sudo apt-get install gcc-mingw-w64-x86-64 zip libssl-dev pkg-config cmake zlib1g-dev libncurses5-dev -y
 rustup target add x86_64-pc-windows-gnu
 ```
 (https://stackoverflow.com/a/39184296/4311928)
