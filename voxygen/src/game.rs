@@ -191,7 +191,7 @@ impl Game {
 
         if let Some(uid) = self.client.player().entity_uid {
             if let Some(e) = self.client.entities().get(&uid) {
-                self.camera.lock().unwrap().set_focus(Vector3::<f32>::new(e.pos().x, e.pos().y, e.pos().z)); // TODO: Improve this
+                self.camera.lock().unwrap().set_focus(Vector3::<f32>::new(e.pos().x, e.pos().y, e.pos().z + 1.75)); // TODO: Improve this
             }
         }
 
