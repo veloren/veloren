@@ -26,7 +26,7 @@ impl Chunk {
                         (i+offset.x) as f64 + noise2.get([(i+offset.x) as f64 * 0.02, (j+offset.y) as f64 * 0.02, (k+offset.z) as f64 * 0.05]) * 16.0,
                         (j+offset.y) as f64 + noise3.get([(i+offset.x) as f64 * 0.02, (j+offset.y) as f64 * 0.02, (k+offset.z) as f64 * 0.05]) * 16.0
                     );
-                    let noise = noise0.get([x as f64 * 0.02, y as f64 * 0.02]) + 0.2 * noise1.get([x as f64 * 0.1, y as f64 * 0.1]);
+                    let noise = noise0.get([x as f64 * 0.01, y as f64 * 0.01]) + 0.15 * noise1.get([x as f64 * 0.1, y as f64 * 0.1]);
                     let height = ((noise * 0.5 + 0.5) * size.z as f64) as i64;
 
                     voxels.push(Block::new(

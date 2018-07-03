@@ -40,6 +40,8 @@ use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
 use player::Player;
 use callbacks::Callbacks;
 
+const VIEW_DISTANCE: i64 = 5;
+
 // Errors that may occur within this crate
 #[derive(Debug)]
 pub enum Error {
@@ -108,7 +110,7 @@ impl<P: Payloads> Client<P> {
 
             callbacks: RwLock::new(Callbacks::new()),
 
-            finished: Barrier::new(2),
+            finished: Barrier::new(3),
         });
 
         *client.conn.callbackobj() = Some(client.clone());
@@ -120,6 +122,40 @@ impl<P: Payloads> Client<P> {
 
     fn set_status(&self, status: ClientStatus) {
         *self.status.write().unwrap() = status;
+    }
+
+    fn manage_chunks(&self) {
+         // Generate terrain around the player
+        if let Some(uid) = self.player().entity_uid {
+            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+                let (x, y) = (
+                    (player_entity.pos().x as i64).div_euc(16),
+                    (player_entity.pos().y as i64).div_euc(16)
+                );
+
+                // TODO: define a view distance?!
+                for i in x - VIEW_DISTANCE .. x + VIEW_DISTANCE + 1 {
+                    for j in y - VIEW_DISTANCE .. y + VIEW_DISTANCE + 1 {
+                        if !self.chunk_mgr().contains(vec2!(i, j)) {
+                            self.chunk_mgr().gen(vec2!(i, j));
+                        }
+                    }
+                }
+
+                // This should also be tied to view distance, and could be more efficient
+                // (maybe? careful: deadlocks)
+                let chunk_pos = self.chunk_mgr()
+                    .volumes()
+                    .keys()
+                    .map(|p| *p)
+                    .collect::<Vec<_>>();
+                for pos in chunk_pos {
+                    if (pos - vec2!(x, y)).snake_length() > VIEW_DISTANCE * 2 {
+                        self.chunk_mgr().remove(pos);
+                    }
+                }
+            }
+        }
     }
 
     fn tick(&self, dt: f32) {
@@ -245,6 +281,15 @@ impl<P: Payloads> Client<P> {
             }
             // Notify anything else that we've finished ticking
             client_ref.finished.wait();
+        });
+
+        thread::spawn(move || {
+            while *client.status() != ClientStatus::Disconnected {
+                client.manage_chunks();
+                thread::sleep(time::Duration::from_millis(100));
+            }
+            // Notify anything else that we've finished ticking
+            client.finished.wait();
         });
     }
 
