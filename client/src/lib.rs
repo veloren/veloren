@@ -18,7 +18,7 @@ pub use common::net::ClientMode;
 pub use region::{Volume, Voxel, Chunk, Block, FnPayloadFunc};
 
 // Constants
-pub const CHUNK_SIZE: i64 = 16;
+pub const CHUNK_SIZE: i64 = 32;
 
 // Standard
 use std::thread;

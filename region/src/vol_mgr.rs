@@ -1,12 +1,13 @@
 // Standard
 use std::thread;
-use std::sync::{Arc, RwLock, RwLockReadGuard};
+use std::sync::{Arc, RwLock, RwLockReadGuard, Mutex};
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::any::Any;
 
 // Library
 use coord::prelude::*;
+use threadpool::ThreadPool;
 
 // Local
 use {Volume, Voxel};
@@ -14,6 +15,10 @@ use {Volume, Voxel};
 pub enum VolState<V: Volume, P> {
     Loading,
     Exists(V, P),
+}
+
+lazy_static! {
+    static ref POOL: Mutex<ThreadPool> = Mutex::new(ThreadPool::new(3));
 }
 
 pub trait FnGenFunc<V>: Fn(Vec2<i64>) -> V + Send + Sync + 'static {}
@@ -67,13 +72,6 @@ impl<V: 'static + Volume, P: Send + Sync + 'static> VolMgr<V, P> {
         self.vols.write().unwrap().remove(&pos).is_some()
     }
 
-    pub fn try_remove(&self, pos: Vec2<i64>) -> bool {
-        match self.vols.try_write() {
-            Ok(ref mut v) => v.remove(&pos).is_some(),
-            Err(_) => false,
-        }
-    }
-
     pub fn gen(&self, pos: Vec2<i64>) {
         if self.contains(pos) {
             return; // Don't try to generate the same chunk twice
@@ -83,33 +81,11 @@ impl<V: 'static + Volume, P: Send + Sync + 'static> VolMgr<V, P> {
         let payload_func = self.gen.payload_func.clone();
         let vol_state = Arc::new(RwLock::new(VolState::Loading));
         self.vols.write().unwrap().insert(pos, vol_state.clone());
-        thread::spawn(move || {
+        POOL.lock().unwrap().execute(move || {
             let vol = gen_func(pos);
             let payload = payload_func(&vol);
             *vol_state.write().unwrap() = VolState::Exists(vol, payload);
         });
-    }
-
-    pub fn try_gen(&self, pos: Vec2<i64>) -> bool {
-        if self.contains(pos) {
-            return false; // Don't try to generate the same chunk twice
-        }
-
-        let gen_func = self.gen.gen_func.clone();
-        let payload_func = self.gen.payload_func.clone();
-        let vol_state = Arc::new(RwLock::new(VolState::Loading));
-
-        match self.vols.try_write() {
-            Ok(ref mut v) => { v.insert(pos, vol_state.clone()); },
-            Err(_) => return false,
-        }
-
-        thread::spawn(move || {
-            let vol = gen_func(pos);
-            let payload = payload_func(&vol);
-            *vol_state.write().unwrap() = VolState::Exists(vol, payload);
-        });
-        true
     }
 
     pub fn set(&self, pos: Vec2<i64>, vol: V, payload: P) {

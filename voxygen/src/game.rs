@@ -172,7 +172,7 @@ impl Game {
         self.running.load(Ordering::Relaxed)
     }
 
-    pub fn mesh_chunks(&self) {
+    pub fn model_chunks(&self) {
         for (pos, vol) in self.client.chunk_mgr().volumes().iter() {
             if let VolState::Exists(ref chunk, ref mut payload) = *vol.write().unwrap() {
                 if let None = payload.1 {
@@ -247,7 +247,7 @@ impl Game {
 
     pub fn run(&self) {
         while self.handle_window_events() {
-            self.mesh_chunks();
+            self.model_chunks();
             self.render_frame();
         }
 
