@@ -36,7 +36,7 @@ build-voxygen:
   script:
     - (cd voxygen && cargo build)
 
-build-voxygen:
+build-headless:
   stage: build
   script:
     - (cd headless && cargo build)
@@ -76,24 +76,24 @@ nightly-debug:
       - nightly-debug.tar.bz2
     expire_in: 1 week
 
-nightly-release:
-  stage: deploy
-  script:
-    - (cd voxygen && cargo build --release)
-    - (cd server-cli && cargo build --release)
-    - (cd headless && cargo build --release)
-    - rm -r -f nightly
-    - mkdir nightly
-    - cp target/release/server-cli nightly
-    - cp target/release/voxygen nightly
-    - cp target/release/headless nightly
-    - cp -r voxygen/vox nightly/vox
-    - rm -f nightly-release.tar.gz
-    - tar -zcvf nightly-release.tar.gz nightly
-  artifacts:
-    paths:
-      - nightly-release.tar.gz
-    expire_in: 1 week
+#nightly-release:
+#  stage: deploy
+#  script:
+#    - (cd voxygen && cargo build --release)
+#    - (cd server-cli && cargo build --release)
+#    - (cd headless && cargo build --release)
+#    - rm -r -f nightly
+#    - mkdir nightly
+#    - cp target/release/server-cli nightly
+#    - cp target/release/voxygen nightly
+#    - cp target/release/headless nightly
+#    - cp -r voxygen/vox nightly/vox
+#    - rm -f nightly-release.tar.gz
+#    - tar -zcvf nightly-release.tar.gz nightly
+#  artifacts:
+#    paths:
+#      - nightly-release.tar.gz
+#    expire_in: 1 week
 
 nightly-windows-debug:
   stage: deploy
