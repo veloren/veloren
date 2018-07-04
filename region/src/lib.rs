@@ -26,7 +26,7 @@ pub use model::Model;
 pub use entity::Entity;
 pub use vol_mgr::{VolMgr, VolGen, VolState, FnGenFunc, FnPayloadFunc};
 
-use coord::vec3::Vec3;
+use coord::prelude::*;
 
 pub trait Voxel: Copy + Clone {
     type Material: Copy + Clone;
@@ -56,4 +56,16 @@ pub trait Volume: Send + Sync {
 
     fn at(&self, pos: Vec3<i64>) -> Option<Self::VoxelType>;
     fn set(&mut self, pos: Vec3<i64>, vt: Self::VoxelType);
+}
+
+pub trait VolCollider {
+    fn is_solid_at(&self, pos: Vec3<f32>) -> bool;
+}
+
+impl<V: Volume> VolCollider for V {
+    fn is_solid_at(&self, pos: Vec3<f32>) -> bool {
+        self.at(pos.floor().map(|e| e as i64))
+            .map(|v| v.is_solid())
+            .unwrap_or(false)
+    }
 }
