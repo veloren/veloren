@@ -15,12 +15,12 @@ pub trait RenderVolume: Volume
 impl RenderVoxel for Block {
     fn get_color(&self) -> Vec4<f32> {
         let color_map = enum_map! {
-            BlockMaterial::Air => Vec4::new(0.0, 0.0, 0.0, 0.0),
-            BlockMaterial::Grass => Vec4::new(0.2, 0.7, 0.0, 1.0),
-            BlockMaterial::Sand  => Vec4::new(1.0, 0.8, 0.5, 1.0),
-            BlockMaterial::Earth => Vec4::new(0.5, 0.2, 0.0, 1.0),
-            BlockMaterial::Stone => Vec4::new(0.5, 0.5, 0.5, 1.0),
-            BlockMaterial::Water => Vec4::new(0.5, 0.7, 1.0, 1.0),
+            BlockMaterial::Air => vec4!(0.0, 0.0, 0.0, 0.0) / 256.0f32,
+            BlockMaterial::Grass => vec4!(75.0, 125.0, 25.0, 256.0) / 256.0f32,
+            BlockMaterial::Sand  => vec4!(225.0, 205.0, 100.0, 256.0) / 256.0f32,
+            BlockMaterial::Earth => vec4!(160.0, 120.0, 80.0, 256.0) / 256.0f32,
+            BlockMaterial::Stone => vec4!(145.0, 170.0, 160.0, 256.0) / 256.0f32,
+            BlockMaterial::Water => vec4!(65.0, 150.0, 180.0, 256.0) / 256.0f32,
         };
 
         color_map[self.material()]

@@ -5,6 +5,8 @@ extern crate rand;
 extern crate noise;
 extern crate nalgebra;
 #[macro_use] extern crate coord;
+extern crate threadpool;
+#[macro_use] extern crate lazy_static;
 
 mod block;
 mod chunk;
