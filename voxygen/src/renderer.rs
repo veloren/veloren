@@ -1,7 +1,7 @@
 // Ui
 use conrod::backend::gfx::Renderer as ui_renderer;
 use ui::{
-    UI,
+    Ui,
     ShaderResourceView,
     ui_resources,
     ImageMap,
@@ -51,12 +51,12 @@ impl Renderer {
         }
     }
 
-    pub fn render_ui(&mut self, ui: &UI, window_size: &[f64; 2]) {
+    pub fn render_ui(&mut self, ui: &Ui, window_size: &[f64; 2]) {
         let primitives = ui.get_primitives();
         let image_map = ui.get_image_map();
 
         self.ui_renderer.fill(&mut self.encoder, (window_size[0] as f32, window_size[1] as f32), primitives, &image_map);
-        self.ui_renderer.draw(&mut self.factory, &mut self.encoder, image_map);
+        self.ui_renderer.draw(&mut self.factory, &mut self.encoder, &image_map);
     }
 
     pub fn factory_mut<'a>(&'a mut self) -> &'a mut gfx_device_gl::Factory {

@@ -1,5 +1,5 @@
 // Ui
-use ui::UI;
+use ui::Ui;
 
 // Standard
 use std::net::ToSocketAddrs;
@@ -40,7 +40,7 @@ pub struct Game {
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
-    ui: UI,
+    ui: Ui,
 }
 
 // "Data" includes mutable state
@@ -80,7 +80,7 @@ impl Game {
         // Contruct the UI
         let window_dims = window.get_size();
 
-        let mut ui = UI::new(window_dims);
+        let mut ui = Ui::new(window_dims);
         ui.add_version_number();
 
         Game {

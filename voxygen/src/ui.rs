@@ -1,5 +1,5 @@
 use conrod::{
-    Ui,
+    Ui as conrod_ui,
     UiBuilder,
     image::Map,
     color,
@@ -22,12 +22,12 @@ pub use conrod::gfx_core::handle::ShaderResourceView;
 // UI image assets if I understand correctly
 pub type ImageMap = Map<(ShaderResourceView<ui_resources, [f32; 4]>, (u32, u32))>;
 
-pub struct UI {
-    ui: Ui,
+pub struct Ui {
+    ui: conrod_ui,
     image_map: ImageMap,
 }
 
-impl UI {
+impl Ui {
     pub fn new(size: [f64; 2]) -> Self {
         let ui = UiBuilder::new(size).build();
         let image_map = Map::new();
