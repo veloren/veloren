@@ -128,6 +128,16 @@ impl RenderWindow {
                         }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
+
+                    WindowEvent::Focused(is_focused) => {
+                        if is_focused {
+                            // Window was changed to focused, ensure the cursor is trapped.
+                            self.cursor_trapped.store(true, Ordering::Relaxed);
+                        } else {
+                            // Window was changed to unfocused, ensure the cursor is not trapped
+                            self.cursor_trapped.store(false, Ordering::Relaxed);
+                        }
+                    }
                     _ => {},
                 },
                 _ => {},
