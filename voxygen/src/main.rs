@@ -1,5 +1,9 @@
 #![feature(nll)]
 
+
+#[macro_use]
+extern crate conrod;
+
 #[macro_use]
 extern crate gfx;
 extern crate gfx_window_glutin;
@@ -29,6 +33,7 @@ mod camera;
 mod render_volume;
 mod key_state;
 mod vox;
+mod ui;
 
 use std::io::{self, Write};
 

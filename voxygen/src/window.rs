@@ -46,6 +46,14 @@ impl RenderWindow {
             cursor_trapped: AtomicBool::new(true),
         }
     }
+    
+    pub fn get_size(&self) -> [f64; 2] {
+        let window = self.gl_window.lock().unwrap();
+        match window.get_inner_size() {
+            Some((w, h)) => [w as f64, h as f64],
+            None => [0.0, 0.0]
+        }
+    }
 
     pub fn renderer<'a>(&'a self) -> RwLockReadGuard<'a, Renderer> { self.renderer.read().unwrap() }
     pub fn renderer_mut<'a>(&'a self) -> RwLockWriteGuard<'a, Renderer> { self.renderer.write().unwrap() }

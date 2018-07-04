@@ -1,3 +1,12 @@
+// Ui
+use conrod::backend::gfx::Renderer as ui_renderer;
+use ui::{
+    UI,
+    ShaderResourceView,
+    ui_resources,
+    ImageMap,
+};
+
 use gfx;
 use gfx::{Device, Encoder, handle::RenderTargetView, handle::DepthStencilView};
 use gfx_device_gl;
@@ -19,10 +28,12 @@ pub struct Renderer {
     factory: gfx_device_gl::Factory,
     encoder: Encoder<gfx_device_gl::Resources, gfx_device_gl::CommandBuffer>,
     model_pipeline: Pipeline<model_object::pipe::Init<'static>>,
+    ui_renderer: ui_renderer<'static, ui_resources>,
 }
 
 impl Renderer {
     pub fn new(device: gfx_device_gl::Device, mut factory: gfx_device_gl::Factory, color_view: ColorView, depth_view: DepthView) -> Renderer {
+        let ui_renderer = ui_renderer::new(&mut factory, &color_view, 1.0).unwrap();
 
         Renderer {
             device,
@@ -36,7 +47,16 @@ impl Renderer {
                 include_bytes!("../shaders/frag.glsl"),
             ),
             factory,
+            ui_renderer,
         }
+    }
+
+    pub fn render_ui(&mut self, ui: &UI, window_size: &[f64; 2]) {
+        let primitives = ui.get_primitives();
+        let image_map = ui.get_image_map();
+
+        self.ui_renderer.fill(&mut self.encoder, (window_size[0] as f32, window_size[1] as f32), primitives, &image_map);
+        self.ui_renderer.draw(&mut self.factory, &mut self.encoder, image_map);
     }
 
     pub fn factory_mut<'a>(&'a mut self) -> &'a mut gfx_device_gl::Factory {

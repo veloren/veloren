@@ -1,3 +1,6 @@
+// Ui
+use ui::UI;
+
 // Standard
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
@@ -5,9 +8,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::f32::consts::PI;
 use std::collections::HashMap;
 //use std::f32::{sin, cos};
-
-// Import contants
-use client::CHUNK_SIZE;
 
 // Library
 use nalgebra::{Vector2, Vector3, Translation3, Rotation3, convert, dot};
@@ -40,6 +40,7 @@ pub struct Game {
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
+    ui: UI,
 }
 
 // "Data" includes mutable state
@@ -76,6 +77,12 @@ impl Game {
             &other_player_mesh,
         );
 
+        // Contruct the UI
+        let window_dims = window.get_size();
+
+        let mut ui = UI::new(window_dims);
+        ui.add_version_number();
+
         Game {
             data: Mutex::new(Data {
                 player_model,
@@ -87,6 +94,7 @@ impl Game {
             window,
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
+            ui,
         }
     }
 
@@ -202,8 +210,8 @@ impl Game {
             if let VolState::Exists(ref chunk, ref payload) = *vol.read().unwrap() {
                 if let Some(ref model) = payload.1 {
                     let model_mat = &Translation3::<f32>::from_vector(Vector3::<f32>::new(
-                        (pos.x * CHUNK_SIZE) as f32,
-                        (pos.y * CHUNK_SIZE) as f32,
+                        pos.x as f32 * 16.0,
+                        pos.y as f32 * 16.0,
                         0.0
                     )).to_homogeneous();
 
@@ -240,6 +248,9 @@ impl Game {
             );
             renderer.render_model_object(&model);
         }
+
+        // Draw ui
+        renderer.render_ui(&self.ui, &self.window.get_size());
 
         self.window.swap_buffers();
         renderer.end_frame();
