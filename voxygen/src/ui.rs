@@ -18,7 +18,7 @@ use conrod::{
     widget::Id as wid,
     text::font::Id as fid,
     event::Input,
-    backend::gfx::Renderer as GfxRenderer,
+    backend::gfx::Renderer as ConrodRenderer,
 };
 
 use renderer::Renderer;
@@ -32,7 +32,7 @@ pub use conrod::gfx_core::handle::ShaderResourceView;
 pub type ImageMap = Map<(ShaderResourceView<ui_resources, [f32; 4]>, (u32, u32))>;
 
 pub struct Ui {
-    gfx_renderer: GfxRenderer<'static, ui_resources>,
+    conrodRenderer: ConrodRenderer<'static, ui_resources>,
     ui: conrod_ui,
     image_map: ImageMap,
     fid: Option<fid>,
@@ -49,10 +49,10 @@ impl Ui {
         let color_view = renderer.color_view().clone();
         let mut factory = renderer.factory_mut().clone();
 
-        let gfx_renderer = GfxRenderer::new(&mut factory, &color_view , 1.0).unwrap();
+        let conrodRenderer = ConrodRenderer::new(&mut factory, &color_view , 1.0).unwrap();
 
         Self {
-            gfx_renderer,
+            conrodRenderer,
             ui,
             image_map,
             fid: None,
@@ -63,9 +63,9 @@ impl Ui {
     pub fn render(&mut self, renderer: &mut Renderer, window_size: &[f64; 2]) {
         self.ui.handle_event(Input::Resize(window_size[0] as u32, window_size[1] as u32));
         self.set_ui();
-        self.gfx_renderer.on_resize(renderer.color_view().clone());
-        self.gfx_renderer.fill(&mut renderer.encoder_mut(), (window_size[0] as f32 , window_size[1] as f32), 1.0, self.ui.draw(), &self.image_map);
-        self.gfx_renderer.draw(&mut renderer.factory_mut().clone(), &mut renderer.encoder_mut(), &self.image_map);
+        self.conrodRenderer.on_resize(renderer.color_view().clone());
+        self.conrodRenderer.fill(&mut renderer.encoder_mut(), (window_size[0] as f32 , window_size[1] as f32), 1.0, self.ui.draw(), &self.image_map);
+        self.conrodRenderer.draw(&mut renderer.factory_mut().clone(), &mut renderer.encoder_mut(), &self.image_map);
     }
 
     pub fn add_version_number(&mut self) {
