@@ -23,7 +23,6 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new(device: gfx_device_gl::Device, mut factory: gfx_device_gl::Factory, color_view: ColorView, depth_view: DepthView) -> Renderer {
-
         Renderer {
             device,
             color_view,
@@ -37,6 +36,10 @@ impl Renderer {
             ),
             factory,
         }
+    }
+
+    pub fn encoder_mut<'a>(&'a mut self) -> &'a mut Encoder<gfx_device_gl::Resources, gfx_device_gl::CommandBuffer> {
+        &mut self.encoder
     }
 
     pub fn factory_mut<'a>(&'a mut self) -> &'a mut gfx_device_gl::Factory {

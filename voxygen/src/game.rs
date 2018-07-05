@@ -1,3 +1,6 @@
+// Ui
+use ui::Ui;
+
 // Standard
 use std::net::ToSocketAddrs;
 use std::sync::{Arc, Mutex};
@@ -40,6 +43,7 @@ pub struct Game {
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
+    ui: Mutex<Ui>,
 }
 
 // "Data" includes mutable state
@@ -76,6 +80,12 @@ impl Game {
             &other_player_mesh,
         );
 
+        // Contruct the UI
+        let window_dims = window.get_size();
+
+        let mut ui = Ui::new(&mut window.renderer_mut(), window_dims);
+        ui.add_version_number();
+
         Game {
             data: Mutex::new(Data {
                 player_model,
@@ -87,6 +97,7 @@ impl Game {
             window,
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
+            ui: Mutex::new(ui),
         }
     }
 
@@ -240,6 +251,9 @@ impl Game {
             );
             renderer.render_model_object(&model);
         }
+
+        // Draw ui
+        self.ui.lock().unwrap().render(&mut renderer, &self.window.get_size());
 
         self.window.swap_buffers();
         renderer.end_frame();
