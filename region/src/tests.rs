@@ -10,7 +10,7 @@ use coord::prelude::*;
 
 // Parent
 use super::{Volume, Voxel, Model};
-use super::physic::{might_colide, do_colide, CuboidColission};
+use super::collision::{might_colide, do_colide, CuboidColission};
 
 fn newmodel(size: Vec3<i64>, offset: Vec3<i64>, rotation: Vec3<f64>) -> Model {
     let mut model = Model::new();
