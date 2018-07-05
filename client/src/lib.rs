@@ -125,9 +125,10 @@ impl<P: Payloads> Client<P> {
          // Generate terrain around the player
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
-                let player_chunk = player_entity.pos()
-                                                .map(|e| e as i64)
-                                                .div_euc(vec3!([CHUNK_SIZE; 3]));
+                let player_chunk = player_entity
+                    .pos()
+                    .map(|e| e as i64)
+                    .div_euc(vec3!([CHUNK_SIZE; 3]));
 
                 for i in player_chunk.x - VIEW_DISTANCE .. player_chunk.x + VIEW_DISTANCE + 1 {
                     for j in player_chunk.y - VIEW_DISTANCE .. player_chunk.y + VIEW_DISTANCE + 1 {
@@ -155,6 +156,41 @@ impl<P: Payloads> Client<P> {
 
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
+            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+                let player_chunk = player_entity
+                    .pos()
+                    .map(|e| e as i64)
+                    .div_euc(vec3!([CHUNK_SIZE; 3]));
+
+                // Apply gravity to the player
+                if let Some(c) = self.chunk_mgr().at(vec2!(player_chunk.x, player_chunk.y)) {
+                    if let VolState::Exists(_, _) = *c.read().unwrap() {
+                        let below_feet = player_entity.pos() - vec3!(0.0, 0.0, -0.1);
+                            if player_entity
+                                .get_aabb()
+                                .shift_by(vec3!(0.0, 0.0, -0.1)) // Move it a little below the player to check whether we're on the ground
+                                .collides_with(self.chunk_mgr()) {
+                                player_entity.move_dir_mut().z = 0.0;
+                            } else {
+                                player_entity.move_dir_mut().z -= 0.15;
+                            }
+                    }
+                }
+            }
+        }
+
+        // Move all entities, avoiding collisions
+        for (uid, entity) in self.entities_mut().iter_mut() {
+            let mut dpos = entity.move_dir() * dt;
+
+            // Resolve collisions with the terrain
+            let dpos = entity.get_aabb().resolve_with(self.chunk_mgr(), dpos);
+
+            *entity.pos_mut() += dpos;
+        }
+
+        // Update the server with information about the player
+        if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities().get(&uid) {
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: player_entity.pos(),
@@ -162,43 +198,6 @@ impl<P: Payloads> Client<P> {
                     look_dir: player_entity.look_dir(),
                 });
             }
-        }
-        if let Some(uid) = self.player().entity_uid {
-            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
-                let player_chunk = player_entity.pos()
-                                                .map(|e| e as i64)
-                                                .div_euc(vec3!([CHUNK_SIZE; 3]));
-
-                // Gravity
-                match self.chunk_mgr().at(vec2!(player_chunk.x, player_chunk.y)) {
-                    Some(c) => match *c.read().unwrap() {
-                        VolState::Exists(_, _) => {
-                            let below_feet = player_entity.pos() - vec3!(0.0, 0.0, -0.1);
-                            if self.chunk_mgr().get_voxel_at(below_feet.map(|c| c as i64)).is_solid() {
-                                player_entity.move_dir_mut().z = 0.0;
-                            } else {
-                                player_entity.move_dir_mut().z -= 0.05;
-                            }
-
-                        },
-                        _ => {},
-                    }
-                    None => {},
-                }
-
-                self.conn.send(ClientMessage::PlayerEntityUpdate {
-                    pos: player_entity.pos(),
-                    move_dir: player_entity.move_dir(),
-                    look_dir: player_entity.look_dir(),
-                });
-            }
-        }
-
-        for (uid, entity) in self.entities_mut().iter_mut() {
-            let mut dpos = entity.move_dir() * dt;
-            let dpos = entity.get_aabb().resolve_with(self.chunk_mgr(), dpos);
-
-            *entity.pos_mut() += dpos;
         }
     }
 
