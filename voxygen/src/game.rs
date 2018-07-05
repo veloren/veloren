@@ -9,6 +9,9 @@ use std::f32::consts::PI;
 use std::collections::HashMap;
 //use std::f32::{sin, cos};
 
+// Import contants
+use client::CHUNK_SIZE;
+
 // Library
 use nalgebra::{Vector2, Vector3, Translation3, Rotation3, convert, dot};
 use coord::prelude::*;
@@ -210,8 +213,8 @@ impl Game {
             if let VolState::Exists(ref chunk, ref payload) = *vol.read().unwrap() {
                 if let Some(ref model) = payload.1 {
                     let model_mat = &Translation3::<f32>::from_vector(Vector3::<f32>::new(
-                        pos.x as f32 * 16.0,
-                        pos.y as f32 * 16.0,
+                        (pos.x * CHUNK_SIZE) as f32,
+			(pos.y * CHUNK_SIZE) as f32,
                         0.0
                     )).to_homogeneous();
 
