@@ -43,7 +43,7 @@ pub struct Game {
     data: Mutex<Data>,
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
-    ui: Ui,
+    ui: Mutex<Ui>,
 }
 
 // "Data" includes mutable state
@@ -97,11 +97,11 @@ impl Game {
             window,
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
-            ui,
+            ui: Mutex::new(ui),
         }
     }
 
-    pub fn handle_window_events(&mut self) -> bool {
+    pub fn handle_window_events(&self) -> bool {
         self.window.handle_events(|event| {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
@@ -196,7 +196,7 @@ impl Game {
         }
     }
 
-    pub fn render_frame(&mut self) {
+    pub fn render_frame(&self) {
         let mut renderer = self.window.renderer_mut();
         renderer.begin_frame();
 
@@ -255,15 +255,16 @@ impl Game {
         /* // Draw ui
         let size = self.window.get_size();
 
-        self.ui.set_size(size[0] as u32, size[1] as u32);
-        self.ui.set_ui();
-        renderer.render_ui(&self.ui, &size); */
+        let mut ui = self.ui.lock().unwrap();
+        ui.set_size(size[0] as u32, size[1] as u32);
+        ui.set_ui();
+        renderer.render_ui(&ui, &size); */
 
         self.window.swap_buffers();
         renderer.end_frame();
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&self) {
         while self.handle_window_events() {
             self.model_chunks();
             self.render_frame();
