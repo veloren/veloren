@@ -70,6 +70,12 @@ impl Mesh {
     pub fn from<V: RenderVolume>(vol: &V) -> Mesh
         where V::VoxelType : RenderVoxel
     {
+        Mesh::from_with_offset(vol, vec3!(0.0, 0.0, 0.0))
+    }
+
+    pub fn from_with_offset<V: RenderVolume>(vol: &V, offs: Vec3<f32>) -> Mesh
+        where V::VoxelType : RenderVoxel
+    {
         let mut mesh = Mesh::new();
         let scale = vol.scale();
         let scale = Vec3::new(scale.x as f32, scale.y as f32, scale.z as f32);
@@ -78,7 +84,11 @@ impl Mesh {
             for y in 0..vol.size().y {
                 for z in 0..vol.size().z {
                     let vox = vol.at(Vec3::from((x, y, z))).expect("Attempted to mesh voxel outside volume");
-                    let offset = Vec3::new(x as f32 * scale.x, y as f32 * scale.y, z as f32 * scale.z);
+                    let offset = Vec3::new(
+                        (x as f32 + offs.x) * scale.x,
+                        (y as f32 + offs.y) * scale.y,
+                        (z as f32 + offs.z) * scale.z
+                    );
 
                     if vox.is_opaque() {
                         // +x

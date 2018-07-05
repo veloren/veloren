@@ -59,7 +59,7 @@ impl Game {
         let vox = dot_vox::load("vox/3.vox").unwrap();
         let voxmodel = vox_to_model(vox);
 
-        let player_mesh = Mesh::from(&voxmodel);
+        let player_mesh = Mesh::from_with_offset(&voxmodel, vec3!(-10.0, -4.0, 0.0));
 
         let player_model = ModelObject::new(
             &mut window.renderer_mut(),
