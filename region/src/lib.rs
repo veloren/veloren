@@ -7,6 +7,7 @@ extern crate nalgebra;
 #[macro_use] extern crate coord;
 extern crate threadpool;
 #[macro_use] extern crate lazy_static;
+extern crate common;
 
 mod block;
 mod chunk;
@@ -14,7 +15,8 @@ mod cell;
 mod model;
 mod entity;
 mod vol_mgr;
-mod physic;
+mod collision;
+pub mod physics;
 #[cfg(test)]
 mod tests;
 

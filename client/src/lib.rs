@@ -31,7 +31,7 @@ use std::net::{ToSocketAddrs};
 use coord::prelude::*;
 
 // Project
-use region::{Entity, VolMgr, VolGen, VolState};
+use region::{Entity, VolMgr, VolGen, VolState, physics};
 use common::{get_version, Uid};
 use common::net;
 use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
@@ -155,6 +155,17 @@ impl<P: Payloads> Client<P> {
     }
 
     fn tick(&self, dt: f32) {
+        physics::tick(&self.entities, self.chunk_mgr(), CHUNK_SIZE, dt);
+        if let Some(uid) = self.player().entity_uid {
+            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+                self.conn.send(ClientMessage::PlayerEntityUpdate {
+                    pos: player_entity.pos(),
+                    move_dir: player_entity.move_dir(),
+                    look_dir: player_entity.look_dir(),
+                });
+            }
+        }
+        /*
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
                 let player_chunk = player_entity.pos()
@@ -184,7 +195,7 @@ impl<P: Payloads> Client<P> {
                 });
             }
         }
-
+        */
         for (uid, entity) in self.entities_mut().iter_mut() {
             let move_dir = entity.move_dir();
             *entity.pos_mut() += move_dir * dt;
