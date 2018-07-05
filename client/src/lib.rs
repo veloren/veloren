@@ -40,7 +40,7 @@ use common::net::{Connection, ServerMessage, ClientMessage, Callback, UdpMgr};
 use player::Player;
 use callbacks::Callbacks;
 
-const VIEW_DISTANCE: i64 = 5;
+const VIEW_DISTANCE: i64 = 3;
 
 // Errors that may occur within this crate
 #[derive(Debug)]
@@ -129,7 +129,6 @@ impl<P: Payloads> Client<P> {
                                                 .map(|e| e as i64)
                                                 .div_euc(vec3!([CHUNK_SIZE; 3]));
 
-                // TODO: define a view distance?!
                 for i in player_chunk.x - VIEW_DISTANCE .. player_chunk.x + VIEW_DISTANCE + 1 {
                     for j in player_chunk.y - VIEW_DISTANCE .. player_chunk.y + VIEW_DISTANCE + 1 {
                         if !self.chunk_mgr().contains(vec2!(i, j)) {
@@ -138,7 +137,7 @@ impl<P: Payloads> Client<P> {
                     }
                 }
 
-                // This should also be tied to view distance, and could be more efficient
+                // Could be more efficient
                 // (maybe? careful: deadlocks)
                 let chunk_pos = self.chunk_mgr()
                     .volumes()
@@ -155,9 +154,8 @@ impl<P: Payloads> Client<P> {
     }
 
     fn tick(&self, dt: f32) {
-        physics::tick(&self.entities, self.chunk_mgr(), CHUNK_SIZE, dt);
         if let Some(uid) = self.player().entity_uid {
-            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
+            if let Some(player_entity) = self.entities().get(&uid) {
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
                     pos: player_entity.pos(),
                     move_dir: player_entity.move_dir(),
@@ -165,7 +163,6 @@ impl<P: Payloads> Client<P> {
                 });
             }
         }
-        /*
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
                 let player_chunk = player_entity.pos()
@@ -175,17 +172,18 @@ impl<P: Payloads> Client<P> {
                 // Gravity
                 match self.chunk_mgr().at(vec2!(player_chunk.x, player_chunk.y)) {
                     Some(c) => match *c.read().unwrap() {
-                        VolState::Exists(_, _) => player_entity.move_dir_mut().z -= 0.2,
+                        VolState::Exists(_, _) => {
+                            let below_feet = player_entity.pos() - vec3!(0.0, 0.0, -0.1);
+                            if self.chunk_mgr().get_voxel_at(below_feet.map(|c| c as i64)).is_solid() {
+                                player_entity.move_dir_mut().z = 0.0;
+                            } else {
+                                player_entity.move_dir_mut().z -= 0.05;
+                            }
+
+                        },
                         _ => {},
                     }
                     None => {},
-                }
-
-                while self.chunk_mgr().get_voxel_at(
-                    player_entity.pos().map(|e| e as i64)
-                ).is_solid() {
-                    player_entity.move_dir_mut().z = 0.0;
-                    player_entity.pos_mut().z += 0.025;
                 }
 
                 self.conn.send(ClientMessage::PlayerEntityUpdate {
@@ -195,10 +193,12 @@ impl<P: Payloads> Client<P> {
                 });
             }
         }
-        */
+
         for (uid, entity) in self.entities_mut().iter_mut() {
-            let move_dir = entity.move_dir();
-            *entity.pos_mut() += move_dir * dt;
+            let mut dpos = entity.move_dir() * dt;
+            let dpos = entity.get_aabb().resolve_with(self.chunk_mgr(), dpos);
+
+            *entity.pos_mut() += dpos;
         }
     }
 

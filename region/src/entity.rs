@@ -1,3 +1,7 @@
+// Local
+use collide::AABB;
+
+// Library
 use coord::prelude::*;
 
 pub struct Entity {
@@ -37,5 +41,12 @@ impl Entity {
 
     pub fn look_dir_mut<'a>(&'a mut self) -> &'a mut Vec2f {
         &mut self.look_dir
+    }
+
+    pub fn get_aabb(&self) -> AABB {
+        AABB::new(
+            self.pos - vec3!(0.45, 0.45, 0.0),
+            self.pos + vec3!(0.45, 0.45, 1.8),
+        )
     }
 }

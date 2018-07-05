@@ -1,3 +1,7 @@
+// Local
+use {Volume, Voxel};
+use collide::VolCollider;
+
 // Standard
 use std::thread;
 use std::sync::{Arc, RwLock, RwLockReadGuard, Mutex};
@@ -9,16 +13,13 @@ use std::any::Any;
 use coord::prelude::*;
 use threadpool::ThreadPool;
 
-// Local
-use {Volume, Voxel, VolCollider};
-
 pub enum VolState<V: Volume, P> {
     Loading,
     Exists(V, P),
 }
 
 lazy_static! {
-    static ref POOL: Mutex<ThreadPool> = Mutex::new(ThreadPool::new(3));
+    static ref POOL: Mutex<ThreadPool> = Mutex::new(ThreadPool::new(2));
 }
 
 pub trait FnGenFunc<V>: Fn(Vec2<i64>) -> V + Send + Sync + 'static {}
