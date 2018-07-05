@@ -101,7 +101,7 @@ impl Game {
         }
     }
 
-    pub fn handle_window_events(&self) -> bool {
+    pub fn handle_window_events(&mut self) -> bool {
         self.window.handle_events(|event| {
             match event {
                 Event::CloseRequest => self.running.store(false, Ordering::Relaxed),
@@ -196,7 +196,7 @@ impl Game {
         }
     }
 
-    pub fn render_frame(&self) {
+    pub fn render_frame(&mut self) {
         let mut renderer = self.window.renderer_mut();
         renderer.begin_frame();
 
@@ -214,7 +214,7 @@ impl Game {
                 if let Some(ref model) = payload.1 {
                     let model_mat = &Translation3::<f32>::from_vector(Vector3::<f32>::new(
                         (pos.x * CHUNK_SIZE) as f32,
-			(pos.y * CHUNK_SIZE) as f32,
+                        (pos.y * CHUNK_SIZE) as f32,
                         0.0
                     )).to_homogeneous();
 
@@ -253,13 +253,17 @@ impl Game {
         }
 
         // Draw ui
-        renderer.render_ui(&self.ui, &self.window.get_size());
+        let size = self.window.get_size();
+
+        self.ui.set_size(size[0] as u32, size[1] as u32);
+        self.ui.set_ui();
+        renderer.render_ui(&self.ui, &size);
 
         self.window.swap_buffers();
         renderer.end_frame();
     }
 
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         while self.handle_window_events() {
             self.model_chunks();
             self.render_frame();

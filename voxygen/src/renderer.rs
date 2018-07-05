@@ -54,8 +54,10 @@ impl Renderer {
     pub fn render_ui(&mut self, ui: &Ui, window_size: &[f64; 2]) {
         let primitives = ui.get_primitives();
         let image_map = ui.get_image_map();
+        let view = self.color_view.clone();
 
-        self.ui_renderer.fill(&mut self.encoder, (window_size[0] as f32, window_size[1] as f32), primitives, &image_map);
+        self.ui_renderer.on_resize(view);
+        self.ui_renderer.fill(&mut self.encoder, (window_size[0] as f32 , window_size[1] as f32), 1.0,primitives, &image_map);
         self.ui_renderer.draw(&mut self.factory, &mut self.encoder, &image_map);
     }
 
