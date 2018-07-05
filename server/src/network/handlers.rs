@@ -25,7 +25,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, sess
                         ClientMode::Character => {
                             let uid = ctx.new_uid();
                             info!("Player '{}' connected in character mode. Assigned entity uid: {}", alias, uid);
-                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 60.0), vec3!(0.0, 0.0, 0.0), vec2!(0.0, 0.0)));
+                            ctx.add_entity(uid, box Entity::new(vec3!(0.0, 0.0, 100.0), vec3!(0.0, 0.0, 0.0), vec2!(0.0, 0.0)));
                             Some(uid)
                         }
                     };
@@ -80,7 +80,7 @@ pub fn handle_packet(relay: &Relay<ServerContext>, ctx: &mut ServerContext, sess
                 if let Some(entity_uid) = player.get_entity_uid() {
                     if let Some(e) = ctx.get_entity(entity_uid) {
                         let dist = (e.pos() - pos).length();
-                        if dist > 5.0 {
+                        if dist > 80.0 { // 80 effectivly makes this never apear
                             info!("player: {} moved to fast, resetting him", player_name);
                             let (pos, move_dir, look_dir) = (e.pos(), e.move_dir(), e.look_dir());
                             ctx.send_message(
