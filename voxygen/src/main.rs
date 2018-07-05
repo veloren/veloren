@@ -15,6 +15,8 @@ extern crate nalgebra;
 extern crate time;
 #[macro_use] extern crate coord;
 extern crate dot_vox;
+#[macro_use] extern crate toml;
+#[macro_use] extern crate serde_derive;
 
 extern crate client;
 extern crate common;
@@ -31,6 +33,7 @@ mod model_object;
 mod pipeline;
 mod camera;
 mod render_volume;
+mod keybinds;
 mod key_state;
 mod vox;
 mod ui;

@@ -19,5 +19,7 @@ coord = "0.11.0"
 log = "0.4.1"
 pretty_env_logger = "0.2.3"
 dot_vox = "1.0.1"
-
 conrod = { git = "https://github.com/veloren/conrod", features = ["gfx_rs"] }
+toml = "0.4.6"
+serde = "1.0"
+serde_derive = "1.0"
