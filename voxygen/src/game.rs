@@ -252,12 +252,12 @@ impl Game {
             renderer.render_model_object(&model);
         }
 
-        // Draw ui
+        /* // Draw ui
         let size = self.window.get_size();
 
         self.ui.set_size(size[0] as u32, size[1] as u32);
         self.ui.set_ui();
-        renderer.render_ui(&self.ui, &size);
+        renderer.render_ui(&self.ui, &size); */
 
         self.window.swap_buffers();
         renderer.end_frame();
