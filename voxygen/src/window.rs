@@ -128,6 +128,10 @@ impl RenderWindow {
                         }
                     },
                     WindowEvent::CloseRequested => func(Event::CloseRequest),
+
+                    WindowEvent::Focused(is_focused) => {
+                            self.cursor_trapped.store(is_focused, Ordering::Relaxed);
+                    }
                     _ => {},
                 },
                 _ => {},
