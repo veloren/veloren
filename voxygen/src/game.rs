@@ -83,7 +83,7 @@ impl Game {
         // Contruct the UI
         let window_dims = window.get_size();
 
-        let mut ui = Ui::new(window_dims);
+        let mut ui = Ui::new(&mut window.renderer_mut(), window_dims);
         ui.add_version_number();
 
         Game {
@@ -253,12 +253,7 @@ impl Game {
         }
 
         // Draw ui
-        let size = self.window.get_size();
-
-        let mut ui = self.ui.lock().unwrap();
-        ui.set_size(size[0] as u32, size[1] as u32);
-        ui.set_ui();
-        renderer.render_ui(&ui, &size);
+        self.ui.lock().unwrap().render(&mut renderer, &self.window.get_size());
 
         self.window.swap_buffers();
         renderer.end_frame();

@@ -18,7 +18,10 @@ use conrod::{
     widget::Id as wid,
     text::font::Id as fid,
     event::Input,
+    backend::gfx::Renderer as GfxRenderer,
 };
+
+use renderer::Renderer;
 
 use std::collections::HashMap;
 
@@ -29,6 +32,7 @@ pub use conrod::gfx_core::handle::ShaderResourceView;
 pub type ImageMap = Map<(ShaderResourceView<ui_resources, [f32; 4]>, (u32, u32))>;
 
 pub struct Ui {
+    gfx_renderer: GfxRenderer<'static, ui_resources>,
     ui: conrod_ui,
     image_map: ImageMap,
     fid: Option<fid>,
@@ -37,16 +41,31 @@ pub struct Ui {
 
 
 impl Ui {
-    pub fn new(size: [f64; 2]) -> Self {
+    pub fn new(renderer: &mut Renderer, size: [f64; 2]) -> Self {
         let ui = UiBuilder::new(size).build();
+
         let image_map = Map::new();
 
+        let color_view = renderer.color_view().clone();
+        let mut factory = renderer.factory_mut().clone();
+
+        let gfx_renderer = GfxRenderer::new(&mut factory, &color_view , 1.0).unwrap();
+
         Self {
+            gfx_renderer,
             ui,
             image_map,
             fid: None,
             ids: HashMap::new(),
         }
+    }
+
+    pub fn render(&mut self, renderer: &mut Renderer, window_size: &[f64; 2]) {
+        self.ui.handle_event(Input::Resize(window_size[0] as u32, window_size[1] as u32));
+        self.set_ui();
+        self.gfx_renderer.on_resize(renderer.color_view().clone());
+        self.gfx_renderer.fill(&mut renderer.encoder_mut(), (window_size[0] as f32 , window_size[1] as f32), 1.0, self.ui.draw(), &self.image_map);
+        self.gfx_renderer.draw(&mut renderer.factory_mut().clone(), &mut renderer.encoder_mut(), &self.image_map);
     }
 
     pub fn add_version_number(&mut self) {
@@ -72,35 +91,17 @@ impl Ui {
     }
 
     pub fn set_ui(&mut self) {
-        let w = self.ui.win_w;
-        let h = self.ui.win_h;
-
         let left_text = self.get_widget_id("left_text");
 
         let mut ui = self.ui.set_widgets();
         let font = self.fid.unwrap();
-        let ids = &self.ids;
-
-        const PAD: Scalar = 20.0;
 
         widget::Text::new(&format!("Version {}", env!("CARGO_PKG_VERSION")))
             .font_id(font)
             .color(color::LIGHT_RED)
-            .bottom_left_with_margin(PAD)
+            .bottom_left_with_margin(20.0)
             .left_justify()
             .line_spacing(10.0)
             .set(left_text, &mut ui);
-    }
-
-    pub fn set_size(&mut self, w: u32, h: u32) {
-        self.ui.handle_event(Input::Resize(w, h));
-    }
-
-    pub fn get_image_map(&self) -> &ImageMap {
-        &self.image_map
-    }
-
-    pub fn get_primitives(&self) -> Primitives {
-        self.ui.draw()
     }
 }
