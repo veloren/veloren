@@ -92,10 +92,7 @@ fn gen_chunk(pos: Vec2<i64>) -> Chunk {
 
 impl<P: Payloads> Client<P> {
     pub fn new<U: ToSocketAddrs, GF: FnPayloadFunc<Chunk, P::Chunk, Output=P::Chunk>>(mode: ClientMode, alias: String, remote_addr: U, gen_payload: GF) -> Result<Arc<Client<P>>, Error> {
-        let mut conn = Connection::new::<U>(&remote_addr, Box::new(|m| {
-            //
-            //self.handle_packet(m);
-        }), None, UdpMgr::new())?;
+        let conn = Connection::new::<U>(&remote_addr, Box::new(|_m| {}), None, UdpMgr::new())?;
         conn.send(ClientMessage::Connect{ mode, alias: alias.clone(), version: get_version() });
         Connection::start(&conn);
 
@@ -128,14 +125,13 @@ impl<P: Payloads> Client<P> {
          // Generate terrain around the player
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
-                let (x, y) = (
-                    (player_entity.pos().x as i64).div_euc(16),
-                    (player_entity.pos().y as i64).div_euc(16)
-                );
+                let player_chunk = player_entity.pos()
+                                                .map(|e| e as i64)
+                                                .div_euc(vec3!([CHUNK_SIZE; 3]));
 
                 // TODO: define a view distance?!
-                for i in x - VIEW_DISTANCE .. x + VIEW_DISTANCE + 1 {
-                    for j in y - VIEW_DISTANCE .. y + VIEW_DISTANCE + 1 {
+                for i in player_chunk.x - VIEW_DISTANCE .. player_chunk.x + VIEW_DISTANCE + 1 {
+                    for j in player_chunk.y - VIEW_DISTANCE .. player_chunk.y + VIEW_DISTANCE + 1 {
                         if !self.chunk_mgr().contains(vec2!(i, j)) {
                             self.chunk_mgr().gen(vec2!(i, j));
                         }
@@ -150,7 +146,7 @@ impl<P: Payloads> Client<P> {
                     .map(|p| *p)
                     .collect::<Vec<_>>();
                 for pos in chunk_pos {
-                    if (pos - vec2!(x, y)).snake_length() > VIEW_DISTANCE * 2 {
+                    if (pos - vec2!(player_chunk.x, player_chunk.y)).snake_length() > VIEW_DISTANCE * 2 {
                         self.chunk_mgr().remove(pos);
                     }
                 }
@@ -161,13 +157,12 @@ impl<P: Payloads> Client<P> {
     fn tick(&self, dt: f32) {
         if let Some(uid) = self.player().entity_uid {
             if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
-                let (chunk_x, chunk_y) = (
-                    (player_entity.pos().x as i64).div_euc(CHUNK_SIZE),
-                    (player_entity.pos().y as i64).div_euc(CHUNK_SIZE)
-                );
+                let player_chunk = player_entity.pos()
+                                                .map(|e| e as i64)
+                                                .div_euc(vec3!([CHUNK_SIZE; 3]));
 
                 // Gravity
-                match self.chunk_mgr().at(vec2!(chunk_x, chunk_y)) {
+                match self.chunk_mgr().at(vec2!(player_chunk.x, player_chunk.y)) {
                     Some(c) => match *c.read().unwrap() {
                         VolState::Exists(_, _) => player_entity.move_dir_mut().z -= 0.2,
                         _ => {},
@@ -175,11 +170,9 @@ impl<P: Payloads> Client<P> {
                     None => {},
                 }
 
-                while self.chunk_mgr().get_voxel(vec3!(
-                    (player_entity.pos().x as i64),
-                    (player_entity.pos().y as i64),
-                    (player_entity.pos().z as i64)
-                )).is_solid() {
+                while self.chunk_mgr().get_voxel_at(
+                    player_entity.pos().map(|e| e as i64)
+                ).is_solid() {
                     player_entity.move_dir_mut().z = 0.0;
                     player_entity.pos_mut().z += 0.025;
                 }
@@ -189,38 +182,6 @@ impl<P: Payloads> Client<P> {
                     move_dir: player_entity.move_dir(),
                     look_dir: player_entity.look_dir(),
                 });
-            }
-        }
-
-        // Generate terrain around the player
-        if let Some(uid) = self.player().entity_uid {
-            if let Some(player_entity) = self.entities_mut().get_mut(&uid) {
-                let (x, y) = (
-                    (player_entity.pos().x as i64).div_euc(CHUNK_SIZE),
-                    (player_entity.pos().y as i64).div_euc(CHUNK_SIZE)
-                );
-
-                // TODO: define a view distance?!
-                for i in x - 3 .. x + 4 {
-                    for j in y - 3 .. y + 4 {
-                        if !self.chunk_mgr().contains(vec2!(i, j)) {
-                            self.chunk_mgr().gen(vec2!(i, j));
-                        }
-                    }
-                }
-
-                // This should also be tied to view distance, and could be more efficient
-                // (maybe? careful: deadlocks)
-                let chunk_pos = self.chunk_mgr()
-                    .volumes()
-                    .keys()
-                    .map(|p| *p)
-                    .collect::<Vec<_>>();
-                for pos in chunk_pos {
-                    if (pos - vec2!(x, y)).snake_length() > 10 {
-                        self.chunk_mgr().remove(pos);
-                    }
-                }
             }
         }
 

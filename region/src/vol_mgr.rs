@@ -10,7 +10,7 @@ use coord::prelude::*;
 use threadpool::ThreadPool;
 
 // Local
-use {Volume, Voxel};
+use {Volume, Voxel, VolCollider};
 
 pub enum VolState<V: Volume, P> {
     Loading,
@@ -92,7 +92,7 @@ impl<V: 'static + Volume, P: Send + Sync + 'static> VolMgr<V, P> {
         self.vols.write().unwrap().insert(pos, Arc::new(RwLock::new(VolState::Exists(vol, payload))));
     }
 
-    pub fn get_voxel(&self, pos: Vec3<i64>) -> V::VoxelType {
+    pub fn get_voxel_at(&self, pos: Vec3<i64>) -> V::VoxelType {
         let vol_pos = vec2!(
             pos.x.div_euc(self.vol_size),
             pos.y.div_euc(self.vol_size)
@@ -114,5 +114,11 @@ impl<V: 'static + Volume, P: Send + Sync + 'static> VolMgr<V, P> {
                 }
             )
             .unwrap_or(V::VoxelType::empty())
+    }
+}
+
+impl<V: 'static + Volume, P: Send + Sync + 'static> VolCollider for VolMgr<V, P> {
+    fn is_solid_at(&self, pos: Vec3<f32>) -> bool {
+        self.get_voxel_at(pos.floor().map(|e| e as i64)).is_solid()
     }
 }

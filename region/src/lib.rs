@@ -14,6 +14,9 @@ mod cell;
 mod model;
 mod entity;
 mod vol_mgr;
+mod physic;
+#[cfg(test)]
+mod tests;
 
 // Reexports
 pub use block::{Block, BlockMaterial};
@@ -23,7 +26,7 @@ pub use model::Model;
 pub use entity::Entity;
 pub use vol_mgr::{VolMgr, VolGen, VolState, FnGenFunc, FnPayloadFunc};
 
-use coord::vec3::Vec3;
+use coord::prelude::*;
 
 pub trait Voxel: Copy + Clone {
     type Material: Copy + Clone;
@@ -39,9 +42,13 @@ pub trait Volume: Send + Sync {
     fn new() -> Self;
     fn fill(&mut self, block: Self::VoxelType);
 
+    // number of Voxel in x, and z direction
     fn size(&self) -> Vec3<i64>;
+    // offset of first Voxel in a hypothetical bigger Volume, e.g. offset = (50,0,0) means there is exactly space for another volume with offset (0,0,0) and size 50.
     fn offset(&self) -> Vec3<i64>;
+    // rotation on the 3 axis in rad
     fn rotation(&self) -> Vec3<f64>;
+    // scale is applied to size and offset
     fn scale(&self) -> Vec3<f64>;
 
     fn set_size(&mut self, size: Vec3<i64>);
@@ -49,4 +56,16 @@ pub trait Volume: Send + Sync {
 
     fn at(&self, pos: Vec3<i64>) -> Option<Self::VoxelType>;
     fn set(&mut self, pos: Vec3<i64>, vt: Self::VoxelType);
+}
+
+pub trait VolCollider {
+    fn is_solid_at(&self, pos: Vec3<f32>) -> bool;
+}
+
+impl<V: Volume> VolCollider for V {
+    fn is_solid_at(&self, pos: Vec3<f32>) -> bool {
+        self.at(pos.floor().map(|e| e as i64))
+            .map(|v| v.is_solid())
+            .unwrap_or(false)
+    }
 }
