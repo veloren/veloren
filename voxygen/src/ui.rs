@@ -98,7 +98,7 @@ impl Ui {
 
         widget::Text::new(&format!("Version {}", env!("CARGO_PKG_VERSION")))
             .font_id(font)
-            .color(color::LIGHT_RED)
+            .color(color::DARK_CHARCOAL)
             .bottom_left_with_margin(20.0)
             .left_justify()
             .line_spacing(10.0)
