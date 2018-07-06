@@ -28,6 +28,7 @@ use window::{RenderWindow, Event};
 use model_object::{ModelObject, Constants};
 use mesh::{Mesh};
 use region::{Chunk, VolState};
+use keybinds::Keybinds;
 use key_state::KeyState;
 use vox::vox_to_model;
 
@@ -44,6 +45,7 @@ pub struct Game {
     camera: Mutex<Camera>,
     key_state: Mutex<KeyState>,
     ui: Mutex<Ui>,
+    keys: Keybinds,
 }
 
 // "Data" includes mutable state
@@ -98,6 +100,7 @@ impl Game {
             camera: Mutex::new(Camera::new()),
             key_state: Mutex::new(KeyState::new()),
             ui: Mutex::new(ui),
+            keys: Keybinds::new(),
         }
     }
 
@@ -117,39 +120,58 @@ impl Game {
                     self.camera.lock().unwrap().zoom_by((-dy / 4.0) as f32);
                 },
                 Event::KeyboardInput { i, .. } => {
-                    match i.virtual_keycode {
-                        Some(VirtualKeyCode::Escape) => self.window.cursor_trapped().store(false, Ordering::Relaxed),
-                        Some(VirtualKeyCode::Q) => {
-                            if i.modifiers.ctrl {
-                                self.running.store(false, Ordering::Relaxed);
-                            }
-                        },
-                        Some(VirtualKeyCode::W) => self.key_state.lock().unwrap().up = match i.state { // W (up)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        Some(VirtualKeyCode::A) => self.key_state.lock().unwrap().left = match i.state { // A (left)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        Some(VirtualKeyCode::S) => self.key_state.lock().unwrap().down = match i.state { // S (down)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        Some(VirtualKeyCode::D) => self.key_state.lock().unwrap().right = match i.state { // D (right)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        Some(VirtualKeyCode::Space) => self.key_state.lock().unwrap().fly = match i.state { // Space (fly)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        Some(VirtualKeyCode::LShift) => self.key_state.lock().unwrap().fall = match i.state { // Shift (fall)
-                            ElementState::Pressed => true,
-                            ElementState::Released => false,
-                        },
-                        _ => (),
+                    // Helper function to determine scancode equality
+                    fn keypress_eq(key: &Option<u32>, scancode: u32) -> bool {
+                        key.map(|sc| sc == scancode).unwrap_or(false)
                     }
+
+                    // Helper variables to clean up code. Add any new input modes here.
+                    let general = &self.keys.general;
+                    let mount = &self.keys.mount;
+
+                    // General inputs -------------------------------------------------------------
+                    if keypress_eq(&general.pause, i.scancode) { // Default: Escape (free cursor)
+                        self.window.cursor_trapped().store(false, Ordering::Relaxed)
+                    } else if keypress_eq(&general.use_item, i.scancode) { // Default: Ctrl+Q (quit) (temporary)
+                        if i.modifiers.ctrl {
+                            self.running.store(false, Ordering::Relaxed);
+                        }
+                    } else if keypress_eq(&general.forward, i.scancode) {
+                        self.key_state.lock().unwrap().up = match i.state { // Default: W (up)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    } else if keypress_eq(&general.left, i.scancode) {
+                        self.key_state.lock().unwrap().left = match i.state { // Default: A (left)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    } else if keypress_eq(&general.back, i.scancode) {
+                        self.key_state.lock().unwrap().down = match i.state { // Default: S (down)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    } else if keypress_eq(&general.right, i.scancode) {
+                        self.key_state.lock().unwrap().right = match i.state { // Default: D (right)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    } else if keypress_eq(&general.fly, i.scancode) {
+                        self.key_state.lock().unwrap().fly = match i.state { // Default: Space (fly)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    } else if keypress_eq(&general.fall, i.scancode) {
+                        self.key_state.lock().unwrap().fall = match i.state { // Default: Shift (fall)
+                            ElementState::Pressed => true,
+                            ElementState::Released => false,
+                        }
+                    }
+                    // ----------------------------------------------------------------------------
+
+                    // Mount inputs ---------------------------------------------------------------
+                    // placeholder
+                    // ----------------------------------------------------------------------------
                 },
                 Event::Resized { w, h } => {
                     self.camera.lock().unwrap().set_aspect_ratio(w as f32 / h as f32);
