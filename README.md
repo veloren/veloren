@@ -23,7 +23,7 @@ For active development and creating issues, please look at our [GitLab Repositor
 
 See here for a list of Veloren's features and what we're working on right now.
 
-### [Releases](https://github.com/veloren/game/releases)
+### [Releases](https://gitlab.com/veloren/game/tags)
 
 See here for a list of past releases.
 
