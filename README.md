@@ -16,19 +16,19 @@ Veloren is a multiplayer voxel RPG written in Rust. Veloren takes inspiration fr
 
 ## Useful Links
 
-### [Current Status](status)
+### [Current Status](https://github.com/veloren/game/wiki/Status)
 
 See here for a list of Veloren's features and what we're working on right now.
 
-### [Releases](releases)
+### [Releases](https://github.com/veloren/game/releases)
 
 See here for a list of past releases.
 
-### [Future Plans](future)
+### [Future Plans](https://github.com/veloren/game/wiki/Roadmap-1.0.0)
 
 See here for information about Veloren's development roadmap.
 
-### [How To Contribute](contribute)
+### [How To Contribute](CONTRIBUTING.md)
 
 See here for information on how you can get involved in shaping Veloren's future. You don't have to know how to program to contribute!
 
