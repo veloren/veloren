@@ -3,8 +3,8 @@
 </p>
 
 [![Build Status](https://travis-ci.org/veloren/game.svg?branch=master)](https://travis-ci.org/veloren/game)
-[![build status](https://gitlab.com/veloren/game/badges/master/build.svg)](https://gitlab.com/veloren/game)
-[![coverage](https://gitlab.com/veloren/game/badges/master/coverage.svg)](https://gitlab.com/veloren/game/pipelines)
+[![build status](https://gitlab.com/veloren/game/badges/master/build.svg)](https://gitlab.com/veloren/game/pipelines)
+[![coverage](https://gitlab.com/veloren/game/badges/master/coverage.svg)](https://gitlab.com/veloren/game)
 
 <p align="center">
 	<img alt="A screenshot of Velore gameplay" src="https://raw.github.com/veloren/game/master/misc/screenshot1.png">
@@ -14,9 +14,12 @@
 
 Veloren is a multiplayer voxel RPG written in Rust. Veloren takes inspiration from games such as Cube World, Minecraft and Dwarf Fortress. The game is currently under heavy development, but is playable.
 
+## GitHub is just a read only copy
+For active development and creating issues, please look at our [GitLab Repository](https://gitlab.com/veloren/game)
+
 ## Useful Links
 
-### [Current Status](https://github.com/veloren/game/wiki/Status)
+### [Current Status](https://gitlab.com/veloren/game/wikis/Status)
 
 See here for a list of Veloren's features and what we're working on right now.
 
@@ -24,7 +27,7 @@ See here for a list of Veloren's features and what we're working on right now.
 
 See here for a list of past releases.
 
-### [Future Plans](https://github.com/veloren/game/wiki/Roadmap-1.0.0)
+### [Future Plans](https://gitlab.com/veloren/game/wikis/Roadmap-1.0.0)
 
 See here for information about Veloren's development roadmap.
 
