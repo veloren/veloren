@@ -19,15 +19,15 @@ impl Entity {
         }
     }
 
-    pub fn pos(&self) -> Vec3f {
+    pub fn get_pos(&self) -> Vec3f {
         self.pos
     }
 
-    pub fn move_dir(&self) -> Vec3f {
+    pub fn get_move_dir(&self) -> Vec3f {
         self.move_dir
     }
 
-    pub fn look_dir(&self) -> Vec2f {
+    pub fn get_look_dir(&self) -> Vec2f {
         self.look_dir
     }
 
