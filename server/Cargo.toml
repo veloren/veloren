@@ -1,0 +1,10 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+common = { path = "../common" }
+
+specs = "0.14"
