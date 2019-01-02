@@ -12,3 +12,6 @@ gfx = "0.17.1"
 gfx_device_gl = "0.15.0"
 gfx_window_glutin = "0.25.0"
 glutin = "0.17.0"
+
+# Mathematics
+vek = "0.9"
