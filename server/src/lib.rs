@@ -2,7 +2,7 @@
 use std::time::Duration;
 
 // Internal
-use common::LocalState;
+use common::state::State;
 
 pub enum ClientErr {
     ServerShutdown,
@@ -14,7 +14,7 @@ pub struct Input {
 }
 
 pub struct Server {
-    state: LocalState,
+    state: State,
 
     // TODO: Add "meta" state here
 }
@@ -22,7 +22,7 @@ pub struct Server {
 impl Server {
     pub fn new() -> Self {
         Self {
-            state: LocalState::new(),
+            state: State::new(),
         }
     }
 
