@@ -4,14 +4,25 @@ version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
+[features]
+empty = ["rendy/empty"]
+dx12 = ["rendy/dx12"]
+metal = ["rendy/metal"]
+vulkan = ["rendy/vulkan"]
+
+default = ["empty"]
+
 [dependencies]
 common = { path = "../common" }
 
 # Graphics
-gfx = "0.17.1"
-gfx_device_gl = "0.15.0"
-gfx_window_glutin = "0.25.0"
-glutin = "0.17.0"
+winit = "0.18"
+rendy = { git = "https://github.com/omni-viral/rendy" }
 
 # Mathematics
 vek = "0.9"
+
+# Utility
+glsl-include = "0.2"
+failure = "0.1"
+lazy_static = "1.1"
