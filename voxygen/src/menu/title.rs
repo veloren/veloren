@@ -4,7 +4,7 @@ use vek::*;
 // Crate
 use crate::{
     PlayState,
-    StateResult,
+    PlayStateResult,
     GlobalState,
     window::Event,
 };
@@ -18,23 +18,23 @@ impl TitleState {
 }
 
 impl PlayState for TitleState {
-    fn play(&mut self, global_state: &mut GlobalState) -> StateResult {
-        let mut running = true;
-        while running {
-            global_state.window.poll_events(|event| match event {
-                Event::Close => running = false,
-            });
+    fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
+        'eventloop: loop {
+            // Process window events
+            for event in global_state.window.fetch_events() {
+                match event {
+                    Event::Close => break 'eventloop PlayStateResult::Shutdown,
+                }
+            }
 
-            global_state.window.render_ctx_mut().clear(Rgba::new(
+            global_state.window.renderer_mut().clear(Rgba::new(
                 0.0,
                 0.3,
                 1.0,
                 1.0,
             ));
-            global_state.window.render_ctx_mut().flush_and_cleanup();
-            global_state.window.swap_buffers();
+            global_state.window.renderer_mut().flush();
+            global_state.window.display();
         }
-
-        StateResult::Close
     }
 }

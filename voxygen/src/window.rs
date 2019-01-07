@@ -1,77 +1,53 @@
-// External
-use gfx_window_glutin;
-use glutin::{
-    Api::OpenGl,
-    dpi::LogicalSize,
-    ContextBuilder,
-    EventsLoop,
-    GlContext,
-    GlRequest,
-    GlWindow,
-    WindowBuilder,
-};
+// Library
+use winit;
 
 // Crate
-use crate::render_ctx::RenderCtx;
+use crate::{
+    VoxygenErr,
+    render::Renderer,
+};
 
 pub struct Window {
-    events_loop: EventsLoop,
-    gl_window: GlWindow,
-    render_ctx: RenderCtx,
+    events_loop: winit::EventsLoop,
+    renderer: Renderer,
 }
 
 
 impl Window {
-    pub fn new() -> Window {
-        let events_loop = EventsLoop::new();
+    pub fn new() -> Result<Window, VoxygenErr> {
+        let events_loop = winit::EventsLoop::new();
 
-        let (
-            gl_window,
-            device,
-            factory,
-            tgt_color_view,
-            tgt_depth_view,
-        ) = gfx_window_glutin::init(
-            WindowBuilder::new()
-                .with_title("Veloren (Voxygen)")
-                .with_dimensions(LogicalSize::new(800.0, 500.0))
-                .with_maximized(false),
-            ContextBuilder::new()
-                .with_gl(GlRequest::Specific(OpenGl, (3, 2)))
-                .with_multisampling(2)
-                .with_vsync(true),
-            &events_loop,
-        );
+        let window = winit::WindowBuilder::new()
+            .with_title("Veloren (Voxygen)")
+            .with_dimensions(winit::dpi::LogicalSize::new(800.0, 500.0))
+            .with_maximized(false)
+            .build(&events_loop)
+            .map_err(|err| VoxygenErr::WinitCreationErr(err))?;
 
-        Self {
+        let tmp = Ok(Self {
             events_loop,
-            gl_window,
-            render_ctx: RenderCtx::new(
-                device,
-                factory,
-                tgt_color_view,
-                tgt_depth_view,
-            ),
-        }
+            renderer: Renderer::new(window)?,
+        });
+        tmp
     }
 
-    pub fn render_ctx(&self) -> &RenderCtx { &self.render_ctx }
-    pub fn render_ctx_mut(&mut self) -> &mut RenderCtx { &mut self.render_ctx }
+    pub fn renderer(&self) -> &Renderer { &self.renderer }
+    pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
-    pub fn poll_events<F: FnMut(Event)>(&mut self, mut f: F) {
+    pub fn fetch_events(&mut self) -> Vec<Event> {
+        let mut events = vec![];
         self.events_loop.poll_events(|event| match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => f(Event::Close),
+            winit::Event::WindowEvent { event, .. } => match event {
+                winit::WindowEvent::CloseRequested => events.push(Event::Close),
                 _ => {},
             },
             _ => {},
         });
+        events
     }
 
-    pub fn swap_buffers(&self) {
-        self.gl_window
-            .swap_buffers()
-            .expect("Failed to swap window buffers");
+    pub fn display(&self) {
+        // TODO
     }
 }
 
