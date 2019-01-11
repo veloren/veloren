@@ -34,7 +34,8 @@ impl PlayState for TitleState {
                 1.0,
             ));
             global_state.window.renderer_mut().flush();
-            global_state.window.display();
+            global_state.window.display()
+                .expect("Failed to display window");
         }
     }
 }

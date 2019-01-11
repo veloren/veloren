@@ -1,6 +1,7 @@
 mod mesh;
 mod model;
 mod renderer;
+mod pipelines;
 mod shader_set;
 
 // Reexports
@@ -8,23 +9,11 @@ pub use self::{
     mesh::Mesh,
     model::Model,
     shader_set::ShaderSet,
-    renderer::Renderer,
+    renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
 };
 
-// Library
-use rendy;
-
-#[cfg(not(any(feature = "dx12", feature = "metal", feature = "vulkan")))]
-type Backend = rendy::empty::Backend;
-
-#[cfg(feature = "dx12")]
-type Backend = rendy::dx12::Backend;
-
-#[cfg(feature = "metal")]
-type Backend = rendy::metal::Backend;
-
-#[cfg(feature = "vulkan")]
-type Backend = rendy::vulkan::Backend;
+#[cfg(feature = "gl")]
+use gfx_device_gl as gfx_backend;
 
 /// Used to represent one of many possible errors that may be omitted by the rendering code
 #[derive(Debug)]
