@@ -1,11 +1,6 @@
 // Library
 use gfx::{
     self,
-    VertexBuffer,
-    ConstantBuffer,
-    RenderTarget,
-    DepthTarget,
-    preset::depth::LESS_EQUAL_WRITE,
     // Macros
     gfx_defines,
     gfx_vertex_struct_meta,
@@ -16,8 +11,13 @@ use gfx::{
 };
 
 // Local
-use super::super::{
-    renderer::{TgtColorFmt, TgtDepthFmt},
+use super::{
+    Globals,
+    super::{
+        Pipeline,
+        TgtColorFmt,
+        TgtDepthFmt,
+    },
 };
 
 gfx_defines! {
@@ -27,13 +27,20 @@ gfx_defines! {
     }
 
     constant Locals {
-        model: [[f32; 4]; 4] = "u_model",
+        model_mat: [[f32; 4]; 4] = "model_mat",
     }
 
     pipeline pipe {
-        vbuf: VertexBuffer<Vertex> = (),
-        locals: ConstantBuffer<Locals> = "locals",
-        tgt_color: RenderTarget<TgtColorFmt> = "tgt",
-        tgt_depth: DepthTarget<TgtDepthFmt> = LESS_EQUAL_WRITE,
+        vbuf: gfx::VertexBuffer<Vertex> = (),
+        locals: gfx::ConstantBuffer<Locals> = "u_locals",
+        globals: gfx::ConstantBuffer<Globals> = "u_globals",
+        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
+        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
+}
+
+pub struct CharacterPipeline;
+
+impl Pipeline for CharacterPipeline {
+    type Vertex = Vertex;
 }

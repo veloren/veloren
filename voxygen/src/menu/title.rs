@@ -17,6 +17,8 @@ impl TitleState {
     }
 }
 
+const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
+
 impl PlayState for TitleState {
     fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
         'eventloop: loop {
@@ -27,12 +29,7 @@ impl PlayState for TitleState {
                 }
             }
 
-            global_state.window.renderer_mut().clear(Rgba::new(
-                0.0,
-                0.3,
-                1.0,
-                1.0,
-            ));
+            global_state.window.renderer_mut().clear(BG_COLOR);
             global_state.window.renderer_mut().flush();
             global_state.window.display()
                 .expect("Failed to display window");
