@@ -16,12 +16,20 @@ use failure;
 use crate::{
     menu::title::TitleState,
     window::Window,
+    render::RenderErr,
 };
 
 #[derive(Debug)]
 pub enum VoxygenErr {
     BackendErr(Box<any::Any>),
+    RenderErr(RenderErr),
     Other(failure::Error),
+}
+
+impl From<RenderErr> for VoxygenErr {
+    fn from(err: RenderErr) -> Self {
+        VoxygenErr::RenderErr(err)
+    }
 }
 
 // A type used to store state that is shared between all play states

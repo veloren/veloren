@@ -1,18 +1,36 @@
-// Standard
-use std::marker::PhantomData;
+// Library
+use gfx::{
+    self,
+    traits::FactoryExt,
+};
 
 // Local
-use super::Pipeline;
+use super::{
+    mesh::Mesh,
+    Pipeline,
+    gfx_backend,
+};
 
 /// Represents a mesh that has been sent to the CPU
 pub struct Model<P: Pipeline> {
-    phantom: PhantomData<P>,
+    pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
+    pub slice: gfx::Slice<gfx_backend::Resources>,
 }
 
 impl<P: Pipeline> Model<P> {
-    pub fn new() -> Self {
+    pub fn new(
+        factory: &mut gfx_backend::Factory,
+        mesh: &Mesh<P>,
+    ) -> Self {
         Self {
-            phantom: PhantomData,
+            vbuf: factory.create_vertex_buffer(mesh.vertices()),
+            slice: gfx::Slice {
+                start: 0,
+                end: mesh.vertices().len() as u32,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
         }
     }
 }
