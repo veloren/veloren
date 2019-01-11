@@ -4,7 +4,7 @@ in vec3 f_pos;
 
 layout (std140)
 uniform u_locals {
-	mat4 model_mat;
+	vec4 nul;
 };
 
 layout (std140)
@@ -21,5 +21,5 @@ uniform u_globals {
 out vec4 tgt_color;
 
 void main() {
-	tgt_color = vec4(1.0, 0.0, 0.0, 1.0);
+	tgt_color = vec4(f_pos, 1.0);
 }

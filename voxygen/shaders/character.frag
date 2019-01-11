@@ -1,10 +1,10 @@
 #version 330 core
 
-in vec3 v_pos;
+in vec3 f_pos;
 
 layout (std140)
 uniform u_locals {
-	vec4 nul;
+	mat4 model_mat;
 };
 
 layout (std140)
@@ -18,14 +18,8 @@ uniform u_globals {
 	vec4 time;
 };
 
-out vec3 f_pos;
+out vec4 tgt_color;
 
 void main() {
-	f_pos = v_pos;
-
-	gl_Position =
-		proj_mat *
-		view_mat *
-		vec4(v_pos + cam_pos.xyz, 1);
-	gl_Position.z = 0.0;
+	tgt_color = vec4(f_pos, 1.0);
 }

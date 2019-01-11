@@ -28,7 +28,7 @@ gfx_defines! {
     }
 
     constant Locals {
-        model_mat: [[f32; 4]; 4] = "model_mat",
+        nul: [f32; 4] = "nul",
     }
 
     pipeline pipe {
@@ -36,7 +36,13 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
+    }
+}
+
+impl Locals {
+    pub fn new() -> Self {
+        Self { nul: [0.0; 4] }
     }
 }
 

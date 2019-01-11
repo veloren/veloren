@@ -1,10 +1,12 @@
 #version 330 core
 
 in vec3 v_pos;
+in vec3 v_col;
+in uint v_bone;
 
 layout (std140)
 uniform u_locals {
-	vec4 nul;
+	mat4 model_mat;
 };
 
 layout (std140)
@@ -26,6 +28,5 @@ void main() {
 	gl_Position =
 		proj_mat *
 		view_mat *
-		vec4(v_pos + cam_pos.xyz, 1);
-	gl_Position.z = 0.0;
+		vec4(0.5 * v_pos + cam_pos.xyz, 1);
 }
