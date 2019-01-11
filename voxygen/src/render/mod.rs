@@ -1,8 +1,8 @@
-mod consts;
-mod mesh;
-mod model;
-mod pipelines;
-mod renderer;
+pub mod consts;
+pub mod mesh;
+pub mod model;
+pub mod pipelines;
+pub mod renderer;
 
 // Reexports
 pub use self::{
@@ -11,8 +11,16 @@ pub use self::{
     model::Model,
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
     pipelines::{
-        character::CharacterPipeline,
-        skybox::SkyboxPipeline,
+        Globals,
+        character::{
+            CharacterPipeline,
+            Locals as CharacterLocals,
+        },
+        skybox::{
+            create_mesh as create_skybox_mesh,
+            SkyboxPipeline,
+            Locals as SkyboxLocals,
+        },
     },
 };
 
@@ -24,9 +32,9 @@ use gfx;
 
 /// Used to represent one of many possible errors that may be omitted by the rendering code
 #[derive(Debug)]
-pub enum RenderErr {
-    PipelineErr(gfx::PipelineStateError<String>),
-    UpdateErr(gfx::UpdateError<usize>),
+pub enum RenderError {
+    PipelineError(gfx::PipelineStateError<String>),
+    UpdateError(gfx::UpdateError<usize>),
 }
 
 /// Used to represent a specific rendering configuration

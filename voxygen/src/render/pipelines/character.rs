@@ -23,6 +23,7 @@ use super::{
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "v_pos",
+        col: [f32; 3] = "v_col",
         bone: u8 = "v_bone",
     }
 

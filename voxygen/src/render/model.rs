@@ -11,7 +11,7 @@ use super::{
     gfx_backend,
 };
 
-/// Represents a mesh that has been sent to the CPU
+/// Represents a mesh that has been sent to the GPU.
 pub struct Model<P: Pipeline> {
     pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
     pub slice: gfx::Slice<gfx_backend::Resources>,
