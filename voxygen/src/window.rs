@@ -1,32 +1,59 @@
 // Library
-use winit;
+use glutin;
+use gfx_window_glutin;
 
 // Crate
 use crate::{
     VoxygenErr,
-    render::Renderer,
+    render::{
+        Renderer,
+        TgtColorFmt,
+        TgtDepthFmt,
+    },
 };
 
 pub struct Window {
-    events_loop: winit::EventsLoop,
+    events_loop: glutin::EventsLoop,
+    window: glutin::GlWindow,
     renderer: Renderer,
 }
 
 
 impl Window {
     pub fn new() -> Result<Window, VoxygenErr> {
-        let events_loop = winit::EventsLoop::new();
+        let events_loop = glutin::EventsLoop::new();
 
-        let window = winit::WindowBuilder::new()
+        let win_builder = glutin::WindowBuilder::new()
             .with_title("Veloren (Voxygen)")
-            .with_dimensions(winit::dpi::LogicalSize::new(800.0, 500.0))
+            .with_dimensions(glutin::dpi::LogicalSize::new(800.0, 500.0))
             .with_maximized(false)
-            .build(&events_loop)
-            .map_err(|err| VoxygenErr::WinitCreationErr(err))?;
+            ;
+
+        let ctx_builder = glutin::ContextBuilder::new()
+            .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+            .with_vsync(true);
+
+        let (
+            window,
+            device,
+            factory,
+            tgt_color_view,
+            tgt_depth_view,
+        ) = gfx_window_glutin::init::<TgtColorFmt, TgtDepthFmt>(
+            win_builder,
+            ctx_builder,
+            &events_loop,
+        ).map_err(|err| VoxygenErr::BackendErr(Box::new(err)))?;
 
         let tmp = Ok(Self {
             events_loop,
-            renderer: Renderer::new(window)?,
+            window,
+            renderer: Renderer::new(
+                device,
+                factory,
+                tgt_color_view,
+                tgt_depth_view,
+            )?,
         });
         tmp
     }
@@ -37,8 +64,8 @@ impl Window {
     pub fn fetch_events(&mut self) -> Vec<Event> {
         let mut events = vec![];
         self.events_loop.poll_events(|event| match event {
-            winit::Event::WindowEvent { event, .. } => match event {
-                winit::WindowEvent::CloseRequested => events.push(Event::Close),
+            glutin::Event::WindowEvent { event, .. } => match event {
+                glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                 _ => {},
             },
             _ => {},
@@ -46,8 +73,9 @@ impl Window {
         events
     }
 
-    pub fn display(&self) {
-        // TODO
+    pub fn display(&self) -> Result<(), VoxygenErr> {
+        self.window.swap_buffers()
+            .map_err(|err| VoxygenErr::BackendErr(Box::new(err)))
     }
 }
 
