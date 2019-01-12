@@ -1,6 +1,7 @@
 // Library
 use glutin;
 use gfx_window_glutin;
+use vek::*;
 
 // Crate
 use crate::{
@@ -73,13 +74,30 @@ impl Window {
         events
     }
 
-    pub fn display(&self) -> Result<(), Error> {
+    pub fn swap_buffers(&self) -> Result<(), Error> {
         self.window.swap_buffers()
             .map_err(|err| Error::BackendError(Box::new(err)))
     }
+
+    pub fn trap_cursor(&mut self) {
+        self.window.hide_cursor(true);
+        self.window.grab_cursor(true)
+            .expect("Failed to grab cursor");
+    }
+
+    pub fn untrap_cursor(&mut self) {
+        self.window.hide_cursor(false);
+        self.window.grab_cursor(false)
+            .expect("Failed to ungrab cursor");
+    }
 }
 
+/// Represents an incoming event from the window
 pub enum Event {
+    /// The window has been requested to close.
     Close,
+    /// A key has been typed that corresponds to a specific character.
     Char(char),
+    /// The cursor has been panned across the screen while trapped.
+    CursorPan(Vec2<f32>),
 }

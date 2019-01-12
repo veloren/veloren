@@ -14,7 +14,7 @@ uniform u_globals {
 	vec4 cam_pos;
 	vec4 focus_pos;
 	vec4 view_distance;
-	vec4 tod;
+	vec4 time_of_day;
 	vec4 time;
 };
 
