@@ -7,7 +7,6 @@ use crate::{
     PlayStateResult,
     GlobalState,
     window::Event,
-    render,
     session::SessionState,
 };
 
@@ -44,8 +43,9 @@ impl PlayState for TitleState {
 
             // Finish the frame
             global_state.window.renderer_mut().flush();
-            global_state.window.display()
-                .expect("Failed to display window");
+            global_state.window
+                .swap_buffers()
+                .expect("Failed to swap window buffers");
         }
     }
 

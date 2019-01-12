@@ -31,17 +31,34 @@ impl Scene {
         Self {
             camera: Camera::new(),
             globals: renderer
-                .create_consts_with(Globals::new())
+                .create_consts_with(Globals::default())
                 .unwrap(),
             skybox: Skybox {
                 model: renderer
                     .create_model(&create_skybox_mesh())
                     .unwrap(),
                 locals: renderer
-                    .create_consts_with(SkyboxLocals::new())
+                    .create_consts_with(SkyboxLocals::default())
                     .unwrap(),
             },
         }
+    }
+
+    pub fn maintain_gpu_data(&mut self, renderer: &mut Renderer) {
+        // Compute camera matrices
+        let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
+
+        // Update global constants
+        renderer.update_consts(&mut self.globals, Globals::new(
+            view_mat,
+            proj_mat,
+            cam_pos,
+            self.camera.get_focus_pos(),
+            10.0,
+            0.0,
+            0.0,
+        ))
+            .expect("Failed to update global constants");
     }
 
     /// Render the scene using the provided `Renderer`

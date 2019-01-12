@@ -31,6 +31,9 @@ const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
 
 impl PlayState for SessionState {
     fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
+        // Trap the cursor
+        global_state.window.trap_cursor();
+
         // Game loop
         loop {
             // Handle window events
@@ -44,6 +47,9 @@ impl PlayState for SessionState {
                 }
             }
 
+            // Maintain scene GPU data
+            self.scene.maintain_gpu_data(global_state.window.renderer_mut());
+
             // Clear the screen
             global_state.window.renderer_mut().clear(BG_COLOR);
 
@@ -52,8 +58,9 @@ impl PlayState for SessionState {
 
             // Finish the frame
             global_state.window.renderer_mut().flush();
-            global_state.window.display()
-                .expect("Failed to display window");
+            global_state.window
+                .swap_buffers()
+                .expect("Failed to swap window buffers");
         }
     }
 

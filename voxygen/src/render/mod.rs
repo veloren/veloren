@@ -3,6 +3,7 @@ pub mod mesh;
 pub mod model;
 pub mod pipelines;
 pub mod renderer;
+mod util;
 
 // Reexports
 pub use self::{

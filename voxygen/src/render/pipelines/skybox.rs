@@ -41,7 +41,7 @@ gfx_defines! {
 }
 
 impl Locals {
-    pub fn new() -> Self {
+    pub fn default() -> Self {
         Self { nul: [0.0; 4] }
     }
 }

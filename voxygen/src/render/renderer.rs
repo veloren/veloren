@@ -46,7 +46,8 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    /// Create a new `Renderer` from a variety of backend-specific components and the window targets.
+    /// Create a new `Renderer` from a variety of backend-specific components and the window
+    /// targets.
     pub fn new(
         device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
@@ -99,11 +100,23 @@ impl Renderer {
         Ok(Consts::new(&mut self.factory))
     }
 
-    /// Create a new set of constants and update then with a value.
-    pub fn create_consts_with<T: Copy + gfx::traits::Pod>(&mut self, val: T) -> Result<Consts<T>, RenderError> {
+    /// Create a new set of constants with a value.
+    pub fn create_consts_with<T: Copy + gfx::traits::Pod>(
+        &mut self,
+        val: T
+    ) -> Result<Consts<T>, RenderError> {
         let mut consts = self.create_consts()?;
         consts.update(&mut self.encoder, val)?;
         Ok(consts)
+    }
+
+    /// Update a set of constants with a new value.
+    pub fn update_consts<T: Copy + gfx::traits::Pod>(
+        &mut self,
+        consts: &mut Consts<T>,
+        val: T
+    ) -> Result<(), RenderError> {
+        consts.update(&mut self.encoder, val)
     }
 
     /// Create a new model from the provided mesh.
@@ -136,7 +149,6 @@ impl Renderer {
 }
 
 struct GfxPipeline<P: gfx::pso::PipelineInit> {
-    program: gfx::handle::Program<gfx_backend::Resources>,
     pso: gfx::pso::PipelineState<gfx_backend::Resources, P::Meta>,
 }
 
@@ -166,10 +178,12 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
             )
                 // Do some funky things to work around an oddity in gfx's error ownership rules
                 .map_err(|err| RenderError::PipelineError(match err {
-                    gfx::PipelineStateError::Program(err) => gfx::PipelineStateError::Program(err),
-                    gfx::PipelineStateError::DescriptorInit(err) => gfx::PipelineStateError::DescriptorInit(err.into()),
-                    gfx::PipelineStateError::DeviceCreate(err) => gfx::PipelineStateError::DeviceCreate(err),
+                    gfx::PipelineStateError::Program(err) =>
+                        gfx::PipelineStateError::Program(err),
+                    gfx::PipelineStateError::DescriptorInit(err) =>
+                        gfx::PipelineStateError::DescriptorInit(err.into()),
+                    gfx::PipelineStateError::DeviceCreate(err) =>
+                        gfx::PipelineStateError::DeviceCreate(err),
                 }))?,
-        program,
     })
 }
