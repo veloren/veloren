@@ -38,13 +38,14 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
-                match event {
+                let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
-                    // Ignore all other events
-                    _ => {},
-                }
+                    // Pass all other events to the scene
+                    event => self.scene.handle_input_event(event),
+                };
+                // TODO: Do something if the event wasn't handled?
             }
 
             // Maintain scene GPU data

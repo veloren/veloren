@@ -21,12 +21,14 @@ use crate::{
     window::Window,
 };
 
-// A type used to store state that is shared between all play states
+/// A type used to store state that is shared between all play states
 pub struct GlobalState {
     window: Window,
 }
 
 impl GlobalState {
+    /// Called after a change in play state has occured (usually used to reverse any temporary
+    /// effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
         self.window.untrap_cursor();
     }

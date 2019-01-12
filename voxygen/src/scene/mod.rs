@@ -1,14 +1,20 @@
 pub mod camera;
 
+// Library
+use vek::*;
+
 // Crate
-use crate::render::{
-    Consts,
-    Globals,
-    Model,
-    Renderer,
-    SkyboxPipeline,
-    SkyboxLocals,
-    create_skybox_mesh,
+use crate::{
+    render::{
+        Consts,
+        Globals,
+        Model,
+        Renderer,
+        SkyboxPipeline,
+        SkyboxLocals,
+        create_skybox_mesh,
+    },
+    window::Event,
 };
 
 // Local
@@ -18,6 +24,9 @@ struct Skybox {
     model: Model<SkyboxPipeline>,
     locals: Consts<SkyboxLocals>,
 }
+
+// TODO: Don't hard-code this
+const CURSOR_PAN_SCALE: f32 = 0.005;
 
 pub struct Scene {
     camera: Camera,
@@ -44,6 +53,20 @@ impl Scene {
         }
     }
 
+    /// Handle an incoming user input event (i.e: cursor moved, key pressed, window closed, etc.).
+    pub fn handle_input_event(&mut self, event: Event) -> bool {
+        match event {
+            // Panning the cursor makes the camera rotate
+            Event::CursorPan(delta) => {
+                self.camera.rotate_by(Vec3::from(delta) * CURSOR_PAN_SCALE);
+                true
+            },
+            // All other events are unhandled
+            _ => false,
+        }
+    }
+
+    /// Maintain and update GPU data such as constant buffers, models, etc.
     pub fn maintain_gpu_data(&mut self, renderer: &mut Renderer) {
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();

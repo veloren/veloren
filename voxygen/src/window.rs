@@ -69,6 +69,11 @@ impl Window {
                 glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                 _ => {},
             },
+            glutin::Event::DeviceEvent { event, .. } => match event {
+                glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } =>
+                    events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
+                _ => {},
+            },
             _ => {},
         });
         events

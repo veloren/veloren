@@ -32,7 +32,7 @@ pub type TgtDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, Tg
 
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's rendering
 /// subsystem and contains any state necessary to interact with the GPU, along with pipeline state
-/// objects (PSOs) needed to renderer different kinds of model to the screen.
+/// objects (PSOs) needed to renderer different kinds of models to the screen.
 pub struct Renderer {
     device: gfx_backend::Device,
     encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -127,7 +127,7 @@ impl Renderer {
         ))
     }
 
-    /// Queue the rendering of the provided skybox model in the upcoming frame
+    /// Queue the rendering of the provided skybox model in the upcoming frame.
     pub fn render_skybox(
         &mut self,
         model: &Model<skybox::SkyboxPipeline>,
@@ -152,7 +152,7 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
     pso: gfx::pso::PipelineState<gfx_backend::Resources, P::Meta>,
 }
 
-/// Create a new pipeline from the provided vertex shader and fragment shader
+/// Create a new pipeline from the provided vertex shader and fragment shader.
 fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     factory: &mut gfx_backend::Factory,
     pipe: P,
