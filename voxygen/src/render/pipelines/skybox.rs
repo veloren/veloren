@@ -66,10 +66,10 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
     // +x
     #[rustfmt::skip]
     mesh.push_quad(Quad::new(
-        Vertex { pos: [ 1.0, -1.0, -1.0] },
+        Vertex { pos: [ 1.0, -1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0, -1.0] },
-        Vertex { pos: [ 1.0, -1.0,  1.0] },
+        Vertex { pos: [ 1.0, -1.0, -1.0] },
     ));
     // -y
     #[rustfmt::skip]
@@ -82,10 +82,10 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
     // +y
     #[rustfmt::skip]
     mesh.push_quad(Quad::new(
-        Vertex { pos: [ 1.0,  1.0, -1.0] },
+        Vertex { pos: [ 1.0,  1.0,  1.0] },
         Vertex { pos: [-1.0,  1.0,  1.0] },
         Vertex { pos: [-1.0,  1.0, -1.0] },
-        Vertex { pos: [ 1.0,  1.0,  1.0] },
+        Vertex { pos: [ 1.0,  1.0, -1.0] },
     ));
     // -z
     #[rustfmt::skip]
@@ -98,10 +98,10 @@ pub fn create_mesh() -> Mesh<SkyboxPipeline> {
     // +z
     #[rustfmt::skip]
     mesh.push_quad(Quad::new(
-        Vertex { pos: [-1.0, -1.0,  1.0] },
+        Vertex { pos: [-1.0,  1.0,  1.0] },
         Vertex { pos: [ 1.0,  1.0,  1.0] },
         Vertex { pos: [ 1.0, -1.0,  1.0] },
-        Vertex { pos: [-1.0,  1.0,  1.0] },
+        Vertex { pos: [-1.0, -1.0,  1.0] },
     ));
 
     mesh

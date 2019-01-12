@@ -31,14 +31,23 @@ use gfx_device_gl as gfx_backend;
 // Library
 use gfx;
 
-/// Used to represent one of many possible errors that may be omitted by the rendering code
+/// Used to represent one of many possible errors that may be omitted by the rendering subsystem
 #[derive(Debug)]
 pub enum RenderError {
     PipelineError(gfx::PipelineStateError<String>),
     UpdateError(gfx::UpdateError<usize>),
 }
 
-/// Used to represent a specific rendering configuration
+/// Used to represent a specific rendering configuration.
+///
+/// Note that pipelines are tied to the
+/// rendering backend, and as such it is necessary to modify the rendering subsystem when adding
+/// new pipelines - custom pipelines are not currently an objective of the rendering subsystem.
+///
+/// # Examples
+///
+/// - `SkyboxPipeline`
+/// - `CharacterPipeline`
 pub trait Pipeline {
     type Vertex:
         Clone +
