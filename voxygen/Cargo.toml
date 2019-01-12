@@ -10,7 +10,8 @@ gl = ["gfx_device_gl"]
 default = []
 
 [dependencies]
-common = { path = "../common" }
+common = { package = "veloren-common", path = "../common" }
+client = { package = "veloren-client", path = "../client" }
 
 # Graphics
 gfx = "0.17"

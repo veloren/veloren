@@ -1,5 +1,5 @@
 [package]
-name = "common"
+name = "veloren-common"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"

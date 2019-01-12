@@ -1,5 +1,11 @@
+// Standard
+use std::time::Duration;
+
 // Library
 use vek::*;
+
+// Project
+use common::clock::Clock;
 
 // Crate
 use crate::{
@@ -10,6 +16,8 @@ use crate::{
     render::Renderer,
     scene::Scene,
 };
+
+const FPS: u64 = 60;
 
 pub struct SessionState {
     scene: Scene,
@@ -29,10 +37,32 @@ impl SessionState {
 // The background colour
 const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
 
+impl SessionState {
+    /// Render the session to the screen.
+    ///
+    /// This method should be called once per frame.
+    pub fn render(&mut self, renderer: &mut Renderer) {
+        // Maintain scene GPU data
+        self.scene.maintain_gpu_data(renderer);
+
+        // Clear the screen
+        renderer.clear(BG_COLOR);
+
+        // Render the screen using the global renderer
+        self.scene.render_to(renderer);
+
+        // Finish the frame
+        renderer.flush();
+    }
+}
+
 impl PlayState for SessionState {
     fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
         // Trap the cursor
         global_state.window.trap_cursor();
+
+        // Set up an fps clock
+        let mut clock = Clock::new();
 
         // Game loop
         loop {
@@ -48,20 +78,20 @@ impl PlayState for SessionState {
                 // TODO: Do something if the event wasn't handled?
             }
 
-            // Maintain scene GPU data
-            self.scene.maintain_gpu_data(global_state.window.renderer_mut());
+            // Perform an in-game tick
+            self.scene.tick(clock.get_last_delta())
+                .expect("Failed to tick the scene");
 
-            // Clear the screen
-            global_state.window.renderer_mut().clear(BG_COLOR);
+            // Render the session
+            self.render(global_state.window.renderer_mut());
 
-            // Render the screen using the global renderer
-            self.scene.render_to(global_state.window.renderer_mut());
-
-            // Finish the frame
-            global_state.window.renderer_mut().flush();
+            // Display the frame on the window
             global_state.window
                 .swap_buffers()
                 .expect("Failed to swap window buffers");
+
+            // Wait for the next tick
+            clock.tick(Duration::from_millis(1000 / FPS));
         }
     }
 
