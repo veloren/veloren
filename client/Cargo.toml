@@ -5,6 +5,6 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-common = { path = "../common" }
+common = { package = "veloren-common", path = "../common" }
 
 specs = "0.14"

@@ -20,8 +20,9 @@ gfx_defines! {
         proj_mat: [[f32; 4]; 4] = "proj_mat",
         cam_pos: [f32; 4] = "cam_pos",
         focus_pos: [f32; 4] = "focus_pos",
+        // TODO: Fix whatever alignment issue requires these uniforms to be aligned
         view_distance: [f32; 4] = "view_distance",
-        time_of_day: [f32; 4] = "time_of_day",
+        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64
         time: [f32; 4] = "time",
     }
 }
@@ -47,7 +48,7 @@ impl Globals {
         cam_pos: Vec3<f32>,
         focus_pos: Vec3<f32>,
         view_distance: f32,
-        time_of_day: f32,
+        time_of_day: f64,
         time: f32,
     ) -> Self {
         Self {
@@ -56,7 +57,7 @@ impl Globals {
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_pos: Vec4::from(focus_pos).into_array(),
             view_distance: [view_distance; 4],
-            time_of_day: [time_of_day; 4],
+            time_of_day: [time_of_day as f32; 4],
             time: [time; 4],
         }
     }
