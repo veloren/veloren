@@ -20,7 +20,7 @@ impl TitleState {
 }
 
 // The background colour
-const BG_COLOR: Rgba<f32> = Rgba { r: 0.8, g: 1.0, b: 0.8, a: 1.0 };
+const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
 
 impl PlayState for TitleState {
     fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
