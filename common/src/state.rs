@@ -8,7 +8,6 @@ use specs::World as EcsWorld;
 use crate::{
     comp,
     terrain::TerrainMap,
-    vol::VolSize,
 };
 
 /// How much faster should an in-game day be compared to a real day?

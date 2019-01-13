@@ -1,5 +1,7 @@
+pub mod anim;
 pub mod error;
 pub mod menu;
+pub mod mesh;
 pub mod render;
 pub mod scene;
 pub mod session;

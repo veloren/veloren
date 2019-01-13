@@ -2,6 +2,7 @@
 use super::Pipeline;
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.
+#[derive(Clone)]
 pub struct Mesh<P: Pipeline> {
     verts: Vec<P::Vertex>,
 }
@@ -42,6 +43,22 @@ impl<P: Pipeline> Mesh<P> {
         self.verts.push(quad.c);
         self.verts.push(quad.d);
         self.verts.push(quad.a);
+    }
+
+    /// Push the vertices of another mesh onto the end of this mesh
+    pub fn push_mesh(&mut self, other: &Mesh<P>) {
+        self.verts.extend_from_slice(other.vertices());
+    }
+
+    /// Push the vertices of another mesh onto the end of this mesh
+    pub fn push_mesh_map<F: FnMut(P::Vertex) -> P::Vertex>(&mut self, other: &Mesh<P>, mut f: F) {
+        // Reserve enough space in our Vec. This isn't necessary, but it tends to reduce the number
+        // of required (re)allocations.
+        self.verts.reserve(other.vertices().len());
+
+        for vert in other.vertices() {
+            self.verts.push(f(vert.clone()));
+        }
     }
 }
 

@@ -2,7 +2,7 @@
 
 in vec3 v_pos;
 in vec3 v_col;
-in uint v_bone;
+in uint v_bone_idx;
 
 layout (std140)
 uniform u_locals {
@@ -20,13 +20,26 @@ uniform u_globals {
 	vec4 time;
 };
 
+struct BoneData {
+	mat4 bone_mat;
+};
+
+layout (std140)
+uniform u_bones {
+	BoneData bones[16];
+};
+
 out vec3 f_pos;
+out vec3 f_col;
 
 void main() {
 	f_pos = v_pos;
+	f_col = v_col;
 
 	gl_Position =
 		proj_mat *
 		view_mat *
-		vec4(0.5 * v_pos + cam_pos.xyz, 1);
+		model_mat *
+		bones[v_bone_idx].bone_mat *
+		vec4(v_pos, 1);
 }

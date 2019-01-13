@@ -2,6 +2,7 @@
 
 pub mod clock;
 pub mod comp;
+pub mod figure;
 pub mod state;
 pub mod terrain;
 pub mod volumes;

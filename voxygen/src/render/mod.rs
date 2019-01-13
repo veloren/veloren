@@ -8,14 +8,15 @@ mod util;
 // Reexports
 pub use self::{
     consts::Consts,
-    mesh::{Mesh, Quad},
+    mesh::{Mesh, Tri, Quad},
     model::Model,
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
     pipelines::{
         Globals,
-        character::{
-            CharacterPipeline,
-            Locals as CharacterLocals,
+        figure::{
+            FigurePipeline,
+            Locals as FigureLocals,
+            BoneData as FigureBoneData,
         },
         skybox::{
             create_mesh as create_skybox_mesh,
@@ -47,7 +48,7 @@ pub enum RenderError {
 /// # Examples
 ///
 /// - `SkyboxPipeline`
-/// - `CharacterPipeline`
+/// - `FigurePipeline`
 pub trait Pipeline {
     type Vertex:
         Clone +

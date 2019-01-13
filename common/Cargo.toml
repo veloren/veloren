@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 specs = "0.14"
 vek = "0.9"
+dot_vox = "1.0"

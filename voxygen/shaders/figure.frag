@@ -1,6 +1,7 @@
 #version 330 core
 
 in vec3 f_pos;
+in vec3 f_col;
 
 layout (std140)
 uniform u_locals {
@@ -21,5 +22,5 @@ uniform u_globals {
 out vec4 tgt_color;
 
 void main() {
-	tgt_color = vec4(f_pos, 1.0);
+	tgt_color = vec4(f_col, 1.0);
 }
