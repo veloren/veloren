@@ -33,8 +33,10 @@ gfx_defines! {
 
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
+
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
+
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
     }

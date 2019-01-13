@@ -1,4 +1,4 @@
-pub mod character;
+pub mod figure;
 pub mod skybox;
 
 // Library

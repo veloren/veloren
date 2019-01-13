@@ -17,6 +17,7 @@ pub enum ChunkErr {
     OutOfBounds,
 }
 
+/// A volume with dimensions known at compile-time.
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
@@ -27,6 +28,8 @@ pub struct Chunk<V, S: VolSize, M> {
 }
 
 impl<V, S: VolSize, M> Chunk<V, S, M> {
+    /// Used to transform a voxel position in the volume into its corresponding index in the voxel
+    // array.
     #[inline(always)]
     fn idx_for(pos: Vec3<i32>) -> Option<usize> {
         if
@@ -50,7 +53,8 @@ impl<V, S: VolSize, M> BaseVol for Chunk<V, S, M> {
 }
 
 impl<V, S: VolSize, M> SizedVol for Chunk<V, S, M> {
-    const SIZE: Vec3<u32> = Vec3 { x: 32, y: 32, z: 32 };
+    #[inline(always)]
+    fn get_size(&self) -> Vec3<u32> { S::SIZE }
 }
 
 impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
@@ -73,6 +77,8 @@ impl<V, S: VolSize, M> WriteVol for Chunk<V, S, M> {
 }
 
 impl<V: Clone, S: VolSize, M> Chunk<V, S, M> {
+    /// Create a new `Chunk` with the provided dimensions and all voxels filled with duplicates of
+    /// the provided voxel.
     pub fn filled(vox: V, meta: M) -> Self {
         Self {
             vox: vec![vox; S::SIZE.product() as usize],
@@ -81,10 +87,12 @@ impl<V: Clone, S: VolSize, M> Chunk<V, S, M> {
         }
     }
 
+    /// Get a reference to the internal metadata.
     pub fn metadata(&self) -> &M {
         &self.meta
     }
 
+    /// Get a mutable reference to the internal metadata.
     pub fn metadata_mut(&mut self) -> &mut M {
         &mut self.meta
     }

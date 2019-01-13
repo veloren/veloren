@@ -15,13 +15,13 @@ use super::{
     gfx_backend,
     pipelines::{
         Globals,
-        character,
+        figure,
         skybox,
     },
 };
 
 /// Represents the format of the window's color target.
-pub type TgtColorFmt = gfx::format::Srgba8;
+pub type TgtColorFmt = gfx::format::Rgba8;
 /// Represents the format of the window's depth target.
 pub type TgtDepthFmt = gfx::format::DepthStencil;
 
@@ -42,7 +42,7 @@ pub struct Renderer {
     tgt_depth_view: TgtDepthView,
 
     skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
-    character_pipeline: GfxPipeline<character::pipe::Init<'static>>,
+    figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
 }
 
 impl Renderer {
@@ -62,12 +62,12 @@ impl Renderer {
             include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.frag")),
         )?;
 
-        // Construct a pipeline for rendering characters
-        let character_pipeline = create_pipeline(
+        // Construct a pipeline for rendering figures
+        let figure_pipeline = create_pipeline(
             &mut factory,
-            character::pipe::new(),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/character.vert")),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/character.frag")),
+            figure::pipe::new(),
+            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.vert")),
+            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.frag")),
         )?;
 
         Ok(Self {
@@ -79,7 +79,7 @@ impl Renderer {
             tgt_depth_view,
 
             skybox_pipeline,
-            character_pipeline,
+            figure_pipeline,
         })
     }
 
@@ -96,28 +96,23 @@ impl Renderer {
         self.device.cleanup();
     }
 
-    /// Create a new set of constants.
-    pub fn create_consts<T: Copy + gfx::traits::Pod>(&mut self) -> Result<Consts<T>, RenderError> {
-        Ok(Consts::new(&mut self.factory))
-    }
-
-    /// Create a new set of constants with a value.
-    pub fn create_consts_with<T: Copy + gfx::traits::Pod>(
+    /// Create a new set of constants with the provided values.
+    pub fn create_consts<T: Copy + gfx::traits::Pod>(
         &mut self,
-        val: T
+        vals: &[T],
     ) -> Result<Consts<T>, RenderError> {
-        let mut consts = self.create_consts()?;
-        consts.update(&mut self.encoder, val)?;
+        let mut consts = Consts::new(&mut self.factory, vals.len());
+        consts.update(&mut self.encoder, vals)?;
         Ok(consts)
     }
 
-    /// Update a set of constants with a new value.
+    /// Update a set of constants with the provided values.
     pub fn update_consts<T: Copy + gfx::traits::Pod>(
         &mut self,
         consts: &mut Consts<T>,
-        val: T
+        vals: &[T]
     ) -> Result<(), RenderError> {
-        consts.update(&mut self.encoder, val)
+        consts.update(&mut self.encoder, vals)
     }
 
     /// Create a new model from the provided mesh.
@@ -132,8 +127,8 @@ impl Renderer {
     pub fn render_skybox(
         &mut self,
         model: &Model<skybox::SkyboxPipeline>,
-        locals: &Consts<skybox::Locals>,
         globals: &Consts<Globals>,
+        locals: &Consts<skybox::Locals>,
     ) {
         self.encoder.draw(
             &model.slice,
@@ -142,6 +137,28 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
+    /// Queue the rendering of the provided figure model in the upcoming frame.
+    pub fn render_figure(
+        &mut self,
+        model: &Model<figure::FigurePipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<figure::Locals>,
+        bones: &Consts<figure::BoneData>,
+    ) {
+        self.encoder.draw(
+            &model.slice,
+            &self.figure_pipeline.pso,
+            &figure::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                bones: bones.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },

@@ -19,9 +19,9 @@ pub struct Consts<T: Copy + gfx::traits::Pod> {
 
 impl<T: Copy + gfx::traits::Pod> Consts<T> {
     /// Create a new `Const<T>`
-    pub fn new(factory: &mut gfx_backend::Factory) -> Self {
+    pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Self {
         Self {
-            buf: factory.create_constant_buffer(1),
+            buf: factory.create_constant_buffer(len),
         }
     }
 
@@ -29,9 +29,9 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
     pub fn update(
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
-        val: T,
+        vals: &[T],
     ) -> Result<(), RenderError> {
-        encoder.update_buffer(&self.buf, &[val], 0)
+        encoder.update_buffer(&self.buf, vals, 0)
             .map_err(|err| RenderError::UpdateError(err))
     }
 }
