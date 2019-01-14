@@ -6,6 +6,7 @@ use vek::*;
 
 // Local
 use crate::vol::{
+    Vox,
     BaseVol,
     SizedVol,
     ReadVol,
@@ -21,13 +22,13 @@ pub enum ChunkErr {
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
-pub struct Chunk<V, S: VolSize, M> {
+pub struct Chunk<V: Vox, S: VolSize, M> {
     vox: Vec<V>,
     meta: M,
     phantom: PhantomData<S>,
 }
 
-impl<V, S: VolSize, M> Chunk<V, S, M> {
+impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     /// Used to transform a voxel position in the volume into its corresponding index in the voxel
     // array.
     #[inline(always)]
@@ -47,17 +48,17 @@ impl<V, S: VolSize, M> Chunk<V, S, M> {
     }
 }
 
-impl<V, S: VolSize, M> BaseVol for Chunk<V, S, M> {
+impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Vox = V;
     type Err = ChunkErr;
 }
 
-impl<V, S: VolSize, M> SizedVol for Chunk<V, S, M> {
+impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
     #[inline(always)]
     fn get_size(&self) -> Vec3<u32> { S::SIZE }
 }
 
-impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
+impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, ChunkErr> {
         Self::idx_for(pos)
@@ -66,7 +67,7 @@ impl<V, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     }
 }
 
-impl<V, S: VolSize, M> WriteVol for Chunk<V, S, M> {
+impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkErr> {
         Self::idx_for(pos)
@@ -76,7 +77,7 @@ impl<V, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     }
 }
 
-impl<V: Clone, S: VolSize, M> Chunk<V, S, M> {
+impl<V: Vox + Clone, S: VolSize, M> Chunk<V, S, M> {
     /// Create a new `Chunk` with the provided dimensions and all voxels filled with duplicates of
     /// the provided voxel.
     pub fn filled(vox: V, meta: M) -> Self {

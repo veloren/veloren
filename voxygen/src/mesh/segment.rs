@@ -6,6 +6,7 @@ use vek::*;
 
 // Project
 use common::vol::{
+    Vox,
     SizedVol,
     ReadVol,
 };

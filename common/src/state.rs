@@ -3,6 +3,7 @@ use std::time::Duration;
 
 // External
 use specs::World as EcsWorld;
+use shred::Fetch;
 
 // Crate
 use crate::{
@@ -24,8 +25,6 @@ struct Tick(f64);
 /// things like entity components, terrain data, and global state like weather, time of day, etc.
 pub struct State {
     ecs_world: EcsWorld,
-    terrain_map: TerrainMap,
-    time: f64,
 }
 
 impl State {
@@ -36,14 +35,13 @@ impl State {
         // Register resources used by the ECS
         ecs_world.add_resource(TimeOfDay(0.0));
         ecs_world.add_resource(Tick(0.0));
+        ecs_world.add_resource(TerrainMap::new());
 
         // Register common components with the state
         comp::register_local_components(&mut ecs_world);
 
         Self {
             ecs_world,
-            terrain_map: TerrainMap::new(),
-            time: 0.0,
         }
     }
 
@@ -59,6 +57,11 @@ impl State {
     /// Note that this does not correspond to the time of day.
     pub fn get_tick(&self) -> f64 {
         self.ecs_world.read_resource::<Tick>().0
+    }
+
+    /// Get a reference to this state's terrain.
+    pub fn terrain<'a>(&'a self) -> Fetch<'a, TerrainMap> {
+        self.ecs_world.read_resource::<TerrainMap>()
     }
 
     /// Execute a single tick, simulating the game state by the given duration.

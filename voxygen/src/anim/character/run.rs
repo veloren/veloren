@@ -29,8 +29,8 @@ impl Animation for RunAnimation {
         skeleton.belt.offset = Vec3::unit_z() * 7.0;
         skeleton.belt.ori = Quaternion::rotation_z(wave * 0.3);
 
-        skeleton.leggings.offset = Vec3::unit_z() * 4.0;
-        skeleton.leggings.ori = Quaternion::rotation_z(wave * 0.3);
+        skeleton.shorts.offset = Vec3::unit_z() * 4.0;
+        skeleton.shorts.ori = Quaternion::rotation_z(wave * 0.3);
 
         skeleton.l_hand.offset = Vec3::new(-8.0, wave * 5.0, 9.0);
         skeleton.r_hand.offset = Vec3::new(8.0, -wave * 5.0, 9.0);
