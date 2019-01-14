@@ -1,23 +1,16 @@
 pub mod camera;
 pub mod figure;
 
-// Standard
-use std::time::Duration;
-
 // Library
 use vek::*;
 use dot_vox;
 
 // Project
-use client::{
-    self,
-    Client,
-};
 use common::figure::Segment;
+use client::Client;
 
 // Crate
 use crate::{
-    Error,
     render::{
         Consts,
         Globals,
@@ -56,8 +49,6 @@ pub struct Scene {
     skybox: Skybox,
 
     test_figure: Figure<CharacterSkeleton>,
-
-    client: Client,
 }
 
 // TODO: Make a proper asset loading system
@@ -105,15 +96,7 @@ impl Scene {
                 CharacterSkeleton::new(),
             )
                 .unwrap(),
-
-            client: Client::new(),
         }
-    }
-
-    /// Tick the scene (and the client attached to it)
-    pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
-        self.client.tick(client::Input {}, dt)?;
-        Ok(())
     }
 
     /// Handle an incoming user input event (i.e: cursor moved, key pressed, window closed, etc.).
@@ -130,7 +113,7 @@ impl Scene {
     }
 
     /// Maintain and update GPU data such as constant buffers, models, etc.
-    pub fn maintain_gpu_data(&mut self, renderer: &mut Renderer) {
+    pub fn maintain_gpu_data(&mut self, renderer: &mut Renderer, client: &Client) {
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
 
@@ -141,15 +124,15 @@ impl Scene {
             cam_pos,
             self.camera.get_focus_pos(),
             10.0,
-            self.client.state().get_time_of_day(),
-            0.0,
+            client.state().get_time_of_day(),
+            client.state().get_tick(),
         )])
             .expect("Failed to update global constants");
 
         // TODO: Don't do this here
         RunAnimation::update_skeleton(
             &mut self.test_figure.skeleton,
-            self.client.state().get_tick(),
+            client.state().get_tick(),
         );
         self.test_figure.update_locals(renderer, FigureLocals::default()).unwrap();
         self.test_figure.update_skeleton(renderer).unwrap();

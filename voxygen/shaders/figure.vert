@@ -18,7 +18,7 @@ uniform u_globals {
 	vec4 focus_pos;
 	vec4 view_distance;
 	vec4 time_of_day;
-	vec4 time;
+	vec4 tick;
 };
 
 struct BoneData {

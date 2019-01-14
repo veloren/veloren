@@ -6,9 +6,14 @@ use vek::*;
 
 // Project
 use common::clock::Clock;
+use client::{
+    self,
+    Client,
+};
 
 // Crate
 use crate::{
+    Error,
     PlayState,
     PlayStateResult,
     GlobalState,
@@ -21,15 +26,17 @@ const FPS: u64 = 60;
 
 pub struct SessionState {
     scene: Scene,
+    client: Client,
 }
 
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn from_renderer(renderer: &mut Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             // Create a scene for this session. The scene handles visible elements of the game world
             scene: Scene::new(renderer),
+            client: Client::new(),
         }
     }
 }
@@ -38,12 +45,18 @@ impl SessionState {
 const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
 
 impl SessionState {
+    /// Tick the session (and the client attached to it)
+    pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+        self.client.tick(client::Input {}, dt)?;
+        Ok(())
+    }
+
     /// Render the session to the screen.
     ///
     /// This method should be called once per frame.
     pub fn render(&mut self, renderer: &mut Renderer) {
         // Maintain scene GPU data
-        self.scene.maintain_gpu_data(renderer);
+        self.scene.maintain_gpu_data(renderer, &self.client);
 
         // Clear the screen
         renderer.clear(BG_COLOR);
@@ -79,7 +92,7 @@ impl PlayState for SessionState {
             }
 
             // Perform an in-game tick
-            self.scene.tick(clock.get_last_delta())
+            self.tick(clock.get_last_delta())
                 .expect("Failed to tick the scene");
 
             // Render the session
