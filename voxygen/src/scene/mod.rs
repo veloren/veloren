@@ -32,8 +32,7 @@ use crate::{
     mesh::Meshable,
     anim::{
         Animation,
-        CharacterSkeleton,
-        RunAnimation,
+        character::{CharacterSkeleton, RunAnimation},
     },
 };
 
@@ -152,8 +151,8 @@ impl Scene {
             &mut self.test_figure.skeleton,
             self.client.state().get_tick(),
         );
-        self.test_figure.update_locals(renderer, FigureLocals::default());
-        self.test_figure.update_skeleton(renderer);
+        self.test_figure.update_locals(renderer, FigureLocals::default()).unwrap();
+        self.test_figure.update_skeleton(renderer).unwrap();
     }
 
     /// Render the scene using the provided `Renderer`
