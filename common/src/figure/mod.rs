@@ -6,7 +6,7 @@ use dot_vox::DotVoxData;
 
 // Crate
 use crate::{
-    vol::WriteVol,
+    vol::{Vox, WriteVol},
     volumes::dyna::Dyna,
 };
 

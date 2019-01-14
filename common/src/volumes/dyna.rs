@@ -3,6 +3,7 @@ use vek::*;
 
 // Local
 use crate::vol::{
+    Vox,
     BaseVol,
     SizedVol,
     ReadVol,
@@ -17,13 +18,13 @@ pub enum DynaErr {
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
-pub struct Dyna<V, M> {
+pub struct Dyna<V: Vox, M> {
     vox: Vec<V>,
     meta: M,
     sz: Vec3<u32>,
 }
 
-impl<V, M> Dyna<V, M> {
+impl<V: Vox, M> Dyna<V, M> {
     /// Used to transform a voxel position in the volume into its corresponding index in the voxel
     // array.
     #[inline(always)]
@@ -43,17 +44,17 @@ impl<V, M> Dyna<V, M> {
     }
 }
 
-impl<V, M> BaseVol for Dyna<V, M> {
+impl<V: Vox, M> BaseVol for Dyna<V, M> {
     type Vox = V;
     type Err = DynaErr;
 }
 
-impl<V, M> SizedVol for Dyna<V, M> {
+impl<V: Vox, M> SizedVol for Dyna<V, M> {
     #[inline(always)]
     fn get_size(&self) -> Vec3<u32> { self.sz }
 }
 
-impl<V, M> ReadVol for Dyna<V, M> {
+impl<V: Vox, M> ReadVol for Dyna<V, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaErr> {
         Self::idx_for(self.sz, pos)
@@ -62,7 +63,7 @@ impl<V, M> ReadVol for Dyna<V, M> {
     }
 }
 
-impl<V, M> WriteVol for Dyna<V, M> {
+impl<V: Vox, M> WriteVol for Dyna<V, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaErr> {
         Self::idx_for(self.sz, pos)
@@ -72,7 +73,7 @@ impl<V, M> WriteVol for Dyna<V, M> {
     }
 }
 
-impl<V: Clone, M> Dyna<V, M> {
+impl<V: Vox + Clone, M> Dyna<V, M> {
     /// Create a new `Dyna` with the provided dimensions and all voxels filled with duplicates of
     /// the provided voxel.
     pub fn filled(sz: Vec3<u32>, vox: V, meta: M) -> Self {
