@@ -17,6 +17,7 @@ use super::{
         Globals,
         figure,
         skybox,
+        terrain,
     },
 };
 
@@ -43,6 +44,7 @@ pub struct Renderer {
 
     skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
+    terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
 }
 
 impl Renderer {
@@ -70,6 +72,14 @@ impl Renderer {
             include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.frag")),
         )?;
 
+        // Construct a pipeline for rendering terrain
+        let terrain_pipeline = create_pipeline(
+            &mut factory,
+            terrain::pipe::new(),
+            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.vert")),
+            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.frag")),
+        )?;
+
         Ok(Self {
             device,
             encoder: factory.create_command_buffer().into(),
@@ -80,6 +90,7 @@ impl Renderer {
 
             skybox_pipeline,
             figure_pipeline,
+            terrain_pipeline,
         })
     }
 
@@ -159,6 +170,26 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
+    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    pub fn render_terrain_chunk(
+        &mut self,
+        model: &Model<terrain::TerrainPipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<terrain::Locals>,
+    ) {
+        self.encoder.draw(
+            &model.slice,
+            &self.terrain_pipeline.pso,
+            &terrain::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
