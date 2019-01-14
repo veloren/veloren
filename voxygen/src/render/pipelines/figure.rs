@@ -25,6 +25,7 @@ use super::{
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 3] = "v_pos",
+        norm: [f32; 3] = "v_norm",
         col: [f32; 3] = "v_col",
         bone_idx: u8 = "v_bone_idx",
     }
@@ -50,10 +51,11 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, col: Rgb<f32>, bone_idx: u8) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, bone_idx: u8) -> Self {
         Self {
             pos: pos.into_array(),
             col: col.into_array(),
+            norm: norm.into_array(),
             bone_idx,
         }
     }
