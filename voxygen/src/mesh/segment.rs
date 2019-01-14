@@ -55,62 +55,90 @@ impl Meshable for Segment {
             {
                 let col = col.map(|e| e as f32 / 255.0);
 
-                // TODO: Face occlusion
-
                 // -x
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32) + Vec3::unit_y(),
-                    -Vec3::unit_y(),
-                    Vec3::unit_z(),
-                    -Vec3::unit_x(),
-                    col,
-                    0,
-                ));
+                if self.get(pos - Vec3::unit_x())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32) + Vec3::unit_y(),
+                        -Vec3::unit_y(),
+                        Vec3::unit_z(),
+                        -Vec3::unit_x(),
+                        col,
+                        0,
+                    ));
+                }
                 // +x
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32) + Vec3::unit_x(),
-                    Vec3::unit_y(),
-                    Vec3::unit_z(),
-                    Vec3::unit_x(),
-                    col,
-                    0,
-                ));
+                if self.get(pos + Vec3::unit_x())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32) + Vec3::unit_x(),
+                        Vec3::unit_y(),
+                        Vec3::unit_z(),
+                        Vec3::unit_x(),
+                        col,
+                        0,
+                    ));
+                }
                 // -y
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32),
-                    Vec3::unit_x(),
-                    Vec3::unit_z(),
-                    -Vec3::unit_y(),
-                    col,
-                    0,
-                ));
+                if self.get(pos - Vec3::unit_y())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32),
+                        Vec3::unit_x(),
+                        Vec3::unit_z(),
+                        -Vec3::unit_y(),
+                        col,
+                        0,
+                    ));
+                }
                 // +y
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32) + Vec3::unit_y(),
-                    Vec3::unit_z(),
-                    Vec3::unit_x(),
-                    Vec3::unit_y(),
-                    col,
-                    0,
-                ));
+                if self.get(pos + Vec3::unit_y())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32) + Vec3::unit_y(),
+                        Vec3::unit_z(),
+                        Vec3::unit_x(),
+                        Vec3::unit_y(),
+                        col,
+                        0,
+                    ));
+                }
                 // -z
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32),
-                    Vec3::unit_y(),
-                    Vec3::unit_x(),
-                    -Vec3::unit_z(),
-                    col,
-                    0,
-                ));
+                if self.get(pos - Vec3::unit_z())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32),
+                        Vec3::unit_y(),
+                        Vec3::unit_x(),
+                        -Vec3::unit_z(),
+                        col,
+                        0,
+                    ));
+                }
                 // +z
-                mesh.push_quad(create_quad(
-                    offs + pos.map(|e| e as f32) + Vec3::unit_z(),
-                    Vec3::unit_x(),
-                    Vec3::unit_y(),
-                    Vec3::unit_z(),
-                    col,
-                    0,
-                ));
+                if self.get(pos + Vec3::unit_z())
+                    .map(|v| v.is_empty())
+                    .unwrap_or(true)
+                {
+                    mesh.push_quad(create_quad(
+                        offs + pos.map(|e| e as f32) + Vec3::unit_z(),
+                        Vec3::unit_x(),
+                        Vec3::unit_y(),
+                        Vec3::unit_z(),
+                        col,
+                        0,
+                    ));
+                }
             }
         }
 
