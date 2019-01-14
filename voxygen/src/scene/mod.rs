@@ -30,6 +30,11 @@ use crate::{
     },
     window::Event,
     mesh::Meshable,
+    anim::{
+        Animation,
+        CharacterSkeleton,
+        RunAnimation,
+    },
 };
 
 // Local
@@ -51,7 +56,7 @@ pub struct Scene {
     globals: Consts<Globals>,
     skybox: Skybox,
 
-    test_figure: Figure,
+    test_figure: Figure<CharacterSkeleton>,
 
     client: Client,
 }
@@ -85,10 +90,10 @@ impl Scene {
                     Some(load_segment("chest.vox").generate_mesh_with_offset(Vec3::new(-6.0, -3.0, 0.0))),
                     Some(load_segment("belt.vox").generate_mesh_with_offset(Vec3::new(-5.0, -3.0, 0.0))),
                     Some(load_segment("pants.vox").generate_mesh_with_offset(Vec3::new(-5.0, -3.0, 0.0))),
-                    Some(load_segment("foot.vox").generate_mesh_with_offset(Vec3::new(-2.5, -3.0, 0.0))),
-                    Some(load_segment("foot.vox").generate_mesh_with_offset(Vec3::new(-2.5, -3.0, 0.0))),
                     Some(load_segment("hand.vox").generate_mesh_with_offset(Vec3::new(-2.0, -2.0, -1.0))),
                     Some(load_segment("hand.vox").generate_mesh_with_offset(Vec3::new(-2.0, -2.0, -1.0))),
+                    Some(load_segment("foot.vox").generate_mesh_with_offset(Vec3::new(-2.5, -3.0, 0.0))),
+                    Some(load_segment("foot.vox").generate_mesh_with_offset(Vec3::new(-2.5, -3.0, 0.0))),
                     Some(load_segment("sword.vox").generate_mesh_with_offset(Vec3::new(-6.5, -1.0, 0.0))),
                     None,
                     None,
@@ -98,6 +103,7 @@ impl Scene {
                     None,
                     None,
                 ],
+                CharacterSkeleton::new(),
             )
                 .unwrap(),
 
@@ -142,26 +148,10 @@ impl Scene {
             .expect("Failed to update global constants");
 
         // TODO: Don't do this here
-        let offs = (self.client.state().get_tick() as f32 * 10.0).sin();
-        self.test_figure.skeleton.bone_mut(0).offset = Vec3::new(0.0, 0.0, 13.0);
-        self.test_figure.skeleton.bone_mut(0).ori = Quaternion::rotation_z(offs * 0.3);
-        // Chest
-        self.test_figure.skeleton.bone_mut(1).offset = Vec3::new(0.0, 0.0, 9.0);
-        self.test_figure.skeleton.bone_mut(2).offset = Vec3::new(0.0, 0.0, 7.0);
-        self.test_figure.skeleton.bone_mut(3).offset = Vec3::new(0.0, 0.0, 4.0);
-        self.test_figure.skeleton.bone_mut(1).ori = Quaternion::rotation_z(offs * 0.15);
-        self.test_figure.skeleton.bone_mut(2).ori = Quaternion::rotation_z(offs * 0.15);
-        self.test_figure.skeleton.bone_mut(3).ori = Quaternion::rotation_z(offs * 0.15);
-        //Feet
-        self.test_figure.skeleton.bone_mut(4).offset = Vec3::new(-3.0, -offs * 4.0, 0.0);
-        self.test_figure.skeleton.bone_mut(5).offset = Vec3::new(3.0, offs * 4.0, 0.0);
-        // Hands
-        self.test_figure.skeleton.bone_mut(6).offset = Vec3::new(-8.0, offs * 4.0, 9.0);
-        self.test_figure.skeleton.bone_mut(7).offset = Vec3::new(8.0, -offs * 4.0, 9.0);
-        // Sword
-        self.test_figure.skeleton.bone_mut(8).offset = Vec3::new(-8.0, 5.0, 24.0);
-        self.test_figure.skeleton.bone_mut(8).ori = Quaternion::rotation_y(2.5);
-
+        RunAnimation::update_skeleton(
+            &mut self.test_figure.skeleton,
+            self.client.state().get_tick(),
+        );
         self.test_figure.update_locals(renderer, FigureLocals::default());
         self.test_figure.update_skeleton(renderer);
     }
