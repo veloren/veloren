@@ -1,5 +1,6 @@
 pub mod camera;
 pub mod figure;
+pub mod terrain;
 
 // Library
 use vek::*;
@@ -33,6 +34,7 @@ use crate::{
 use self::{
     camera::Camera,
     figure::Figure,
+    terrain::Terrain,
 };
 
 // TODO: Don't hard-code this
@@ -44,9 +46,11 @@ struct Skybox {
 }
 
 pub struct Scene {
-    camera: Camera,
     globals: Consts<Globals>,
+    camera: Camera,
+
     skybox: Skybox,
+    terrain: Terrain,
 
     test_figure: Figure<CharacterSkeleton>,
 }
@@ -58,12 +62,13 @@ fn load_segment(filename: &'static str) -> Segment {
 
 impl Scene {
     /// Create a new `Scene` with default parameters.
-    pub fn new(renderer: &mut Renderer) -> Self {
+    pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
         Self {
-            camera: Camera::new(),
             globals: renderer
                 .create_consts(&[Globals::default()])
                 .unwrap(),
+            camera: Camera::new(),
+
             skybox: Skybox {
                 model: renderer
                     .create_model(&create_skybox_mesh())
@@ -72,6 +77,7 @@ impl Scene {
                     .create_consts(&[SkyboxLocals::default()])
                     .unwrap(),
             },
+            terrain: Terrain::new(),
 
             test_figure: Figure::new(
                 renderer,
@@ -129,6 +135,9 @@ impl Scene {
         )])
             .expect("Failed to update global constants");
 
+        // Maintain terrain GPU data
+        self.terrain.maintain_gpu_data(renderer);
+
         // TODO: Don't do this here
         RunAnimation::update_skeleton(
             &mut self.test_figure.skeleton,
@@ -146,6 +155,9 @@ impl Scene {
             &self.globals,
             &self.skybox.locals,
         );
+
+        // Render terrain
+        self.terrain.render(renderer, &self.globals);
 
         // Render the test figure
         self.test_figure.render(renderer, &self.globals);

@@ -27,7 +27,8 @@ impl Camera {
         }
     }
 
-    /// Compute the transformation matrices (view matrix and projection matrix) for the camera.
+    /// Compute the transformation matrices (view matrix and projection matrix) and position of the
+    /// camera.
     pub fn compute_dependents(&self) -> (Mat4<f32>, Mat4<f32>, Vec3<f32>) {
         let view_mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(-Vec3::unit_z() * self.dist)

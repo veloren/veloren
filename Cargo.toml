@@ -4,6 +4,7 @@ members = [
 	"client",
 	"server",
 	"voxygen",
+	"world",
 ]
 
 [profile.dev]
