@@ -33,10 +33,11 @@ pub struct SessionState {
 impl SessionState {
     /// Create a new `SessionState`
     pub fn new(renderer: &mut Renderer) -> Self {
+        let client = Client::new().with_test_state(); // <--- TODO: Remove this
         Self {
             // Create a scene for this session. The scene handles visible elements of the game world
-            scene: Scene::new(renderer),
-            client: Client::new(),
+            scene: Scene::new(renderer, &client),
+            client,
         }
     }
 }

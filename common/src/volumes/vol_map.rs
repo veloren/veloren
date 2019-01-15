@@ -105,4 +105,12 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
             chunks: HashMap::new(),
         }
     }
+
+    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Chunk<V, S, M>> {
+        self.chunks.insert(key, chunk)
+    }
+
+    pub fn remove(&mut self, key: &Vec3<i32>) -> Option<Chunk<V, S, M>> {
+        self.chunks.remove(key)
+    }
 }

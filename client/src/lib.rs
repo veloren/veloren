@@ -1,8 +1,16 @@
 // Standard
 use std::time::Duration;
 
-// Internal
-use common::state::State;
+// Library
+use specs::Entity as EcsEntity;
+use vek::*;
+
+// Project
+use common::{
+    state::State,
+    terrain::TerrainChunk,
+};
+use world::World;
 
 #[derive(Debug)]
 pub enum Error {
@@ -17,7 +25,11 @@ pub struct Input {
 pub struct Client {
     state: State,
 
-    // TODO: Add "meta" state here
+    player: Option<EcsEntity>,
+
+    // Testing
+    world: World,
+    pub chunk: Option<TerrainChunk>,
 }
 
 impl Client {
@@ -25,7 +37,19 @@ impl Client {
     pub fn new() -> Self {
         Self {
             state: State::new(),
+
+            player: None,
+
+            // Testing
+            world: World::new(),
+            chunk: None,
         }
+    }
+
+    /// TODO: Get rid of this
+    pub fn with_test_state(mut self) -> Self {
+        self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
+        self
     }
 
     /// Get a reference to the client's game state.
