@@ -67,11 +67,22 @@ impl Window {
         // Copy data that is needed by the events closure to avoid lifetime errors
         // TODO: Remove this if/when the compiler permits it
         let cursor_grabbed = self.cursor_grabbed;
+        let renderer = &mut self.renderer;
+        let window = &mut self.window;
 
         let mut events = vec![];
         self.events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::CloseRequested => events.push(Event::Close),
+                glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
+                    let (mut color_view, mut depth_view) = renderer.target_views_mut();
+                    gfx_window_glutin::update_views(
+                        &window,
+                        &mut color_view,
+                        &mut depth_view,
+                    );
+                    events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                },
                 glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                 glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
                     Some(glutin::VirtualKeyCode::Escape) => events.push(if input.state == glutin::ElementState::Pressed {
@@ -119,6 +130,8 @@ pub enum Key {
 pub enum Event {
     /// The window has been requested to close.
     Close,
+    /// The window has been resized
+    Resize(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
     Char(char),
     /// The cursor has been panned across the screen while grabbed.
