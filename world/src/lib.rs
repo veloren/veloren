@@ -1,9 +1,10 @@
 // Library
 use vek::*;
+use noise::{NoiseFn, Perlin};
 
 // Project
 use common::{
-    vol::Vox,
+    vol::{Vox, SizedVol, WriteVol},
     terrain::{
         Block,
         TerrainChunk,
@@ -23,7 +24,35 @@ impl World {
         Self
     }
 
-    pub fn generate_chunk(&self, pos: Vec3<i32>) -> TerrainChunk {
-        TerrainChunk::filled(Block::empty(), TerrainChunkMeta::void())
+    pub fn generate_chunk(&self, chunk_pos: Vec3<i32>) -> TerrainChunk {
+        let mut chunk = TerrainChunk::filled(Block::empty(), TerrainChunkMeta::void());
+
+        let air = Block::empty();
+        let stone = Block::new(1, Rgb::new(200, 220, 255));
+        let grass = Block::new(2, Rgb::new(50, 255, 0));
+
+        let perlin_nz = Perlin::new();
+
+        for lpos in chunk.iter_positions() {
+            let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
+            let wposf = wpos.map(|e| e as f64);
+
+            let freq = 1.0 / 32.0;
+            let ampl = 16.0;
+            let offs = 16.0;
+            let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl + offs;
+
+            chunk.set(lpos, if wposf.z < height {
+                if wposf.z < height - 1.0 {
+                    stone
+                } else {
+                    grass
+                }
+            } else {
+                air
+            });
+        }
+
+        chunk
     }
 }
