@@ -13,14 +13,6 @@ use crate::{
 // Local
 use self::cell::Cell;
 
-/// A type representing a single figure bone (e.g: the limb of a character).
-#[derive(Copy, Clone)]
-pub struct Bone {
-    origin: Vec3<f32>,
-    offset: Vec3<f32>,
-    ori: Vec3<f32>,
-}
-
 /// A type representing a volume that may be part of an animated figure.
 ///
 /// Figures are used to represent things like characters, NPCs, mobs, etc.

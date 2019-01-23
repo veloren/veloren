@@ -12,10 +12,7 @@ use vek::*;
 use client::Client;
 use common::{
     terrain::TerrainMap,
-    volumes::vol_map::{
-        VolMap,
-        VolMapErr,
-    },
+    volumes::vol_map::VolMapErr,
     vol::SampleVol,
 };
 
@@ -179,7 +176,7 @@ impl Terrain {
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
-        for (pos, chunk) in &self.chunks {
+        for (_, chunk) in &self.chunks {
             renderer.render_terrain_chunk(
                 &chunk.model,
                 globals,

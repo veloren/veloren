@@ -9,7 +9,7 @@ use common::{
         ReadVol,
     },
     volumes::dyna::Dyna,
-    terrain::{Block, TerrainChunk},
+    terrain::Block,
 };
 
 // Crate

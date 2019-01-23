@@ -34,7 +34,7 @@ impl GlobalState {
     /// Called after a change in play state has occured (usually used to reverse any temporary
     /// effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
-        self.window.untrap_cursor();
+        self.window.grab_cursor(false);
     }
 }
 

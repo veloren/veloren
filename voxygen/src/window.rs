@@ -15,8 +15,9 @@ use crate::{
 
 pub struct Window {
     events_loop: glutin::EventsLoop,
-    window: glutin::GlWindow,
     renderer: Renderer,
+    window: glutin::GlWindow,
+    cursor_grabbed: bool,
 }
 
 
@@ -47,13 +48,14 @@ impl Window {
 
         let tmp = Ok(Self {
             events_loop,
-            window,
             renderer: Renderer::new(
                 device,
                 factory,
                 tgt_color_view,
                 tgt_depth_view,
             )?,
+            window,
+            cursor_grabbed: false,
         });
         tmp
     }
@@ -62,15 +64,27 @@ impl Window {
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
+        // Copy data that is needed by the events closure to avoid lifetime errors
+        // TODO: Remove this if/when the compiler permits it
+        let cursor_grabbed = self.cursor_grabbed;
+
         let mut events = vec![];
         self.events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                 glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+                glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
+                    Some(glutin::VirtualKeyCode::Escape) => events.push(if input.state == glutin::ElementState::Pressed {
+                        Event::KeyDown(Key::ToggleCursor)
+                    } else {
+                        Event::KeyUp(Key::ToggleCursor)
+                    }),
+                    _ => {},
+                },
                 _ => {},
             },
             glutin::Event::DeviceEvent { event, .. } => match event {
-                glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } =>
+                glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
                     events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
                 _ => {},
             },
@@ -84,17 +98,21 @@ impl Window {
             .map_err(|err| Error::BackendError(Box::new(err)))
     }
 
-    pub fn trap_cursor(&mut self) {
-        self.window.hide_cursor(true);
-        self.window.grab_cursor(true)
-            .expect("Failed to grab cursor");
+    pub fn is_cursor_grabbed(&self) -> bool {
+        self.cursor_grabbed
     }
 
-    pub fn untrap_cursor(&mut self) {
-        self.window.hide_cursor(false);
-        self.window.grab_cursor(false)
-            .expect("Failed to ungrab cursor");
+    pub fn grab_cursor(&mut self, grab: bool) {
+        self.cursor_grabbed = grab;
+        self.window.hide_cursor(grab);
+        self.window.grab_cursor(grab)
+            .expect("Failed to grab/ungrab cursor");
     }
+}
+
+/// Represents a key that the game recognises after keyboard mapping
+pub enum Key {
+    ToggleCursor,
 }
 
 /// Represents an incoming event from the window
@@ -103,6 +121,10 @@ pub enum Event {
     Close,
     /// A key has been typed that corresponds to a specific character.
     Char(char),
-    /// The cursor has been panned across the screen while trapped.
+    /// The cursor has been panned across the screen while grabbed.
     CursorPan(Vec2<f32>),
+    /// A key that the game recognises has been pressed down
+    KeyDown(Key),
+    /// A key that the game recognises has been released down
+    KeyUp(Key),
 }
