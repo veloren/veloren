@@ -105,6 +105,12 @@ impl Scene {
         }
     }
 
+    /// Get a reference to the scene's camera.
+    pub fn camera(&self) -> &Camera { &self.camera }
+
+    /// Get a mutable reference to the scene's camera.
+    pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
+
     /// Handle an incoming user input event (i.e: cursor moved, key pressed, window closed, etc.).
     pub fn handle_input_event(&mut self, event: Event) -> bool {
         match event {

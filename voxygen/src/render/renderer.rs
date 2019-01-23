@@ -94,6 +94,16 @@ impl Renderer {
         })
     }
 
+    /// Get references to the internal render target views that get displayed directly by the window.
+    pub fn target_views(&self) -> (&TgtColorView, &TgtDepthView) {
+        (&self.tgt_color_view, &self.tgt_depth_view)
+    }
+
+    /// Get mutable references to the internal render target views that get displayed directly by the window.
+    pub fn target_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
+        (&mut self.tgt_color_view, &mut self.tgt_depth_view)
+    }
+
     /// Queue the clearing of the color and depth targets ready for a new frame to be rendered.
     /// TODO: Make a version of this that doesn't clear the colour target for speed
     pub fn clear(&mut self, col: Rgba<f32>) {

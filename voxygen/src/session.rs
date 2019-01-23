@@ -81,8 +81,8 @@ impl PlayState for SessionState {
         let mut clock = Clock::new();
 
         // Load a few chunks TODO: Remove this
-        for x in -4..5 {
-            for y in -4..5 {
+        for x in -6..7 {
+            for y in -6..7 {
                 for z in -1..2 {
                     self.client.load_chunk(Vec3::new(x, y, z));
                 }
@@ -95,6 +95,10 @@ impl PlayState for SessionState {
             for event in global_state.window.fetch_events() {
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
+                    // When the window is resized, change the camera's aspect ratio
+                    Event::Resize(dims) => {
+                        self.scene.camera_mut().set_aspect_ratio(dims.x as f32 / dims.y as f32);
+                    },
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
                     // Toggle cursor grabbing
