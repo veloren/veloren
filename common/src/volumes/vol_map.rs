@@ -21,6 +21,7 @@ use crate::{
     },
 };
 
+#[derive(Debug)]
 pub enum VolMapErr {
     NoSuchChunk,
     ChunkErr(ChunkErr),

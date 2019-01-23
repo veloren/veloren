@@ -1,9 +1,6 @@
 pub mod segment;
 pub mod terrain;
 
-// Library
-use vek::*;
-
 // Crate
 use crate::render::{
     self,
