@@ -1,3 +1,5 @@
+#![feature(drain_filter)]
+
 pub mod anim;
 pub mod error;
 pub mod menu;

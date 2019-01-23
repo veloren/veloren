@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 vek = "0.9"
+noise = "0.5"

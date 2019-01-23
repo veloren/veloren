@@ -1,4 +1,5 @@
 pub mod segment;
+pub mod terrain;
 
 // Library
 use vek::*;
@@ -11,10 +12,7 @@ use crate::render::{
 
 pub trait Meshable {
     type Pipeline: render::Pipeline;
+    type Supplement;
 
-    fn generate_mesh(&self) -> Mesh<Self::Pipeline> {
-        self.generate_mesh_with_offset(Vec3::zero())
-    }
-
-    fn generate_mesh_with_offset(&self, offs: Vec3<f32>) -> Mesh<Self::Pipeline>;
+    fn generate_mesh(&self, supp: Self::Supplement) -> Mesh<Self::Pipeline>;
 }
