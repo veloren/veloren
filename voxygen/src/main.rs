@@ -7,6 +7,7 @@ pub mod mesh;
 pub mod render;
 pub mod scene;
 pub mod session;
+pub mod ui;
 pub mod window;
 
 // Reexports
@@ -66,17 +67,19 @@ fn main() {
     // Init logging
     pretty_env_logger::init();
 
-    // Set up the initial play state
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(TitleState::new())];
-    states.last().map(|current_state| {
-        log::info!("Started game with state '{}'", current_state.name())
-    });
-
     // Set up the global state
     let mut global_state = GlobalState {
         window: Window::new()
             .expect("Failed to create window"),
     };
+
+    // Set up the initial play state
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(TitleState::new(
+        &mut global_state.window.renderer_mut(),
+    ))];
+    states.last().map(|current_state| {
+        log::info!("Started game with state '{}'", current_state.name())
+    });
 
     // What's going on here?
     // ---------------------

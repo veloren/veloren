@@ -3,6 +3,7 @@ pub mod mesh;
 pub mod model;
 pub mod pipelines;
 pub mod renderer;
+pub mod texture;
 mod util;
 
 // Reexports
@@ -10,6 +11,7 @@ pub use self::{
     consts::Consts,
     mesh::{Mesh, Tri, Quad},
     model::Model,
+    texture::Texture,
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
     pipelines::{
         Globals,
@@ -27,6 +29,11 @@ pub use self::{
             TerrainPipeline,
             Locals as TerrainLocals,
         },
+        ui::{
+            create_quad_mesh as create_ui_quad_mesh,
+            UiPipeline,
+            Locals as UiLocals,
+        },
     },
 };
 
@@ -41,6 +48,7 @@ use gfx;
 pub enum RenderError {
     PipelineError(gfx::PipelineStateError<String>),
     UpdateError(gfx::UpdateError<usize>),
+    CombinedError(gfx::CombinedError),
 }
 
 /// Used to represent a specific rendering configuration.
