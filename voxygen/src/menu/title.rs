@@ -1,5 +1,6 @@
 // Library
 use vek::*;
+use image;
 
 // Crate
 use crate::{
@@ -8,14 +9,28 @@ use crate::{
     GlobalState,
     window::Event,
     session::SessionState,
+    render::Renderer,
+    ui::{
+        Ui,
+        element::{
+            Widget,
+            image::Image,
+        },
+    },
 };
 
-pub struct TitleState;
+pub struct TitleState {
+    ui: Ui,
+}
 
 impl TitleState {
     /// Create a new `TitleState`
-    pub fn new() -> Self {
-        Self
+    pub fn new(renderer: &mut Renderer) -> Self {
+        let img = Image::new(renderer, &image::open(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/test.png")).unwrap()).unwrap();
+        let widget = Widget::new(renderer, img).unwrap();
+        Self {
+            ui: Ui::new(renderer, widget).unwrap(),
+        }
     }
 }
 
@@ -40,6 +55,12 @@ impl PlayState for TitleState {
 
             // Clear the screen
             global_state.window.renderer_mut().clear(BG_COLOR);
+
+            // Maintain the UI
+            self.ui.maintain(global_state.window.renderer_mut());
+
+            // Draw the UI to the screen
+            self.ui.render(global_state.window.renderer_mut());
 
             // Finish the frame
             global_state.window.renderer_mut().flush();

@@ -32,6 +32,7 @@ impl World {
         let air = Block::empty();
         let stone = Block::new(1, Rgb::new(200, 220, 255));
         let grass = Block::new(2, Rgb::new(50, 255, 0));
+        let sand = Block::new(3, Rgb::new(180, 150, 50));
 
         let perlin_nz = Perlin::new();
 
@@ -48,7 +49,7 @@ impl World {
                 if wposf.z < height - 1.0 {
                     stone
                 } else {
-                    grass
+                    sand
                 }
             } else {
                 air

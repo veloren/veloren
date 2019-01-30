@@ -112,11 +112,23 @@ impl Scene {
     pub fn camera_mut(&mut self) -> &mut Camera { &mut self.camera }
 
     /// Handle an incoming user input event (i.e: cursor moved, key pressed, window closed, etc.).
+    ///
+    /// If the event is handled, return true
     pub fn handle_input_event(&mut self, event: Event) -> bool {
         match event {
+            // When the window is resized, change the camera's aspect ratio
+            Event::Resize(dims) => {
+                self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
+                true
+            },
             // Panning the cursor makes the camera rotate
             Event::CursorPan(delta) => {
                 self.camera.rotate_by(Vec3::from(delta) * CURSOR_PAN_SCALE);
+                true
+            },
+            // Zoom the camera when a zoom event occurs
+            Event::Zoom(delta) => {
+                self.camera.zoom_by(delta);
                 true
             },
             // All other events are unhandled

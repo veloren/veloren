@@ -60,6 +60,12 @@ impl Camera {
             .max(-PI / 2.0);
     }
 
+    /// Zoom the camera by the given delta, limiting the input accordingly.
+    pub fn zoom_by(&mut self, delta: f32) {
+        // Clamp camera dist to the 0 <= x <= infinity range
+        self.dist = (self.dist + delta).max(0.0);
+    }
+
     /// Get the focus position of the camera.
     pub fn get_focus_pos(&self) -> Vec3<f32> { self.focus }
     /// Set the focus position of the camera.

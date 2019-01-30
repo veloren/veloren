@@ -95,10 +95,6 @@ impl PlayState for SessionState {
             for event in global_state.window.fetch_events() {
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // When the window is resized, change the camera's aspect ratio
-                    Event::Resize(dims) => {
-                        self.scene.camera_mut().set_aspect_ratio(dims.x as f32 / dims.y as f32);
-                    },
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
                     // Toggle cursor grabbing

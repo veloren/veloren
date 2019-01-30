@@ -1,6 +1,7 @@
 pub mod figure;
 pub mod skybox;
 pub mod terrain;
+pub mod ui;
 
 // Library
 use gfx::{
