@@ -1,7 +1,7 @@
 pub mod phys;
 
 // External
-use specs::{World as EcsWorld, Builder};
+use specs::World as EcsWorld;
 
 pub fn register_local_components(ecs_world: &mut EcsWorld) {
     ecs_world.register::<phys::Pos>();

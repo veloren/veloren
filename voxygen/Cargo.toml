@@ -1,0 +1,32 @@
+[package]
+name = "voxygen"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+edition = "2018"
+
+[features]
+gl = ["gfx_device_gl"]
+
+default = ["gl"]
+
+[dependencies]
+common = { package = "veloren-common", path = "../common" }
+client = { package = "veloren-client", path = "../client" }
+
+# Graphics
+gfx = "0.17"
+gfx_device_gl = { version = "0.15", optional = true }
+gfx_window_glutin = "0.28"
+glutin = "0.19"
+
+# Mathematics
+vek = "0.9"
+
+# Utility
+glsl-include = "0.2"
+failure = "0.1"
+lazy_static = "1.1"
+log = "0.4"
+pretty_env_logger = "0.3"
+dot_vox = "1.0"
+image = "0.21"

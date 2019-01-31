@@ -1,10 +1,11 @@
 [package]
-name = "server"
+name = "veloren-server"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-common = { path = "../common" }
+common = { package = "veloren-common", path = "../common" }
+world = { package = "veloren-world", path = "../world" }
 
 specs = "0.14"
