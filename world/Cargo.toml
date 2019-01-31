@@ -1,0 +1,10 @@
+[package]
+name = "veloren-world"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+common = { package = "veloren-common", path = "../common" }
+vek = "0.9"
+noise = "0.5"

@@ -1,9 +1,12 @@
 [package]
-name = "common"
+name = "veloren-common"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 specs = "0.14"
+shred = "0.7"
 vek = "0.9"
+dot_vox = "1.0"
+threadpool = "1.7"

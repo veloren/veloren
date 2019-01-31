@@ -1,4 +1,5 @@
 pub enum BiomeKind {
+    Void,
     Grassland,
     Ocean,
     Mountain,

@@ -1,10 +1,20 @@
 // Standard
 use std::time::Duration;
 
-// Internal
-use common::state::State;
+// Library
+use specs::Entity as EcsEntity;
+use vek::*;
+use threadpool;
 
-pub enum ClientErr {
+// Project
+use common::{
+    state::State,
+    terrain::TerrainChunk,
+};
+use world::World;
+
+#[derive(Debug)]
+pub enum Error {
     ServerShutdown,
     Other(String),
 }
@@ -14,20 +24,65 @@ pub struct Input {
 }
 
 pub struct Client {
-    state: State,
+    thread_pool: threadpool::ThreadPool,
 
-    // TODO: Add "meta" state here
+    tick: u64,
+    state: State,
+    player: Option<EcsEntity>,
+
+    // Testing
+    world: World,
+    pub chunk: Option<TerrainChunk>,
 }
 
 impl Client {
+    /// Create a new `Client`.
     pub fn new() -> Self {
         Self {
+            thread_pool: threadpool::Builder::new()
+                .thread_name("veloren-worker".into())
+                .build(),
+
+            tick: 0,
             state: State::new(),
+            player: None,
+
+            // Testing
+            world: World::new(),
+            chunk: None,
         }
     }
 
+    /// Get a reference to the client's worker thread pool. This pool should be used for any
+    /// computationally expensive operations that run outside of the main thread (i.e: threads that
+    /// block on I/O operations are exempt).
+    pub fn thread_pool(&self) -> &threadpool::ThreadPool { &self.thread_pool }
+
+    // TODO: Get rid of this
+    pub fn with_test_state(mut self) -> Self {
+        self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
+        self
+    }
+
+    // TODO: Get rid of this
+    pub fn load_chunk(&mut self, pos: Vec3<i32>) {
+        self.state.terrain_mut().insert(pos, self.world.generate_chunk(pos));
+        self.state.changes_mut().new_chunks.push(pos);
+    }
+
+    /// Get a reference to the client's game state.
+    pub fn state(&self) -> &State { &self.state }
+
+    /// Get a mutable reference to the client's game state.
+    pub fn state_mut(&mut self) -> &mut State { &mut self.state }
+
+    /// Get the current tick number.
+    pub fn get_tick(&self) -> u64 {
+        self.tick
+    }
+
     /// Execute a single client tick, handle input and update the game state by the given duration
-    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<(), ClientErr> {
+    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<(), Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -44,6 +99,13 @@ impl Client {
         self.state.tick(dt);
 
         // Finish the tick, pass control back to the frontend (step 6)
+        self.tick += 1;
         Ok(())
+    }
+
+    /// Clean up the client after a tick
+    pub fn cleanup(&mut self) {
+        // Cleanup the local state
+        self.state.cleanup();
     }
 }

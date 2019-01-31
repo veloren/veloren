@@ -3,6 +3,9 @@ members = [
 	"common",
 	"client",
 	"server",
+	"server-cli",
+	"voxygen",
+	"world",
 ]
 
 [profile.dev]

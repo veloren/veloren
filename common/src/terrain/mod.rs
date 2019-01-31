@@ -1,35 +1,47 @@
 pub mod block;
 pub mod biome;
 
+// Reexports
+pub use self::{
+    block::Block,
+    biome::BiomeKind,
+};
+
 // Library
 use vek::*;
 
 // Crate
 use crate::{
     vol::VolSize,
-    volumes::vol_map::VolMap,
+    volumes::{
+        vol_map::VolMap,
+        chunk::Chunk,
+    },
 };
 
-// Local
-use self::{
-    block::Block,
-    biome::BiomeKind,
-};
+// TerrainChunkSize
 
-// ChunkSize
+pub struct TerrainChunkSize;
 
-pub struct ChunkSize;
-
-impl VolSize for ChunkSize {
+impl VolSize for TerrainChunkSize {
     const SIZE: Vec3<u32> = Vec3 { x: 32, y: 32, z: 32 };
 }
 
-// ChunkMeta
+// TerrainChunkMeta
 
-pub struct ChunkMeta {
+pub struct TerrainChunkMeta {
     biome: BiomeKind,
 }
 
-// TerrainMap
+impl TerrainChunkMeta {
+    pub fn void() -> Self {
+        Self {
+            biome: BiomeKind::Void,
+        }
+    }
+}
 
-pub type TerrainMap = VolMap<Block, ChunkSize, ChunkMeta>;
+// Terrain type aliases
+
+pub type TerrainChunk = Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainMap = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;

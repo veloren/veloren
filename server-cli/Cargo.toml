@@ -1,0 +1,12 @@
+[package]
+name = "veloren-server-cli"
+version = "0.1.0"
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+server = { package = "veloren-server", path = "../server" }
+common = { package = "veloren-common", path = "../common" }
+
+log = "0.4"
+pretty_env_logger = "0.3"
