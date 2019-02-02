@@ -92,15 +92,15 @@ impl Window {
                     }),
                     _ => {},
                 },
+                glutin::WindowEvent::MouseWheel {
+                    delta: glutin::MouseScrollDelta::LineDelta(_x, y),
+                    ..
+                } => events.push(Event::Zoom(y as f32)),
                 _ => {},
             },
             glutin::Event::DeviceEvent { event, .. } => match event {
                 glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
                     events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
-                glutin::DeviceEvent::MouseWheel {
-                    delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                    ..
-                } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
                 _ => {},
             },
             _ => {},
