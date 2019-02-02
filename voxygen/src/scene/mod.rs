@@ -124,7 +124,7 @@ impl Scene {
             },
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
-                self.camera.zoom_by(delta);
+                self.camera.zoom_by(-delta);
                 true
             },
             // All other events are unhandled
