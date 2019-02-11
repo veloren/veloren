@@ -18,6 +18,7 @@ gfx = "0.17"
 gfx_device_gl = { version = "0.15", optional = true }
 gfx_window_glutin = "0.28"
 glutin = "0.19"
+conrod_core = "0.62"
 
 # ECS
 specs = "0.14"
