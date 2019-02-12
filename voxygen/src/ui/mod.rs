@@ -1,13 +1,3 @@
-//pub mod element;
-//pub mod size_request;
-//pub mod span;
-
-// Reexports
-/*pub use self::{
-    span::Span,
-    size_request::SizeRequest,
-};*/
-
 // TODO: what was the purpose of size request?
 // TODO: cache entire UI render
 // TODO: do we need to store locals for each widget?
@@ -37,12 +27,6 @@ use crate::{
         create_ui_quad_mesh,
     },
 };
-
-// Local
-/*use self::element::{
-    Element,
-    Bounds,
-};*/
 
 #[derive(Debug)]
 pub enum UiError {
