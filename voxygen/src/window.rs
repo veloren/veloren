@@ -82,7 +82,13 @@ impl Window {
         let key_map = &self.key_map;
 
         let mut events = vec![];
-        self.events_loop.poll_events(|event| match event {
+        self.events_loop.poll_events(|event| match {
+            // Hack grab of events for testing ui
+            if let Some(event) = conrod_winit::convert_event(event.clone(), window.window()) {
+                events.push(Event::UiEvent(event));
+            }
+            event
+        } {
             glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                 glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
@@ -136,6 +142,10 @@ impl Window {
         self.window.grab_cursor(grab)
             .expect("Failed to grab/ungrab cursor");
     }
+
+    pub fn logical_size(&self) -> (f64, f64) {
+        self.window.get_inner_size().unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0)).into()
+    }
 }
 
 /// Represents a key that the game recognises after keyboard mapping
@@ -164,4 +174,5 @@ pub enum Event {
     KeyDown(Key),
     /// A key that the game recognises has been released down
     KeyUp(Key),
+    UiEvent(conrod_core::event::Input)
 }

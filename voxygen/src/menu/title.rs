@@ -1,47 +1,34 @@
 // Library
 use vek::*;
 use image;
-use conrod_core::widget::image::Image as ImageWidget;
-use conrod_core::{Positionable, Sizeable, Widget};
+
 
 // Crate
 use crate::{
     PlayState,
     PlayStateResult,
     GlobalState,
-    window::Event,
+    window::{
+        Event,
+        Window,
+    },
     session::SessionState,
-    render::{
-        Consts,
-        UiLocals,
-        Renderer,
-    },
-    ui::{
-        Ui
-    },
+    ui::title::TitleUi,
 };
 
+
 pub struct TitleState {
-    ui: Ui
+    title_ui: TitleUi,
 }
 
 impl TitleState {
     /// Create a new `TitleState`
-    pub fn new(renderer: &mut Renderer) -> Self {
-        let mut ui = Ui::new(renderer, [500.0, 500.0]).unwrap();
-        let widget_id = ui.new_widget();
-        let image = image::open(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/test.png")).unwrap();
-        let title_img = ui.new_image(renderer, &image).unwrap();
-        ui.set_widgets(|ui_cell| {
-            ImageWidget::new(title_img)
-                .x_y(0.0, 0.0)
-                .w_h(500.0,500.0)
-                .set(widget_id, ui_cell);
-        });
+    pub fn new(window: &mut Window) -> Self {
         Self {
-            ui
+            title_ui: TitleUi::new(window)
         }
     }
+
 }
 
 // The background colour
@@ -56,21 +43,24 @@ impl PlayState for TitleState {
                     Event::Close => return PlayStateResult::Shutdown,
                     // When space is pressed, start a session
                     Event::Char(' ') => return PlayStateResult::Push(
-                        Box::new(SessionState::new(global_state.window.renderer_mut()).unwrap()), // TODO: Handle this error
+                        Box::new(SessionState::new(&mut global_state.window).unwrap()), // TODO: Handle this error
                     ),
+                    // Pass events to ui
+                    Event::UiEvent(input) => {
+                        self.title_ui.handle_event(input);
+                    }
                     // Ignore all other events
                     _ => {},
                 }
             }
 
-
             global_state.window.renderer_mut().clear(BG_COLOR);
 
             // Maintain the UI
-            //self.ui.maintain(global_state.window.renderer_mut());
+            self.title_ui.maintain(global_state.window.renderer_mut());
 
             // Draw the UI to the screen
-            self.ui.render(global_state.window.renderer_mut());
+            self.title_ui.render(global_state.window.renderer_mut());
 
             // Finish the frame
             global_state.window.renderer_mut().flush();

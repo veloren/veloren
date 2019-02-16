@@ -35,7 +35,7 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         tex: gfx::TextureSampler<[f32; 4]> = "u_tex",
 
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
+        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
     }
 }
