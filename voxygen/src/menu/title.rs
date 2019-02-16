@@ -13,9 +13,10 @@ use crate::{
         Window,
     },
     session::SessionState,
-    ui::title::TitleUi,
 };
 
+// Local
+use super::title_ui::TitleUi;
 
 pub struct TitleState {
     title_ui: TitleUi,

@@ -21,7 +21,7 @@ use crate::{
     window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    ui::test::TestUi,
+    menu::test_hud::TestHud,
 };
 
 const FPS: u64 = 60;
@@ -31,7 +31,7 @@ pub struct SessionState {
     client: Client,
     key_state: KeyState,
     // TODO: remove this
-    test_ui: TestUi,
+    test_hud: TestHud,
 }
 
 /// Represents an active game session (i.e: one that is being played)
@@ -44,7 +44,7 @@ impl SessionState {
             scene: Scene::new(window.renderer_mut(), &client),
             client,
             key_state: KeyState::new(),
-            test_ui: TestUi::new(window),
+            test_hud: TestHud::new(window),
         })
     }
 }
@@ -83,7 +83,7 @@ impl SessionState {
         // Render the screen using the global renderer
         self.scene.render_to(renderer);
         // Draw the UI to the screen
-        self.test_ui.render(renderer);
+        self.test_hud.render(renderer);
 
         // Finish the frame
         renderer.flush();
@@ -131,7 +131,7 @@ impl PlayState for SessionState {
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     // Pass events to ui
                     Event::UiEvent(input) => {
-                        self.test_ui.handle_event(input);
+                        self.test_hud.handle_event(input);
                     }
                     // Pass all other events to the scene
                     event => { self.scene.handle_input_event(event); },
@@ -146,7 +146,7 @@ impl PlayState for SessionState {
             // Maintain the scene
             self.scene.maintain(global_state.window.renderer_mut(), &self.client);
             // Maintain the UI
-            self.test_ui.maintain(global_state.window.renderer_mut());
+            self.test_hud.maintain(global_state.window.renderer_mut());
 
             // Render the session
             self.render(global_state.window.renderer_mut());

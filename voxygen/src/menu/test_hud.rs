@@ -1,3 +1,5 @@
+// TODO: figure out where exactly this code should be located
+
 // Library
 use conrod_core::{
     Positionable,
@@ -18,10 +20,8 @@ use conrod_core::{
 use crate::{
     window::Window,
     render::Renderer,
+    ui::Ui,
 };
-
-// Local
-use super::Ui;
 
 widget_ids!{
     struct Ids {
@@ -71,14 +71,14 @@ impl Imgs {
     }
 }
 
-pub struct TestUi {
+pub struct TestHud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
     bag_open: bool,
 }
 
-impl TestUi {
+impl TestHud {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // Generate ids
