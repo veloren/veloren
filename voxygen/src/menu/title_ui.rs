@@ -16,10 +16,8 @@ use conrod_core::{
 use crate::{
     window::Window,
     render::Renderer,
+    ui::Ui
 };
-
-// Local
-use super::Ui;
 
 pub struct TitleUi {
     ui: Ui,

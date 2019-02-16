@@ -1,5 +1,3 @@
-pub mod title;
-pub mod test;
 // TODO: cache entire UI render (would be somewhat pointless if we are planning on constantly animated ui)
 // TODO: figure out proper way to propagate events down to the ui
 
