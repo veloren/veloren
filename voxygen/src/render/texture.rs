@@ -54,4 +54,62 @@ impl<P: Pipeline> Texture<P> {
             _phantom: PhantomData,
         })
     }
+    pub fn new_dynamic(
+        factory: &mut gfx_backend::Factory,
+        width: u16,
+        height: u16,
+    ) -> Result<Self, RenderError> {
+        let tex = factory.create_texture(
+            gfx::texture::Kind::D2(
+                width,
+                height,
+                gfx::texture::AaMode::Single,
+            ),
+            1 as gfx::texture::Level,
+            gfx::memory::Bind::SHADER_RESOURCE,
+            gfx::memory::Usage::Dynamic,
+            Some(<<ShaderFormat as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type()),
+        )
+            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
+
+        let srv =
+        factory.view_texture_as_shader_resource::<ShaderFormat>(&tex, (0, 0), gfx::format::Swizzle::new())
+            .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;
+
+        Ok(Self {
+            tex,
+            srv,
+            // TODO: is this the right sampler?
+            sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
+                gfx::texture::FilterMethod::Scale,
+                //this is what conrod's gfx backend uses but i want to see the other one first to compare
+                //gfx::texture::FilterMethod::Bilinear
+                gfx::texture::WrapMode::Clamp,
+            )),
+            _phantom: PhantomData,
+        })
+    }
+
+    // Updates a texture with the given data (used for updating the GlyphCache texture)
+    pub fn update(
+        &self,
+        encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
+        offset: [u16; 2],
+        size: [u16; 2],
+        data: &[[u8; 4]],
+    ) -> Result<(), RenderError> {
+        let info = gfx::texture::ImageInfoCommon {
+            xoffset: offset[0],
+            yoffset: offset[1],
+            zoffset: 0,
+            width: size[0],
+            height: size[1],
+            depth: 0,
+            format: (),
+            mipmap: 0,
+        };
+        encoder
+        .update_texture::<<ShaderFormat as gfx::format::Formatted>::Surface, ShaderFormat>(&self.tex, None, info, data)
+        .map_err(|err| RenderError::TexUpdateError(err))
+    }
 }

@@ -173,6 +173,34 @@ impl Renderer {
         )
     }
 
+    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions
+    pub fn create_dynamic_texture<P: Pipeline>(
+        &mut self,
+        dims: Vec2<u16>
+    ) -> Result<Texture<P>, RenderError> {
+        Texture::new_dynamic(
+            &mut self.factory,
+            dims.x,
+            dims.y,
+        )
+    }
+
+    /// Update a texture with the provided offset, size, and data
+    pub fn update_texture<P: Pipeline>(
+        &mut self,
+        texture: &Texture<P>,
+        offset: [u16; 2],
+        size: [u16; 2],
+        data: &[[u8; 4]]
+    ) -> Result<(), RenderError> {
+        texture.update(
+            &mut self.encoder,
+            offset,
+            size,
+            data,
+        )
+    }
+
     /// Queue the rendering of the provided skybox model in the upcoming frame.
     pub fn render_skybox(
         &mut self,
@@ -239,15 +267,15 @@ impl Renderer {
     pub fn render_ui_element(
         &mut self,
         model: &Model<ui::UiPipeline>,
-        locals: &Consts<ui::Locals>,
         tex: &Texture<ui::UiPipeline>,
     ) {
+        let (width, height) = self.get_resolution().map(|e| e).into_tuple();
         self.encoder.draw(
             &model.slice,
             &self.ui_pipeline.pso,
             &ui::pipe::Data {
                 vbuf: model.vbuf.clone(),
-                locals: locals.buf.clone(),
+                scissor: gfx::Rect { x: 0, y: 0, w: width, h: height },
                 tex: (tex.srv.clone(), tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
