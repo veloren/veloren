@@ -7,11 +7,16 @@ use conrod_core::{
     Ui as CrUi,
     UiBuilder,
     UiCell,
+    text::{
+        Font,
+        GlyphCache,
+        font::Id as FontId,
+    },
     image::{Map, Id as ImgId},
     widget::{Id as WidgId, id::Generator},
     render::Primitive,
     event::Input,
-    input::{Global, Widget},
+    input::Widget,
 };
 
 // Crate
@@ -21,11 +26,11 @@ use crate::{
         RenderError,
         Renderer,
         Model,
+        Mesh,
         Texture,
         UiPipeline,
-        UiLocals,
-        Consts,
-        create_ui_quad_mesh,
+        UiMode,
+        push_ui_quad_to_mesh,
     },
     window::Window,
 };
@@ -36,25 +41,38 @@ pub enum UiError {
 }
 
 pub struct Cache {
-    model: Model<UiPipeline>,
     blank_texture: Texture<UiPipeline>,
+    glyph_cache: GlyphCache<'static>,
+    glyph_cache_tex: Texture<UiPipeline>,
 }
 
 // TODO: Should functions be returning UiError instead of Error?
 impl Cache {
     pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
+        // TODO: remove map if it is uneeded(or remove this comment)
+        let (w, h) = renderer.get_resolution().map(|e| e).into_tuple();
+        const SCALE_TOLERANCE: f32 = 0.1;
+        const POSITION_TOLERANCE: f32 = 0.1;
+
         Ok(Self {
-            model: renderer.create_model(&create_ui_quad_mesh())?,
             blank_texture: renderer.create_texture(&DynamicImage::new_rgba8(1, 1))?,
+            glyph_cache: GlyphCache::builder()
+                .dimensions(w as u32, h as u32)
+                .scale_tolerance(SCALE_TOLERANCE)
+                .position_tolerance(POSITION_TOLERANCE)
+                .build(),
+            glyph_cache_tex: renderer.create_dynamic_texture((w, h).into())?,
         })
     }
-
-    pub fn model(&self) -> &Model<UiPipeline> { &self.model }
     pub fn blank_texture(&self) -> &Texture<UiPipeline> { &self.blank_texture }
+    pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> { &self.glyph_cache_tex }
+    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) { (&mut self.glyph_cache, &self.glyph_cache_tex) }
 }
 
-pub enum UiPrimitive {
-    Image(Consts<UiLocals>, ImgId)
+pub enum DrawCommand {
+    Image(Model<UiPipeline>, ImgId),
+    // Text and non-textured geometry
+    Plain(Model<UiPipeline>),
 }
 
 pub struct Ui {
@@ -62,7 +80,7 @@ pub struct Ui {
     image_map: Map<Texture<UiPipeline>>,
     cache: Cache,
     // Primatives to draw on the next render
-    ui_primitives: Vec<UiPrimitive>,
+    draw_commands: Vec<DrawCommand>,
 }
 
 impl Ui {
@@ -73,12 +91,16 @@ impl Ui {
             ui: UiBuilder::new([w, h]).build(),
             image_map: Map::new(),
             cache: Cache::new(window.renderer_mut())?,
-            ui_primitives: vec![],
+            draw_commands: vec![],
         })
     }
 
     pub fn new_image(&mut self, renderer: &mut Renderer, image: &DynamicImage) -> Result<ImgId, Error> {
         Ok(self.image_map.insert(renderer.create_texture(image)?))
+    }
+
+    pub fn new_font(&mut self, font: Font) -> FontId {
+        self.ui.fonts.insert(font)
     }
 
     pub fn id_generator(&mut self) -> Generator {
@@ -97,67 +119,184 @@ impl Ui {
         self.ui.widget_input(id)
     }
 
-    pub fn global_input(&self) -> &Global {
-        self.ui.global_input()
-    }
-
     pub fn maintain(&mut self, renderer: &mut Renderer) {
         let ref mut ui = self.ui;
-        // removed this because ui will resize itself now that it recieves events
-        // update window size
-        //let res = renderer.get_resolution().map(|e| e as f64);
-        //if res[0] != ui.win_w || res[1] != ui.win_h {
-        //    ui.win_w = res[0];
-        //    ui.win_h = res[1];
-        //    ui.needs_redraw();
-        //}
-        // Gather primatives and recreate locals only if ui_changed
+        // Gather primatives and recreate "mesh" only if ui_changed
         if let Some(mut primitives) = ui.draw_if_changed() {
-            self.ui_primitives.clear();
+            self.draw_commands.clear();
+            let mut mesh = Mesh::new();
+
+            let mut current_img = None;
+
+            // Switches to the `Plain` state and completes the previous `Command` if not already in the
+            // `Plain` state.
+            macro_rules! switch_to_plain_state {
+                () => {
+                    if let Some(image_id) = current_img.take() {
+                        self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id));
+                        mesh.clear();
+                    }
+                };
+            }
+
             while let Some(prim) = primitives.next() {
+                // TODO: Use scizzor
+                let Primitive {kind, scizzor, id, rect} = prim;
                 // Transform from conrod to our render coords
                 // Conrod uses the center of the screen as the origin
                 // Up & Right are positive directions
-                let x = prim.rect.left();
-                let y = prim.rect.top();
-                let (w, h) = prim.rect.w_h();
+                /*let x = rect.left();
+                let y = rect.top();
+                let (w, h) = rect.w_h();
                 let bounds = [
                     (x / ui.win_w + 0.5) as f32,
                     (-1.0 * (y / ui.win_h) + 0.5) as f32,
                     (w / ui.win_w) as f32,
                     (h / ui.win_h) as f32
-                ];
-                // TODO: Remove this
-                let new_ui_locals = renderer.create_consts(&[UiLocals::new(bounds)])
-                                            .expect("Could not create new const for ui locals");
-                use conrod_core::render::{PrimitiveKind};
-                // TODO: Use scizzor
-                let Primitive {kind, scizzor, id, ..} = prim;
+                ];*/
+                use conrod_core::render::PrimitiveKind;
                 match kind {
+                    // TODO: use source_rect
                     PrimitiveKind::Image { image_id, color, source_rect } => {
-                        //renderer.update_consts(&mut self.locals, &[UiLocals::new(
-                        //        [0.0, 0.0, 1.0, 1.0],
-                        //    )]);
-                        self.ui_primitives.push(UiPrimitive::Image(new_ui_locals, image_id));
+
+                        // Switch to the `Image` state for this image if we're not in it already.
+                        let new_image_id = image_id;
+                        match current_img {
+                            // If we're already in the drawing mode for this image, we're done.
+                            Some(image_id) if image_id == new_image_id => (),
+                            // If we were in the `Plain` drawing state, switch to Image drawing state.
+                            None => {
+                                self.draw_commands.push(DrawCommand::Plain(renderer.create_model(&mesh).unwrap()));
+                                mesh.clear();
+                                current_img = Some(new_image_id);
+                            }
+                            // If we were drawing a different image, switch state to draw *this* image.
+                            Some(image_id) => {
+                                self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id));
+                                mesh.clear();
+                                current_img = Some(new_image_id);
+                            }
+                        }
+
+                        let color = color.unwrap_or(conrod_core::color::WHITE).to_fsa();
+
+                        //let (image_w, image_h) = image_map.get(&image_id).unwrap().1;
+                        //let (image_w, image_h) = (image_w as Scalar, image_h as Scalar);
+
+                        // Get the sides of the source rectangle as uv coordinates.
+                        //
+                        // Texture coordinates range:
+                        // - left to right: 0.0 to 1.0
+                        // - bottom to top: 1.0 to 0.0
+                        // Note bottom and top are flipped in comparison to glium so that we don't need to flip images when loading
+                        /*let (uv_l, uv_r, uv_t, uv_b) = match source_rect {
+                            Some(src_rect) => {
+                                let (l, r, b, t) = src_rect.l_r_b_t();
+                                ((l / image_w) as f32,
+                                (r / image_w) as f32,
+                                (b / image_h) as f32,
+                                (t / image_h) as f32)
+                            }
+                            None => (0.0, 1.0, 0.0, 1.0),
+                        };*/
+                        let (uv_l, uv_r, uv_t, uv_b) = (0.0, 1.0, 0.0, 1.0);
+                        let (l, r, b, t) = rect.l_r_b_t();
+                        // Convert from conrod Scalar range to GL range -1.0 to 1.0.
+                        let (l, r, b, t) = (
+                            (l / ui.win_w * 2.0) as f32,
+                            (r / ui.win_w * 2.0) as f32,
+                            (b / ui.win_h * 2.0) as f32,
+                            (t / ui.win_h * 2.0) as f32,
+                        );
+                        push_ui_quad_to_mesh(
+                            &mut mesh,
+                            [l, t , r, b],
+                            [uv_l, uv_t, uv_r, uv_b],
+                            color,
+                            UiMode::Image,
+                        );
+
+                    }
+                    PrimitiveKind::Text { color, text, font_id } => {
+                        switch_to_plain_state!();
+                        // Get screen width
+                        let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as f32).into_tuple();
+                        // Calculate dpi factor
+                        let dpi_factor = screen_w / ui.win_w as f32;
+
+                        let positioned_glyphs = text.positioned_glyphs(dpi_factor);
+                        let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
+                        // Queue the glyphs to be cached
+                        for glyph in positioned_glyphs {
+                            glyph_cache.queue_glyph(font_id.index(), glyph.clone());
+                        }
+
+                        glyph_cache.cache_queued(|rect, data| {
+                            let offset = [rect.min.x as u16, rect.min.y as u16];
+                            let size = [rect.width() as u16, rect.height() as u16];
+
+                            let new_data = data.iter().map(|x| [255, 255, 255, *x]).collect::<Vec<[u8; 4]>>();
+
+                            renderer.update_texture(cache_tex, offset, size, &new_data);
+                        }).unwrap();
+
+                        // TODO: consider gamma....
+                        let color = color.to_fsa();
+
+                        for g in positioned_glyphs {
+                            if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
+                                let (uv_l, uv_r, uv_t, uv_b) = (
+                                    uv_rect.min.x,
+                                    uv_rect.max.x,
+                                    uv_rect.min.y,
+                                    uv_rect.max.y,
+                                );
+                                let (l, t, r, b) = (
+                                    (screen_rect.min.x as f32 / screen_w - 0.5) *  2.0,
+                                    (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
+                                    (screen_rect.max.x as f32 / screen_w - 0.5) *  2.0,
+                                    (screen_rect.max.y as f32 / screen_h - 0.5) * -2.0,
+                                );
+                                push_ui_quad_to_mesh(
+                                    &mut mesh,
+                                    [l, t , r, b],
+                                    [uv_l, uv_t, uv_r, uv_b],
+                                    color,
+                                    UiMode::Text,
+                                );
+                            }
+                        }
                     }
                     _ => {}
                     // TODO: Add these
                     //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
                     //PrimitiveKind::Rectangle { color } => {println!("primitive kind rect[x:{},y:{},w:{},h:{}] with color {:?} and id {:?}", x, y, w, h, color, id);}
-                    //PrimitiveKind::Text {..} => {println!("primitive kind text with id {:?}", id);}
                     //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
                     //PrimitiveKind::TrianglesSingleColor {..} => {println!("primitive kind singlecolor with id {:?}", id);}
                 }
+            }
+            // Enter the final command.
+            match current_img {
+                None =>
+                    self.draw_commands.push(DrawCommand::Plain(renderer.create_model(&mesh).unwrap())),
+                Some(image_id) =>
+                    self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id)),
             }
         }
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
-        self.ui_primitives.iter().for_each(|ui_primitive| match ui_primitive {
-            UiPrimitive::Image(ui_locals, image_id) => {
-                let tex = self.image_map.get(&image_id).expect("Image does not exist in image map");
-                renderer.render_ui_element(&self.cache.model(), &ui_locals, &tex);
+        for draw_command in self.draw_commands.iter() {
+            match draw_command {
+                DrawCommand::Image(model, image_id) => {
+                    let tex = self.image_map.get(&image_id).expect("Image does not exist in image map");
+                    renderer.render_ui_element(&model, &tex);
+                },
+                DrawCommand::Plain(model) => {
+                    let tex = self.cache.glyph_cache_tex();
+                    renderer.render_ui_element(&model, &tex);
+                },
             }
-        });
+        }
     }
 }

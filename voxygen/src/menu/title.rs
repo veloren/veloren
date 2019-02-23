@@ -1,6 +1,5 @@
 // Library
 use vek::*;
-use image;
 
 
 // Crate

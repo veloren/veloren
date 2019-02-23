@@ -5,14 +5,15 @@ use conrod_core::{
     Positionable,
     Sizeable,
     Widget,
+    Labelable,
     widget_ids,
-    event::{Widget as WidgetEvent, Input, Click},
+    event::Input,
     image::Id as ImgId,
-    input::state::mouse::Button as MouseButton,
+    text::font::Id as FontId,
     widget::{
         Image,
         Button,
-        Id as WidgId,
+        Canvas,
     }
 };
 
@@ -25,13 +26,14 @@ use crate::{
 
 widget_ids!{
     struct Ids {
-        menu_buttons[],
         bag,
         bag_contents,
         bag_close,
         menu_top,
         menu_mid,
         menu_bot,
+        menu_canvas,
+        menu_buttons[],
     }
 }
 
@@ -76,6 +78,8 @@ pub struct TestHud {
     ids: Ids,
     imgs: Imgs,
     bag_open: bool,
+    menu_open: bool,
+    font_id: FontId,
 }
 
 impl TestHud {
@@ -86,66 +90,111 @@ impl TestHud {
         ids.menu_buttons.resize(5, &mut ui.id_generator());
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
+        // Load font
+        let font_id = ui.new_font(conrod_core::text::font::from_file(
+            concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/font/Metamorphous-Regular.ttf")
+        ).unwrap());
         Self {
             ui,
             imgs,
             ids,
             bag_open: false,
+            menu_open: false,
+            font_id,
         }
     }
 
-    fn ui_layout(&mut self) {
-        // Update if a event has occured
-        if !self.ui.global_input().events().next().is_some() {
-            return;
-        }
-        // Process input
-        for e in self.ui.widget_input(self.ids.bag).events() {
-            match e {
-                WidgetEvent::Click(click) => match click.button {
-                    MouseButton::Left => {
-                        self.bag_open = true;
-                    }
-                    _ => {}
-                }
-                _ => {}
-            }
-        }
-        for e in self.ui.widget_input(self.ids.bag_close).events() {
-            match e {
-                WidgetEvent::Click(click) => match click.button {
-                    MouseButton::Left => {
-                        self.bag_open = false;
-                    }
-                    _ => {}
-                }
-                _ => {}
-            }
-        }
-        let bag_open = self.bag_open;
-        let mut ui_cell = self.ui.set_widgets();
+    fn update_layout(&mut self) {
+        // This is very useful
+        let TestHud {
+            ref mut ui,
+            ref imgs,
+            ref ids,
+            ref mut bag_open,
+            ref mut menu_open,
+            ..
+        } = *self;
+
+        let ref mut ui_cell = ui.set_widgets();
         // Bag
-        Button::image(self.imgs.bag)
+        if Button::image(imgs.bag)
             .bottom_right_with_margin(20.0)
-            .hover_image(if bag_open { self.imgs.bag } else { self.imgs.bag_hover })
-            .press_image(if bag_open { self.imgs.bag } else { self.imgs.bag_press })
+            .hover_image(if *bag_open { imgs.bag } else { imgs.bag_hover })
+            .press_image(if *bag_open { imgs.bag } else { imgs.bag_press })
             .w_h(51.0, 58.0)
-            .set(self.ids.bag, &mut ui_cell);
+            .set(ids.bag, ui_cell)
+            .was_clicked() {
+                *bag_open = true;
+            }
         // Bag contents
-        if self.bag_open {
+        if *bag_open {
             // Contents
-            Image::new(self.imgs.bag_contents)
+            Image::new(imgs.bag_contents)
                 .w_h(212.0, 246.0)
-                .x_y_relative_to(self.ids.bag, -92.0-25.5+12.0, 109.0+29.0-13.0)
-                .set(self.ids.bag_contents, &mut ui_cell);
+                .x_y_relative_to(ids.bag, -92.0-25.5+12.0, 109.0+29.0-13.0)
+                .set(ids.bag_contents, ui_cell);
             // Close button
-            Button::image(self.imgs.close_button)
+            if Button::image(imgs.close_button)
                 .w_h(20.0, 20.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 0.0, 10.0)
-                .set(self.ids.bag_close, &mut ui_cell);
+                .hover_image(imgs.close_button_hover)
+                .press_image(imgs.close_button_press)
+                .top_right_with_margins_on(ids.bag_contents, 0.0, 10.0)
+                .set(ids.bag_close, ui_cell)
+                .was_clicked() {
+                    *bag_open = false;
+                }
         }
+        // Attempt to make resizable image based container for buttons
+        // Maybe this could be made into a Widget type if it is useful
+        if *menu_open {
+            let num = ids.menu_buttons.len();
+            // Canvas to hold everything together
+            Canvas::new()
+                .w_h(106.0, 54.0 + num as f64 * 30.0)
+                .middle_of(ui_cell.window)
+                .set(ids.menu_canvas, ui_cell);
+            // Top of menu
+            Image::new(imgs.menu_top)
+                .w_h(106.0, 28.0)
+                .mid_top_of(ids.menu_canvas)
+                // Does not work because of bug in conrod, but above line is equivalent
+                //.parent(ids.menu_canvas)
+                //.mid_top()
+                .set(ids.menu_top, ui_cell);
+            // Bottom of Menu
+            // Note: conrod defaults to the last used parent
+            Image::new(imgs.menu_bot)
+                .w_h(106.0, 26.0)
+                .mid_bottom()
+                .set(ids.menu_bot, ui_cell);
+            // Midsection background
+            Image::new(imgs.menu_mid)
+                .w_h(106.0, num as f64 * 30.0)
+                .mid_bottom_with_margin(26.0)
+                .set(ids.menu_mid, ui_cell);
+            // Menu buttons
+            if num > 0 {
+                Button::image(imgs.menu_button)
+                    .mid_top_with_margin_on(ids.menu_mid, 8.0)
+                    .w_h(48.0, 20.0)
+                    .label(&format!("Button {}", 1))
+                    .label_rgb(1.0, 0.4, 1.0)
+                    .label_font_size(7)
+                    .set(ids.menu_buttons[0], ui_cell);
+            }
+            for i in 1..num {
+                Button::image(imgs.menu_button)
+                    .down(10.0)
+                    .label(&format!("Button {}", i + 1))
+                    .label_rgb(1.0, 0.4, 1.0)
+                    .label_font_size(7)
+                    .set(ids.menu_buttons[i], ui_cell);
+            }
+        }
+    }
+
+    pub fn toggle_menu(&mut self) {
+        self.menu_open = !self.menu_open;
     }
 
     pub fn handle_event(&mut self, input: Input) {
@@ -153,7 +202,7 @@ impl TestHud {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
-        self.ui_layout();
+        self.update_layout();
         self.ui.maintain(renderer);
     }
 

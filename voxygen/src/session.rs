@@ -115,6 +115,8 @@ impl PlayState for SessionState {
                     Event::Close => return PlayStateResult::Shutdown,
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
+                    // When 'm' is pressed, open/close the in-game test menu
+                    Event::Char('m') => self.test_hud.toggle_menu(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
