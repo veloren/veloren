@@ -37,7 +37,7 @@ widget_ids!{
     }
 }
 
-// TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images to the code.
+// TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images.
 struct Imgs {
     menu_button: ImgId,
     bag: ImgId,

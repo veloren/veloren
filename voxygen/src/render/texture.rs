@@ -79,18 +79,15 @@ impl<P: Pipeline> Texture<P> {
         Ok(Self {
             tex,
             srv,
-            // TODO: is this the right sampler?
             sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Scale,
-                //this is what conrod's gfx backend uses but i want to see the other one first to compare
-                //gfx::texture::FilterMethod::Bilinear
+                gfx::texture::FilterMethod::Bilinear,
                 gfx::texture::WrapMode::Clamp,
             )),
             _phantom: PhantomData,
         })
     }
 
-    // Updates a texture with the given data (used for updating the GlyphCache texture)
+    // Updates a texture with the given data (used for updating the glyph cache texture)
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
