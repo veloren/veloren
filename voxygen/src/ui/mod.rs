@@ -1,4 +1,3 @@
-// TODO: cache entire UI render (would be somewhat pointless if we are planning on constantly animated ui)
 // TODO: figure out proper way to propagate events down to the ui
 
 // Library
@@ -49,8 +48,7 @@ pub struct Cache {
 // TODO: Should functions be returning UiError instead of Error?
 impl Cache {
     pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
-        // TODO: remove map if it is uneeded(or remove this comment)
-        let (w, h) = renderer.get_resolution().map(|e| e).into_tuple();
+        let (w, h) = renderer.get_resolution().into_tuple();
         const SCALE_TOLERANCE: f32 = 0.1;
         const POSITION_TOLERANCE: f32 = 0.1;
 
@@ -79,7 +77,7 @@ pub struct Ui {
     ui: CrUi,
     image_map: Map<Texture<UiPipeline>>,
     cache: Cache,
-    // Primatives to draw on the next render
+    // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
 }
 
@@ -121,7 +119,7 @@ impl Ui {
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
         let ref mut ui = self.ui;
-        // Gather primatives and recreate "mesh" only if ui_changed
+        // Regenerate draw commands and associated models only if ui_changed
         if let Some(mut primitives) = ui.draw_if_changed() {
             self.draw_commands.clear();
             let mut mesh = Mesh::new();
@@ -142,18 +140,7 @@ impl Ui {
             while let Some(prim) = primitives.next() {
                 // TODO: Use scizzor
                 let Primitive {kind, scizzor, id, rect} = prim;
-                // Transform from conrod to our render coords
-                // Conrod uses the center of the screen as the origin
-                // Up & Right are positive directions
-                /*let x = rect.left();
-                let y = rect.top();
-                let (w, h) = rect.w_h();
-                let bounds = [
-                    (x / ui.win_w + 0.5) as f32,
-                    (-1.0 * (y / ui.win_h) + 0.5) as f32,
-                    (w / ui.win_w) as f32,
-                    (h / ui.win_h) as f32
-                ];*/
+
                 use conrod_core::render::PrimitiveKind;
                 match kind {
                     // TODO: use source_rect
@@ -188,7 +175,6 @@ impl Ui {
                         // Texture coordinates range:
                         // - left to right: 0.0 to 1.0
                         // - bottom to top: 1.0 to 0.0
-                        // Note bottom and top are flipped in comparison to glium so that we don't need to flip images when loading
                         /*let (uv_l, uv_r, uv_t, uv_b) = match source_rect {
                             Some(src_rect) => {
                                 let (l, r, b, t) = src_rect.l_r_b_t();
