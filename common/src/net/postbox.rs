@@ -1,10 +1,15 @@
 // Standard
-use std::collections::VecDeque;
-use std::convert::TryFrom;
-use std::io::ErrorKind;
-use std::io::Read;
-use std::net::SocketAddr;
-use std::thread;
+use std::{
+    collections::VecDeque,
+    convert::TryFrom,
+    io::{
+        ErrorKind,
+        Read,
+    },
+    net::SocketAddr,
+    thread,
+    time::Duration,
+};
 
 // External
 use bincode;
@@ -12,9 +17,15 @@ use mio::{net::TcpStream, Events, Poll, PollOpt, Ready, Token};
 use mio_extras::channel::{channel, Receiver, Sender};
 
 // Crate
-use super::data::ControlMsg;
-use super::error::PostError;
-use super::{PostRecv, PostSend};
+use super::{
+    data::ControlMsg,
+    error::{
+        PostError,
+        PostErrorInternal,
+    },
+    PostRecv,
+    PostSend,
+};
 
 // Constants
 const CTRL_TOKEN: Token = Token(0); // Token for thread control messages
@@ -31,9 +42,10 @@ where
 {
     handle: Option<thread::JoinHandle<()>>,
     ctrl: Sender<ControlMsg>,
-    recv: Receiver<Result<R, PostError>>,
+    recv: Receiver<Result<R, PostErrorInternal>>,
     send: Sender<S>,
     poll: Poll,
+    err: Option<PostErrorInternal>,
 }
 
 impl<S, R> PostBox<S, R>
@@ -42,16 +54,16 @@ where
     R: PostRecv,
 {
     /// Creates a new [`PostBox`] connected to specified address, meant to be used by the client
-    pub fn to_server(addr: &SocketAddr) -> Result<PostBox<S, R>, PostError> {
-        let connection = TcpStream::connect(addr)?;
+    pub fn to_server<A: Into<SocketAddr>>(addr: A) -> Result<PostBox<S, R>, PostError> {
+        let connection = TcpStream::connect(&addr.into())?;
         Self::from_tcpstream(connection)
     }
 
     /// Creates a new [`PostBox`] from an existing connection, meant to be used by [`PostOffice`](super::PostOffice) on the server
     pub fn from_tcpstream(connection: TcpStream) -> Result<PostBox<S, R>, PostError> {
-        let (ctrl_tx, ctrl_rx) = channel::<ControlMsg>(); // Control messages
-        let (send_tx, send_rx) = channel::<S>(); // main thread -[data to be serialized and sent]> worker thread
-        let (recv_tx, recv_rx) = channel::<Result<R, PostError>>(); // main thread <[received and deserialized data]- worker thread
+        let (ctrl_tx, ctrl_rx) = channel(); // Control messages
+        let (send_tx, send_rx) = channel(); // main thread -[data to be serialized and sent]> worker thread
+        let (recv_tx, recv_rx) = channel(); // main thread <[received and deserialized data]- worker thread
         let thread_poll = Poll::new().unwrap();
         let postbox_poll = Poll::new().unwrap();
         thread_poll
@@ -75,31 +87,54 @@ where
             recv: recv_rx,
             send: send_tx,
             poll: postbox_poll,
+            err: None,
         })
     }
 
+    /// Return an `Option<PostError>` indicating the current status of the `PostBox`.
+    pub fn status(&self) -> Option<PostError> {
+        self.err.as_ref().map(|err| err.into())
+    }
+
     /// Non-blocking sender method
-    pub fn send(&self, data: S) {
-        self.send.send(data).unwrap_or(());
+    pub fn send(&mut self, data: S) -> Result<(), PostError> {
+        match &mut self.err {
+            err @ None => if let Err(_) = self.send.send(data) {
+                *err = Some(PostErrorInternal::MioError);
+                Err(err.as_ref().unwrap().into())
+            } else {
+                Ok(())
+            },
+            err => Err(err.as_ref().unwrap().into()),
+        }
     }
 
     /// Non-blocking receiver method returning an iterator over already received and deserialized objects
     /// # Errors
     /// If the other side disconnects PostBox won't realize that until you try to send something
-    pub fn recv_iter(&self) -> Result<impl Iterator<Item = Result<R, PostError>>, PostError> {
+    pub fn recv_iter(&mut self) -> impl Iterator<Item = R> {
         let mut events = Events::with_capacity(4096);
-        self.poll
-            .poll(&mut events, Some(core::time::Duration::new(0, 0)))?;
-        let mut data: VecDeque<Result<R, PostError>> = VecDeque::new();
+        let mut items = VecDeque::new();
+
+        // If an error occured, or previously occured, just give up
+        if let Some(_) = self.err {
+            return items.into_iter();
+        } else if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
+            self.err = Some(err.into());
+            return items.into_iter();
+        }
+
         for event in events {
             match event.token() {
-                DATA_TOKEN => {
-                    data.push_back(self.recv.try_recv()?);
-                }
+                DATA_TOKEN => match self.recv.try_recv() {
+                    Ok(Ok(item)) => items.push_back(item),
+                    Err(err) => self.err = Some(err.into()),
+                    Ok(Err(err)) => self.err = Some(err.into()),
+                },
                 _ => (),
             }
         }
-        Ok(data.into_iter())
+        items.into_iter()
     }
 }
 
@@ -107,7 +142,7 @@ fn postbox_thread<S, R>(
     mut connection: TcpStream,
     ctrl_rx: Receiver<ControlMsg>,
     send_rx: Receiver<S>,
-    recv_tx: Sender<Result<R, PostError>>,
+    recv_tx: Sender<Result<R, PostErrorInternal>>,
     poll: Poll,
 ) where
     S: PostSend,
@@ -154,7 +189,7 @@ fn postbox_thread<S, R>(
                         .unwrap(),
                 );
                 if recv_nextlen > MESSAGE_SIZE_CAP {
-                    recv_tx.send(Err(PostError::MsgSizeLimitExceeded)).unwrap();
+                    recv_tx.send(Err(PostErrorInternal::MsgSizeLimitExceeded)).unwrap();
                     connection.shutdown(std::net::Shutdown::Both).unwrap();
                     recv_buff.drain(..);
                     recv_nextlen = 0;
