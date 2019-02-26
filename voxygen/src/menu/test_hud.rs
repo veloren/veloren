@@ -111,99 +111,90 @@ impl TestHud {
     }
 
     fn update_layout(&mut self) {
-        // This is very useful
-        let TestHud {
-            ref mut ui,
-            ref imgs,
-            ref ids,
-            ref mut bag_open,
-            ref mut menu_open,
-            ..
-        } = *self;
 
-        // TODO: write some custom widgets to make this stuff simpler
+        let ref mut ui_widgets = self.ui.set_widgets();
+
         // Check if the bag was clicked
         // (can't use .was_clicked() because we are changing the image and this is after setting the widget which causes flickering as it takes a frame to change after the mouse button is lifted)
-        if ui.widget_input(ids.bag).clicks().left().count() % 2 == 1 {
-            *bag_open = !*bag_open;
+        if ui_widgets.widget_input(self.ids.bag).clicks().left().count() % 2 == 1 {
+            self.bag_open = !self.bag_open;
         }
-        let ref mut ui_cell = ui.set_widgets();
         // Bag contents
-        if *bag_open {
+        // Note that display_contents is set before checking if the bag was clicked
+        // this ensures that the contents and open bag img are displayed on the same frame
+        if self.bag_open {
             // Contents
-            Image::new(imgs.bag_contents)
+            Image::new(self.imgs.bag_contents)
                 .w_h(1504.0/4.0, 1760.0/4.0)
                 .bottom_right_with_margins(88.0, 68.0)
-                .set(ids.bag_contents, ui_cell);
-            // Close button
-            if Button::image(imgs.close_button)
-                .w_h(144.0/4.0, 144.0/4.0)
-                .hover_image(imgs.close_button_hover)
-                .press_image(imgs.close_button_press)
-                .top_right_with_margins_on(ids.bag_contents, 0.0, 12.0)
-                .set(ids.bag_close, ui_cell)
-                .was_clicked() {
-                    *bag_open = false;
-                }
+                .set(self.ids.bag_contents, ui_widgets);
+
+            // X-Button
+            if Button::image(self.imgs.close_button)
+                    .w_h(144.0/4.0, 144.0/4.0)
+                    .hover_image(self.imgs.close_button_hover)
+                    .press_image(self.imgs.close_button_press)
+                    .top_right_with_margins_on(self.ids.bag_contents, 0.0, 12.0)
+                    .set(self.ids.bag_close, ui_widgets)
+                    .was_clicked() {
+                            self.bag_open = false;
+                    }
+
         }
-        // Bag
-        let (bag_img, bag_hover_img, bag_press_img) =
-            if *bag_open {
-                (imgs.bag_open, imgs.bag_open_hover, imgs.bag_open_press)
-            } else {
-                (imgs.bag, imgs.bag_hover, imgs.bag_press)
-            };
-        Button::image(bag_img)
-            .wh([416.0/4.0, 480.0/4.0])
-            .bottom_right_with_margin_on(ui_cell.window, 20.0)
-            .hover_image(bag_hover_img)
-            .press_image(bag_press_img)
-            .set(ids.bag, ui_cell);
+        //Bag
+        Button::image(if self.bag_open {self.imgs.bag_open} else {self.imgs.bag})
+            .bottom_right_with_margin_on(ui_widgets.window, 20.0)
+            .hover_image(if self.bag_open {self.imgs.bag_open_hover} else {self.imgs.bag_hover})
+            .press_image(if self.bag_open {self.imgs.bag_open_press} else {self.imgs.bag_press})
+            .w_h(420.0/4.0, 480.0/4.0)
+            .set(self.ids.bag, ui_widgets);
+
+
         // Attempt to make resizable image based container for buttons
         // Maybe this could be made into a Widget type if it is useful
-        if *menu_open {
-            let num = ids.menu_buttons.len();
+        if self.menu_open {
+            let num = self.ids.menu_buttons.len();
             // Canvas to hold everything together
             Canvas::new()
                 .w_h(106.0, 54.0 + num as f64 * 30.0)
-                .middle_of(ui_cell.window)
-                .set(ids.menu_canvas, ui_cell);
+                .middle_of(ui_widgets.window)
+                .set(self.ids.menu_canvas, ui_widgets);
             // Top of menu
-            Image::new(imgs.menu_top)
+            Image::new(self.imgs.menu_top)
                 .w_h(106.0, 28.0)
-                .mid_top_of(ids.menu_canvas)
+                .mid_top_of(self.ids.menu_canvas)
                 // Does not work because of bug in conrod, but above line is equivalent
                 //.parent(ids.menu_canvas)
                 //.mid_top()
-                .set(ids.menu_top, ui_cell);
+                .set(self.ids.menu_top, ui_widgets);
             // Bottom of Menu
             // Note: conrod defaults to the last used parent
-            Image::new(imgs.menu_bot)
+            Image::new(self.imgs.menu_bot)
                 .w_h(106.0, 26.0)
                 .mid_bottom()
-                .set(ids.menu_bot, ui_cell);
+                .set(self.ids.menu_bot, ui_widgets);
             // Midsection background
-            Image::new(imgs.menu_mid)
+            Image::new(self.imgs.menu_mid)
                 .w_h(106.0, num as f64 * 30.0)
                 .mid_bottom_with_margin(26.0)
-                .set(ids.menu_mid, ui_cell);
+                .set(self.ids.menu_mid, ui_widgets);
             // Menu buttons
             if num > 0 {
-                Button::image(imgs.menu_button)
-                    .mid_top_with_margin_on(ids.menu_mid, 8.0)
+                Button::image(self.imgs.menu_button)
+                    .mid_top_with_margin_on(self.ids.menu_mid, 8.0)
                     .w_h(48.0, 20.0)
                     .label(&format!("Button {}", 1))
                     .label_rgb(1.0, 0.4, 1.0)
                     .label_font_size(7)
-                    .set(ids.menu_buttons[0], ui_cell);
+                    .set(self.ids.menu_buttons[0], ui_widgets);
             }
             for i in 1..num {
-                Button::image(imgs.menu_button)
+                Button::image(self.imgs.menu_button)
                     .down(10.0)
                     .label(&format!("Button {}", i + 1))
                     .label_rgb(1.0, 0.4, 1.0)
                     .label_font_size(7)
-                    .set(ids.menu_buttons[i], ui_cell);
+                    .set(self.ids.menu_buttons[i], ui_widgets);
             }
         }
     }
@@ -224,4 +215,4 @@ impl TestHud {
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer);
     }
-	}
+}
