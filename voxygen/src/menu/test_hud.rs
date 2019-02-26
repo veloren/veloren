@@ -39,36 +39,42 @@ widget_ids!{
 
 // TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images.
 struct Imgs {
-    menu_button: ImgId,
     bag: ImgId,
     bag_hover: ImgId,
     bag_press: ImgId,
+    bag_open: ImgId,
+    bag_open_hover: ImgId,
+    bag_open_press: ImgId,
     bag_contents: ImgId,
-    menu_top: ImgId,
-    menu_mid: ImgId,
-    menu_bot: ImgId,
     close_button: ImgId,
     close_button_hover: ImgId,
     close_button_press: ImgId,
+    menu_top: ImgId,
+    menu_mid: ImgId,
+    menu_bot: ImgId,
+    menu_button: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
-            let image = image::open(&[env!("CARGO_MANIFEST_DIR"), "/test_assets/", filename].concat()).unwrap();
+            let image = image::open(&[env!("CARGO_MANIFEST_DIR"), "/test_assets/hud/", filename].concat()).unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
-            menu_button: load("test_menu_button_blank.png"),
-            bag: load("test_bag.png"),
-            bag_hover: load("test_bag_hover.png"),
-            bag_press: load("test_bag_press.png"),
-            bag_contents: load("test_bag_contents.png"),
-            menu_top: load("test_menu_top.png"),
-            menu_mid: load("test_menu_midsection.png"),
-            menu_bot: load("test_menu_bottom.png"),
-            close_button: load("test_close_btn.png"),
-            close_button_hover: load("test_close_btn_hover.png"),
-            close_button_press: load("test_close_btn_press.png"),
+            bag: load("bag/icon/0_bag.png"),
+            bag_hover: load("bag/icon/1_bag_hover.png"),
+            bag_press: load("bag/icon/2_bag_press.png"),
+            bag_open: load("bag/icon/3_bag_open.png"),
+            bag_open_hover: load("bag/icon/4_bag_open_hover.png"),
+            bag_open_press: load("bag/icon/5_bag_open_press.png"),
+            bag_contents: load("bag/bg.png"),
+            close_button: load("x/0_x.png"),
+            close_button_hover: load("x/1_x_hover.png"),
+            close_button_press: load("x/2_x_press.png"),
+            menu_button: load("menu/main/menu_button.png"),
+            menu_top: load("menu/main/menu_top.png"),
+            menu_mid: load("menu/main/menu_mid.png"),
+            menu_bot: load("menu/main/menu_bottom.png"),
         }
     }
 }
@@ -115,35 +121,44 @@ impl TestHud {
             ..
         } = *self;
 
+        // TODO: write some custom widgets to make this stuff simpler
+        // Check if the bag was clicked
+        // (can't use .was_clicked() because we are changing the image and this is after setting the widget which causes flickering as it takes a frame to change after the mouse button is lifted)
+        if ui.widget_input(ids.bag).clicks().left().count() % 2 == 1 {
+            *bag_open = !*bag_open;
+        }
         let ref mut ui_cell = ui.set_widgets();
-        // Bag
-        if Button::image(imgs.bag)
-            .bottom_right_with_margin(20.0)
-            .hover_image(if *bag_open { imgs.bag } else { imgs.bag_hover })
-            .press_image(if *bag_open { imgs.bag } else { imgs.bag_press })
-            .w_h(51.0, 58.0)
-            .set(ids.bag, ui_cell)
-            .was_clicked() {
-                *bag_open = true;
-            }
         // Bag contents
         if *bag_open {
             // Contents
             Image::new(imgs.bag_contents)
-                .w_h(212.0, 246.0)
-                .x_y_relative_to(ids.bag, -92.0-25.5+12.0, 109.0+29.0-13.0)
+                .w_h(1504.0/4.0, 1760.0/4.0)
+                .bottom_right_with_margins(88.0, 68.0)
                 .set(ids.bag_contents, ui_cell);
             // Close button
             if Button::image(imgs.close_button)
-                .w_h(20.0, 20.0)
+                .w_h(144.0/4.0, 144.0/4.0)
                 .hover_image(imgs.close_button_hover)
                 .press_image(imgs.close_button_press)
-                .top_right_with_margins_on(ids.bag_contents, 0.0, 10.0)
+                .top_right_with_margins_on(ids.bag_contents, 0.0, 12.0)
                 .set(ids.bag_close, ui_cell)
                 .was_clicked() {
                     *bag_open = false;
                 }
         }
+        // Bag
+        let (bag_img, bag_hover_img, bag_press_img) =
+            if *bag_open {
+                (imgs.bag_open, imgs.bag_open_hover, imgs.bag_open_press)
+            } else {
+                (imgs.bag, imgs.bag_hover, imgs.bag_press)
+            };
+        Button::image(bag_img)
+            .wh([416.0/4.0, 480.0/4.0])
+            .bottom_right_with_margin_on(ui_cell.window, 20.0)
+            .hover_image(bag_hover_img)
+            .press_image(bag_press_img)
+            .set(ids.bag, ui_cell);
         // Attempt to make resizable image based container for buttons
         // Maybe this could be made into a Widget type if it is useful
         if *menu_open {
@@ -209,4 +224,4 @@ impl TestHud {
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer);
     }
-}
+	}
