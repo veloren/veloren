@@ -10,6 +10,7 @@ use image::{
     DynamicImage,
     GenericImageView,
 };
+use vek::Vec2;
 
 // Local
 use super::{
@@ -108,5 +109,10 @@ impl<P: Pipeline> Texture<P> {
         encoder
         .update_texture::<<ShaderFormat as gfx::format::Formatted>::Surface, ShaderFormat>(&self.tex, None, info, data)
         .map_err(|err| RenderError::TexUpdateError(err))
+    }
+    /// Get dimensions of the represented image
+    pub fn get_dimensions(&self) -> Vec2<u16> {
+        let (w, h, ..) = self.tex.get_info().kind.get_dimensions();
+        Vec2::new(w, h)
     }
 }

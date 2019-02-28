@@ -167,15 +167,14 @@ impl Ui {
 
                         let color = color.unwrap_or(conrod_core::color::WHITE).to_fsa();
 
-                        //let (image_w, image_h) = image_map.get(&image_id).unwrap().1;
-                        //let (image_w, image_h) = (image_w as Scalar, image_h as Scalar);
-
-                        // Get the sides of the source rectangle as uv coordinates.
-                        //
-                        // Texture coordinates range:
-                        // - left to right: 0.0 to 1.0
-                        // - bottom to top: 1.0 to 0.0
-                        /*let (uv_l, uv_r, uv_t, uv_b) = match source_rect {
+                        // Transform the source rectangle into uv coordinates
+                        let (image_w, image_h) = self.image_map
+                            .get(&image_id)
+                            .expect("Image does not exist in image map")
+                            .get_dimensions()
+                            .map(|e| e as f64)
+                            .into_tuple();
+                        let (uv_l, uv_r, uv_t, uv_b) = match source_rect {
                             Some(src_rect) => {
                                 let (l, r, b, t) = src_rect.l_r_b_t();
                                 ((l / image_w) as f32,
@@ -184,10 +183,9 @@ impl Ui {
                                 (t / image_h) as f32)
                             }
                             None => (0.0, 1.0, 0.0, 1.0),
-                        };*/
-                        let (uv_l, uv_r, uv_t, uv_b) = (0.0, 1.0, 0.0, 1.0);
-                        let (l, r, b, t) = rect.l_r_b_t();
+                        };
                         // Convert from conrod Scalar range to GL range -1.0 to 1.0.
+                        let (l, r, b, t) = rect.l_r_b_t();
                         let (l, r, b, t) = (
                             (l / ui.win_w * 2.0) as f32,
                             (r / ui.win_w * 2.0) as f32,
