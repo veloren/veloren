@@ -53,11 +53,14 @@ impl Camera {
 
     /// Rotate the camera about its focus by the given delta, limiting the input accordingly.
     pub fn rotate_by(&mut self, delta: Vec3<f32>) {
-        self.ori += delta;
+        // Wrap camera yaw
+        self.ori.x = (self.ori.x + delta.x) % (2.0 * PI);
         // Clamp camera pitch to the vertical limits
-        self.ori.y = self.ori.y
+        self.ori.y = (self.ori.y + delta.y)
             .min(PI / 2.0)
             .max(-PI / 2.0);
+        // Wrap camera roll
+        self.ori.z = (self.ori.z + delta.z) % (2.0 * PI);
     }
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
@@ -75,4 +78,7 @@ impl Camera {
     pub fn get_aspect_ratio(&self) -> f32 { self.aspect }
     /// Set the aspect ratio of the camera.
     pub fn set_aspect_ratio(&mut self, aspect: f32) { self.aspect = aspect; }
+
+    /// Get the orientation of the camera
+    pub fn get_orientation(&self) -> Vec3<f32> { self.ori }
 }

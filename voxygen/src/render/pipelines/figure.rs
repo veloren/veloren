@@ -67,10 +67,13 @@ impl Vertex {
 }
 
 impl Locals {
-    pub fn default() -> Self {
+    pub fn new(model_mat: Mat4<f32>) -> Self {
         Self {
-            model_mat: arr_to_mat(Mat4::identity().into_col_array()),
+            model_mat: arr_to_mat(model_mat.into_col_array()),
         }
+    }
+    pub fn default() -> Self {
+        Self::new(Mat4::identity())
     }
 }
 
@@ -82,9 +85,7 @@ impl BoneData {
     }
 
     pub fn default() -> Self {
-        Self {
-            bone_mat: arr_to_mat(Mat4::identity().into_col_array()),
-        }
+        Self::new(Mat4::identity())
     }
 }
 
