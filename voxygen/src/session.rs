@@ -17,6 +17,7 @@ use crate::{
     PlayState,
     PlayStateResult,
     GlobalState,
+    key_state::KeyState,
     window::{Event, Key},
     render::Renderer,
     scene::Scene,
@@ -27,6 +28,7 @@ const FPS: u64 = 60;
 pub struct SessionState {
     scene: Scene,
     client: Client,
+    key_state: KeyState,
 }
 
 /// Represents an active game session (i.e: one that is being played)
@@ -38,6 +40,7 @@ impl SessionState {
             // Create a scene for this session. The scene handles visible elements of the game world
             scene: Scene::new(renderer, &client),
             client,
+            key_state: KeyState::new(),
         }
     }
 }
@@ -48,7 +51,16 @@ const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
 impl SessionState {
     /// Tick the session (and the client attached to it)
     pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
-        self.client.tick(client::Input {}, dt)?;
+        // Calculate the movement input vector of the player from the current key presses and the camera direction
+        let ori = self.scene.camera().get_orientation();
+        let unit_vecs = (
+            Vec2::new(ori[0].cos(), -ori[0].sin()),
+            Vec2::new(ori[0].sin(), ori[0].cos()),
+        );
+        let dir_vec = self.key_state.dir_vec();
+        let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+
+        self.client.tick(client::Input { move_dir }, dt)?;
         Ok(())
     }
 
@@ -101,6 +113,16 @@ impl PlayState for SessionState {
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
                     },
+                    // Movement Key Pressed
+                    Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
+                    Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
+                    Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
+                    Event::KeyDown(Key::MoveRight) => self.key_state.right = true,
+                    // Movement Key Released
+                    Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
+                    Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
+                    Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
+                    Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     // Pass all other events to the scene
                     event => { self.scene.handle_input_event(event); },
                 };
