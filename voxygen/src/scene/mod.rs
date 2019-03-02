@@ -7,8 +7,8 @@ use vek::*;
 use dot_vox;
 
 // Project
-use common::figure::Segment;
 use client::Client;
+use common::{comp::phys::Pos as PosComp, figure::Segment};
 
 // Crate
 use crate::{
@@ -138,6 +138,22 @@ impl Scene {
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
+        // Get player position
+        let player_pos = match client.player() {
+            Some(entity) => {
+                client
+                    .state()
+                    .ecs_world()
+                    .read_storage::<PosComp>()
+                    .get(entity)
+                    .expect("There was no position component on the player entity!")
+                    .0
+            }
+            None => Vec3::default(),
+        };
+        // Alter camera position to match player
+        self.camera.set_focus_pos(player_pos);
+
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
 
@@ -161,7 +177,15 @@ impl Scene {
             &mut self.test_figure.skeleton,
             client.state().get_time(),
         );
-        self.test_figure.update_locals(renderer, FigureLocals::default()).unwrap();
+
+        // Calculate entity model matrix
+        let model_mat = Mat4::<f32>::translation_3d(player_pos);
+                        //* Mat4::rotation_z(PI - entity.look_dir().x)
+                        //* Mat4::rotation_x(entity.look_dir().y);
+
+        self.test_figure
+            .update_locals(renderer, FigureLocals::new(model_mat))
+            .unwrap();
         self.test_figure.update_skeleton(renderer).unwrap();
     }
 

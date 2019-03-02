@@ -2,6 +2,7 @@
 use glutin;
 use gfx_window_glutin;
 use vek::*;
+use std::collections::HashMap;
 
 // Crate
 use crate::{
@@ -18,6 +19,7 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
+    key_map: HashMap<glutin::VirtualKeyCode, Key>,
 }
 
 
@@ -46,6 +48,13 @@ impl Window {
             &events_loop,
         ).map_err(|err| Error::BackendError(Box::new(err)))?;
 
+        let mut key_map = HashMap::new();
+        key_map.insert(glutin::VirtualKeyCode::Escape, Key::ToggleCursor);
+        key_map.insert(glutin::VirtualKeyCode::W, Key::MoveForward);
+        key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
+        key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
+        key_map.insert(glutin::VirtualKeyCode::D, Key::MoveRight);
+
         let tmp = Ok(Self {
             events_loop,
             renderer: Renderer::new(
@@ -56,6 +65,7 @@ impl Window {
             )?,
             window,
             cursor_grabbed: false,
+            key_map,
         });
         tmp
     }
@@ -69,6 +79,7 @@ impl Window {
         let cursor_grabbed = self.cursor_grabbed;
         let renderer = &mut self.renderer;
         let window = &mut self.window;
+        let key_map = &self.key_map;
 
         let mut events = vec![];
         self.events_loop.poll_events(|event| match event {
@@ -85,11 +96,13 @@ impl Window {
                 },
                 glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                 glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
-                    Some(glutin::VirtualKeyCode::Escape) => events.push(if input.state == glutin::ElementState::Pressed {
-                        Event::KeyDown(Key::ToggleCursor)
-                    } else {
-                        Event::KeyUp(Key::ToggleCursor)
-                    }),
+                    Some(keycode) => match key_map.get(&keycode) {
+                        Some(&key) => events.push(match input.state {
+                            glutin::ElementState::Pressed => Event::KeyDown(key),
+                            _ => Event::KeyUp(key),
+                        }),
+                        _ => {},
+                    },
                     _ => {},
                 },
                 _ => {},
@@ -126,8 +139,13 @@ impl Window {
 }
 
 /// Represents a key that the game recognises after keyboard mapping
+#[derive(Clone, Copy)]
 pub enum Key {
     ToggleCursor,
+    MoveForward,
+    MoveBack,
+    MoveLeft,
+    MoveRight,
 }
 
 /// Represents an incoming event from the window
