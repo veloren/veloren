@@ -7,8 +7,8 @@ use vek::*;
 use dot_vox;
 
 // Project
+use common::figure::Segment;
 use client::Client;
-use common::{comp::phys::Pos as PosComp, figure::Segment};
 
 // Crate
 use crate::{
@@ -82,20 +82,20 @@ impl Scene {
             test_figure: Figure::new(
                 renderer,
                 [
-                    Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -5.5, -1.0))),
-                    Some(load_segment("chest.vox").generate_mesh(Vec3::new(-6.0, -3.0, 0.0))),
-                    Some(load_segment("belt.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-                    Some(load_segment("pants.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-                    Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-                    Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-                    Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-                    Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-                    Some(load_segment("sword.vox").generate_mesh(Vec3::new(-6.5, -1.0, 0.0))),
+                    Some(load_segment("dragonhead.vox").generate_mesh(Vec3::new(2.0, -12.0, 2.0))),
+                    Some(load_segment("dragon_body.vox").generate_mesh(Vec3::new(0.0, 0.0, 0.0))),
+                    Some(load_segment("dragon_lfoot.vox").generate_mesh(Vec3::new(10.0, 10.0, -80.0))),
+                    Some(load_segment("dragon_rfoot.vox").generate_mesh(Vec3::new(0.0, 10.0, -4.0))),
+                    Some(load_segment("dragon_rfoot.vox").generate_mesh(Vec3::new(0.0, -10.0, -4.0))),
+                    Some(load_segment("dragon_lfoot.vox").generate_mesh(Vec3::new(0.0, 0.0, 0.0))),
                     None,
                     None,
                     None,
                     None,
                     None,
+                    None,
+                    None,
+                    None, 
                     None,
                     None,
                 ],
@@ -138,22 +138,6 @@ impl Scene {
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
-        // Get player position
-        let player_pos = match client.player() {
-            Some(entity) => {
-                client
-                    .state()
-                    .ecs_world()
-                    .read_storage::<PosComp>()
-                    .get(entity)
-                    .expect("There was no position component on the player entity!")
-                    .0
-            }
-            None => Vec3::default(),
-        };
-        // Alter camera position to match player
-        self.camera.set_focus_pos(player_pos);
-
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
 
@@ -177,15 +161,7 @@ impl Scene {
             &mut self.test_figure.skeleton,
             client.state().get_time(),
         );
-
-        // Calculate entity model matrix
-        let model_mat = Mat4::<f32>::translation_3d(player_pos);
-                        //* Mat4::rotation_z(PI - entity.look_dir().x)
-                        //* Mat4::rotation_x(entity.look_dir().y);
-
-        self.test_figure
-            .update_locals(renderer, FigureLocals::new(model_mat))
-            .unwrap();
+        self.test_figure.update_locals(renderer, FigureLocals::default()).unwrap();
         self.test_figure.update_skeleton(renderer).unwrap();
     }
 
