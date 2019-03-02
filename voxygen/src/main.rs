@@ -2,6 +2,7 @@
 
 pub mod anim;
 pub mod error;
+pub mod key_state;
 pub mod menu;
 pub mod mesh;
 pub mod render;

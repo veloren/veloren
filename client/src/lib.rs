@@ -7,10 +7,7 @@ use vek::*;
 use threadpool;
 
 // Project
-use common::{
-    state::State,
-    terrain::TerrainChunk,
-};
+use common::{comp::phys::Vel, state::State, terrain::TerrainChunk};
 use world::World;
 
 #[derive(Debug)]
@@ -21,6 +18,7 @@ pub enum Error {
 
 pub struct Input {
     // TODO: Use this type to manage client input
+    pub move_dir: Vec2<f32>,
 }
 
 pub struct Client {
@@ -61,6 +59,7 @@ impl Client {
     // TODO: Get rid of this
     pub fn with_test_state(mut self) -> Self {
         self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
+        self.player = Some(self.state.new_test_player());
         self
     }
 
@@ -75,6 +74,11 @@ impl Client {
 
     /// Get a mutable reference to the client's game state.
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
+
+    /// Get the player entity
+    pub fn player(&self) -> Option<EcsEntity> {
+        self.player
+    }
 
     /// Get the current tick number.
     pub fn get_tick(&self) -> u64 {
@@ -94,6 +98,15 @@ impl Client {
         // 3) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 4) Go through the terrain update queue and apply all changes to the terrain
         // 5) Finish the tick, passing control of the main thread back to the frontend
+
+        // (step 1)
+        if let Some(p) = self.player {
+            // TODO: remove this
+            const PLAYER_VELOCITY: f32 = 100.0;
+
+            // TODO: Set acceleration instead
+            self.state.write_component(p, Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+        }
 
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
