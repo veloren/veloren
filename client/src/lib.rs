@@ -18,7 +18,7 @@ pub enum Error {
 
 pub struct Input {
     // TODO: Use this type to manage client input
-    pub move_vec: Vec2<f32>,
+    pub move_dir: Vec2<f32>,
 }
 
 pub struct Client {
@@ -101,23 +101,11 @@ impl Client {
 
         // (step 1)
         if let Some(p) = self.player {
-            let vel = input.move_vec;
+            // TODO: remove this
+            const PLAYER_VELOCITY: f32 = 100.0;
 
-            const MIN_LOOKING: f32 = 0.5;
-            const LEANING_FAC: f32 = 0.05;
-
-            let dir = Vec3::from([
-                // Rotation
-                match vel.magnitude() > MIN_LOOKING {
-                    true => vel[0].atan2(vel[1]),
-                    _ => 0.0,
-                },
-                // Lean
-                Vec2::new(vel[0], vel[1]).magnitude() * LEANING_FAC,
-            ]);
-
-            // TODO: Set acceleration instead and adjust dir calculations accordingly
-            self.state.write_component(p, Vel(Vec3::from(vel)));
+            // TODO: Set acceleration instead
+            self.state.write_component(p, Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
         }
 
         // Tick the client's LocalState (step 3)

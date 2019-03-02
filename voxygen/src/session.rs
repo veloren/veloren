@@ -58,9 +58,9 @@ impl SessionState {
             Vec2::new(ori[0].sin(), ori[0].cos()),
         );
         let dir_vec = self.key_state.dir_vec();
-        let move_vec = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+        let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        self.client.tick(client::Input { move_vec }, dt)?;
+        self.client.tick(client::Input { move_dir }, dt)?;
         Ok(())
     }
 

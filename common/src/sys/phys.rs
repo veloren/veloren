@@ -20,6 +20,6 @@ impl<'a> System<'a> for MovementSys {
     fn run(&mut self, (mut positions, velocities, dt): Self::SystemData) {
         (&mut positions, &velocities)
             .join() // this can be parallelized with par_join()
-            .for_each(|(pos, vel)| pos.0 += vel.0 * dt.0 as f32 * 100.0);
+            .for_each(|(pos, vel)| pos.0 += vel.0 * dt.0 as f32);
     }
 }
