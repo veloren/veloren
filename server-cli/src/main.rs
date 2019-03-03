@@ -1,11 +1,6 @@
-// Standard
 use std::time::Duration;
-
-// Library
 use log::info;
-
-// Project
-use server::{self, Server};
+use server::{Input, Event, Server};
 use common::clock::Clock;
 
 const FPS: u64 = 60;
@@ -20,11 +15,20 @@ fn main() {
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::new();
+    let mut server = Server::new()
+        .expect("Failed to create server instance");
 
     loop {
-        server.tick(server::Input {}, clock.get_last_delta())
+        let events = server.tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server");
+
+        for event in events {
+            match event {
+                Event::ClientConnected { ecs_entity } => println!("Client connected!"),
+                Event::ClientDisconnected { ecs_entity } => println!("Client disconnected!"),
+                Event::Chat { msg, .. } => println!("[chat] {}", msg),
+            }
+        }
 
         // Clean up the server after a tick
         server.cleanup();

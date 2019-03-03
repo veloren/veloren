@@ -35,7 +35,7 @@ impl Animation for RunAnimation {
         //skeleton.br_foot.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
 	    //skeleton.br_foot.ori = Quaternion::rotation_x(0.0 + wave_slow * 10.1);
 
-	    skeleton.bl_foot.offset = Vec3::new(0.0, 0.0, 80.0);
+	    skeleton.bl_foot.offset = Vec3::new(0.0, 0.0, 0.0);
         skeleton.bl_foot.ori = Quaternion::rotation_x(wave_slow * 2.0);
         //skeleton.bl_foot.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
         //skeleton.bl_foot.ori = Quaternion::rotation_x(0.5 + wave_slow * 0.1);

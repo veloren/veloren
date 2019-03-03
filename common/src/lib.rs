@@ -6,6 +6,7 @@ extern crate serde_derive;
 pub mod clock;
 pub mod comp;
 pub mod figure;
+pub mod msg;
 pub mod state;
 pub mod sys;
 pub mod terrain;
