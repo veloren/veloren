@@ -15,8 +15,9 @@ use conrod_core::{
     widget::{Id as WidgId, id::Generator},
     render::Primitive,
     event::Input,
-    input::Widget,
+    input::{touch::Touch, Widget, Motion},
 };
+use vek::*;
 
 // Crate
 use crate::{
@@ -73,24 +74,95 @@ pub enum DrawCommand {
     Plain(Model<UiPipeline>),
 }
 
+// How to scale the ui
+pub enum ScaleMode {
+    // Scale against physical size
+    Absolute(f64),
+    // Use the dpi factor provided by the windowing system (i.e. use logical size)
+    DpiFactor,
+    // Scale based on the window's physical size, but maintain aspect ratio of widgets
+    // Contains width and height of the "default" window size (ie where there should be no scaling)
+    RelativeToWindow(Vec2<f64>),
+}
+
+struct Scale {
+    // Type of scaling to use
+    mode: ScaleMode,
+    // Current dpi factor
+    dpi_factor: f64,
+    // Current logical window size
+    window_dims: Vec2<f64>,
+}
+
+impl Scale {
+    fn new(window: &Window, mode: ScaleMode) -> Self {
+        let window_dims = window.logical_size();
+        let dpi_factor = window.renderer().get_resolution().x as f64 / window_dims.x;
+        Scale {
+            mode,
+            dpi_factor,
+            window_dims,
+        }
+    }
+    // Change the scaling mode
+    pub fn scaling_mode(&mut self, mode: ScaleMode) {
+        self.mode = mode;
+    }
+    // Calculate factor to transform from logical coordinates to our scaled coordinates
+    fn scale_factor(&self) -> f64 {
+        match self.mode {
+            ScaleMode::Absolute(scale) => scale / self.dpi_factor,
+            ScaleMode::DpiFactor => 1.0,
+            ScaleMode::RelativeToWindow(dims) => (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y),
+        }
+    }
+    // Updates internal window size (and/or dpi_factor)
+    fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
+        self.dpi_factor = renderer.get_resolution().x as f64 / new_dims.x;
+        self.window_dims = new_dims;
+    }
+    // Get scaled window size
+    fn scaled_window_size(&self) -> Vec2<f64> {
+        self.window_dims / self.scale_factor()
+    }
+    // Transform point from logical to scaled coordinates
+    fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> {
+        point / self.scale_factor()
+    }
+}
+
 pub struct Ui {
     ui: CrUi,
     image_map: Map<Texture<UiPipeline>>,
     cache: Cache,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
+    // Stores new window size for updating scaling
+    window_resized: Option<Vec2<f64>>,
+    // Scaling of the ui
+    scale: Scale,
 }
 
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
-        // Retrieve the logical size of the window content
-        let (w, h) = window.logical_size();
+        let scale = Scale::new(window, ScaleMode::Absolute(1.0));
+        let win_dims = scale.scaled_window_size().into_array();
         Ok(Self {
-            ui: UiBuilder::new([w, h]).build(),
+            ui: UiBuilder::new(win_dims).build(),
             image_map: Map::new(),
             cache: Cache::new(window.renderer_mut())?,
+            window_resized: None,
             draw_commands: vec![],
+            scale,
         })
+    }
+
+    // Set the scaling mode of the ui
+    pub fn scaling_mode(&mut self, mode: ScaleMode) {
+        self.scale.scaling_mode(mode);
+        // Give conrod the new size
+        let (w, h) = self.scale.scaled_window_size().into_tuple();
+        self.ui.handle_event(Input::Resize(w, h));
     }
 
     pub fn new_image(&mut self, renderer: &mut Renderer, image: &DynamicImage) -> Result<ImgId, Error> {
@@ -110,7 +182,33 @@ impl Ui {
     }
 
     pub fn handle_event(&mut self, event: Input) {
-        self.ui.handle_event(event);
+        match event {
+            Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),
+            Input::Touch(touch) => self.ui.handle_event(
+                Input::Touch(Touch {
+                    xy: self.scale.scale_point(touch.xy.into()).into_array(),
+                    ..touch
+                })
+            ),
+            Input::Motion(motion) => self.ui.handle_event(
+                Input::Motion( match motion {
+                    Motion::MouseCursor { x, y } => {
+                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                        Motion::MouseCursor { x, y }
+                    }
+                    Motion::MouseRelative { x, y } => {
+                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                        Motion::MouseRelative { x, y }
+                    }
+                    Motion::Scroll { x, y } => {
+                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                        Motion::Scroll { x, y }
+                    }
+                    _ => motion,
+                })
+            ),
+            _ => self.ui.handle_event(event),
+        }
     }
 
     pub fn widget_input(&self, id: WidgId) -> Widget {
@@ -119,7 +217,7 @@ impl Ui {
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {
         let ref mut ui = self.ui;
-        // Regenerate draw commands and associated models only if ui_changed
+        // Regenerate draw commands and associated models only if the ui changed
         if let Some(mut primitives) = ui.draw_if_changed() {
             self.draw_commands.clear();
             let mut mesh = Mesh::new();
@@ -265,6 +363,13 @@ impl Ui {
                     self.draw_commands.push(DrawCommand::Plain(renderer.create_model(&mesh).unwrap())),
                 Some(image_id) =>
                     self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id)),
+            }
+
+            // Handle window resizing
+            if let Some(new_dims) = self.window_resized.take() {
+                self.scale.window_resized(new_dims, renderer);
+                let (w, h) = self.scale.scaled_window_size().into_tuple();
+                self.ui.handle_event(Input::Resize(w, h));
             }
         }
     }
