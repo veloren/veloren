@@ -72,6 +72,19 @@ impl State {
         }
     }
 
+    /// Register a component with the state's ECS
+    pub fn with_component<T: Component>(mut self) -> Self
+        where <T as Component>::Storage: Default
+    {
+        self.ecs_world.register::<T>();
+        self
+    }
+
+    /// Delete an entity from the state's ECS, if it exists
+    pub fn delete_entity(&mut self, entity: EcsEntity) {
+        let _ = self.ecs_world.delete_entity(entity);
+    }
+
     // TODO: Get rid of this
     pub fn new_test_player(&mut self) -> EcsEntity {
         self.ecs_world

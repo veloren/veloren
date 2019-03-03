@@ -79,7 +79,7 @@ where
     /// Non-blocking method returning an iterator over new connections wrapped in [`PostBox`]es
     pub fn new_connections(
         &mut self,
-    ) -> impl Iterator<Item = PostBox<S, R>> {
+    ) -> impl ExactSizeIterator<Item = PostBox<S, R>> {
         let mut events = Events::with_capacity(256);
         let mut conns = VecDeque::new();
 
