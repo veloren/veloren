@@ -46,7 +46,7 @@ impl PlayState for TitleState {
                     Event::Close => return PlayStateResult::Shutdown,
                     // When space is pressed, start a session
                     Event::Char(' ') => return PlayStateResult::Push(
-                        Box::new(SessionState::new(global_state.window.renderer_mut())),
+                        Box::new(SessionState::new(global_state.window.renderer_mut()).unwrap()), // TODO: Handle this error
                     ),
                     // Ignore all other events
                     _ => {},
