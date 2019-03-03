@@ -143,8 +143,9 @@ impl Window {
             .expect("Failed to grab/ungrab cursor");
     }
 
-    pub fn logical_size(&self) -> (f64, f64) {
-        self.window.get_inner_size().unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0)).into()
+    pub fn logical_size(&self) -> Vec2<f64> {
+        let (w, h) = self.window.get_inner_size().unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0)).into();
+        Vec2::new(w, h)
     }
 }
 
