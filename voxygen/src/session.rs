@@ -34,14 +34,14 @@ pub struct SessionState {
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn new(renderer: &mut Renderer) -> Self {
-        let client = Client::new().with_test_state(); // <--- TODO: Remove this
-        Self {
+    pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
+        let client = Client::new(([127, 0, 0, 1], 59003))?.with_test_state(); // <--- TODO: Remove this
+        Ok(Self {
             // Create a scene for this session. The scene handles visible elements of the game world
             scene: Scene::new(renderer, &client),
             client,
             key_state: KeyState::new(),
-        }
+        })
     }
 }
 
