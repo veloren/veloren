@@ -1,0 +1,4 @@
+[submodule "assets/voxygen"]
+	path = assets/voxygen
+	url = https://gitlab.com/veloren/fresh-assets/voxygen.git
+	shallow = true
