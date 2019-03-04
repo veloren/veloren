@@ -11,11 +11,12 @@ use gfx::{
 
 // Local
 use super::super::{
-    Pipeline,
-    TgtColorFmt,
-    TgtDepthFmt,
-    Mesh,
-    Quad,
+        Pipeline,
+        TgtColorFmt,
+        TgtDepthFmt,
+        Mesh,
+        Quad,
+        Tri,
 };
 
 gfx_defines! {
@@ -68,7 +69,7 @@ impl Mode {
 }
 
 // TODO: don't use [f32; 4] for rectangle as the format (eg 2 points vs point + dims) is ambiguous
-pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: [f32; 4], uv_rect:  [f32; 4], color: [f32; 4], mode: Mode) {
+pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: [f32; 4], uv_rect: [f32; 4], color: [f32; 4], mode: Mode) {
     let mode_val = mode.value();
     let v = |pos, uv| {
         Vertex {
@@ -85,5 +86,22 @@ pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: [f32; 4], uv_rect:  
         v([l, t], [uv_l, uv_t]),
         v([l, b], [uv_l, uv_b]),
         v([r, b], [uv_r, uv_b]),
+    ));
+}
+
+pub fn push_tri_to_mesh(mesh: &mut Mesh<UiPipeline>, tri: [[f32; 2]; 3], uv_tri: [[f32; 2]; 3], color: [f32; 4], mode: Mode) {
+    let mode_val = mode.value();
+    let v = |pos, uv| {
+        Vertex {
+            pos,
+            uv,
+            color,
+            mode: mode_val,
+        }
+    };
+    mesh.push_tri(Tri::new(
+        v([tri[0][0], tri[0][1]], [uv_tri[0][0], uv_tri[0][1]]),
+        v([tri[1][0], tri[1][1]], [uv_tri[1][0], uv_tri[1][1]]),
+        v([tri[2][0], tri[2][1]], [uv_tri[2][0], uv_tri[2][1]]),
     ));
 }
