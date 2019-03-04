@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Maciej Ćwięka <mc
 edition = "2018"
 
 [dependencies]
-specs = "0.14"
+specs = { version = "0.14", features = ["serde"] }
 shred = "0.7"
 vek = "0.9"
 dot_vox = "1.0"
