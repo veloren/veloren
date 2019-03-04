@@ -31,6 +31,7 @@ pub use self::{
         },
         ui::{
             push_quad_to_mesh as push_ui_quad_to_mesh,
+            push_tri_to_mesh as push_ui_tri_to_mesh,
             Mode as UiMode,
             UiPipeline,
         },

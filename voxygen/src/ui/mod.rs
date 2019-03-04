@@ -31,6 +31,7 @@ use crate::{
         UiPipeline,
         UiMode,
         push_ui_quad_to_mesh,
+        push_ui_tri_to_mesh,
     },
     window::Window,
 };
@@ -238,6 +239,9 @@ impl Ui {
             while let Some(prim) = primitives.next() {
                 // TODO: Use scizzor
                 let Primitive {kind, scizzor, id, rect} = prim;
+                // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0)
+                let vx = |x: f64| (x / ui.win_w * 2.0) as f32;
+                let vy = |y: f64| (y / ui.win_h * 2.0) as f32;
 
                 use conrod_core::render::PrimitiveKind;
                 match kind {
@@ -284,12 +288,7 @@ impl Ui {
                         };
                         // Convert from conrod Scalar range to GL range -1.0 to 1.0.
                         let (l, r, b, t) = rect.l_r_b_t();
-                        let (l, r, b, t) = (
-                            (l / ui.win_w * 2.0) as f32,
-                            (r / ui.win_w * 2.0) as f32,
-                            (b / ui.win_h * 2.0) as f32,
-                            (t / ui.win_h * 2.0) as f32,
-                        );
+                        let (l, r, b, t) = (vx(l), vx(r), vy(b), vy(t));
                         push_ui_quad_to_mesh(
                             &mut mesh,
                             [l, t , r, b],
@@ -349,12 +348,57 @@ impl Ui {
                             }
                         }
                     }
+                    PrimitiveKind::Rectangle { color } => {
+                        // TODO: consider gamma/linear conversion....
+                        let color = color.to_fsa();
+                        // Don't draw a transparent rectangle (they exist)
+                        if color[3] == 0.0 {
+                            continue;
+                        }
+
+                        switch_to_plain_state!();
+
+                        // Convert from conrod Scalar range to GL range -1.0 to 1.0.
+                        let (l, r, b, t) = rect.l_r_b_t();
+                        let (l, r, b, t) = (vx(l), vx(r), vy(b), vy(t));
+                        push_ui_quad_to_mesh(
+                            &mut mesh,
+                            [l, t , r, b],
+                            [0.0, 0.0, 0.0, 0.0],
+                            color,
+                            UiMode::Geometry,
+                        );
+                    }
+                    PrimitiveKind::TrianglesSingleColor { color, triangles } => {
+                        // Don't draw transparent triangle or switch state if there are actually no triangles
+                        let color: [f32; 4] = color.into();
+                        if triangles.is_empty() || color[3] == 0.0 {
+                            continue;
+                        }
+
+                        switch_to_plain_state!();
+
+                        for tri in triangles {
+                            // TODO: this code is repeated above, put it in a single location
+                            let triangle = [
+                                [vx(tri[2][0]), vy(tri[2][1])],
+                                [vx(tri[1][0]), vy(tri[1][1])],
+                                [vx(tri[0][0]), vy(tri[0][1])],
+                            ];
+                            push_ui_tri_to_mesh(
+                                &mut mesh,
+                                triangle,
+                                [[0.0; 2]; 3],
+                                [1.0, 1.0, 1.0, 1.0],
+                                UiMode::Geometry,
+                            );
+                        }
+
+                    }
                     _ => {}
                     // TODO: Add these
                     //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
-                    //PrimitiveKind::Rectangle { color } => {println!("primitive kind rect[x:{},y:{},w:{},h:{}] with color {:?} and id {:?}", x, y, w, h, color, id);}
                     //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
-                    //PrimitiveKind::TrianglesSingleColor {..} => {println!("primitive kind singlecolor with id {:?}", id);}
                 }
             }
             // Enter the final command.

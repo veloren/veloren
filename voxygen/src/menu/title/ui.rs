@@ -1,4 +1,3 @@
-// Library
 use conrod_core::{
     Positionable,
     Widget,
@@ -9,8 +8,6 @@ use conrod_core::{
         Id as WidgId,
     }
 };
-
-// Crate
 use crate::{
     window::Window,
     render::Renderer,
@@ -27,7 +24,7 @@ impl TitleUi {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         let widget_id = ui.id_generator().next();
-        let image = image::open(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/test.png")).unwrap();
+        let image = image::open(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/ui/title/test.png")).unwrap();
         let title_img_id = ui.new_image(window.renderer_mut(), &image).unwrap();
         Self {
             ui,

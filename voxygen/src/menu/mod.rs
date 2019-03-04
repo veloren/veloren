@@ -1,3 +1,3 @@
 pub mod title;
-mod title_ui;
+pub mod main;
 pub mod test_hud;
