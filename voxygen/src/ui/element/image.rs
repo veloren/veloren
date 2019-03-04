@@ -1,8 +1,5 @@
 // Standard
-use std::{
-    rc::Rc,
-    cell::RefCell,
-};
+use std::rc::Rc;
 
 // Library
 use image::DynamicImage;

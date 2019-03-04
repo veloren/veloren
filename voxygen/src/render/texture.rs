@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 // Library
 use gfx::{
     self,
-    traits::{Factory, FactoryExt},
+    traits::Factory,
 };
 use image::{
     DynamicImage,
@@ -14,7 +14,6 @@ use image::{
 // Local
 use super::{
     RenderError,
-    mesh::Mesh,
     Pipeline,
     gfx_backend,
 };

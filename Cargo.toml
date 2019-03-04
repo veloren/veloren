@@ -2,6 +2,7 @@
 members = [
 	"common",
 	"client",
+	"chat-cli",
 	"server",
 	"server-cli",
 	"voxygen",
