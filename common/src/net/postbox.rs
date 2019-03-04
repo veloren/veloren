@@ -9,6 +9,7 @@ use std::{
     net::SocketAddr,
     thread,
     time::Duration,
+    sync::mpsc::TryRecvError,
 };
 
 // External
@@ -119,21 +120,17 @@ where
         // If an error occured, or previously occured, just give up
         if let Some(_) = self.err {
             return items.into_iter();
-        } else if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
-            self.err = Some(err.into());
-            return items.into_iter();
         }
 
-        for event in events {
-            match event.token() {
-                DATA_TOKEN => match self.recv.try_recv() {
-                    Ok(Ok(item)) => items.push_back(item),
-                    Err(err) => self.err = Some(err.into()),
-                    Ok(Err(err)) => self.err = Some(err.into()),
-                },
-                _ => (),
+        loop {
+            match self.recv.try_recv() {
+                Ok(Ok(item)) => items.push_back(item),
+                Ok(Err(err)) => self.err = Some(err.into()),
+                Err(TryRecvError::Empty) => break,
+                Err(err) => self.err = Some(err.into()),
             }
         }
+
         items.into_iter()
     }
 }
@@ -167,7 +164,7 @@ fn postbox_thread<S, R>(
                     Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
                     Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
-                    }
+                    },
                 },
                 DATA_TOKEN => {
                     let mut packet = bincode::serialize(&send_rx.try_recv().unwrap()).unwrap();
@@ -204,9 +201,9 @@ fn postbox_thread<S, R>(
                         )
                         .collect::<Vec<u8>>()
                         .as_slice()) {
-                            Ok(ok) => {
+                            Ok(msg) => {
                                 recv_tx
-                                    .send(Ok(ok))
+                                    .send(Ok(msg))
                                     .unwrap();
                                 recv_nextlen = 0;
                             }

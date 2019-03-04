@@ -51,6 +51,7 @@ impl Client {
 
         let mut postbox = PostBox::to_server(addr)?;
         postbox.send(ClientMsg::Chat(String::from("Hello, world!")));
+        postbox.send(ClientMsg::Chat(String::from("World, hello!")));
 
         Ok(Self {
             thread_pool: threadpool::Builder::new()
@@ -178,7 +179,6 @@ impl Client {
             self.last_ping = self.state.get_time();
 
             for msg in new_msgs {
-                println!("Received message");
                 match msg {
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
