@@ -1,28 +1,38 @@
-// Standard
-use std::time::Duration;
+pub mod error;
+pub mod input;
 
-// Library
-use specs::Entity as EcsEntity;
+// Reexports
+pub use specs::Entity as EcsEntity;
+pub use crate::{
+    error::Error,
+    input::Input,
+};
+
+use std::{
+    time::Duration,
+    net::SocketAddr,
+};
 use vek::*;
 use threadpool;
-
-// Project
-use common::{comp::phys::Vel, state::State, terrain::TerrainChunk};
+use specs::Builder;
+use common::{
+    comp,
+    state::State,
+    terrain::TerrainChunk,
+    net::PostBox,
+    msg::{ClientMsg, ServerMsg},
+};
 use world::World;
 
-#[derive(Debug)]
-pub enum Error {
-    ServerShutdown,
-    Other(String),
-}
-
-pub struct Input {
-    // TODO: Use this type to manage client input
-    pub move_dir: Vec2<f32>,
+pub enum Event {
+    Chat(String),
 }
 
 pub struct Client {
     thread_pool: threadpool::ThreadPool,
+
+    last_ping: f64,
+    postbox: PostBox<ClientMsg, ServerMsg>,
 
     tick: u64,
     state: State,
@@ -35,25 +45,35 @@ pub struct Client {
 
 impl Client {
     /// Create a new `Client`.
-    pub fn new() -> Self {
-        Self {
+    #[allow(dead_code)]
+    pub fn new<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
+        let state = State::new();
+
+        let mut postbox = PostBox::to_server(addr)?;
+        postbox.send(ClientMsg::Chat(String::from("Hello, world!")));
+
+        Ok(Self {
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
 
+            last_ping: state.get_time(),
+            postbox,
+
             tick: 0,
-            state: State::new(),
+            state,
             player: None,
 
             // Testing
             world: World::new(),
             chunk: None,
-        }
+        })
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
     /// computationally expensive operations that run outside of the main thread (i.e: threads that
     /// block on I/O operations are exempt).
+    #[allow(dead_code)]
     pub fn thread_pool(&self) -> &threadpool::ThreadPool { &self.thread_pool }
 
     // TODO: Get rid of this
@@ -70,23 +90,41 @@ impl Client {
     }
 
     /// Get a reference to the client's game state.
+    #[allow(dead_code)]
     pub fn state(&self) -> &State { &self.state }
 
     /// Get a mutable reference to the client's game state.
+    #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
+    /// Get an entity from its UID, creating it if it does not exists
+    pub fn get_or_create_entity(&mut self, uid: u64) -> EcsEntity {
+        self.state.ecs_world_mut().create_entity()
+            .with(comp::Uid(uid))
+            .build()
+    }
+
     /// Get the player entity
+    #[allow(dead_code)]
     pub fn player(&self) -> Option<EcsEntity> {
         self.player
     }
 
     /// Get the current tick number.
+    #[allow(dead_code)]
     pub fn get_tick(&self) -> u64 {
         self.tick
     }
 
+    /// Send a chat message to the server
+    #[allow(dead_code)]
+    pub fn send_chat(&mut self, msg: String) -> Result<(), Error> {
+        Ok(self.postbox.send(ClientMsg::Chat(msg))?)
+    }
+
     /// Execute a single client tick, handle input and update the game state by the given duration
-    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<(), Error> {
+    #[allow(dead_code)]
+    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -99,13 +137,19 @@ impl Client {
         // 4) Go through the terrain update queue and apply all changes to the terrain
         // 5) Finish the tick, passing control of the main thread back to the frontend
 
-        // (step 1)
+        // Build up a list of events for this frame, to be passed to the frontend
+        let mut frontend_events = Vec::new();
+
+        // Handle new messages from the server
+        frontend_events.append(&mut self.handle_new_messages()?);
+
+        // Step 3
         if let Some(p) = self.player {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
 
             // TODO: Set acceleration instead
-            self.state.write_component(p, Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+            self.state.write_component(p, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
         }
 
         // Tick the client's LocalState (step 3)
@@ -113,12 +157,49 @@ impl Client {
 
         // Finish the tick, pass control back to the frontend (step 6)
         self.tick += 1;
-        Ok(())
+        Ok(frontend_events)
     }
 
     /// Clean up the client after a tick
+    #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
+    }
+
+    /// Handle new server messages
+    fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
+        let mut frontend_events = Vec::new();
+
+        // Step 1
+        let new_msgs = self.postbox.new_messages();
+
+        if new_msgs.len() > 0 {
+            self.last_ping = self.state.get_time();
+
+            for msg in new_msgs {
+                println!("Received message");
+                match msg {
+                    ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                    ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
+                    ServerMsg::EntityPhysics { uid, pos, vel, dir } => {
+                        let ecs_entity = self.get_or_create_entity(uid);
+                        self.state.write_component(ecs_entity, pos);
+                        self.state.write_component(ecs_entity, vel);
+                        self.state.write_component(ecs_entity, dir);
+                    },
+                }
+            }
+        } else if let Some(err) = self.postbox.status() {
+            return Err(err.into());
+        }
+
+        Ok(frontend_events)
+    }
+}
+
+impl Drop for Client {
+    fn drop(&mut self) {
+        self.postbox.send(ClientMsg::Disconnect).unwrap();
     }
 }

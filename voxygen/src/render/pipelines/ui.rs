@@ -11,15 +11,12 @@ use gfx::{
 };
 
 // Local
-use super::{
-    Globals,
-    super::{
-        Pipeline,
-        TgtColorFmt,
-        TgtDepthFmt,
-        Mesh,
-        Quad,
-    },
+use super::super::{
+    Pipeline,
+    TgtColorFmt,
+    TgtDepthFmt,
+    Mesh,
+    Quad,
 };
 
 gfx_defines! {

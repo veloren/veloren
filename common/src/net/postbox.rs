@@ -112,7 +112,7 @@ where
     /// Non-blocking receiver method returning an iterator over already received and deserialized objects
     /// # Errors
     /// If the other side disconnects PostBox won't realize that until you try to send something
-    pub fn recv_iter(&mut self) -> impl Iterator<Item = R> {
+    pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item = R> {
         let mut events = Events::with_capacity(4096);
         let mut items = VecDeque::new();
 
