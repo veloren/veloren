@@ -1,7 +1,4 @@
-// Standard
 use std::time::Duration;
-
-// Library
 use shred::{Fetch, FetchMut};
 use specs::{
     Builder,
@@ -13,11 +10,14 @@ use specs::{
         Storage as EcsStorage,
         MaskedStorage as EcsMaskedStorage,
     },
+    saveload::MarkerAllocator,
 };
 use vek::*;
-
-// Crate
-use crate::{comp, sys, terrain::TerrainMap};
+use crate::{
+    comp,
+    sys,
+    terrain::TerrainMap,
+};
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this
@@ -91,8 +91,16 @@ impl State {
     }
 
     /// Delete an entity from the state's ECS, if it exists
-    pub fn delete_entity(&mut self, entity: EcsEntity) {
-        let _ = self.ecs_world.delete_entity(entity);
+    pub fn delete_entity(&mut self, uid: comp::Uid) {
+        // Find the ECS entity from its UID
+        let ecs_entity = self.ecs_world
+            .read_resource::<comp::UidAllocator>()
+            .retrieve_entity_internal(uid.into());
+
+        // Delete the ECS entity, if it exists
+        if let Some(ecs_entity) = ecs_entity {
+            let _ = self.ecs_world.delete_entity(ecs_entity);
+        }
     }
 
     // TODO: Get rid of this
