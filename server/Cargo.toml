@@ -9,3 +9,4 @@ common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 
 specs = "0.14"
+vek = "0.9"
