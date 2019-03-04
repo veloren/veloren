@@ -21,30 +21,34 @@ impl Animation for RunAnimation {
         time: f64,
     ) {
         let wave = (time as f32 * 12.0).sin();
+	    let wavecos = (time as f32 * 12.0).cos();
         let wave_slow = (time as f32 * 6.0 + PI).sin();
+        let wavecos_slow = (time as f32 * 6.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
-        skeleton.head.offset = Vec3::unit_z() * 13.0;
-        skeleton.head.ori = Quaternion::rotation_z(wave * 0.3);
+	    skeleton.head.offset = Vec3::new(0.0, 0.0, 0.0);
+        skeleton.head.ori = Quaternion::rotation_x(0.0);
 
-        skeleton.chest.offset = Vec3::unit_z() * 9.0;
-        skeleton.chest.ori = Quaternion::rotation_z(wave * 0.3);
+        skeleton.chest.offset = Vec3::new(0.0, 0.0, 0.0);
+        skeleton.chest.ori = Quaternion::rotation_x(0.0);
 
-        skeleton.belt.offset = Vec3::unit_z() * 7.0;
-        skeleton.belt.ori = Quaternion::rotation_z(wave * 0.2);
+        //skeleton.br_foot.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
+	    //skeleton.br_foot.ori = Quaternion::rotation_x(0.0 + wave_slow * 10.1);
 
-        skeleton.shorts.offset = Vec3::unit_z() * 4.0;
-        skeleton.shorts.ori = Quaternion::rotation_z(wave * 0.1);
+	    skeleton.bl_foot.offset = Vec3::new(0.0, 0.0, 0.0);
+        skeleton.bl_foot.ori = Quaternion::rotation_x(wave_slow * 2.0);
+        //skeleton.bl_foot.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
+        //skeleton.bl_foot.ori = Quaternion::rotation_x(0.5 + wave_slow * 0.1);
 
-        skeleton.l_hand.offset = Vec3::new(-6.0 - wave_dip * 6.0, wave * 5.0, 11.0 - wave_dip * 6.0);
-        skeleton.r_hand.offset = Vec3::new(6.0 + wave_dip * 6.0, -wave * 5.0, 11.0 - wave_dip * 6.0);
+	    //skeleton.r_hand.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
+        //skeleton.r_hand.ori = Quaternion::rotation_x(0.5 + wave_slow * 0.1);
 
-        skeleton.l_foot.offset = Vec3::new(-3.5, 1.0 - wave * 8.0, 3.5 - wave_dip * 4.0);
-        skeleton.l_foot.ori = Quaternion::rotation_x(-wave + 1.0);
-        skeleton.r_foot.offset = Vec3::new(3.5, 1.0 + wave * 8.0, 3.5 - wave_dip * 4.0);
-        skeleton.r_foot.ori = Quaternion::rotation_x(wave + 1.0);
+        skeleton.l_hand.offset = Vec3::new(0.0, 0.0, 0.0);
+        skeleton.l_hand.ori = Quaternion::rotation_x(wave_slow * 2.0);
 
-        skeleton.back.offset = Vec3::new(-9.0, 5.0, 18.0);
-        skeleton.back.ori = Quaternion::rotation_y(2.5);
+        //skeleton.l_hand.offset = Vec3::new(0.0, wavecos_slow * 1.0, wave_slow * 2.0 + wave_dip * 1.0);
+	    //skeleton.l_hand.ori = Quaternion::rotation_x(0.5 + wave_slow * 0.1);
+
+
     }
 }

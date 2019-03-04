@@ -4,7 +4,7 @@ use vek::*;
 
 // Pos
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
@@ -13,7 +13,7 @@ impl Component for Pos {
 
 // Vel
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
@@ -22,7 +22,7 @@ impl Component for Vel {
 
 // Dir
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Dir(pub Vec3<f32>);
 
 impl Component for Dir {

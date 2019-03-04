@@ -25,8 +25,8 @@ fn basic_run() {
     scon.send(String::from("foo")).unwrap();
     client.send(String::from("bar")).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(10));
-    assert_eq!("foo", client.recv_iter().next().unwrap());
-    assert_eq!("bar", scon.recv_iter().next().unwrap());
+    assert_eq!("foo", client.new_messages().next().unwrap());
+    assert_eq!("bar", scon.new_messages().next().unwrap());
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn huge_size_header() {
     std::thread::sleep(std::time::Duration::from_millis(10));
     client.write(&[0xffu8; 64]).unwrap();
     std::thread::sleep(std::time::Duration::from_millis(10));
-    assert_eq!(scon.recv_iter().next(), None);
+    assert_eq!(scon.new_messages().next(), None);
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn disconnect() {
 
     thread::sleep(Duration::from_millis(10));
 
-    match to_client.recv_iter().next() {
+    match to_client.new_messages().next() {
         None => {},
         _ => panic!("Unexpected message!"),
     }

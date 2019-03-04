@@ -3,7 +3,17 @@ use std::time::Duration;
 
 // Library
 use shred::{Fetch, FetchMut};
-use specs::{Builder, Component, DispatcherBuilder, Entity as EcsEntity, World as EcsWorld};
+use specs::{
+    Builder,
+    Component,
+    DispatcherBuilder,
+    Entity as EcsEntity,
+    World as EcsWorld,
+    storage::{
+        Storage as EcsStorage,
+        MaskedStorage as EcsMaskedStorage,
+    },
+};
 use vek::*;
 
 // Crate
@@ -72,6 +82,19 @@ impl State {
         }
     }
 
+    /// Register a component with the state's ECS
+    pub fn with_component<T: Component>(mut self) -> Self
+        where <T as Component>::Storage: Default
+    {
+        self.ecs_world.register::<T>();
+        self
+    }
+
+    /// Delete an entity from the state's ECS, if it exists
+    pub fn delete_entity(&mut self, entity: EcsEntity) {
+        let _ = self.ecs_world.delete_entity(entity);
+    }
+
     // TODO: Get rid of this
     pub fn new_test_player(&mut self) -> EcsEntity {
         self.ecs_world
@@ -82,14 +105,29 @@ impl State {
             .build()
     }
 
-    /// Write a component
-    pub fn write_component<C: Component>(&mut self, e: EcsEntity, c: C) {
-        let _ = self.ecs_world.write_storage().insert(e, c);
+    /// Write a component attributed to a particular entity
+    pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
+        let _ = self.ecs_world.write_storage().insert(entity, comp);
+    }
+
+    /// Read a clone of a component attributed to a particular entity
+    pub fn read_component<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
+        self.ecs_world.read_storage::<C>().get(entity).cloned()
+    }
+
+    /// Get a read-only reference to the storage of a particular component type
+    pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
+        self.ecs_world.read_storage::<C>()
     }
 
     /// Get a reference to the internal ECS world
     pub fn ecs_world(&self) -> &EcsWorld {
         &self.ecs_world
+    }
+
+    /// Get a mutable reference to the internal ECS world
+    pub fn ecs_world_mut(&mut self) -> &mut EcsWorld {
+        &mut self.ecs_world
     }
 
     /// Get a reference to the `Changes` structure of the state. This contains
