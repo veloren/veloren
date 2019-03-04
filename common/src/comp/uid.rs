@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     ops::Range,
+    u64,
 };
 use specs::{
     saveload::{Marker, MarkerAllocator},
@@ -13,9 +14,12 @@ use specs::{
 };
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub struct Uid {
-    id: u64,
-    seq: u64,
+pub struct Uid(pub u64);
+
+impl Into<u64> for Uid {
+    fn into(self) -> u64 {
+        self.0
+    }
 }
 
 impl Component for Uid {
@@ -24,22 +28,30 @@ impl Component for Uid {
 
 impl Marker for Uid {
     type Identifier = u64;
-    type Allocator = UidNode;
+    type Allocator = UidAllocator;
 
-    fn id(&self) -> u64 { self.id }
+    fn id(&self) -> u64 { self.0 }
 
     fn update(&mut self, update: Self) {
-        assert_eq!(self.id, update.id);
-        self.seq = update.seq;
+        assert_eq!(self.0, update.0);
     }
 }
 
-pub struct UidNode {
+pub struct UidAllocator {
     pub(crate) range: Range<u64>,
     pub(crate) mapping: HashMap<u64, Entity>,
 }
 
-impl MarkerAllocator<Uid> for UidNode {
+impl UidAllocator {
+    pub fn new() -> Self {
+        Self {
+            range: 0..u64::MAX,
+            mapping: HashMap::new(),
+        }
+    }
+}
+
+impl MarkerAllocator<Uid> for UidAllocator {
     fn allocate(&mut self, entity: Entity, id: Option<u64>) -> Uid {
         let id = id.unwrap_or_else(|| {
             self.range.next().expect("
@@ -49,7 +61,7 @@ impl MarkerAllocator<Uid> for UidNode {
             ")
         });
         self.mapping.insert(id, entity);
-        Uid { id, seq: 0 }
+        Uid(id)
     }
 
     fn retrieve_entity_internal(&self, id: u64) -> Option<Entity> {

@@ -1,5 +1,13 @@
-#[derive(Debug, Serialize, Deserialize)]
+use crate::comp::phys;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerMsg {
-    Chat(String),
     Shutdown,
+    Chat(String),
+    EntityPhysics {
+        uid: u64,
+        pos: phys::Pos,
+        vel: phys::Vel,
+        dir: phys::Dir,
+    },
 }
