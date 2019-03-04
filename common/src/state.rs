@@ -3,7 +3,17 @@ use std::time::Duration;
 
 // Library
 use shred::{Fetch, FetchMut};
-use specs::{Builder, Component, DispatcherBuilder, Entity as EcsEntity, World as EcsWorld};
+use specs::{
+    Builder,
+    Component,
+    DispatcherBuilder,
+    Entity as EcsEntity,
+    World as EcsWorld,
+    storage::{
+        Storage as EcsStorage,
+        MaskedStorage as EcsMaskedStorage,
+    },
+};
 use vek::*;
 
 // Crate
@@ -95,14 +105,29 @@ impl State {
             .build()
     }
 
-    /// Write a component
-    pub fn write_component<C: Component>(&mut self, e: EcsEntity, c: C) {
-        let _ = self.ecs_world.write_storage().insert(e, c);
+    /// Write a component attributed to a particular entity
+    pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
+        let _ = self.ecs_world.write_storage().insert(entity, comp);
+    }
+
+    /// Read a clone of a component attributed to a particular entity
+    pub fn read_component<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
+        self.ecs_world.read_storage::<C>().get(entity).cloned()
+    }
+
+    /// Get a read-only reference to the storage of a particular component type
+    pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
+        self.ecs_world.read_storage::<C>()
     }
 
     /// Get a reference to the internal ECS world
     pub fn ecs_world(&self) -> &EcsWorld {
         &self.ecs_world
+    }
+
+    /// Get a mutable reference to the internal ECS world
+    pub fn ecs_world_mut(&mut self) -> &mut EcsWorld {
+        &mut self.ecs_world
     }
 
     /// Get a reference to the `Changes` structure of the state. This contains
