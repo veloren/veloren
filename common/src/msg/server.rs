@@ -1,13 +1,18 @@
-use crate::comp::phys;
+use crate::comp::{
+    Uid,
+    phys,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerMsg {
     Shutdown,
     Chat(String),
+    SetPlayerEntity(Uid),
     EntityPhysics {
-        uid: u64,
+        uid: Uid,
         pos: phys::Pos,
         vel: phys::Vel,
         dir: phys::Dir,
     },
+    EntityDeleted(Uid),
 }

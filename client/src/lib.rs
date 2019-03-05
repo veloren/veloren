@@ -14,9 +14,12 @@ use std::{
 };
 use vek::*;
 use threadpool;
-use specs::Builder;
+use specs::{
+    Builder,
+    saveload::MarkerAllocator,
+};
 use common::{
-    comp,
+    comp::{self, Uid},
     state::State,
     terrain::TerrainChunk,
     net::PostBox,
@@ -36,7 +39,7 @@ pub struct Client {
 
     tick: u64,
     state: State,
-    player: Option<EcsEntity>,
+    player: Option<Uid>,
 
     // Testing
     world: World,
@@ -80,7 +83,6 @@ impl Client {
     // TODO: Get rid of this
     pub fn with_test_state(mut self) -> Self {
         self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
-        self.player = Some(self.state.new_test_player());
         self
     }
 
@@ -99,15 +101,32 @@ impl Client {
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
     /// Get an entity from its UID, creating it if it does not exists
-    pub fn get_or_create_entity(&mut self, uid: u64) -> EcsEntity {
-        self.state.ecs_world_mut().create_entity()
-            .with(comp::Uid(uid))
-            .build()
+    pub fn get_or_create_entity(&mut self, uid: Uid) -> EcsEntity {
+        // Find the ECS entity from its UID
+        let ecs_entity = self.state().ecs_world()
+            .read_resource::<comp::UidAllocator>()
+            .retrieve_entity_internal(uid.into());
+
+        // Return the entity or create it
+        if let Some(ecs_entity) = ecs_entity {
+            ecs_entity
+        } else {
+            let ecs_entity = self.state.ecs_world_mut().create_entity()
+                .build();
+
+            // Allocate it the specific UID given
+            self.state
+                .ecs_world_mut()
+                .write_resource::<comp::UidAllocator>()
+                .allocate(ecs_entity, Some(uid.into()));
+
+            ecs_entity
+        }
     }
 
     /// Get the player entity
     #[allow(dead_code)]
-    pub fn player(&self) -> Option<EcsEntity> {
+    pub fn player(&self) -> Option<Uid> {
         self.player
     }
 
@@ -145,12 +164,12 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // Step 3
-        if let Some(p) = self.player {
+        if let Some(ecs_entity) = self.player.and_then(|uid| self.state().get_entity(uid)) {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
 
             // TODO: Set acceleration instead
-            self.state.write_component(p, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+            self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
         }
 
         // Tick the client's LocalState (step 3)
@@ -182,11 +201,15 @@ impl Client {
                 match msg {
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
+                    ServerMsg::SetPlayerEntity(uid) => self.player = Some(uid),
                     ServerMsg::EntityPhysics { uid, pos, vel, dir } => {
                         let ecs_entity = self.get_or_create_entity(uid);
                         self.state.write_component(ecs_entity, pos);
                         self.state.write_component(ecs_entity, vel);
                         self.state.write_component(ecs_entity, dir);
+                    },
+                    ServerMsg::EntityDeleted(uid) => {
+                        self.state.delete_entity(uid);
                     },
                 }
             }
