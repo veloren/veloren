@@ -6,6 +6,8 @@ use crate::comp::{
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerMsg {
     Shutdown,
+    Ping,
+    Pong,
     Chat(String),
     SetPlayerEntity(Uid),
     EntityPhysics {

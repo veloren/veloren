@@ -120,14 +120,22 @@ where
         // If an error occured, or previously occured, just give up
         if let Some(_) = self.err {
             return items.into_iter();
+        } else if let Err(err) = self.poll.poll(&mut events, Some(Duration::new(0, 0))) {
+            self.err = Some(err.into());
+            return items.into_iter();
         }
 
-        loop {
-            match self.recv.try_recv() {
-                Ok(Ok(item)) => items.push_back(item),
-                Ok(Err(err)) => self.err = Some(err.into()),
-                Err(TryRecvError::Empty) => break,
-                Err(err) => self.err = Some(err.into()),
+        for event in events {
+            match event.token() {
+                DATA_TOKEN => loop {
+                    match self.recv.try_recv() {
+                        Ok(Ok(item)) => items.push_back(item),
+                        Err(TryRecvError::Empty) => break,
+                        Err(err) => self.err = Some(err.into()),
+                        Ok(Err(err)) => self.err = Some(err.into()),
+                    }
+                },
+                _ => (),
             }
         }
 
@@ -145,15 +153,17 @@ fn postbox_thread<S, R>(
     S: PostSend,
     R: PostRecv,
 {
-    let mut events = Events::with_capacity(64);
     // Receiving related variables
+    let mut events = Events::with_capacity(64);
     let mut recv_buff = Vec::new();
     let mut recv_nextlen: u64 = 0;
     loop {
         let mut disconnected = false;
-        poll.poll(&mut events, None)
+        poll.poll(&mut events, Some(Duration::from_millis(20)))
             .expect("Failed to execute poll(), most likely fault of the OS");
+        println!("FINISHED POLL!");
         for event in events.iter() {
+            println!("EVENT!");
             match event.token() {
                 CTRL_TOKEN => match ctrl_rx.try_recv().unwrap() {
                     ControlMsg::Shutdown => return,
@@ -162,16 +172,17 @@ fn postbox_thread<S, R>(
                     Ok(_) => {}
                     // Returned when all the data has been read
                     Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
-                    Err(e) => {
-                        recv_tx.send(Err(e.into())).unwrap();
-                    },
+                    Err(e) => recv_tx.send(Err(e.into())).unwrap(),
                 },
                 DATA_TOKEN => {
-                    let mut packet = bincode::serialize(&send_rx.try_recv().unwrap()).unwrap();
+                    let msg = send_rx.try_recv().unwrap();
+                    println!("Send: {:?}", msg);
+                    let mut packet = bincode::serialize(&msg).unwrap();
                     packet.splice(0..0, (packet.len() as u64).to_be_bytes().iter().cloned());
                     match connection.write_bufs(&[packet.as_slice().into()]) {
-                        Ok(_) => {}
+                        Ok(_) => { println!("Sent!"); }
                         Err(e) => {
+                            println!("Send error!");
                             recv_tx.send(Err(e.into())).unwrap();
                         }
                     };
@@ -181,9 +192,9 @@ fn postbox_thread<S, R>(
         }
         loop {
             if recv_nextlen == 0 && recv_buff.len() >= 8 {
+                println!("Read nextlen");
                 recv_nextlen = u64::from_be_bytes(
-                    <[u8; 8]>::try_from(recv_buff.drain(0..8).collect::<Vec<u8>>().as_slice())
-                        .unwrap(),
+                    <[u8; 8]>::try_from(recv_buff.drain(0..8).collect::<Vec<u8>>().as_slice()).unwrap(),
                 );
                 if recv_nextlen > MESSAGE_SIZE_CAP {
                     recv_tx.send(Err(PostErrorInternal::MsgSizeLimitExceeded)).unwrap();
@@ -202,15 +213,16 @@ fn postbox_thread<S, R>(
                         .collect::<Vec<u8>>()
                         .as_slice()) {
                             Ok(msg) => {
+                                println!("Recv: {:?}", msg);
                                 recv_tx
                                     .send(Ok(msg))
                                     .unwrap();
                                 recv_nextlen = 0;
                             }
                             Err(e) => {
+                                println!("Recv error: {:?}", e);
                                 recv_tx.send(Err(e.into())).unwrap();
                                 recv_nextlen = 0;
-                                continue
                             }
                         }
             } else {
