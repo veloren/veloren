@@ -3,6 +3,7 @@ use common::net::PostError;
 #[derive(Debug)]
 pub enum Error {
     Network(PostError),
+    ServerTimeout,
     ServerShutdown,
     Other(String),
 }
@@ -10,7 +11,7 @@ pub enum Error {
 impl From<PostError> for Error {
     fn from(err: PostError) -> Self {
         match err {
-            PostError::Disconnected => Error::ServerShutdown,
+            PostError::Disconnect => Error::ServerShutdown,
             err => Error::Network(err),
         }
     }

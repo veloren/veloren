@@ -1,3 +1,5 @@
+#![feature(label_break_value)]
+
 pub mod error;
 pub mod input;
 
@@ -27,6 +29,8 @@ use common::{
 };
 use world::World;
 
+const SERVER_TIMEOUT: f64 = 5.0; // Seconds
+
 pub enum Event {
     Chat(String),
 }
@@ -39,7 +43,7 @@ pub struct Client {
 
     tick: u64,
     state: State,
-    player: Option<Uid>,
+    player: Option<EcsEntity>,
 
     // Testing
     world: World,
@@ -101,7 +105,7 @@ impl Client {
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
     /// Get an entity from its UID, creating it if it does not exists
-    pub fn get_or_create_entity(&mut self, uid: Uid) -> EcsEntity {
+    pub fn get_or_create_entity_from_uid(&mut self, uid: Uid) -> EcsEntity {
         // Find the ECS entity from its UID
         let ecs_entity = self.state().ecs_world()
             .read_resource::<comp::UidAllocator>()
@@ -126,7 +130,7 @@ impl Client {
 
     /// Get the player entity
     #[allow(dead_code)]
-    pub fn player(&self) -> Option<Uid> {
+    pub fn player(&self) -> Option<EcsEntity> {
         self.player
     }
 
@@ -138,8 +142,8 @@ impl Client {
 
     /// Send a chat message to the server
     #[allow(dead_code)]
-    pub fn send_chat(&mut self, msg: String) -> Result<(), Error> {
-        Ok(self.postbox.send(ClientMsg::Chat(msg))?)
+    pub fn send_chat(&mut self, msg: String) {
+        self.postbox.send(ClientMsg::Chat(msg))
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration
@@ -164,7 +168,7 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         // Step 3
-        if let Some(ecs_entity) = self.player.and_then(|uid| self.state().get_entity(uid)) {
+        if let Some(ecs_entity) = self.player {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
 
@@ -174,6 +178,20 @@ impl Client {
 
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
+
+        // Update the server about the player's physics attributes
+        if let Some(ecs_entity) = self.player {
+            match (
+                self.state.read_storage().get(ecs_entity).cloned(),
+                self.state.read_storage().get(ecs_entity).cloned(),
+                self.state.read_storage().get(ecs_entity).cloned(),
+            ) {
+                (Some(pos), Some(vel), Some(dir)) => {
+                    self.postbox.send(ClientMsg::PlayerPhysics { pos, vel, dir });
+                },
+                _ => {},
+            }
+        }
 
         // Finish the tick, pass control back to the frontend (step 6)
         self.tick += 1;
@@ -200,10 +218,17 @@ impl Client {
             for msg in new_msgs {
                 match msg {
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                    ServerMsg::Ping => self.postbox.send(ClientMsg::Pong),
+                    ServerMsg::Pong => {},
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
-                    ServerMsg::SetPlayerEntity(uid) => self.player = Some(uid),
+                    ServerMsg::SetPlayerEntity(uid) => {
+                        println!("Ent!");
+                        let ecs_entity = self.get_or_create_entity_from_uid(uid);
+                        self.player = Some(ecs_entity);
+                    },
                     ServerMsg::EntityPhysics { uid, pos, vel, dir } => {
-                        let ecs_entity = self.get_or_create_entity(uid);
+                        println!("Phys!");
+                        let ecs_entity = self.get_or_create_entity_from_uid(uid);
                         self.state.write_component(ecs_entity, pos);
                         self.state.write_component(ecs_entity, vel);
                         self.state.write_component(ecs_entity, dir);
@@ -213,8 +238,12 @@ impl Client {
                     },
                 }
             }
-        } else if let Some(err) = self.postbox.status() {
+        } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
+        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
+            self.postbox.send(ClientMsg::Ping);
+        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
+            return Err(Error::ServerTimeout);
         }
 
         Ok(frontend_events)
@@ -223,6 +252,6 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
-        self.postbox.send(ClientMsg::Disconnect).unwrap();
+        self.postbox.send(ClientMsg::Disconnect);
     }
 }
