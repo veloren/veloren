@@ -90,6 +90,14 @@ impl State {
         self
     }
 
+    /// Get an entity from its UID, if it exists
+    pub fn get_entity(&self, uid: comp::Uid) -> Option<EcsEntity> {
+        // Find the ECS entity from its UID
+        self.ecs_world
+            .read_resource::<comp::UidAllocator>()
+            .retrieve_entity_internal(uid.into())
+    }
+
     /// Delete an entity from the state's ECS, if it exists
     pub fn delete_entity(&mut self, uid: comp::Uid) {
         // Find the ECS entity from its UID
@@ -101,16 +109,6 @@ impl State {
         if let Some(ecs_entity) = ecs_entity {
             let _ = self.ecs_world.delete_entity(ecs_entity);
         }
-    }
-
-    // TODO: Get rid of this
-    pub fn new_test_player(&mut self) -> EcsEntity {
-        self.ecs_world
-            .create_entity()
-            .with(comp::phys::Pos(Vec3::default()))
-            .with(comp::phys::Vel(Vec3::default()))
-            .with(comp::phys::Dir(Vec3::default()))
-            .build()
     }
 
     /// Write a component attributed to a particular entity

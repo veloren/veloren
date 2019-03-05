@@ -3,7 +3,7 @@ use log::info;
 use server::{Input, Event, Server};
 use common::clock::Clock;
 
-const FPS: u64 = 60;
+const TPS: u64 = 20;
 
 fn main() {
     // Init logging
@@ -24,9 +24,9 @@ fn main() {
 
         for event in events {
             match event {
-                Event::ClientConnected { uid } => println!("Client {} connected!", uid),
-                Event::ClientDisconnected { uid } => println!("Client {} disconnected!", uid),
-                Event::Chat { uid, msg } => println!("[Client {}] {}", uid, msg),
+                Event::ClientConnected { uid } => info!("Client {} connected!", uid),
+                Event::ClientDisconnected { uid } => info!("Client {} disconnected!", uid),
+                Event::Chat { uid, msg } => info!("[Client {}] {}", uid, msg),
             }
         }
 
@@ -34,6 +34,6 @@ fn main() {
         server.cleanup();
 
         // Wait for the next tick
-        clock.tick(Duration::from_millis(1000 / FPS));
+        clock.tick(Duration::from_millis(1000 / TPS));
     }
 }
