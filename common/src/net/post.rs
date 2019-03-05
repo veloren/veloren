@@ -430,3 +430,133 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
     tcp_stream.shutdown(Shutdown::Both);
     Ok(())
 }
+
+// TESTS
+
+#[test]
+use std::{
+    thread,
+    time::Duration,
+};
+
+#[test]
+fn connect() {
+    let srv_addr = ([127, 0, 0, 1], 12345);
+
+    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+
+    // We should start off with 0 incoming connections
+    thread::sleep(Duration::from_millis(250));
+    assert_eq!(postoffice.new_connections().len(), 0);
+    assert_eq!(postoffice.error(), None);
+
+    let postbox = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+
+    // Now a postbox has been created, we should have 1 new
+    thread::sleep(Duration::from_millis(250));
+    let incoming = postoffice.new_connections();
+    assert_eq!(incoming.len(), 1);
+    assert_eq!(postoffice.error(), None);
+}
+
+#[test]
+fn connection_count() {
+    let srv_addr = ([127, 0, 0, 1], 12346);
+
+    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut postboxes = Vec::new();
+
+    // We should start off with 0 incoming connections
+    thread::sleep(Duration::from_millis(250));
+    assert_eq!(postoffice.new_connections().len(), 0);
+    assert_eq!(postoffice.error(), None);
+
+    for _ in 0..5 {
+        postboxes.push(PostBox::<f32, u32>::to_server(srv_addr).unwrap());
+    }
+
+    // 10 postboxes created, we should have 10
+    thread::sleep(Duration::from_millis(3500));
+    let incoming = postoffice.new_connections();
+    assert_eq!(incoming.len(), 5);
+    assert_eq!(postoffice.error(), None);
+}
+
+#[test]
+fn disconnect() {
+    let srv_addr = ([127, 0, 0, 1], 12347);
+
+    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+
+    let mut server_postbox = {
+        let mut client_postbox = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+
+        thread::sleep(Duration::from_millis(250));
+        let mut incoming = postoffice.new_connections();
+        assert_eq!(incoming.len(), 1);
+        assert_eq!(postoffice.error(), None);
+
+        incoming.next().unwrap()
+    };
+
+    // The client postbox has since been disconnected
+    thread::sleep(Duration::from_millis(2050));
+    let incoming_msgs = server_postbox.new_messages();
+    assert_eq!(incoming_msgs.len(), 0);
+    // TODO
+    // assert_eq!(server_postbox.error(), Some(Error::Disconnect));
+}
+
+#[test]
+fn client_to_server() {
+    let srv_addr = ([127, 0, 0, 1], 12348);
+
+    let mut po = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+
+    let mut client_pb = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+
+    thread::sleep(Duration::from_millis(250));
+
+    let mut server_pb = po.new_connections().next().unwrap();
+
+    client_pb.send(1337.0).unwrap();
+    client_pb.send(9821.0).unwrap();
+    client_pb.send(-3.2).unwrap();
+    client_pb.send(17.0).unwrap();
+
+    thread::sleep(Duration::from_millis(250));
+
+    let mut incoming_msgs = server_pb.new_messages();
+    assert_eq!(incoming_msgs.len(), 4);
+    assert_eq!(incoming_msgs.next().unwrap(), 1337.0);
+    assert_eq!(incoming_msgs.next().unwrap(), 9821.0);
+    assert_eq!(incoming_msgs.next().unwrap(), -3.2);
+    assert_eq!(incoming_msgs.next().unwrap(), 17.0);
+}
+
+#[test]
+fn server_to_client() {
+    let srv_addr = ([127, 0, 0, 1], 12349);
+
+    let mut po = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+
+    let mut client_pb = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+
+    thread::sleep(Duration::from_millis(250));
+
+    let mut server_pb = po.new_connections().next().unwrap();
+
+    server_pb.send(1337).unwrap();
+    server_pb.send(9821).unwrap();
+    server_pb.send(39999999).unwrap();
+    server_pb.send(17).unwrap();
+
+    thread::sleep(Duration::from_millis(250));
+
+    let mut incoming_msgs = client_pb.new_messages();
+    assert_eq!(incoming_msgs.len(), 4);
+    assert_eq!(incoming_msgs.next().unwrap(), 1337);
+    assert_eq!(incoming_msgs.next().unwrap(), 9821);
+    assert_eq!(incoming_msgs.next().unwrap(), 39999999);
+    assert_eq!(incoming_msgs.next().unwrap(), 17);
+}
