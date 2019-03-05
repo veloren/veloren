@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 specs = { version = "0.14", features = ["serde"] }
-shred = "0.7"
+shred = { version = "0.7", features = ["nightly"] }
 vek = { version = "0.9", features = ["serde"] }
 dot_vox = "1.0"
 threadpool = "1.7"

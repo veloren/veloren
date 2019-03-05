@@ -28,3 +28,14 @@ pub struct Dir(pub Vec3<f32>);
 impl Component for Dir {
     type Storage = VecStorage<Self>;
 }
+
+// UpdateKind
+#[derive(Copy, Clone, Debug)]
+pub enum UpdateKind {
+    Passive,
+    Force,
+}
+
+impl Component for UpdateKind {
+    type Storage = VecStorage<Self>;
+}
