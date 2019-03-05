@@ -7,7 +7,7 @@ use common::{
 use crate::Error;
 
 pub struct Client {
-    pub uid: comp::Uid,
+    pub ecs_entity: EcsEntity,
     pub postbox: PostBox<ServerMsg, ClientMsg>,
     pub last_ping: f64,
 }
@@ -33,16 +33,14 @@ impl Clients {
 
     pub fn notify_all(&mut self, msg: ServerMsg) {
         for client in &mut self.clients {
-            // Consume any errors, deal with them later
-            let _ = client.postbox.send(msg.clone());
+            client.postbox.send(msg.clone());
         }
     }
 
-    pub fn notify_all_except(&mut self, uid: comp::Uid, msg: ServerMsg) {
+    pub fn notify_all_except(&mut self, ecs_entity: EcsEntity, msg: ServerMsg) {
         for client in &mut self.clients {
-            if client.uid != uid {
-                // Consume any errors, deal with them later
-                let _ = client.postbox.send(msg.clone());
+            if client.ecs_entity != ecs_entity {
+                client.postbox.send(msg.clone());
             }
         }
     }

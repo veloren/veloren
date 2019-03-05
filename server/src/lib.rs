@@ -38,13 +38,13 @@ const CLIENT_TIMEOUT: f64 = 5.0; // Seconds
 
 pub enum Event {
     ClientConnected {
-        uid: comp::Uid,
+        ecs_entity: EcsEntity,
     },
     ClientDisconnected {
-        uid: comp::Uid,
+        ecs_entity: EcsEntity,
     },
     Chat {
-        uid: comp::Uid,
+        ecs_entity: EcsEntity,
         msg: String,
     },
 }
@@ -65,7 +65,7 @@ impl Server {
             state: State::new(),
             world: World::new(),
 
-            postoffice: PostOffice::new(SocketAddr::from(([0; 4], 59003)))?,
+            postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
             clients: Clients::empty(),
         })
     }
@@ -89,9 +89,7 @@ impl Server {
             .with(comp::phys::Pos(Vec3::zero()))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            // When the player is first created, force a physics notification to everyone
-            // including themselves.
-            .with(comp::phys::UpdateKind::Force)
+            .with(comp::phys::UpdateKind::Passive)
     }
 
     /// Get a reference to the server's world.
@@ -122,7 +120,7 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         // If networking has problems, handle them
-        if let Some(err) = self.postoffice.status() {
+        if let Some(err) = self.postoffice.error() {
             return Err(err.into());
         }
 
@@ -154,19 +152,23 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         for mut postbox in self.postoffice.new_connections() {
-            let ecs_entity = self.build_player().build();
-            let uid = self.state.read_component(ecs_entity).unwrap();
+            let ecs_entity = self.build_player()
+                // When the player is first created, force a physics notification to everyone
+                // including themselves.
+                .with(comp::phys::UpdateKind::Force)
+                .build();
+            let uid = self.state.read_storage().get(ecs_entity).cloned().unwrap();
 
-            let _ = postbox.send(ServerMsg::SetPlayerEntity(uid));
+            postbox.send(ServerMsg::SetPlayerEntity(uid));
 
             self.clients.add(Client {
-                uid,
+                ecs_entity,
                 postbox,
                 last_ping: self.state.get_time(),
             });
 
             frontend_events.push(Event::ClientConnected {
-                uid,
+                ecs_entity,
             });
         }
 
@@ -192,19 +194,26 @@ impl Server {
                 // Process incoming messages
                 for msg in new_msgs {
                     match msg {
-                        ClientMsg::Chat(msg) => new_chat_msgs.push((client.uid, msg)),
+                        ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
+                        ClientMsg::Pong => {},
+                        ClientMsg::Chat(msg) => new_chat_msgs.push((client.ecs_entity, msg)),
+                        ClientMsg::PlayerPhysics { pos, vel, dir } => {
+                            state.write_component(client.ecs_entity, pos);
+                            state.write_component(client.ecs_entity, vel);
+                            state.write_component(client.ecs_entity, dir);
+                        },
                         ClientMsg::Disconnect => disconnected = true,
                     }
                 }
             } else if
                 state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
-                client.postbox.status().is_some() // Postbox eror
+                client.postbox.error().is_some() // Postbox eror
             {
                 disconnected = true;
             }
 
             if disconnected {
-                disconnected_clients.push(client.uid);
+                disconnected_clients.push(client.ecs_entity);
                 true
             } else {
                 false
@@ -212,24 +221,24 @@ impl Server {
         });
 
         // Handle new chat messages
-        for (uid, msg) in new_chat_msgs {
+        for (ecs_entity, msg) in new_chat_msgs {
             self.clients.notify_all(ServerMsg::Chat(msg.clone()));
 
             frontend_events.push(Event::Chat {
-                uid,
+                ecs_entity,
                 msg,
             });
         }
 
         // Handle client disconnects
-        for uid in disconnected_clients {
-            self.clients.notify_all(ServerMsg::EntityDeleted(uid));
+        for ecs_entity in disconnected_clients {
+            self.clients.notify_all(ServerMsg::EntityDeleted(state.read_storage().get(ecs_entity).cloned().unwrap()));
 
             frontend_events.push(Event::ClientDisconnected {
-                uid,
+                ecs_entity,
             });
 
-            state.delete_entity(uid);
+            state.ecs_world_mut().delete_entity(ecs_entity);
         }
 
         Ok(frontend_events)
@@ -237,7 +246,8 @@ impl Server {
 
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
-        for (&uid, &pos, &vel, &dir, update_kind) in (
+        for (entity, &uid, &pos, &vel, &dir, update_kind) in (
+            &self.state.ecs_world().entities(),
             &self.state.ecs_world().read_storage::<comp::Uid>(),
             &self.state.ecs_world().read_storage::<comp::phys::Pos>(),
             &self.state.ecs_world().read_storage::<comp::phys::Vel>(),
@@ -255,11 +265,17 @@ impl Server {
             // everyone, including the player themselves, of their new physics information.
             match update_kind {
                 comp::phys::UpdateKind::Force => self.clients.notify_all(msg),
-                comp::phys::UpdateKind::Passive => self.clients.notify_all_except(uid, msg),
+                comp::phys::UpdateKind::Passive => self.clients.notify_all_except(entity, msg),
             }
 
             // Now that the update has occured, default to a passive update
             *update_kind = comp::phys::UpdateKind::Passive;
         }
+    }
+}
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        self.clients.notify_all(ServerMsg::Shutdown);
     }
 }

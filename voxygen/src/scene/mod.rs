@@ -135,18 +135,17 @@ impl Scene {
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         // Get player position
-        let player_pos = match client.player().and_then(|uid| client.state().get_entity(uid)) {
-            Some(ecs_entity) => {
-                client
-                    .state()
-                    .ecs_world()
-                    .read_storage::<comp::phys::Pos>()
-                    .get(ecs_entity)
-                    .expect("There was no position component on the player entity!")
-                    .0
-            }
-            None => Vec3::default(),
-        };
+        let player_pos = client
+            .player()
+            .and_then(|ent| client
+                .state()
+                .ecs_world()
+                .read_storage::<comp::phys::Pos>()
+                .get(ent)
+                .map(|pos| pos.0)
+            )
+            .unwrap_or(Vec3::zero());
+
         // Alter camera position to match player
         self.camera.set_focus_pos(player_pos);
 
