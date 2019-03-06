@@ -204,6 +204,9 @@ impl Server {
                 client.postbox.error().is_some() // Postbox error
             {
                 disconnected = true;
+            } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT * 0.5 {
+                // Try pinging the client if the timeout is nearing
+                client.postbox.send(ServerMsg::Ping);
             }
 
             if disconnected {
