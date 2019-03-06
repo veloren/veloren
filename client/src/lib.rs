@@ -217,10 +217,11 @@ impl Client {
             }
         } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
-        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            self.postbox.send(ClientMsg::Ping);
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
+        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
+            // Try pinging the server if the timeout is nearing
+            self.postbox.send(ClientMsg::Ping);
         }
 
         Ok(frontend_events)
