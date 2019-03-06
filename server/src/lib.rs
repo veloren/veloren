@@ -77,15 +77,9 @@ impl Server {
     #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
-    /// Build a new entity with a generated UID
-    pub fn build_entity(&mut self) -> EcsEntityBuilder {
-        self.state.ecs_world_mut().create_entity()
-            .marked::<comp::Uid>()
-    }
-
     /// Build a new player with a generated UID
     pub fn build_player(&mut self) -> EcsEntityBuilder {
-        self.build_entity()
+        self.state.build_uid_entity()
             .with(comp::phys::Pos(Vec3::zero()))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
@@ -207,7 +201,7 @@ impl Server {
                 }
             } else if
                 state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
-                client.postbox.error().is_some() // Postbox eror
+                client.postbox.error().is_some() // Postbox error
             {
                 disconnected = true;
             }

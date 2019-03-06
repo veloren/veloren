@@ -4,13 +4,14 @@ use specs::{
     Builder,
     Component,
     DispatcherBuilder,
+    EntityBuilder as EcsEntityBuilder,
     Entity as EcsEntity,
     World as EcsWorld,
     storage::{
         Storage as EcsStorage,
         MaskedStorage as EcsMaskedStorage,
     },
-    saveload::MarkerAllocator,
+    saveload::{MarkedBuilder, MarkerAllocator},
 };
 use vek::*;
 use crate::{
@@ -88,6 +89,24 @@ impl State {
     {
         self.ecs_world.register::<T>();
         self
+    }
+
+    /// Build a new entity with a generated UID
+    pub fn build_uid_entity(&mut self) -> EcsEntityBuilder {
+        self.ecs_world.create_entity()
+            .with(comp::util::New)
+            .marked::<comp::Uid>()
+    }
+
+    /// Build an entity with a specific UID
+    pub fn build_uid_entity_with_uid(&mut self, uid: comp::Uid) -> EcsEntityBuilder {
+        let builder = self.build_uid_entity();
+
+        builder.world
+            .write_resource::<comp::UidAllocator>()
+            .allocate(builder.entity, Some(uid.into()));
+
+        builder
     }
 
     /// Get an entity from its UID, if it exists
@@ -168,6 +187,9 @@ impl State {
 
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
+        // First, wipe all temporary marker components
+        self.ecs_world.write_storage::<comp::util::New>().clear();
+
         // Change the time accordingly
         self.ecs_world.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs_world.write_resource::<Time>().0 += dt.as_secs_f64();
