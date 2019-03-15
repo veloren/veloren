@@ -21,7 +21,7 @@ use crate::{
     window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    menu::test_hud::TestHud,
+    hud::Hud,
 };
 
 const FPS: u64 = 60;
@@ -30,8 +30,7 @@ pub struct SessionState {
     scene: Scene,
     client: Client,
     key_state: KeyState,
-    // TODO: remove this
-    test_hud: TestHud,
+    hud: Hud,
 }
 
 /// Represents an active game session (i.e: one that is being played)
@@ -44,7 +43,7 @@ impl SessionState {
             scene: Scene::new(window.renderer_mut(), &client),
             client,
             key_state: KeyState::new(),
-            test_hud: TestHud::new(window),
+            hud: Hud::new(window),
         })
     }
 }
@@ -83,7 +82,7 @@ impl SessionState {
         // Render the screen using the global renderer
         self.scene.render_to(renderer);
         // Draw the UI to the screen
-        self.test_hud.render(renderer);
+        self.hud.render(renderer);
 
         // Finish the frame
         renderer.flush();
@@ -111,12 +110,16 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
+
                 let _handled = match event {
+
                     Event::Close => return PlayStateResult::Shutdown,
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
                     // When 'm' is pressed, open/close the in-game test menu
-                    Event::Char('m') => self.test_hud.toggle_menu(),
+                    Event::Char('m') => self.hud.toggle_menu(),
+                    // Close windows on esc
+                    Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
@@ -133,7 +136,7 @@ impl PlayState for SessionState {
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     // Pass events to ui
                     Event::UiEvent(input) => {
-                        self.test_hud.handle_event(input);
+                        self.hud.handle_event(input);
                     }
                     // Pass all other events to the scene
                     event => { self.scene.handle_input_event(event); },
@@ -148,7 +151,7 @@ impl PlayState for SessionState {
             // Maintain the scene
             self.scene.maintain(global_state.window.renderer_mut(), &self.client);
             // Maintain the UI
-            self.test_hud.maintain(global_state.window.renderer_mut());
+            self.hud.maintain(global_state.window.renderer_mut());
 
             // Render the session
             self.render(global_state.window.renderer_mut());
