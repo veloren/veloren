@@ -1,7 +1,9 @@
 #![feature(drain_filter)]
+#![recursion_limit="2048"]
 
 pub mod anim;
 pub mod error;
+pub mod hud;
 pub mod key_state;
 pub mod menu;
 pub mod mesh;

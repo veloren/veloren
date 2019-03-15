@@ -1,3 +1,2 @@
-pub mod title;
 pub mod main;
-pub mod test_hud;
+pub mod title;

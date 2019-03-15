@@ -28,13 +28,13 @@ impl Window {
         let events_loop = glutin::EventsLoop::new();
 
         let win_builder = glutin::WindowBuilder::new()
-            .with_title("Veloren (Voxygen)")
-            .with_dimensions(glutin::dpi::LogicalSize::new(800.0, 500.0))
-            .with_maximized(false);
+            .with_title("Veloren")
+            .with_dimensions(glutin::dpi::LogicalSize::new(1366.0, 768.0))
+            .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
-            .with_vsync(true);
+            .with_vsync(false);
 
         let (
             window,
@@ -49,7 +49,8 @@ impl Window {
         ).map_err(|err| Error::BackendError(Box::new(err)))?;
 
         let mut key_map = HashMap::new();
-        key_map.insert(glutin::VirtualKeyCode::Escape, Key::ToggleCursor);
+        key_map.insert(glutin::VirtualKeyCode::Tab, Key::ToggleCursor);
+        key_map.insert(glutin::VirtualKeyCode::Escape, Key::Escape);
         key_map.insert(glutin::VirtualKeyCode::W, Key::MoveForward);
         key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
         key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
@@ -84,12 +85,12 @@ impl Window {
         let mut events = vec![];
         self.events_loop.poll_events(|event| match {
             // Hack grab of events for testing ui
-            if let Some(event) = conrod_winit::convert_event(event.clone(), window.window()) {
+		   if let Some(event) = conrod_winit::convert_event(event.clone(), window.window()) {
                 events.push(Event::UiEvent(event));
-            }
+				}
             event
         } {
-            glutin::Event::WindowEvent { event, .. } => match event {
+			glutin::Event::WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                 glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
                     let (mut color_view, mut depth_view) = renderer.target_views_mut();
@@ -101,6 +102,7 @@ impl Window {
                     events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                 },
                 glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+
                 glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
                     Some(keycode) => match key_map.get(&keycode) {
                         Some(&key) => events.push(match input.state {
@@ -157,6 +159,7 @@ pub enum Key {
     MoveBack,
     MoveLeft,
     MoveRight,
+	Escape,
 }
 
 /// Represents an incoming event from the window
