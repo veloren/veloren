@@ -1,17 +1,9 @@
+use crate::{render::Renderer, ui::Ui, window::Window};
 use conrod_core::{
-    Positionable,
-    Widget,
     event::Input,
     image::Id as ImgId,
-    widget::{
-        Image as ImageWidget,
-        Id as WidgId,
-    }
-};
-use crate::{
-    window::Window,
-    render::Renderer,
-    ui::Ui
+    widget::{Id as WidgId, Image as ImageWidget},
+    Positionable, Widget,
 };
 
 pub struct TitleUi {
@@ -24,7 +16,12 @@ impl TitleUi {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         let widget_id = ui.id_generator().next();
-        let image = image::open(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/ui/title/test.png")).unwrap();
+        // TODO: use separate image for logo
+        let image = image::open(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/test_assets/ui/title/splash.png"
+        ))
+        .unwrap();
         let title_img_id = ui.new_image(window.renderer_mut(), &image).unwrap();
         Self {
             ui,
