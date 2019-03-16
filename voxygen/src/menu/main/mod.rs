@@ -61,7 +61,7 @@ impl PlayState for MainMenuState {
             if let Some((username, address)) = self.main_menu_ui.login_attempt() {
                 // For now just start a new session
                 return PlayStateResult::Push(
-                    Box::new(SessionState::new(&mut global_state.window.unwrap()), // TODO: Handle this error
+                    Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
                 );
             }
 
