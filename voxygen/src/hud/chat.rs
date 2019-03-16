@@ -15,7 +15,7 @@ widget_ids! {
         input_bg,
     }
 }
-// Consider making this a Widget
+// Consider making this a custom Widget
 pub struct Chat {
     ids: Ids,
     messages: VecDeque<String>,
@@ -50,9 +50,9 @@ impl Chat {
             }
         }
     }
-    pub fn update_layout(&mut self, ui_widgets: &mut UiCell) {
+    pub fn update_layout(&mut self, ui_widgets: &mut UiCell) -> Option<String> {
         // If enter is pressed send the current message
-        if ui_widgets
+        let new_msg = if ui_widgets
             .widget_input(self.ids.input)
             .presses()
             .key()
@@ -61,12 +61,16 @@ impl Chat {
                 _ => false,
             })
         {
-            self.new_message(self.input.clone());
+            let new_message = self.input.clone();
+            self.input.clear();
+            self.new_message(new_message.clone());
             // Scroll to the bottom
             // TODO: uncomment when we can actually get chat messages from other people
             //ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
-            self.input.clear();
-        }
+            Some(new_message)
+        } else {
+            None
+        };
 
         // Maintain scrolling
         if self.new_messages {
@@ -98,7 +102,7 @@ impl Chat {
         }
 
         // Message box
-        Rectangle::fill([500.0, 90.0])
+        Rectangle::fill([500.0, 300.0])
             .rgba(0.0, 0.0, 0.0, 0.5)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
@@ -120,5 +124,7 @@ impl Chat {
         if let Some(s) = scrollbar {
             s.set(ui_widgets)
         }
+
+        new_msg
     }
 }

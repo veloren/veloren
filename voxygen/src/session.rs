@@ -21,7 +21,7 @@ use crate::{
     window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    hud::Hud,
+    hud::{Hud, Event as HudEvent},
 };
 
 const FPS: u64 = 60;
@@ -151,7 +151,13 @@ impl PlayState for SessionState {
             // Maintain the scene
             self.scene.maintain(global_state.window.renderer_mut(), &self.client);
             // Maintain the UI
-            self.hud.maintain(global_state.window.renderer_mut());
+            for event in self.hud.maintain(global_state.window.renderer_mut()) {
+                match event {
+                    HudEvent::SendMessage(message) => {} // TODO: Send msg here
+                    HudEvent::Logout => return PlayStateResult::Pop,
+                    HudEvent::Quit => return PlayStateResult::Shutdown,
+                }
+            }
 
             // Render the session
             self.render(global_state.window.renderer_mut());

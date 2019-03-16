@@ -1,6 +1,8 @@
 // TODO: figure out proper way to propagate events down to the ui
+mod widgets;
 
-// Library
+pub use widgets::toggle_button::ToggleButton;
+
 use image::DynamicImage;
 use conrod_core::{
     Ui as CrUi,
@@ -18,8 +20,6 @@ use conrod_core::{
     input::{touch::Touch, Widget, Motion},
 };
 use vek::*;
-
-// Crate
 use crate::{
     Error,
     render::{
