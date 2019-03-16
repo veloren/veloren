@@ -2,18 +2,15 @@ mod chat;
 
 use crate::{
     render::Renderer,
-    ui::{ScaleMode, Ui},
+    ui::{ScaleMode, Ui, ToggleButton},
     window::Window,
-    Error, GlobalState, PlayState, PlayStateResult,
 };
 use conrod_core::{
-    color::TRANSPARENT,
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Canvas, Image, TextBox, TitleBar},
+    widget::{text_box::Event as TextBoxEvent, Button, Canvas, Image, TextBox, Text, TitleBar},
     widget_ids, Borderable, Color,
-    Color::Rgba,
     Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -68,14 +65,15 @@ widget_ids! {
         settings_button_mo,
         settings_close,
         settings_title,
-            //Contents
-            button_help,
-            button_help2,
-            interface,
-            video,
-            sound,
-            gameplay,
-            controls,
+        //Contents
+        button_help,
+        button_help2,
+        show_help_label,
+        interface,
+        video,
+        sound,
+        gameplay,
+        controls,
         //1 Social
         social_frame,
         social_bg,
@@ -107,6 +105,7 @@ widget_ids! {
         questlog_close,
         questlog_title,
 
+        extra,
     }
 }
 
@@ -294,6 +293,20 @@ impl Imgs {
     }
 }
 
+enum SettingsTab {
+    Interface,
+    Video,
+    Sound,
+    Gameplay,
+    Controls,
+}
+
+pub enum Event {
+    SendMessage(String),
+    Logout,
+    Quit,
+}
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -310,11 +323,7 @@ pub struct Hud {
     mmap_button_3: bool,
     mmap_button_4: bool,
     mmap_button_5: bool,
-    settings_interface: bool,
-    settings_video: bool,
-    settings_sound: bool,
-    settings_gameplay: bool,
-    settings_controls: bool,
+    settings_tab: SettingsTab
 }
 
 impl Hud {
@@ -323,7 +332,7 @@ impl Hud {
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
         // Generate ids
-        let mut ids = Ids::new(ui.id_generator());
+        let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
@@ -348,11 +357,7 @@ impl Hud {
             imgs,
             ids,
             chat,
-            settings_interface: false,
-            settings_controls: false,
-            settings_gameplay: false,
-            settings_sound: false,
-            settings_video: false,
+            settings_tab: SettingsTab::Interface,
             show_help: true,
             bag_open: false,
             menu_open: false,
@@ -368,49 +373,38 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self) {
+    fn update_layout(&mut self) -> Vec<Event> {
         let ref mut ui_widgets = self.ui.set_widgets();
+        let mut events = Vec::new();
+
         // Chat box
-        self.chat.update_layout(ui_widgets);
-        // Check if the bag was clicked
-        // (can't use .was_clicked() because we are changing the image and this is after setting the widget which causes flickering as it takes a frame to change after the mouse button is lifted)
-        if ui_widgets
-            .widget_input(self.ids.bag)
-            .clicks()
-            .left()
-            .count()
-            % 2
-            == 1
-        {
-            self.bag_open = !self.bag_open;
+        if let Some(msg) = self.chat.update_layout(ui_widgets) {
+            events.push(Event::SendMessage(msg));
         }
-        // Bag contents
-        // Note that display_contents is set before checking if the bag was clicked
-        // this ensures that the contents and open bag img are displayed on the same frame
+
         //Help Text
         if self.show_help {
             TitleBar::new(
-                "
-        Tab = Free Cursor
-        Esc = Open/Close Menus
-        Q = Back to Login
-
-        F1 = Toggle this Window
-        F2 = Toggle Interface
-
-        M = Map
-        I = Inventory
-        L = Quest-Log
-        C = Character Window
-        O = Social
-        P = Spellbook
-        N = Settings",
+               "Tab = Free Cursor       \n\
+                Esc = Open/Close Menus  \n\
+                Q = Back to Login       \n\
+                                        \n\
+                F1 = Toggle this Window \n\
+                F2 = Toggle Interface   \n\
+                                        \n\
+                M = Map                 \n\
+                I = Inventory           \n\
+                L = Quest-Log           \n\
+                C = Character Window    \n\
+                O = Social              \n\
+                P = Spellbook           \n\
+                N = Settings",
                 self.ids.halp,
             )
             .rgba(235.0, 170.0, 114.0, 0.3)
             .border_rgba(235.0, 170.0, 114.0, 1.0)
-            .top_left_with_margins_on(ui_widgets.window, -18.0, -30.0)
-            .w_h(300.0, 300.0)
+            .top_left_of(ui_widgets.window)
+            .w_h(300.0, 280.0)
             .font_id(self.font_whitney)
             .label_font_size(18)
             .label_rgba(0.0, 0.0, 0.0, 1.0)
@@ -430,25 +424,6 @@ impl Hud {
                 self.show_help = false;
             };
         }
-        if self.bag_open {
-            // Contents
-            Image::new(self.imgs.bag_contents)
-                .w_h(1504.0 / 4.0, 1760.0 / 4.0)
-                .bottom_right_with_margins(88.0, 68.0)
-                .set(self.ids.bag_contents, ui_widgets);
-
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
-                .set(self.ids.bag_close, ui_widgets)
-                .was_clicked()
-            {
-                self.bag_open = false;
-            }
-        }
 
         // Minimap frame and bg
         Image::new(self.imgs.mmap_frame_bg)
@@ -466,15 +441,12 @@ impl Hud {
             .right_from(self.ids.mmap_frame, 0.0)
             .align_bottom_of(self.ids.mmap_frame)
             .set(self.ids.mmap_icons, ui_widgets);
-        //Title
-        //TODO Make it display the actual Location
-        TitleBar::new("Unknown Location", self.ids.mmap_frame)
-            .color(TRANSPARENT)
-            .border_color(TRANSPARENT)
-            .top_right_with_margins_on(self.ids.mmap_frame, 5.0, 0.0)
-            .w_h(1750.0 / 8.0, 15.0)
-            .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+        // Title
+        // TODO Make it display the actual Location
+        Text::new("Unknown Location")
+            .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
+            .font_size(14)
+            .rgba(220.0, 220.0, 220.0, 0.8)
             .set(self.ids.mmap_location, ui_widgets);
 
         // Minimap Buttons
@@ -496,7 +468,7 @@ impl Hud {
             self.mmap_button_5 = false;
             self.bag_open = false;
         };
-        //2 Map
+        // 2 Map
         if Button::image(self.imgs.mmap_button)
             .w_h(448.0 / 15.0, 448.0 / 15.0)
             .down_from(self.ids.mmap_button_1, 0.0)
@@ -509,8 +481,8 @@ impl Hud {
             self.bag_open = false;
         };
 
-        //Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
-        //Opening the Map won't close the windows displayed before.
+        // Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
+        // Opening the Map won't close the windows displayed before.
 
         if self.mmap_button_0 == false && self.mmap_button_2 == false {
             //1 Social
@@ -577,7 +549,7 @@ impl Hud {
             .mid_bottom_of(ui_widgets.window)
             .set(self.ids.xp_bar, ui_widgets);
 
-        //LeftGrid
+        // LeftGrid
         Image::new(self.imgs.sb_grid)
             .w_h(2240.0 / 8.0, 448.0 / 8.0)
             .up_from(self.ids.xp_bar, 0.0)
@@ -589,7 +561,7 @@ impl Hud {
             .middle_of(self.ids.sb_grid_l)
             .set(self.ids.sb_grid_bg_l, ui_widgets);
 
-        //Right Grid
+        // Right Grid
         Image::new(self.imgs.sb_grid)
             .w_h(2240.0 / 8.0, 448.0 / 8.0)
             .up_from(self.ids.xp_bar, 0.0)
@@ -601,7 +573,7 @@ impl Hud {
             .middle_of(self.ids.sb_grid_r)
             .set(self.ids.sb_grid_bg_r, ui_widgets);
 
-        //Right and Left Click
+        // Right and Left Click
         Image::new(self.imgs.l_click)
             .w_h(224.0 / 4.0, 320.0 / 4.0)
             .right_from(self.ids.sb_grid_bg_l, 0.0)
@@ -614,7 +586,7 @@ impl Hud {
             .align_bottom_of(self.ids.sb_grid_bg_r)
             .set(self.ids.r_click, ui_widgets);
 
-        //Health- and Mana-Bar
+        // Health- and Mana-Bar
         Image::new(self.imgs.health_bar)
             .w_h(1120.0 / 4.0, 96.0 / 4.0)
             .left_from(self.ids.l_click, 0.0)
@@ -635,30 +607,39 @@ impl Hud {
 
         // Bag
         if self.mmap_button_2 == false {
-            Button::image(if self.bag_open {
-                self.imgs.bag_open
-            } else {
-                self.imgs.bag
-            })
-            .bottom_right_with_margin_on(ui_widgets.window, 20.0)
-            .hover_image(if self.bag_open {
-                self.imgs.bag_open_hover
-            } else {
-                self.imgs.bag_hover
-            })
-            .press_image(if self.bag_open {
-                self.imgs.bag_open_press
-            } else {
-                self.imgs.bag_press
-            })
-            .w_h(420.0 / 6.0, 480.0 / 6.0)
-            .set(self.ids.bag, ui_widgets);
-        }
-        if self.mmap_button_2 {
+            self.bag_open =
+                ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
+                    .bottom_right_with_margin_on(ui_widgets.window, 20.0)
+                    .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
+                    .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
+                    .w_h(420.0 / 4.0, 480.0 / 4.0)
+                    .set(self.ids.bag, ui_widgets);
+
+        } else {
             Image::new(self.imgs.bag)
                 .bottom_right_with_margin_on(ui_widgets.window, 20.0)
                 .w_h(420.0 / 4.0, 480.0 / 4.0)
                 .set(self.ids.bag_map_open, ui_widgets);
+        }
+        // Bag contents
+        if self.bag_open {
+            // Contents
+            Image::new(self.imgs.bag_contents)
+                .w_h(1504.0 / 4.0, 1760.0 / 4.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 88.0, 68.0)
+                .set(self.ids.bag_contents, ui_widgets);
+
+            // X-button
+            if Button::image(self.imgs.close_button)
+                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
+                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
+                .set(self.ids.bag_close, ui_widgets)
+                .was_clicked()
+            {
+                self.bag_open = false;
+            }
         }
 
         //Windows
@@ -684,23 +665,16 @@ impl Hud {
                 .was_clicked()
             {
                 self.mmap_button_0 = false;
-                self.settings_interface = true;
-                self.settings_controls = false;
-                self.settings_gameplay = false;
-                self.settings_sound = false;
-                self.settings_video = false;
+                self.settings_tab = SettingsTab::Interface;
             }
 
-            //Title
-            TitleBar::new("Settings", self.ids.settings_bg)
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(20.0)
-                .w_h(600.0 / 3.0, 8.0)
-                .label_font_size(30)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Settings")
+                .mid_top_with_margin_on(self.ids.settings_bg, 10.0)
+                .font_size(30)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.settings_title, ui_widgets);
-            //Icon
+            // Icon
             Image::new(self.imgs.settings_icon)
                 .w_h(224.0 / 3.0, 224.0 / 3.0)
                 .top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
@@ -718,36 +692,22 @@ impl Hud {
                 .set(self.ids.interface, ui_widgets)
                 .was_clicked()
             {
-                self.settings_interface = true;
-                self.settings_controls = false;
-                self.settings_gameplay = false;
-                self.settings_sound = false;
-                self.settings_video = false;
+                self.settings_tab = SettingsTab::Interface;
             }
             //Toggle Help
-            if self.settings_interface {
-                if Button::image(if self.show_help {
-                    self.imgs.check_checked
-                } else {
-                    self.imgs.check
-                })
-                .w_h(288.0 / 10.0, 288.0 / 10.0)
-                .middle_of(self.ids.settings_bg)
-                .hover_image(if self.show_help {
-                    self.imgs.check_checked_mo
-                } else {
-                    self.imgs.check_mo
-                })
-                .press_image(self.imgs.check_press)
-                .label_x(conrod_core::position::Relative::Scalar(55.0))
-                .label("Show Help")
-                .label_font_size(12)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.button_help, ui_widgets)
-                .was_clicked()
-                {
-                    self.show_help = !self.show_help;
-                };
+            if let SettingsTab::Interface = self.settings_tab {
+                self.show_help = ToggleButton::new(self.show_help, self.imgs.check, self.imgs.check_checked)
+                    .w_h(288.0 / 10.0, 288.0 / 10.0)
+                    .middle_of(self.ids.settings_bg)
+                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                    .press_images(self.imgs.check_press, self.imgs.check_press)
+                    .set(self.ids.button_help, ui_widgets);
+                Text::new("Show Help")
+                    .x_relative_to(self.ids.button_help, 55.0)
+                    .font_size(12)
+                    .graphics_for(self.ids.button_help)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.show_help_label, ui_widgets);
             }
             //2 Gameplay////////////////
             if Button::image(self.imgs.button_blank)
@@ -761,11 +721,7 @@ impl Hud {
                 .set(self.ids.gameplay, ui_widgets)
                 .was_clicked()
             {
-                self.settings_interface = false;
-                self.settings_controls = false;
-                self.settings_gameplay = true;
-                self.settings_sound = false;
-                self.settings_video = false;
+                self.settings_tab = SettingsTab::Gameplay;
             }
 
             //3 Controls/////////////////////
@@ -780,11 +736,7 @@ impl Hud {
                 .set(self.ids.controls, ui_widgets)
                 .was_clicked()
             {
-                self.settings_interface = false;
-                self.settings_controls = true;
-                self.settings_gameplay = false;
-                self.settings_sound = false;
-                self.settings_video = false;
+                self.settings_tab = SettingsTab::Controls;
             }
 
             //4 Video////////////////////////////////
@@ -799,11 +751,7 @@ impl Hud {
                 .set(self.ids.video, ui_widgets)
                 .was_clicked()
             {
-                self.settings_interface = false;
-                self.settings_controls = false;
-                self.settings_gameplay = false;
-                self.settings_sound = false;
-                self.settings_video = true;
+                self.settings_tab = SettingsTab::Video;
             }
 
             //5 Sound///////////////////////////////
@@ -818,36 +766,8 @@ impl Hud {
                 .set(self.ids.sound, ui_widgets)
                 .was_clicked()
             {
-                self.settings_interface = false;
-                self.settings_controls = false;
-                self.settings_gameplay = false;
-                self.settings_sound = true;
-                self.settings_video = false;
+                self.settings_tab = SettingsTab::Sound;
             }
-
-            //Toggle Help
-            if Button::image(if self.show_help {
-                self.imgs.check_checked
-            } else {
-                self.imgs.check
-            })
-            .w_h(288.0 / 10.0, 288.0 / 10.0)
-            .middle_of(self.ids.settings_bg)
-            .hover_image(if self.show_help {
-                self.imgs.check_checked_mo
-            } else {
-                self.imgs.check_mo
-            })
-            .press_image(self.imgs.check_press)
-            .label_x(conrod_core::position::Relative::Scalar(55.0))
-            .label("Show Help")
-            .label_font_size(12)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
-            .set(self.ids.button_help, ui_widgets)
-            .was_clicked()
-            {
-                self.show_help = !self.show_help;
-            };
         }
         //1 Social
 
@@ -888,14 +808,10 @@ impl Hud {
             {
                 self.mmap_button_1 = false;
             }
-            //Title
-            TitleBar::new("Social", self.ids.social_frame)
-                .center_justify_label()
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(10.0)
-                .w_h(500.0 / 3.0, 8.0)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Social")
+                .mid_top_with_margin_on(self.ids.social_frame, 7.0)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.social_title, ui_widgets);
         }
 
@@ -937,14 +853,10 @@ impl Hud {
             {
                 self.mmap_button_3 = false;
             }
-            //Title
-            TitleBar::new("Spellbook", self.ids.spellbook_frame)
-                .center_justify_label()
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(10.0)
-                .w_h(500.0 / 3.0, 8.0)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Spellbook")
+                .mid_top_with_margin_on(self.ids.spellbook_frame, 7.0)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.spellbook_title, ui_widgets);
         }
 
@@ -979,14 +891,10 @@ impl Hud {
             {
                 self.mmap_button_4 = false;
             }
-            //Title
-            TitleBar::new("Character Name", self.ids.charwindow_frame) //Add in actual Character Name
-                .center_justify_label()
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(10.0)
-                .w_h(500.0 / 3.0, 8.0)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Character Name") //Add in actual Character Name
+                .mid_top_with_margin_on(self.ids.charwindow_frame, 7.0)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.charwindow_title, ui_widgets);
         }
 
@@ -1028,14 +936,10 @@ impl Hud {
             {
                 self.mmap_button_5 = false;
             }
-            //Title
-            TitleBar::new("Quest-Log", self.ids.questlog_frame)
-                .center_justify_label()
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(10.0)
-                .w_h(500.0 / 3.0, 8.0)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Quest-Log")
+                .mid_top_with_margin_on(self.ids.questlog_frame, 7.0)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.questlog_title, ui_widgets);
         }
         //2 Map
@@ -1069,20 +973,16 @@ impl Hud {
             {
                 self.mmap_button_2 = false;
             }
-            //Title
-            TitleBar::new("Map", self.ids.map_frame)
-                .center_justify_label()
-                .color(TRANSPARENT)
-                .border_color(TRANSPARENT)
-                .mid_top_with_margin(10.0)
-                .w_h(500.0 / 3.0, 8.0)
-                .label_font_size(50)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+            // Title
+            Text::new("Map")
+                .mid_top_with_margin_on(self.ids.map_frame, -7.0)
+                .font_size(50)
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.map_title, ui_widgets);
         }
 
         //ESC-MENU
-        //Background
+        // Background
         if self.menu_open {
             Image::new(self.imgs.esc_bg)
                 .w_h(228.0, 450.0)
@@ -1094,13 +994,13 @@ impl Hud {
                 .mid_top_with_margin_on(self.ids.esc_bg, 50.0)
                 .set(self.ids.fireplace, ui_widgets);
 
-            //Settings
+            // Settings
             if Button::image(self.imgs.button_dark)
                 .mid_top_with_margin_on(self.ids.esc_bg, 115.0)
                 .w_h(170.0, 50.0)
-                .label("Settings")
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
+                .label("Settings")
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .label_font_size(20)
                 .set(self.ids.menu_button_1, ui_widgets)
@@ -1109,68 +1009,64 @@ impl Hud {
                 self.menu_open = false;
                 self.mmap_button_0 = true;
             };
-            //Controls
+            // Controls
             if Button::image(self.imgs.button_dark)
                 .mid_top_with_margin_on(self.ids.esc_bg, 175.0)
                 .w_h(170.0, 50.0)
-                .label("Controls")
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
+                .label("Controls")
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .label_font_size(20)
                 .set(self.ids.menu_button_2, ui_widgets)
                 .was_clicked()
             {
                 //self.menu_open = false;
-
             };
-            //Servers
-
+            // Servers
             if Button::image(self.imgs.button_dark)
                 .mid_top_with_margin_on(self.ids.esc_bg, 235.0)
                 .w_h(170.0, 50.0)
-                .label("Servers")
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
+                .label("Servers")
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .label_font_size(20)
                 .set(self.ids.menu_button_3, ui_widgets)
                 .was_clicked()
             {
                 //self.menu_open = false;
-
             };
-            //Logout
-
+            // Logout
             if Button::image(self.imgs.button_dark)
                 .mid_top_with_margin_on(self.ids.esc_bg, 295.0)
                 .w_h(170.0, 50.0)
-                .label("Logout")
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
+                .label("Logout")
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .label_font_size(20)
                 .set(self.ids.menu_button_4, ui_widgets)
                 .was_clicked()
-            {};
-            //Quit
-
+            {
+                events.push(Event::Logout);
+            };
+            // Quit
             if Button::image(self.imgs.button_dark)
                 .mid_top_with_margin_on(self.ids.esc_bg, 355.0)
                 .w_h(170.0, 50.0)
-                .label("Quit")
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
+                .label("Quit")
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .label_font_size(20)
                 .set(self.ids.menu_button_5, ui_widgets)
                 .was_clicked()
             {
-                use std::process;
-
-                process::exit(0x0256);
+                events.push(Event::Quit);
             };
         }
+        events
     }
 
     pub fn toggle_menu(&mut self) {
@@ -1181,9 +1077,10 @@ impl Hud {
         self.ui.handle_event(input);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) {
-        self.update_layout();
+    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
+        let events = self.update_layout();
         self.ui.maintain(renderer);
+        events
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
