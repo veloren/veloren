@@ -63,7 +63,14 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        self.client.tick(client::Input { move_dir }, dt)?;
+        for event in self.client.tick(client::Input { move_dir }, dt)? {
+            match event {
+                client::Event::Chat(msg) => {
+                    self.hud.new_message(msg);
+                }
+            }
+        }
+        
         Ok(())
     }
 
@@ -153,7 +160,10 @@ impl PlayState for SessionState {
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
                 match event {
-                    HudEvent::SendMessage(message) => {} // TODO: Send msg here
+                    HudEvent::SendMessage(msg) => {
+                        // TODO: Handle result
+                        self.client.send_chat(msg);
+                    },
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => return PlayStateResult::Shutdown,
                 }
