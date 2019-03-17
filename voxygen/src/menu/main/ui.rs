@@ -2,16 +2,14 @@ use crate::{
     render::Renderer,
     ui::{ScaleMode, Ui},
     window::Window,
-    Error, GlobalState, PlayState, PlayStateResult,
 };
 use conrod_core::{
     color::TRANSPARENT,
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Canvas, Image, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, TextBox},
     widget_ids, Borderable, Color,
-    Color::Rgba,
     Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -34,32 +32,21 @@ widget_ids! {
         singleplayer_text,
         // Buttons
         servers_button,
-        servers_text,
         settings_button,
-        settings_text,
         quit_button,
-        quit_text,
     }
 }
 
 struct Imgs {
     bg: ImgId,
     v_logo: ImgId,
-    alpha_version: ImgId,
 
-    address_text: ImgId,
-    username_text: ImgId,
     input_bg: ImgId,
 
-    login_text: ImgId,
     login_button: ImgId,
     login_button_hover: ImgId,
     login_button_press: ImgId,
-    singleplayer_text: ImgId,
 
-    servers_text: ImgId,
-    settings_text: ImgId,
-    quit_text: ImgId,
     button: ImgId,
     button_hover: ImgId,
     button_press: ImgId,
@@ -81,29 +68,29 @@ impl Imgs {
         Imgs {
             bg: load("bg.png"),
             v_logo: load("v_logo.png"),
-            alpha_version: load("text/a01.png"),
 
             // Input fields
-            address_text: load("text/server_address.png"),
-            username_text: load("text/username.png"),
             input_bg: load("input_bg.png"),
 
             // Login button
-            login_text: load("text/login.png"),
-            singleplayer_text: load("text/singleplayer.png"),
             login_button: load("buttons/button_login.png"),
             login_button_hover: load("buttons/button_login_hover.png"),
             login_button_press: load("buttons/button_login_press.png"),
 
             // Servers, settings, and quit buttons
-            servers_text: load("text/servers.png"),
-            settings_text: load("text/settings.png"),
-            quit_text: load("text/quit.png"),
             button: load("buttons/button.png"),
             button_hover: load("buttons/button_hover.png"),
             button_press: load("buttons/button_press.png"),
         }
     }
+}
+
+pub enum Event {
+    LoginAttempt {
+        username: String,
+        server_address: String,
+    },
+    Quit,
 }
 
 pub struct MainMenuUi {
@@ -114,7 +101,6 @@ pub struct MainMenuUi {
     font_whitney: FontId,
     username: String,
     server_address: String,
-    attempt_login: bool,
 }
 
 impl MainMenuUi {
@@ -149,21 +135,11 @@ impl MainMenuUi {
             font_whitney,
             username: "Username".to_string(),
             server_address: "Server Address".to_string(),
-            attempt_login: false,
         }
     }
 
-    // TODO: probably a better way to do this
-    pub fn login_attempt(&mut self) -> Option<(String, String)> {
-        if self.attempt_login {
-            self.attempt_login = false;
-            Some((self.username.clone(), self.server_address.clone()))
-        } else {
-            None
-        }
-    }
-
-    fn update_layout(&mut self) {
+    fn update_layout(&mut self) -> Vec<Event> {
+        let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
@@ -183,7 +159,10 @@ impl MainMenuUi {
         // Used when the login button is pressed, or enter is pressed within input field
         macro_rules! login {
             () => {
-                self.attempt_login = true;
+                events.push(Event::LoginAttempt {
+                    username: self.username.clone(),
+                    server_address: self.server_address.clone(),
+                });
             };
         }
         // Username
@@ -281,8 +260,7 @@ impl MainMenuUi {
             .set(self.ids.quit_button, ui_widgets)
             .was_clicked()
         {
-            use PlayStateResult::Shutdown;
-            PlayStateResult::Pop;
+            events.push(Event::Quit);
         };
         // Settings
         if Button::image(self.imgs.button)
@@ -310,15 +288,18 @@ impl MainMenuUi {
             .set(self.ids.servers_button, ui_widgets)
             .was_clicked()
         {};
+
+        events
     }
 
     pub fn handle_event(&mut self, input: Input) {
         self.ui.handle_event(input);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) {
-        self.update_layout();
+    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
+        let events = self.update_layout();
         self.ui.maintain(renderer);
+        events
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
