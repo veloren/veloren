@@ -9,8 +9,8 @@ use conrod_core::{
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Canvas, Image, TextBox, Text, TitleBar},
-    widget_ids, Borderable, Color,
+    widget::{Button, Image, Text, TitleBar},
+    widget_ids, Borderable,
     Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -374,8 +374,8 @@ impl Hud {
     }
 
     fn update_layout(&mut self) -> Vec<Event> {
-        let ref mut ui_widgets = self.ui.set_widgets();
         let mut events = Vec::new();
+        let ref mut ui_widgets = self.ui.set_widgets();
 
         // Chat box
         if let Some(msg) = self.chat.update_layout(ui_widgets) {

@@ -1,31 +1,31 @@
 mod ui;
 
-use super::char_selection::CharSelectionState;
 use crate::{
     window::{Event, Window},
+    session::SessionState,
     GlobalState, PlayState, PlayStateResult,
 };
 use common::clock::Clock;
 use std::time::Duration;
-use ui::{Event as MainMenuEvent, MainMenuUi};
+use ui::CharSelectionUi;
 use vek::*;
 
 const FPS: u64 = 60;
 
-pub struct MainMenuState {
-    main_menu_ui: MainMenuUi,
+pub struct CharSelectionState {
+    char_selection_ui: CharSelectionUi,
 }
 
-impl MainMenuState {
-    /// Create a new `MainMenuState`
+impl CharSelectionState {
+    /// Create a new `CharSelectionState`
     pub fn new(window: &mut Window) -> Self {
         Self {
-            main_menu_ui: MainMenuUi::new(window),
+            char_selection_ui: CharSelectionUi::new(window),
         }
     }
 }
 
-// Background colour
+// The background colour
 const BG_COLOR: Rgba<f32> = Rgba {
     r: 0.0,
     g: 0.3,
@@ -33,7 +33,7 @@ const BG_COLOR: Rgba<f32> = Rgba {
     a: 1.0,
 };
 
-impl PlayState for MainMenuState {
+impl PlayState for CharSelectionState {
     fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock
         let mut clock = Clock::new();
@@ -43,9 +43,14 @@ impl PlayState for MainMenuState {
             for event in global_state.window.fetch_events() {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
+                    // When any key is pressed, go to the main menu
+                    Event::Char(_) =>
+                        return PlayStateResult::Push(
+                            Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
+                        ),
                     // Pass events to ui
                     Event::UiEvent(input) => {
-                        self.main_menu_ui.handle_event(input);
+                        self.char_selection_ui.handle_event(input);
                     }
                     // Ignore all other events
                     _ => {}
@@ -55,19 +60,10 @@ impl PlayState for MainMenuState {
             global_state.window.renderer_mut().clear(BG_COLOR);
 
             // Maintain the UI
-            for event in self.main_menu_ui.maintain(global_state.window.renderer_mut()) {
-                 match event {
-                     MainMenuEvent::LoginAttempt{ username, server_address } =>
-                         // For now just start a new session
-                         return PlayStateResult::Push(
-                             Box::new(CharSelectionState::new(&mut global_state.window))
-                         ),
-                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
-                 }
-            }
+            self.char_selection_ui.maintain(global_state.window.renderer_mut());
 
             // Draw the UI to the screen
-            self.main_menu_ui.render(global_state.window.renderer_mut());
+            self.char_selection_ui.render(global_state.window.renderer_mut());
 
             // Finish the frame
             global_state.window.renderer_mut().flush();
