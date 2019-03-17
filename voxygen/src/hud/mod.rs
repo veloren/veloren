@@ -1069,6 +1069,10 @@ impl Hud {
         events
     }
 
+    pub fn new_message(&mut self, msg: String) {
+        self.chat.new_message(msg);
+    }
+
     pub fn toggle_menu(&mut self) {
         self.menu_open = !self.menu_open;
     }
