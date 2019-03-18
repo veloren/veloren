@@ -25,7 +25,7 @@ impl Clock {
 
     pub fn get_last_delta(&self) -> Duration { self.last_delta.unwrap_or(Duration::new(0, 0)) }
 
-    pub fn get_avg_delta(&self) -> Duration { Duration::from_float_secs(self.running_tps_average) }
+    pub fn get_avg_delta(&self) -> Duration { Duration::from_secs_f64(self.running_tps_average) }
 
     pub fn tick(&mut self, tgt: Duration) {
         let delta = SystemTime::now()
@@ -45,6 +45,6 @@ impl Clock {
         self.last_delta = Some(delta);
         self.running_tps_average =
             CLOCK_SMOOTHING * self.running_tps_average +
-            (1.0 - CLOCK_SMOOTHING) * delta.as_float_secs();
+            (1.0 - CLOCK_SMOOTHING) * delta.as_secs_f64();
     }
 }
