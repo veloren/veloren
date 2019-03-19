@@ -19,6 +19,9 @@ gfx_device_gl = { version = "0.15", optional = true }
 gfx_window_glutin = "0.28"
 glutin = "0.19"
 
+# ECS
+specs = "0.14"
+
 # Mathematics
 vek = "0.9"
 
