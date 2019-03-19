@@ -3,7 +3,6 @@ pub mod error;
 pub mod post;
 pub mod postbox;
 pub mod postoffice;
-mod test;
 
 // Reexports
 pub use self::{
