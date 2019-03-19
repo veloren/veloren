@@ -1,4 +1,5 @@
-// Crate
+use specs::{Component, VecStorage};
+use vek::*;
 use crate::{
     Error,
     render::{
@@ -76,4 +77,16 @@ impl<S: Skeleton> Figure<S> {
             &self.bone_consts,
         );
     }
+}
+
+
+#[derive(Copy, Clone, Debug)]
+pub struct Figure<S: Skeleton> {
+    bone_consts: Consts<FigureBoneData>,
+    locals: Consts<FigureLocals>,
+    skeleton: S,
+}
+
+impl<S: Skeleton> Component for Figure<S> {
+    type Storage = VecStorage<Self>;
 }
