@@ -1,23 +1,24 @@
-// Standard
 use std::time::Duration;
-
-// Library
 use shred::{Fetch, FetchMut};
 use specs::{
     Builder,
     Component,
     DispatcherBuilder,
+    EntityBuilder as EcsEntityBuilder,
     Entity as EcsEntity,
     World as EcsWorld,
     storage::{
         Storage as EcsStorage,
         MaskedStorage as EcsMaskedStorage,
     },
+    saveload::{MarkedBuilder, MarkerAllocator},
 };
 use vek::*;
-
-// Crate
-use crate::{comp, sys, terrain::TerrainMap};
+use crate::{
+    comp,
+    sys,
+    terrain::TerrainMap,
+};
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this
@@ -90,29 +91,48 @@ impl State {
         self
     }
 
-    /// Delete an entity from the state's ECS, if it exists
-    pub fn delete_entity(&mut self, entity: EcsEntity) {
-        let _ = self.ecs_world.delete_entity(entity);
+    /// Build a new entity with a generated UID
+    pub fn build_uid_entity(&mut self) -> EcsEntityBuilder {
+        self.ecs_world.create_entity()
+            .with(comp::util::New)
+            .marked::<comp::Uid>()
     }
 
-    // TODO: Get rid of this
-    pub fn new_test_player(&mut self) -> EcsEntity {
+    /// Build an entity with a specific UID
+    pub fn build_uid_entity_with_uid(&mut self, uid: comp::Uid) -> EcsEntityBuilder {
+        let builder = self.build_uid_entity();
+
+        builder.world
+            .write_resource::<comp::UidAllocator>()
+            .allocate(builder.entity, Some(uid.into()));
+
+        builder
+    }
+
+    /// Get an entity from its UID, if it exists
+    pub fn get_entity(&self, uid: comp::Uid) -> Option<EcsEntity> {
+        // Find the ECS entity from its UID
         self.ecs_world
-            .create_entity()
-            .with(comp::phys::Pos(Vec3::default()))
-            .with(comp::phys::Vel(Vec3::default()))
-            .with(comp::phys::Dir(Vec3::default()))
-            .build()
+            .read_resource::<comp::UidAllocator>()
+            .retrieve_entity_internal(uid.into())
+    }
+
+    /// Delete an entity from the state's ECS, if it exists
+    pub fn delete_entity(&mut self, uid: comp::Uid) {
+        // Find the ECS entity from its UID
+        let ecs_entity = self.ecs_world
+            .read_resource::<comp::UidAllocator>()
+            .retrieve_entity_internal(uid.into());
+
+        // Delete the ECS entity, if it exists
+        if let Some(ecs_entity) = ecs_entity {
+            let _ = self.ecs_world.delete_entity(ecs_entity);
+        }
     }
 
     /// Write a component attributed to a particular entity
     pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
         let _ = self.ecs_world.write_storage().insert(entity, comp);
-    }
-
-    /// Read a clone of a component attributed to a particular entity
-    pub fn read_component<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
-        self.ecs_world.read_storage::<C>().get(entity).cloned()
     }
 
     /// Get a read-only reference to the storage of a particular component type
@@ -167,6 +187,9 @@ impl State {
 
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
+        // First, wipe all temporary marker components
+        self.ecs_world.write_storage::<comp::util::New>().clear();
+
         // Change the time accordingly
         self.ecs_world.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs_world.write_resource::<Time>().0 += dt.as_secs_f64();

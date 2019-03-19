@@ -19,8 +19,13 @@ fn main() {
         .expect("Failed to create client instance");
 
     loop {
-        let events = client.tick(Input::default(), clock.get_last_delta())
-            .expect("Failed to tick client");
+        let events = match client.tick(Input::default(), clock.get_last_delta()) {
+            Ok(events) => events,
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break;
+            },
+        };
 
         for event in events {
             match event {
