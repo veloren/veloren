@@ -4,6 +4,7 @@ use std::{
     collections::VecDeque,
     net::SocketAddr,
     thread,
+    sync::mpsc::TryRecvError,
 };
 
 // External
@@ -93,11 +94,13 @@ where
 
         for event in events {
             match event.token() {
-                // Ignore recv error
-                DATA_TOKEN => match self.recv.try_recv() {
-                    Ok(Ok(conn)) => conns.push_back(conn),
-                    Err(err) => self.err = Some(err.into()),
-                    Ok(Err(err)) => self.err = Some(err.into()),
+                DATA_TOKEN => loop {
+                    match self.recv.try_recv() {
+                        Ok(Ok(conn)) => conns.push_back(conn),
+                        Err(TryRecvError::Empty) => break,
+                        Err(err) => self.err = Some(err.into()),
+                        Ok(Err(err)) => self.err = Some(err.into()),
+                    }
                 },
                 _ => (),
             }
