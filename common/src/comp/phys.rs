@@ -30,6 +30,7 @@ impl Component for Dir {
 }
 
 // UpdateKind
+
 #[derive(Copy, Clone, Debug)]
 pub enum UpdateKind {
     Passive,
