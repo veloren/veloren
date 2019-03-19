@@ -434,12 +434,6 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
 // TESTS
 
 #[test]
-use std::{
-    thread,
-    time::Duration,
-};
-
-#[test]
 fn connect() {
     let srv_addr = ([127, 0, 0, 1], 12345);
 
@@ -519,10 +513,10 @@ fn client_to_server() {
 
     let mut server_pb = po.new_connections().next().unwrap();
 
-    client_pb.send(1337.0).unwrap();
-    client_pb.send(9821.0).unwrap();
-    client_pb.send(-3.2).unwrap();
-    client_pb.send(17.0).unwrap();
+    client_pb.send(1337.0);
+    client_pb.send(9821.0);
+    client_pb.send(-3.2);
+    client_pb.send(17.0);
 
     thread::sleep(Duration::from_millis(250));
 
@@ -546,10 +540,10 @@ fn server_to_client() {
 
     let mut server_pb = po.new_connections().next().unwrap();
 
-    server_pb.send(1337).unwrap();
-    server_pb.send(9821).unwrap();
-    server_pb.send(39999999).unwrap();
-    server_pb.send(17).unwrap();
+    server_pb.send(1337);
+    server_pb.send(9821);
+    server_pb.send(39999999);
+    server_pb.send(17);
 
     thread::sleep(Duration::from_millis(250));
 
