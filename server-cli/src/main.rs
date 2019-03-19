@@ -3,7 +3,7 @@ use log::info;
 use server::{Input, Event, Server};
 use common::clock::Clock;
 
-const TPS: u64 = 20;
+const TPS: u64 = 30;
 
 fn main() {
     // Init logging

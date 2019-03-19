@@ -54,8 +54,6 @@ impl Client {
         let state = State::new();
 
         let mut postbox = PostBox::to_server(addr)?;
-        postbox.send(ClientMsg::Chat(String::from("Hello, world!")));
-        postbox.send(ClientMsg::Chat(String::from("World, hello!")));
 
         Ok(Self {
             thread_pool: threadpool::Builder::new()
