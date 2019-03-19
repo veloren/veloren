@@ -168,11 +168,11 @@ impl State {
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
         // Change the time accordingly
-        self.ecs_world.write_resource::<TimeOfDay>().0 += dt.as_float_secs() * DAY_CYCLE_FACTOR;
-        self.ecs_world.write_resource::<Time>().0 += dt.as_float_secs();
+        self.ecs_world.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
+        self.ecs_world.write_resource::<Time>().0 += dt.as_secs_f64();
 
         // Run systems to update the world
-        self.ecs_world.write_resource::<DeltaTime>().0 = dt.as_float_secs();
+        self.ecs_world.write_resource::<DeltaTime>().0 = dt.as_secs_f64();
 
         // Create and run dispatcher for ecs systems
         let mut dispatch_builder = DispatcherBuilder::new();
