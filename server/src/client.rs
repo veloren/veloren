@@ -1,5 +1,6 @@
 use specs::Entity as EcsEntity;
 use common::{
+    comp,
     msg::{ServerMsg, ClientMsg},
     net::PostBox,
 };
@@ -32,9 +33,15 @@ impl Clients {
 
     pub fn notify_all(&mut self, msg: ServerMsg) {
         for client in &mut self.clients {
-            // Consume any errors, deal with them later
-            let _ = client.postbox.send(msg.clone());
-            println!("Sending message...");
+            client.postbox.send(msg.clone());
+        }
+    }
+
+    pub fn notify_all_except(&mut self, ecs_entity: EcsEntity, msg: ServerMsg) {
+        for client in &mut self.clients {
+            if client.ecs_entity != ecs_entity {
+                client.postbox.send(msg.clone());
+            }
         }
     }
 }
