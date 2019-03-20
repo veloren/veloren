@@ -108,7 +108,6 @@ impl Chat {
             .set(self.ids.message_box_bg, ui_widgets);
         let (mut items, scrollbar) = List::flow_down(self.messages.len())
             .middle_of(self.ids.message_box_bg)
-            // Why does scrollbar disappear when the list is the exact same height as its contents?
             .scrollbar_next_to()
             .scrollbar_thickness(20.0)
             .scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))

@@ -69,10 +69,31 @@ impl Cache {
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) { (&mut self.glyph_cache, &self.glyph_cache_tex) }
 }
 
-pub enum DrawCommand {
-    Image(Model<UiPipeline>, ImgId),
+enum DrawKind {
+    Image(ImgId),
     // Text and non-textured geometry
-    Plain(Model<UiPipeline>),
+    Plain,
+}
+enum DrawCommand {
+    Draw {
+        kind: DrawKind,
+        model: Model<UiPipeline>,
+    },
+    Scissor(Aabr<u16>),
+}
+impl DrawCommand {
+    fn image(model: Model<UiPipeline>, img_id: ImgId) -> DrawCommand {
+        DrawCommand::Draw {
+            kind: DrawKind::Image(img_id),
+            model,
+        }
+    }
+    fn plain(model: Model<UiPipeline>) -> DrawCommand {
+        DrawCommand::Draw {
+            kind: DrawKind::Plain,
+            model,
+        }
+    }
 }
 
 // How to scale the ui
@@ -109,13 +130,17 @@ impl Scale {
     pub fn scaling_mode(&mut self, mode: ScaleMode) {
         self.mode = mode;
     }
-    // Calculate factor to transform from logical coordinates to our scaled coordinates
-    fn scale_factor(&self) -> f64 {
+    // Calculate factor to transform between logical coordinates and our scaled coordinates
+    fn scale_factor_logical(&self) -> f64 {
         match self.mode {
             ScaleMode::Absolute(scale) => scale / self.dpi_factor,
             ScaleMode::DpiFactor => 1.0,
             ScaleMode::RelativeToWindow(dims) => (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y),
         }
+    }
+    // Calculate factor to transform between physical coordinates and our scaled coordinates
+    fn scale_factor_physical(&self) -> f64 {
+        self.scale_factor_logical() * self.dpi_factor
     }
     // Updates internal window size (and/or dpi_factor)
     fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
@@ -124,11 +149,11 @@ impl Scale {
     }
     // Get scaled window size
     fn scaled_window_size(&self) -> Vec2<f64> {
-        self.window_dims / self.scale_factor()
+        self.window_dims / self.scale_factor_logical()
     }
     // Transform point from logical to scaled coordinates
     fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> {
-        point / self.scale_factor()
+        point / self.scale_factor_logical()
     }
 }
 
@@ -225,23 +250,70 @@ impl Ui {
 
             let mut current_img = None;
 
+            let window_scizzor = default_scissor(renderer);
+            let mut current_scizzor = window_scizzor;
+
             // Switches to the `Plain` state and completes the previous `Command` if not already in the
             // `Plain` state.
             macro_rules! switch_to_plain_state {
                 () => {
                     if let Some(image_id) = current_img.take() {
-                        self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id));
+                        self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id));
                         mesh.clear();
                     }
                 };
             }
 
+            let p_scale_factor = self.scale.scale_factor_physical();
+
             while let Some(prim) = primitives.next() {
-                // TODO: Use scizzor
                 let Primitive {kind, scizzor, id, rect} = prim;
+
+                // Check for a change in the scizzor
+                let new_scizzor = {
+                    let (l, b, w, h) = scizzor.l_b_w_h();
+                    // Calculate minimum x and y coordinates while
+                    //  - flipping y axis (from +up to +down)
+                    //  - moving origin to top-left corner (from middle)
+                    let min_x = ui.win_w / 2.0 + l;
+                    let min_y = ui.win_h / 2.0 - b - h;
+                    Aabr {
+                        min: Vec2 {
+                            x: (min_x * p_scale_factor) as u16,
+                            y: (min_y * p_scale_factor) as u16,
+                        },
+                        max: Vec2 {
+                            x: ((min_x + w) * p_scale_factor) as u16,
+                            y: ((min_y + h) * p_scale_factor) as u16,
+                        }
+                    }
+                    .intersection(window_scizzor)
+                };
+                if new_scizzor != current_scizzor {
+                    // Finish the current command
+                    match current_img.take() {
+                        None =>
+                            self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap())),
+                        Some(image_id) =>
+                            self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id)),
+                    }
+                    mesh.clear();
+
+                    // Update the scizzor and produce a command.
+                    current_scizzor = new_scizzor;
+                    self.draw_commands.push(DrawCommand::Scissor(new_scizzor));
+                }
+
                 // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0)
                 let vx = |x: f64| (x / ui.win_w * 2.0) as f32;
                 let vy = |y: f64| (y / ui.win_h * 2.0) as f32;
+                let gl_aabr = |rect: conrod_core::Rect| {
+                    let (l, r, b, t) = rect.l_r_b_t();
+                    Aabr {
+                        min: Vec2::new(vx(l), vy(b)),
+                        max: Vec2::new(vx(r), vy(t)),
+                    }
+                };
 
                 use conrod_core::render::PrimitiveKind;
                 match kind {
@@ -255,13 +327,13 @@ impl Ui {
                             Some(image_id) if image_id == new_image_id => (),
                             // If we were in the `Plain` drawing state, switch to Image drawing state.
                             None => {
-                                self.draw_commands.push(DrawCommand::Plain(renderer.create_model(&mesh).unwrap()));
+                                self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
                                 mesh.clear();
                                 current_img = Some(new_image_id);
                             }
                             // If we were drawing a different image, switch state to draw *this* image.
                             Some(image_id) => {
-                                self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id));
+                                self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id));
                                 mesh.clear();
                                 current_img = Some(new_image_id);
                             }
@@ -286,13 +358,14 @@ impl Ui {
                             }
                             None => (0.0, 1.0, 0.0, 1.0),
                         };
-                        // Convert from conrod Scalar range to GL range -1.0 to 1.0.
-                        let (l, r, b, t) = rect.l_r_b_t();
-                        let (l, r, b, t) = (vx(l), vx(r), vy(b), vy(t));
+                        let uv = Aabr {
+                            min: Vec2::new(uv_l, uv_b),
+                            max: Vec2::new(uv_r, uv_t),
+                        };
                         push_ui_quad_to_mesh(
                             &mut mesh,
-                            [l, t , r, b],
-                            [uv_l, uv_t, uv_r, uv_b],
+                            gl_aabr(rect),
+                            uv,
                             color,
                             UiMode::Image,
                         );
@@ -300,7 +373,7 @@ impl Ui {
                     }
                     PrimitiveKind::Text { color, text, font_id } => {
                         switch_to_plain_state!();
-                        // Get screen width
+                        // Get screen width and height
                         let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as f32).into_tuple();
                         // Calculate dpi factor
                         let dpi_factor = screen_w / ui.win_w as f32;
@@ -326,22 +399,24 @@ impl Ui {
 
                         for g in positioned_glyphs {
                             if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
-                                let (uv_l, uv_r, uv_t, uv_b) = (
-                                    uv_rect.min.x,
-                                    uv_rect.max.x,
-                                    uv_rect.min.y,
-                                    uv_rect.max.y,
-                                );
-                                let (l, t, r, b) = (
-                                    (screen_rect.min.x as f32 / screen_w - 0.5) *  2.0,
-                                    (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
-                                    (screen_rect.max.x as f32 / screen_w - 0.5) *  2.0,
-                                    (screen_rect.max.y as f32 / screen_h - 0.5) * -2.0,
-                                );
+                                let uv = Aabr {
+                                    min: Vec2::new(uv_rect.min.x, uv_rect.max.y),
+                                    max: Vec2::new(uv_rect.max.x, uv_rect.min.y),
+                                };
+                                let rect = Aabr {
+                                    min: Vec2::new(
+                                        (screen_rect.min.x as f32 / screen_w - 0.5) *  2.0,
+                                        (screen_rect.max.y as f32 / screen_h - 0.5) * -2.0,
+                                    ),
+                                    max: Vec2::new(
+                                        (screen_rect.max.x as f32 / screen_w - 0.5) *  2.0,
+                                        (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
+                                    ),
+                                };
                                 push_ui_quad_to_mesh(
                                     &mut mesh,
-                                    [l, t , r, b],
-                                    [uv_l, uv_t, uv_r, uv_b],
+                                    rect,
+                                    uv,
                                     color,
                                     UiMode::Text,
                                 );
@@ -358,13 +433,13 @@ impl Ui {
 
                         switch_to_plain_state!();
 
-                        // Convert from conrod Scalar range to GL range -1.0 to 1.0.
-                        let (l, r, b, t) = rect.l_r_b_t();
-                        let (l, r, b, t) = (vx(l), vx(r), vy(b), vy(t));
                         push_ui_quad_to_mesh(
                             &mut mesh,
-                            [l, t , r, b],
-                            [0.0, 0.0, 0.0, 0.0],
+                            gl_aabr(rect),
+                            Aabr {
+                                min: Vec2::new(0.0, 0.0),
+                                max: Vec2::new(0.0, 0.0),
+                            },
                             color,
                             UiMode::Geometry,
                         );
@@ -401,12 +476,12 @@ impl Ui {
                     //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
                 }
             }
-            // Enter the final command.
+            // Enter the final command
             match current_img {
                 None =>
-                    self.draw_commands.push(DrawCommand::Plain(renderer.create_model(&mesh).unwrap())),
+                    self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap())),
                 Some(image_id) =>
-                    self.draw_commands.push(DrawCommand::Image(renderer.create_model(&mesh).unwrap(), image_id)),
+                    self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id)),
             }
 
             // Handle window resizing
@@ -419,17 +494,32 @@ impl Ui {
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
+        let mut scissor = default_scissor(renderer);
         for draw_command in self.draw_commands.iter() {
             match draw_command {
-                DrawCommand::Image(model, image_id) => {
-                    let tex = self.image_map.get(&image_id).expect("Image does not exist in image map");
-                    renderer.render_ui_element(&model, &tex);
-                },
-                DrawCommand::Plain(model) => {
-                    let tex = self.cache.glyph_cache_tex();
-                    renderer.render_ui_element(&model, &tex);
-                },
+                DrawCommand::Scissor(scizzor) => {
+                    scissor = *scizzor;
+                }
+                DrawCommand::Draw { kind, model } => {
+                    let tex = match kind {
+                        DrawKind::Image(image_id) => {
+                            self.image_map.get(&image_id).expect("Image does not exist in image map")
+                        }
+                        DrawKind::Plain => {
+                            self.cache.glyph_cache_tex()
+                        }
+                    };
+                    renderer.render_ui_element(&model, &tex, scissor);
+                }
             }
         }
+    }
+}
+
+fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
+    let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
+    Aabr {
+        min: Vec2 { x: 0, y: 0 },
+        max: Vec2 { x: screen_w, y: screen_h }
     }
 }

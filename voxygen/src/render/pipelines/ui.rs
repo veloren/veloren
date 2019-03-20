@@ -1,4 +1,3 @@
-// Library
 use gfx::{
     self,
     // Macros
@@ -8,8 +7,7 @@ use gfx::{
     gfx_pipeline,
     gfx_pipeline_inner,
 };
-
-// Local
+use vek::*;
 use super::super::{
         Pipeline,
         TgtColorFmt,
@@ -68,8 +66,7 @@ impl Mode {
     }
 }
 
-// TODO: don't use [f32; 4] for rectangle as the format (eg 2 points vs point + dims) is ambiguous
-pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: [f32; 4], uv_rect: [f32; 4], color: [f32; 4], mode: Mode) {
+pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: Aabr<f32>, uv_rect: Aabr<f32>, color: [f32; 4], mode: Mode) {
     let mode_val = mode.value();
     let v = |pos, uv| {
         Vertex {
@@ -79,8 +76,13 @@ pub fn push_quad_to_mesh(mesh: &mut Mesh<UiPipeline>, rect: [f32; 4], uv_rect: [
             mode: mode_val,
         }
     };
-    let (l, t, r, b) = (rect[0], rect[1], rect[2], rect[3]);
-    let (uv_l, uv_t, uv_r, uv_b) = (uv_rect[0], uv_rect[1], uv_rect[2], uv_rect[3]);
+    let aabr_to_lbrt = |aabr: Aabr<f32>| (
+        aabr.min.x, aabr.min.y,
+        aabr.max.x, aabr.max.y,
+    );
+
+    let (l, b, r, t) = aabr_to_lbrt(rect);
+    let (uv_l, uv_b, uv_r, uv_t) = aabr_to_lbrt(uv_rect);
     mesh.push_quad(Quad::new(
         v([r, t], [uv_r, uv_t]),
         v([l, t], [uv_l, uv_t]),
