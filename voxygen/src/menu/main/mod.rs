@@ -44,8 +44,8 @@ impl PlayState for MainMenuState {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // Pass events to ui
-                    Event::UiEvent(input) => {
-                        self.main_menu_ui.handle_event(input);
+                    Event::Ui(event) => {
+                        self.main_menu_ui.handle_event(event);
                     }
                     // Ignore all other events
                     _ => {}
