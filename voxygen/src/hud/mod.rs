@@ -3,7 +3,7 @@ mod chat;
 use crate::{
     render::Renderer,
     ui::{ScaleMode, Ui, ToggleButton},
-    window::Window,
+    window::{Event as WinEvent, Window, Key},
 };
 use conrod_core::{
     event::Input,
@@ -312,6 +312,8 @@ pub struct Hud {
     ids: Ids,
     imgs: Imgs,
     chat: chat::Chat,
+    typing: bool,
+    cursor_grabbed: bool,
     font_metamorph: FontId,
     font_whitney: FontId,
     show_help: bool,
@@ -357,6 +359,8 @@ impl Hud {
             imgs,
             ids,
             chat,
+            typing: false,
+            cursor_grabbed: true,
             settings_tab: SettingsTab::Interface,
             show_help: true,
             bag_open: false,
@@ -605,6 +609,26 @@ impl Hud {
 
         //Debuffs
 
+        // Bag contents
+        if self.bag_open {
+            // Contents
+            Image::new(self.imgs.bag_contents)
+            .w_h(1504.0 / 4.0, 1760.0 / 4.0)
+            .bottom_right_with_margins_on(ui_widgets.window, 88.0, 68.0)
+            .set(self.ids.bag_contents, ui_widgets);
+
+            // X-button
+            if Button::image(self.imgs.close_button)
+            .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
+            .hover_image(self.imgs.close_button_hover)
+            .press_image(self.imgs.close_button_press)
+            .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
+            .set(self.ids.bag_close, ui_widgets)
+            .was_clicked()
+            {
+                self.bag_open = false;
+            }
+        }
         // Bag
         if self.mmap_button_2 == false {
             self.bag_open =
@@ -620,26 +644,6 @@ impl Hud {
                 .bottom_right_with_margin_on(ui_widgets.window, 20.0)
                 .w_h(420.0 / 4.0, 480.0 / 4.0)
                 .set(self.ids.bag_map_open, ui_widgets);
-        }
-        // Bag contents
-        if self.bag_open {
-            // Contents
-            Image::new(self.imgs.bag_contents)
-                .w_h(1504.0 / 4.0, 1760.0 / 4.0)
-                .bottom_right_with_margins_on(ui_widgets.window, 88.0, 68.0)
-                .set(self.ids.bag_contents, ui_widgets);
-
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
-                .set(self.ids.bag_close, ui_widgets)
-                .was_clicked()
-            {
-                self.bag_open = false;
-            }
         }
 
         //Windows
@@ -1066,6 +1070,13 @@ impl Hud {
                 events.push(Event::Quit);
             };
         }
+        // update whether keyboard is captured
+        self.typing = if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
+            self.chat.is_input_box(widget_id)
+        } else {
+            false
+        };
+
         events
     }
 
@@ -1077,8 +1088,26 @@ impl Hud {
         self.menu_open = !self.menu_open;
     }
 
-    pub fn handle_event(&mut self, input: Input) {
-        self.ui.handle_event(input);
+    pub fn update_grab(&mut self, cursor_grabbed: bool) {
+        self.cursor_grabbed = cursor_grabbed;
+    }
+
+    pub fn handle_event(&mut self, event: WinEvent) -> bool {
+        match event {
+            WinEvent::Ui(event) => {
+                if !(self.cursor_grabbed && event.is_keyboard_or_mouse()) {
+                    self.ui.handle_event(event);
+                }
+                true
+            },
+            _ if self.cursor_grabbed => false,
+            WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
+                Key::ToggleCursor => false,
+                _ => self.typing,
+            },
+            WinEvent::Char(_) => self.typing,
+            _ => false,
+        }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {

@@ -49,8 +49,8 @@ impl PlayState for CharSelectionState {
                             Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
                         ),
                     // Pass events to ui
-                    Event::UiEvent(input) => {
-                        self.char_selection_ui.handle_event(input);
+                    Event::Ui(event) => {
+                        self.char_selection_ui.handle_event(event);
                     }
                     // Ignore all other events
                     _ => {}

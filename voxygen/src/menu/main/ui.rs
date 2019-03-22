@@ -1,6 +1,6 @@
 use crate::{
     render::Renderer,
-    ui::{ScaleMode, Ui},
+    ui::{self, ScaleMode, Ui},
     window::Window,
 };
 use conrod_core::{
@@ -292,8 +292,8 @@ impl MainMenuUi {
         events
     }
 
-    pub fn handle_event(&mut self, input: Input) {
-        self.ui.handle_event(input);
+    pub fn handle_event(&mut self, event: ui::Event) {
+        self.ui.handle_event(event);
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {

@@ -1,10 +1,5 @@
-// Library
-use glutin;
-use gfx_window_glutin;
 use vek::*;
 use std::collections::HashMap;
-
-// Crate
 use crate::{
     Error,
     render::{
@@ -12,6 +7,7 @@ use crate::{
         TgtColorFmt,
         TgtDepthFmt,
     },
+    ui,
 };
 
 pub struct Window {
@@ -83,48 +79,49 @@ impl Window {
         let key_map = &self.key_map;
 
         let mut events = vec![];
-        self.events_loop.poll_events(|event| match {
-            // Hack grab of events for testing ui
-		   if let Some(event) = conrod_winit::convert_event(event.clone(), window.window()) {
-                events.push(Event::UiEvent(event));
-				}
-            event
-        } {
-			glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => events.push(Event::Close),
-                glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
-                    let (mut color_view, mut depth_view) = renderer.target_views_mut();
-                    gfx_window_glutin::update_views(
-                        &window,
-                        &mut color_view,
-                        &mut depth_view,
-                    );
-                    events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
-                },
-                glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+        self.events_loop.poll_events(|event| {
+            // Get events for ui
+            if let Some(event) = ui::Event::try_from(event.clone(), &window) {
+                events.push(Event::Ui(event));
+            }
 
-                glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
-                    Some(keycode) => match key_map.get(&keycode) {
-                        Some(&key) => events.push(match input.state {
-                            glutin::ElementState::Pressed => Event::KeyDown(key),
-                            _ => Event::KeyUp(key),
-                        }),
+            match event {
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    glutin::WindowEvent::CloseRequested => events.push(Event::Close),
+                    glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
+                        let (mut color_view, mut depth_view) = renderer.target_views_mut();
+                        gfx_window_glutin::update_views(
+                            &window,
+                            &mut color_view,
+                            &mut depth_view,
+                        );
+                        events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                    },
+                    glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+
+                    glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
+                        Some(keycode) => match key_map.get(&keycode) {
+                            Some(&key) => events.push(match input.state {
+                                glutin::ElementState::Pressed => Event::KeyDown(key),
+                                _ => Event::KeyUp(key),
+                            }),
+                            _ => {},
+                        },
                         _ => {},
                     },
                     _ => {},
                 },
-                _ => {},
-            },
-            glutin::Event::DeviceEvent { event, .. } => match event {
-                glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
+                glutin::Event::DeviceEvent { event, .. } => match event {
+                    glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
                     events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
-                glutin::DeviceEvent::MouseWheel {
-                    delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                    ..
-                } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    glutin::DeviceEvent::MouseWheel {
+                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
+                        ..
+                    } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    _ => {},
+                },
                 _ => {},
-            },
-            _ => {},
+            }
         });
         events
     }
@@ -163,6 +160,7 @@ pub enum Key {
 }
 
 /// Represents an incoming event from the window
+#[derive(Clone)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
@@ -178,5 +176,6 @@ pub enum Event {
     KeyDown(Key),
     /// A key that the game recognises has been released down
     KeyUp(Key),
-    UiEvent(conrod_core::event::Input)
+    /// Event that the ui uses
+    Ui(ui::Event),
 }

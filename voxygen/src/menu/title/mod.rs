@@ -50,8 +50,8 @@ impl PlayState for TitleState {
                         )));
                     }
                     // Pass events to ui
-                    Event::UiEvent(input) => {
-                        self.title_ui.handle_event(input);
+                    Event::Ui(event) => {
+                        self.title_ui.handle_event(event);
                     }
                     // Ignore all other events
                     _ => {}

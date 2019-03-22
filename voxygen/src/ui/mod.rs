@@ -1,4 +1,3 @@
-// TODO: figure out proper way to propagate events down to the ui
 mod widgets;
 
 pub use widgets::toggle_button::ToggleButton;
@@ -39,6 +38,21 @@ use crate::{
 #[derive(Debug)]
 pub enum UiError {
     RenderError(RenderError),
+}
+#[derive(Clone)]
+pub struct Event(Input);
+impl Event {
+    pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
+        conrod_winit::convert_event(event, window.window()).map(|input| {
+            Self(input)
+        })
+    }
+    pub fn is_keyboard_or_mouse(&self) -> bool {
+        match self.0 {
+            Input::Press(_) | Input::Release(_) | Input::Motion(_) | Input::Touch(_) | Input::Text(_) => true,
+            _ => false,
+        }
+    }
 }
 
 pub struct Cache {
@@ -207,8 +221,8 @@ impl Ui {
         self.ui.set_widgets()
     }
 
-    pub fn handle_event(&mut self, event: Input) {
-        match event {
+    pub fn handle_event(&mut self, event: Event) {
+        match event.0 {
             Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),
             Input::Touch(touch) => self.ui.handle_event(
                 Input::Touch(Touch {
@@ -233,7 +247,7 @@ impl Ui {
                     _ => motion,
                 })
             ),
-            _ => self.ui.handle_event(event),
+            _ => self.ui.handle_event(event.0),
         }
     }
 
