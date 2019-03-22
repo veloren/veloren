@@ -118,8 +118,11 @@ impl PlayState for SessionState {
             // Handle window events
             for event in global_state.window.fetch_events() {
 
+                // Pass all  events to the ui first
+                if self.hud.handle_event(event.clone()) {
+                    continue;
+                }
                 let _handled = match event {
-
                     Event::Close => return PlayStateResult::Shutdown,
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
@@ -130,6 +133,7 @@ impl PlayState for SessionState {
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
+                        self.hud.update_grab(global_state.window.is_cursor_grabbed());
                     },
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
@@ -141,10 +145,6 @@ impl PlayState for SessionState {
                     Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
-                    // Pass events to ui
-                    Event::UiEvent(input) => {
-                        self.hud.handle_event(input);
-                    }
                     // Pass all other events to the scene
                     event => { self.scene.handle_input_event(event); },
                 };

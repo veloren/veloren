@@ -1,4 +1,4 @@
-use crate::{render::Renderer, ui::Ui, window::Window};
+use crate::{render::Renderer, ui::{self, Ui}, window::Window};
 use conrod_core::{
     event::Input,
     image::Id as ImgId,
@@ -36,8 +36,8 @@ impl CharSelectionUi {
             .set(self.widget_id, &mut ui_cell);
     }
 
-    pub fn handle_event(&mut self, input: Input) {
-        self.ui.handle_event(input);
+    pub fn handle_event(&mut self, event: ui::Event) {
+        self.ui.handle_event(event);
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer) {

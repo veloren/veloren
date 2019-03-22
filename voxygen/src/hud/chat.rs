@@ -2,7 +2,7 @@ use crate::ui::Ui;
 use conrod_core::{
     input::Key,
     position::Dimension,
-    widget::{List, Rectangle, Text, TextEdit},
+    widget::{Id, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
 use std::collections::VecDeque;
@@ -30,6 +30,9 @@ impl Chat {
             input: String::new(),
             new_messages: false,
         }
+    }
+    pub fn is_input_box(&self, id: Id) -> bool {
+        id == self.ids.input
     }
     pub fn new_message(&mut self, msg: String) {
         self.messages.push_back(msg);
