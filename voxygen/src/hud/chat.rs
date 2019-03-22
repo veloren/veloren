@@ -54,27 +54,6 @@ impl Chat {
         }
     }
     pub fn update_layout(&mut self, ui_widgets: &mut UiCell) -> Option<String> {
-        // If enter is pressed send the current message
-        let new_msg = if ui_widgets
-            .widget_input(self.ids.input)
-            .presses()
-            .key()
-            .any(|key_press| match key_press.key {
-                Key::Return => true,
-                _ => false,
-            })
-        {
-            let new_message = self.input.clone();
-            self.input.clear();
-            self.new_message(new_message.clone());
-            // Scroll to the bottom
-            // TODO: uncomment when we can actually get chat messages from other people
-            //ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
-            Some(new_message)
-        } else {
-            None
-        };
-
         // Maintain scrolling
         if self.new_messages {
             self.scroll_new_messages(ui_widgets);
@@ -127,6 +106,21 @@ impl Chat {
             s.set(ui_widgets)
         }
 
-        new_msg
+        // If enter is pressed send the current message
+        if ui_widgets
+            .widget_input(self.ids.input)
+            .presses()
+            .key()
+            .any(|key_press| match key_press.key {
+                Key::Return => true,
+                _ => false,
+            })
+        {
+            let new_message = self.input.clone();
+            self.input.clear();
+            Some(new_message)
+        } else {
+            None
+        }
     }
 }
