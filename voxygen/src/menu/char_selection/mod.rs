@@ -43,11 +43,6 @@ impl PlayState for CharSelectionState {
             for event in global_state.window.fetch_events() {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // When any key is pressed, go to the main menu
-                    Event::Char(_) =>
-                        return PlayStateResult::Push(
-                            Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
-                        ),
                     // Pass events to ui
                     Event::Ui(event) => {
                         self.char_selection_ui.handle_event(event);
@@ -60,7 +55,14 @@ impl PlayState for CharSelectionState {
             global_state.window.renderer_mut().clear(BG_COLOR);
 
             // Maintain the UI
-            self.char_selection_ui.maintain(global_state.window.renderer_mut());
+            for event in self.char_selection_ui.maintain(global_state.window.renderer_mut()) {
+                match event {
+                    ui::Event::Logout => return PlayStateResult::Pop,
+                    ui::Event::Play => return PlayStateResult::Push(
+                        Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
+                    ),
+                }
+            }
 
             // Draw the UI to the screen
             self.char_selection_ui.render(global_state.window.renderer_mut());
