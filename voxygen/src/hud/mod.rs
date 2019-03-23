@@ -6,7 +6,6 @@ use crate::{
     window::{Event as WinEvent, Window, Key},
 };
 use conrod_core::{
-    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Text, TitleBar},

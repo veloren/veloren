@@ -1,6 +1,5 @@
 use crate::{render::Renderer, ui::{self, Ui}, window::Window};
 use conrod_core::{
-    event::Input,
     image::Id as ImgId,
     widget::{Id as WidgId, Image as ImageWidget},
     Positionable, Widget,

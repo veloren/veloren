@@ -1,4 +1,3 @@
-use conrod_core::color::TRANSPARENT;
 use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
@@ -6,10 +5,9 @@ use crate::{
 };
 use conrod_core::{
     color,
-    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Rectangle, Image, Text, TextBox, TitleBar},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox, TitleBar},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -24,8 +22,7 @@ widget_ids! {
         // Windows
         selection_window,
         creation_window,
-        select_race_title,
-        select_weapon_title,
+        select_window_title,
         race_heading,
         race_description,
         weapon_heading,
@@ -42,6 +39,8 @@ widget_ids! {
         delete_button,
         create_button,
         character_name_input,
+        name_input_bg,
+        name_field,
         race_1,
         race_2,
         race_3,
@@ -50,6 +49,13 @@ widget_ids! {
         race_6,
         sex_1,
         sex_2,
+        weapon_1,
+        weapon_2,
+        weapon_3,
+        weapon_4,
+        weapon_5,
+        weapon_6,
+        weapon_7,
 
         //test_chars
         test_char_l_button,
@@ -68,12 +74,14 @@ widget_ids! {
         elf,
         danari,
         // Weapon Icons
-        dw_daggers,
+        weapon_bg,
+        daggers,
         sword_shield,
         sword,
         axe,
         hammer,
         bow,
+        staff,
         // Arrows
         arrow_left,
         arrow_right,
@@ -94,7 +102,7 @@ struct Imgs {
     selection_window: ImgId,
     test_char_l_button: ImgId,
     test_char_l_big: ImgId,
-    name_input: ImgId,
+    name_input_bg: ImgId,
     creation_window: ImgId,
     desc_bg: ImgId,
     //test_char_m_button: ImgId,
@@ -115,12 +123,13 @@ struct Imgs {
     danari_m: ImgId,
     danari_f: ImgId,
     // Weapon Icons
-    dw_daggers: ImgId,
+    daggers: ImgId,
     sword_shield: ImgId,
     sword: ImgId,
     axe: ImgId,
     hammer: ImgId,
     bow: ImgId,
+    staff: ImgId,
     // Arrows
     arrow_left: ImgId,
     arrow_left_mo: ImgId,
@@ -163,9 +172,17 @@ impl Imgs {
             button_dark_red_press: load("buttons/button_dark_red_press.png"),
             test_char_l_button: load("test_char_l.png"),
             test_char_l_big: load("test_char_l_big.png"),
-            name_input: load("input_bg.png"),
             creation_window: load("creation_window.png"),
+            name_input_bg: load("input_bg.png"),
             desc_bg: load("desc_bg.png"),
+            // Weapon Icons
+            daggers: load("icons/daggers_icon.png"),
+            sword_shield: load("icons/swordshield_icon.png"),
+            sword: load("icons/sword_icon.png"),
+            axe: load("icons/axe_icon.png"),
+            hammer: load("icons/hammer_icon.png"),
+            bow: load("icons/bow_icon.png"),
+            staff: load("icons/staff_icon.png"),
             //test_char_m_button: load("test_char_m_button"),
             //test_char_r_button: load("test_char_r_button"),
             // Race Icons
@@ -183,13 +200,6 @@ impl Imgs {
             elf_f: load("icons/elf_f.png"),
             danari_m: load("icons/danari_m.png"),
             danari_f: load("icons/danari_f.png"),
-            // Weapon Icons
-            dw_daggers: load("missing_icon.png"),
-            sword_shield: load("missing_icon.png"),
-            sword: load("missing_icon.png"),
-            axe: load("missing_icon.png"),
-            hammer: load("missing_icon.png"),
-            bow: load("missing_icon.png"),
             // Arrows
             arrow_left: load("icons/arrow_left.png"),
             arrow_left_mo: load("icons/arrow_left_mo.png"),
@@ -253,6 +263,7 @@ pub struct CharSelectionUi {
     sex: Sex,
     weapon: Weapons,
     creation_state: CreationState,
+    character_name: String,
 }
 
 impl CharSelectionUi {
@@ -287,6 +298,7 @@ impl CharSelectionUi {
             font_whitney,
             character_creation: false,
             selected_char_no: None,
+            character_name: "Character Name".to_string(),
             race: Races::Human,
             sex: Sex::Male,
             weapon: Weapons::Sword,
@@ -309,7 +321,6 @@ impl CharSelectionUi {
 
         // Background Image
         if !self.character_creation {
-
             Image::new(self.imgs.bg_selection)
                 .middle_of(ui_widgets.window)
                 .set(self.ids.bg_selection, ui_widgets);
@@ -345,11 +356,10 @@ impl CharSelectionUi {
             {
                 self.character_creation = true;
                 self.selected_char_no = None;
-
             };
             //Test_Characters
             if Button::image(self.imgs.test_char_l_button)
-                .bottom_left_with_margins_on(self.ids.bg_selection, 555.0, 716.0)
+                .bottom_left_with_margins_on(self.ids.bg_selection, 395.0, 716.0)
                 .w_h(95.0, 130.0)
                 .hover_image(self.imgs.test_char_l_button)
                 .press_image(self.imgs.test_char_l_button)
@@ -454,6 +464,28 @@ impl CharSelectionUi {
                 self.character_creation = false;
             }
             // Character Name Input
+            Image::new(self.imgs.name_input_bg)
+                .w_h(337.0, 67.0)
+                .mid_bottom_with_margin_on(self.ids.bg_creation, 10.0)
+                .set(self.ids.name_input_bg, ui_widgets);
+            for event in TextBox::new(&self.character_name)
+                .w_h(580.0 / 2.0, 60.0 / 2.0)
+                .mid_bottom_with_margin_on(self.ids.name_input_bg, 44.0 / 2.0)
+                .font_size(20)
+                .font_id(self.font_metamorph)
+                .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+                .center_justify()
+                .color(color::TRANSPARENT)
+                .border_color(color::TRANSPARENT)
+                .set(self.ids.name_field, ui_widgets) {
+                    match event {
+                        TextBoxEvent::Update(new_str) => {
+                            // Note: TextBox limits the input string length to what fits in it
+                            self.character_name = new_str.to_string();
+                        }
+                        TextBoxEvent::Enter => {}
+                    }
+                }
 
             // Window(s)
             Image::new(self.imgs.creation_window)
@@ -462,8 +494,8 @@ impl CharSelectionUi {
                 .set(self.ids.creation_window, ui_widgets);
 
             // Arrows
-            // TODO: lower the resolution of the arrow files so that we don't multiply by .03 here
-            const ARROW_WH: [f64; 2] = [986.0*0.03, 1024.0*0.03];
+            // TODO: lower the resolution of the arrow images & use non decimal sizes below
+            const ARROW_WH: [f64; 2] = [986.0 * 0.03, 1024.0 * 0.03];
             match self.creation_state {
                 CreationState::Race => {
                     Button::image(self.imgs.arrow_left_grey)
@@ -477,7 +509,10 @@ impl CharSelectionUi {
                         .press_image(self.imgs.arrow_right_press)
                         .top_right_with_margins_on(self.ids.creation_window, 74.0, 55.0)
                         .set(self.ids.arrow_right, ui_widgets)
-                        .was_clicked() {self.creation_state = CreationState::Weapon};
+                        .was_clicked()
+                    {
+                        self.creation_state = CreationState::Weapon
+                    };
                 }
                 CreationState::Weapon => {
                     if Button::image(self.imgs.arrow_left)
@@ -486,7 +521,10 @@ impl CharSelectionUi {
                         .press_image(self.imgs.arrow_left_press)
                         .top_left_with_margins_on(self.ids.creation_window, 74.0, 55.0)
                         .set(self.ids.arrow_left, ui_widgets)
-                        .was_clicked(){self.creation_state = CreationState::Race};
+                        .was_clicked()
+                    {
+                        self.creation_state = CreationState::Race
+                    };
 
                     if Button::image(self.imgs.arrow_right)
                         .wh(ARROW_WH)
@@ -494,7 +532,10 @@ impl CharSelectionUi {
                         .press_image(self.imgs.arrow_right_press)
                         .top_right_with_margins_on(self.ids.creation_window, 74.0, 55.0)
                         .set(self.ids.arrow_right, ui_widgets)
-                        .was_clicked() {self.creation_state = CreationState::Body};
+                        .was_clicked()
+                    {
+                        self.creation_state = CreationState::Body
+                    };
                 }
                 CreationState::Body => {
                     if Button::image(self.imgs.arrow_left)
@@ -503,14 +544,16 @@ impl CharSelectionUi {
                         .press_image(self.imgs.arrow_left_press)
                         .top_left_with_margins_on(self.ids.creation_window, 74.0, 55.0)
                         .set(self.ids.arrow_left, ui_widgets)
-                        .was_clicked(){self.creation_state = CreationState::Weapon};
+                        .was_clicked()
+                    {
+                        self.creation_state = CreationState::Weapon
+                    };
                     Button::image(self.imgs.arrow_right_grey)
                         .wh(ARROW_WH)
                         .top_right_with_margins_on(self.ids.creation_window, 74.0, 55.0)
                         .set(self.ids.arrow_right, ui_widgets);
                 }
             }
-
 
             // Races
 
@@ -524,7 +567,7 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
                     .font_size(28)
                     .rgba(220.0, 220.0, 220.0, 0.8)
-                    .set(self.ids.select_race_title, ui_widgets);
+                    .set(self.ids.select_window_title, ui_widgets);
 
                 // Male/Female/Race Icons
                 // for alignment
@@ -537,132 +580,206 @@ impl CharSelectionUi {
                     .w_h(68.0, 68.0)
                     .mid_left_of(self.ids.gender_bg)
                     .set(self.ids.male, ui_widgets);
-                if Button::image(if let Sex::Male = self.sex {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.male)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.sex_1, ui_widgets)
-                    .was_clicked() {self.sex = Sex::Male;};
+                if Button::image(if let Sex::Male = self.sex {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.male)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.sex_1, ui_widgets)
+                .was_clicked()
+                {
+                    self.sex = Sex::Male;
+                };
                 // Female
                 Image::new(self.imgs.female)
                     .w_h(68.0, 68.0)
                     .right_from(self.ids.male, 15.0)
                     .set(self.ids.female, ui_widgets);
-                 if Button::image(if let Sex::Female = self.sex {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.female)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.sex_2, ui_widgets)
-                    .was_clicked() {self.sex = Sex::Female;};
+                if Button::image(if let Sex::Female = self.sex {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.female)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.sex_2, ui_widgets)
+                .was_clicked()
+                {
+                    self.sex = Sex::Female;
+                };
                 // for alignment
                 Rectangle::fill_with([458.0, 68.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_window, 120.0)
                     .set(self.ids.races_bg, ui_widgets);
                 // TODO: If races where in some sort of array format we could do this in a loop
                 // Human
-                Image::new(if let Sex::Male = self.sex {self.imgs.human_m} else {self.imgs.human_f})
-                    .w_h(68.0, 68.0)
-                    .mid_left_of(self.ids.races_bg)
-                    .set(self.ids.human, ui_widgets);
-                if Button::image(if let Races::Human = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.human)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_1, ui_widgets)
-                    .was_clicked() {self.race = Races::Human}
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.human_m
+                } else {
+                    self.imgs.human_f
+                })
+                .w_h(68.0, 68.0)
+                .mid_left_of(self.ids.races_bg)
+                .set(self.ids.human, ui_widgets);
+                if Button::image(if let Races::Human = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.human)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_1, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Human;
+                };
 
                 // Orc
-                Image::new(if let Sex::Male = self.sex {self.imgs.orc_m} else {self.imgs.orc_f})
-                    .w_h(68.0, 68.0)
-                    .right_from(self.ids.human, 10.0)
-                    .set(self.ids.orc, ui_widgets);
-                if Button::image(if let Races::Orc = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.orc)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_2, ui_widgets)
-                    .was_clicked() {self.race = Races::Orc}
-
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.orc_m
+                } else {
+                    self.imgs.orc_f
+                })
+                .w_h(68.0, 68.0)
+                .right_from(self.ids.human, 10.0)
+                .set(self.ids.orc, ui_widgets);
+                if Button::image(if let Races::Orc = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.orc)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_2, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Orc;
+                };
                 // Dwarf
-                Image::new(if let Sex::Male = self.sex {self.imgs.dwarf_m} else {self.imgs.dwarf_f})
-                    .w_h(68.0, 68.0)
-                    .right_from(self.ids.human, 10.0 + 68.0)
-                    .set(self.ids.dwarf, ui_widgets);
-                 if Button::image(if let Races::Dwarf = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.dwarf)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_3, ui_widgets)
-                    .was_clicked() {self.race = Races::Dwarf}
-
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.dwarf_m
+                } else {
+                    self.imgs.dwarf_f
+                })
+                .w_h(68.0, 68.0)
+                .right_from(self.ids.human, 10.0 * 2.0 + 68.0)
+                .set(self.ids.dwarf, ui_widgets);
+                if Button::image(if let Races::Dwarf = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.dwarf)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_3, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Dwarf;
+                };
                 // Elf
-                Image::new(if let Sex::Male = self.sex {self.imgs.elf_m} else {self.imgs.elf_f})
-                    .w_h(68.0, 68.0)
-                    .right_from(self.ids.human, 10.0 + 68.0*2.0)
-                    .set(self.ids.elf, ui_widgets);
-                if Button::image(if let Races::Elf = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.elf)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_4, ui_widgets)
-                    .was_clicked() {self.race = Races::Elf}
-
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.elf_m
+                } else {
+                    self.imgs.elf_f
+                })
+                .w_h(68.0, 68.0)
+                .right_from(self.ids.human, 10.0 * 3.0 + 68.0 * 2.0)
+                .set(self.ids.elf, ui_widgets);
+                if Button::image(if let Races::Elf = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.elf)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_4, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Elf;
+                };
                 // Undead
-                Image::new(if let Sex::Male = self.sex {self.imgs.undead_m} else {self.imgs.undead_f})
-                    .w_h(68.0, 68.0)
-                    .right_from(self.ids.human, 10.0 + 68.0*3.0)
-                    .set(self.ids.undead, ui_widgets);
-                if Button::image(if let Races::Undead = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .middle_of(self.ids.undead)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_5, ui_widgets)
-                    .was_clicked() {self.race = Races::Undead}
-
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.undead_m
+                } else {
+                    self.imgs.undead_f
+                })
+                .w_h(68.0, 68.0)
+                .right_from(self.ids.human, 10.0 * 4.0 + 68.0 * 3.0)
+                .set(self.ids.undead, ui_widgets);
+                if Button::image(if let Races::Undead = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.undead)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_5, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Undead;
+                };
                 // Danari
-                Image::new(if let Sex::Male = self.sex {self.imgs.danari_m} else {self.imgs.danari_f})
-                    .right_from(self.ids.human, 10.0 + 68.0*4.0)
-                    .set(self.ids.danari, ui_widgets);
-                if Button::image(if let Races::Danari = self.race {self.imgs.icon_border_pressed} else {self.imgs.icon_border})
-                    .w_h(68.0, 68.0)
-                    .middle_of(self.ids.danari)
-                    .hover_image(self.imgs.icon_border_mo)
-                    .press_image(self.imgs.icon_border_press)
-                    .set(self.ids.race_6, ui_widgets)
-                    .was_clicked() {self.race = Races::Danari}
+                Image::new(if let Sex::Male = self.sex {
+                    self.imgs.danari_m
+                } else {
+                    self.imgs.danari_f
+                })
+                .right_from(self.ids.human, 10.0 * 5.0 + 68.0 * 4.0)
+                .set(self.ids.danari, ui_widgets);
+                if Button::image(if let Races::Danari = self.race {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .w_h(68.0, 68.0)
+                .middle_of(self.ids.danari)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.race_6, ui_widgets)
+                .was_clicked()
+                {
+                    self.race = Races::Danari;
+                };
 
                 // Description Headline and Text
 
-                //Image::new(self.imgs.desc_bg)
-                    //.w_h(528.0, 353.0)
-                    //.mid_top_with_margin_on(self.ids.creation_window, 400.0)
-                    //.scroll_kids_horizontally()
-                    //.set(self.ids.desc_bg, ui_widgets);
-
                 // TODO: Load these from files (or from the server???)
-                const HUMAN_DESC: &str = "Lorem ipsum dolor sit amet, consectetuer \
-                                          adipiscing elit. Aenean commodo ligula eget \
-                                          dolor. Aenean massa. Cum sociis natoque \
-                                          penatibus et magnis dis parturient montes, \
-                                          nascetur ridiculus mus. Donec quam felis, \
-                                          ultricies nec, pellentesque eu, pretium quis, \
-                                          sem. Nulla consequat massa quis enim. Donec \
-                                          pede justo, fringilla vel, aliquet nec, \
-                                          vulputate eget, arcu.";
-                const ORC_DESC: &str = HUMAN_DESC;
-                const DWARF_DESC: &str = HUMAN_DESC;
-                const UNDEAD_DESC: &str = HUMAN_DESC;
-                const ELF_DESC: &str = HUMAN_DESC;
-                const DANARI_DESC: &str = HUMAN_DESC;
+                const HUMAN_DESC: &str = "The former nomads were only recently \
+                                        able to take in the world of Veloren. \
+                                        Their greatest strengths are their \
+                                        adaptability and intelligence, \
+                                        which makes them all-rounders in all fields.";
+                const ORC_DESC: &str = "They are considered brutal, rude and combative. \
+                                        But once you got their trust they will be loyal friends \
+                                        following a strict code of honor in all of their actions. \
+                                        Their warriors are masters of melee combat, but their true power \
+                                        comes from the magical rituals of their powerful shamans.";
+                const DWARF_DESC: &str = "Smoking chimneys, the sound of countless hammers and hoes. \
+                                        Infinite tunnel systems to track down even the last chunk of metal \
+                                        in the ground. \
+                                        This race of master craftsmen and grim fighters exists almost \
+                                        as long as the world itself.";
+                const UNDEAD_DESC: &str = " MISSING ";
+                const ELF_DESC: &str = " MISSING ";
+                const DANARI_DESC: &str = " MISSING ";
 
-    			let (race_str, race_desc) = match self.race {
-        			Races::Human => ("Human", HUMAN_DESC),
-        			Races::Orc => ("Orcs", ORC_DESC),
-                    Races::Dwarf => ("Dwarf", DWARF_DESC),
-        			Races::Undead => ("Undead", UNDEAD_DESC),
-        			Races::Elf => ("Elves", ELF_DESC),
-        			Races::Danari => ("Danari", DANARI_DESC),
-    			};
+                let (race_str, race_desc) = match self.race {
+                    Races::Human => ("Humans", HUMAN_DESC),
+                    Races::Orc => ("Orcs", ORC_DESC),
+                    Races::Dwarf => ("Dwarves", DWARF_DESC),
+                    Races::Undead => ("Undead", UNDEAD_DESC),
+                    Races::Elf => ("Elves", ELF_DESC),
+                    Races::Danari => ("Danari", DANARI_DESC),
+                };
                 Text::new(race_str)
                     .mid_top_with_margin_on(self.ids.creation_window, 370.0)
                     .font_size(30)
@@ -679,10 +796,183 @@ impl CharSelectionUi {
                 // Races Descriptions
             }
 
-            if let CreationState::Weapon =  self.creation_state {}
+            if let CreationState::Weapon = self.creation_state {
+                Text::new("Choose your Weapon")
+                    .mid_top_with_margin_on(self.ids.creation_window, 74.0)
+                    .font_size(28)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.select_window_title, ui_widgets);
+                // BG for Alignment
+                Rectangle::fill_with([470.0, 60.0], color::TRANSPARENT)
+                    .mid_top_with_margin_on(self.ids.creation_window, 180.0)
+                    .set(self.ids.weapon_bg, ui_widgets);
+                // Weapons Icons
+                // Sword and Shield
+                Image::new(self.imgs.sword_shield)
+                    .w_h(60.0, 60.0)
+                    .mid_left_of(self.ids.weapon_bg)
+                    .set(self.ids.sword_shield, ui_widgets);
+                if Button::image(if let Weapons::SwordShield = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.sword_shield)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_1, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::SwordShield;
+                };
 
-            // Weapons Icons
-            // Weapons Descriptions
+                // Daggers
+                Image::new(self.imgs.daggers)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0)
+                    .set(self.ids.daggers, ui_widgets);
+                if Button::image(if let Weapons::Daggers = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.daggers)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_2, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Daggers;
+                };
+
+                // Sword
+                Image::new(self.imgs.sword)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0 * 2.0 + 60.0 * 1.0)
+                    .set(self.ids.sword, ui_widgets);
+                if Button::image(if let Weapons::Sword = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.sword)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_3, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Sword;
+                };
+                // Axe
+                Image::new(self.imgs.axe)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0 * 3.0 + 60.0 * 2.0)
+                    .set(self.ids.axe, ui_widgets);
+                if Button::image(if let Weapons::Axe = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.axe)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_4, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Axe;
+                };
+                // Hammer
+                Image::new(self.imgs.hammer)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0 * 4.0 + 60.0 * 3.0)
+                    .set(self.ids.hammer, ui_widgets);
+                if Button::image(if let Weapons::Hammer = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.hammer)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_5, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Hammer;
+                };
+                // Bow
+                Image::new(self.imgs.bow)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0 * 5.0 + 60.0 * 4.0)
+                    .set(self.ids.bow, ui_widgets);
+                if Button::image(if let Weapons::Bow = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.bow)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_6, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Bow;
+                };
+                // Staff
+                Image::new(self.imgs.staff)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword_shield, 8.0 * 6.0 + 60.0 * 5.0)
+                    .set(self.ids.staff, ui_widgets);
+                if Button::image(if let Weapons::Staff = self.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.staff)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.weapon_7, ui_widgets)
+                .was_clicked()
+                {
+                    self.weapon = Weapons::Staff;
+                };
+
+                // TODO: Load these from files (or from the server???)
+                const SWORDSHIELD_DESC: &str = " MISSING ";
+                const DAGGERS_DESC: &str = " MISSING ";
+                const SWORD_DESC: &str = " MISSING ";
+                const AXE_DESC: &str = " MISSING ";
+                const HAMMER_DESC: &str = " MISSING ";
+                const BOW_DESC: &str = " MISSING ";
+                const STAFF_DESC: &str = " MISSING ";
+
+                let (weapon_str, weapon_desc) = match self.weapon {
+                    Weapons::SwordShield => ("Sword and Shield", SWORDSHIELD_DESC),
+                    Weapons::Daggers => ("Daggers", DAGGERS_DESC),
+                    Weapons::Sword => ("Sword", SWORD_DESC),
+                    Weapons::Axe => ("Axe", AXE_DESC),
+                    Weapons::Hammer => ("Hammer", HAMMER_DESC),
+                    Weapons::Bow => ("Bow", BOW_DESC),
+                    Weapons::Staff => ("Staff", STAFF_DESC),
+                };
+                Text::new(weapon_str)
+                    .mid_top_with_margin_on(self.ids.creation_window, 370.0)
+                    .font_size(30)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.race_heading, ui_widgets);
+                Text::new(weapon_desc)
+                    .mid_top_with_margin_on(self.ids.creation_window, 410.0)
+                    .w(500.0)
+                    .font_size(20)
+                    .font_id(self.font_whitney)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .wrap_by_word()
+                    .set(self.ids.race_description, ui_widgets);
+                // Races Descriptions
+
+
+
+            }
+
             if let CreationState::Body = self.creation_state {}
         }
 
