@@ -5,7 +5,6 @@ use crate::{
 };
 use conrod_core::{
     color::TRANSPARENT,
-    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, TextBox},
