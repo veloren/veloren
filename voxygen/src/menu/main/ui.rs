@@ -170,7 +170,6 @@ impl MainMenuUi {
             .w_h(337.0, 67.0)
             .middle_of(ui_widgets.window)
             .set(self.ids.username_bg, ui_widgets);
-        // TODO: figure out why cursor is rendered inconsistently
         for event in TextBox::new(&self.username)
             .w_h(580.0 / 2.0, 60.0 / 2.0)
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
