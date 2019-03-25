@@ -440,7 +440,7 @@ impl Ui {
                     PrimitiveKind::Rectangle { color } => {
                         // TODO: consider gamma/linear conversion....
                         let color = color.to_fsa();
-                        // Don't draw a transparent rectangle (they exist)
+                        // Don't draw a transparent rectangle
                         if color[3] == 0.0 {
                             continue;
                         }
@@ -468,17 +468,25 @@ impl Ui {
                         switch_to_plain_state!();
 
                         for tri in triangles {
-                            // TODO: this code is repeated above, put it in a single location
-                            let triangle = [
-                                [vx(tri[2][0]), vy(tri[2][1])],
-                                [vx(tri[1][0]), vy(tri[1][1])],
-                                [vx(tri[0][0]), vy(tri[0][1])],
-                            ];
+                            let p1 = Vec2::new(vx(tri[0][0]), vy(tri[0][1]));
+                            let p2 = Vec2::new(vx(tri[1][0]), vy(tri[1][1]));
+                            let p3 = Vec2::new(vx(tri[2][0]), vy(tri[2][1]));
+                            // If triangle is clockwise reverse it
+                            let (v1, v2): (Vec3<f32>, Vec3<f32>) = ((p2 - p1).into(), (p3 - p1).into());
+                            let triangle = if v1.cross(v2).z > 0.0 {[
+                                p1.into_array(),
+                                p2.into_array(),
+                                p3.into_array(),
+                            ]} else {[
+                                p2.into_array(),
+                                p1.into_array(),
+                                p3.into_array(),
+                            ]};
                             push_ui_tri_to_mesh(
                                 &mut mesh,
                                 triangle,
                                 [[0.0; 2]; 3],
-                                [1.0, 1.0, 1.0, 1.0],
+                                color,
                                 UiMode::Geometry,
                             );
                         }
