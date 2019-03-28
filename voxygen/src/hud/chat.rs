@@ -73,7 +73,7 @@ impl Chat {
             .restrict_to_height(false)
             .font_size(14)
             .font_id(font)
-            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 30.0);
+            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0);
         let dims = match (
             text_edit.get_x_dimension(ui_widgets),
             text_edit.get_y_dimension(ui_widgets),
