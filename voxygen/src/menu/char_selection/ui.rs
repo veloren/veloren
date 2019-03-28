@@ -5,6 +5,7 @@ use crate::{
 };
 use conrod_core::{
     color,
+    color::TRANSPARENT,
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
@@ -122,10 +123,30 @@ widget_ids! {
         skin_color_slider_indicator,
         eye_color_slider_range,
         eye_color_slider_indicator,
-
-
-
-
+        hair_color_slider_text,
+        // Creation Hair Contents
+        hair_style_text,
+        hair_style_arrow_l,
+        hair_style_arrow_r,
+        hair_color_picker_bg,
+        hair_color_text,
+        hair_color_slider_range,
+        hair_color_slider_indicator,
+        eyebrow_style_text,
+        eyebrow_arrow_l,
+        eyebrow_arrow_r,
+        beard_style_text,
+        beard_arrow_l,
+        beard_arrow_r,
+        // Creation Accessories Contents
+        warpaint_text,
+        warpaint_arrow_l,
+        warpaint_arrow_r,
+        warpaint_color_picker_bg,
+        warpaint_color_text,
+        warpaint_slider_indicator,
+        warpaint_slider_range,
+        warpaint_slider_text,
 
     }
 }
@@ -540,19 +561,17 @@ impl CharSelectionUi {
             // Character Name Input
             Button::image(self.imgs.name_input)
                 .w_h(337.0, 67.0)
-                .label("Character Name")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
-                .label_y(conrod_core::position::Relative::Scalar(50.0))
                 .mid_bottom_with_margin_on(self.ids.bg_creation, 10.0)
                 .set(self.ids.name_input, ui_widgets);
             for event in TextBox::new(&self.character_name)
                 .w_h(300.0, 60.0)
-                .middle_of(self.ids.name_input)
-                .font_size(22)
+                .mid_top_with_margin_on(self.ids.name_input, 2.0)
+                .font_size(26)
                 .font_id(self.font_metamorph)
-                .rgba(220.0, 220.0, 220.0, 0.8)
                 .center_justify()
+                .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+                .color(TRANSPARENT)
+                .border_color(TRANSPARENT)
                 .set(self.ids.name_field, ui_widgets)
             {
                 match event {
@@ -564,10 +583,14 @@ impl CharSelectionUi {
             }
 
             // Window(s)
-            Image::new(if let CreationState::Body(_) = self.creation_state {self.imgs.creation_window_body} else {self.imgs.creation_window})
-                .w_h(628.0, 814.0)
-                .top_left_with_margins_on(self.ids.bg_creation, 60.0, 30.0)
-                .set(self.ids.creation_window, ui_widgets);
+            Image::new(if let CreationState::Body(_) = self.creation_state {
+                self.imgs.creation_window_body
+            } else {
+                self.imgs.creation_window
+            })
+            .w_h(628.0, 814.0)
+            .top_left_with_margins_on(self.ids.bg_creation, 60.0, 30.0)
+            .set(self.ids.creation_window, ui_widgets);
 
             // Arrows
             // TODO: lower the resolution of the arrow images & use non decimal sizes below
@@ -830,22 +853,34 @@ impl CharSelectionUi {
 
                 // TODO: Load these from files (or from the server???)
                 const HUMAN_DESC: &str = "The former nomads were only recently \
-                                        able to gain a foothold in the world of Veloren. \
-                                        Their greatest strengths are their \
-                                        adaptability and intelligence, \
-                                        which makes them allrounders in many fields.";
-                const ORC_DESC: &str = "They are considered brutal, rude and combative. \
-                                        But once you got their trust they will be loyal friends \
-                                        following a strict code of honor in all of their actions. \
-                                        Their warriors are masters of melee combat, but their true power \
-                                        comes from the magical rituals of their powerful shamans.";
-                const DWARF_DESC: &str = "Smoking chimneys, the sound of countless hammers and hoes. \
-                                        Infinite tunnel systems to track down even the last chunk of metal \
-                                        in the ground. \
-                                        This race of master craftsmen and grim fighters exists almost \
-                                        as long as the world itself.";
+                                          able to gain a foothold in the world of Veloren. \
+                                          Their greatest strengths are their \
+                                          adaptability and intelligence, \
+                                          which makes them allrounders in many fields.";
+                const ORC_DESC: &str =
+                    "They are considered brutal, rude and combative. \
+                     But once you got their trust they will be loyal friends \
+                     following a strict code of honor in all of their actions. \
+                     Their warriors are masters of melee combat, but their true power \
+                     comes from the magical rituals of their powerful shamans.";
+                const DWARF_DESC: &str =
+                    "Smoking chimneys, the sound of countless hammers and hoes. \
+                     Infinite tunnel systems to track down even the last chunk of metal \
+                     in the ground. \
+                     This race of master craftsmen and grim fighters exists almost \
+                     as long as the world itself.";
                 const UNDEAD_DESC: &str = " MISSING ";
-                const ELF_DESC: &str = " MISSING ";
+                const ELF_DESC: &str =
+                    "No matter which shade of elves you encounter, they all have something in common: Magic. \n\
+                    They can be found in many Forms: \n\
+                    \n\
+                    Pale Elves, living in dark fortresses, executing bloody rituals. \n\
+                    \n\
+                    Nature connected Brushwood Elves, that guard ancient powers inside the forests.\n\
+                    \n\
+                    Gold Elves that hunger for political power in their massive city states. \n\
+                    \n\
+                    And many more!";
                 const DANARI_DESC: &str = " MISSING ";
 
                 let (race_str, race_desc) = match self.race {
@@ -1044,9 +1079,6 @@ impl CharSelectionUi {
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
                 // Races Descriptions
-
-
-
             }
             // 3 states/windows: 1.Skin & Eyes 2.Hair 3.Accessories
             // If one state is activated the other ones collapse
@@ -1065,226 +1097,227 @@ impl CharSelectionUi {
                     // Skin Eyes Open
                     BodyPart::SkinEyes => {
                         Image::new(self.imgs.skin_eyes_window)
-                        .w_h(511.0, 333.0)
-                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
-                        .set(self.ids.skin_eyes_window, ui_widgets);
-                    // Open Window: Skin & Eyes
-                    if Button::image(self.imgs.frame_open_mo)
-                        .mid_top_with_margin_on(self.ids.skin_eyes_window, 0.0)
-                        .w_h(511.0, 37.0)
-                        //.hover_image(self.imgs.frame_open_mo)
-                        //.press_image(self.imgs.frame_open_press)
-                        .label("Skin & Eyes")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_y(conrod_core::position::Relative::Scalar(4.0))
-                        .label_font_size(16)
-                        .set(self.ids.skin_eyes_button, ui_widgets)
-                        .was_clicked() {
+                            .w_h(511.0, 333.0)
+                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                            .set(self.ids.skin_eyes_window, ui_widgets);
+                        // Open Window: Skin & Eyes
+                        if Button::image(self.imgs.frame_open_mo)
+                            .mid_top_with_margin_on(self.ids.skin_eyes_window, 0.0)
+                            .w_h(511.0, 37.0)
+                            //.hover_image(self.imgs.frame_open_mo)
+                            //.press_image(self.imgs.frame_open_press)
+                            .label("Skin & Eyes")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_y(conrod_core::position::Relative::Scalar(4.0))
+                            .label_font_size(16)
+                            .set(self.ids.skin_eyes_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::SkinEyes);
                         }
-                    // Closed: Hair
-                    if Button::image(self.imgs.frame_closed)
-                        .down_from(self.ids.skin_eyes_window, 5.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Hair")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.hair_button, ui_widgets)
-                        .was_clicked() {
+                        // Closed: Hair
+                        if Button::image(self.imgs.frame_closed)
+                            .down_from(self.ids.skin_eyes_window, 5.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Hair")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.hair_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Hair);
                         }
-                    // Closed: Accessories
-                    if Button::image(self.imgs.frame_closed)
-                        .down_from(self.ids.hair_button, 5.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Accessories")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.accessories_button, ui_widgets)
-                        .was_clicked() {
+                        // Closed: Accessories
+                        if Button::image(self.imgs.frame_closed)
+                            .down_from(self.ids.hair_button, 5.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Accessories")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.accessories_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-
                     } // State 1 fin
 
-                // Hair Open
+                    // Hair Open
                     BodyPart::Hair => {
                         Image::new(self.imgs.hair_window)
-                        .w_h(511.0, 500.0) //333.0
-                        .down_from(self.ids.skin_eyes_button, 5.0)
-                        .set(self.ids.hair_window, ui_widgets);
-                    // Closed Window: Skin & Eyes
-                    if Button::image(self.imgs.frame_closed)
-                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Skin & Eyes")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.skin_eyes_button, ui_widgets)
-                        .was_clicked() {
+                            .w_h(511.0, 400.0) //333.0
+                            .down_from(self.ids.skin_eyes_button, 5.0)
+                            .set(self.ids.hair_window, ui_widgets);
+                        // Closed Window: Skin & Eyes
+                        if Button::image(self.imgs.frame_closed)
+                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Skin & Eyes")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.skin_eyes_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::SkinEyes);
                         }
-                    // Open Window: Hair
-                    if Button::image(self.imgs.frame_open_mo)
-                        .mid_top_with_margin_on(self.ids.hair_window, 0.0)
-                        .w_h(511.0, 37.0)
-                        //.hover_image(self.imgs.frame_closed_mo)
-                        //.press_image(self.imgs.frame_closed_press)
-                        .label("Hair")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_y(conrod_core::position::Relative::Scalar(4.0))
-                        .label_font_size(16)
-                        .set(self.ids.hair_button, ui_widgets)
-                        .was_clicked() {
+                        // Open Window: Hair
+                        if Button::image(self.imgs.frame_open_mo)
+                            .mid_top_with_margin_on(self.ids.hair_window, 0.0)
+                            .w_h(511.0, 37.0)
+                            //.hover_image(self.imgs.frame_closed_mo)
+                            //.press_image(self.imgs.frame_closed_press)
+                            .label("Hair")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_y(conrod_core::position::Relative::Scalar(4.0))
+                            .label_font_size(16)
+                            .set(self.ids.hair_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Hair);
                         }
-                    // Closed: Accessories
-                    if Button::image(self.imgs.frame_closed)
-                        .down_from(self.ids.hair_window, 5.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Accessories")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.accessories_button, ui_widgets)
-                        .was_clicked() {
+                        // Closed: Accessories
+                        if Button::image(self.imgs.frame_closed)
+                            .down_from(self.ids.hair_window, 5.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Accessories")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.accessories_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-
                     } // State 2 fin
 
                     // Open: Accessories
-                   BodyPart::Accessories => {
+                    BodyPart::Accessories => {
                         Image::new(self.imgs.hair_window)
-                        .w_h(511.0, 333.0)
-                        .down_from(self.ids.hair_button, 5.0)
-                        .set(self.ids.accessories_window, ui_widgets);
-                    // Closed Window: Skin & Eyes
-                    if Button::image(self.imgs.frame_closed)
-                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Skin & Eyes")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.skin_eyes_button, ui_widgets)
-                        .was_clicked() {
+                            .w_h(511.0, 333.0)
+                            .down_from(self.ids.hair_button, 5.0)
+                            .set(self.ids.accessories_window, ui_widgets);
+                        // Closed Window: Skin & Eyes
+                        if Button::image(self.imgs.frame_closed)
+                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Skin & Eyes")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.skin_eyes_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::SkinEyes);
                         }
-                    // Closed: Hair
-                    if Button::image(self.imgs.frame_closed)
-                        .down_from(self.ids.skin_eyes_button, 5.0)
-                        .w_h(511.0, 31.0)
-                        .hover_image(self.imgs.frame_closed_mo)
-                        .press_image(self.imgs.frame_closed_press)
-                        .label("Hair")
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.hair_button, ui_widgets)
-                        .was_clicked() {
+                        // Closed: Hair
+                        if Button::image(self.imgs.frame_closed)
+                            .down_from(self.ids.skin_eyes_button, 5.0)
+                            .w_h(511.0, 31.0)
+                            .hover_image(self.imgs.frame_closed_mo)
+                            .press_image(self.imgs.frame_closed_press)
+                            .label("Hair")
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.hair_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Hair);
                         }
-                    // Open: Accessories
-                    if Button::image(self.imgs.frame_open_mo)
-                        .down_from(self.ids.hair_button, 5.0)
-                        .w_h(511.0, 37.0)
-                        //.hover_image(self.imgs.frame_closed_mo)
-                        //.press_image(self.imgs.frame_closed_press)
-                        .label("Accessories")
-                        .label_y(conrod_core::position::Relative::Scalar(4.0))
-                        .label_rgba(220.0, 220.0, 220.0, 0.8)
-                        .label_font_size(16)
-                        .set(self.ids.accessories_button, ui_widgets)
-                        .was_clicked() {
+                        // Open: Accessories
+                        if Button::image(self.imgs.frame_open_mo)
+                            .down_from(self.ids.hair_button, 5.0)
+                            .w_h(511.0, 37.0)
+                            //.hover_image(self.imgs.frame_closed_mo)
+                            //.press_image(self.imgs.frame_closed_press)
+                            .label("Accessories")
+                            .label_y(conrod_core::position::Relative::Scalar(4.0))
+                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_font_size(16)
+                            .set(self.ids.accessories_button, ui_widgets)
+                            .was_clicked()
+                        {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-
-
-
                     } // State 3 fin
                 } // match fin
 
                 // Body Customization Window Contents ////////////////////////
                 match state {
-
                     BodyPart::SkinEyes => {
-                    // Skin Color: Text, Brightness Slider, Picker
-                    Text::new("Skin Color")
-                        .top_left_with_margins_on(self.ids.skin_rect, 0.0, -250.0)
-                        .font_size(25)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
-                        .set(self.ids.skin_color_text, ui_widgets);
-                    // TODO: Align Buttons here
-                    // They set an i32 to a value from 0-14
-                    // Depending on the race another color will be chosen
-                    // Here only the BG image changes depending on the race.
-                    Rectangle::fill_with([192.0, 116.0], color::WHITE)
-                        .top_right_with_margins_on(self.ids.skin_eyes_window, 60.0, 30.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
-                        .set(self.ids.skin_rect, ui_widgets);
+                        // Skin Color: Text, Brightness Slider, Picker
+                        Text::new("Skin Color")
+                            .top_left_with_margins_on(self.ids.skin_rect, 0.0, -250.0)
+                            .font_size(25)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.skin_color_text, ui_widgets);
+                        // TODO: Align Buttons here
+                        // They set an i32 to a value from 0-14
+                        // Depending on the race another color will be chosen
+                        // Here only the BG image changes depending on the race.
+                        Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                            .top_right_with_margins_on(self.ids.skin_eyes_window, 60.0, 30.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.skin_rect, ui_widgets);
 
-                    // TODO:Slider
-                    // Sliders actually change the Alpha-Level of the main colour chosen above
-                    // -> They will appear "brighter", therefore the sliders are labeled "Brightness"
-                    Image::new(self.imgs.slider_range)
-                        .w_h(208.0, 12.0)
-                        .bottom_left_with_margins_on(self.ids.skin_rect, 10.0, -255.0)
-                        .set(self.ids.skin_color_slider_range, ui_widgets);
+                        // TODO:Slider
+                        // Sliders actually change the Alpha-Level of the main colour chosen above
+                        // -> They will appear "brighter", therefore the sliders are labeled "Brightness"
+                        Image::new(self.imgs.slider_range)
+                            .w_h(208.0, 12.0)
+                            .bottom_left_with_margins_on(self.ids.skin_rect, 10.0, -255.0)
+                            .set(self.ids.skin_color_slider_range, ui_widgets);
 
-                    Image::new(self.imgs.slider_indicator)
-                        .w_h(10.0, 22.0)
-                        .middle_of(self.ids.skin_color_slider_range)
-                        .set(self.ids.skin_color_slider_indicator, ui_widgets);
+                        Image::new(self.imgs.slider_indicator)
+                            .w_h(10.0, 22.0)
+                            .middle_of(self.ids.skin_color_slider_range)
+                            .set(self.ids.skin_color_slider_indicator, ui_widgets);
 
-                    Text::new("Brightness")
-                        .top_left_with_margins_on(self.ids.skin_color_slider_range, -27.0, 0.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
-                        .font_size(14)
-                        .set(self.ids.skin_color_slider_text, ui_widgets);
+                        Text::new("Brightness")
+                            .top_left_with_margins_on(self.ids.skin_color_slider_range, -27.0, 0.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .font_size(14)
+                            .set(self.ids.skin_color_slider_text, ui_widgets);
 
+                        // Eye Color: Text, Brightness Slider, Picker
+                        Text::new("Eye Color")
+                            .top_left_with_margins_on(self.ids.eyes_rect, 0.0, -250.0)
+                            .font_size(25)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.eye_color_text, ui_widgets);
+                        // TODO: Align 16 Buttons here
+                        //
+                        // They set a variable to a value from 0-14
+                        // Depending on the race another color will be chosen
+                        // Only the BG image (190x114 -> 2px border!) changes depending on the race.
+                        Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                            .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.eyes_rect, ui_widgets);
 
-                    // Eye Color: Text, Brightness Slider, Picker
-                    Text::new("Eye Color")
-                        .top_left_with_margins_on(self.ids.eyes_rect, 0.0, -250.0)
-                        .font_size(25)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
-                        .set(self.ids.eye_color_text, ui_widgets);
-                    // TODO: Align 16 Buttons here
-                    //
-                    // They set a variable to a value from 0-14
-                    // Depending on the race another color will be chosen
-                    // Only the BG image (190x114 -> 2px border!) changes depending on the race.
-                    Rectangle::fill_with([192.0, 116.0], color::WHITE)
-                    .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
-                    .set(self.ids.eyes_rect, ui_widgets);
+                        // TODO:Slider
 
-                    // TODO:Slider
+                        Image::new(self.imgs.slider_range)
+                            .w_h(208.0, 12.0)
+                            .bottom_left_with_margins_on(self.ids.eyes_rect, 10.0, -255.0)
+                            .set(self.ids.eye_color_slider_range, ui_widgets);
 
-                    Image::new(self.imgs.slider_range)
-                        .w_h(208.0, 12.0)
-                        .bottom_left_with_margins_on(self.ids.eyes_rect, 10.0, -255.0)
-                        .set(self.ids.eye_color_slider_range, ui_widgets);
+                        Image::new(self.imgs.slider_indicator)
+                            .w_h(10.0, 22.0)
+                            .middle_of(self.ids.eye_color_slider_range)
+                            .set(self.ids.eye_color_slider_indicator, ui_widgets);
 
-                    Image::new(self.imgs.slider_indicator)
-                        .w_h(10.0, 22.0)
-                        .middle_of(self.ids.eye_color_slider_range)
-                        .set(self.ids.eye_color_slider_indicator, ui_widgets);
-
-                    Text::new("Brightness")
-                        .top_left_with_margins_on(self.ids.eye_color_slider_range, -27.0, 0.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
-                        .font_size(14)
-                        .set(self.ids.eye_color_slider_text, ui_widgets);
-
+                        Text::new("Brightness")
+                            .top_left_with_margins_on(self.ids.eye_color_slider_range, -27.0, 0.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .font_size(14)
+                            .set(self.ids.eye_color_slider_text, ui_widgets);
                     }
 
                     // Hair ///////////////////////////////////////////////////////
@@ -1293,17 +1326,514 @@ impl CharSelectionUi {
                     // Hair Color -> Picker
                     // Eye Brow Style -> Arrow
                     // Facial Hair -> Picker (Only active for males!)
-                    BodyPart::Hair => {}
+                    BodyPart::Hair => {
+                        // Hair
+                        Text::new("Hair Style")
+                            .mid_top_with_margin_on(self.ids.hair_window, 60.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .font_size(24)
+                            .set(self.ids.hair_style_text, ui_widgets);
+                        if Button::image(self.imgs.arrow_right)
+                            .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                            .hover_image(self.imgs.arrow_right_mo)
+                            .press_image(self.imgs.arrow_right_press)
+                            .right_from(self.ids.hair_style_text, 15.0)
+                            .set(self.ids.hair_style_arrow_r, ui_widgets)
+                            .was_clicked()
+                        {};
+                        if Button::image(self.imgs.arrow_left)
+                            .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                            .hover_image(self.imgs.arrow_left_mo)
+                            .press_image(self.imgs.arrow_left_press)
+                            .left_from(self.ids.hair_style_text, 15.0)
+                            .set(self.ids.hair_style_arrow_l, ui_widgets)
+                            .was_clicked()
+                        {};
+
+                        Text::new("Hair Color")
+                            .top_left_with_margins_on(self.ids.hair_color_picker_bg, 0.0, -250.0)
+                            .font_size(25)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.hair_color_text, ui_widgets);
+
+                        Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                            .top_right_with_margins_on(self.ids.hair_window, 114.0, 30.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .set(self.ids.hair_color_picker_bg, ui_widgets);
+
+                        Image::new(self.imgs.slider_range)
+                            .w_h(208.0, 12.0)
+                            .bottom_left_with_margins_on(
+                                self.ids.hair_color_picker_bg,
+                                10.0,
+                                -255.0,
+                            )
+                            .set(self.ids.hair_color_slider_range, ui_widgets);
+
+                        Image::new(self.imgs.slider_indicator)
+                            .w_h(10.0, 22.0)
+                            .middle_of(self.ids.hair_color_slider_range)
+                            .set(self.ids.hair_color_slider_indicator, ui_widgets);
+
+                        Text::new("Brightness")
+                            .top_left_with_margins_on(self.ids.hair_color_slider_range, -27.0, 0.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .font_size(14)
+                            .set(self.ids.hair_color_slider_text, ui_widgets);
+                        // Eyebrows
+                        Text::new("Eyebrow Style")
+                            .mid_top_with_margin_on(self.ids.hair_window, 280.0)
+                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .font_size(24)
+                            .set(self.ids.eyebrow_style_text, ui_widgets);
+                        if Button::image(self.imgs.arrow_right)
+                            .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                            .hover_image(self.imgs.arrow_right_mo)
+                            .press_image(self.imgs.arrow_right_press)
+                            .right_from(self.ids.eyebrow_style_text, 15.0)
+                            .set(self.ids.eyebrow_arrow_r, ui_widgets)
+                            .was_clicked()
+                        {};
+                        if Button::image(self.imgs.arrow_left)
+                            .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                            .hover_image(self.imgs.arrow_left_mo)
+                            .press_image(self.imgs.arrow_left_press)
+                            .left_from(self.ids.eyebrow_style_text, 15.0)
+                            .set(self.ids.eyebrow_arrow_l, ui_widgets)
+                            .was_clicked()
+                        {};
+                        // Beard -> Only active when "male" was chosen
+                        if let Sex::Male = self.sex {
+                            Text::new("Beard Style")
+                                .mid_top_with_margin_on(self.ids.hair_window, 340.0)
+                                .rgba(220.0, 220.0, 220.0, 0.8)
+                                .font_size(24)
+                                .set(self.ids.beard_style_text, ui_widgets);
+                            if Button::image(self.imgs.arrow_right)
+                                .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                .hover_image(self.imgs.arrow_right_mo)
+                                .press_image(self.imgs.arrow_right_press)
+                                .right_from(self.ids.beard_style_text, 15.0)
+                                .set(self.ids.beard_arrow_r, ui_widgets)
+                                .was_clicked()
+                            {};
+                            if Button::image(self.imgs.arrow_left)
+                                .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                .hover_image(self.imgs.arrow_left_mo)
+                                .press_image(self.imgs.arrow_left_press)
+                                .left_from(self.ids.beard_style_text, 15.0)
+                                .set(self.ids.beard_arrow_l, ui_widgets)
+                                .was_clicked()
+                            {};
+                        }
+                    }
 
                     // Accessories ///////////////////////////////
 
                     // Accessory Picker -> Arrows (Name Changes with race!)
                     // Color -> Picker
                     // Brightness -> Slider
-                    BodyPart::Accessories => {}
-                    // Accessories fin
+                    BodyPart::Accessories => {
+                        match self.race {
+                            Races::Human => {
+                                Text::new("Head Band")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
 
-                }; // Body Customization Fin
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Human
+                            Races::Orc => {
+                                Text::new("Head Band")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
+
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Orc
+                            Races::Elf => {
+                                Text::new("Tribe Markings")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
+
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Elf
+                            Races::Dwarf => {
+                                Text::new("War Paint")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
+
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Dwarf
+                            Races::Undead => {
+                                Text::new("Teeth")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
+
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Undead
+                            Races::Danari => {
+                                Text::new("Horns")
+                                    .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(24)
+                                    .set(self.ids.warpaint_text, ui_widgets);
+                                if Button::image(self.imgs.arrow_right)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_right_mo)
+                                    .press_image(self.imgs.arrow_right_press)
+                                    .right_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_r, ui_widgets)
+                                    .was_clicked()
+                                {};
+                                if Button::image(self.imgs.arrow_left)
+                                    .w_h(986.0 * 0.02, 1024.0 * 0.02)
+                                    .hover_image(self.imgs.arrow_left_mo)
+                                    .press_image(self.imgs.arrow_left_press)
+                                    .left_from(self.ids.warpaint_text, 15.0)
+                                    .set(self.ids.warpaint_arrow_l, ui_widgets)
+                                    .was_clicked()
+                                {};
+
+                                Text::new("Color")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        0.0,
+                                        -250.0,
+                                    )
+                                    .font_size(25)
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_text, ui_widgets);
+
+                                Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                                    .top_right_with_margins_on(
+                                        self.ids.accessories_window,
+                                        114.0,
+                                        30.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .set(self.ids.warpaint_color_picker_bg, ui_widgets);
+
+                                Image::new(self.imgs.slider_range)
+                                    .w_h(208.0, 12.0)
+                                    .bottom_left_with_margins_on(
+                                        self.ids.warpaint_color_picker_bg,
+                                        10.0,
+                                        -255.0,
+                                    )
+                                    .set(self.ids.warpaint_slider_range, ui_widgets);
+
+                                Image::new(self.imgs.slider_indicator)
+                                    .w_h(10.0, 22.0)
+                                    .middle_of(self.ids.warpaint_slider_range)
+                                    .set(self.ids.warpaint_slider_indicator, ui_widgets);
+
+                                Text::new("Brightness")
+                                    .top_left_with_margins_on(
+                                        self.ids.warpaint_slider_range,
+                                        -27.0,
+                                        0.0,
+                                    )
+                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .font_size(14)
+                                    .set(self.ids.warpaint_slider_text, ui_widgets);
+                            } // Danari
+                        } // match Race fin
+                    } // Accessories fin
+                } // Body Customization Fin
             } // CreationState::Body Fin
         } // Char Creation fin
 
