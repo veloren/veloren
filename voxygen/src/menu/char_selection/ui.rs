@@ -5,6 +5,7 @@ use crate::{
 };
 use conrod_core::{
     color,
+    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox, TitleBar},
@@ -30,6 +31,21 @@ widget_ids! {
         races_bg,
         gender_bg,
         desc_bg,
+        skin_eyes_window,
+        hair_window,
+        accessories_window,
+        skin_eyes_button,
+        hair_button,
+        accessories_button,
+        skin_rect,
+        eyes_rect,
+        human_skin_bg,
+        orc_skin_bg,
+        dwarf_skin_bg,
+        undead_skin_bg,
+        elf_skin_bg,
+        danari_skin_bg,
+
 
         // Buttons
         enter_world_button,
@@ -38,8 +54,7 @@ widget_ids! {
         create_character_button,
         delete_button,
         create_button,
-        character_name_input,
-        name_input_bg,
+        name_input,
         name_field,
         race_1,
         race_2,
@@ -85,6 +100,32 @@ widget_ids! {
         // Arrows
         arrow_left,
         arrow_right,
+        // Body Features
+        window_skin_eyes,
+        window_skin_eyes_mid,
+        window_skin_eyes_bot,
+        window_hair,
+        window_hair_mid,
+        window_hair_bot,
+        window_acessories,
+        window_acessories_mid,
+        window_acessories_bot,
+        skin_color_picker,
+        skin_color_slider,
+        skin_color_text,
+        skin_color_slider_text,
+        eye_color_picker,
+        eye_color_slider,
+        eye_color_text,
+        eye_color_slider_text,
+        skin_color_slider_range,
+        skin_color_slider_indicator,
+        eye_color_slider_range,
+        eye_color_slider_indicator,
+
+
+
+
 
     }
 }
@@ -102,9 +143,22 @@ struct Imgs {
     selection_window: ImgId,
     test_char_l_button: ImgId,
     test_char_l_big: ImgId,
-    name_input_bg: ImgId,
+    name_input: ImgId,
     creation_window: ImgId,
-    desc_bg: ImgId,
+    creation_window_body: ImgId,
+    frame_closed: ImgId,
+    frame_closed_mo: ImgId,
+    frame_closed_press: ImgId,
+    frame_open: ImgId,
+    frame_open_mo: ImgId,
+    frame_open_press: ImgId,
+    skin_eyes_window: ImgId,
+    hair_window: ImgId,
+    accessories_window: ImgId,
+    color_picker_bg: ImgId,
+    slider_range: ImgId,
+    slider_indicator: ImgId,
+
     //test_char_m_button: ImgId,
     //test_char_r_button: ImgId,
     // Race Icons
@@ -172,9 +226,22 @@ impl Imgs {
             button_dark_red_press: load("buttons/button_dark_red_press.png"),
             test_char_l_button: load("test_char_l.png"),
             test_char_l_big: load("test_char_l_big.png"),
+            name_input: load("input_bg.png"),
             creation_window: load("creation_window.png"),
-            name_input_bg: load("input_bg.png"),
-            desc_bg: load("desc_bg.png"),
+            creation_window_body: load("creation_window_body.png"),
+            frame_closed: load("frame_closed_button.png"),
+            frame_closed_mo: load("frame_closed_mo_button.png"),
+            frame_closed_press: load("frame_closed_press_button.png"),
+            frame_open: load("frame_open_button.png"),
+            frame_open_mo: load("frame_open_mo_button.png"),
+            frame_open_press: load("frame_open_press_button.png"),
+            skin_eyes_window: load("frame_skin_eyes.png"),
+            hair_window: load("frame_skin_eyes.png"),
+            accessories_window: load("frame_skin_eyes.png"),
+            color_picker_bg: load("color_picker_blank.png"),
+            slider_range: load("slider_range.png"),
+            slider_indicator: load("slider_indicator.png"),
+
             // Weapon Icons
             daggers: load("icons/daggers_icon.png"),
             sword_shield: load("icons/swordshield_icon.png"),
@@ -221,7 +288,7 @@ impl Imgs {
 enum CreationState {
     Race,
     Weapon,
-    Body,
+    Body(BodyPart),
 }
 enum Races {
     Human,
@@ -230,6 +297,12 @@ enum Races {
     Dwarf,
     Undead,
     Danari,
+}
+#[derive(Clone, Copy)]
+enum BodyPart {
+    SkinEyes,
+    Hair,
+    Accessories,
 }
 enum Sex {
     Male,
@@ -256,7 +329,7 @@ pub struct CharSelectionUi {
     ids: Ids,
     imgs: Imgs,
     font_metamorph: FontId,
-    font_whitney: FontId,
+    font_opensans: FontId,
     character_creation: bool,
     selected_char_no: Option<i32>,
     race: Races,
@@ -276,10 +349,10 @@ impl CharSelectionUi {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_whitney = ui.new_font(
+        let font_opensans = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/Whitney-Book.ttf"
+                "/test_assets/font/OpenSans-Regular.ttf"
             ))
             .unwrap(),
         );
@@ -295,7 +368,7 @@ impl CharSelectionUi {
             imgs,
             ids,
             font_metamorph,
-            font_whitney,
+            font_opensans,
             character_creation: false,
             selected_char_no: None,
             character_name: "Character Name".to_string(),
@@ -306,6 +379,7 @@ impl CharSelectionUi {
         }
     }
 
+    // TODO: split this up into multiple modules or functions
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
@@ -338,10 +412,10 @@ impl CharSelectionUi {
                 .set(self.ids.logout_button, ui_widgets)
                 .was_clicked()
             {
-                events.push(Event::Logout)
-            };
+                events.push(Event::Logout);
+            }
 
-            // Create_Character_Button
+            // Create Character Button
             if Button::image(self.imgs.button_dark)
                 .mid_bottom_with_margin_on(self.ids.bg_selection, 10.0)
                 .w_h(270.0, 50.0)
@@ -356,8 +430,8 @@ impl CharSelectionUi {
             {
                 self.character_creation = true;
                 self.selected_char_no = None;
-            };
-            //Test_Characters
+            }
+            // Test Characters
             if Button::image(self.imgs.test_char_l_button)
                 .bottom_left_with_margins_on(self.ids.bg_selection, 395.0, 716.0)
                 .w_h(95.0, 130.0)
@@ -368,7 +442,7 @@ impl CharSelectionUi {
             {
                 self.selected_char_no = Some(1);
                 self.creation_state = CreationState::Race;
-            };
+            }
 
             // Veloren Logo and Alpha Version
             Button::image(self.imgs.v_logo)
@@ -464,31 +538,33 @@ impl CharSelectionUi {
                 self.character_creation = false;
             }
             // Character Name Input
-            Image::new(self.imgs.name_input_bg)
+            Button::image(self.imgs.name_input)
                 .w_h(337.0, 67.0)
+                .label("Character Name")
+                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_font_size(20)
+                .label_y(conrod_core::position::Relative::Scalar(50.0))
                 .mid_bottom_with_margin_on(self.ids.bg_creation, 10.0)
-                .set(self.ids.name_input_bg, ui_widgets);
+                .set(self.ids.name_input, ui_widgets);
             for event in TextBox::new(&self.character_name)
-                .w_h(580.0 / 2.0, 60.0 / 2.0)
-                .mid_bottom_with_margin_on(self.ids.name_input_bg, 44.0 / 2.0)
-                .font_size(20)
+                .w_h(300.0, 60.0)
+                .middle_of(self.ids.name_input)
+                .font_size(22)
                 .font_id(self.font_metamorph)
-                .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+                .rgba(220.0, 220.0, 220.0, 0.8)
                 .center_justify()
-                .color(color::TRANSPARENT)
-                .border_color(color::TRANSPARENT)
-                .set(self.ids.name_field, ui_widgets) {
-                    match event {
-                        TextBoxEvent::Update(new_str) => {
-                            // Note: TextBox limits the input string length to what fits in it
-                            self.character_name = new_str.to_string();
-                        }
-                        TextBoxEvent::Enter => {}
+                .set(self.ids.name_field, ui_widgets)
+            {
+                match event {
+                    TextBoxEvent::Update(name) => {
+                        self.character_name = name;
                     }
+                    TextBoxEvent::Enter => {}
                 }
+            }
 
             // Window(s)
-            Image::new(self.imgs.creation_window)
+            Image::new(if let CreationState::Body(_) = self.creation_state {self.imgs.creation_window_body} else {self.imgs.creation_window})
                 .w_h(628.0, 814.0)
                 .top_left_with_margins_on(self.ids.bg_creation, 60.0, 30.0)
                 .set(self.ids.creation_window, ui_widgets);
@@ -511,8 +587,8 @@ impl CharSelectionUi {
                         .set(self.ids.arrow_right, ui_widgets)
                         .was_clicked()
                     {
-                        self.creation_state = CreationState::Weapon
-                    };
+                        self.creation_state = CreationState::Weapon;
+                    }
                 }
                 CreationState::Weapon => {
                     if Button::image(self.imgs.arrow_left)
@@ -523,8 +599,8 @@ impl CharSelectionUi {
                         .set(self.ids.arrow_left, ui_widgets)
                         .was_clicked()
                     {
-                        self.creation_state = CreationState::Race
-                    };
+                        self.creation_state = CreationState::Race;
+                    }
 
                     if Button::image(self.imgs.arrow_right)
                         .wh(ARROW_WH)
@@ -534,10 +610,10 @@ impl CharSelectionUi {
                         .set(self.ids.arrow_right, ui_widgets)
                         .was_clicked()
                     {
-                        self.creation_state = CreationState::Body
-                    };
+                        self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                    }
                 }
-                CreationState::Body => {
+                CreationState::Body(_) => {
                     if Button::image(self.imgs.arrow_left)
                         .wh(ARROW_WH)
                         .hover_image(self.imgs.arrow_left_mo)
@@ -546,8 +622,8 @@ impl CharSelectionUi {
                         .set(self.ids.arrow_left, ui_widgets)
                         .was_clicked()
                     {
-                        self.creation_state = CreationState::Weapon
-                    };
+                        self.creation_state = CreationState::Weapon;
+                    }
                     Button::image(self.imgs.arrow_right_grey)
                         .wh(ARROW_WH)
                         .top_right_with_margins_on(self.ids.creation_window, 74.0, 55.0)
@@ -592,11 +668,11 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.sex = Sex::Male;
-                };
+                }
                 // Female
                 Image::new(self.imgs.female)
                     .w_h(68.0, 68.0)
-                    .right_from(self.ids.male, 15.0)
+                    .right_from(self.ids.male, 16.0)
                     .set(self.ids.female, ui_widgets);
                 if Button::image(if let Sex::Female = self.sex {
                     self.imgs.icon_border_pressed
@@ -610,7 +686,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.sex = Sex::Female;
-                };
+                }
                 // for alignment
                 Rectangle::fill_with([458.0, 68.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_window, 120.0)
@@ -637,7 +713,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Human;
-                };
+                }
 
                 // Orc
                 Image::new(if let Sex::Male = self.sex {
@@ -660,7 +736,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Orc;
-                };
+                }
                 // Dwarf
                 Image::new(if let Sex::Male = self.sex {
                     self.imgs.dwarf_m
@@ -682,7 +758,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Dwarf;
-                };
+                }
                 // Elf
                 Image::new(if let Sex::Male = self.sex {
                     self.imgs.elf_m
@@ -704,7 +780,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Elf;
-                };
+                }
                 // Undead
                 Image::new(if let Sex::Male = self.sex {
                     self.imgs.undead_m
@@ -726,7 +802,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Undead;
-                };
+                }
                 // Danari
                 Image::new(if let Sex::Male = self.sex {
                     self.imgs.danari_m
@@ -748,16 +824,16 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.race = Races::Danari;
-                };
+                }
 
                 // Description Headline and Text
 
                 // TODO: Load these from files (or from the server???)
                 const HUMAN_DESC: &str = "The former nomads were only recently \
-                                        able to take in the world of Veloren. \
+                                        able to gain a foothold in the world of Veloren. \
                                         Their greatest strengths are their \
                                         adaptability and intelligence, \
-                                        which makes them all-rounders in all fields.";
+                                        which makes them allrounders in many fields.";
                 const ORC_DESC: &str = "They are considered brutal, rude and combative. \
                                         But once you got their trust they will be loyal friends \
                                         following a strict code of honor in all of their actions. \
@@ -789,7 +865,7 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
-                    .font_id(self.font_whitney)
+                    .font_id(self.font_opensans)
                     .rgba(220.0, 220.0, 220.0, 0.8)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
@@ -824,7 +900,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::SwordShield;
-                };
+                }
 
                 // Daggers
                 Image::new(self.imgs.daggers)
@@ -843,7 +919,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Daggers;
-                };
+                }
 
                 // Sword
                 Image::new(self.imgs.sword)
@@ -862,7 +938,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Sword;
-                };
+                }
                 // Axe
                 Image::new(self.imgs.axe)
                     .w_h(60.0, 60.0)
@@ -880,7 +956,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Axe;
-                };
+                }
                 // Hammer
                 Image::new(self.imgs.hammer)
                     .w_h(60.0, 60.0)
@@ -898,7 +974,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Hammer;
-                };
+                }
                 // Bow
                 Image::new(self.imgs.bow)
                     .w_h(60.0, 60.0)
@@ -916,7 +992,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Bow;
-                };
+                }
                 // Staff
                 Image::new(self.imgs.staff)
                     .w_h(60.0, 60.0)
@@ -934,7 +1010,7 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.weapon = Weapons::Staff;
-                };
+                }
 
                 // TODO: Load these from files (or from the server???)
                 const SWORDSHIELD_DESC: &str = " MISSING ";
@@ -963,7 +1039,7 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
-                    .font_id(self.font_whitney)
+                    .font_id(self.font_opensans)
                     .rgba(220.0, 220.0, 220.0, 0.8)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
@@ -972,9 +1048,264 @@ impl CharSelectionUi {
 
 
             }
+            // 3 states/windows: 1.Skin & Eyes 2.Hair 3.Accessories
+            // If one state is activated the other ones collapse
+            // The title bar is the button to unfold/collapse the windows
+            // The BG Frame can be stretched to the needed size
 
-            if let CreationState::Body = self.creation_state {}
-        }
+            // Window BG
+            if let CreationState::Body(state) = self.creation_state {
+                Text::new("Body Customization")
+                    .mid_top_with_margin_on(self.ids.creation_window, 74.0)
+                    .font_size(28)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.select_window_title, ui_widgets);
+
+                match state {
+                    // Skin Eyes Open
+                    BodyPart::SkinEyes => {
+                        Image::new(self.imgs.skin_eyes_window)
+                        .w_h(511.0, 333.0)
+                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                        .set(self.ids.skin_eyes_window, ui_widgets);
+                    // Open Window: Skin & Eyes
+                    if Button::image(self.imgs.frame_open_mo)
+                        .mid_top_with_margin_on(self.ids.skin_eyes_window, 0.0)
+                        .w_h(511.0, 37.0)
+                        //.hover_image(self.imgs.frame_open_mo)
+                        //.press_image(self.imgs.frame_open_press)
+                        .label("Skin & Eyes")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_y(conrod_core::position::Relative::Scalar(4.0))
+                        .label_font_size(16)
+                        .set(self.ids.skin_eyes_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                        }
+                    // Closed: Hair
+                    if Button::image(self.imgs.frame_closed)
+                        .down_from(self.ids.skin_eyes_window, 5.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Hair")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.hair_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Hair);
+                        }
+                    // Closed: Accessories
+                    if Button::image(self.imgs.frame_closed)
+                        .down_from(self.ids.hair_button, 5.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Accessories")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.accessories_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Accessories);
+                        }
+
+                    } // State 1 fin
+
+                // Hair Open
+                    BodyPart::Hair => {
+                        Image::new(self.imgs.hair_window)
+                        .w_h(511.0, 500.0) //333.0
+                        .down_from(self.ids.skin_eyes_button, 5.0)
+                        .set(self.ids.hair_window, ui_widgets);
+                    // Closed Window: Skin & Eyes
+                    if Button::image(self.imgs.frame_closed)
+                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Skin & Eyes")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.skin_eyes_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                        }
+                    // Open Window: Hair
+                    if Button::image(self.imgs.frame_open_mo)
+                        .mid_top_with_margin_on(self.ids.hair_window, 0.0)
+                        .w_h(511.0, 37.0)
+                        //.hover_image(self.imgs.frame_closed_mo)
+                        //.press_image(self.imgs.frame_closed_press)
+                        .label("Hair")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_y(conrod_core::position::Relative::Scalar(4.0))
+                        .label_font_size(16)
+                        .set(self.ids.hair_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Hair);
+                        }
+                    // Closed: Accessories
+                    if Button::image(self.imgs.frame_closed)
+                        .down_from(self.ids.hair_window, 5.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Accessories")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.accessories_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Accessories);
+                        }
+
+                    } // State 2 fin
+
+                    // Open: Accessories
+                   BodyPart::Accessories => {
+                        Image::new(self.imgs.hair_window)
+                        .w_h(511.0, 333.0)
+                        .down_from(self.ids.hair_button, 5.0)
+                        .set(self.ids.accessories_window, ui_widgets);
+                    // Closed Window: Skin & Eyes
+                    if Button::image(self.imgs.frame_closed)
+                        .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Skin & Eyes")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.skin_eyes_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                        }
+                    // Closed: Hair
+                    if Button::image(self.imgs.frame_closed)
+                        .down_from(self.ids.skin_eyes_button, 5.0)
+                        .w_h(511.0, 31.0)
+                        .hover_image(self.imgs.frame_closed_mo)
+                        .press_image(self.imgs.frame_closed_press)
+                        .label("Hair")
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.hair_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Hair);
+                        }
+                    // Open: Accessories
+                    if Button::image(self.imgs.frame_open_mo)
+                        .down_from(self.ids.hair_button, 5.0)
+                        .w_h(511.0, 37.0)
+                        //.hover_image(self.imgs.frame_closed_mo)
+                        //.press_image(self.imgs.frame_closed_press)
+                        .label("Accessories")
+                        .label_y(conrod_core::position::Relative::Scalar(4.0))
+                        .label_rgba(220.0, 220.0, 220.0, 0.8)
+                        .label_font_size(16)
+                        .set(self.ids.accessories_button, ui_widgets)
+                        .was_clicked() {
+                            self.creation_state = CreationState::Body(BodyPart::Accessories);
+                        }
+
+
+
+                    } // State 3 fin
+                } // match fin
+
+                // Body Customization Window Contents ////////////////////////
+                match state {
+
+                    BodyPart::SkinEyes => {
+                    // Skin Color: Text, Brightness Slider, Picker
+                    Text::new("Skin Color")
+                        .top_left_with_margins_on(self.ids.skin_rect, 0.0, -250.0)
+                        .font_size(25)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.skin_color_text, ui_widgets);
+                    // TODO: Align Buttons here
+                    // They set an i32 to a value from 0-14
+                    // Depending on the race another color will be chosen
+                    // Here only the BG image changes depending on the race.
+                    Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                        .top_right_with_margins_on(self.ids.skin_eyes_window, 60.0, 30.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.skin_rect, ui_widgets);
+
+                    // TODO:Slider
+                    // Sliders actually change the Alpha-Level of the main colour chosen above
+                    // -> They will appear "brighter", therefore the sliders are labeled "Brightness"
+                    Image::new(self.imgs.slider_range)
+                        .w_h(208.0, 12.0)
+                        .bottom_left_with_margins_on(self.ids.skin_rect, 10.0, -255.0)
+                        .set(self.ids.skin_color_slider_range, ui_widgets);
+
+                    Image::new(self.imgs.slider_indicator)
+                        .w_h(10.0, 22.0)
+                        .middle_of(self.ids.skin_color_slider_range)
+                        .set(self.ids.skin_color_slider_indicator, ui_widgets);
+
+                    Text::new("Brightness")
+                        .top_left_with_margins_on(self.ids.skin_color_slider_range, -27.0, 0.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .font_size(14)
+                        .set(self.ids.skin_color_slider_text, ui_widgets);
+
+
+                    // Eye Color: Text, Brightness Slider, Picker
+                    Text::new("Eye Color")
+                        .top_left_with_margins_on(self.ids.eyes_rect, 0.0, -250.0)
+                        .font_size(25)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.eye_color_text, ui_widgets);
+                    // TODO: Align 16 Buttons here
+                    //
+                    // They set a variable to a value from 0-14
+                    // Depending on the race another color will be chosen
+                    // Only the BG image (190x114 -> 2px border!) changes depending on the race.
+                    Rectangle::fill_with([192.0, 116.0], color::WHITE)
+                    .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.eyes_rect, ui_widgets);
+
+                    // TODO:Slider
+
+                    Image::new(self.imgs.slider_range)
+                        .w_h(208.0, 12.0)
+                        .bottom_left_with_margins_on(self.ids.eyes_rect, 10.0, -255.0)
+                        .set(self.ids.eye_color_slider_range, ui_widgets);
+
+                    Image::new(self.imgs.slider_indicator)
+                        .w_h(10.0, 22.0)
+                        .middle_of(self.ids.eye_color_slider_range)
+                        .set(self.ids.eye_color_slider_indicator, ui_widgets);
+
+                    Text::new("Brightness")
+                        .top_left_with_margins_on(self.ids.eye_color_slider_range, -27.0, 0.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .font_size(14)
+                        .set(self.ids.eye_color_slider_text, ui_widgets);
+
+                    }
+
+                    // Hair ///////////////////////////////////////////////////////
+
+                    // Hair Styles -> Arrows
+                    // Hair Color -> Picker
+                    // Eye Brow Style -> Arrow
+                    // Facial Hair -> Picker (Only active for males!)
+                    BodyPart::Hair => {}
+
+                    // Accessories ///////////////////////////////
+
+                    // Accessory Picker -> Arrows (Name Changes with race!)
+                    // Color -> Picker
+                    // Brightness -> Slider
+                    BodyPart::Accessories => {}
+                    // Accessories fin
+
+                }; // Body Customization Fin
+            } // CreationState::Body Fin
+        } // Char Creation fin
 
         events
     }
