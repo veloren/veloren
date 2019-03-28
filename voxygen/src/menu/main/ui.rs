@@ -97,7 +97,7 @@ pub struct MainMenuUi {
     ids: Ids,
     imgs: Imgs,
     font_metamorph: FontId,
-    font_whitney: FontId,
+    font_opensans: FontId,
     username: String,
     server_address: String,
 }
@@ -112,10 +112,10 @@ impl MainMenuUi {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_whitney = ui.new_font(
+        let font_opensans = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/Whitney-Book.ttf"
+                "/test_assets/font/OpenSans-Regular.ttf"
             ))
             .unwrap(),
         );
@@ -131,7 +131,7 @@ impl MainMenuUi {
             imgs,
             ids,
             font_metamorph,
-            font_whitney,
+            font_opensans,
             username: "Username".to_string(),
             server_address: "Server Address".to_string(),
         }
@@ -174,7 +174,7 @@ impl MainMenuUi {
             .w_h(580.0 / 2.0, 60.0 / 2.0)
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
             .font_size(20)
-            .font_id(self.font_whitney)
+            .font_id(self.font_opensans)
             .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
             // transparent background
             .color(TRANSPARENT)
@@ -198,7 +198,7 @@ impl MainMenuUi {
             .w_h(580.0 / 2.0, 60.0 / 2.0)
             .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
             .font_size(20)
-            .font_id(self.font_whitney)
+            .font_id(self.font_opensans)
             .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
             // transparent background
             .color(TRANSPARENT)

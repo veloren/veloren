@@ -6,11 +6,12 @@ use crate::{
     window::{Event as WinEvent, Window, Key},
 };
 use conrod_core::{
+    color,
+    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{Button, Image, Text, TitleBar},
-    widget_ids, Borderable,
-    Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget::{Button, Image, Text, Rectangle},
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -20,8 +21,9 @@ widget_ids! {
         bag_contents,
         bag_close,
         bag_map_open,
-        //Halp
-        halp,
+        //help
+        help,
+        help_bg,
         //ESC-Menu
         esc_bg,
         fireplace,
@@ -73,6 +75,7 @@ widget_ids! {
         sound,
         gameplay,
         controls,
+        rectangle,
         //1 Social
         social_frame,
         social_bg,
@@ -160,6 +163,7 @@ struct Imgs {
 
     //Missing: Buff Frame Animation
     window_frame: ImgId,
+    window_frame_2: ImgId,
     //Settings-Window
     settings_bg: ImgId,
     settings_icon: ImgId,
@@ -190,8 +194,8 @@ struct Imgs {
     //Quest-Log Window
     questlog_bg: ImgId,
     questlog_icon: ImgId,
-    //Halp
-    //halp: ImgId,
+    //help
+    //help: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -250,8 +254,9 @@ impl Imgs {
             //buff_frame_red: load("skill_bar/buff_frame_red.png"),
             //buff_frame_green: load("skill_bar/buff_frame_green.png"),
 
-            //Missing: Buff Frame Animation (.gif ?!)
+            //Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
             window_frame: load("window_frame.png"),
+            window_frame_2: load("window_frame_2.png"),
 
             //Settings Window
             settings_bg: load("settings/bg.png"),
@@ -314,7 +319,7 @@ pub struct Hud {
     typing: bool,
     cursor_grabbed: bool,
     font_metamorph: FontId,
-    font_whitney: FontId,
+    font_opensans: FontId,
     show_help: bool,
     bag_open: bool,
     menu_open: bool,
@@ -337,10 +342,10 @@ impl Hud {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_whitney = ui.new_font(
+        let font_opensans = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/Whitney-Book.ttf"
+                "/test_assets/font/OpenSans-Regular.ttf"
             ))
             .unwrap(),
         );
@@ -370,9 +375,8 @@ impl Hud {
             mmap_button_3: false,
             mmap_button_4: false,
             mmap_button_5: false,
-
             font_metamorph,
-            font_whitney,
+            font_opensans,
         }
     }
 
@@ -381,13 +385,18 @@ impl Hud {
         let ref mut ui_widgets = self.ui.set_widgets();
 
         // Chat box
-        if let Some(msg) = self.chat.update_layout(ui_widgets) {
+        if let Some(msg) = self.chat.update_layout(ui_widgets, self.font_opensans) {
             events.push(Event::SendMessage(msg));
         }
 
-        //Help Text
+        // Help Text
         if self.show_help {
-            TitleBar::new(
+            Image::new(self.imgs.window_frame_2)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .w_h(300.0, 300.0)
+                .set(self.ids.help_bg, ui_widgets);
+
+            Text::new(
                "Tab = Free Cursor       \n\
                 Esc = Open/Close Menus  \n\
                 Q = Back to Login       \n\
@@ -401,21 +410,15 @@ impl Hud {
                 C = Character Window    \n\
                 O = Social              \n\
                 P = Spellbook           \n\
-                N = Settings",
-                self.ids.halp,
-            )
-            .rgba(235.0, 170.0, 114.0, 0.3)
-            .border_rgba(235.0, 170.0, 114.0, 1.0)
-            .top_left_of(ui_widgets.window)
-            .w_h(300.0, 280.0)
-            .font_id(self.font_whitney)
-            .label_font_size(18)
-            .label_rgba(0.0, 0.0, 0.0, 1.0)
-            .left_justify_label()
-            .set(self.ids.halp, ui_widgets);
+                N = Settings")
+            .rgba(220.0, 220.0, 220.0, 0.8)
+            .top_left_with_margins_on(self.ids.help_bg, 20.0,20.0)
+            .font_id(self.font_opensans)
+            .font_size(18)
+            .set(self.ids.help, ui_widgets);
             if Button::image(self.imgs.button_dark)
                 .w_h(50.0, 30.0)
-                .bottom_right_with_margin_on(self.ids.halp, 0.0)
+                .bottom_right_with_margins_on(self.ids.help_bg, 10.0, 10.0)
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Close")
@@ -682,15 +685,20 @@ impl Hud {
                 .w_h(224.0 / 3.0, 224.0 / 3.0)
                 .top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
                 .set(self.ids.settings_icon, ui_widgets);
+            // TODO: Find out if we can remove this
+            // Alignment Rectangle
+            Rectangle::fill_with([1008.0/ 2.5, 1616.0 / 2.5], color::TRANSPARENT)
+                    .top_left_with_margins_on(self.ids.settings_bg, 77.0, 205.0)
+                    .set(self.ids.rectangle, ui_widgets);
 
             //1 Interface////////////////////////////
-            if Button::image(self.imgs.button_blank)
+            if Button::image(if let SettingsTab::Interface = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
                 .w_h(304.0 / 2.5, 80.0 / 2.5)
                 .hover_image(self.imgs.button_blue_mo)
                 .press_image(self.imgs.button_blue_press)
-                .top_left_with_margins_on(self.ids.settings_bg, 10.0, 10.0)
+                .top_left_with_margins_on(self.ids.settings_bg, 78.0, 50.0)
                 .label("Interface")
-                .label_font_size(10)
+                .label_font_size(14)
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.interface, ui_widgets)
                 .was_clicked()
@@ -700,8 +708,8 @@ impl Hud {
             //Toggle Help
             if let SettingsTab::Interface = self.settings_tab {
                 self.show_help = ToggleButton::new(self.show_help, self.imgs.check, self.imgs.check_checked)
-                    .w_h(288.0 / 10.0, 288.0 / 10.0)
-                    .middle_of(self.ids.settings_bg)
+                    .w_h(288.0 / 24.0, 288.0 / 24.0)
+                    .top_left_with_margins_on(self.ids.rectangle, 15.0, 15.0)
                     .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                     .press_images(self.imgs.check_press, self.imgs.check_press)
                     .set(self.ids.button_help, ui_widgets);
@@ -713,13 +721,13 @@ impl Hud {
                     .set(self.ids.show_help_label, ui_widgets);
             }
             //2 Gameplay////////////////
-            if Button::image(self.imgs.button_blank)
+            if Button::image(if let SettingsTab::Gameplay = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
                 .w_h(304.0 / 2.5, 80.0 / 2.5)
                 .hover_image(self.imgs.button_blue_mo)
                 .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 10.0)
+                .down_from(self.ids.interface, 1.0)
                 .label("Gameplay")
-                .label_font_size(10)
+                .label_font_size(14)
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.gameplay, ui_widgets)
                 .was_clicked()
@@ -728,13 +736,13 @@ impl Hud {
             }
 
             //3 Controls/////////////////////
-            if Button::image(self.imgs.button_blank)
+            if Button::image(if let SettingsTab::Controls = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
                 .w_h(304.0 / 2.5, 80.0 / 2.5)
                 .hover_image(self.imgs.button_blue_mo)
                 .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 52.0)
+                .down_from(self.ids.gameplay, 1.0)
                 .label("Controls")
-                .label_font_size(10)
+                .label_font_size(14)
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.controls, ui_widgets)
                 .was_clicked()
@@ -743,13 +751,13 @@ impl Hud {
             }
 
             //4 Video////////////////////////////////
-            if Button::image(self.imgs.button_blank)
+            if Button::image(if let SettingsTab::Video = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
                 .w_h(304.0 / 2.5, 80.0 / 2.5)
                 .hover_image(self.imgs.button_blue_mo)
                 .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 94.0)
+                .down_from(self.ids.controls, 1.0)
                 .label("Video")
-                .label_font_size(10)
+                .label_font_size(14)
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.video, ui_widgets)
                 .was_clicked()
@@ -758,13 +766,13 @@ impl Hud {
             }
 
             //5 Sound///////////////////////////////
-            if Button::image(self.imgs.button_blank)
+            if Button::image(if let SettingsTab::Sound = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
                 .w_h(304.0 / 2.5, 80.0 / 2.5)
                 .hover_image(self.imgs.button_blue_mo)
                 .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 136.0)
+                .down_from(self.ids.video, 1.0)
                 .label("Sound")
-                .label_font_size(10)
+                .label_font_size(14)
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.sound, ui_widgets)
                 .was_clicked()
