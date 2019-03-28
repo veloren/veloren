@@ -53,6 +53,9 @@ impl Event {
             _ => false,
         }
     }
+    pub fn new_resize(dims: Vec2<f64>) -> Self {
+        Self(Input::Resize(dims.x, dims.y))
+    }
 }
 
 pub struct Cache {

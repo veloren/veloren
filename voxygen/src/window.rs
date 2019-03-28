@@ -15,6 +15,7 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
+    needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
 }
 
@@ -62,6 +63,7 @@ impl Window {
             )?,
             window,
             cursor_grabbed: false,
+            needs_refresh_resize: false,
             key_map,
         });
         tmp
@@ -71,6 +73,13 @@ impl Window {
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
+        let mut events = vec![];        
+        // Refresh ui size (used when changing playstates)
+        if self.needs_refresh_resize {
+            events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
+            self.needs_refresh_resize = false;
+        }
+
         // Copy data that is needed by the events closure to avoid lifetime errors
         // TODO: Remove this if/when the compiler permits it
         let cursor_grabbed = self.cursor_grabbed;
@@ -78,7 +87,6 @@ impl Window {
         let window = &mut self.window;
         let key_map = &self.key_map;
 
-        let mut events = vec![];
         self.events_loop.poll_events(|event| {
             // Get events for ui
             if let Some(event) = ui::Event::try_from(event.clone(), &window) {
@@ -140,6 +148,10 @@ impl Window {
         self.window.hide_cursor(grab);
         self.window.grab_cursor(grab)
             .expect("Failed to grab/ungrab cursor");
+    }
+
+    pub fn needs_refresh_resize(&mut self) {
+        self.needs_refresh_resize = true;
     }
 
     pub fn logical_size(&self) -> Vec2<f64> {
