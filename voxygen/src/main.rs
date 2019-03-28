@@ -39,6 +39,7 @@ impl GlobalState {
     /// effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
         self.window.grab_cursor(false);
+        self.window.needs_refresh_resize();
     }
 }
 
