@@ -2,6 +2,7 @@ use crate::ui::Ui;
 use conrod_core::{
     input::Key,
     position::Dimension,
+    text::font::Id as FontId,
     widget::{Id, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
@@ -15,6 +16,12 @@ widget_ids! {
         input_bg,
     }
 }
+// Chat Behaviour:
+// Input Window is only shown when the player presses Enter (graphical overlay to make it look better?)
+// Instead of a Scrollbar it could have 3 Arrows at it's left side
+// First two: Scroll the chat up and down
+// Last one: Gets back to the bottom of the chat
+
 // Consider making this a custom Widget
 pub struct Chat {
     ids: Ids,
@@ -35,7 +42,7 @@ impl Chat {
         id == self.ids.input
     }
     pub fn new_message(&mut self, msg: String) {
-        self.messages.push_back(msg);
+        self.messages.push_front(msg);
         self.new_messages = true;
     }
     // Determine if the message box is scrolled to the bottom
@@ -53,19 +60,20 @@ impl Chat {
             }
         }
     }
-    pub fn update_layout(&mut self, ui_widgets: &mut UiCell) -> Option<String> {
+    pub fn update_layout(&mut self, ui_widgets: &mut UiCell, font: FontId) -> Option<String> {
         // Maintain scrolling
         if self.new_messages {
-            self.scroll_new_messages(ui_widgets);
+            //self.scroll_new_messages(ui_widgets);
             self.new_messages = false;
         }
 
         // Chat input with rectangle as background
         let text_edit = TextEdit::new(&self.input)
-            .w(500.0)
+            .w(470.0)
             .restrict_to_height(false)
-            .font_size(30)
-            .bottom_left_with_margin_on(ui_widgets.window, 10.0);
+            .font_size(14)
+            .font_id(font)
+            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 30.0);
         let dims = match (
             text_edit.get_x_dimension(ui_widgets),
             text_edit.get_y_dimension(ui_widgets),
@@ -84,21 +92,22 @@ impl Chat {
         }
 
         // Message box
-        Rectangle::fill([500.0, 300.0])
-            .rgba(0.0, 0.0, 0.0, 0.5)
+        Rectangle::fill([470.0, 180.0])
+            .rgba(0.0, 0.0, 0.0, 0.4)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
-        let (mut items, scrollbar) = List::flow_down(self.messages.len())
+        let (mut items, scrollbar) = List::flow_up(self.messages.len())
             .middle_of(self.ids.message_box_bg)
             .scrollbar_next_to()
-            .scrollbar_thickness(20.0)
+            .scrollbar_thickness(18.0)
             .scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(self.ids.message_box, ui_widgets);
         while let Some(item) = items.next(ui_widgets) {
             item.set(
                 Text::new(&self.messages[item.i])
-                    .font_size(30)
-                    .rgba(1.0, 1.0, 1.0, 1.0),
+                    .font_size(14)
+                    .font_id(font)
+                    .rgba(220.0, 220.0, 220.0, 1.0),
                 ui_widgets,
             )
         }
