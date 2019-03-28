@@ -311,6 +311,23 @@ pub enum Event {
     Quit,
 }
 
+// TODO: are these the possible layouts we want?
+// TODO: maybe replace this with bitflags
+// map not here because it currently is displayed over the top of other open windows
+enum Windows {
+    Settings, // display settings window
+    CharacterAnd(Option<Small>), // show character window + optionally another
+    Small(Small),
+    None,
+}
+#[derive(Clone, Copy)]
+enum Small {
+    Spellbook,
+    Social,
+    Questlog,
+}
+
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -323,12 +340,8 @@ pub struct Hud {
     show_help: bool,
     bag_open: bool,
     menu_open: bool,
-    mmap_button_0: bool,
-    mmap_button_1: bool,
-    mmap_button_2: bool,
-    mmap_button_3: bool,
-    mmap_button_4: bool,
-    mmap_button_5: bool,
+    open_windows: Windows,
+    map_open: bool,
     settings_tab: SettingsTab
 }
 
@@ -369,12 +382,8 @@ impl Hud {
             show_help: true,
             bag_open: false,
             menu_open: false,
-            mmap_button_0: false,
-            mmap_button_1: false,
-            mmap_button_2: false,
-            mmap_button_3: false,
-            mmap_button_4: false,
-            mmap_button_5: false,
+            map_open: false,
+            open_windows: Windows::None,
             font_metamorph,
             font_opensans,
         }
@@ -466,12 +475,10 @@ impl Hud {
             .set(self.ids.mmap_button_0, ui_widgets)
             .was_clicked()
         {
-            self.mmap_button_0 = !self.mmap_button_0;
-            self.mmap_button_1 = false;
-            self.mmap_button_2 = false;
-            self.mmap_button_3 = false;
-            self.mmap_button_4 = false;
-            self.mmap_button_5 = false;
+            self.open_windows = match self.open_windows {
+                Windows::Settings => Windows::None,
+                _ => Windows::Settings,
+            };
             self.bag_open = false;
         };
         // 2 Map
@@ -483,14 +490,18 @@ impl Hud {
             .set(self.ids.mmap_button_2, ui_widgets)
             .was_clicked()
         {
-            self.mmap_button_2 = !self.mmap_button_2;
+            self.map_open = !self.map_open;
             self.bag_open = false;
         };
 
         // Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
         // Opening the Map won't close the windows displayed before.
 
-        if self.mmap_button_0 == false && self.mmap_button_2 == false {
+
+        if match self.open_windows {
+            Windows::Settings => false,
+            _ => true,
+        } && self.map_open == false {
             //1 Social
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
@@ -500,11 +511,16 @@ impl Hud {
                 .set(self.ids.mmap_button_1, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_1 = !self.mmap_button_1;
-                self.mmap_button_2 = false;
-                self.mmap_button_3 = false;
-                self.mmap_button_5 = false;
-            };
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Social) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Social) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Social)),
+                    }
+                    Windows::Settings => unreachable!(),
+                };
+            }
 
             //3 Spellbook
             if Button::image(self.imgs.mmap_button)
@@ -515,11 +531,16 @@ impl Hud {
                 .set(self.ids.mmap_button_3, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_1 = false;
-                self.mmap_button_2 = false;
-                self.mmap_button_3 = !self.mmap_button_3;
-                self.mmap_button_5 = false;
-            };
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Spellbook) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Spellbook) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Spellbook)),
+                    }
+                    Windows::Settings => unreachable!(),
+                };
+            }
             //4 Char-Window
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
@@ -529,8 +550,16 @@ impl Hud {
                 .set(self.ids.mmap_button_4, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_4 = !self.mmap_button_4;
-            };
+                self.open_windows = match self.open_windows {
+                    Windows::CharacterAnd(small) => match small {
+                        Some(small) => Windows::Small(small),
+                        None => Windows::None,
+                    },
+                    Windows::Small(small) => Windows::CharacterAnd(Some(small)),
+                    Windows::None => Windows::CharacterAnd(None),
+                    Windows::Settings => unreachable!()
+                }
+            }
             //5 Quest-Log
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
@@ -540,22 +569,27 @@ impl Hud {
                 .set(self.ids.mmap_button_5, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_1 = false;
-                self.mmap_button_2 = false;
-                self.mmap_button_3 = false;
-                self.mmap_button_5 = !self.mmap_button_5;
-            };
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Questlog) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Questlog) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Questlog)),
+                    }
+                    Windows::Settings => unreachable!(),
+                };
+            }
         }
 
         // Skillbar Module
 
-        //Experience-Bar
+        // Experience-Bar
         Image::new(self.imgs.xp_bar)
             .w_h(2688.0 / 4.0, 116.0 / 4.0)
             .mid_bottom_of(ui_widgets.window)
             .set(self.ids.xp_bar, ui_widgets);
 
-        // LeftGrid
+        // Left Grid
         Image::new(self.imgs.sb_grid)
             .w_h(2240.0 / 8.0, 448.0 / 8.0)
             .up_from(self.ids.xp_bar, 0.0)
@@ -592,7 +626,7 @@ impl Hud {
             .align_bottom_of(self.ids.sb_grid_bg_r)
             .set(self.ids.r_click, ui_widgets);
 
-        // Health- and Mana-Bar
+        // Health and mana bars
         Image::new(self.imgs.health_bar)
             .w_h(1120.0 / 4.0, 96.0 / 4.0)
             .left_from(self.ids.l_click, 0.0)
@@ -605,11 +639,11 @@ impl Hud {
             .align_top_of(self.ids.r_click)
             .set(self.ids.mana_bar, ui_widgets);
 
-        //Buffs/Debuffs
+        // Buffs/Debuffs
 
-        //Buffs
+        // Buffs
 
-        //Debuffs
+        // Debuffs
 
         // Bag contents
         if self.bag_open {
@@ -632,7 +666,7 @@ impl Hud {
             }
         }
         // Bag
-        if self.mmap_button_2 == false {
+        if !self.map_open {
             self.bag_open =
                 ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
                     .bottom_right_with_margin_on(ui_widgets.window, 20.0)
@@ -655,7 +689,7 @@ impl Hud {
 
         //0 Settings
 
-        if self.mmap_button_0 {
+        if let Windows::Settings = self.open_windows {
             //BG
             Image::new(self.imgs.settings_bg)
                 .middle_of(ui_widgets.window)
@@ -670,7 +704,7 @@ impl Hud {
                 .set(self.ids.settings_close, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_0 = false;
+                self.open_windows = Windows::None;
                 self.settings_tab = SettingsTab::Interface;
             }
 
@@ -780,99 +814,161 @@ impl Hud {
                 self.settings_tab = SettingsTab::Sound;
             }
         }
-        //1 Social
+        if let Some((small, char_window_open)) = match self.open_windows {
+            Windows::Small(small) => Some((small, false)),
+            Windows::CharacterAnd(Some(small)) => Some((small, true)),
+            _ => None,
+        } {
+            // TODO: there is common code in each match arm, might be able to combine this
+            match small {
+                Small::Social => {
+                    //Frame
+                    if char_window_open {
+                        Image::new(self.imgs.window_frame)
+                            .right_from(self.ids.charwindow_frame, 20.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.social_frame, ui_widgets);
+                    } else {
+                        Image::new(self.imgs.window_frame)
+                            .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.social_frame, ui_widgets);
+                    }
 
-        if self.mmap_button_1 {
-            //Frame
-            if self.mmap_button_4 {
-                Image::new(self.imgs.window_frame)
-                    .right_from(self.ids.charwindow_frame, 20.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.social_frame, ui_widgets);
-            } else {
-                Image::new(self.imgs.window_frame)
-                    .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.social_frame, ui_widgets);
+                    //BG
+                    Image::new(self.imgs.social_bg)
+                        .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                        .middle_of(self.ids.social_frame)
+                        .set(self.ids.social_bg, ui_widgets);
+
+                    //Icon
+                    Image::new(self.imgs.social_icon)
+                        .w_h(224.0 / 3.0, 224.0 / 3.0)
+                        .top_left_with_margins_on(self.ids.social_frame, -10.0, -10.0)
+                        .set(self.ids.social_icon, ui_widgets);
+
+                    //X-Button
+                    if Button::image(self.imgs.close_button)
+                        .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
+                        .hover_image(self.imgs.close_button_hover)
+                        .press_image(self.imgs.close_button_press)
+                        .top_right_with_margins_on(self.ids.social_frame, 4.0, 4.0)
+                        .set(self.ids.social_close, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.open_windows = match self.open_windows {
+                            Windows::Small(_) => Windows::None,
+                            Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
+                            _ => unreachable!(),
+                        }
+                    }
+                    // Title
+                    Text::new("Social")
+                        .mid_top_with_margin_on(self.ids.social_frame, 7.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.social_title, ui_widgets);
+                }
+                Small::Spellbook => {
+                    //Frame
+                    if char_window_open {
+                        Image::new(self.imgs.window_frame)
+                            .right_from(self.ids.charwindow_frame, 20.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.spellbook_frame, ui_widgets);
+                    } else {
+                        Image::new(self.imgs.window_frame)
+                            .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.spellbook_frame, ui_widgets);
+                    }
+
+                    //BG
+                    Image::new(self.imgs.spellbook_bg)
+                        .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                        .middle_of(self.ids.spellbook_frame)
+                        .set(self.ids.spellbook_bg, ui_widgets);
+
+                    //Icon
+                    Image::new(self.imgs.spellbook_icon)
+                        .w_h(224.0 / 3.0, 224.0 / 3.0)
+                        .top_left_with_margins_on(self.ids.spellbook_frame, -10.0, -10.0)
+                        .set(self.ids.spellbook_icon, ui_widgets);
+
+                    //X-Button
+                    if Button::image(self.imgs.close_button)
+                        .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
+                        .hover_image(self.imgs.close_button_hover)
+                        .press_image(self.imgs.close_button_press)
+                        .top_right_with_margins_on(self.ids.spellbook_frame, 4.0, 4.0)
+                        .set(self.ids.spellbook_close, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.open_windows = match self.open_windows {
+                            Windows::Small(_) => Windows::None,
+                            Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
+                            _ => unreachable!(),
+                        }
+                    }
+                    // Title
+                    Text::new("Spellbook")
+                        .mid_top_with_margin_on(self.ids.spellbook_frame, 7.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.spellbook_title, ui_widgets);
+                }
+                Small::Questlog => {
+                    //Frame
+                    if char_window_open {
+                        Image::new(self.imgs.window_frame)
+                            .right_from(self.ids.charwindow_frame, 20.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.questlog_frame, ui_widgets);
+                    } else {
+                        Image::new(self.imgs.window_frame)
+                            .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
+                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .set(self.ids.questlog_frame, ui_widgets);
+                    }
+
+                    //BG
+                    Image::new(self.imgs.questlog_bg)
+                        .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                        .middle_of(self.ids.questlog_frame)
+                        .set(self.ids.questlog_bg, ui_widgets);
+
+                    //Icon
+                    Image::new(self.imgs.questlog_icon)
+                        .w_h(224.0 / 3.0, 224.0 / 3.0)
+                        .top_left_with_margins_on(self.ids.questlog_frame, -10.0, -10.0)
+                        .set(self.ids.questlog_icon, ui_widgets);
+
+                    //X-Button
+                    if Button::image(self.imgs.close_button)
+                        .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
+                        .hover_image(self.imgs.close_button_hover)
+                        .press_image(self.imgs.close_button_press)
+                        .top_right_with_margins_on(self.ids.questlog_frame, 4.0, 4.0)
+                        .set(self.ids.questlog_close, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.open_windows = match self.open_windows {
+                            Windows::Small(_) => Windows::None,
+                            Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
+                            _ => unreachable!(),
+                        }
+                    }
+                    // Title
+                    Text::new("Quest-Log")
+                        .mid_top_with_margin_on(self.ids.questlog_frame, 7.0)
+                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .set(self.ids.questlog_title, ui_widgets);
+                }
             }
 
-            //BG
-            Image::new(self.imgs.social_bg)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                .middle_of(self.ids.social_frame)
-                .set(self.ids.social_bg, ui_widgets);
 
-            //Icon
-            Image::new(self.imgs.social_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.social_frame, -10.0, -10.0)
-                .set(self.ids.social_icon, ui_widgets);
-
-            //X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.social_frame, 4.0, 4.0)
-                .set(self.ids.social_close, ui_widgets)
-                .was_clicked()
-            {
-                self.mmap_button_1 = false;
-            }
-            // Title
-            Text::new("Social")
-                .mid_top_with_margin_on(self.ids.social_frame, 7.0)
-                .rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.social_title, ui_widgets);
-        }
-
-        //3 Spell Book
-        if self.mmap_button_3 {
-            //Frame
-            if self.mmap_button_4 {
-                Image::new(self.imgs.window_frame)
-                    .right_from(self.ids.charwindow_frame, 20.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.spellbook_frame, ui_widgets);
-            } else {
-                Image::new(self.imgs.window_frame)
-                    .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.spellbook_frame, ui_widgets);
-            }
-
-            //BG
-            Image::new(self.imgs.spellbook_bg)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                .middle_of(self.ids.spellbook_frame)
-                .set(self.ids.spellbook_bg, ui_widgets);
-
-            //Icon
-            Image::new(self.imgs.spellbook_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.spellbook_frame, -10.0, -10.0)
-                .set(self.ids.spellbook_icon, ui_widgets);
-
-            //X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.spellbook_frame, 4.0, 4.0)
-                .set(self.ids.spellbook_close, ui_widgets)
-                .was_clicked()
-            {
-                self.mmap_button_3 = false;
-            }
-            // Title
-            Text::new("Spellbook")
-                .mid_top_with_margin_on(self.ids.spellbook_frame, 7.0)
-                .rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.spellbook_title, ui_widgets);
         }
 
         //4 Char-Window
-        if self.mmap_button_4 {
+        if let Windows::CharacterAnd(small) = self.open_windows {
             //Frame
             Image::new(self.imgs.window_frame)
                 .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
@@ -900,7 +996,10 @@ impl Hud {
                 .set(self.ids.charwindow_close, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_4 = false;
+                self.open_windows = match small {
+                    Some(small) => Windows::Small(small),
+                    None => Windows::None,
+                }
             }
             // Title
             Text::new("Character Name") //Add in actual Character Name
@@ -909,52 +1008,8 @@ impl Hud {
                 .set(self.ids.charwindow_title, ui_widgets);
         }
 
-        //5 Quest-Log
-        if self.mmap_button_5 {
-            //Frame
-            if self.mmap_button_4 {
-                Image::new(self.imgs.window_frame)
-                    .right_from(self.ids.charwindow_frame, 20.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.questlog_frame, ui_widgets);
-            } else {
-                Image::new(self.imgs.window_frame)
-                    .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
-                    .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                    .set(self.ids.questlog_frame, ui_widgets);
-            }
-
-            //BG
-            Image::new(self.imgs.questlog_bg)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                .middle_of(self.ids.questlog_frame)
-                .set(self.ids.questlog_bg, ui_widgets);
-
-            //Icon
-            Image::new(self.imgs.questlog_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.questlog_frame, -10.0, -10.0)
-                .set(self.ids.questlog_icon, ui_widgets);
-
-            //X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.questlog_frame, 4.0, 4.0)
-                .set(self.ids.questlog_close, ui_widgets)
-                .was_clicked()
-            {
-                self.mmap_button_5 = false;
-            }
-            // Title
-            Text::new("Quest-Log")
-                .mid_top_with_margin_on(self.ids.questlog_frame, 7.0)
-                .rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.questlog_title, ui_widgets);
-        }
         //2 Map
-        if self.mmap_button_2 {
+        if self.map_open {
             //Frame
             Image::new(self.imgs.map_frame)
                 .middle_of(ui_widgets.window)
@@ -982,7 +1037,7 @@ impl Hud {
                 .set(self.ids.map_close, ui_widgets)
                 .was_clicked()
             {
-                self.mmap_button_2 = false;
+                self.map_open = false;
             }
             // Title
             Text::new("Map")
@@ -992,7 +1047,7 @@ impl Hud {
                 .set(self.ids.map_title, ui_widgets);
         }
 
-        //ESC-MENU
+        // ESC-MENU
         // Background
         if self.menu_open {
             Image::new(self.imgs.esc_bg)
@@ -1018,7 +1073,7 @@ impl Hud {
                 .was_clicked()
             {
                 self.menu_open = false;
-                self.mmap_button_0 = true;
+                self.open_windows = Windows::Settings;
             };
             // Controls
             if Button::image(self.imgs.button_dark)
@@ -1127,25 +1182,20 @@ impl Hud {
         self.ui.render(renderer);
     }
     pub fn toggle_windows(&mut self) {
-        if self.bag_open == false
-            && self.menu_open == false
-            && self.mmap_button_0 == false
-            && self.mmap_button_1 == false
-            && self.mmap_button_2 == false
-            && self.mmap_button_3 == false
-            && self.mmap_button_4 == false
-            && self.mmap_button_5 == false
+        if self.bag_open
+            || self.menu_open
+            || self.map_open
+            || match self.open_windows {
+                Windows::None => false,
+                _ => true,
+            }
         {
-            self.menu_open = true;
-        } else {
             self.bag_open = false;
             self.menu_open = false;
-            self.mmap_button_0 = false;
-            self.mmap_button_1 = false;
-            self.mmap_button_2 = false;
-            self.mmap_button_3 = false;
-            self.mmap_button_4 = false;
-            self.mmap_button_5 = false;
+            self.map_open = false;
+            self.open_windows = Windows::None;
+        } else {
+            self.menu_open = true;
         }
     }
 }
