@@ -852,36 +852,49 @@ impl CharSelectionUi {
                 // Description Headline and Text
 
                 // TODO: Load these from files (or from the server???)
-                const HUMAN_DESC: &str = "The former nomads were only recently \
-                                          able to gain a foothold in the world of Veloren. \
-                                          Their greatest strengths are their \
-                                          adaptability and intelligence, \
-                                          which makes them allrounders in many fields.";
+                const HUMAN_DESC: &str =
+                    "The former nomads were only recently able to gain a foothold in the world of Veloren. \n\
+                    \n\
+                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.";
                 const ORC_DESC: &str =
-                    "They are considered brutal, rude and combative. \
-                     But once you got their trust they will be loyal friends \
-                     following a strict code of honor in all of their actions. \
-                     Their warriors are masters of melee combat, but their true power \
-                     comes from the magical rituals of their powerful shamans.";
+                    "They are considered brutal, rude and combative. \n\
+                    But once you gained their trust they will be loyal friends \n\
+                    that follow a strict code of honor in all of their actions. \n\
+                    \n\
+                    Their warriors are masters of melee combat, but their true power \
+                    comes from the magical rituals of their powerful shamans.";
                 const DWARF_DESC: &str =
                     "Smoking chimneys, the sound of countless hammers and hoes. \
-                     Infinite tunnel systems to track down even the last chunk of metal \
-                     in the ground. \
-                     This race of master craftsmen and grim fighters exists almost \
-                     as long as the world itself.";
-                const UNDEAD_DESC: &str = " MISSING ";
+                    Infinite tunnel systems to track down even the last chunk of metal in the ground. \n\
+                    \n\
+                    This race of master craftsmen and grim fighters exist almost \
+                    as long as the world itself.\n\
+                    And they don't plan to finish their reign over the undergrounds soon.";
+                const UNDEAD_DESC: &str =
+                    "No one really knows the origin of these gruesome looking creatures. \n\
+                    Some may have been reawakened soldiers from a battleground others are said to be the result of experiments with dark magic.\n\
+                    \n\
+                    After being chased and slaughtered for years the more civilised Undead decided to form a community and negotiate a piece treaty with the other inhabitants of Veloren.\n\
+                    \n\
+                    They are known for being nefarious and silent assassins.";
                 const ELF_DESC: &str =
                     "No matter which shade of elves you encounter, they all have something in common: Magic. \n\
                     They can be found in many Forms: \n\
                     \n\
-                    Pale Elves, living in dark fortresses, executing bloody rituals. \n\
+                    Pale Elves, living in dark fortresses, executing atrocious rituals. \n\
                     \n\
                     Nature connected Brushwood Elves, that guard ancient powers inside the forests.\n\
                     \n\
                     Gold Elves that hunger for political power in their massive city states. \n\
                     \n\
                     And many more!";
-                const DANARI_DESC: &str = " MISSING ";
+                const DANARI_DESC: &str =
+                    "The white domes and towers of their underwater kingdom are often mistaken for coral reefs from above the water. \n\
+                    As a punishment those demonic creatures were banished to live detached from the rest of the world in ancient times. \n\
+                    \n\
+                    Once in a while one of them is born unaffected by this curse. Sadly this means that after reaching a certain age they won’t be able to live underwater anymore. \n\
+                    \n\
+                    Outcast communities consisting of these Blessed Danari have formed all over the land.";
 
                 let (race_str, race_desc) = match self.race {
                     Races::Human => ("Humans", HUMAN_DESC),
