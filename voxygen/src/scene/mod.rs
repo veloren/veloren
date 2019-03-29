@@ -53,7 +53,7 @@ pub struct Scene {
 
 // TODO: Make a proper asset loading system
 fn load_segment(filename: &'static str) -> Segment {
-    Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/test_assets/").to_string() + filename)).unwrap())
+    Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/voxel/").to_string() + filename)).unwrap())
 }
 
 impl Scene {
