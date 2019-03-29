@@ -52,6 +52,7 @@ struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
+        // TODO: update paths
         let mut load = |filename| {
             let image = image::open(
                 &[
