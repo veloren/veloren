@@ -116,14 +116,14 @@ impl MainMenuUi {
         let font_opensans = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/OpenSans-Regular.ttf"
+                "/../assets/voxygen/font/OpenSans-Regular.ttf"
             ))
             .unwrap(),
         );
         let font_metamorph = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/Metamorphous-Regular.ttf"
+                "/../assets/voxygen/font/Metamorphous-Regular.ttf"
             ))
             .unwrap(),
         );
