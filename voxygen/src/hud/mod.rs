@@ -235,7 +235,7 @@ impl Imgs {
 
             // Settings at Mini-Map
             mmap_button: load("element/buttons/border.png"),
-            mmap_button_hover: load("element/buttons/border_hover.png"),
+            mmap_button_hover: load("element/buttons/border_mo.png"),
             mmap_button_press: load("element/buttons/border_press.png"),
             mmap_button_open: load("element/buttons/border_pressed.png"),
 
@@ -264,9 +264,9 @@ impl Imgs {
             settings_button_mo: load("element/buttons/blue_mo.png"),
             check: load("element/buttons/check/no.png"),
             check_mo: load("element/buttons/check/no_mo.png"),
-            check_press: load("element/buttons/check/no_press.png"),
+            check_press: load("element/buttons/check/press.png"),
             check_checked: load("element/buttons/check/yes.png"),
-            check_checked_mo: load("selement/buttons/check/yes_mo.png"),
+            check_checked_mo: load("element/buttons/check/yes_mo.png"),
             slider: load("element/slider/track.png"),
             slider_indicator: load("element/slider/indicator.png"),
             button_blank: load("element/nothing.png"),
@@ -280,7 +280,7 @@ impl Imgs {
             //Map Window
             map_bg: load("element/misc_backgrounds/small_bg.png"),
             map_icon: load("element/icons/map.png"),
-            map_frame: load("map/window_frame_map.png"),
+            map_frame: load("element/frames/window_map.png"),
 
             // Spell Book Window
             spellbook_bg: load("element/misc_backgrounds/small_bg.png"),
@@ -358,14 +358,14 @@ impl Hud {
         let font_opensans = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/OpenSans-Regular.ttf"
+                "/../assets/voxygen/font/OpenSans-Regular.ttf"
             ))
             .unwrap(),
         );
         let font_metamorph = ui.new_font(
             conrod_core::text::font::from_file(concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/test_assets/font/Metamorphous-Regular.ttf"
+                "/../assets/voxygen/font/Metamorphous-Regular.ttf"
             ))
             .unwrap(),
         );
