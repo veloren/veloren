@@ -201,98 +201,98 @@ impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
             let image = image::open(
-                &[env!("CARGO_MANIFEST_DIR"), "/test_assets/ui/hud/", filename].concat(),
+                &[env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/", filename].concat(),
             )
             .unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
             // Bag
-            bag: load("bag/icon/0_bag.png"),
-            bag_hover: load("bag/icon/1_bag_hover.png"),
-            bag_press: load("bag/icon/2_bag_press.png"),
-            bag_open: load("bag/icon/3_bag_open.png"),
-            bag_open_hover: load("bag/icon/4_bag_open_hover.png"),
-            bag_open_press: load("bag/icon/5_bag_open_press.png"),
-            bag_contents: load("bag/bg.png"),
+            bag: load("element/buttons/bag/closed.png"),
+            bag_hover: load("element/buttons/bag/closed_hover.png"),
+            bag_press: load("element/buttons/bag/closed_press.png"),
+            bag_open: load("element/buttons/bag/open.png"),
+            bag_open_hover: load("element/buttons/bag/open_hover.png"),
+            bag_open_press: load("element/buttons/bag/open_press.png"),
+            bag_contents: load("element/frames/bag.png"),
 
             // Close button
-            close_button: load("x/0_x.png"),
-            close_button_hover: load("x/1_x_hover.png"),
-            close_button_press: load("x/2_x_press.png"),
+            close_button: load("element/buttons/x.png"),
+            close_button_hover: load("element/buttons/x_hover.png"),
+            close_button_press: load("element/buttons/x_press.png"),
 
             // Esc-Menu
-            esc_bg: load("menu/bg.png"),
-            fireplace: load("menu/fireplace_1.png"),
-            button_dark: load("menu/button_dark.png"),
-            button_dark_hover: load("menu/button_dark_hover.png"),
-            button_dark_press: load("menu/button_dark_press.png"),
+            esc_bg: load("element/frames/menu.png"),
+            fireplace: load("element/misc_backgrounds/fireplace.png"),
+            button_dark: load("element/buttons/button_dark.png"),
+            button_dark_hover: load("element/buttons/button_dark_hover.png"),
+            button_dark_press: load("element/buttons/button_dark_press.png"),
 
             // MiniMap
-            mmap_frame: load("mmap/mmap_frame.png"),
-            mmap_frame_bg: load("mmap/mmap_bg.png"),
-            mmap_icons: load("mmap/mmap_icons.png"),
+            mmap_frame: load("element/frames/mmap.png"),
+            mmap_frame_bg: load("element/misc_backgrounds/mmap_bg.png"),
+            mmap_icons: load("element/buttons/mmap_icons.png"),
 
             // Settings at Mini-Map
-            mmap_button: load("mmap/grid.png"),
-            mmap_button_hover: load("mmap/hover.png"),
-            mmap_button_press: load("mmap/press.png"),
-            mmap_button_open: load("mmap/open.png"),
+            mmap_button: load("element/buttons/border.png"),
+            mmap_button_hover: load("element/buttons/border_hover.png"),
+            mmap_button_press: load("element/buttons/border_press.png"),
+            mmap_button_open: load("element/buttons/border_pressed.png"),
 
             // Skillbar Module
-            sb_grid: load("skill_bar/sbar_grid.png"),
-            sb_grid_bg: load("skill_bar/sbar_grid_bg.png"),
-            l_click: load("skill_bar/l.png"),
-            r_click: load("skill_bar/r.png"),
-            mana_bar: load("skill_bar/mana_bar.png"),
-            health_bar: load("skill_bar/health_bar.png"),
-            xp_bar: load("skill_bar/xp_bar.png"),
+            sb_grid: load("element/skill_bar/sbar_grid.png"),
+            sb_grid_bg: load("element/skill_bar/sbar_grid_bg.png"),
+            l_click: load("element/skill_bar/l.png"),
+            r_click: load("element/skill_bar/r.png"),
+            mana_bar: load("element/skill_bar/mana_bar.png"),
+            health_bar: load("element/skill_bar/health_bar.png"),
+            xp_bar: load("element/skill_bar/xp_bar.png"),
 
             //Buff Frame(s)
-            //buff_frame: load("skill_bar/buff_frame.png"),
-            //buff_frame_bg: load("skill_bar/buff_frame_bg.png"),
-            //buff_frame_red: load("skill_bar/buff_frame_red.png"),
-            //buff_frame_green: load("skill_bar/buff_frame_green.png"),
+            //buff_frame: load("element/skill_bar/buff_frame.png"),
+            //buff_frame_bg: load("element/skill_bar/buff_frame_bg.png"),
+            //buff_frame_red: load("element/skill_bar/buff_frame_red.png"),
+            //buff_frame_green: load("element/skill_bar/buff_frame_green.png"),
 
             //Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
-            window_frame: load("window_frame.png"),
-            window_frame_2: load("window_frame_2.png"),
+            window_frame: load("element/frames/window.png"),
+            window_frame_2: load("element/frames/window_2.png"),
 
             //Settings Window
-            settings_bg: load("settings/bg.png"),
-            settings_icon: load("settings/icon.png"),
-            settings_button_mo: load("settings/mo.png"),
-            check: load("settings/check.png"),
-            check_mo: load("settings/check_mo.png"),
-            check_press: load("settings/check_press.png"),
-            check_checked: load("settings/check_checked.png"),
-            check_checked_mo: load("settings/check_checked_mo.png"),
-            slider: load("settings/slider.png"),
-            slider_indicator: load("settings/slider_indicator.png"),
-            button_blank: load("settings/button_blank.png"),
-            button_blue_mo: load("settings/mo.png"),
-            button_blue_press: load("settings/press.png"),
+            settings_bg: load("element/frames/settings.png"),
+            settings_icon: load("element/icons/settings.png"),
+            settings_button_mo: load("element/buttons/blue_mo.png"),
+            check: load("element/buttons/check/no.png"),
+            check_mo: load("element/buttons/check/no_mo.png"),
+            check_press: load("element/buttons/check/no_press.png"),
+            check_checked: load("element/buttons/check/yes.png"),
+            check_checked_mo: load("selement/buttons/check/yes_mo.png"),
+            slider: load("element/slider/track.png"),
+            slider_indicator: load("element/slider/indicator.png"),
+            button_blank: load("element/nothing.png"),
+            button_blue_mo: load("element/buttons/blue_mo.png"),
+            button_blue_press: load("element/buttons/blue_press.png"),
 
             //Social Window
-            social_bg: load("social/bg.png"),
-            social_icon: load("social/icon.png"),
+            social_bg: load("element/misc_backgrounds/small_bg.png"),
+            social_icon: load("element/icons/social.png"),
 
             //Map Window
-            map_bg: load("map/bg.png"),
-            map_icon: load("map/icon.png"),
+            map_bg: load("element/misc_backgrounds/small_bg.png"),
+            map_icon: load("element/icons/map.png"),
             map_frame: load("map/window_frame_map.png"),
 
             // Spell Book Window
-            spellbook_bg: load("spellbook/bg.png"),
-            spellbook_icon: load("spellbook/icon.png"),
+            spellbook_bg: load("element/misc_backgrounds/small_bg.png"),
+            spellbook_icon: load("element/icons/spellbook.png"),
 
             //Char Window
-            charwindow_bg: load("charwindow/bg.png"),
-            charwindow_icon: load("charwindow/icon.png"),
+            charwindow_bg: load("element/misc_backgrounds/small_bg.png"),
+            charwindow_icon: load("element/icons/charwindow.png"),
 
             //Quest-Log Window
-            questlog_bg: load("questlog/bg.png"),
-            questlog_icon: load("questlog/icon.png"),
+            questlog_bg: load("element/misc_backgrounds/small_bg.png"),
+            questlog_icon: load("element/icons/questlog.png"),
         }
     }
 }
