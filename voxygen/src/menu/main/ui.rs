@@ -57,7 +57,7 @@ impl Imgs {
             let image = image::open(
                 &[
                     env!("CARGO_MANIFEST_DIR"),
-                    "/test_assets/ui/main/",
+                    "/../assets/voxygen/",
                     filename,
                 ]
                 .concat(),
@@ -66,21 +66,21 @@ impl Imgs {
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
-            bg: load("bg.png"),
-            v_logo: load("v_logo.png"),
+            bg: load("background/bg_main.png"),
+            v_logo: load("element/v_logo.png"),
 
             // Input fields
-            input_bg: load("input_bg.png"),
+            input_bg: load("element/misc_backgrounds/textbox.png"),
 
             // Login button
-            login_button: load("buttons/button_login.png"),
-            login_button_hover: load("buttons/button_login_hover.png"),
-            login_button_press: load("buttons/button_login_press.png"),
+            login_button: load("element/buttons/button_login.png"),
+            login_button_hover: load("element/buttons/button_login_hover.png"),
+            login_button_press: load("element/buttons/button_login_press.png"),
 
             // Servers, settings, and quit buttons
-            button: load("buttons/button.png"),
-            button_hover: load("buttons/button_hover.png"),
-            button_press: load("buttons/button_press.png"),
+            button: load("element/buttons/button.png"),
+            button_hover: load("element/buttons/button_hover.png"),
+            button_press: load("element/buttons/button_press.png"),
         }
     }
 }
