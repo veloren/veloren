@@ -25,7 +25,7 @@ use pretty_env_logger;
 
 // Crate
 use crate::{
-    menu::title::TitleState,
+    menu::main::MainMenuState,
     window::Window,
 };
 
@@ -78,7 +78,7 @@ fn main() {
     };
 
     // Set up the initial play state
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(TitleState::new(
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(
         &mut global_state.window,
     ))];
     states.last().map(|current_state| {
