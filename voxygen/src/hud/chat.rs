@@ -38,8 +38,8 @@ impl Chat {
             new_messages: false,
         }
     }
-    pub fn is_input_box(&self, id: Id) -> bool {
-        id == self.ids.input
+    pub fn input_box_id(&self) -> Id {
+        self.ids.input
     }
     pub fn new_message(&mut self, msg: String) {
         self.messages.push_front(msg);

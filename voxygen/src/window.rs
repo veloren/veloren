@@ -48,6 +48,7 @@ impl Window {
         let mut key_map = HashMap::new();
         key_map.insert(glutin::VirtualKeyCode::Tab, Key::ToggleCursor);
         key_map.insert(glutin::VirtualKeyCode::Escape, Key::Escape);
+        key_map.insert(glutin::VirtualKeyCode::Return, Key::Enter);
         key_map.insert(glutin::VirtualKeyCode::W, Key::MoveForward);
         key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
         key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
@@ -73,7 +74,7 @@ impl Window {
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
-        let mut events = vec![];        
+        let mut events = vec![];
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
@@ -168,6 +169,7 @@ pub enum Key {
     MoveBack,
     MoveLeft,
     MoveRight,
+    Enter,
 	Escape,
 }
 
