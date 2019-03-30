@@ -106,9 +106,6 @@ widget_ids! {
         questlog_icon,
         questlog_close,
         questlog_title,
-
-        // Chat-Arrow
-        chat_arrow,
     }
 }
 
@@ -198,12 +195,9 @@ struct Imgs {
     //help
     //help: ImgId,
     // Chat-Arrow
-    chat_arrow_active: ImgId,
-    chat_arrow_inactive: ImgId,
-    chat_arrow_active_mo: ImgId,
-    chat_arrow_active_press: ImgId,
-
-
+    chat_arrow: ImgId,
+    chat_arrow_mo: ImgId,
+    chat_arrow_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -303,10 +297,9 @@ impl Imgs {
             questlog_icon: load("element/icons/questlog.png"),
 
             // Chat-Arrows
-            chat_arrow_active: load("element/buttons/arrow/chat_arrow_active.png"),
-            chat_arrow_inactive: load("element/buttons/arrow/chat_arrow_inactive.png"),
-            chat_arrow_active_mo: load("element/buttons/arrow/chat_arrow_active_mo.png"),
-            chat_arrow_active_press: load("element/buttons/arrow/chat_arrow_active_press.png"),
+            chat_arrow: load("element/buttons/arrow/chat_arrow.png"),
+            chat_arrow_mo: load("element/buttons/arrow/chat_arrow_mo.png"),
+            chat_arrow_press: load("element/buttons/arrow/chat_arrow_press.png"),
         }
     }
 }
@@ -408,17 +401,9 @@ impl Hud {
         let ref mut ui_widgets = self.ui.set_widgets();
 
         // Chat box
-        if let Some(msg) = self.chat.update_layout(ui_widgets, self.font_opensans) {
+        if let Some(msg) = self.chat.update_layout(ui_widgets, self.font_opensans, &self.imgs) {
             events.push(Event::SendMessage(msg));
         }
-        // Chat Arrow
-        Button::image(self.imgs.chat_arrow_active)
-                .w_h(22.0, 22.0)
-                .hover_image(self.imgs.chat_arrow_active_mo)
-                .press_image(self.imgs.chat_arrow_active_press)
-                .bottom_left_with_margins_on(ui_widgets.window, 26.0, 14.0)
-                .set(self.ids.chat_arrow, ui_widgets);
-
         // Help Text
         if self.show_help {
             Image::new(self.imgs.window_frame_2)
