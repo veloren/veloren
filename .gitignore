@@ -4,7 +4,6 @@
 /Cargo.lock
 /*/target/
 /*/Cargo.lock
-/voxygen/test_assets/
 
 # IntelliJ
 
@@ -20,3 +19,4 @@
 # Veloren
 **/server_conf.toml
 **/keybinds.toml
+assets/voxygen
