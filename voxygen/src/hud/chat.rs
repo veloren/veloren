@@ -3,7 +3,7 @@ use conrod_core::{
     input::Key,
     position::Dimension,
     text::font::Id as FontId,
-    widget::{Id, List, Rectangle, Text, TextEdit},
+    widget::{Id, Button, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
 use std::collections::VecDeque;
@@ -14,6 +14,7 @@ widget_ids! {
         message_box_bg,
         input,
         input_bg,
+        chat_arrow,
     }
 }
 // Chat Behaviour:
@@ -42,28 +43,43 @@ impl Chat {
         self.ids.input
     }
     pub fn new_message(&mut self, msg: String) {
-        self.messages.push_front(msg);
+        self.messages.push_back(msg);
         self.new_messages = true;
     }
     // Determine if the message box is scrolled to the bottom
     // (i.e. the player is viewing new messages)
     // If so scroll down when new messages are added
-    fn scroll_new_messages(&mut self, ui_widgets: &mut UiCell) {
+    fn scroll_new_messages(&self, ui_widgets: &mut UiCell) {
         if let Some(scroll) = ui_widgets
             .widget_graph()
             .widget(self.ids.message_box)
             .and_then(|widget| widget.maybe_y_scroll_state)
         {
             // If previously scrolled to the bottom stay there
-            if scroll.offset >= scroll.offset_bounds.start {
-                ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
+            if self.scrolled_to_bottom(ui_widgets) {
+                self.scroll_to_bottom(ui_widgets);
             }
         }
     }
-    pub fn update_layout(&mut self, ui_widgets: &mut UiCell, font: FontId) -> Option<String> {
+    fn scrolled_to_bottom(&self, ui_widgets: &UiCell) -> bool {
+        // could be more efficient to cache result and update it when a scroll event has occurred instead of every frame
+        if let Some(scroll) = ui_widgets
+            .widget_graph()
+            .widget(self.ids.message_box)
+            .and_then(|widget| widget.maybe_y_scroll_state)
+        {
+            scroll.offset >= scroll.offset_bounds.start
+        } else {
+            false
+        }
+    }
+    fn scroll_to_bottom(&self, ui_widgets: &mut UiCell) {
+        ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
+    }
+    pub fn update_layout(&mut self, ui_widgets: &mut UiCell, font: FontId, imgs: &super::Imgs) -> Option<String> {
         // Maintain scrolling
         if self.new_messages {
-            //self.scroll_new_messages(ui_widgets);
+            self.scroll_new_messages(ui_widgets);
             self.new_messages = false;
         }
 
@@ -96,7 +112,7 @@ impl Chat {
             .rgba(0.0, 0.0, 0.0, 0.4)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
-        let (mut items, scrollbar) = List::flow_up(self.messages.len())
+        let (mut items, scrollbar) = List::flow_down(self.messages.len())
             .middle_of(self.ids.message_box_bg)
             .scrollbar_next_to()
             .scrollbar_thickness(18.0)
@@ -111,8 +127,22 @@ impl Chat {
                 ui_widgets,
             )
         }
-        if let Some(s) = scrollbar {
-            s.set(ui_widgets)
+        //if let Some(s) = scrollbar {
+        //    s.set(ui_widgets)
+        //}
+
+        // Chat Arrow
+        if !self.scrolled_to_bottom(ui_widgets) {
+            if Button::image(imgs.chat_arrow)
+            .w_h(22.0, 22.0)
+            .hover_image(imgs.chat_arrow_mo)
+            .press_image(imgs.chat_arrow_press)
+            .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
+            .set(self.ids.chat_arrow, ui_widgets)
+            .was_clicked()
+            {
+                self.scroll_to_bottom(ui_widgets);
+            }
         }
 
         // If enter is pressed send the current message
