@@ -16,7 +16,7 @@ use conrod_core::{
     widget::{Id as WidgId, id::Generator},
     render::Primitive,
     event::Input,
-    input::{touch::Touch, Widget, Motion},
+    input::{touch::Touch, Widget, Motion, Button, MouseButton},
 };
 use vek::*;
 use crate::{
@@ -50,6 +50,12 @@ impl Event {
     pub fn is_keyboard_or_mouse(&self) -> bool {
         match self.0 {
             Input::Press(_) | Input::Release(_) | Input::Motion(_) | Input::Touch(_) | Input::Text(_) => true,
+            _ => false,
+        }
+    }
+    pub fn is_keyboard(&self) -> bool {
+        match self.0 {
+            Input::Press(Button::Keyboard(_)) | Input::Release(Button::Keyboard(_)) | Input::Text(_) => true,
             _ => false,
         }
     }
@@ -223,6 +229,33 @@ impl Ui {
     pub fn set_widgets(&mut self) -> UiCell {
         self.ui.set_widgets()
     }
+
+    // Workaround because conrod currently gives us no way to programmatically set which widget is capturing key input
+    // Note the widget must be visible and not covered by other widgets at its center for this to work
+    // Accepts option so widget can be "unfocused"
+    pub fn focus_widget(&mut self, id: Option<WidgId>) {
+        let (x, y) = match id {
+            // get position of widget
+            Some(id) => if let Some([x, y]) = self.ui.xy_of(id) {
+                (x, y)
+            } else {
+                return;
+            },
+            // outside window (origin is center)
+            None => (self.ui.win_h, self.ui.win_w)
+        };
+        // things to consider: does cursor need to be moved back?, should we check if the mouse if already pressed and then trigger a release?
+        self.ui.handle_event(
+            Input::Motion(Motion::MouseCursor { x, y })
+        );
+        self.ui.handle_event(
+            Input::Press(Button::Mouse(MouseButton::Left))
+        );
+        self.ui.handle_event(
+            Input::Release(Button::Mouse(MouseButton::Left))
+        );
+    }
+
 
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {

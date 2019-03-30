@@ -1155,7 +1155,7 @@ impl Hud {
         }
         // update whether keyboard is captured
         self.typing = if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
-            self.chat.is_input_box(widget_id)
+            widget_id == self.chat.input_box_id()
         } else {
             false
         };
@@ -1178,12 +1178,30 @@ impl Hud {
     pub fn handle_event(&mut self, event: WinEvent) -> bool {
         match event {
             WinEvent::Ui(event) => {
-                if !(self.cursor_grabbed && event.is_keyboard_or_mouse()) {
+                if (self.typing && event.is_keyboard()) || !(self.cursor_grabbed && event.is_keyboard_or_mouse()) {
                     self.ui.handle_event(event);
                 }
                 true
             },
-            _ if self.cursor_grabbed => false,
+            WinEvent::KeyDown(Key::Enter) => {
+                if self.cursor_grabbed && self.typing {
+                    self.ui.focus_widget(None);
+                    self.typing = false;
+                } else if !self.typing {
+                    self.ui.focus_widget(Some(self.chat.input_box_id()));
+                    self.typing = true;
+                };
+                true
+            }
+            WinEvent::KeyDown(Key::Escape) if self.typing => {
+                if self.typing {
+                    self.typing = false;
+                    self.ui.focus_widget(None);
+                    true
+                } else {
+                    false
+                }
+            }
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
                 _ => self.typing,
