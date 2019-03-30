@@ -107,7 +107,8 @@ widget_ids! {
         questlog_close,
         questlog_title,
 
-        extra,
+        // Chat-Arrow
+        chat_arrow,
     }
 }
 
@@ -178,24 +179,31 @@ struct Imgs {
     button_blank: ImgId,
     button_blue_mo: ImgId,
     button_blue_press: ImgId,
-    //Social-Window
+    // Social-Window
     social_bg: ImgId,
     social_icon: ImgId,
-    //Map-Window
+    // Map-Window
     map_bg: ImgId,
     map_icon: ImgId,
     map_frame: ImgId,
-    //Spell Book Window
+    // Spell Book Window
     spellbook_bg: ImgId,
     spellbook_icon: ImgId,
-    //Char Window
+    // Char Window
     charwindow_bg: ImgId,
     charwindow_icon: ImgId,
-    //Quest-Log Window
+    // Quest-Log Window
     questlog_bg: ImgId,
     questlog_icon: ImgId,
     //help
     //help: ImgId,
+    // Chat-Arrow
+    chat_arrow_active: ImgId,
+    chat_arrow_inactive: ImgId,
+    chat_arrow_active_mo: ImgId,
+    chat_arrow_active_press: ImgId,
+
+
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -293,6 +301,12 @@ impl Imgs {
             //Quest-Log Window
             questlog_bg: load("element/misc_backgrounds/small_bg.png"),
             questlog_icon: load("element/icons/questlog.png"),
+
+            // Chat-Arrows
+            chat_arrow_active: load("element/buttons/arrow/chat_arrow_active.png"),
+            chat_arrow_inactive: load("element/buttons/arrow/chat_arrow_inactive.png"),
+            chat_arrow_active_mo: load("element/buttons/arrow/chat_arrow_active_mo.png"),
+            chat_arrow_active_press: load("element/buttons/arrow/chat_arrow_active_press.png"),
         }
     }
 }
@@ -397,6 +411,13 @@ impl Hud {
         if let Some(msg) = self.chat.update_layout(ui_widgets, self.font_opensans) {
             events.push(Event::SendMessage(msg));
         }
+        // Chat Arrow
+        Button::image(self.imgs.chat_arrow_active)
+                .w_h(22.0, 22.0)
+                .hover_image(self.imgs.chat_arrow_active_mo)
+                .press_image(self.imgs.chat_arrow_active_press)
+                .bottom_left_with_margins_on(ui_widgets.window, 26.0, 14.0)
+                .set(self.ids.chat_arrow, ui_widgets);
 
         // Help Text
         if self.show_help {
