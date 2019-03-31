@@ -29,8 +29,8 @@ use crate::{
         Texture,
         UiPipeline,
         UiMode,
-        push_ui_quad_to_mesh,
-        push_ui_tri_to_mesh,
+        create_ui_quad,
+        create_ui_tri,
     },
     window::Window,
 };
@@ -412,13 +412,12 @@ impl Ui {
                             min: Vec2::new(uv_l, uv_b),
                             max: Vec2::new(uv_r, uv_t),
                         };
-                        push_ui_quad_to_mesh(
-                            &mut mesh,
+                        mesh.push_quad(create_ui_quad(
                             gl_aabr(rect),
                             uv,
                             color,
                             UiMode::Image,
-                        );
+                        ));
 
                     }
                     PrimitiveKind::Text { color, text, font_id } => {
@@ -463,13 +462,12 @@ impl Ui {
                                         (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
                                     ),
                                 };
-                                push_ui_quad_to_mesh(
-                                    &mut mesh,
+                                mesh.push_quad(create_ui_quad(
                                     rect,
                                     uv,
                                     color,
                                     UiMode::Text,
-                                );
+                                ));
                             }
                         }
                     }
@@ -483,8 +481,7 @@ impl Ui {
 
                         switch_to_plain_state!();
 
-                        push_ui_quad_to_mesh(
-                            &mut mesh,
+                        mesh.push_quad(create_ui_quad(
                             gl_aabr(rect),
                             Aabr {
                                 min: Vec2::new(0.0, 0.0),
@@ -492,7 +489,7 @@ impl Ui {
                             },
                             color,
                             UiMode::Geometry,
-                        );
+                        ));
                     }
                     PrimitiveKind::TrianglesSingleColor { color, triangles } => {
                         // Don't draw transparent triangle or switch state if there are actually no triangles
@@ -518,13 +515,12 @@ impl Ui {
                                 p1.into_array(),
                                 p3.into_array(),
                             ]};
-                            push_ui_tri_to_mesh(
-                                &mut mesh,
+                            mesh.push_tri(create_ui_tri(
                                 triangle,
                                 [[0.0; 2]; 3],
                                 color,
                                 UiMode::Geometry,
-                            );
+                            ));
                         }
 
                     }
