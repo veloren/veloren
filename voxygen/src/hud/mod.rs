@@ -2,16 +2,16 @@ mod chat;
 
 use crate::{
     render::Renderer,
-    ui::{ScaleMode, Ui, ToggleButton},
-    window::{Event as WinEvent, Window, Key},
+    ui::{ScaleMode, ToggleButton, Ui},
+    window::{Event as WinEvent, Key, Window},
 };
 use conrod_core::{
     color,
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{Button, Image, Text, Rectangle},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget::{Button, Image, Rectangle, Text},
+    widget_ids, Colorable, Color, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -21,6 +21,8 @@ widget_ids! {
         bag_contents,
         bag_close,
         bag_map_open,
+        inv_alignment,
+        inv_grid,
         //help
         help,
         help_bg,
@@ -53,6 +55,9 @@ widget_ids! {
         sb_grid_r,
         sb_grid_bg_l,
         sb_grid_bg_r,
+        // Level Display
+        level_text,
+        next_level_text,
         //Window Frames
         window_frame_0,
         window_frame_1,
@@ -120,6 +125,7 @@ struct Imgs {
     bag_open_hover: ImgId,
     bag_open_press: ImgId,
     bag_contents: ImgId,
+    inv_grid: ImgId,
 
     // Close button
     close_button: ImgId,
@@ -198,6 +204,12 @@ struct Imgs {
     chat_arrow: ImgId,
     chat_arrow_mo: ImgId,
     chat_arrow_press: ImgId,
+    chat_arrow_up: ImgId,
+    chat_arrow_up_mo: ImgId,
+    chat_arrow_up_press: ImgId,
+    chat_arrow_down: ImgId,
+    chat_arrow_down_mo: ImgId,
+    chat_arrow_down_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -217,6 +229,7 @@ impl Imgs {
             bag_open_hover: load("element/buttons/bag/open_hover.png"),
             bag_open_press: load("element/buttons/bag/open_press.png"),
             bag_contents: load("element/frames/bag.png"),
+            inv_grid: load("element/frames/inv_grid.png"),
 
             // Close button
             close_button: load("element/buttons/x.png"),
@@ -300,6 +313,12 @@ impl Imgs {
             chat_arrow: load("element/buttons/arrow/chat_arrow.png"),
             chat_arrow_mo: load("element/buttons/arrow/chat_arrow_mo.png"),
             chat_arrow_press: load("element/buttons/arrow/chat_arrow_press.png"),
+            chat_arrow_up: load("element/buttons/arrow/chat_arrow_up.png"),
+            chat_arrow_up_mo: load("element/buttons/arrow/chat_arrow_up_mo.png"),
+            chat_arrow_up_press: load("element/buttons/arrow/chat_arrow_up_press.png"),
+            chat_arrow_down: load("element/buttons/arrow/chat_arrow_down.png"),
+            chat_arrow_down_mo: load("element/buttons/arrow/chat_arrow_down_mo.png"),
+            chat_arrow_down_press: load("element/buttons/arrow/chat_arrow_down_press.png"),
         }
     }
 }
@@ -322,7 +341,7 @@ pub enum Event {
 // TODO: maybe replace this with bitflags
 // map not here because it currently is displayed over the top of other open windows
 enum Windows {
-    Settings, // display settings window
+    Settings,                    // display settings window
     CharacterAnd(Option<Small>), // show character window + optionally another
     Small(Small),
     None,
@@ -333,7 +352,6 @@ enum Small {
     Social,
     Questlog,
 }
-
 
 pub struct Hud {
     ui: Ui,
@@ -349,7 +367,7 @@ pub struct Hud {
     menu_open: bool,
     open_windows: Windows,
     map_open: bool,
-    settings_tab: SettingsTab
+    settings_tab: SettingsTab,
 }
 
 impl Hud {
@@ -401,7 +419,10 @@ impl Hud {
         let ref mut ui_widgets = self.ui.set_widgets();
 
         // Chat box
-        if let Some(msg) = self.chat.update_layout(ui_widgets, self.font_opensans, &self.imgs) {
+        if let Some(msg) = self
+            .chat
+            .update_layout(ui_widgets, self.font_opensans, &self.imgs)
+        {
             events.push(Event::SendMessage(msg));
         }
         // Help Text
@@ -412,22 +433,23 @@ impl Hud {
                 .set(self.ids.help_bg, ui_widgets);
 
             Text::new(
-               "Tab = Free Cursor       \n\
-                Esc = Open/Close Menus  \n\
-                Q = Back to Login       \n\
-                                        \n\
-                F1 = Toggle this Window \n\
-                F2 = Toggle Interface   \n\
-                                        \n\
-                M = Map                 \n\
-                I = Inventory           \n\
-                L = Quest-Log           \n\
-                C = Character Window    \n\
-                O = Social              \n\
-                P = Spellbook           \n\
-                N = Settings")
+                "Tab = Free Cursor       \n\
+                 Esc = Open/Close Menus  \n\
+                 Q = Back to Login       \n\
+                 \n\
+                 F1 = Toggle this Window \n\
+                 F2 = Toggle Interface   \n\
+                 \n\
+                 M = Map                 \n\
+                 I = Inventory           \n\
+                 L = Quest-Log           \n\
+                 C = Character Window    \n\
+                 O = Social              \n\
+                 P = Spellbook           \n\
+                 N = Settings",
+            )
             .rgba(220.0, 220.0, 220.0, 0.8)
-            .top_left_with_margins_on(self.ids.help_bg, 20.0,20.0)
+            .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
             .font_id(self.font_opensans)
             .font_size(18)
             .set(self.ids.help, ui_widgets);
@@ -503,11 +525,11 @@ impl Hud {
         // Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
         // Opening the Map won't close the windows displayed before.
 
-
         if match self.open_windows {
             Windows::Settings => false,
             _ => true,
-        } && self.map_open == false {
+        } && self.map_open == false
+        {
             //1 Social
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
@@ -523,7 +545,7 @@ impl Hud {
                     Windows::CharacterAnd(small) => match small {
                         Some(Small::Social) => Windows::CharacterAnd(None),
                         _ => Windows::CharacterAnd(Some(Small::Social)),
-                    }
+                    },
                     Windows::Settings => unreachable!(),
                 };
             }
@@ -543,7 +565,7 @@ impl Hud {
                     Windows::CharacterAnd(small) => match small {
                         Some(Small::Spellbook) => Windows::CharacterAnd(None),
                         _ => Windows::CharacterAnd(Some(Small::Spellbook)),
-                    }
+                    },
                     Windows::Settings => unreachable!(),
                 };
             }
@@ -563,7 +585,7 @@ impl Hud {
                     },
                     Windows::Small(small) => Windows::CharacterAnd(Some(small)),
                     Windows::None => Windows::CharacterAnd(None),
-                    Windows::Settings => unreachable!()
+                    Windows::Settings => unreachable!(),
                 }
             }
             //5 Quest-Log
@@ -581,7 +603,7 @@ impl Hud {
                     Windows::CharacterAnd(small) => match small {
                         Some(Small::Questlog) => Windows::CharacterAnd(None),
                         _ => Windows::CharacterAnd(Some(Small::Questlog)),
-                    }
+                    },
                     Windows::Settings => unreachable!(),
                 };
             }
@@ -651,36 +673,66 @@ impl Hud {
 
         // Debuffs
 
+        // Level Display
+
+        // Insert actual Level here
+        Text::new("1")
+            .left_from(self.ids.xp_bar, -20.0)
+            .font_size(20)
+            .rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.level_text, ui_widgets);
+
+        // Insert next Level here
+        Text::new("2")
+            .right_from(self.ids.xp_bar, -20.0)
+            .font_size(20)
+            .rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.next_level_text, ui_widgets);
+
         // Bag contents
         if self.bag_open {
             // Contents
             Image::new(self.imgs.bag_contents)
-            .w_h(1504.0 / 4.0, 1760.0 / 4.0)
-            .bottom_right_with_margins_on(ui_widgets.window, 88.0, 68.0)
-            .set(self.ids.bag_contents, ui_widgets);
+                .w_h(307.0, 320.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 100.0, 80.0)
+                .set(self.ids.bag_contents, ui_widgets);
+
+            // 250 250
+            // Alignment for Grid
+            Rectangle::fill_with([250.0, 240.0], color::TRANSPARENT)
+                .top_left_with_margins_on(self.ids.bag_contents, 27.0, 23.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                //.scrollbar_thickness(18.0)
+                //.scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(self.ids.inv_alignment, ui_widgets);
+            // Grid
+            Image::new(self.imgs.inv_grid)
+                .w_h(250.0, 951.0)
+                .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
+                //.scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(self.ids.inv_grid, ui_widgets);
 
             // X-button
             if Button::image(self.imgs.close_button)
-            .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
-            .set(self.ids.bag_close, ui_widgets)
-            .was_clicked()
+                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
+                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
+                .set(self.ids.bag_close, ui_widgets)
+                .was_clicked()
             {
                 self.bag_open = false;
             }
         }
         // Bag
         if !self.map_open {
-            self.bag_open =
-                ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
-                    .bottom_right_with_margin_on(ui_widgets.window, 20.0)
-                    .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
-                    .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
-                    .w_h(420.0 / 4.0, 480.0 / 4.0)
-                    .set(self.ids.bag, ui_widgets);
-
+            self.bag_open = ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
+                .bottom_right_with_margin_on(ui_widgets.window, 20.0)
+                .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
+                .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
+                .w_h(420.0 / 4.0, 480.0 / 4.0)
+                .set(self.ids.bag, ui_widgets);
         } else {
             Image::new(self.imgs.bag)
                 .bottom_right_with_margin_on(ui_widgets.window, 20.0)
@@ -727,32 +779,37 @@ impl Hud {
                 .set(self.ids.settings_icon, ui_widgets);
             // TODO: Find out if we can remove this
             // Alignment Rectangle
-            Rectangle::fill_with([1008.0/ 2.5, 1616.0 / 2.5], color::TRANSPARENT)
-                    .top_left_with_margins_on(self.ids.settings_bg, 77.0, 205.0)
-                    .set(self.ids.rectangle, ui_widgets);
+            Rectangle::fill_with([1008.0 / 2.5, 1616.0 / 2.5], color::TRANSPARENT)
+                .top_left_with_margins_on(self.ids.settings_bg, 77.0, 205.0)
+                .set(self.ids.rectangle, ui_widgets);
 
             //1 Interface////////////////////////////
-            if Button::image(if let SettingsTab::Interface = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .top_left_with_margins_on(self.ids.settings_bg, 78.0, 50.0)
-                .label("Interface")
-                .label_font_size(14)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.interface, ui_widgets)
-                .was_clicked()
+            if Button::image(if let SettingsTab::Interface = self.settings_tab {
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .top_left_with_margins_on(self.ids.settings_bg, 78.0, 50.0)
+            .label("Interface")
+            .label_font_size(14)
+            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.interface, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Interface;
             }
             //Toggle Help
             if let SettingsTab::Interface = self.settings_tab {
-                self.show_help = ToggleButton::new(self.show_help, self.imgs.check, self.imgs.check_checked)
-                    .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .top_left_with_margins_on(self.ids.rectangle, 15.0, 15.0)
-                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-                    .press_images(self.imgs.check_press, self.imgs.check_press)
-                    .set(self.ids.button_help, ui_widgets);
+                self.show_help =
+                    ToggleButton::new(self.show_help, self.imgs.check, self.imgs.check_checked)
+                        .w_h(288.0 / 24.0, 288.0 / 24.0)
+                        .top_left_with_margins_on(self.ids.rectangle, 15.0, 15.0)
+                        .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                        .press_images(self.imgs.check_press, self.imgs.check_press)
+                        .set(self.ids.button_help, ui_widgets);
                 Text::new("Show Help")
                     .x_relative_to(self.ids.button_help, 55.0)
                     .font_size(12)
@@ -761,61 +818,77 @@ impl Hud {
                     .set(self.ids.show_help_label, ui_widgets);
             }
             //2 Gameplay////////////////
-            if Button::image(if let SettingsTab::Gameplay = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 1.0)
-                .label("Gameplay")
-                .label_font_size(14)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.gameplay, ui_widgets)
-                .was_clicked()
+            if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.interface, 1.0)
+            .label("Gameplay")
+            .label_font_size(14)
+            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.gameplay, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Gameplay;
             }
 
             //3 Controls/////////////////////
-            if Button::image(if let SettingsTab::Controls = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.gameplay, 1.0)
-                .label("Controls")
-                .label_font_size(14)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.controls, ui_widgets)
-                .was_clicked()
+            if Button::image(if let SettingsTab::Controls = self.settings_tab {
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.gameplay, 1.0)
+            .label("Controls")
+            .label_font_size(14)
+            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.controls, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Controls;
             }
 
             //4 Video////////////////////////////////
-            if Button::image(if let SettingsTab::Video = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.controls, 1.0)
-                .label("Video")
-                .label_font_size(14)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.video, ui_widgets)
-                .was_clicked()
+            if Button::image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.controls, 1.0)
+            .label("Video")
+            .label_font_size(14)
+            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.video, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Video;
             }
 
             //5 Sound///////////////////////////////
-            if Button::image(if let SettingsTab::Sound = self.settings_tab  {self.imgs.button_blue_mo} else {self.imgs.button_blank})
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.video, 1.0)
-                .label("Sound")
-                .label_font_size(14)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.sound, ui_widgets)
-                .was_clicked()
+            if Button::image(if let SettingsTab::Sound = self.settings_tab {
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.video, 1.0)
+            .label("Sound")
+            .label_font_size(14)
+            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.sound, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Sound;
             }
@@ -969,8 +1042,6 @@ impl Hud {
                         .set(self.ids.questlog_title, ui_widgets);
                 }
             }
-
-
         }
 
         //4 Char-Window
@@ -1139,11 +1210,12 @@ impl Hud {
             };
         }
         // update whether keyboard is captured
-        self.typing = if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
-            widget_id == self.chat.input_box_id()
-        } else {
-            false
-        };
+        self.typing =
+            if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
+                widget_id == self.chat.input_box_id()
+            } else {
+                false
+            };
 
         events
     }
@@ -1163,11 +1235,13 @@ impl Hud {
     pub fn handle_event(&mut self, event: WinEvent) -> bool {
         match event {
             WinEvent::Ui(event) => {
-                if (self.typing && event.is_keyboard()) || !(self.cursor_grabbed && event.is_keyboard_or_mouse()) {
+                if (self.typing && event.is_keyboard())
+                    || !(self.cursor_grabbed && event.is_keyboard_or_mouse())
+                {
                     self.ui.handle_event(event);
                 }
                 true
-            },
+            }
             WinEvent::KeyDown(Key::Enter) => {
                 if self.cursor_grabbed && self.typing {
                     self.ui.focus_widget(None);

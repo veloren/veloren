@@ -224,12 +224,7 @@ impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
             let image = image::open(
-                &[
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/../assets/voxygen/",
-                    filename,
-                ]
-                .concat(),
+                &[env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/", filename].concat(),
             )
             .unwrap();
             ui.new_image(renderer, &image).unwrap()
@@ -855,14 +850,18 @@ impl CharSelectionUi {
                 const HUMAN_DESC: &str =
                     "The former nomads were only recently able to gain a foothold in the world of Veloren. \n\
                     \n\
-                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.";
+                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields. \n\
+                    \n\
+                    Some become wicked witches, slimy scoundrels, and members of the underworld, while others become witch-hunters, sages, and noble knights. \n\
+                    \n\
+                    This diversity however creates constant conflict and antagonism between humans themselves.";
                 const ORC_DESC: &str =
                     "They are considered brutal, rude and combative. \n\
-                    But once you gained their trust they will be loyal friends \n\
-                    that follow a strict code of honor in all of their actions. \n\
-                    \n\
-                    Their warriors are masters of melee combat, but their true power \
-                    comes from the magical rituals of their powerful shamans.";
+                     But once you gained their trust they will be loyal friends \n\
+                     that follow a strict code of honor in all of their actions. \n\
+                     \n\
+                     Their warriors are masters of melee combat, but their true power \
+                     comes from the magical rituals of their powerful shamans.";
                 const DWARF_DESC: &str =
                     "Smoking chimneys, the sound of countless hammers and hoes. \
                     Infinite tunnel systems to track down even the last chunk of metal in the ground. \n\
