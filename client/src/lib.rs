@@ -138,11 +138,10 @@ impl Client {
         // Handle new messages from the server
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Step 3
+        // Step 1
         if let Some(ecs_entity) = self.player {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
-
             // TODO: Set acceleration instead
             self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
         }

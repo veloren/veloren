@@ -30,9 +30,10 @@ pub use self::{
             Locals as TerrainLocals,
         },
         ui::{
-            create_quad_mesh as create_ui_quad_mesh,
+            create_quad as create_ui_quad,
+            create_tri as create_ui_tri,
+            Mode as UiMode,
             UiPipeline,
-            Locals as UiLocals,
         },
     },
 };
@@ -48,6 +49,7 @@ use gfx;
 pub enum RenderError {
     PipelineError(gfx::PipelineStateError<String>),
     UpdateError(gfx::UpdateError<usize>),
+    TexUpdateError(gfx::UpdateError<[u16; 3]>),
     CombinedError(gfx::CombinedError),
 }
 

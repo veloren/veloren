@@ -1,10 +1,5 @@
-// Library
-use glutin;
-use gfx_window_glutin;
 use vek::*;
 use std::collections::HashMap;
-
-// Crate
 use crate::{
     Error,
     render::{
@@ -12,6 +7,7 @@ use crate::{
         TgtColorFmt,
         TgtDepthFmt,
     },
+    ui,
 };
 
 pub struct Window {
@@ -19,6 +15,7 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
+    needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
 }
 
@@ -28,13 +25,13 @@ impl Window {
         let events_loop = glutin::EventsLoop::new();
 
         let win_builder = glutin::WindowBuilder::new()
-            .with_title("Veloren (Voxygen)")
-            .with_dimensions(glutin::dpi::LogicalSize::new(800.0, 500.0))
-            .with_maximized(false);
+            .with_title("Veloren")
+            .with_dimensions(glutin::dpi::LogicalSize::new(1366.0, 768.0))
+            .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
             .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
-            .with_vsync(true);
+            .with_vsync(false);
 
         let (
             window,
@@ -49,7 +46,9 @@ impl Window {
         ).map_err(|err| Error::BackendError(Box::new(err)))?;
 
         let mut key_map = HashMap::new();
-        key_map.insert(glutin::VirtualKeyCode::Escape, Key::ToggleCursor);
+        key_map.insert(glutin::VirtualKeyCode::Tab, Key::ToggleCursor);
+        key_map.insert(glutin::VirtualKeyCode::Escape, Key::Escape);
+        key_map.insert(glutin::VirtualKeyCode::Return, Key::Enter);
         key_map.insert(glutin::VirtualKeyCode::W, Key::MoveForward);
         key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
         key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
@@ -65,6 +64,7 @@ impl Window {
             )?,
             window,
             cursor_grabbed: false,
+            needs_refresh_resize: false,
             key_map,
         });
         tmp
@@ -74,6 +74,13 @@ impl Window {
     pub fn renderer_mut(&mut self) -> &mut Renderer { &mut self.renderer }
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
+        let mut events = vec![];
+        // Refresh ui size (used when changing playstates)
+        if self.needs_refresh_resize {
+            events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
+            self.needs_refresh_resize = false;
+        }
+
         // Copy data that is needed by the events closure to avoid lifetime errors
         // TODO: Remove this if/when the compiler permits it
         let cursor_grabbed = self.cursor_grabbed;
@@ -81,42 +88,49 @@ impl Window {
         let window = &mut self.window;
         let key_map = &self.key_map;
 
-        let mut events = vec![];
-        self.events_loop.poll_events(|event| match event {
-            glutin::Event::WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::CloseRequested => events.push(Event::Close),
-                glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
-                    let (mut color_view, mut depth_view) = renderer.target_views_mut();
-                    gfx_window_glutin::update_views(
-                        &window,
-                        &mut color_view,
-                        &mut depth_view,
-                    );
-                    events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
-                },
-                glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
-                    Some(keycode) => match key_map.get(&keycode) {
-                        Some(&key) => events.push(match input.state {
-                            glutin::ElementState::Pressed => Event::KeyDown(key),
-                            _ => Event::KeyUp(key),
-                        }),
+        self.events_loop.poll_events(|event| {
+            // Get events for ui
+            if let Some(event) = ui::Event::try_from(event.clone(), &window) {
+                events.push(Event::Ui(event));
+            }
+
+            match event {
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    glutin::WindowEvent::CloseRequested => events.push(Event::Close),
+                    glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
+                        let (mut color_view, mut depth_view) = renderer.target_views_mut();
+                        gfx_window_glutin::update_views(
+                            &window,
+                            &mut color_view,
+                            &mut depth_view,
+                        );
+                        events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                    },
+                    glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
+
+                    glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode {
+                        Some(keycode) => match key_map.get(&keycode) {
+                            Some(&key) => events.push(match input.state {
+                                glutin::ElementState::Pressed => Event::KeyDown(key),
+                                _ => Event::KeyUp(key),
+                            }),
+                            _ => {},
+                        },
                         _ => {},
                     },
                     _ => {},
                 },
-                _ => {},
-            },
-            glutin::Event::DeviceEvent { event, .. } => match event {
-                glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
+                glutin::Event::DeviceEvent { event, .. } => match event {
+                    glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
                     events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
-                glutin::DeviceEvent::MouseWheel {
-                    delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                    ..
-                } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    glutin::DeviceEvent::MouseWheel {
+                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
+                        ..
+                    } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    _ => {},
+                },
                 _ => {},
-            },
-            _ => {},
+            }
         });
         events
     }
@@ -136,6 +150,15 @@ impl Window {
         self.window.grab_cursor(grab)
             .expect("Failed to grab/ungrab cursor");
     }
+
+    pub fn needs_refresh_resize(&mut self) {
+        self.needs_refresh_resize = true;
+    }
+
+    pub fn logical_size(&self) -> Vec2<f64> {
+        let (w, h) = self.window.get_inner_size().unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0)).into();
+        Vec2::new(w, h)
+    }
 }
 
 /// Represents a key that the game recognises after keyboard mapping
@@ -146,9 +169,12 @@ pub enum Key {
     MoveBack,
     MoveLeft,
     MoveRight,
+    Enter,
+	Escape,
 }
 
 /// Represents an incoming event from the window
+#[derive(Clone)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
@@ -164,4 +190,6 @@ pub enum Event {
     KeyDown(Key),
     /// A key that the game recognises has been released down
     KeyUp(Key),
+    /// Event that the ui uses
+    Ui(ui::Event),
 }

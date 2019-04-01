@@ -1,7 +1,9 @@
 #![feature(drain_filter)]
+#![recursion_limit="2048"]
 
 pub mod anim;
 pub mod error;
+pub mod hud;
 pub mod key_state;
 pub mod menu;
 pub mod mesh;
@@ -23,7 +25,7 @@ use pretty_env_logger;
 
 // Crate
 use crate::{
-    menu::title::TitleState,
+    menu::main::MainMenuState,
     window::Window,
 };
 
@@ -37,6 +39,7 @@ impl GlobalState {
     /// effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
         self.window.grab_cursor(false);
+        self.window.needs_refresh_resize();
     }
 }
 
@@ -75,8 +78,8 @@ fn main() {
     };
 
     // Set up the initial play state
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(TitleState::new(
-        &mut global_state.window.renderer_mut(),
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(
+        &mut global_state.window,
     ))];
     states.last().map(|current_state| {
         log::info!("Started game with state '{}'", current_state.name())
