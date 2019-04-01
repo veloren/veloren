@@ -10,8 +10,8 @@ use conrod_core::{
     event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Color, Labelable, Positionable, Sizeable, Widget,
+    widget::{Button, Image, Rectangle, Scrollbar, Text},
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -23,6 +23,7 @@ widget_ids! {
         bag_map_open,
         inv_alignment,
         inv_grid,
+        inv_scrollbar,
         //help
         help,
         help_bg,
@@ -404,7 +405,7 @@ impl Hud {
             typing: false,
             cursor_grabbed: true,
             settings_tab: SettingsTab::Interface,
-            show_help: true,
+            show_help: false,
             bag_open: false,
             menu_open: false,
             map_open: false,
@@ -471,12 +472,12 @@ impl Hud {
         // Minimap frame and bg
         Image::new(self.imgs.mmap_frame_bg)
             .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 20.0, 30.0)
+            .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
             .set(self.ids.mmap_frame_bg, ui_widgets);
 
         Image::new(self.imgs.mmap_frame)
             .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 20.0, 30.0)
+            .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
             .set(self.ids.mmap_frame, ui_widgets);
 
         Image::new(self.imgs.mmap_icons)
@@ -693,25 +694,25 @@ impl Hud {
         if self.bag_open {
             // Contents
             Image::new(self.imgs.bag_contents)
-                .w_h(307.0, 320.0)
-                .bottom_right_with_margins_on(ui_widgets.window, 100.0, 80.0)
+                .w_h(307.0, 545.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
                 .set(self.ids.bag_contents, ui_widgets);
 
-            // 250 250
             // Alignment for Grid
-            Rectangle::fill_with([250.0, 240.0], color::TRANSPARENT)
+            Rectangle::fill_with([246.0, 465.0], color::TRANSPARENT)
                 .top_left_with_margins_on(self.ids.bag_contents, 27.0, 23.0)
                 .scroll_kids()
                 .scroll_kids_vertically()
-                //.scrollbar_thickness(18.0)
-                //.scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(self.ids.inv_alignment, ui_widgets);
             // Grid
             Image::new(self.imgs.inv_grid)
-                .w_h(250.0, 951.0)
+                .w_h(251.0, 951.0)
                 .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
-                //.scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
                 .set(self.ids.inv_grid, ui_widgets);
+            Scrollbar::y_axis(self.ids.inv_alignment)
+                .thickness(5.0)
+                .rgba(220.0, 220.0, 220.0, 0.1)
+                .set(self.ids.inv_scrollbar, ui_widgets);
 
             // X-button
             if Button::image(self.imgs.close_button)
@@ -728,15 +729,15 @@ impl Hud {
         // Bag
         if !self.map_open {
             self.bag_open = ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
-                .bottom_right_with_margin_on(ui_widgets.window, 20.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
                 .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
-                .w_h(420.0 / 4.0, 480.0 / 4.0)
+                .w_h(420.0 / 6.0, 480.0 / 6.0)
                 .set(self.ids.bag, ui_widgets);
         } else {
             Image::new(self.imgs.bag)
                 .bottom_right_with_margin_on(ui_widgets.window, 20.0)
-                .w_h(420.0 / 4.0, 480.0 / 4.0)
+                .w_h(420.0 / 6.0, 480.0 / 6.0)
                 .set(self.ids.bag_map_open, ui_widgets);
         }
 

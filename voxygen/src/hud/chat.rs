@@ -166,7 +166,7 @@ impl Chat {
             .w_h(22.0, 22.0)
             .hover_image(imgs.chat_arrow_down_mo)
             .press_image(imgs.chat_arrow_down_press)
-            .bottom_right_with_margins_on(self.ids.message_box_bg, 40.0, 2.0)
+            .bottom_right_with_margins_on(self.ids.message_box_bg, 73.0, 2.0)
             .set(self.ids.chat_arrow_down, ui_widgets)
             .was_clicked()
         {};
