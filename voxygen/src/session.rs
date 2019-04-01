@@ -18,9 +18,10 @@ use crate::{
     PlayStateResult,
     GlobalState,
     key_state::KeyState,
-    window::{Event, Key},
+    window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
+    hud::{Hud, Event as HudEvent},
 };
 
 const FPS: u64 = 60;
@@ -29,18 +30,20 @@ pub struct SessionState {
     scene: Scene,
     client: Client,
     key_state: KeyState,
+    hud: Hud,
 }
 
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
+    pub fn new(window: &mut Window) -> Result<Self, Error> {
         let client = Client::new(([127, 0, 0, 1], 59003))?.with_test_state(); // <--- TODO: Remove this
         Ok(Self {
             // Create a scene for this session. The scene handles visible elements of the game world
-            scene: Scene::new(renderer, &client),
+            scene: Scene::new(window.renderer_mut(), &client),
             client,
             key_state: KeyState::new(),
+            hud: Hud::new(window),
         })
     }
 }
@@ -60,7 +63,14 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        self.client.tick(client::Input { move_dir }, dt)?;
+        for event in self.client.tick(client::Input { move_dir }, dt)? {
+            match event {
+                client::Event::Chat(msg) => {
+                    self.hud.new_message(msg);
+                }
+            }
+        }
+        
         Ok(())
     }
 
@@ -78,6 +88,8 @@ impl SessionState {
 
         // Render the screen using the global renderer
         self.scene.render_to(renderer);
+        // Draw the UI to the screen
+        self.hud.render(renderer);
 
         // Finish the frame
         renderer.flush();
@@ -105,13 +117,23 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
+
+                // Pass all  events to the ui first
+                if self.hud.handle_event(event.clone()) {
+                    continue;
+                }
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
                     // When 'q' is pressed, exit the session
                     Event::Char('q') => return PlayStateResult::Pop,
+                    // When 'm' is pressed, open/close the in-game test menu
+                    Event::Char('m') => self.hud.toggle_menu(),
+                    // Close windows on esc
+                    Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
+                        self.hud.update_grab(global_state.window.is_cursor_grabbed());
                     },
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
@@ -135,6 +157,17 @@ impl PlayState for SessionState {
 
             // Maintain the scene
             self.scene.maintain(global_state.window.renderer_mut(), &self.client);
+            // Maintain the UI
+            for event in self.hud.maintain(global_state.window.renderer_mut()) {
+                match event {
+                    HudEvent::SendMessage(msg) => {
+                        // TODO: Handle result
+                        self.client.send_chat(msg);
+                    },
+                    HudEvent::Logout => return PlayStateResult::Pop,
+                    HudEvent::Quit => return PlayStateResult::Shutdown,
+                }
+            }
 
             // Render the session
             self.render(global_state.window.renderer_mut());

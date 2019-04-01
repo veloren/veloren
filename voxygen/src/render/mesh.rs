@@ -13,6 +13,11 @@ impl<P: Pipeline> Mesh<P> {
         Self { verts: vec![] }
     }
 
+    /// Clear vertices, allows reusing allocated memory of the underlying Vec
+    pub fn clear(&mut self) {
+        self.verts.clear();
+    }
+
     /// Get a slice referencing the vertices of this mesh.
     pub fn vertices(&self) -> &[P::Vertex] {
         &self.verts
