@@ -5,23 +5,17 @@ use std::time::Duration;
 use vek::*;
 
 // Project
+use client::{self, Client};
 use common::clock::Clock;
-use client::{
-    self,
-    Client,
-};
 
 // Crate
 use crate::{
-    Error,
-    PlayState,
-    PlayStateResult,
-    GlobalState,
+    hud::{Event as HudEvent, Hud},
     key_state::KeyState,
-    window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    hud::{Hud, Event as HudEvent},
+    window::{Event, Key, Window},
+    Error, GlobalState, PlayState, PlayStateResult,
 };
 
 const FPS: u64 = 60;
@@ -49,7 +43,12 @@ impl SessionState {
 }
 
 // The background colour
-const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
+const BG_COLOR: Rgba<f32> = Rgba {
+    r: 0.0,
+    g: 0.3,
+    b: 1.0,
+    a: 1.0,
+};
 
 impl SessionState {
     /// Tick the session (and the client attached to it)
@@ -70,7 +69,7 @@ impl SessionState {
                 }
             }
         }
-        
+
         Ok(())
     }
 
@@ -117,24 +116,33 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
-
                 // Pass all  events to the ui first
                 if self.hud.handle_event(event.clone()) {
                     continue;
                 }
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // When 'q' is pressed, exit the session
-                    Event::Char('q') => return PlayStateResult::Pop,
-                    // When 'm' is pressed, open/close the in-game test menu
-                    Event::Char('m') => self.hud.toggle_menu(),
+                    // When 'm' is pressed, open/close the map window
+                    Event::Char('m') => self.hud.toggle_map(),
+                    Event::Char('i') => self.hud.toggle_inventory(),
+                    Event::Char('l') => self.hud.toggle_questlog(),
+                    Event::Char('c') => self.hud.toggle_charwindow(),
+                    Event::Char('o') => self.hud.toggle_social(),
+                    Event::Char('p') => self.hud.toggle_spellbook(),
+                    Event::Char('n') => self.hud.toggle_settings(),
+                    Event::KeyDown(Key::Interface) => self.hud.toggle_help(),
+                    Event::KeyDown(Key::Help) => self.hud.toggle_ui(),
+
                     // Close windows on esc
                     Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
-                        global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
-                        self.hud.update_grab(global_state.window.is_cursor_grabbed());
-                    },
+                        global_state
+                            .window
+                            .grab_cursor(!global_state.window.is_cursor_grabbed());
+                        self.hud
+                            .update_grab(global_state.window.is_cursor_grabbed());
+                    }
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
@@ -146,7 +154,9 @@ impl PlayState for SessionState {
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     // Pass all other events to the scene
-                    event => { self.scene.handle_input_event(event); },
+                    event => {
+                        self.scene.handle_input_event(event);
+                    }
                 };
                 // TODO: Do something if the event wasn't handled?
             }
@@ -156,14 +166,15 @@ impl PlayState for SessionState {
                 .expect("Failed to tick the scene");
 
             // Maintain the scene
-            self.scene.maintain(global_state.window.renderer_mut(), &self.client);
+            self.scene
+                .maintain(global_state.window.renderer_mut(), &self.client);
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
                         self.client.send_chat(msg);
-                    },
+                    }
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => return PlayStateResult::Shutdown,
                 }
@@ -173,7 +184,8 @@ impl PlayState for SessionState {
             self.render(global_state.window.renderer_mut());
 
             // Display the frame on the window
-            global_state.window
+            global_state
+                .window
                 .swap_buffers()
                 .expect("Failed to swap window buffers");
 
@@ -185,5 +197,7 @@ impl PlayState for SessionState {
         }
     }
 
-    fn name(&self) -> &'static str { "Session" }
+    fn name(&self) -> &'static str {
+        "Session"
+    }
 }

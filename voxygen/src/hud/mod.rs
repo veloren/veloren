@@ -368,6 +368,7 @@ pub struct Hud {
     menu_open: bool,
     open_windows: Windows,
     map_open: bool,
+    show_ui: bool,
     settings_tab: SettingsTab,
 }
 
@@ -409,6 +410,7 @@ impl Hud {
             bag_open: false,
             menu_open: false,
             map_open: false,
+            show_ui: true,
             open_windows: Windows::None,
             font_metamorph,
             font_opensans,
@@ -418,7 +420,7 @@ impl Hud {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
-
+        if self.show_ui {
         // Chat box
         if let Some(msg) = self
             .chat
@@ -1210,6 +1212,7 @@ impl Hud {
                 events.push(Event::Quit);
             };
         }
+        }
         // update whether keyboard is captured
         self.typing =
             if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
@@ -1228,6 +1231,72 @@ impl Hud {
     pub fn toggle_menu(&mut self) {
         self.menu_open = !self.menu_open;
     }
+    pub fn toggle_inventory(&mut self) {
+        self.bag_open = !self.bag_open
+    }
+    pub fn toggle_questlog(&mut self) {
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Questlog) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Questlog) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Questlog)),
+                    },
+                    Windows::Settings => unreachable!(),
+                };
+            }
+    pub fn toggle_map(&mut self) {
+            self.map_open = !self.map_open;
+            self.bag_open = false;
+        }
+    pub fn toggle_charwindow(&mut self) {
+                self.open_windows = match self.open_windows {
+                    Windows::CharacterAnd(small) => match small {
+                        Some(small) => Windows::Small(small),
+                        None => Windows::None,
+                    },
+                    Windows::Small(small) => Windows::CharacterAnd(Some(small)),
+                    Windows::None => Windows::CharacterAnd(None),
+                    Windows::Settings => unreachable!(),
+                }
+            }
+    pub fn toggle_social(&mut self) {
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Social) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Social) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Social)),
+                    },
+                    Windows::Settings => unreachable!(),
+                };
+            }
+    pub fn toggle_spellbook(&mut self) {
+                self.open_windows = match self.open_windows {
+                    Windows::Small(Small::Spellbook) => Windows::None,
+                    Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
+                    Windows::CharacterAnd(small) => match small {
+                        Some(Small::Spellbook) => Windows::CharacterAnd(None),
+                        _ => Windows::CharacterAnd(Some(Small::Spellbook)),
+                    },
+                    Windows::Settings => unreachable!(),
+                };
+            }
+    pub fn toggle_settings(&mut self) {
+            self.open_windows = match self.open_windows {
+                Windows::Settings => Windows::None,
+                _ => Windows::Settings,
+            };
+            self.bag_open = false;
+        }
+    pub fn toggle_help(&mut self) {
+        self.show_help = !self.show_help
+    }
+    pub fn toggle_ui(&mut self) {
+        self.show_ui = !self.show_ui;
+    }
+    
+
 
     pub fn update_grab(&mut self, cursor_grabbed: bool) {
         self.cursor_grabbed = cursor_grabbed;
@@ -1261,7 +1330,8 @@ impl Hud {
                 } else {
                     false
                 }
-            }
+            }     
+
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
                 _ => self.typing,
