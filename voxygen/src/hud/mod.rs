@@ -16,7 +16,9 @@ use conrod_core::{
 
 widget_ids! {
     struct Ids {
-        //Bag and Inventory
+        // Test
+        bag_space_add,
+        // Bag and Inventory
         bag,
         bag_contents,
         bag_close,
@@ -24,6 +26,7 @@ widget_ids! {
         inv_alignment,
         inv_grid,
         inv_scrollbar,
+        inv_slot[],
         //help
         help,
         help_bg,
@@ -127,6 +130,7 @@ struct Imgs {
     bag_open_press: ImgId,
     bag_contents: ImgId,
     inv_grid: ImgId,
+    inv_slot: ImgId,
 
     // Close button
     close_button: ImgId,
@@ -231,6 +235,7 @@ impl Imgs {
             bag_open_press: load("element/buttons/bag/open_press.png"),
             bag_contents: load("element/frames/bag.png"),
             inv_grid: load("element/frames/inv_grid.png"),
+            inv_slot: load("element/buttons/x.png"),
 
             // Close button
             close_button: load("element/buttons/x.png"),
@@ -369,6 +374,7 @@ pub struct Hud {
     open_windows: Windows,
     map_open: bool,
     show_ui: bool,
+    inventory_space: i32,
     settings_tab: SettingsTab,
 }
 
@@ -411,6 +417,7 @@ impl Hud {
             menu_open: false,
             map_open: false,
             show_ui: true,
+            inventory_space: 8,
             open_windows: Windows::None,
             font_metamorph,
             font_opensans,
@@ -420,312 +427,341 @@ impl Hud {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+
         if self.show_ui {
-        // Chat box
-        if let Some(msg) = self
-            .chat
-            .update_layout(ui_widgets, self.font_opensans, &self.imgs)
-        {
-            events.push(Event::SendMessage(msg));
-        }
-        // Help Text
-        if self.show_help {
-            Image::new(self.imgs.window_frame_2)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .w_h(300.0, 300.0)
-                .set(self.ids.help_bg, ui_widgets);
-
-            Text::new(
-                "Tab = Free Cursor       \n\
-                 Esc = Open/Close Menus  \n\
-                 Q = Back to Login       \n\
-                 \n\
-                 F1 = Toggle this Window \n\
-                 F2 = Toggle Interface   \n\
-                 \n\
-                 M = Map                 \n\
-                 I = Inventory           \n\
-                 L = Quest-Log           \n\
-                 C = Character Window    \n\
-                 O = Social              \n\
-                 P = Spellbook           \n\
-                 N = Settings",
-            )
-            .rgba(220.0, 220.0, 220.0, 0.8)
-            .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
-            .font_id(self.font_opensans)
-            .font_size(18)
-            .set(self.ids.help, ui_widgets);
-            if Button::image(self.imgs.button_dark)
-                .w_h(50.0, 30.0)
-                .bottom_right_with_margins_on(self.ids.help_bg, 10.0, 10.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
-                .label("Close")
+            // Add Bag-Space Button
+            if Button::image(self.imgs.mmap_button)
+                .w_h(50.0, 50.0)
+                .top_right_with_margins_on(ui_widgets.window, 2.0, 2.0)
+                .label("+1 Space")
                 .label_font_size(10)
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.button_help2, ui_widgets)
-                .was_clicked()
-            {
-                self.show_help = false;
-            };
-        }
-
-        // Minimap frame and bg
-        Image::new(self.imgs.mmap_frame_bg)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);
-
-        Image::new(self.imgs.mmap_frame)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
-            .set(self.ids.mmap_frame, ui_widgets);
-
-        Image::new(self.imgs.mmap_icons)
-            .w_h(448.0 / 14.93, 2688.0 / 14.93)
-            .right_from(self.ids.mmap_frame, 0.0)
-            .align_bottom_of(self.ids.mmap_frame)
-            .set(self.ids.mmap_icons, ui_widgets);
-        // Title
-        // TODO Make it display the actual Location
-        Text::new("Unknown Location")
-            .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
-            .font_size(14)
-            .rgba(220.0, 220.0, 220.0, 0.8)
-            .set(self.ids.mmap_location, ui_widgets);
-
-        // Minimap Buttons
-
-        //0 Settings
-        if Button::image(self.imgs.mmap_button)
-            .w_h(448.0 / 15.0, 448.0 / 15.0)
-            .top_right_with_margins_on(self.ids.mmap_icons, 0.0, 0.0)
-            .hover_image(self.imgs.mmap_button_hover)
-            .press_image(self.imgs.mmap_button_press)
-            .set(self.ids.mmap_button_0, ui_widgets)
-            .was_clicked()
-        {
-            self.open_windows = match self.open_windows {
-                Windows::Settings => Windows::None,
-                _ => Windows::Settings,
-            };
-            self.bag_open = false;
-        };
-        // 2 Map
-        if Button::image(self.imgs.mmap_button)
-            .w_h(448.0 / 15.0, 448.0 / 15.0)
-            .down_from(self.ids.mmap_button_1, 0.0)
-            .hover_image(self.imgs.mmap_button_hover)
-            .press_image(self.imgs.mmap_button_press)
-            .set(self.ids.mmap_button_2, ui_widgets)
-            .was_clicked()
-        {
-            self.map_open = !self.map_open;
-            self.bag_open = false;
-        };
-
-        // Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
-        // Opening the Map won't close the windows displayed before.
-
-        if match self.open_windows {
-            Windows::Settings => false,
-            _ => true,
-        } && self.map_open == false
-        {
-            //1 Social
-            if Button::image(self.imgs.mmap_button)
-                .w_h(448.0 / 15.0, 448.0 / 15.0)
-                .down_from(self.ids.mmap_button_0, 0.0)
                 .hover_image(self.imgs.mmap_button_hover)
                 .press_image(self.imgs.mmap_button_press)
-                .set(self.ids.mmap_button_1, ui_widgets)
+                .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
-                self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Social) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Social) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Social)),
-                    },
-                    Windows::Settings => unreachable!(),
+                self.inventory_space = self.inventory_space + 1;
+            };
+
+            // Chat box
+            if let Some(msg) = self
+                .chat
+                .update_layout(ui_widgets, self.font_opensans, &self.imgs)
+            {
+                events.push(Event::SendMessage(msg));
+            }
+            // Help Text
+            if self.show_help {
+                Image::new(self.imgs.window_frame_2)
+                    .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                    .w_h(300.0, 300.0)
+                    .set(self.ids.help_bg, ui_widgets);
+
+                Text::new(
+                    "Tab = Free Cursor       \n\
+                     Esc = Open/Close Menus  \n\
+                     Q = Back to Login       \n\
+                     \n\
+                     F1 = Toggle this Window \n\
+                     F2 = Toggle Interface   \n\
+                     \n\
+                     M = Map                 \n\
+                     B = Bag                 \n\
+                     L = Quest-Log           \n\
+                     C = Character Window    \n\
+                     O = Social              \n\
+                     P = Spellbook           \n\
+                     N = Settings",
+                )
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.help, ui_widgets);
+                if Button::image(self.imgs.button_dark)
+                    .w_h(50.0, 30.0)
+                    .bottom_right_with_margins_on(self.ids.help_bg, 10.0, 10.0)
+                    .hover_image(self.imgs.button_dark_hover)
+                    .press_image(self.imgs.button_dark_press)
+                    .label("Close")
+                    .label_font_size(10)
+                    .label_rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.button_help2, ui_widgets)
+                    .was_clicked()
+                {
+                    self.show_help = false;
                 };
             }
 
-            //3 Spellbook
+            // Minimap frame and bg
+            Image::new(self.imgs.mmap_frame_bg)
+                .w_h(1750.0 / 8.0, 1650.0 / 8.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
+                .set(self.ids.mmap_frame_bg, ui_widgets);
+
+            Image::new(self.imgs.mmap_frame)
+                .w_h(1750.0 / 8.0, 1650.0 / 8.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 30.0)
+                .set(self.ids.mmap_frame, ui_widgets);
+
+            Image::new(self.imgs.mmap_icons)
+                .w_h(448.0 / 14.93, 2688.0 / 14.93)
+                .right_from(self.ids.mmap_frame, 0.0)
+                .align_bottom_of(self.ids.mmap_frame)
+                .set(self.ids.mmap_icons, ui_widgets);
+            // Title
+            // TODO Make it display the actual Location
+            Text::new("Uncanny Valley")
+                .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
+                .font_size(14)
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .set(self.ids.mmap_location, ui_widgets);
+
+            // Minimap Buttons
+
+            //0 Settings
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
-                .down_from(self.ids.mmap_button_2, 0.0)
+                .top_right_with_margins_on(self.ids.mmap_icons, 0.0, 0.0)
                 .hover_image(self.imgs.mmap_button_hover)
                 .press_image(self.imgs.mmap_button_press)
-                .set(self.ids.mmap_button_3, ui_widgets)
+                .set(self.ids.mmap_button_0, ui_widgets)
                 .was_clicked()
             {
                 self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Spellbook) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Spellbook) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Spellbook)),
-                    },
-                    Windows::Settings => unreachable!(),
+                    Windows::Settings => Windows::None,
+                    _ => Windows::Settings,
                 };
-            }
-            //4 Char-Window
+                self.bag_open = false;
+            };
+            // 2 Map
             if Button::image(self.imgs.mmap_button)
                 .w_h(448.0 / 15.0, 448.0 / 15.0)
-                .down_from(self.ids.mmap_button_3, 0.0)
+                .down_from(self.ids.mmap_button_1, 0.0)
                 .hover_image(self.imgs.mmap_button_hover)
                 .press_image(self.imgs.mmap_button_press)
-                .set(self.ids.mmap_button_4, ui_widgets)
+                .set(self.ids.mmap_button_2, ui_widgets)
                 .was_clicked()
             {
-                self.open_windows = match self.open_windows {
-                    Windows::CharacterAnd(small) => match small {
-                        Some(small) => Windows::Small(small),
-                        None => Windows::None,
-                    },
-                    Windows::Small(small) => Windows::CharacterAnd(Some(small)),
-                    Windows::None => Windows::CharacterAnd(None),
-                    Windows::Settings => unreachable!(),
+                self.map_open = !self.map_open;
+                self.bag_open = false;
+            };
+
+            // Other Windows can only be accessed, when Settings are closed. Opening Settings will close all other Windows including the Bag.
+            // Opening the Map won't close the windows displayed before.
+
+            if match self.open_windows {
+                Windows::Settings => false,
+                _ => true,
+            } && self.map_open == false
+            {
+                //1 Social
+                if Button::image(self.imgs.mmap_button)
+                    .w_h(448.0 / 15.0, 448.0 / 15.0)
+                    .down_from(self.ids.mmap_button_0, 0.0)
+                    .hover_image(self.imgs.mmap_button_hover)
+                    .press_image(self.imgs.mmap_button_press)
+                    .set(self.ids.mmap_button_1, ui_widgets)
+                    .was_clicked()
+                {
+                    self.open_windows = match self.open_windows {
+                        Windows::Small(Small::Social) => Windows::None,
+                        Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
+                        Windows::CharacterAnd(small) => match small {
+                            Some(Small::Social) => Windows::CharacterAnd(None),
+                            _ => Windows::CharacterAnd(Some(Small::Social)),
+                        },
+                        Windows::Settings => unreachable!(),
+                    };
+                }
+
+                //3 Spellbook
+                if Button::image(self.imgs.mmap_button)
+                    .w_h(448.0 / 15.0, 448.0 / 15.0)
+                    .down_from(self.ids.mmap_button_2, 0.0)
+                    .hover_image(self.imgs.mmap_button_hover)
+                    .press_image(self.imgs.mmap_button_press)
+                    .set(self.ids.mmap_button_3, ui_widgets)
+                    .was_clicked()
+                {
+                    self.open_windows = match self.open_windows {
+                        Windows::Small(Small::Spellbook) => Windows::None,
+                        Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
+                        Windows::CharacterAnd(small) => match small {
+                            Some(Small::Spellbook) => Windows::CharacterAnd(None),
+                            _ => Windows::CharacterAnd(Some(Small::Spellbook)),
+                        },
+                        Windows::Settings => unreachable!(),
+                    };
+                }
+                //4 Char-Window
+                if Button::image(self.imgs.mmap_button)
+                    .w_h(448.0 / 15.0, 448.0 / 15.0)
+                    .down_from(self.ids.mmap_button_3, 0.0)
+                    .hover_image(self.imgs.mmap_button_hover)
+                    .press_image(self.imgs.mmap_button_press)
+                    .set(self.ids.mmap_button_4, ui_widgets)
+                    .was_clicked()
+                {
+                    self.open_windows = match self.open_windows {
+                        Windows::CharacterAnd(small) => match small {
+                            Some(small) => Windows::Small(small),
+                            None => Windows::None,
+                        },
+                        Windows::Small(small) => Windows::CharacterAnd(Some(small)),
+                        Windows::None => Windows::CharacterAnd(None),
+                        Windows::Settings => unreachable!(),
+                    }
+                }
+                //5 Quest-Log
+                if Button::image(self.imgs.mmap_button)
+                    .w_h(448.0 / 15.0, 448.0 / 15.0)
+                    .down_from(self.ids.mmap_button_4, 0.0)
+                    .hover_image(self.imgs.mmap_button_hover)
+                    .press_image(self.imgs.mmap_button_press)
+                    .set(self.ids.mmap_button_5, ui_widgets)
+                    .was_clicked()
+                {
+                    self.open_windows = match self.open_windows {
+                        Windows::Small(Small::Questlog) => Windows::None,
+                        Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
+                        Windows::CharacterAnd(small) => match small {
+                            Some(Small::Questlog) => Windows::CharacterAnd(None),
+                            _ => Windows::CharacterAnd(Some(Small::Questlog)),
+                        },
+                        Windows::Settings => unreachable!(),
+                    };
                 }
             }
-            //5 Quest-Log
-            if Button::image(self.imgs.mmap_button)
-                .w_h(448.0 / 15.0, 448.0 / 15.0)
-                .down_from(self.ids.mmap_button_4, 0.0)
-                .hover_image(self.imgs.mmap_button_hover)
-                .press_image(self.imgs.mmap_button_press)
-                .set(self.ids.mmap_button_5, ui_widgets)
-                .was_clicked()
-            {
-                self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Questlog) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Questlog) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Questlog)),
-                    },
-                    Windows::Settings => unreachable!(),
-                };
-            }
-        }
 
-        // Skillbar Module
+            // Skillbar Module
 
-        // Experience-Bar
-        Image::new(self.imgs.xp_bar)
-            .w_h(2688.0 / 4.0, 116.0 / 4.0)
-            .mid_bottom_of(ui_widgets.window)
-            .set(self.ids.xp_bar, ui_widgets);
+            // Experience-Bar
+            Image::new(self.imgs.xp_bar)
+                .w_h(2688.0 / 4.0, 116.0 / 4.0)
+                .mid_bottom_of(ui_widgets.window)
+                .set(self.ids.xp_bar, ui_widgets);
 
-        // Left Grid
-        Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 8.0, 448.0 / 8.0)
-            .up_from(self.ids.xp_bar, 0.0)
-            .align_left_of(self.ids.xp_bar)
-            .set(self.ids.sb_grid_l, ui_widgets);
+            // Left Grid
+            Image::new(self.imgs.sb_grid)
+                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .up_from(self.ids.xp_bar, 0.0)
+                .align_left_of(self.ids.xp_bar)
+                .set(self.ids.sb_grid_l, ui_widgets);
 
-        Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 8.0, 448.0 / 8.0)
-            .middle_of(self.ids.sb_grid_l)
-            .set(self.ids.sb_grid_bg_l, ui_widgets);
+            Image::new(self.imgs.sb_grid_bg)
+                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .middle_of(self.ids.sb_grid_l)
+                .set(self.ids.sb_grid_bg_l, ui_widgets);
 
-        // Right Grid
-        Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 8.0, 448.0 / 8.0)
-            .up_from(self.ids.xp_bar, 0.0)
-            .align_right_of(self.ids.xp_bar)
-            .set(self.ids.sb_grid_r, ui_widgets);
+            // Right Grid
+            Image::new(self.imgs.sb_grid)
+                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .up_from(self.ids.xp_bar, 0.0)
+                .align_right_of(self.ids.xp_bar)
+                .set(self.ids.sb_grid_r, ui_widgets);
 
-        Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 8.0, 448.0 / 8.0)
-            .middle_of(self.ids.sb_grid_r)
-            .set(self.ids.sb_grid_bg_r, ui_widgets);
+            Image::new(self.imgs.sb_grid_bg)
+                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .middle_of(self.ids.sb_grid_r)
+                .set(self.ids.sb_grid_bg_r, ui_widgets);
 
-        // Right and Left Click
-        Image::new(self.imgs.l_click)
-            .w_h(224.0 / 4.0, 320.0 / 4.0)
-            .right_from(self.ids.sb_grid_bg_l, 0.0)
-            .align_bottom_of(self.ids.sb_grid_bg_l)
-            .set(self.ids.l_click, ui_widgets);
+            // Right and Left Click
+            Image::new(self.imgs.l_click)
+                .w_h(224.0 / 4.0, 320.0 / 4.0)
+                .right_from(self.ids.sb_grid_bg_l, 0.0)
+                .align_bottom_of(self.ids.sb_grid_bg_l)
+                .set(self.ids.l_click, ui_widgets);
 
-        Image::new(self.imgs.r_click)
-            .w_h(224.0 / 4.0, 320.0 / 4.0)
-            .left_from(self.ids.sb_grid_bg_r, 0.0)
-            .align_bottom_of(self.ids.sb_grid_bg_r)
-            .set(self.ids.r_click, ui_widgets);
+            Image::new(self.imgs.r_click)
+                .w_h(224.0 / 4.0, 320.0 / 4.0)
+                .left_from(self.ids.sb_grid_bg_r, 0.0)
+                .align_bottom_of(self.ids.sb_grid_bg_r)
+                .set(self.ids.r_click, ui_widgets);
 
-        // Health and mana bars
-        Image::new(self.imgs.health_bar)
-            .w_h(1120.0 / 4.0, 96.0 / 4.0)
-            .left_from(self.ids.l_click, 0.0)
-            .align_top_of(self.ids.l_click)
-            .set(self.ids.health_bar, ui_widgets);
+            // Health and mana bars
+            Image::new(self.imgs.health_bar)
+                .w_h(1120.0 / 4.0, 96.0 / 4.0)
+                .left_from(self.ids.l_click, 0.0)
+                .align_top_of(self.ids.l_click)
+                .set(self.ids.health_bar, ui_widgets);
 
-        Image::new(self.imgs.mana_bar)
-            .w_h(1120.0 / 4.0, 96.0 / 4.0)
-            .right_from(self.ids.r_click, 0.0)
-            .align_top_of(self.ids.r_click)
-            .set(self.ids.mana_bar, ui_widgets);
+            Image::new(self.imgs.mana_bar)
+                .w_h(1120.0 / 4.0, 96.0 / 4.0)
+                .right_from(self.ids.r_click, 0.0)
+                .align_top_of(self.ids.r_click)
+                .set(self.ids.mana_bar, ui_widgets);
 
-        // Buffs/Debuffs
+            // Buffs/Debuffs
 
-        // Buffs
+            // Buffs
 
-        // Debuffs
+            // Debuffs
 
-        // Level Display
+            // Level Display
 
-        // Insert actual Level here
-        Text::new("1")
-            .left_from(self.ids.xp_bar, -20.0)
-            .font_size(20)
-            .rgba(220.0, 220.0, 220.0, 0.8)
-            .set(self.ids.level_text, ui_widgets);
+            // Insert actual Level here
+            Text::new("1")
+                .left_from(self.ids.xp_bar, -20.0)
+                .font_size(20)
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .set(self.ids.level_text, ui_widgets);
 
-        // Insert next Level here
-        Text::new("2")
-            .right_from(self.ids.xp_bar, -20.0)
-            .font_size(20)
-            .rgba(220.0, 220.0, 220.0, 0.8)
-            .set(self.ids.next_level_text, ui_widgets);
+            // Insert next Level here
+            Text::new("2")
+                .right_from(self.ids.xp_bar, -20.0)
+                .font_size(20)
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .set(self.ids.next_level_text, ui_widgets);
 
-        // Bag contents
-        if self.bag_open {
-            // Contents
-            Image::new(self.imgs.bag_contents)
-                .w_h(307.0, 545.0)
-                .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
-                .set(self.ids.bag_contents, ui_widgets);
+            // Bag contents
+            if self.bag_open {
+                // Contents
+                Image::new(self.imgs.bag_contents)
+                    .w_h(307.0, 545.0)
+                    .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
+                    .set(self.ids.bag_contents, ui_widgets);
 
-            // Alignment for Grid
-            Rectangle::fill_with([246.0, 465.0], color::TRANSPARENT)
-                .top_left_with_margins_on(self.ids.bag_contents, 27.0, 23.0)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(self.ids.inv_alignment, ui_widgets);
-            // Grid
-            Image::new(self.imgs.inv_grid)
-                .w_h(251.0, 951.0)
-                .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
-                .set(self.ids.inv_grid, ui_widgets);
-            Scrollbar::y_axis(self.ids.inv_alignment)
-                .thickness(5.0)
-                .rgba(220.0, 220.0, 220.0, 0.1)
-                .set(self.ids.inv_scrollbar, ui_widgets);
+                // Alignment for Grid
+                Rectangle::fill_with([246.0, 465.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(self.ids.bag_contents, 27.0, 23.0)
+                    .scroll_kids()
+                    .scroll_kids_vertically()
+                    .set(self.ids.inv_alignment, ui_widgets);
+                // Grid
+                Image::new(self.imgs.inv_grid)
+                    .w_h(232.0, 1104.0)
+                    .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
+                    .set(self.ids.inv_grid, ui_widgets);
+                Scrollbar::y_axis(self.ids.inv_alignment)
+                    .thickness(5.0)
+                    .rgba(220.0, 220.0, 220.0, 0.1)
+                    .set(self.ids.inv_scrollbar, ui_widgets);
 
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
-                .set(self.ids.bag_close, ui_widgets)
-                .was_clicked()
-            {
-                self.bag_open = false;
+                // X-button
+                if Button::image(self.imgs.close_button)
+                    .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
+                    .hover_image(self.imgs.close_button_hover)
+                    .press_image(self.imgs.close_button_press)
+                    .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
+                    .set(self.ids.bag_close, ui_widgets)
+                    .was_clicked()
+                {
+                    self.bag_open = false;
+                }
+                //if num > 0 {
+                //Button::image(self.imgs.inv_slot)
+                //.mid_top_with_margin_on(self.ids.inv_grid, 8.0)
+                //.w_h(33.0, 34.0)
+                //.set(self.ids.inv_slot[0], ui_widgets);
+                // }
+                //for i in 1..num {
+                //Button::image(self.imgs.menu_button)
+                // .down(10.0)
+                // .label(&format!("Button {}", i + 1))
+                // .label_rgb(1.0, 0.4, 1.0)
+                // .label_font_size(7)
+                // .set(self.ids.menu_buttons[i], ui_widgets);
             }
         }
         // Bag
@@ -738,7 +774,7 @@ impl Hud {
                 .set(self.ids.bag, ui_widgets);
         } else {
             Image::new(self.imgs.bag)
-                .bottom_right_with_margin_on(ui_widgets.window, 20.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .w_h(420.0 / 6.0, 480.0 / 6.0)
                 .set(self.ids.bag_map_open, ui_widgets);
         }
@@ -1212,7 +1248,7 @@ impl Hud {
                 events.push(Event::Quit);
             };
         }
-        }
+
         // update whether keyboard is captured
         self.typing =
             if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
@@ -1231,72 +1267,70 @@ impl Hud {
     pub fn toggle_menu(&mut self) {
         self.menu_open = !self.menu_open;
     }
-    pub fn toggle_inventory(&mut self) {
+    pub fn toggle_bag(&mut self) {
         self.bag_open = !self.bag_open
     }
     pub fn toggle_questlog(&mut self) {
-                self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Questlog) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Questlog) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Questlog)),
-                    },
-                    Windows::Settings => unreachable!(),
-                };
-            }
+        self.open_windows = match self.open_windows {
+            Windows::Small(Small::Questlog) => Windows::None,
+            Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
+            Windows::CharacterAnd(small) => match small {
+                Some(Small::Questlog) => Windows::CharacterAnd(None),
+                _ => Windows::CharacterAnd(Some(Small::Questlog)),
+            },
+            Windows::Settings => unreachable!(),
+        };
+    }
     pub fn toggle_map(&mut self) {
-            self.map_open = !self.map_open;
-            self.bag_open = false;
-        }
+        self.map_open = !self.map_open;
+        self.bag_open = false;
+    }
     pub fn toggle_charwindow(&mut self) {
-                self.open_windows = match self.open_windows {
-                    Windows::CharacterAnd(small) => match small {
-                        Some(small) => Windows::Small(small),
-                        None => Windows::None,
-                    },
-                    Windows::Small(small) => Windows::CharacterAnd(Some(small)),
-                    Windows::None => Windows::CharacterAnd(None),
-                    Windows::Settings => unreachable!(),
-                }
-            }
-    pub fn toggle_social(&mut self) {
-                self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Social) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Social) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Social)),
-                    },
-                    Windows::Settings => unreachable!(),
-                };
-            }
-    pub fn toggle_spellbook(&mut self) {
-                self.open_windows = match self.open_windows {
-                    Windows::Small(Small::Spellbook) => Windows::None,
-                    Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
-                    Windows::CharacterAnd(small) => match small {
-                        Some(Small::Spellbook) => Windows::CharacterAnd(None),
-                        _ => Windows::CharacterAnd(Some(Small::Spellbook)),
-                    },
-                    Windows::Settings => unreachable!(),
-                };
-            }
-    pub fn toggle_settings(&mut self) {
-            self.open_windows = match self.open_windows {
-                Windows::Settings => Windows::None,
-                _ => Windows::Settings,
-            };
-            self.bag_open = false;
+        self.open_windows = match self.open_windows {
+            Windows::CharacterAnd(small) => match small {
+                Some(small) => Windows::Small(small),
+                None => Windows::None,
+            },
+            Windows::Small(small) => Windows::CharacterAnd(Some(small)),
+            Windows::None => Windows::CharacterAnd(None),
+            Windows::Settings => unreachable!(),
         }
+    }
+    pub fn toggle_social(&mut self) {
+        self.open_windows = match self.open_windows {
+            Windows::Small(Small::Social) => Windows::None,
+            Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
+            Windows::CharacterAnd(small) => match small {
+                Some(Small::Social) => Windows::CharacterAnd(None),
+                _ => Windows::CharacterAnd(Some(Small::Social)),
+            },
+            Windows::Settings => unreachable!(),
+        };
+    }
+    pub fn toggle_spellbook(&mut self) {
+        self.open_windows = match self.open_windows {
+            Windows::Small(Small::Spellbook) => Windows::None,
+            Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
+            Windows::CharacterAnd(small) => match small {
+                Some(Small::Spellbook) => Windows::CharacterAnd(None),
+                _ => Windows::CharacterAnd(Some(Small::Spellbook)),
+            },
+            Windows::Settings => unreachable!(),
+        };
+    }
+    pub fn toggle_settings(&mut self) {
+        self.open_windows = match self.open_windows {
+            Windows::Settings => Windows::None,
+            _ => Windows::Settings,
+        };
+        self.bag_open = false;
+    }
     pub fn toggle_help(&mut self) {
         self.show_help = !self.show_help
     }
     pub fn toggle_ui(&mut self) {
         self.show_ui = !self.show_ui;
     }
-    
-
 
     pub fn update_grab(&mut self, cursor_grabbed: bool) {
         self.cursor_grabbed = cursor_grabbed;
@@ -1330,7 +1364,7 @@ impl Hud {
                 } else {
                     false
                 }
-            }     
+            }
 
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,

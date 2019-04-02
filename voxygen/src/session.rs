@@ -122,16 +122,15 @@ impl PlayState for SessionState {
                 }
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // When 'm' is pressed, open/close the map window
-                    Event::Char('m') => self.hud.toggle_map(),
-                    Event::Char('i') => self.hud.toggle_inventory(),
-                    Event::Char('l') => self.hud.toggle_questlog(),
-                    Event::Char('c') => self.hud.toggle_charwindow(),
-                    Event::Char('o') => self.hud.toggle_social(),
-                    Event::Char('p') => self.hud.toggle_spellbook(),
-                    Event::Char('n') => self.hud.toggle_settings(),
-                    Event::KeyDown(Key::Interface) => self.hud.toggle_help(),
-                    Event::KeyDown(Key::Help) => self.hud.toggle_ui(),
+                    Event::KeyDown(Key::Map) => self.hud.toggle_map(),
+                    Event::KeyDown(Key::Bag) => self.hud.toggle_bag(),
+                    Event::KeyDown(Key::QuestLog) => self.hud.toggle_questlog(),
+                    Event::KeyDown(Key::CharacterWindow) => self.hud.toggle_charwindow(),
+                    Event::KeyDown(Key::Social) => self.hud.toggle_social(),
+                    Event::KeyDown(Key::Spellbook) => self.hud.toggle_spellbook(),
+                    Event::KeyDown(Key::Settings) => self.hud.toggle_settings(),
+                    Event::KeyDown(Key::Help) => self.hud.toggle_help(),
+                    Event::KeyDown(Key::Interface) => self.hud.toggle_ui(),
 
                     // Close windows on esc
                     Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
