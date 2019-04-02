@@ -18,6 +18,9 @@ widget_ids! {
     struct Ids {
         // Test
         bag_space_add,
+        inventorytest_button,
+        inventorytest_button_label,
+
         // Bag and Inventory
         bag,
         bag_contents,
@@ -375,6 +378,7 @@ pub struct Hud {
     map_open: bool,
     show_ui: bool,
     inventory_space: i32,
+    inventorytest_button: bool,
     settings_tab: SettingsTab,
 }
 
@@ -417,6 +421,7 @@ impl Hud {
             menu_open: false,
             map_open: false,
             show_ui: true,
+            inventorytest_button: false,
             inventory_space: 8,
             open_windows: Windows::None,
             font_metamorph,
@@ -430,19 +435,20 @@ impl Hud {
 
         if self.show_ui {
             // Add Bag-Space Button
-            if Button::image(self.imgs.mmap_button)
-                .w_h(50.0, 50.0)
-                .top_right_with_margins_on(ui_widgets.window, 2.0, 2.0)
-                .label("+1 Space")
-                .label_font_size(10)
-                .hover_image(self.imgs.mmap_button_hover)
-                .press_image(self.imgs.mmap_button_press)
-                .set(self.ids.bag_space_add, ui_widgets)
-                .was_clicked()
-            {
-                self.inventory_space = self.inventory_space + 1;
-            };
-
+            if self.inventorytest_button {
+                if Button::image(self.imgs.mmap_button)
+                    .w_h(100.0, 100.0)
+                    .middle_of(ui_widgets.window)
+                    .label("+1 Space")
+                    .label_font_size(10)
+                    .hover_image(self.imgs.mmap_button_hover)
+                    .press_image(self.imgs.mmap_button_press)
+                    .set(self.ids.bag_space_add, ui_widgets)
+                    .was_clicked()
+                {
+                    self.inventory_space = self.inventory_space + 1;
+                };
+            }
             // Chat box
             if let Some(msg) = self
                 .chat
@@ -855,6 +861,23 @@ impl Hud {
                     .graphics_for(self.ids.button_help)
                     .rgba(220.0, 220.0, 220.0, 0.8)
                     .set(self.ids.show_help_label, ui_widgets);
+
+                self.inventorytest_button = ToggleButton::new(
+                    self.inventorytest_button,
+                    self.imgs.check,
+                    self.imgs.check_checked,
+                )
+                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .top_left_with_margins_on(self.ids.rectangle, 40.0, 15.0)
+                .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                .press_images(self.imgs.check_press, self.imgs.check_press)
+                .set(self.ids.inventorytest_button, ui_widgets);
+                Text::new("Show Inventory Test Button")
+                    .x_relative_to(self.ids.inventorytest_button, 55.0)
+                    .font_size(12)
+                    .graphics_for(self.ids.inventorytest_button)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.inventorytest_button_label, ui_widgets);
             }
             //2 Gameplay////////////////
             if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
