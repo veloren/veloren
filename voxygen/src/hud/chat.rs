@@ -153,23 +153,23 @@ impl Chat {
         }
 
         // Up and Down Arrows => Scroll the chat up/down one row per click;
-        if Button::image(imgs.chat_arrow_up)
-            .w_h(22.0, 22.0)
-            .hover_image(imgs.chat_arrow_up_mo)
-            .press_image(imgs.chat_arrow_up_press)
-            .up_from(self.ids.chat_arrow_down, 60.0)
-            .set(self.ids.chat_arrow_up, ui_widgets)
-            .was_clicked()
-        {};
+        //if Button::image(imgs.chat_arrow_up)
+        //.w_h(22.0, 22.0)
+        //.hover_image(imgs.chat_arrow_up_mo)
+        //.press_image(imgs.chat_arrow_up_press)
+        //.up_from(self.ids.chat_arrow_down, 60.0)
+        //.set(self.ids.chat_arrow_up, ui_widgets)
+        //.was_clicked()
+        //{};
 
-        if Button::image(imgs.chat_arrow_down)
-            .w_h(22.0, 22.0)
-            .hover_image(imgs.chat_arrow_down_mo)
-            .press_image(imgs.chat_arrow_down_press)
-            .bottom_right_with_margins_on(self.ids.message_box_bg, 73.0, 2.0)
-            .set(self.ids.chat_arrow_down, ui_widgets)
-            .was_clicked()
-        {};
+        //if Button::image(imgs.chat_arrow_down)
+        //  .w_h(22.0, 22.0)
+        //.hover_image(imgs.chat_arrow_down_mo)
+        //.press_image(imgs.chat_arrow_down_press)
+        //.bottom_right_with_margins_on(self.ids.message_box_bg, 73.0, 2.0)
+        // .set(self.ids.chat_arrow_down, ui_widgets)
+        //.was_clicked()
+        //{};
 
         // If enter is pressed send the current message
         if ui_widgets

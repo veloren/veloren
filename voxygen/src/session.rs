@@ -8,6 +8,9 @@ use vek::*;
 use client::{self, Client};
 use common::clock::Clock;
 
+// Convert Input to a valid string
+use std::net::ToSocketAddrs;
+
 // Crate
 use crate::{
     hud::{Event as HudEvent, Hud},
