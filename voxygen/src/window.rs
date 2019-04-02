@@ -53,6 +53,16 @@ impl Window {
         key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
         key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
         key_map.insert(glutin::VirtualKeyCode::D, Key::MoveRight);
+        key_map.insert(glutin::VirtualKeyCode::M, Key::Map);
+        key_map.insert(glutin::VirtualKeyCode::I, Key::Inventory);
+        key_map.insert(glutin::VirtualKeyCode::L, Key::QuestLog);
+        key_map.insert(glutin::VirtualKeyCode::C, Key::CharacterWindow);
+        key_map.insert(glutin::VirtualKeyCode::O, Key::Social);
+        key_map.insert(glutin::VirtualKeyCode::P, Key::Spellbook);
+        key_map.insert(glutin::VirtualKeyCode::N, Key::Settings);
+        key_map.insert(glutin::VirtualKeyCode::F1, Key::Help);
+        key_map.insert(glutin::VirtualKeyCode::F2, Key::Interface);
+
 
         let tmp = Ok(Self {
             events_loop,
@@ -171,6 +181,15 @@ pub enum Key {
     MoveRight,
     Enter,
 	Escape,
+    Map,
+    Inventory,
+    QuestLog,
+    CharacterWindow,
+    Social,
+    Spellbook,
+    Settings,
+    Interface,
+    Help,
 }
 
 /// Represents an incoming event from the window
