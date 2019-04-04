@@ -6,8 +6,9 @@ use crate::{
 use conrod_core::{
     color::TRANSPARENT,
     image::Id as ImgId,
+    position::Dimension,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color,
     Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -21,6 +22,8 @@ widget_ids! {
         // Login, Singleplayer
         login_button,
         login_text,
+        login_error,
+        login_error_bg,
         address_text,
         address_bg,
         address_field,
@@ -101,6 +104,7 @@ pub struct MainMenuUi {
     font_opensans: FontId,
     username: String,
     server_address: String,
+    login_error: Option<String>,
 }
 
 impl MainMenuUi {
@@ -134,7 +138,8 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: "Server Address".to_string(),
+            server_address: "veloren.mac94.de".to_string(),
+            login_error: None,
         }
     }
 
@@ -149,7 +154,7 @@ impl MainMenuUi {
             .w_h(346.0, 111.0)
             .top_left_with_margins(30.0, 40.0)
             .label("Alpha 0.1")
-            .label_rgba(255.0, 255.0, 255.0, 1.0)
+            .label_rgba(1.0, 1.0, 1.0, 1.0)
             .label_font_size(10)
             .label_y(conrod_core::position::Relative::Scalar(-40.0))
             .label_x(conrod_core::position::Relative::Scalar(-100.0))
@@ -159,6 +164,7 @@ impl MainMenuUi {
         // Used when the login button is pressed, or enter is pressed within input field
         macro_rules! login {
             () => {
+                self.login_error = None;
                 events.push(Event::LoginAttempt {
                     username: self.username.clone(),
                     server_address: self.server_address.clone(),
@@ -176,7 +182,7 @@ impl MainMenuUi {
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
             .font_size(20)
             .font_id(self.font_opensans)
-            .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+            .text_color(Color::Rgba(0.86, 0.86, 0.86, 0.8))
             // transparent background
             .color(TRANSPARENT)
             .border_color(TRANSPARENT)
@@ -187,8 +193,27 @@ impl MainMenuUi {
                     // Note: TextBox limits the input string length to what fits in it
                     self.username = username.to_string();
                 }
-                TextBoxEvent::Enter => login!(),
+                TextBoxEvent::Enter => { login!(); }
             }
+        }
+        // Login error
+        if let Some(msg) = &self.login_error {
+            let text = Text::new(&msg)
+                .rgba(0.5, 0.0, 0.0, 1.0)
+                .font_size(30)
+                .font_id(self.font_opensans);
+            let x = match text.get_x_dimension(ui_widgets) {
+                Dimension::Absolute(x) => x + 10.0,
+                _ => 0.0,
+            };
+            Rectangle::fill([x, 40.0])
+                .rgba(0.2, 0.3, 0.3, 0.7)
+                .parent(ui_widgets.window)
+                .up_from(self.ids.username_bg, 35.0)
+                .set(self.ids.login_error_bg, ui_widgets);
+            text
+                .middle_of(self.ids.login_error_bg)
+                .set(self.ids.login_error, ui_widgets);
         }
         // Server address
         Image::new(self.imgs.input_bg)
@@ -200,7 +225,7 @@ impl MainMenuUi {
             .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
             .font_size(20)
             .font_id(self.font_opensans)
-            .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+            .text_color(Color::Rgba(0.86, 0.86, 0.86, 0.8))
             // transparent background
             .color(TRANSPARENT)
             .border_color(TRANSPARENT)
@@ -210,7 +235,7 @@ impl MainMenuUi {
                 TextBoxEvent::Update(server_address) => {
                     self.server_address = server_address.to_string();
                 }
-                TextBoxEvent::Enter => login!(),
+                TextBoxEvent::Enter => { login!(); }
             }
         }
         // Login button
@@ -221,7 +246,7 @@ impl MainMenuUi {
             .down_from(self.ids.address_bg, 20.0)
             .align_middle_x_of(self.ids.address_bg)
             .label("Login")
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_rgba(0.86, 0.86, 0.86, 0.8)
             .label_font_size(28)
             .label_y(conrod_core::position::Relative::Scalar(5.0))
             .set(self.ids.login_button, ui_widgets)
@@ -229,7 +254,7 @@ impl MainMenuUi {
         {
             login!();
         }
-        //Singleplayer button
+        // Singleplayer button
         if Button::image(self.imgs.login_button)
             .hover_image(self.imgs.login_button_hover)
             .press_image(self.imgs.login_button_press)
@@ -237,7 +262,7 @@ impl MainMenuUi {
             .down_from(self.ids.login_button, 20.0)
             .align_middle_x_of(self.ids.address_bg)
             .label("Singleplayer")
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_rgba(0.86, 0.86, 0.86, 0.8)
             .label_font_size(26)
             .label_y(conrod_core::position::Relative::Scalar(5.0))
             .label_x(conrod_core::position::Relative::Scalar(2.0))
@@ -253,7 +278,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Quit")
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_rgba(0.86, 0.86, 0.86, 0.8)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.quit_button, ui_widgets)
@@ -268,7 +293,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Settings")
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_rgba(0.86, 0.86, 0.86, 0.8)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.settings_button, ui_widgets)
@@ -281,7 +306,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Servers")
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_rgba(0.86, 0.86, 0.86, 0.8)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.servers_button, ui_widgets)
@@ -289,6 +314,10 @@ impl MainMenuUi {
         {};
 
         events
+    }
+
+    pub fn login_error(&mut self, msg: String) {
+        self.login_error = Some(msg);
     }
 
     pub fn handle_event(&mut self, event: ui::Event) {
