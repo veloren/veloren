@@ -29,6 +29,7 @@ widget_ids! {
         inv_alignment,
         inv_grid,
         inv_scrollbar,
+        inv_slot_0,
         inv_slot[],
         //help
         help,
@@ -238,7 +239,7 @@ impl Imgs {
             bag_open_press: load("element/buttons/bag/open_press.png"),
             bag_contents: load("element/frames/bag.png"),
             inv_grid: load("element/frames/inv_grid.png"),
-            inv_slot: load("element/buttons/x.png"),
+            inv_slot: load("element/buttons/inv_slot.png"),
 
             // Close button
             close_button: load("element/buttons/x.png"),
@@ -377,7 +378,7 @@ pub struct Hud {
     open_windows: Windows,
     map_open: bool,
     show_ui: bool,
-    inventory_space: i32,
+    inventory_space: u32,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
 }
@@ -422,8 +423,8 @@ impl Hud {
             map_open: false,
             show_ui: true,
             inventorytest_button: false,
-            inventory_space: 8,
-            open_windows: Windows::None,
+            inventory_space: 0,                       
+            open_windows: Windows::None,            
             font_metamorph,
             font_opensans,
         }
@@ -439,8 +440,8 @@ impl Hud {
                 if Button::image(self.imgs.mmap_button)
                     .w_h(100.0, 100.0)
                     .middle_of(ui_widgets.window)
-                    .label("+1 Space")
-                    .label_font_size(10)
+                    .label("1 Up!")
+                    .label_font_size(20)
                     .hover_image(self.imgs.mmap_button_hover)
                     .press_image(self.imgs.mmap_button_press)
                     .set(self.ids.bag_space_add, ui_widgets)
@@ -755,19 +756,33 @@ impl Hud {
                 {
                     self.bag_open = false;
                 }
+                
+                if self.inventory_space > 0 {
+                // First Slot
+                Button::image(self.imgs.inv_slot)
+                    .top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
+                    .w_h(40.0, 40.0)
+                    .set(self.ids.inv_slot_0, ui_widgets);                
+                }
+                // if self.ids.inv_slot.len() < self.inventory_space {
+                //    self.ids.inv_slot.resize(self.inventory_space, &mut ui_widgets.widget_id_generator());
+                //}
+
+                //let num = self.ids.inv_slot.len();
+				//println!("self.ids.inv_slot.len(): {:?}", num);
                 //if num > 0 {
                 //Button::image(self.imgs.inv_slot)
-                //.mid_top_with_margin_on(self.ids.inv_grid, 8.0)
-                //.w_h(33.0, 34.0)
+                //.top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
+                //.w_h(40.0, 40.0)
                 //.set(self.ids.inv_slot[0], ui_widgets);
-                // }
-                //for i in 1..num {
-                //Button::image(self.imgs.menu_button)
-                // .down(10.0)
-                // .label(&format!("Button {}", i + 1))
-                // .label_rgb(1.0, 0.4, 1.0)
-                // .label_font_size(7)
-                // .set(self.ids.menu_buttons[i], ui_widgets);
+                //}
+                //for i in 1..5 {
+                //Button::image(self.imgs.inv_slot)
+                 //.right(10.0)
+                 //.label(&format!("{}", i + 1))
+                 //.label_rgba(220.0, 220.0, 220.0, 0.8)
+                 //.label_font_size(5)
+                 //.set(self.ids.inv_slot[i], ui_widgets);}
             }
         }
         // Bag
@@ -856,7 +871,7 @@ impl Hud {
                         .press_images(self.imgs.check_press, self.imgs.check_press)
                         .set(self.ids.button_help, ui_widgets);
                 Text::new("Show Help")
-                    .x_relative_to(self.ids.button_help, 55.0)
+                    .right_from(self.ids.button_help, 10.0)
                     .font_size(12)
                     .graphics_for(self.ids.button_help)
                     .rgba(220.0, 220.0, 220.0, 0.8)
@@ -873,7 +888,7 @@ impl Hud {
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(self.ids.inventorytest_button, ui_widgets);
                 Text::new("Show Inventory Test Button")
-                    .x_relative_to(self.ids.inventorytest_button, 55.0)
+                    .right_from(self.ids.inventorytest_button, 10.0)
                     .font_size(12)
                     .graphics_for(self.ids.inventorytest_button)
                     .rgba(220.0, 220.0, 220.0, 0.8)
