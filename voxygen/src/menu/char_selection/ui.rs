@@ -225,13 +225,13 @@ struct Imgs {
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
-            let fullpath: String = [
-                "/voxygen/",
-                filename,
-            ].concat();
+            let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
-                assets::load(fullpath.as_str()).expect("Error loading file").as_slice()
-            ).unwrap();
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
@@ -345,7 +345,7 @@ pub enum Event {
     Play,
 }
 
-const TEXT_COLOR: Color = Color::Rgba(0.86, 0.86, 0.86, 0.8);
+const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -463,7 +463,7 @@ impl CharSelectionUi {
                 .set(self.ids.test_char_l_button, ui_widgets)
                 .was_clicked()
             {
-                self.selected_char_no = Some(1);                
+                self.selected_char_no = Some(1);
             }
 
             // Veloren Logo and Alpha Version
@@ -477,7 +477,7 @@ impl CharSelectionUi {
                 .label_x(conrod_core::position::Relative::Scalar(-100.0))
                 .set(self.ids.v_logo, ui_widgets);
 
-            if let Some(no) = self.selected_char_no {               
+            if let Some(no) = self.selected_char_no {
                 // Selection_Window
                 Image::new(self.imgs.selection_window)
                     .w_h(522.0, 722.0)
@@ -494,7 +494,6 @@ impl CharSelectionUi {
                     .font_size(30)
                     .color(TEXT_COLOR)
                     .set(self.ids.char_level, ui_widgets);
-
 
                 // Selected Character
                 if no == 1 {
@@ -872,11 +871,11 @@ impl CharSelectionUi {
                     Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.";
                 const ORC_DESC: &str =
                     "They are considered brutal, rude and combative. \n\
-                    But once you gained their trust they will be loyal friends \n\
-                    that follow a strict code of honor in all of their actions. \n\
-                    \n\
-                    Their warriors are masters of melee combat, but their true power \
-                    comes from the magical rituals of their powerful shamans.";
+                     But once you gained their trust they will be loyal friends \n\
+                     that follow a strict code of honor in all of their actions. \n\
+                     \n\
+                     Their warriors are masters of melee combat, but their true power \
+                     comes from the magical rituals of their powerful shamans.";
                 const DWARF_DESC: &str =
                     "Smoking chimneys, the sound of countless hammers and hoes. \
                     Infinite tunnel systems to track down even the last chunk of metal in the ground. \n\

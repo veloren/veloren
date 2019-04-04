@@ -10,8 +10,7 @@ use conrod_core::{
     position::Dimension,
     text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
-    widget_ids, Borderable, Color,
-    Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -58,13 +57,13 @@ impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         // TODO: update paths
         let mut load = |filename| {
-            let fullpath: String = [
-                "/voxygen/",
-                filename,
-            ].concat();
+            let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
-                assets::load(fullpath.as_str()).expect("Error loading file").as_slice()
-            ).unwrap();
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
@@ -170,7 +169,7 @@ impl MainMenuUi {
                 });
             };
         }
-        const TEXT_COLOR: Color = Color::Rgba(0.94, 0.94, 0.94, 0.8);
+        const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
         Image::new(self.imgs.input_bg)
@@ -193,7 +192,9 @@ impl MainMenuUi {
                     // Note: TextBox limits the input string length to what fits in it
                     self.username = username.to_string();
                 }
-                TextBoxEvent::Enter => { login!(); }
+                TextBoxEvent::Enter => {
+                    login!();
+                }
             }
         }
         // Login error
@@ -211,8 +212,7 @@ impl MainMenuUi {
                 .parent(ui_widgets.window)
                 .up_from(self.ids.username_bg, 35.0)
                 .set(self.ids.login_error_bg, ui_widgets);
-            text
-                .middle_of(self.ids.login_error_bg)
+            text.middle_of(self.ids.login_error_bg)
                 .set(self.ids.login_error, ui_widgets);
         }
         // Server address
@@ -235,7 +235,9 @@ impl MainMenuUi {
                 TextBoxEvent::Update(server_address) => {
                     self.server_address = server_address.to_string();
                 }
-                TextBoxEvent::Enter => { login!(); }
+                TextBoxEvent::Enter => {
+                    login!();
+                }
             }
         }
         // Login button

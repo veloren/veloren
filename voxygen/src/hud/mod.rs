@@ -7,11 +7,11 @@ use crate::{
 };
 use common::assets;
 use conrod_core::{
-    color, Color,
+    color,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -246,13 +246,13 @@ pub(self) struct Imgs {
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
-            let fullpath: String = [
-                "/voxygen/",
-                filename,
-            ].concat();
+            let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
-                assets::load(fullpath.as_str()).expect("Error loading file").as_slice()
-            ).unwrap();
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
@@ -422,7 +422,7 @@ pub struct Hud {
 
 //#[inline]
 //pub fn rgba_bytes(r: u8, g: u8, b: u8, a: f32) -> Color {
-    //Color::Rgba(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a)
+//Color::Rgba(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a)
 //}
 
 impl Hud {
@@ -479,11 +479,10 @@ impl Hud {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
 
-        const TEXT_COLOR: Color = Color::Rgba(0.86, 0.86, 0.86, 0.8);
+        const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
         const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
         const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
-
 
         if self.show_ui {
             // Add Bag-Space Button
@@ -753,7 +752,6 @@ impl Hud {
                 .top_right_with_margins_on(self.ids.health_bar, 5.0, 0.0)
                 .set(self.ids.health_bar_color, ui_widgets);
 
-
             // Mana Bar
             Image::new(self.imgs.mana_bar)
                 .w_h(1120.0 / 6.0, 96.0 / 6.0)
@@ -765,7 +763,6 @@ impl Hud {
             Rectangle::fill_with([182.0 * (self.mana_percentage), 6.0], MANA_COLOR) // "W=182.0 * [Mana. %]"
                 .top_left_with_margins_on(self.ids.mana_bar, 5.0, 0.0)
                 .set(self.ids.mana_bar_color, ui_widgets);
-
 
             // Buffs/Debuffs
 
@@ -1561,39 +1558,39 @@ impl Hud {
                 true
             }
             WinEvent::KeyDown(key) if !self.typing => match key {
-                Key::Map => { 
+                Key::Map => {
                     self.toggle_map();
                     true
                 }
-                Key::Bag => { 
+                Key::Bag => {
                     self.toggle_bag();
                     true
                 }
-                Key::QuestLog => { 
+                Key::QuestLog => {
                     self.toggle_questlog();
                     true
                 }
-                Key::CharacterWindow => { 
+                Key::CharacterWindow => {
                     self.toggle_charwindow();
                     true
                 }
-                Key::Social => { 
+                Key::Social => {
                     self.toggle_social();
                     true
                 }
-                Key::Spellbook => { 
+                Key::Spellbook => {
                     self.toggle_spellbook();
                     true
                 }
-                Key::Settings => { 
+                Key::Settings => {
                     self.toggle_settings();
                     true
                 }
-                Key::Help => { 
+                Key::Help => {
                     self.toggle_help();
                     true
                 }
-                Key::Interface => { 
+                Key::Interface => {
                     self.toggle_ui();
                     true
                 }
