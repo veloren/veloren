@@ -6,8 +6,7 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
 };
 use conrod_core::{
-    color,
-    event::Input,
+    color,    
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
@@ -123,7 +122,7 @@ widget_ids! {
 }
 
 // TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images.
-struct Imgs {
+pub(self) struct Imgs {
     //Missing: ActionBar, Health/Mana/Energy Bar & Char Window BG/Frame
     // Bag
     bag: ImgId,

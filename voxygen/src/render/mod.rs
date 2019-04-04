@@ -30,8 +30,8 @@ pub use self::{
             Locals as TerrainLocals,
         },
         ui::{
-            push_quad_to_mesh as push_ui_quad_to_mesh,
-            push_tri_to_mesh as push_ui_tri_to_mesh,
+            create_quad as create_ui_quad,
+            create_tri as create_ui_tri,
             Mode as UiMode,
             UiPipeline,
         },

@@ -116,7 +116,7 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
     pub fn new_connections(&mut self) -> impl ExactSizeIterator<Item=PostBox<S, R>> {
         let mut conns = VecDeque::new();
 
-        if let Some(_) = self.err {
+        if self.err.is_some() {
             return conns.into_iter();
         }
 
@@ -132,7 +132,7 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
         for event in events {
             match event.token() {
                 // Keep reading new postboxes from the channel
-                POSTBOX_TOKEN => loop {
+                POSTBOX_TOK => loop {
                     match self.postbox_rx.try_recv() {
                         Ok(Ok(conn)) => conns.push_back(conn),
                         Err(TryRecvError::Empty) => break,
@@ -141,7 +141,7 @@ impl<S: PostSend, R: PostRecv> PostOffice<S, R> {
                             return conns.into_iter();
                         },
                         Ok(Err(err)) => {
-                            self.err = Some(err.into());
+                            self.err = Some(err);
                             return conns.into_iter();
                         },
                     }
@@ -209,7 +209,7 @@ pub struct PostBox<S: PostSend, R: PostRecv> {
 
 impl<S: PostSend, R: PostRecv> PostBox<S, R> {
     pub fn to_server<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        Self::from_tcpstream(TcpStream::connect(&addr.into())?)
+        Self::from_tcpstream(TcpStream::from_stream(std::net::TcpStream::connect(&addr.into())?)?)
     }
 
     fn from_tcpstream(tcp_stream: TcpStream) -> Result<Self, Error> {
@@ -254,7 +254,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
     pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item=R> {
         let mut msgs = VecDeque::new();
 
-        if let Some(_) = self.err {
+        if self.err.is_some() {
             return msgs.into_iter();
         }
 
@@ -270,7 +270,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         for event in events {
             match event.token() {
                 // Keep reading new messages from the channel
-                RECV_TOKEN => loop {
+                RECV_TOK => loop {
                     match self.recv_rx.try_recv() {
                         Ok(Ok(msg)) => msgs.push_back(msg),
                         Err(TryRecvError::Empty) => break,
@@ -279,7 +279,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
                             return msgs.into_iter();
                         },
                         Ok(Err(err)) => {
-                            self.err = Some(err.into());
+                            self.err = Some(err);
                             return msgs.into_iter();
                         },
                     }
@@ -322,17 +322,16 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
 
         for event in &events {
             match event.token() {
-                CTRL_TOK => loop {
+                CTRL_TOK =>
                     match ctrl_rx.try_recv() {
                         Ok(CtrlMsg::Shutdown) => {
                             break 'work;
                         },
-                        Err(TryRecvError::Empty) => break,
+                        Err(TryRecvError::Empty) => (),
                         Err(err) => {
                             recv_tx.send(Err(err.into()))?;
                             break 'work;
                         },
-                    }
                 },
                 SEND_TOK => loop {
                     match send_rx.try_recv() {
@@ -340,7 +339,7 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                             let mut msg_bytes = match bincode::serialize(&outgoing_msg) {
                                 Ok(bytes) => bytes,
                                 Err(err) => {
-                                    recv_tx.send(Err((*err).into()));
+                                    recv_tx.send(Err((*err).into()))?;
                                     break 'work;
                                 },
                             };
@@ -355,7 +354,7 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                             match tcp_stream.write_all(&packet) {
                                 Ok(()) => {},
                                 Err(err) => {
-                                    recv_tx.send(Err(err.into()));
+                                    recv_tx.send(Err(err.into()))?;
                                     break 'work;
                                 },
                             }
@@ -368,11 +367,11 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                     match tcp_stream.take_error() {
                         Ok(None) => {},
                         Ok(Some(err)) => {
-                            recv_tx.send(Err(err.into()));
+                            recv_tx.send(Err(err.into()))?;
                             break 'work;
                         },
                         Err(err) => {
-                            recv_tx.send(Err(err.into()));
+                            recv_tx.send(Err(err.into()))?;
                             break 'work;
                         },
                     }
@@ -380,7 +379,7 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                         RecvState::ReadHead(head) => if head.len() == 8 {
                             let len = usize::from_le_bytes(<[u8; 8]>::try_from(head.as_slice()).unwrap());
                             if len > MAX_MSG_BYTES {
-                                recv_tx.send(Err(Error::InvalidMsg));
+                                recv_tx.send(Err(Error::InvalidMsg))?;
                                 break 'work;
                             } else if len == 0 {
                                 recv_state = RecvState::ReadHead(Vec::with_capacity(8));
@@ -427,7 +426,7 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
         }
     }
 
-    tcp_stream.shutdown(Shutdown::Both);
+    tcp_stream.shutdown(Shutdown::Both)?;
     Ok(())
 }
 
@@ -454,6 +453,21 @@ fn connect() {
 }
 
 #[test]
+fn connect_fail() {
+    let listen_addr = ([0; 4], 12345);
+    let connect_addr = ([127, 0, 0, 1], 12212);
+
+    let mut postoffice = PostOffice::<u32, f32>::bind(listen_addr).unwrap();
+
+    // We should start off with 0 incoming connections
+    thread::sleep(Duration::from_millis(250));
+    assert_eq!(postoffice.new_connections().len(), 0);
+    assert_eq!(postoffice.error(), None);
+
+    assert!(PostBox::<f32, u32>::to_server(connect_addr).is_err());
+}
+
+#[test]
 fn connection_count() {
     let srv_addr = ([127, 0, 0, 1], 12346);
 
@@ -469,7 +483,7 @@ fn connection_count() {
         postboxes.push(PostBox::<f32, u32>::to_server(srv_addr).unwrap());
     }
 
-    // 10 postboxes created, we should have 10
+    // 5 postboxes created, we should have 5
     thread::sleep(Duration::from_millis(3500));
     let incoming = postoffice.new_connections();
     assert_eq!(incoming.len(), 5);

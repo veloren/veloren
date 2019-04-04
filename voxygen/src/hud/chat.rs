@@ -3,7 +3,7 @@ use conrod_core::{
     input::Key,
     position::Dimension,
     text::font::Id as FontId,
-    widget::{Button, Id, List, Rectangle, Text, TextEdit},
+    widget::{Id, Button, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
 use std::collections::VecDeque;
@@ -15,8 +15,6 @@ widget_ids! {
         input,
         input_bg,
         chat_arrow,
-        chat_arrow_up,
-        chat_arrow_down,
     }
 }
 // Chat Behaviour:
@@ -78,12 +76,7 @@ impl Chat {
     fn scroll_to_bottom(&self, ui_widgets: &mut UiCell) {
         ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
     }
-    pub fn update_layout(
-        &mut self,
-        ui_widgets: &mut UiCell,
-        font: FontId,
-        imgs: &super::Imgs,
-    ) -> Option<String> {
+    pub(super) fn update_layout(&mut self, ui_widgets: &mut UiCell, font: FontId, imgs: &super::Imgs) -> Option<String> {
         // Maintain scrolling
         if self.new_messages {
             self.scroll_new_messages(ui_widgets);
@@ -138,38 +131,19 @@ impl Chat {
         //    s.set(ui_widgets)
         //}
 
-        // Chat Arrows
+        // Chat Arrow
         if !self.scrolled_to_bottom(ui_widgets) {
             if Button::image(imgs.chat_arrow)
-                .w_h(22.0, 22.0)
-                .hover_image(imgs.chat_arrow_mo)
-                .press_image(imgs.chat_arrow_press)
-                .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
-                .set(self.ids.chat_arrow, ui_widgets)
-                .was_clicked()
+            .w_h(22.0, 22.0)
+            .hover_image(imgs.chat_arrow_mo)
+            .press_image(imgs.chat_arrow_press)
+            .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
+            .set(self.ids.chat_arrow, ui_widgets)
+            .was_clicked()
             {
                 self.scroll_to_bottom(ui_widgets);
             }
         }
-
-        // Up and Down Arrows => Scroll the chat up/down one row per click;
-        //if Button::image(imgs.chat_arrow_up)
-        //.w_h(22.0, 22.0)
-        //.hover_image(imgs.chat_arrow_up_mo)
-        //.press_image(imgs.chat_arrow_up_press)
-        //.up_from(self.ids.chat_arrow_down, 60.0)
-        //.set(self.ids.chat_arrow_up, ui_widgets)
-        //.was_clicked()
-        //{};
-
-        //if Button::image(imgs.chat_arrow_down)
-        //  .w_h(22.0, 22.0)
-        //.hover_image(imgs.chat_arrow_down_mo)
-        //.press_image(imgs.chat_arrow_down_press)
-        //.bottom_right_with_margins_on(self.ids.message_box_bg, 73.0, 2.0)
-        // .set(self.ids.chat_arrow_down, ui_widgets)
-        //.was_clicked()
-        //{};
 
         // If enter is pressed send the current message
         if ui_widgets

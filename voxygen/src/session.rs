@@ -1,49 +1,47 @@
-// Standard
-use std::time::Duration;
-
-// Library
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
-
-// Project
-use client::{self, Client};
 use common::clock::Clock;
-
-// Convert Input to a valid string
-use std::net::ToSocketAddrs;
-
-// Crate
+use client::{
+    self,
+    Client,
+};
 use crate::{
-    hud::{Event as HudEvent, Hud},
+    Error,
+    PlayState,
+    PlayStateResult,
+    GlobalState,
     key_state::KeyState,
+    window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    window::{Event, Key, Window},
-    Error, GlobalState, PlayState, PlayStateResult,
+    hud::{Hud, Event as HudEvent},
 };
 
 const FPS: u64 = 60;
 
 pub struct SessionState {
     scene: Scene,
-    client: Client,
+    client: Rc<RefCell<Client>>,
     key_state: KeyState,
     hud: Hud,
 }
 
+
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let client = Client::new(([127, 0, 0, 1], 59003))?.with_test_state(); // <--- TODO: Remove this
-        Ok(Self {
-            // Create a scene for this session. The scene handles visible elements of the game world
-            scene: Scene::new(window.renderer_mut(), &client),
+    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>) -> Self {
+        // Create a scene for this session. The scene handles visible elements of the game world
+        let scene = Scene::new(window.renderer_mut(), &client.borrow());
+        Self {
+            scene,
             client,
             key_state: KeyState::new(),
             hud: Hud::new(window),
-        })
+        }
     }
 }
+
 
 // The background colour
 const BG_COLOR: Rgba<f32> = Rgba {
@@ -65,7 +63,7 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        for event in self.client.tick(client::Input { move_dir }, dt)? {
+        for event in self.client.borrow_mut().tick(client::Input { move_dir }, dt)? {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -78,7 +76,7 @@ impl SessionState {
 
     /// Clean up the session (and the client attached to it) after a tick
     pub fn cleanup(&mut self) {
-        self.client.cleanup();
+        self.client.borrow_mut().cleanup();
     }
 
     /// Render the session to the screen.
@@ -110,7 +108,7 @@ impl PlayState for SessionState {
         for x in -6..7 {
             for y in -6..7 {
                 for z in -1..2 {
-                    self.client.load_chunk(Vec3::new(x, y, z));
+                    self.client.borrow_mut().load_chunk(Vec3::new(x, y, z));
                 }
             }
         }
@@ -119,6 +117,7 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
+
                 // Pass all  events to the ui first
                 if self.hud.handle_event(event.clone()) {
                     continue;
@@ -167,16 +166,15 @@ impl PlayState for SessionState {
             self.tick(clock.get_last_delta())
                 .expect("Failed to tick the scene");
 
-            // Maintain the scene
-            self.scene
-                .maintain(global_state.window.renderer_mut(), &self.client);
+           // Maintain the scene
+            self.scene.maintain(global_state.window.renderer_mut(), &self.client.borrow());
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
-                        self.client.send_chat(msg);
-                    }
+                        self.client.borrow_mut().send_chat(msg);
+                    },
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => return PlayStateResult::Shutdown,
                 }
