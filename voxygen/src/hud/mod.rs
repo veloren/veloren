@@ -112,6 +112,15 @@ widget_ids! {
         charwindow_icon,
         charwindow_close,
         charwindow_title,
+        charwindow_tab_bg,
+        charwindow_tab1,
+        charwindow_tab1_title,
+        charwindow_tab1_level,
+        charwindow_tab1_exp,
+        charwindow_tab1_stats,
+        charwindow_tab1_stats_numbers,
+        charwindow_tab1_expbar,
+        charwindow_tab1_expbar_progress,        
         //5 Quest-Log
         questlog_frame,
         questlog_bg,
@@ -203,6 +212,12 @@ pub(self) struct Imgs {
     // Char Window
     charwindow_bg: ImgId,
     charwindow_icon: ImgId,
+    charwindow_tab_bg: ImgId,
+    charwindow_tab: ImgId,
+    charwindow_expbar: ImgId,
+    progress_bar: ImgId,
+    progress: ImgId,
+
     // Quest-Log Window
     questlog_bg: ImgId,
     questlog_icon: ImgId,
@@ -309,10 +324,17 @@ impl Imgs {
             // Spell Book Window
             spellbook_bg: load("element/misc_backgrounds/small_bg.png"),
             spellbook_icon: load("element/icons/spellbook.png"),
+            
 
             //Char Window
-            charwindow_bg: load("element/misc_backgrounds/small_bg.png"),
+            charwindow_bg: load("element/misc_backgrounds/char_bg.png"),
             charwindow_icon: load("element/icons/charwindow.png"),
+            charwindow_tab_bg: load("element/frames/tab.png"),
+            charwindow_tab: load("element/buttons/tab.png"),
+            charwindow_expbar: load("element/misc_backgrounds/small_bg.png"),
+            progress_bar: load("element/frames/progress_bar.png"),
+            progress: load("element/misc_backgrounds/progress.png"),
+
 
             //Quest-Log Window
             questlog_bg: load("element/misc_backgrounds/small_bg.png"),
@@ -644,56 +666,56 @@ impl Hud {
 
             // Experience-Bar
             Image::new(self.imgs.xp_bar)
-                .w_h(2688.0 / 4.0, 116.0 / 4.0)
+                .w_h(2688.0 / 6.0, 116.0 / 6.0)
                 .mid_bottom_of(ui_widgets.window)
                 .set(self.ids.xp_bar, ui_widgets);
 
             // Left Grid
             Image::new(self.imgs.sb_grid)
-                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .w_h(2240.0 / 12.0, 448.0 / 12.0)
                 .up_from(self.ids.xp_bar, 0.0)
                 .align_left_of(self.ids.xp_bar)
                 .set(self.ids.sb_grid_l, ui_widgets);
 
             Image::new(self.imgs.sb_grid_bg)
-                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .w_h(2240.0 / 12.0, 448.0 / 12.0)
                 .middle_of(self.ids.sb_grid_l)
                 .set(self.ids.sb_grid_bg_l, ui_widgets);
 
             // Right Grid
             Image::new(self.imgs.sb_grid)
-                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .w_h(2240.0 / 12.0, 448.0 / 12.0)
                 .up_from(self.ids.xp_bar, 0.0)
                 .align_right_of(self.ids.xp_bar)
                 .set(self.ids.sb_grid_r, ui_widgets);
 
             Image::new(self.imgs.sb_grid_bg)
-                .w_h(2240.0 / 8.0, 448.0 / 8.0)
+                .w_h(2240.0 / 12.0, 448.0 / 12.0)
                 .middle_of(self.ids.sb_grid_r)
                 .set(self.ids.sb_grid_bg_r, ui_widgets);
 
             // Right and Left Click
             Image::new(self.imgs.l_click)
-                .w_h(224.0 / 4.0, 320.0 / 4.0)
+                .w_h(224.0 / 6.0, 320.0 / 6.0)
                 .right_from(self.ids.sb_grid_bg_l, 0.0)
                 .align_bottom_of(self.ids.sb_grid_bg_l)
                 .set(self.ids.l_click, ui_widgets);
 
             Image::new(self.imgs.r_click)
-                .w_h(224.0 / 4.0, 320.0 / 4.0)
+                .w_h(224.0 / 6.0, 320.0 / 6.0)
                 .left_from(self.ids.sb_grid_bg_r, 0.0)
                 .align_bottom_of(self.ids.sb_grid_bg_r)
                 .set(self.ids.r_click, ui_widgets);
 
             // Health and mana bars
             Image::new(self.imgs.health_bar)
-                .w_h(1120.0 / 4.0, 96.0 / 4.0)
+                .w_h(1120.0 / 6.0, 96.0 / 6.0)
                 .left_from(self.ids.l_click, 0.0)
                 .align_top_of(self.ids.l_click)
                 .set(self.ids.health_bar, ui_widgets);
 
             Image::new(self.imgs.mana_bar)
-                .w_h(1120.0 / 4.0, 96.0 / 4.0)
+                .w_h(1120.0 / 6.0, 96.0 / 6.0)
                 .right_from(self.ids.r_click, 0.0)
                 .align_top_of(self.ids.r_click)
                 .set(self.ids.mana_bar, ui_widgets);
@@ -709,14 +731,14 @@ impl Hud {
             // Insert actual Level here
             Text::new("1")
                 .left_from(self.ids.xp_bar, -20.0)
-                .font_size(20)
+                .font_size(14)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.level_text, ui_widgets);
 
             // Insert next Level here
             Text::new("2")
                 .right_from(self.ids.xp_bar, -20.0)
-                .font_size(20)
+                .font_size(14)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.next_level_text, ui_widgets);
 
@@ -872,6 +894,7 @@ impl Hud {
                 Text::new("Show Help")
                     .right_from(self.ids.button_help, 10.0)
                     .font_size(12)
+                    .font_id(self.font_opensans)
                     .graphics_for(self.ids.button_help)
                     .rgba(220.0, 220.0, 220.0, 0.8)
                     .set(self.ids.show_help_label, ui_widgets);
@@ -889,6 +912,7 @@ impl Hud {
                 Text::new("Show Inventory Test Button")
                     .right_from(self.ids.inventorytest_button, 10.0)
                     .font_size(12)
+                    .font_id(self.font_opensans)
                     .graphics_for(self.ids.inventorytest_button)
                     .rgba(220.0, 220.0, 220.0, 0.8)
                     .set(self.ids.inventorytest_button_label, ui_widgets);
@@ -1124,21 +1148,21 @@ impl Hud {
         if let Windows::CharacterAnd(small) = self.open_windows {
             //Frame
             Image::new(self.imgs.window_frame)
-                .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
+                .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
                 .w_h(1648.0 / 4.0, 1952.0 / 4.0)
                 .set(self.ids.charwindow_frame, ui_widgets);
 
             //BG
             Image::new(self.imgs.charwindow_bg)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                .middle_of(self.ids.charwindow_frame)
+                .w_h(348.0, 404.0)
+                .mid_top_with_margin_on(self.ids.charwindow_frame, 48.0)
                 .set(self.ids.charwindow_bg, ui_widgets);
 
             //Icon
-            Image::new(self.imgs.charwindow_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.charwindow_frame, -10.0, -10.0)
-                .set(self.ids.charwindow_icon, ui_widgets);
+            //Image::new(self.imgs.charwindow_icon)
+                //.w_h(224.0 / 3.0, 224.0 / 3.0)
+                //.top_left_with_margins_on(self.ids.charwindow_frame, -10.0, -10.0)
+                //.set(self.ids.charwindow_icon, ui_widgets);
 
             //X-Button
             if Button::image(self.imgs.close_button)
@@ -1159,6 +1183,39 @@ impl Hud {
                 .mid_top_with_margin_on(self.ids.charwindow_frame, 7.0)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.charwindow_title, ui_widgets);
+            // Tab BG
+            Image::new(self.imgs.charwindow_tab_bg)
+                .w_h(205.0, 412.0)
+                .mid_left_with_margin_on(self.ids.charwindow_frame, -205.0)
+                .set(self.ids.charwindow_tab_bg, ui_widgets);
+            // Tab Button
+            Button::image(self.imgs.charwindow_tab)
+                .w_h(65.0, 23.0)
+                .top_left_with_margins_on(self.ids.charwindow_tab_bg, -18.0, 2.0)
+                .label("Stats")
+                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_font_id(self.font_opensans)
+                .label_font_size(14)
+                .set(self.ids.charwindow_tab1, ui_widgets);
+            Text::new("1") //Add in actual Character Level later
+                .mid_top_with_margin_on(self.ids.charwindow_tab_bg, 14.0)
+                .font_id(self.font_opensans)
+                .font_size(30)
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .set(self.ids.charwindow_tab1_level, ui_widgets);
+            // Stats
+            Text::new("Stat 1")
+                .top_left_with_margins_on(self.ids.charwindow_tab_bg, 40.0, 20.0)
+                .font_id(self.font_opensans)
+                .font_size(20)
+                .rgba(220.0, 220.0, 220.0, 0.8)
+                .set(self.ids.charwindow_tab1_stats, ui_widgets);
+            
+            
+            
+            
+
+
         }
 
         //2 Map
