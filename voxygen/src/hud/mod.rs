@@ -6,11 +6,11 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
 };
 use conrod_core::{
-    color,    
+    color,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
 widget_ids! {
@@ -62,6 +62,9 @@ widget_ids! {
         sb_grid_r,
         sb_grid_bg_l,
         sb_grid_bg_r,
+        xp_bar_progress,
+        health_bar_color,
+        mana_bar_color,
         // Level Display
         level_text,
         next_level_text,
@@ -108,6 +111,7 @@ widget_ids! {
         spellbook_title,
         //4 Charwindow
         charwindow_frame,
+        charwindow,
         charwindow_bg,
         charwindow_icon,
         charwindow_close,
@@ -118,9 +122,12 @@ widget_ids! {
         charwindow_tab1_level,
         charwindow_tab1_exp,
         charwindow_tab1_stats,
+        charwindow_tab1_statnames,
         charwindow_tab1_stats_numbers,
         charwindow_tab1_expbar,
-        charwindow_tab1_expbar_progress,        
+        charwindow_rectangle,
+        charwindow_exp_rectangle,
+        charwindow_exp_progress_rectangle,
         //5 Quest-Log
         questlog_frame,
         questlog_bg,
@@ -199,6 +206,7 @@ pub(self) struct Imgs {
     button_blank: ImgId,
     button_blue_mo: ImgId,
     button_blue_press: ImgId,
+    window_bg: ImgId,
     // Social-Window
     social_bg: ImgId,
     social_icon: ImgId,
@@ -210,12 +218,12 @@ pub(self) struct Imgs {
     spellbook_bg: ImgId,
     spellbook_icon: ImgId,
     // Char Window
-    charwindow_bg: ImgId,
+    charwindow: ImgId,
     charwindow_icon: ImgId,
     charwindow_tab_bg: ImgId,
     charwindow_tab: ImgId,
     charwindow_expbar: ImgId,
-    progress_bar: ImgId,
+    progress_frame: ImgId,
     progress: ImgId,
 
     // Quest-Log Window
@@ -312,6 +320,9 @@ impl Imgs {
             button_blue_mo: load("element/buttons/blue_mo.png"),
             button_blue_press: load("element/buttons/blue_press.png"),
 
+            // Window BG
+            window_bg: load("element/misc_backgrounds/window_bg.png"),
+
             //Social Window
             social_bg: load("element/misc_backgrounds/small_bg.png"),
             social_icon: load("element/icons/social.png"),
@@ -324,17 +335,15 @@ impl Imgs {
             // Spell Book Window
             spellbook_bg: load("element/misc_backgrounds/small_bg.png"),
             spellbook_icon: load("element/icons/spellbook.png"),
-            
 
             //Char Window
-            charwindow_bg: load("element/misc_backgrounds/char_bg.png"),
+            charwindow: load("element/misc_backgrounds/charwindow.png"),
             charwindow_icon: load("element/icons/charwindow.png"),
             charwindow_tab_bg: load("element/frames/tab.png"),
             charwindow_tab: load("element/buttons/tab.png"),
             charwindow_expbar: load("element/misc_backgrounds/small_bg.png"),
-            progress_bar: load("element/frames/progress_bar.png"),
+            progress_frame: load("element/frames/progress_bar.png"),
             progress: load("element/misc_backgrounds/progress.png"),
-
 
             //Quest-Log Window
             questlog_bg: load("element/misc_backgrounds/small_bg.png"),
@@ -400,6 +409,9 @@ pub struct Hud {
     map_open: bool,
     show_ui: bool,
     inventory_space: u32,
+    xp_percentage: f64,
+    hp_percentage: f64,
+    mana_percentage: f64,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
 }
@@ -444,10 +456,13 @@ impl Hud {
             map_open: false,
             show_ui: true,
             inventorytest_button: false,
-            inventory_space: 0,                       
-            open_windows: Windows::None,            
+            inventory_space: 0,
+            open_windows: Windows::None,
             font_metamorph,
             font_opensans,
+            xp_percentage: 0.8,
+            hp_percentage: 0.8,
+            mana_percentage: 0.8,
         }
     }
 
@@ -538,7 +553,7 @@ impl Hud {
                 .align_bottom_of(self.ids.mmap_frame)
                 .set(self.ids.mmap_icons, ui_widgets);
             // Title
-            // TODO Make it display the actual Location
+            // Make it display the actual location
             Text::new("Uncanny Valley")
                 .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
                 .font_size(14)
@@ -599,7 +614,7 @@ impl Hud {
                             Some(Small::Social) => Windows::CharacterAnd(None),
                             _ => Windows::CharacterAnd(Some(Small::Social)),
                         },
-                        Windows::Settings => unreachable!(),
+                        Windows::Settings => Windows::Settings,
                     };
                 }
 
@@ -619,7 +634,7 @@ impl Hud {
                             Some(Small::Spellbook) => Windows::CharacterAnd(None),
                             _ => Windows::CharacterAnd(Some(Small::Spellbook)),
                         },
-                        Windows::Settings => unreachable!(),
+                        Windows::Settings => Windows::Settings,
                     };
                 }
                 //4 Char-Window
@@ -638,7 +653,7 @@ impl Hud {
                         },
                         Windows::Small(small) => Windows::CharacterAnd(Some(small)),
                         Windows::None => Windows::CharacterAnd(None),
-                        Windows::Settings => unreachable!(),
+                        Windows::Settings => Windows::Settings,
                     }
                 }
                 //5 Quest-Log
@@ -657,7 +672,7 @@ impl Hud {
                             Some(Small::Questlog) => Windows::CharacterAnd(None),
                             _ => Windows::CharacterAnd(Some(Small::Questlog)),
                         },
-                        Windows::Settings => unreachable!(),
+                        Windows::Settings => Windows::Settings,
                     };
                 }
             }
@@ -669,6 +684,10 @@ impl Hud {
                 .w_h(2688.0 / 6.0, 116.0 / 6.0)
                 .mid_bottom_of(ui_widgets.window)
                 .set(self.ids.xp_bar, ui_widgets);
+
+            Rectangle::fill_with([406.0 * (self.xp_percentage), 5.0], color::rgb(0.31, 0.14, 0.4)) // "W=406*[Exp. %]"
+                .top_left_with_margins_on(self.ids.xp_bar, 5.0, 21.0)
+                .set(self.ids.xp_bar_progress, ui_widgets);
 
             // Left Grid
             Image::new(self.imgs.sb_grid)
@@ -707,18 +726,31 @@ impl Hud {
                 .align_bottom_of(self.ids.sb_grid_bg_r)
                 .set(self.ids.r_click, ui_widgets);
 
-            // Health and mana bars
+            // Health Bar
             Image::new(self.imgs.health_bar)
                 .w_h(1120.0 / 6.0, 96.0 / 6.0)
                 .left_from(self.ids.l_click, 0.0)
                 .align_top_of(self.ids.l_click)
                 .set(self.ids.health_bar, ui_widgets);
 
+            // Filling
+            Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], color::rgb(0.09, 0.36, 0.0)) // "W=182.0 * [Health. %]"
+                .top_right_with_margins_on(self.ids.health_bar, 5.0, 0.0)
+                .set(self.ids.health_bar_color, ui_widgets);
+
+
+            // Mana Bar
             Image::new(self.imgs.mana_bar)
                 .w_h(1120.0 / 6.0, 96.0 / 6.0)
                 .right_from(self.ids.r_click, 0.0)
                 .align_top_of(self.ids.r_click)
                 .set(self.ids.mana_bar, ui_widgets);
+
+            // Filling
+            Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], color::rgb(0.15, 0.14, 0.39)) // "W=182.0 * [Mana. %]"
+                .top_left_with_margins_on(self.ids.mana_bar, 5.0, 0.0)
+                .set(self.ids.mana_bar_color, ui_widgets);
+
 
             // Buffs/Debuffs
 
@@ -730,14 +762,14 @@ impl Hud {
 
             // Insert actual Level here
             Text::new("1")
-                .left_from(self.ids.xp_bar, -20.0)
+                .left_from(self.ids.xp_bar, -15.0)
                 .font_size(14)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.level_text, ui_widgets);
 
             // Insert next Level here
             Text::new("2")
-                .right_from(self.ids.xp_bar, -20.0)
+                .right_from(self.ids.xp_bar, -15.0)
                 .font_size(14)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.next_level_text, ui_widgets);
@@ -777,20 +809,20 @@ impl Hud {
                 {
                     self.bag_open = false;
                 }
-                
+
                 if self.inventory_space > 0 {
-                // First Slot
-                Button::image(self.imgs.inv_slot)
-                    .top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
-                    .w_h(40.0, 40.0)
-                    .set(self.ids.inv_slot_0, ui_widgets);                
+                    // First Slot
+                    Button::image(self.imgs.inv_slot)
+                        .top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
+                        .w_h(40.0, 40.0)
+                        .set(self.ids.inv_slot_0, ui_widgets);
                 }
                 // if self.ids.inv_slot.len() < self.inventory_space {
                 //    self.ids.inv_slot.resize(self.inventory_space, &mut ui_widgets.widget_id_generator());
                 //}
 
                 //let num = self.ids.inv_slot.len();
-				//println!("self.ids.inv_slot.len(): {:?}", num);
+                //println!("self.ids.inv_slot.len(): {:?}", num);
                 //if num > 0 {
                 //Button::image(self.imgs.inv_slot)
                 //.top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
@@ -799,11 +831,11 @@ impl Hud {
                 //}
                 //for i in 1..5 {
                 //Button::image(self.imgs.inv_slot)
-                 //.right(10.0)
-                 //.label(&format!("{}", i + 1))
-                 //.label_rgba(220.0, 220.0, 220.0, 0.8)
-                 //.label_font_size(5)
-                 //.set(self.ids.inv_slot[i], ui_widgets);}
+                //.right(10.0)
+                //.label(&format!("{}", i + 1))
+                //.label_rgba(220.0, 220.0, 220.0, 0.8)
+                //.label_font_size(5)
+                //.set(self.ids.inv_slot[i], ui_widgets);}
             }
         }
         // Bag
@@ -1038,7 +1070,7 @@ impl Hud {
                         self.open_windows = match self.open_windows {
                             Windows::Small(_) => Windows::None,
                             Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
-                            _ => unreachable!(),
+                            _ => Windows::Settings,
                         }
                     }
                     // Title
@@ -1085,7 +1117,7 @@ impl Hud {
                         self.open_windows = match self.open_windows {
                             Windows::Small(_) => Windows::None,
                             Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
-                            _ => unreachable!(),
+                            _ => Windows::Settings,
                         }
                     }
                     // Title
@@ -1132,7 +1164,7 @@ impl Hud {
                         self.open_windows = match self.open_windows {
                             Windows::Small(_) => Windows::None,
                             Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
-                            _ => unreachable!(),
+                            _ => Windows::Settings,
                         }
                     }
                     // Title
@@ -1144,27 +1176,32 @@ impl Hud {
             }
         }
 
-        //4 Char-Window
+        // 4 Char-Window
         if let Windows::CharacterAnd(small) = self.open_windows {
-            //Frame
+            // Frame
             Image::new(self.imgs.window_frame)
                 .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
                 .w_h(1648.0 / 4.0, 1952.0 / 4.0)
                 .set(self.ids.charwindow_frame, ui_widgets);
 
-            //BG
-            Image::new(self.imgs.charwindow_bg)
+            // BG
+            Image::new(self.imgs.window_bg)
                 .w_h(348.0, 404.0)
                 .mid_top_with_margin_on(self.ids.charwindow_frame, 48.0)
                 .set(self.ids.charwindow_bg, ui_widgets);
 
+            // Overlay
+            Image::new(self.imgs.charwindow)
+                .middle_of(self.ids.charwindow_bg)
+                .set(self.ids.charwindow, ui_widgets);
+
             //Icon
             //Image::new(self.imgs.charwindow_icon)
-                //.w_h(224.0 / 3.0, 224.0 / 3.0)
-                //.top_left_with_margins_on(self.ids.charwindow_frame, -10.0, -10.0)
-                //.set(self.ids.charwindow_icon, ui_widgets);
+            //.w_h(224.0 / 3.0, 224.0 / 3.0)
+            //.top_left_with_margins_on(self.ids.charwindow_frame, -10.0, -10.0)
+            //.set(self.ids.charwindow_icon, ui_widgets);
 
-            //X-Button
+            // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
                 .hover_image(self.imgs.close_button_hover)
@@ -1178,6 +1215,7 @@ impl Hud {
                     None => Windows::None,
                 }
             }
+
             // Title
             Text::new("Character Name") //Add in actual Character Name
                 .mid_top_with_margin_on(self.ids.charwindow_frame, 7.0)
@@ -1188,6 +1226,10 @@ impl Hud {
                 .w_h(205.0, 412.0)
                 .mid_left_with_margin_on(self.ids.charwindow_frame, -205.0)
                 .set(self.ids.charwindow_tab_bg, ui_widgets);
+            // Tab Rectangle
+            Rectangle::fill_with([192.0, 371.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .top_right_with_margins_on(self.ids.charwindow_tab_bg, 20.0, 0.0)
+                .set(self.ids.charwindow_rectangle, ui_widgets);
             // Tab Button
             Button::image(self.imgs.charwindow_tab)
                 .w_h(65.0, 23.0)
@@ -1197,25 +1239,63 @@ impl Hud {
                 .label_font_id(self.font_opensans)
                 .label_font_size(14)
                 .set(self.ids.charwindow_tab1, ui_widgets);
-            Text::new("1") //Add in actual Character Level later
-                .mid_top_with_margin_on(self.ids.charwindow_tab_bg, 14.0)
+            Text::new("1") //Add in actual Character Level
+                .mid_top_with_margin_on(self.ids.charwindow_rectangle, 10.0)
                 .font_id(self.font_opensans)
                 .font_size(30)
                 .rgba(220.0, 220.0, 220.0, 0.8)
                 .set(self.ids.charwindow_tab1_level, ui_widgets);
-            // Stats
-            Text::new("Stat 1")
-                .top_left_with_margins_on(self.ids.charwindow_tab_bg, 40.0, 20.0)
+            // Exp-Bar Background
+            Rectangle::fill_with([170.0, 10.0], color::BLACK)
+                .mid_top_with_margin_on(self.ids.charwindow_rectangle, 50.0)
+                .set(self.ids.charwindow_exp_rectangle, ui_widgets);
+            // Exp-Bar Progress
+            Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], color::rgb(0.31, 0.14, 0.40)) // 0.8 = Experience percantage
+                .mid_left_with_margin_on(self.ids.charwindow_tab1_expbar, 1.0)
+                .set(self.ids.charwindow_exp_progress_rectangle, ui_widgets);
+            // Exp-Bar Foreground Frame
+            Image::new(self.imgs.progress_frame)
+                .w_h(170.0, 10.0)
+                .middle_of(self.ids.charwindow_exp_rectangle)
+                .set(self.ids.charwindow_tab1_expbar, ui_widgets);
+            // Exp-Text
+            Text::new("120/170") // Shows the Exp / Exp to reach the next level
+                .mid_top_with_margin_on(self.ids.charwindow_tab1_expbar, 10.0)
                 .font_id(self.font_opensans)
-                .font_size(20)
+                .font_size(15)
                 .rgba(220.0, 220.0, 220.0, 0.8)
-                .set(self.ids.charwindow_tab1_stats, ui_widgets);
-            
-            
-            
-            
+                .set(self.ids.charwindow_tab1_exp, ui_widgets);
 
+            // Stats
+            Text::new(
+                "Stamina\n\
+                 \n\
+                 Strength\n\
+                 \n\
+                 Dexterity\n\
+                 \n\
+                 Intelligence",
+            )
+            .top_left_with_margins_on(self.ids.charwindow_rectangle, 100.0, 20.0)
+            .font_id(self.font_opensans)
+            .font_size(16)
+            .rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.charwindow_tab1_statnames, ui_widgets);
 
+            Text::new(
+                "1234\n\
+                 \n\
+                 12312\n\
+                 \n\
+                 12414\n\
+                 \n\
+                 124124",
+            )
+            .right_from(self.ids.charwindow_tab1_statnames, 10.0)
+            .font_id(self.font_opensans)
+            .font_size(16)
+            .rgba(220.0, 220.0, 220.0, 0.8)
+            .set(self.ids.charwindow_tab1_stats, ui_widgets);
         }
 
         //2 Map
@@ -1372,7 +1452,7 @@ impl Hud {
                 Some(Small::Questlog) => Windows::CharacterAnd(None),
                 _ => Windows::CharacterAnd(Some(Small::Questlog)),
             },
-            Windows::Settings => unreachable!(),
+            Windows::Settings => Windows::Settings,
         };
     }
     pub fn toggle_map(&mut self) {
@@ -1387,7 +1467,7 @@ impl Hud {
             },
             Windows::Small(small) => Windows::CharacterAnd(Some(small)),
             Windows::None => Windows::CharacterAnd(None),
-            Windows::Settings => unreachable!(),
+            Windows::Settings => Windows::Settings,
         }
     }
     pub fn toggle_social(&mut self) {
@@ -1398,7 +1478,7 @@ impl Hud {
                 Some(Small::Social) => Windows::CharacterAnd(None),
                 _ => Windows::CharacterAnd(Some(Small::Social)),
             },
-            Windows::Settings => unreachable!(),
+            Windows::Settings => Windows::Settings,
         };
     }
     pub fn toggle_spellbook(&mut self) {
@@ -1409,7 +1489,7 @@ impl Hud {
                 Some(Small::Spellbook) => Windows::CharacterAnd(None),
                 _ => Windows::CharacterAnd(Some(Small::Spellbook)),
             },
-            Windows::Settings => unreachable!(),
+            Windows::Settings => Windows::Settings,
         };
     }
     pub fn toggle_settings(&mut self) {

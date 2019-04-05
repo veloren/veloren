@@ -460,8 +460,7 @@ impl CharSelectionUi {
                 .set(self.ids.test_char_l_button, ui_widgets)
                 .was_clicked()
             {
-                self.selected_char_no = Some(1);
-                self.creation_state = CreationState::Race;
+                self.selected_char_no = Some(1);                
             }
 
             // Veloren Logo and Alpha Version
@@ -475,7 +474,7 @@ impl CharSelectionUi {
                 .label_x(conrod_core::position::Relative::Scalar(-100.0))
                 .set(self.ids.v_logo, ui_widgets);
 
-            if let Some(no) = self.selected_char_no {
+            if let Some(no) = self.selected_char_no {               
                 // Selection_Window
                 Image::new(self.imgs.selection_window)
                     .w_h(522.0, 722.0)
