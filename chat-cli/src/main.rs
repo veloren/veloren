@@ -18,6 +18,8 @@ fn main() {
     let mut client = Client::new(([127, 0, 0, 1], 59003))
         .expect("Failed to create client instance");
 
+    client.send_chat("Hello!".to_string());
+
     loop {
         let events = match client.tick(Input::default(), clock.get_last_delta()) {
             Ok(events) => events,
