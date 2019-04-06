@@ -416,6 +416,11 @@ pub struct Hud {
     settings_tab: SettingsTab,
 }
 
+//#[inline]
+//pub fn rgba_bytes(r: u8, g: u8, b: u8, a: f32) -> Color {
+    //Color::Rgba(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a)
+//}
+
 impl Hud {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
@@ -747,7 +752,7 @@ impl Hud {
                 .set(self.ids.mana_bar, ui_widgets);
 
             // Filling
-            Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], color::rgb(0.15, 0.14, 0.39)) // "W=182.0 * [Mana. %]"
+            Rectangle::fill_with([182.0 * (self.mana_percentage), 6.0], color::rgb(0.15, 0.14, 0.39)) // "W=182.0 * [Mana. %]"
                 .top_left_with_margins_on(self.ids.mana_bar, 5.0, 0.0)
                 .set(self.ids.mana_bar_color, ui_widgets);
 
@@ -1357,8 +1362,9 @@ impl Hud {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Settings")
+                .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
+                .label_font_size(17)
                 .set(self.ids.menu_button_1, ui_widgets)
                 .was_clicked()
             {
@@ -1372,8 +1378,9 @@ impl Hud {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Controls")
+                .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
+                .label_font_size(17)
                 .set(self.ids.menu_button_2, ui_widgets)
                 .was_clicked()
             {
@@ -1386,8 +1393,9 @@ impl Hud {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Servers")
+                .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
+                .label_font_size(17)
                 .set(self.ids.menu_button_3, ui_widgets)
                 .was_clicked()
             {
@@ -1400,8 +1408,9 @@ impl Hud {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Logout")
+                .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
+                .label_font_size(17)
                 .set(self.ids.menu_button_4, ui_widgets)
                 .was_clicked()
             {
@@ -1414,8 +1423,9 @@ impl Hud {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Quit")
+                .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_rgba(220.0, 220.0, 220.0, 0.8)
-                .label_font_size(20)
+                .label_font_size(17)
                 .set(self.ids.menu_button_5, ui_widgets)
                 .was_clicked()
             {

@@ -22,6 +22,8 @@ widget_ids! {
 
         // Windows
         selection_window,
+        char_name,
+        char_level,
         creation_window,
         select_window_title,
         race_heading,
@@ -480,10 +482,23 @@ impl CharSelectionUi {
                     .w_h(522.0, 722.0)
                     .mid_right_with_margin_on(ui_widgets.window, 10.0)
                     .set(self.ids.selection_window, ui_widgets);
+                // Character Name & Level
+                Text::new("Character Name")
+                    .mid_top_with_margin_on(self.ids.selection_window, 80.0)
+                    .font_size(30)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.char_name, ui_widgets);
+                Text::new("1")
+                    .mid_top_with_margin_on(self.ids.char_name, 40.0)
+                    .font_size(30)
+                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .set(self.ids.char_level, ui_widgets);
+
 
                 // Selected Character
                 if no == 1 {
                     Image::new(self.imgs.test_char_l_big)
+                        .w_h(522.0, 722.0)
                         .middle_of(self.ids.selection_window)
                         .set(self.ids.test_char_l_big, ui_widgets);
                 }
