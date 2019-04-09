@@ -78,7 +78,7 @@ impl Scene {
             test_figure: Figure::new(
                 renderer,
                 [
-                    Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -5.5, -1.0))),
+                    Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -6.5, -6.0))),
                     Some(load_segment("chest.vox").generate_mesh(Vec3::new(-6.0, -3.0, 0.0))),
                     Some(load_segment("belt.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
                     Some(load_segment("pants.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),

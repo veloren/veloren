@@ -367,7 +367,6 @@ impl Ui {
 
                 use conrod_core::render::PrimitiveKind;
                 match kind {
-                    // TODO: use source_rect
                     PrimitiveKind::Image { image_id, color, source_rect } => {
 
                         // Switch to the `Image` state for this image if we're not in it already.
@@ -389,7 +388,7 @@ impl Ui {
                             }
                         }
 
-                        let color = color.unwrap_or(conrod_core::color::WHITE).to_fsa();
+                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa());
 
                         // Transform the source rectangle into uv coordinates
                         let (image_w, image_h) = self.image_map
@@ -443,8 +442,7 @@ impl Ui {
                             renderer.update_texture(cache_tex, offset, size, &new_data);
                         }).unwrap();
 
-                        // TODO: consider gamma....
-                        let color = color.to_fsa();
+                        let color = srgb_to_linear(color.to_fsa());
 
                         for g in positioned_glyphs {
                             if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
@@ -472,8 +470,7 @@ impl Ui {
                         }
                     }
                     PrimitiveKind::Rectangle { color } => {
-                        // TODO: consider gamma/linear conversion....
-                        let color = color.to_fsa();
+                        let color = srgb_to_linear(color.to_fsa());
                         // Don't draw a transparent rectangle
                         if color[3] == 0.0 {
                             continue;
@@ -493,7 +490,7 @@ impl Ui {
                     }
                     PrimitiveKind::TrianglesSingleColor { color, triangles } => {
                         // Don't draw transparent triangle or switch state if there are actually no triangles
-                        let color: [f32; 4] = color.into();
+                        let color: [f32; 4] = srgb_to_linear(color.into());
                         if triangles.is_empty() || color[3] == 0.0 {
                             continue;
                         }
@@ -576,4 +573,16 @@ fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 { x: screen_w, y: screen_h }
     }
+}
+
+fn srgb_to_linear(color: [f32; 4]) -> [f32; 4] {
+    fn linearize(comp: f32) -> f32 {
+        if comp <= 0.04045 {
+            comp / 12.92
+        } else {
+            ((comp + 0.055) / 1.055).powf(2.4)
+        }
+    }
+
+    [linearize(color[0]), linearize(color[1]), linearize(color[2]), color[3]]
 }
