@@ -12,7 +12,6 @@ use super::super::{
         Pipeline,
         TgtColorFmt,
         TgtDepthFmt,
-        Mesh,
         Quad,
         Tri,
 };

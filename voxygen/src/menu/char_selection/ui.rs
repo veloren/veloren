@@ -6,10 +6,9 @@ use crate::{
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    event::Input,
     image::Id as ImgId,
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox, TitleBar},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -23,6 +22,8 @@ widget_ids! {
 
         // Windows
         selection_window,
+        char_name,
+        char_level,
         creation_window,
         select_window_title,
         race_heading,
@@ -345,6 +346,8 @@ pub enum Event {
     Play,
 }
 
+const TEXT_COLOR: Color = Color::Rgba(0.86, 0.86, 0.86, 0.8);
+
 pub struct CharSelectionUi {
     ui: Ui,
     ids: Ids,
@@ -427,7 +430,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Logout")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(18)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.logout_button, ui_widgets)
@@ -443,7 +446,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Create Character")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(20)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.create_character_button, ui_widgets)
@@ -461,8 +464,7 @@ impl CharSelectionUi {
                 .set(self.ids.test_char_l_button, ui_widgets)
                 .was_clicked()
             {
-                self.selected_char_no = Some(1);
-                self.creation_state = CreationState::Race;
+                self.selected_char_no = Some(1);                
             }
 
             // Veloren Logo and Alpha Version
@@ -470,22 +472,35 @@ impl CharSelectionUi {
                 .w_h(346.0, 111.0)
                 .top_left_with_margins_on(self.ids.bg_selection, 30.0, 40.0)
                 .label("Alpha 0.1")
-                .label_rgba(255.0, 255.0, 255.0, 1.0)
+                .label_rgba(1.0, 1.0, 1.0, 1.0)
                 .label_font_size(10)
                 .label_y(conrod_core::position::Relative::Scalar(-40.0))
                 .label_x(conrod_core::position::Relative::Scalar(-100.0))
                 .set(self.ids.v_logo, ui_widgets);
 
-            if let Some(no) = self.selected_char_no {
+            if let Some(no) = self.selected_char_no {               
                 // Selection_Window
                 Image::new(self.imgs.selection_window)
                     .w_h(522.0, 722.0)
                     .mid_right_with_margin_on(ui_widgets.window, 10.0)
                     .set(self.ids.selection_window, ui_widgets);
+                // Character Name & Level
+                Text::new("Character Name")
+                    .mid_top_with_margin_on(self.ids.selection_window, 80.0)
+                    .font_size(30)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.char_name, ui_widgets);
+                Text::new("1")
+                    .mid_top_with_margin_on(self.ids.char_name, 40.0)
+                    .font_size(30)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.char_level, ui_widgets);
+
 
                 // Selected Character
                 if no == 1 {
                     Image::new(self.imgs.test_char_l_big)
+                        .w_h(522.0, 722.0)
                         .middle_of(self.ids.selection_window)
                         .set(self.ids.test_char_l_big, ui_widgets);
                 }
@@ -497,7 +512,7 @@ impl CharSelectionUi {
                     .hover_image(self.imgs.button_dark_hover)
                     .press_image(self.imgs.button_dark_press)
                     .label("Enter World")
-                    .label_rgba(220.0, 220.0, 220.0, 0.8)
+                    .label_color(TEXT_COLOR)
                     .label_font_size(22)
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.enter_world_button, ui_widgets)
@@ -514,7 +529,7 @@ impl CharSelectionUi {
                     .hover_image(self.imgs.button_dark_red_hover)
                     .press_image(self.imgs.button_dark_red_press)
                     .label("Delete")
-                    .label_rgba(220.0, 220.0, 220.0, 0.8)
+                    .label_color(TEXT_COLOR)
                     .label_font_size(12)
                     .label_y(conrod_core::position::Relative::Scalar(3.0))
                     .set(self.ids.delete_button, ui_widgets)
@@ -535,7 +550,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Back")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(18)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.back_button, ui_widgets)
@@ -550,7 +565,7 @@ impl CharSelectionUi {
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label("Create")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(18)
                 .label_y(conrod_core::position::Relative::Scalar(3.0))
                 .set(self.ids.create_button, ui_widgets)
@@ -569,7 +584,7 @@ impl CharSelectionUi {
                 .font_size(26)
                 .font_id(self.font_metamorph)
                 .center_justify()
-                .text_color(Color::Rgba(220.0, 220.0, 220.0, 0.8))
+                .text_color(TEXT_COLOR)
                 .color(TRANSPARENT)
                 .border_color(TRANSPARENT)
                 .set(self.ids.name_field, ui_widgets)
@@ -665,7 +680,7 @@ impl CharSelectionUi {
                 Text::new("Choose your Race")
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
                     .font_size(28)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.select_window_title, ui_widgets);
 
                 // Male/Female/Race Icons
@@ -907,14 +922,14 @@ impl CharSelectionUi {
                 Text::new(race_str)
                     .mid_top_with_margin_on(self.ids.creation_window, 370.0)
                     .font_size(30)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.race_heading, ui_widgets);
                 Text::new(race_desc)
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
                     .font_id(self.font_opensans)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
                 // Races Descriptions
@@ -924,7 +939,7 @@ impl CharSelectionUi {
                 Text::new("Choose your Weapon")
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
                     .font_size(28)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.select_window_title, ui_widgets);
                 // BG for Alignment
                 Rectangle::fill_with([470.0, 60.0], color::TRANSPARENT)
@@ -1081,14 +1096,14 @@ impl CharSelectionUi {
                 Text::new(weapon_str)
                     .mid_top_with_margin_on(self.ids.creation_window, 370.0)
                     .font_size(30)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.race_heading, ui_widgets);
                 Text::new(weapon_desc)
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
                     .font_id(self.font_opensans)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
                 // Races Descriptions
@@ -1103,7 +1118,7 @@ impl CharSelectionUi {
                 Text::new("Body Customization")
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
                     .font_size(28)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.select_window_title, ui_widgets);
 
                 match state {
@@ -1120,7 +1135,7 @@ impl CharSelectionUi {
                             //.hover_image(self.imgs.frame_open_mo)
                             //.press_image(self.imgs.frame_open_press)
                             .label("Skin & Eyes")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_y(conrod_core::position::Relative::Scalar(4.0))
                             .label_font_size(16)
                             .set(self.ids.skin_eyes_button, ui_widgets)
@@ -1135,7 +1150,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Hair")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.hair_button, ui_widgets)
                             .was_clicked()
@@ -1149,7 +1164,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Accessories")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.accessories_button, ui_widgets)
                             .was_clicked()
@@ -1171,7 +1186,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Skin & Eyes")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.skin_eyes_button, ui_widgets)
                             .was_clicked()
@@ -1185,7 +1200,7 @@ impl CharSelectionUi {
                             //.hover_image(self.imgs.frame_closed_mo)
                             //.press_image(self.imgs.frame_closed_press)
                             .label("Hair")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_y(conrod_core::position::Relative::Scalar(4.0))
                             .label_font_size(16)
                             .set(self.ids.hair_button, ui_widgets)
@@ -1200,7 +1215,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Accessories")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.accessories_button, ui_widgets)
                             .was_clicked()
@@ -1222,7 +1237,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Skin & Eyes")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.skin_eyes_button, ui_widgets)
                             .was_clicked()
@@ -1236,7 +1251,7 @@ impl CharSelectionUi {
                             .hover_image(self.imgs.frame_closed_mo)
                             .press_image(self.imgs.frame_closed_press)
                             .label("Hair")
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.hair_button, ui_widgets)
                             .was_clicked()
@@ -1251,7 +1266,7 @@ impl CharSelectionUi {
                             //.press_image(self.imgs.frame_closed_press)
                             .label("Accessories")
                             .label_y(conrod_core::position::Relative::Scalar(4.0))
-                            .label_rgba(220.0, 220.0, 220.0, 0.8)
+                            .label_color(TEXT_COLOR)
                             .label_font_size(16)
                             .set(self.ids.accessories_button, ui_widgets)
                             .was_clicked()
@@ -1268,7 +1283,7 @@ impl CharSelectionUi {
                         Text::new("Skin Color")
                             .top_left_with_margins_on(self.ids.skin_rect, 0.0, -250.0)
                             .font_size(25)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.skin_color_text, ui_widgets);
                         // TODO: Align Buttons here
                         // They set an i32 to a value from 0-14
@@ -1276,7 +1291,7 @@ impl CharSelectionUi {
                         // Here only the BG image changes depending on the race.
                         Rectangle::fill_with([192.0, 116.0], color::WHITE)
                             .top_right_with_margins_on(self.ids.skin_eyes_window, 60.0, 30.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.skin_rect, ui_widgets);
 
                         // TODO:Slider
@@ -1294,7 +1309,7 @@ impl CharSelectionUi {
 
                         Text::new("Brightness")
                             .top_left_with_margins_on(self.ids.skin_color_slider_range, -27.0, 0.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .font_size(14)
                             .set(self.ids.skin_color_slider_text, ui_widgets);
 
@@ -1302,7 +1317,7 @@ impl CharSelectionUi {
                         Text::new("Eye Color")
                             .top_left_with_margins_on(self.ids.eyes_rect, 0.0, -250.0)
                             .font_size(25)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.eye_color_text, ui_widgets);
                         // TODO: Align 16 Buttons here
                         //
@@ -1311,7 +1326,7 @@ impl CharSelectionUi {
                         // Only the BG image (190x114 -> 2px border!) changes depending on the race.
                         Rectangle::fill_with([192.0, 116.0], color::WHITE)
                             .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.eyes_rect, ui_widgets);
 
                         // TODO:Slider
@@ -1328,7 +1343,7 @@ impl CharSelectionUi {
 
                         Text::new("Brightness")
                             .top_left_with_margins_on(self.ids.eye_color_slider_range, -27.0, 0.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .font_size(14)
                             .set(self.ids.eye_color_slider_text, ui_widgets);
                     }
@@ -1343,7 +1358,7 @@ impl CharSelectionUi {
                         // Hair
                         Text::new("Hair Style")
                             .mid_top_with_margin_on(self.ids.hair_window, 60.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .font_size(24)
                             .set(self.ids.hair_style_text, ui_widgets);
                         if Button::image(self.imgs.arrow_right)
@@ -1366,12 +1381,12 @@ impl CharSelectionUi {
                         Text::new("Hair Color")
                             .top_left_with_margins_on(self.ids.hair_color_picker_bg, 0.0, -250.0)
                             .font_size(25)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.hair_color_text, ui_widgets);
 
                         Rectangle::fill_with([192.0, 116.0], color::WHITE)
                             .top_right_with_margins_on(self.ids.hair_window, 114.0, 30.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .set(self.ids.hair_color_picker_bg, ui_widgets);
 
                         Image::new(self.imgs.slider_range)
@@ -1390,13 +1405,13 @@ impl CharSelectionUi {
 
                         Text::new("Brightness")
                             .top_left_with_margins_on(self.ids.hair_color_slider_range, -27.0, 0.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .font_size(14)
                             .set(self.ids.hair_color_slider_text, ui_widgets);
                         // Eyebrows
                         Text::new("Eyebrow Style")
                             .mid_top_with_margin_on(self.ids.hair_window, 280.0)
-                            .rgba(220.0, 220.0, 220.0, 0.8)
+                            .color(TEXT_COLOR)
                             .font_size(24)
                             .set(self.ids.eyebrow_style_text, ui_widgets);
                         if Button::image(self.imgs.arrow_right)
@@ -1419,7 +1434,7 @@ impl CharSelectionUi {
                         if let Sex::Male = self.sex {
                             Text::new("Beard Style")
                                 .mid_top_with_margin_on(self.ids.hair_window, 340.0)
-                                .rgba(220.0, 220.0, 220.0, 0.8)
+                                .color(TEXT_COLOR)
                                 .font_size(24)
                                 .set(self.ids.beard_style_text, ui_widgets);
                             if Button::image(self.imgs.arrow_right)
@@ -1451,7 +1466,7 @@ impl CharSelectionUi {
                             Races::Human => {
                                 Text::new("Head Band")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1478,7 +1493,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1487,7 +1502,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1510,14 +1525,14 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Human
                             Races::Orc => {
                                 Text::new("Head Band")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1544,7 +1559,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1553,7 +1568,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1576,14 +1591,14 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Orc
                             Races::Elf => {
                                 Text::new("Tribe Markings")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1610,7 +1625,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1619,7 +1634,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1642,14 +1657,14 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Elf
                             Races::Dwarf => {
                                 Text::new("War Paint")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1676,7 +1691,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1685,7 +1700,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1708,14 +1723,14 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Dwarf
                             Races::Undead => {
                                 Text::new("Teeth")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1742,7 +1757,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1751,7 +1766,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1774,14 +1789,14 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Undead
                             Races::Danari => {
                                 Text::new("Horns")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(24)
                                     .set(self.ids.warpaint_text, ui_widgets);
                                 if Button::image(self.imgs.arrow_right)
@@ -1808,7 +1823,7 @@ impl CharSelectionUi {
                                         -250.0,
                                     )
                                     .font_size(25)
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_text, ui_widgets);
 
                                 Rectangle::fill_with([192.0, 116.0], color::WHITE)
@@ -1817,7 +1832,7 @@ impl CharSelectionUi {
                                         114.0,
                                         30.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .set(self.ids.warpaint_color_picker_bg, ui_widgets);
 
                                 Image::new(self.imgs.slider_range)
@@ -1840,7 +1855,7 @@ impl CharSelectionUi {
                                         -27.0,
                                         0.0,
                                     )
-                                    .rgba(220.0, 220.0, 220.0, 0.8)
+                                    .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Danari
