@@ -171,6 +171,7 @@ impl MainMenuUi {
                 });
             };
         }
+        const TEXT_COLOR: Color = Color::Rgba(0.94, 0.94, 0.94, 0.8);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
         Image::new(self.imgs.input_bg)
@@ -182,7 +183,7 @@ impl MainMenuUi {
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
             .font_size(20)
             .font_id(self.font_opensans)
-            .text_color(Color::Rgba(0.86, 0.86, 0.86, 0.8))
+            .text_color(TEXT_COLOR)
             // transparent background
             .color(TRANSPARENT)
             .border_color(TRANSPARENT)
@@ -225,7 +226,7 @@ impl MainMenuUi {
             .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
             .font_size(20)
             .font_id(self.font_opensans)
-            .text_color(Color::Rgba(0.86, 0.86, 0.86, 0.8))
+            .text_color(TEXT_COLOR)
             // transparent background
             .color(TRANSPARENT)
             .border_color(TRANSPARENT)
@@ -246,7 +247,7 @@ impl MainMenuUi {
             .down_from(self.ids.address_bg, 20.0)
             .align_middle_x_of(self.ids.address_bg)
             .label("Login")
-            .label_rgba(0.86, 0.86, 0.86, 0.8)
+            .label_color(TEXT_COLOR)
             .label_font_size(28)
             .label_y(conrod_core::position::Relative::Scalar(5.0))
             .set(self.ids.login_button, ui_widgets)
@@ -262,7 +263,7 @@ impl MainMenuUi {
             .down_from(self.ids.login_button, 20.0)
             .align_middle_x_of(self.ids.address_bg)
             .label("Singleplayer")
-            .label_rgba(0.86, 0.86, 0.86, 0.8)
+            .label_color(TEXT_COLOR)
             .label_font_size(26)
             .label_y(conrod_core::position::Relative::Scalar(5.0))
             .label_x(conrod_core::position::Relative::Scalar(2.0))
@@ -278,7 +279,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Quit")
-            .label_rgba(0.86, 0.86, 0.86, 0.8)
+            .label_color(TEXT_COLOR)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.quit_button, ui_widgets)
@@ -293,7 +294,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Settings")
-            .label_rgba(0.86, 0.86, 0.86, 0.8)
+            .label_color(TEXT_COLOR)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.settings_button, ui_widgets)
@@ -306,7 +307,7 @@ impl MainMenuUi {
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Servers")
-            .label_rgba(0.86, 0.86, 0.86, 0.8)
+            .label_color(TEXT_COLOR)
             .label_font_size(20)
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .set(self.ids.servers_button, ui_widgets)

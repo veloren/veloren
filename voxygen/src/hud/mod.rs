@@ -6,7 +6,7 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
 };
 use conrod_core::{
-    color,
+    color, Color,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
@@ -465,15 +465,21 @@ impl Hud {
             open_windows: Windows::None,
             font_metamorph,
             font_opensans,
-            xp_percentage: 0.8,
-            hp_percentage: 0.8,
-            mana_percentage: 0.8,
+            xp_percentage: 0.4,
+            hp_percentage: 1.0,
+            mana_percentage: 1.0,
         }
     }
 
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+
+        const TEXT_COLOR: Color = Color::Rgba(0.86, 0.86, 0.86, 0.8);
+        const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
+        const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
+        const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
+
 
         if self.show_ui {
             // Add Bag-Space Button
@@ -521,7 +527,7 @@ impl Hud {
                      P = Spellbook           \n\
                      N = Settings",
                 )
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
                 .font_id(self.font_opensans)
                 .font_size(18)
@@ -533,7 +539,7 @@ impl Hud {
                     .press_image(self.imgs.button_dark_press)
                     .label("Close")
                     .label_font_size(10)
-                    .label_rgba(220.0, 220.0, 220.0, 0.8)
+                    .label_color(TEXT_COLOR)
                     .set(self.ids.button_help2, ui_widgets)
                     .was_clicked()
                 {
@@ -562,7 +568,7 @@ impl Hud {
             Text::new("Uncanny Valley")
                 .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
                 .font_size(14)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.mmap_location, ui_widgets);
 
             // Minimap Buttons
@@ -690,7 +696,7 @@ impl Hud {
                 .mid_bottom_of(ui_widgets.window)
                 .set(self.ids.xp_bar, ui_widgets);
 
-            Rectangle::fill_with([406.0 * (self.xp_percentage), 5.0], color::rgb(0.31, 0.14, 0.4)) // "W=406*[Exp. %]"
+            Rectangle::fill_with([406.0 * (self.xp_percentage), 5.0], XP_COLOR) // "W=406*[Exp. %]"
                 .top_left_with_margins_on(self.ids.xp_bar, 5.0, 21.0)
                 .set(self.ids.xp_bar_progress, ui_widgets);
 
@@ -739,7 +745,7 @@ impl Hud {
                 .set(self.ids.health_bar, ui_widgets);
 
             // Filling
-            Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], color::rgb(0.09, 0.36, 0.0)) // "W=182.0 * [Health. %]"
+            Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], HP_COLOR) // "W=182.0 * [Health. %]"
                 .top_right_with_margins_on(self.ids.health_bar, 5.0, 0.0)
                 .set(self.ids.health_bar_color, ui_widgets);
 
@@ -752,7 +758,7 @@ impl Hud {
                 .set(self.ids.mana_bar, ui_widgets);
 
             // Filling
-            Rectangle::fill_with([182.0 * (self.mana_percentage), 6.0], color::rgb(0.15, 0.14, 0.39)) // "W=182.0 * [Mana. %]"
+            Rectangle::fill_with([182.0 * (self.mana_percentage), 6.0], MANA_COLOR) // "W=182.0 * [Mana. %]"
                 .top_left_with_margins_on(self.ids.mana_bar, 5.0, 0.0)
                 .set(self.ids.mana_bar_color, ui_widgets);
 
@@ -769,14 +775,14 @@ impl Hud {
             Text::new("1")
                 .left_from(self.ids.xp_bar, -15.0)
                 .font_size(14)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.level_text, ui_widgets);
 
             // Insert next Level here
             Text::new("2")
                 .right_from(self.ids.xp_bar, -15.0)
                 .font_size(14)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.next_level_text, ui_widgets);
 
             // Bag contents
@@ -800,7 +806,7 @@ impl Hud {
                     .set(self.ids.inv_grid, ui_widgets);
                 Scrollbar::y_axis(self.ids.inv_alignment)
                     .thickness(5.0)
-                    .rgba(220.0, 220.0, 220.0, 0.1)
+                    .rgba(0.86, 0.86, 0.86, 0.1)
                     .set(self.ids.inv_scrollbar, ui_widgets);
 
                 // X-button
@@ -838,7 +844,7 @@ impl Hud {
                 //Button::image(self.imgs.inv_slot)
                 //.right(10.0)
                 //.label(&format!("{}", i + 1))
-                //.label_rgba(220.0, 220.0, 220.0, 0.8)
+                //.label_color(TEXT_COLOR)
                 //.label_font_size(5)
                 //.set(self.ids.inv_slot[i], ui_widgets);}
             }
@@ -888,7 +894,7 @@ impl Hud {
             Text::new("Settings")
                 .mid_top_with_margin_on(self.ids.settings_bg, 10.0)
                 .font_size(30)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.settings_title, ui_widgets);
             // Icon
             Image::new(self.imgs.settings_icon)
@@ -913,7 +919,7 @@ impl Hud {
             .top_left_with_margins_on(self.ids.settings_bg, 78.0, 50.0)
             .label("Interface")
             .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_color(TEXT_COLOR)
             .set(self.ids.interface, ui_widgets)
             .was_clicked()
             {
@@ -933,7 +939,7 @@ impl Hud {
                     .font_size(12)
                     .font_id(self.font_opensans)
                     .graphics_for(self.ids.button_help)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.show_help_label, ui_widgets);
 
                 self.inventorytest_button = ToggleButton::new(
@@ -951,7 +957,7 @@ impl Hud {
                     .font_size(12)
                     .font_id(self.font_opensans)
                     .graphics_for(self.ids.inventorytest_button)
-                    .rgba(220.0, 220.0, 220.0, 0.8)
+                    .color(TEXT_COLOR)
                     .set(self.ids.inventorytest_button_label, ui_widgets);
             }
             //2 Gameplay////////////////
@@ -966,7 +972,7 @@ impl Hud {
             .down_from(self.ids.interface, 1.0)
             .label("Gameplay")
             .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_color(TEXT_COLOR)
             .set(self.ids.gameplay, ui_widgets)
             .was_clicked()
             {
@@ -985,7 +991,7 @@ impl Hud {
             .down_from(self.ids.gameplay, 1.0)
             .label("Controls")
             .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_color(TEXT_COLOR)
             .set(self.ids.controls, ui_widgets)
             .was_clicked()
             {
@@ -1004,7 +1010,7 @@ impl Hud {
             .down_from(self.ids.controls, 1.0)
             .label("Video")
             .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_color(TEXT_COLOR)
             .set(self.ids.video, ui_widgets)
             .was_clicked()
             {
@@ -1023,7 +1029,7 @@ impl Hud {
             .down_from(self.ids.video, 1.0)
             .label("Sound")
             .label_font_size(14)
-            .label_rgba(220.0, 220.0, 220.0, 0.8)
+            .label_color(TEXT_COLOR)
             .set(self.ids.sound, ui_widgets)
             .was_clicked()
             {
@@ -1081,7 +1087,7 @@ impl Hud {
                     // Title
                     Text::new("Social")
                         .mid_top_with_margin_on(self.ids.social_frame, 7.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .color(TEXT_COLOR)
                         .set(self.ids.social_title, ui_widgets);
                 }
                 Small::Spellbook => {
@@ -1128,7 +1134,7 @@ impl Hud {
                     // Title
                     Text::new("Spellbook")
                         .mid_top_with_margin_on(self.ids.spellbook_frame, 7.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .color(TEXT_COLOR)
                         .set(self.ids.spellbook_title, ui_widgets);
                 }
                 Small::Questlog => {
@@ -1175,7 +1181,7 @@ impl Hud {
                     // Title
                     Text::new("Quest-Log")
                         .mid_top_with_margin_on(self.ids.questlog_frame, 7.0)
-                        .rgba(220.0, 220.0, 220.0, 0.8)
+                        .color(TEXT_COLOR)
                         .set(self.ids.questlog_title, ui_widgets);
                 }
             }
@@ -1224,7 +1230,7 @@ impl Hud {
             // Title
             Text::new("Character Name") //Add in actual Character Name
                 .mid_top_with_margin_on(self.ids.charwindow_frame, 7.0)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.charwindow_title, ui_widgets);
             // Tab BG
             Image::new(self.imgs.charwindow_tab_bg)
@@ -1240,7 +1246,7 @@ impl Hud {
                 .w_h(65.0, 23.0)
                 .top_left_with_margins_on(self.ids.charwindow_tab_bg, -18.0, 2.0)
                 .label("Stats")
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_id(self.font_opensans)
                 .label_font_size(14)
                 .set(self.ids.charwindow_tab1, ui_widgets);
@@ -1248,14 +1254,14 @@ impl Hud {
                 .mid_top_with_margin_on(self.ids.charwindow_rectangle, 10.0)
                 .font_id(self.font_opensans)
                 .font_size(30)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.charwindow_tab1_level, ui_widgets);
             // Exp-Bar Background
             Rectangle::fill_with([170.0, 10.0], color::BLACK)
                 .mid_top_with_margin_on(self.ids.charwindow_rectangle, 50.0)
                 .set(self.ids.charwindow_exp_rectangle, ui_widgets);
             // Exp-Bar Progress
-            Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], color::rgb(0.31, 0.14, 0.40)) // 0.8 = Experience percantage
+            Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percantage
                 .mid_left_with_margin_on(self.ids.charwindow_tab1_expbar, 1.0)
                 .set(self.ids.charwindow_exp_progress_rectangle, ui_widgets);
             // Exp-Bar Foreground Frame
@@ -1268,7 +1274,7 @@ impl Hud {
                 .mid_top_with_margin_on(self.ids.charwindow_tab1_expbar, 10.0)
                 .font_id(self.font_opensans)
                 .font_size(15)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.charwindow_tab1_exp, ui_widgets);
 
             // Stats
@@ -1284,7 +1290,7 @@ impl Hud {
             .top_left_with_margins_on(self.ids.charwindow_rectangle, 100.0, 20.0)
             .font_id(self.font_opensans)
             .font_size(16)
-            .rgba(220.0, 220.0, 220.0, 0.8)
+            .color(TEXT_COLOR)
             .set(self.ids.charwindow_tab1_statnames, ui_widgets);
 
             Text::new(
@@ -1299,7 +1305,7 @@ impl Hud {
             .right_from(self.ids.charwindow_tab1_statnames, 10.0)
             .font_id(self.font_opensans)
             .font_size(16)
-            .rgba(220.0, 220.0, 220.0, 0.8)
+            .color(TEXT_COLOR)
             .set(self.ids.charwindow_tab1_stats, ui_widgets);
         }
 
@@ -1338,7 +1344,7 @@ impl Hud {
             Text::new("Map")
                 .mid_top_with_margin_on(self.ids.map_frame, -7.0)
                 .font_size(50)
-                .rgba(220.0, 220.0, 220.0, 0.8)
+                .color(TEXT_COLOR)
                 .set(self.ids.map_title, ui_widgets);
         }
 
@@ -1363,7 +1369,7 @@ impl Hud {
                 .press_image(self.imgs.button_dark_press)
                 .label("Settings")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(17)
                 .set(self.ids.menu_button_1, ui_widgets)
                 .was_clicked()
@@ -1379,7 +1385,7 @@ impl Hud {
                 .press_image(self.imgs.button_dark_press)
                 .label("Controls")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(17)
                 .set(self.ids.menu_button_2, ui_widgets)
                 .was_clicked()
@@ -1394,7 +1400,7 @@ impl Hud {
                 .press_image(self.imgs.button_dark_press)
                 .label("Servers")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(17)
                 .set(self.ids.menu_button_3, ui_widgets)
                 .was_clicked()
@@ -1409,7 +1415,7 @@ impl Hud {
                 .press_image(self.imgs.button_dark_press)
                 .label("Logout")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(17)
                 .set(self.ids.menu_button_4, ui_widgets)
                 .was_clicked()
@@ -1424,7 +1430,7 @@ impl Hud {
                 .press_image(self.imgs.button_dark_press)
                 .label("Quit")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_rgba(220.0, 220.0, 220.0, 0.8)
+                .label_color(TEXT_COLOR)
                 .label_font_size(17)
                 .set(self.ids.menu_button_5, ui_widgets)
                 .was_clicked()
@@ -1531,25 +1537,64 @@ impl Hud {
                 true
             }
             WinEvent::KeyDown(Key::Enter) => {
-                if self.cursor_grabbed && self.typing {
+                if self.typing {
                     self.ui.focus_widget(None);
                     self.typing = false;
-                } else if !self.typing {
+                } else {
                     self.ui.focus_widget(Some(self.chat.input_box_id()));
                     self.typing = true;
                 };
                 true
             }
-            WinEvent::KeyDown(Key::Escape) if self.typing => {
+            WinEvent::KeyDown(Key::Escape) => {
                 if self.typing {
                     self.typing = false;
                     self.ui.focus_widget(None);
-                    true
                 } else {
-                    false
+                    // Close windows on esc
+                    self.toggle_windows();
                 }
+                true
             }
-
+            WinEvent::KeyDown(key) if !self.typing => match key {
+                Key::Map => { 
+                    self.toggle_map();
+                    true
+                }
+                Key::Bag => { 
+                    self.toggle_bag();
+                    true
+                }
+                Key::QuestLog => { 
+                    self.toggle_questlog();
+                    true
+                }
+                Key::CharacterWindow => { 
+                    self.toggle_charwindow();
+                    true
+                }
+                Key::Social => { 
+                    self.toggle_social();
+                    true
+                }
+                Key::Spellbook => { 
+                    self.toggle_spellbook();
+                    true
+                }
+                Key::Settings => { 
+                    self.toggle_settings();
+                    true
+                }
+                Key::Help => { 
+                    self.toggle_help();
+                    true
+                }
+                Key::Interface => { 
+                    self.toggle_ui();
+                    true
+                }
+                _ => false,
+            },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
                 _ => self.typing,
