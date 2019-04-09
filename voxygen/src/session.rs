@@ -1,17 +1,10 @@
-// Standard
-use std::time::Duration;
-
-// Library
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
-
-// Project
 use common::clock::Clock;
 use client::{
     self,
     Client,
 };
-
-// Crate
 use crate::{
     Error,
     PlayState,
@@ -28,28 +21,35 @@ const FPS: u64 = 60;
 
 pub struct SessionState {
     scene: Scene,
-    client: Client,
+    client: Rc<RefCell<Client>>,
     key_state: KeyState,
     hud: Hud,
 }
 
+
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let client = Client::new(([127, 0, 0, 1], 59003))?.with_test_state(); // <--- TODO: Remove this
-        Ok(Self {
-            // Create a scene for this session. The scene handles visible elements of the game world
-            scene: Scene::new(window.renderer_mut(), &client),
+    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>) -> Self {
+        // Create a scene for this session. The scene handles visible elements of the game world
+        let scene = Scene::new(window.renderer_mut(), &client.borrow());
+        Self {
+            scene,
             client,
             key_state: KeyState::new(),
             hud: Hud::new(window),
-        })
+        }
     }
 }
 
+
 // The background colour
-const BG_COLOR: Rgba<f32> = Rgba { r: 0.0, g: 0.3, b: 1.0, a: 1.0 };
+const BG_COLOR: Rgba<f32> = Rgba {
+    r: 0.0,
+    g: 0.3,
+    b: 1.0,
+    a: 1.0,
+};
 
 impl SessionState {
     /// Tick the session (and the client attached to it)
@@ -63,20 +63,20 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        for event in self.client.tick(client::Input { move_dir }, dt)? {
+        for event in self.client.borrow_mut().tick(client::Input { move_dir }, dt)? {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
                 }
             }
         }
-        
+
         Ok(())
     }
 
     /// Clean up the session (and the client attached to it) after a tick
     pub fn cleanup(&mut self) {
-        self.client.cleanup();
+        self.client.borrow_mut().cleanup();
     }
 
     /// Render the session to the screen.
@@ -108,7 +108,7 @@ impl PlayState for SessionState {
         for x in -6..7 {
             for y in -6..7 {
                 for z in -1..2 {
-                    self.client.load_chunk(Vec3::new(x, y, z));
+                    self.client.borrow_mut().load_chunk(Vec3::new(x, y, z));
                 }
             }
         }
@@ -124,17 +124,14 @@ impl PlayState for SessionState {
                 }
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // When 'q' is pressed, exit the session
-                    Event::Char('q') => return PlayStateResult::Pop,
-                    // When 'm' is pressed, open/close the in-game test menu
-                    Event::Char('m') => self.hud.toggle_menu(),
-                    // Close windows on esc
-                    Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
-                        global_state.window.grab_cursor(!global_state.window.is_cursor_grabbed());
-                        self.hud.update_grab(global_state.window.is_cursor_grabbed());
-                    },
+                        global_state
+                            .window
+                            .grab_cursor(!global_state.window.is_cursor_grabbed());
+                        self.hud
+                            .update_grab(global_state.window.is_cursor_grabbed());
+                    }
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
@@ -146,7 +143,9 @@ impl PlayState for SessionState {
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     // Pass all other events to the scene
-                    event => { self.scene.handle_input_event(event); },
+                    event => {
+                        self.scene.handle_input_event(event);
+                    }
                 };
                 // TODO: Do something if the event wasn't handled?
             }
@@ -156,13 +155,13 @@ impl PlayState for SessionState {
                 .expect("Failed to tick the scene");
 
             // Maintain the scene
-            self.scene.maintain(global_state.window.renderer_mut(), &self.client);
+            self.scene.maintain(global_state.window.renderer_mut(), &self.client.borrow());
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
-                        self.client.send_chat(msg);
+                        self.client.borrow_mut().send_chat(msg);
                     },
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => return PlayStateResult::Shutdown,
@@ -173,7 +172,8 @@ impl PlayState for SessionState {
             self.render(global_state.window.renderer_mut());
 
             // Display the frame on the window
-            global_state.window
+            global_state
+                .window
                 .swap_buffers()
                 .expect("Failed to swap window buffers");
 
@@ -185,5 +185,7 @@ impl PlayState for SessionState {
         }
     }
 
-    fn name(&self) -> &'static str { "Session" }
+    fn name(&self) -> &'static str {
+        "Session"
+    }
 }
