@@ -7,14 +7,12 @@ pub use self::run::RunAnimation;
 use crate::render::FigureBoneData;
 
 // Local
-use super::{
-    Skeleton,
-    Bone,
-};
+use super::{Bone, Skeleton};
 
 pub struct CharacterSkeleton {
     head: Bone,
     chest: Bone,
+    shoulders: Bone,
     belt: Bone,
     shorts: Bone,
     l_hand: Bone,
@@ -22,6 +20,8 @@ pub struct CharacterSkeleton {
     l_foot: Bone,
     r_foot: Bone,
     back: Bone,
+    eyes: Bone,
+    hair: Bone,
 }
 
 impl CharacterSkeleton {
@@ -29,6 +29,7 @@ impl CharacterSkeleton {
         Self {
             head: Bone::default(),
             chest: Bone::default(),
+            shoulders: Bone::default(),
             belt: Bone::default(),
             shorts: Bone::default(),
             l_hand: Bone::default(),
@@ -36,6 +37,8 @@ impl CharacterSkeleton {
             l_foot: Bone::default(),
             r_foot: Bone::default(),
             back: Bone::default(),
+            eyes: Bone::default(),
+            hair: Bone::default(),
         }
     }
 }
@@ -54,9 +57,9 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(self.l_foot.compute_base_matrix()),
             FigureBoneData::new(self.r_foot.compute_base_matrix()),
             FigureBoneData::new(chest_mat * self.back.compute_base_matrix()),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
+            FigureBoneData::new(self.shoulders.compute_base_matrix()),
+            FigureBoneData::new(self.eyes.compute_base_matrix()),
+            FigureBoneData::new(self.hair.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),

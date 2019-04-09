@@ -5,10 +5,7 @@ use std::f32::consts::PI;
 use vek::*;
 
 // Local
-use super::{
-    CharacterSkeleton,
-    super::Animation,
-};
+use super::{super::Animation, CharacterSkeleton};
 
 pub struct RunAnimation;
 
@@ -16,11 +13,8 @@ impl Animation for RunAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
-    fn update_skeleton(
-        skeleton: &mut Self::Skeleton,
-        time: f64,
-    ) {
-        let wave = (time as f32 * 12.0).sin();
+    fn update_skeleton(skeleton: &mut Self::Skeleton, time: f64) {
+        /*let wave = (time as f32 * 12.0).sin();
         let wave_slow = (time as f32 * 6.0 + PI).sin();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
@@ -44,7 +38,7 @@ impl Animation for RunAnimation {
         skeleton.r_foot.offset = Vec3::new(3.5, 1.0 + wave * 8.0, 3.5 - wave_dip * 4.0);
         skeleton.r_foot.ori = Quaternion::rotation_x(wave + 1.0);
 
-        skeleton.back.offset = Vec3::new(-9.0, 5.0, 18.0);
+        skeleton.back.offset = Vec3::new(-9.0, 5.0, 18.0);*/
         skeleton.back.ori = Quaternion::rotation_y(2.5);
     }
 }
