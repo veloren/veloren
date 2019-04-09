@@ -7,7 +7,7 @@ use crate::{
 };
 use common::assets;
 use conrod_core::{
-    color,
+    color, Color,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
