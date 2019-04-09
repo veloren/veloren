@@ -5,8 +5,9 @@ use crate::{
     session::SessionState,
     GlobalState, PlayState, PlayStateResult,
 };
+use client::{self, Client};
 use common::clock::Clock;
-use std::time::Duration;
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
 use vek::*;
 
@@ -14,13 +15,15 @@ const FPS: u64 = 60;
 
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
+    client: Rc<RefCell<Client>>,
 }
 
 impl CharSelectionState {
     /// Create a new `CharSelectionState`
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>) -> Self {
         Self {
             char_selection_ui: CharSelectionUi::new(window),
+            client,
         }
     }
 }
@@ -59,13 +62,18 @@ impl PlayState for CharSelectionState {
                 match event {
                     ui::Event::Logout => return PlayStateResult::Pop,
                     ui::Event::Play => return PlayStateResult::Push(
-                        Box::new(SessionState::new(&mut global_state.window).unwrap()) // TODO: Handle this error
+                        Box::new(SessionState::new(&mut global_state.window, self.client.clone()))
                     ),
                 }
             }
 
             // Draw the UI to the screen
             self.char_selection_ui.render(global_state.window.renderer_mut());
+
+            // Tick the client (currently only to keep the connection alive)
+            self.client.borrow_mut().tick(client::Input::default(), clock.get_last_delta())
+                .expect("Failed to tick the client");
+            self.client.borrow_mut().cleanup();
 
             // Finish the frame
             global_state.window.renderer_mut().flush();
