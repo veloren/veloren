@@ -50,15 +50,9 @@ impl Chat {
     // (i.e. the player is viewing new messages)
     // If so scroll down when new messages are added
     fn scroll_new_messages(&self, ui_widgets: &mut UiCell) {
-        if let Some(scroll) = ui_widgets
-            .widget_graph()
-            .widget(self.ids.message_box)
-            .and_then(|widget| widget.maybe_y_scroll_state)
-        {
-            // If previously scrolled to the bottom stay there
-            if self.scrolled_to_bottom(ui_widgets) {
-                self.scroll_to_bottom(ui_widgets);
-            }
+        // If previously scrolled to the bottom stay there
+        if self.scrolled_to_bottom(ui_widgets) {
+            self.scroll_to_bottom(ui_widgets);
         }
     }
     fn scrolled_to_bottom(&self, ui_widgets: &UiCell) -> bool {
@@ -123,7 +117,7 @@ impl Chat {
                 Text::new(&self.messages[item.i])
                     .font_size(14)
                     .font_id(font)
-                    .rgba(220.0, 220.0, 220.0, 1.0),
+                    .rgba(0.86 , 0.86, 0.86, 1.0),
                 ui_widgets,
             )
         }

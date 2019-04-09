@@ -124,18 +124,6 @@ impl PlayState for SessionState {
                 }
                 let _handled = match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    Event::KeyDown(Key::Map) => self.hud.toggle_map(),
-                    Event::KeyDown(Key::Bag) => self.hud.toggle_bag(),
-                    Event::KeyDown(Key::QuestLog) => self.hud.toggle_questlog(),
-                    Event::KeyDown(Key::CharacterWindow) => self.hud.toggle_charwindow(),
-                    Event::KeyDown(Key::Social) => self.hud.toggle_social(),
-                    Event::KeyDown(Key::Spellbook) => self.hud.toggle_spellbook(),
-                    Event::KeyDown(Key::Settings) => self.hud.toggle_settings(),
-                    Event::KeyDown(Key::Help) => self.hud.toggle_help(),
-                    Event::KeyDown(Key::Interface) => self.hud.toggle_ui(),
-
-                    // Close windows on esc
-                    Event::KeyDown(Key::Escape) => self.hud.toggle_windows(),
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state
@@ -166,7 +154,7 @@ impl PlayState for SessionState {
             self.tick(clock.get_last_delta())
                 .expect("Failed to tick the scene");
 
-           // Maintain the scene
+            // Maintain the scene
             self.scene.maintain(global_state.window.renderer_mut(), &self.client.borrow());
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
