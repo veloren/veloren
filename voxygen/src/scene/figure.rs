@@ -1,19 +1,12 @@
+use crate::{
+    anim::Skeleton,
+    render::{
+        Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Mesh, Model, Renderer,
+    },
+    Error,
+};
 use specs::{Component, VecStorage};
 use vek::*;
-use crate::{
-    Error,
-    render::{
-        Consts,
-        Globals,
-        Mesh,
-        Model,
-        Renderer,
-        FigurePipeline,
-        FigureBoneData,
-        FigureLocals,
-    },
-    anim::Skeleton,
-};
 
 pub struct Figure<S: Skeleton> {
     // GPU data
@@ -64,18 +57,17 @@ impl<S: Skeleton> Figure<S> {
         Ok(())
     }
 
-    pub fn update_locals(&mut self, renderer: &mut Renderer, locals: FigureLocals) -> Result<(), Error> {
+    pub fn update_locals(
+        &mut self,
+        renderer: &mut Renderer,
+        locals: FigureLocals,
+    ) -> Result<(), Error> {
         renderer.update_consts(&mut self.locals, &[locals])?;
         Ok(())
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
-        renderer.render_figure(
-            &self.model,
-            globals,
-            &self.locals,
-            &self.bone_consts,
-        );
+        renderer.render_figure(&self.model, globals, &self.locals, &self.bone_consts);
     }
 }
 
