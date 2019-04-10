@@ -14,6 +14,7 @@ use std::{
     time::Duration,
     net::SocketAddr,
     sync::mpsc,
+    collections::HashSet,
 };
 use specs::{
     Entity as EcsEntity,
@@ -63,6 +64,7 @@ pub struct Server {
     thread_pool: ThreadPool,
     chunk_tx: mpsc::Sender<(Vec3<i32>, TerrainChunk)>,
     chunk_rx: mpsc::Receiver<(Vec3<i32>, TerrainChunk)>,
+    pending_chunks: HashSet<Vec3<i32>>,
 }
 
 impl Server {
@@ -83,6 +85,7 @@ impl Server {
                 .build(),
             chunk_tx,
             chunk_rx,
+            pending_chunks: HashSet::new(),
         })
     }
 
@@ -200,6 +203,7 @@ impl Server {
         let state = &mut self.state;
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
+        let mut requested_chunks = Vec::new();
 
         self.clients.remove_if(|entity, client| {
             let mut disconnect = false;
@@ -240,6 +244,7 @@ impl Server {
                         },
                         ClientState::Connected => match msg {
                             ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
+                            ClientMsg::Disconnect => disconnect = true,
                             ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
                             ClientMsg::Pong => {},
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
@@ -248,7 +253,13 @@ impl Server {
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
                             },
-                            ClientMsg::Disconnect => disconnect = true,
+                            ClientMsg::TerrainChunkRequest { key } => match state.terrain().get_key(key) {
+                                Some(chunk) => client.postbox.send(ServerMsg::TerrainChunkUpdate {
+                                    key,
+                                    chunk: chunk.clone(),
+                                }),
+                                None => requested_chunks.push(key),
+                            },
                         },
                     }
                 }
@@ -297,12 +308,24 @@ impl Server {
             });
         }
 
+        // Generate requested chunks
+        for key in requested_chunks {
+            self.generate_chunk(key);
+        }
+
         Ok(frontend_events)
     }
 
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
         self.clients.notify_connected(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
+    }
+
+    pub fn generate_chunk(&mut self, key: Vec3<i32>) {
+        if self.pending_chunks.insert(key) {
+            let chunk_tx = self.chunk_tx.clone();
+            self.thread_pool.execute(move || chunk_tx.send((key, World::generate_chunk(key))).unwrap());
+        }
     }
 }
 
