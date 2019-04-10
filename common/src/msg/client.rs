@@ -1,3 +1,4 @@
+use vek::*;
 use crate::comp;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -13,6 +14,9 @@ pub enum ClientMsg {
         pos: comp::phys::Pos,
         vel: comp::phys::Vel,
         dir: comp::phys::Dir,
+    },
+    TerrainChunkRequest {
+        key: Vec3<i32>,
     },
     Disconnect,
 }
