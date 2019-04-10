@@ -249,7 +249,7 @@ impl MainMenuUi {
             .align_middle_x_of(self.ids.address_bg)
             .label("Login")
             .label_color(TEXT_COLOR)
-            .label_font_size(28)
+            .label_font_size(26)
             .label_y(conrod_core::position::Relative::Scalar(5.0))
             .set(self.ids.login_button, ui_widgets)
             .was_clicked()
