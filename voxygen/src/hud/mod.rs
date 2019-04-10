@@ -7,7 +7,7 @@ use crate::{
 };
 use common::assets;
 use conrod_core::{
-    color, Color,
+    color,
     image::Id as ImgId,
     text::font::Id as FontId,
     widget::{Button, Image, Rectangle, Scrollbar, Text},
@@ -459,7 +459,7 @@ impl Hud {
             typing: false,
             cursor_grabbed: true,
             settings_tab: SettingsTab::Interface,
-            show_help: false,
+            show_help: true,
             bag_open: false,
             menu_open: false,
             map_open: false,
@@ -511,7 +511,7 @@ impl Hud {
             if self.show_help {
                 Image::new(self.imgs.window_frame_2)
                     .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                    .w_h(300.0, 300.0)
+                    .w_h(300.0, 370.0)
                     .set(self.ids.help_bg, ui_widgets);
 
                 Text::new(
@@ -521,6 +521,9 @@ impl Hud {
                      \n\
                      F1 = Toggle this Window \n\
                      F2 = Toggle Interface   \n\
+                     \n\
+                     Enter = Open Chat       \n\
+                     Mouse Wheel= Scroll Chat\n\
                      \n\
                      M = Map                 \n\
                      B = Bag                 \n\
@@ -775,14 +778,14 @@ impl Hud {
             // Insert actual Level here
             Text::new("1")
                 .left_from(self.ids.xp_bar, -15.0)
-                .font_size(14)
+                .font_size(10)
                 .color(TEXT_COLOR)
                 .set(self.ids.level_text, ui_widgets);
 
             // Insert next Level here
             Text::new("2")
                 .right_from(self.ids.xp_bar, -15.0)
-                .font_size(14)
+                .font_size(10)
                 .color(TEXT_COLOR)
                 .set(self.ids.next_level_text, ui_widgets);
 
