@@ -3,7 +3,7 @@ use conrod_core::{
     input::Key,
     position::Dimension,
     text::font::Id as FontId,
-    widget::{Button, Id, List, Rectangle, Text, TextEdit},
+    widget::{Id, Button, List, Rectangle, Text, TextEdit},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
 use std::collections::VecDeque;
@@ -70,12 +70,7 @@ impl Chat {
     fn scroll_to_bottom(&self, ui_widgets: &mut UiCell) {
         ui_widgets.scroll_widget(self.ids.message_box, [0.0, std::f64::MAX]);
     }
-    pub(super) fn update_layout(
-        &mut self,
-        ui_widgets: &mut UiCell,
-        font: FontId,
-        imgs: &super::Imgs,
-    ) -> Option<String> {
+    pub(super) fn update_layout(&mut self, ui_widgets: &mut UiCell, font: FontId, imgs: &super::Imgs) -> Option<String> {
         // Maintain scrolling
         if self.new_messages {
             self.scroll_new_messages(ui_widgets);
@@ -107,13 +102,12 @@ impl Chat {
         }
 
         // Message box
-        Rectangle::fill([470.0, 160.0])
+        Rectangle::fill([470.0, 180.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
         let (mut items, scrollbar) = List::flow_down(self.messages.len())
-            .top_left_with_margins_on(self.ids.message_box_bg, 0.0, 5.0)
-            .w_h(460.0, 160.0)
+            .middle_of(self.ids.message_box_bg)
             .scrollbar_next_to()
             .scrollbar_thickness(18.0)
             .scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
@@ -123,7 +117,7 @@ impl Chat {
                 Text::new(&self.messages[item.i])
                     .font_size(14)
                     .font_id(font)
-                    .rgba(1.0, 1.0, 1.0, 1.0),
+                    .rgba(0.86 , 0.86, 0.86, 1.0),
                 ui_widgets,
             )
         }
@@ -131,12 +125,12 @@ impl Chat {
         // Chat Arrow
         if !self.scrolled_to_bottom(ui_widgets) {
             if Button::image(imgs.chat_arrow)
-                .w_h(22.0, 22.0)
-                .hover_image(imgs.chat_arrow_mo)
-                .press_image(imgs.chat_arrow_press)
-                .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
-                .set(self.ids.chat_arrow, ui_widgets)
-                .was_clicked()
+            .w_h(22.0, 22.0)
+            .hover_image(imgs.chat_arrow_mo)
+            .press_image(imgs.chat_arrow_press)
+            .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
+            .set(self.ids.chat_arrow, ui_widgets)
+            .was_clicked()
             {
                 self.scroll_to_bottom(ui_widgets);
             }

@@ -6,7 +6,10 @@ use crate::{
     GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::clock::Clock;
+use common::{
+    comp,
+    clock::Clock,
+};
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
@@ -67,12 +70,12 @@ impl PlayState for MainMenuState {
                             Ok(mut socket_adders) => {
                                 while let Some(socket_addr) = socket_adders.next() {
                                     // TODO: handle error
-                                    match Client::new(socket_addr) {
+                                    match Client::new(socket_addr, comp::Player::new(username.clone()), Some(comp::Character::test())) {
                                         Ok(client) => {
                                             return PlayStateResult::Push(
                                                 Box::new(CharSelectionState::new(
                                                     &mut global_state.window,
-                                                    std::rc::Rc::new(std::cell::RefCell::new(client.with_test_state())) // <--- TODO: Remove this
+                                                    std::rc::Rc::new(std::cell::RefCell::new(client)) // <--- TODO: Remove this
                                                 ))
                                             );
                                         }
