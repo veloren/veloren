@@ -67,7 +67,6 @@ impl Client {
         // Wait for handshake from server
         let (state, player) = match postbox.next_message() {
             Some(ServerMsg::Handshake { ecs_state, player_entity }) => {
-                println!("STATE PACKAGE! {:?}", ecs_state);
                 let mut state = State::from_state_package(ecs_state);
                 let player_entity = state.ecs().entity_from_uid(player_entity);
                 (state, player_entity)
@@ -98,12 +97,6 @@ impl Client {
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
     pub fn thread_pool(&self) -> &threadpool::ThreadPool { &self.thread_pool }
-
-    // TODO: Get rid of this
-    pub fn with_test_state(mut self) -> Self {
-        self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
-        self
-    }
 
     /// Get a reference to the client's game state.
     #[allow(dead_code)]
@@ -158,6 +151,9 @@ impl Client {
             const PLAYER_VELOCITY: f32 = 100.0;
             // TODO: Set acceleration instead
             self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+            if input.move_dir.magnitude() > 0.01 {
+                self.state.write_component(ecs_entity, comp::phys::Dir(input.move_dir.normalized().into()));
+            }
         }
 
         // Tick the client's LocalState (step 3)
@@ -207,10 +203,7 @@ impl Client {
                     ServerMsg::Pong => {},
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => self.player = Some(self.state.ecs().entity_from_uid(uid).unwrap()), // TODO: Don't unwrap here!
-                    ServerMsg::EcsSync(sync_package) => {
-                        println!("SYNC PACKAGE! {:?}", sync_package);
-                        self.state.ecs_mut().sync_with_package(sync_package)
-                    },
+                    ServerMsg::EcsSync(sync_package) => self.state.ecs_mut().sync_with_package(sync_package),
                 }
             }
         } else if let Some(err) = self.postbox.error() {

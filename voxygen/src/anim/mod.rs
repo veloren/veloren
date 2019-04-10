@@ -25,7 +25,7 @@ impl Bone {
     }
 }
 
-pub trait Skeleton {
+pub trait Skeleton: Send + Sync + 'static {
     fn compute_matrices(&self) -> [FigureBoneData; 16];
 }
 

@@ -182,6 +182,9 @@ impl Server {
 
                                 // Write client components
                                 state.write_component(client.entity, player);
+                                state.write_component(client.entity, comp::phys::Pos(Vec3::zero()));
+                                state.write_component(client.entity, comp::phys::Vel(Vec3::zero()));
+                                state.write_component(client.entity, comp::phys::Dir(Vec3::unit_y()));
                                 if let Some(character) = character {
                                     state.write_component(client.entity, character);
                                 }
