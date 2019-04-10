@@ -1,4 +1,4 @@
-#![feature(euclidean_division, duration_float, try_from, trait_alias)]
+#![feature(euclidean_division, duration_float, trait_alias)]
 
 #[macro_use]
 extern crate serde_derive;

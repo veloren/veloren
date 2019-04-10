@@ -3,6 +3,7 @@ use common::net::PostError;
 #[derive(Debug)]
 pub enum Error {
     Network(PostError),
+    ServerWentMad,
     ServerTimeout,
     ServerShutdown,
     Other(String),
