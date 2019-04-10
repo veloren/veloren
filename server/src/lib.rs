@@ -13,6 +13,7 @@ pub use crate::{
 use std::{
     time::Duration,
     net::SocketAddr,
+    sync::mpsc,
 };
 use specs::{
     Entity as EcsEntity,
@@ -22,11 +23,13 @@ use specs::{
     saveload::MarkedBuilder,
 };
 use vek::*;
+use threadpool::ThreadPool;
 use common::{
     comp,
     state::State,
     net::PostOffice,
     msg::{ServerMsg, ClientMsg},
+    terrain::TerrainChunk,
 };
 use world::World;
 use crate::client::{
@@ -56,18 +59,30 @@ pub struct Server {
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
     clients: Clients,
+
+    thread_pool: ThreadPool,
+    chunk_tx: mpsc::Sender<(Vec3<i32>, TerrainChunk)>,
+    chunk_rx: mpsc::Receiver<(Vec3<i32>, TerrainChunk)>,
 }
 
 impl Server {
     /// Create a new `Server`.
     #[allow(dead_code)]
     pub fn new() -> Result<Self, Error> {
+        let (chunk_tx, chunk_rx) = mpsc::channel();
+
         Ok(Self {
             state: State::new(),
             world: World::new(),
 
             postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
             clients: Clients::empty(),
+
+            thread_pool: threadpool::Builder::new()
+                .thread_name("veloren-worker".into())
+                .build(),
+            chunk_tx,
+            chunk_rx,
         })
     }
 
@@ -119,6 +134,27 @@ impl Server {
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
 
+        // Fetch any generated `TerrainChunk`s and insert them into the terrain
+        // Also, send the chunk data to anybody that is close by
+        for (key, chunk) in self.chunk_rx.try_iter() {
+            // Send the chunk to all nearby players
+            for (entity, player, pos) in (
+                &self.state.ecs().internal().entities(),
+                &self.state.ecs().internal().read_storage::<comp::Player>(),
+                &self.state.ecs().internal().read_storage::<comp::phys::Pos>(),
+            ).join() {
+                // TODO: Distance check
+                // if self.state.terrain().key_pos(key)
+
+                self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
+                    key,
+                    chunk: chunk.clone(),
+                });
+            }
+
+            self.state.insert_chunk(key, chunk);
+        }
+
         // Synchronise clients with the new state of the world
         self.sync_clients();
 
@@ -143,9 +179,8 @@ impl Server {
                 .create_entity_synced()
                 .build();
 
-            self.clients.add(Client {
+            self.clients.add(entity, Client {
                 state: ClientState::Connecting,
-                entity,
                 postbox,
                 last_ping: self.state.get_time(),
             });
@@ -166,7 +201,7 @@ impl Server {
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
 
-        self.clients.remove_if(|client| {
+        self.clients.remove_if(|entity, client| {
             let mut disconnect = false;
             let new_msgs = client.postbox.new_messages();
 
@@ -181,12 +216,12 @@ impl Server {
                             ClientMsg::Connect { player, character } => {
 
                                 // Write client components
-                                state.write_component(client.entity, player);
-                                state.write_component(client.entity, comp::phys::Pos(Vec3::zero()));
-                                state.write_component(client.entity, comp::phys::Vel(Vec3::zero()));
-                                state.write_component(client.entity, comp::phys::Dir(Vec3::unit_y()));
+                                state.write_component(entity, player);
+                                state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+                                state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+                                state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
                                 if let Some(character) = character {
-                                    state.write_component(client.entity, character);
+                                    state.write_component(entity, character);
                                 }
 
                                 client.state = ClientState::Connected;
@@ -196,7 +231,7 @@ impl Server {
                                     ecs_state: state.ecs().gen_state_package(),
                                     player_entity: state
                                         .ecs()
-                                        .uid_from_entity(client.entity)
+                                        .uid_from_entity(entity)
                                         .unwrap()
                                         .into(),
                                 });
@@ -207,11 +242,11 @@ impl Server {
                             ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
                             ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
                             ClientMsg::Pong => {},
-                            ClientMsg::Chat(msg) => new_chat_msgs.push((client.entity, msg)),
+                            ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
-                                state.write_component(client.entity, pos);
-                                state.write_component(client.entity, vel);
-                                state.write_component(client.entity, dir);
+                                state.write_component(entity, pos);
+                                state.write_component(entity, vel);
+                                state.write_component(entity, dir);
                             },
                             ClientMsg::Disconnect => disconnect = true,
                         },
@@ -228,7 +263,7 @@ impl Server {
             }
 
             if disconnect {
-                disconnected_clients.push(client.entity);
+                disconnected_clients.push(entity);
                 true
             } else {
                 false

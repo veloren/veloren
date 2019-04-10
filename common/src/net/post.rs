@@ -56,8 +56,8 @@ impl<T> From<mio_extras::channel::SendError<T>> for Error {
     }
 }
 
-pub trait PostSend = 'static + serde::Serialize + Send + fmt::Debug;
-pub trait PostRecv = 'static + serde::de::DeserializeOwned + Send + fmt::Debug;
+pub trait PostSend = 'static + serde::Serialize + Send;
+pub trait PostRecv = 'static + serde::de::DeserializeOwned + Send;
 
 const TCP_TOK:     Token = Token(0);
 const CTRL_TOK:    Token = Token(1);

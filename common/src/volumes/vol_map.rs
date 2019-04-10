@@ -129,4 +129,8 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     pub fn remove(&mut self, key: &Vec3<i32>) -> Option<Chunk<V, S, M>> {
         self.chunks.remove(key)
     }
+
+    pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> {
+        key * S::SIZE.map(|e| e as i32)
+    }
 }

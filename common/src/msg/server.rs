@@ -1,6 +1,8 @@
+use vek::*;
+use crate::terrain::TerrainChunk;
 use super::EcsPacket;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     Handshake {
         ecs_state: sphynx::StatePackage<EcsPacket>,
@@ -12,4 +14,8 @@ pub enum ServerMsg {
     Chat(String),
     SetPlayerEntity(u64),
     EcsSync(sphynx::SyncPackage<EcsPacket>),
+    TerrainChunkUpdate {
+        key: Vec3<i32>,
+        chunk: TerrainChunk,
+    },
 }

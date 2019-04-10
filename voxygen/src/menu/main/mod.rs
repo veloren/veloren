@@ -58,7 +58,7 @@ impl PlayState for MainMenuState {
 
             global_state.window.renderer_mut().clear(BG_COLOR);
 
-            // Maintain the UI
+            // Maintain the UI (TODO: Maybe clean this up a little to avoid rightward drift?)
             for event in self.main_menu_ui.maintain(global_state.window.renderer_mut()) {
                 match event {
                     MainMenuEvent::LoginAttempt{ username, server_address } => {
@@ -70,7 +70,7 @@ impl PlayState for MainMenuState {
                             Ok(mut socket_adders) => {
                                 while let Some(socket_addr) = socket_adders.next() {
                                     // TODO: handle error
-                                    match Client::new(socket_addr, comp::Player::new(username.clone()), Some(comp::Character::test())) {
+                                    match Client::new(socket_addr, comp::Player::new(username.clone()), Some(comp::Character::test()), 300) {
                                         Ok(client) => {
                                             return PlayStateResult::Push(
                                                 Box::new(CharSelectionState::new(
