@@ -107,7 +107,7 @@ impl Chat {
         }
 
         // Message box
-        Rectangle::fill([470.0, 160.0])
+        Rectangle::fill([470.0, 167.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
