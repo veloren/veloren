@@ -1,5 +1,4 @@
-// Library
-use specs::{Component, VecStorage};
+use specs::{Component, VecStorage, FlaggedStorage};
 use vek::*;
 
 // Pos
@@ -8,7 +7,7 @@ use vek::*;
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
-    type Storage = VecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 // Vel
@@ -17,7 +16,7 @@ impl Component for Pos {
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
-    type Storage = VecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 // Dir
@@ -26,17 +25,5 @@ impl Component for Vel {
 pub struct Dir(pub Vec3<f32>);
 
 impl Component for Dir {
-    type Storage = VecStorage<Self>;
-}
-
-// UpdateKind
-
-#[derive(Copy, Clone, Debug)]
-pub enum UpdateKind {
-    Passive,
-    Force,
-}
-
-impl Component for UpdateKind {
-    type Storage = VecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }

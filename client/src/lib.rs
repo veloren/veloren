@@ -50,10 +50,30 @@ pub struct Client {
 impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
-    pub fn new<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        let state = State::new();
+    pub fn new<A: Into<SocketAddr>>(
+        addr: A,
+        player: comp::Player,
+        character: Option<comp::Character>,
+    ) -> Result<Self, Error> {
 
         let mut postbox = PostBox::to_server(addr)?;
+
+        // Send connection request
+        postbox.send(ClientMsg::Connect {
+            player,
+            character,
+        });
+
+        // Wait for handshake from server
+        let (state, player) = match postbox.next_message() {
+            Some(ServerMsg::Handshake { ecs_state, player_entity }) => {
+                println!("STATE PACKAGE! {:?}", ecs_state);
+                let mut state = State::from_state_package(ecs_state);
+                let player_entity = state.ecs().entity_from_uid(player_entity);
+                (state, player_entity)
+            },
+            _ => return Err(Error::ServerWentMad),
+        };
 
         Ok(Self {
             thread_pool: threadpool::Builder::new()
@@ -65,7 +85,7 @@ impl Client {
 
             tick: 0,
             state,
-            player: None,
+            player,
 
             // Testing
             world: World::new(),
@@ -83,12 +103,6 @@ impl Client {
     pub fn with_test_state(mut self) -> Self {
         self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
         self
-    }
-
-    // TODO: Get rid of this
-    pub fn load_chunk(&mut self, pos: Vec3<i32>) {
-        self.state.terrain_mut().insert(pos, self.world.generate_chunk(pos));
-        self.state.changes_mut().new_chunks.push(pos);
     }
 
     /// Get a reference to the client's game state.
@@ -187,28 +201,15 @@ impl Client {
 
             for msg in new_msgs {
                 match msg {
+                    ServerMsg::Handshake { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Ping => self.postbox.send(ClientMsg::Pong),
                     ServerMsg::Pong => {},
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
-                    ServerMsg::SetPlayerEntity(uid) => {
-                        let ecs_entity = self.state
-                            .get_entity(uid)
-                            .unwrap_or_else(|| self.state.build_uid_entity_with_uid(uid).build());
-
-                        self.player = Some(ecs_entity);
-                    },
-                    ServerMsg::EntityPhysics { uid, pos, vel, dir } => {
-                        let ecs_entity = self.state
-                            .get_entity(uid)
-                            .unwrap_or_else(|| self.state.build_uid_entity_with_uid(uid).build());
-
-                        self.state.write_component(ecs_entity, pos);
-                        self.state.write_component(ecs_entity, vel);
-                        self.state.write_component(ecs_entity, dir);
-                    },
-                    ServerMsg::EntityDeleted(uid) => {
-                        self.state.delete_entity(uid);
+                    ServerMsg::SetPlayerEntity(uid) => self.player = Some(self.state.ecs().entity_from_uid(uid).unwrap()), // TODO: Don't unwrap here!
+                    ServerMsg::EcsSync(sync_package) => {
+                        println!("SYNC PACKAGE! {:?}", sync_package);
+                        self.state.ecs_mut().sync_with_package(sync_package)
                     },
                 }
             }

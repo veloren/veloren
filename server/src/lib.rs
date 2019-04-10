@@ -30,6 +30,7 @@ use common::{
 };
 use world::World;
 use crate::client::{
+    ClientState,
     Client,
     Clients,
 };
@@ -38,13 +39,13 @@ const CLIENT_TIMEOUT: f64 = 5.0; // Seconds
 
 pub enum Event {
     ClientConnected {
-        ecs_entity: EcsEntity,
+        entity: EcsEntity,
     },
     ClientDisconnected {
-        ecs_entity: EcsEntity,
+        entity: EcsEntity,
     },
     Chat {
-        ecs_entity: EcsEntity,
+        entity: EcsEntity,
         msg: String,
     },
 }
@@ -76,15 +77,6 @@ impl Server {
     /// Get a mutable reference to the server's game state.
     #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
-
-    /// Build a new player with a generated UID
-    pub fn build_player(&mut self) -> EcsEntityBuilder {
-        self.state.build_uid_entity()
-            .with(comp::phys::Pos(Vec3::zero()))
-            .with(comp::phys::Vel(Vec3::zero()))
-            .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::phys::UpdateKind::Passive)
-    }
 
     /// Get a reference to the server's world.
     #[allow(dead_code)]
@@ -146,23 +138,20 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         for mut postbox in self.postoffice.new_connections() {
-            let ecs_entity = self.build_player()
-                // When the player is first created, force a physics notification to everyone
-                // including themselves.
-                .with(comp::phys::UpdateKind::Force)
+            let entity = self.state
+                .ecs_mut()
+                .create_entity_synced()
                 .build();
-            let uid = self.state.read_storage().get(ecs_entity).cloned().unwrap();
-
-            postbox.send(ServerMsg::SetPlayerEntity(uid));
 
             self.clients.add(Client {
-                ecs_entity,
+                state: ClientState::Connecting,
+                entity,
                 postbox,
                 last_ping: self.state.get_time(),
             });
 
             frontend_events.push(Event::ClientConnected {
-                ecs_entity,
+                entity,
             });
         }
 
@@ -178,7 +167,7 @@ impl Server {
         let mut disconnected_clients = Vec::new();
 
         self.clients.remove_if(|client| {
-            let mut disconnected = false;
+            let mut disconnect = false;
             let new_msgs = client.postbox.new_messages();
 
             // Update client ping
@@ -187,30 +176,56 @@ impl Server {
 
                 // Process incoming messages
                 for msg in new_msgs {
-                    match msg {
-                        ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
-                        ClientMsg::Pong => {},
-                        ClientMsg::Chat(msg) => new_chat_msgs.push((client.ecs_entity, msg)),
-                        ClientMsg::PlayerPhysics { pos, vel, dir } => {
-                            state.write_component(client.ecs_entity, pos);
-                            state.write_component(client.ecs_entity, vel);
-                            state.write_component(client.ecs_entity, dir);
+                    match client.state {
+                        ClientState::Connecting => match msg {
+                            ClientMsg::Connect { player, character } => {
+
+                                // Write client components
+                                state.write_component(client.entity, player);
+                                if let Some(character) = character {
+                                    state.write_component(client.entity, character);
+                                }
+
+                                client.state = ClientState::Connected;
+
+                                // Return a handshake with the state of the current world
+                                client.notify(ServerMsg::Handshake {
+                                    ecs_state: state.ecs().gen_state_package(),
+                                    player_entity: state
+                                        .ecs()
+                                        .uid_from_entity(client.entity)
+                                        .unwrap()
+                                        .into(),
+                                });
+                            },
+                            _ => disconnect = true,
                         },
-                        ClientMsg::Disconnect => disconnected = true,
+                        ClientState::Connected => match msg {
+                            ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
+                            ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
+                            ClientMsg::Pong => {},
+                            ClientMsg::Chat(msg) => new_chat_msgs.push((client.entity, msg)),
+                            ClientMsg::PlayerPhysics { pos, vel, dir } => {
+                                state.write_component(client.entity, pos);
+                                state.write_component(client.entity, vel);
+                                state.write_component(client.entity, dir);
+                            },
+                            ClientMsg::Disconnect => disconnect = true,
+                        },
                     }
                 }
             } else if
                 state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
                 client.postbox.error().is_some() // Postbox error
             {
-                disconnected = true;
+                disconnect = true;
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing
                 client.postbox.send(ServerMsg::Ping);
             }
 
-            if disconnected {
-                disconnected_clients.push(client.ecs_entity);
+            if disconnect {
+                disconnected_clients.push(client.entity);
                 true
             } else {
                 false
@@ -218,24 +233,30 @@ impl Server {
         });
 
         // Handle new chat messages
-        for (ecs_entity, msg) in new_chat_msgs {
-            self.clients.notify_all(ServerMsg::Chat(msg.clone()));
+        for (entity, msg) in new_chat_msgs {
+            self.clients.notify_connected(ServerMsg::Chat(match state
+                .ecs()
+                .internal()
+                .read_storage::<comp::Player>()
+                .get(entity)
+            {
+                Some(player) => format!("[{}] {}", &player.alias, msg),
+                None => format!("[<anon>] {}", msg),
+            }));
 
             frontend_events.push(Event::Chat {
-                ecs_entity,
+                entity,
                 msg,
             });
         }
 
         // Handle client disconnects
-        for ecs_entity in disconnected_clients {
-            self.clients.notify_all(ServerMsg::EntityDeleted(state.read_storage().get(ecs_entity).cloned().unwrap()));
+        for entity in disconnected_clients {
+            state.ecs_mut().delete_entity_synced(entity);
 
             frontend_events.push(Event::ClientDisconnected {
-                ecs_entity,
+                entity,
             });
-
-            state.ecs_world_mut().delete_entity(ecs_entity);
         }
 
         Ok(frontend_events)
@@ -243,36 +264,12 @@ impl Server {
 
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
-        for (entity, &uid, &pos, &vel, &dir, update_kind) in (
-            &self.state.ecs_world().entities(),
-            &self.state.ecs_world().read_storage::<comp::Uid>(),
-            &self.state.ecs_world().read_storage::<comp::phys::Pos>(),
-            &self.state.ecs_world().read_storage::<comp::phys::Vel>(),
-            &self.state.ecs_world().read_storage::<comp::phys::Dir>(),
-            &mut self.state.ecs_world().write_storage::<comp::phys::UpdateKind>(),
-        ).join() {
-            let msg = ServerMsg::EntityPhysics {
-                uid,
-                pos,
-                vel,
-                dir,
-            };
-
-            // Sometimes we need to force updated (i.e: teleporting players). This involves sending
-            // everyone, including the player themselves, of their new physics information.
-            match update_kind {
-                comp::phys::UpdateKind::Force => self.clients.notify_all(msg),
-                comp::phys::UpdateKind::Passive => self.clients.notify_all_except(entity, msg),
-            }
-
-            // Now that the update has occured, default to a passive update
-            *update_kind = comp::phys::UpdateKind::Passive;
-        }
+        self.clients.notify_connected(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
     }
 }
 
 impl Drop for Server {
     fn drop(&mut self) {
-        self.clients.notify_all(ServerMsg::Shutdown);
+        self.clients.notify_connected(ServerMsg::Shutdown);
     }
 }

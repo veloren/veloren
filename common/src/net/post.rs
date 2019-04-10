@@ -251,6 +251,45 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         let _ = self.send_tx.send(data);
     }
 
+    // TODO: This method is super messy
+    pub fn next_message(&mut self) -> Option<R> {
+        if self.err.is_some() {
+            return None;
+        }
+
+        loop {
+            let mut events = Events::with_capacity(10);
+            if let Err(err) = self.poll.poll(
+                &mut events,
+                Some(Duration::new(0, 0)),
+            ) {
+                self.err = Some(err.into());
+                return None;
+            }
+
+            for event in events {
+                match event.token() {
+                    // Keep reading new messages from the channel
+                    RECV_TOK => loop {
+                        match self.recv_rx.try_recv() {
+                            Ok(Ok(msg)) => return Some(msg),
+                            Err(TryRecvError::Empty) => break,
+                            Err(err) => {
+                                self.err = Some(err.into());
+                                return None;
+                            },
+                            Ok(Err(err)) => {
+                                self.err = Some(err);
+                                return None;
+                            },
+                        }
+                    },
+                    tok => panic!("Unexpected event token '{:?}'", tok),
+                }
+            }
+        }
+    }
+
     pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item=R> {
         let mut msgs = VecDeque::new();
 

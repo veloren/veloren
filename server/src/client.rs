@@ -6,10 +6,23 @@ use common::{
 };
 use crate::Error;
 
+#[derive(PartialEq)]
+pub enum ClientState {
+    Connecting,
+    Connected,
+}
+
 pub struct Client {
-    pub ecs_entity: EcsEntity,
+    pub state: ClientState,
+    pub entity: EcsEntity,
     pub postbox: PostBox<ServerMsg, ClientMsg>,
     pub last_ping: f64,
+}
+
+impl Client {
+    pub fn notify(&mut self, msg: ServerMsg) {
+        self.postbox.send(msg);
+    }
 }
 
 pub struct Clients {
@@ -31,15 +44,17 @@ impl Clients {
         self.clients.drain_filter(f);
     }
 
-    pub fn notify_all(&mut self, msg: ServerMsg) {
+    pub fn notify_connected(&mut self, msg: ServerMsg) {
         for client in &mut self.clients {
-            client.postbox.send(msg.clone());
+            if client.state == ClientState::Connected {
+                client.postbox.send(msg.clone());
+            }
         }
     }
 
-    pub fn notify_all_except(&mut self, ecs_entity: EcsEntity, msg: ServerMsg) {
+    pub fn notify_connected_except(&mut self, entity: EcsEntity, msg: ServerMsg) {
         for client in &mut self.clients {
-            if client.ecs_entity != ecs_entity {
+            if client.entity != entity && client.state == ClientState::Connected {
                 client.postbox.send(msg.clone());
             }
         }
