@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    time::Duration,
+    collections::HashSet,
+};
 use shred::{Fetch, FetchMut};
 use specs::{
     Builder,
@@ -17,7 +20,10 @@ use vek::*;
 use crate::{
     comp,
     sys,
-    terrain::TerrainMap,
+    terrain::{
+        TerrainMap,
+        TerrainChunk,
+    },
     msg::EcsPacket,
 };
 
@@ -36,17 +42,17 @@ struct Time(f64);
 pub struct DeltaTime(pub f64);
 
 pub struct Changes {
-    pub new_chunks: Vec<Vec3<i32>>,
-    pub changed_chunks: Vec<Vec3<i32>>,
-    pub removed_chunks: Vec<Vec3<i32>>,
+    pub new_chunks: HashSet<Vec3<i32>>,
+    pub changed_chunks: HashSet<Vec3<i32>>,
+    pub removed_chunks: HashSet<Vec3<i32>>,
 }
 
 impl Changes {
     pub fn default() -> Self {
         Self {
-            new_chunks: vec![],
-            changed_chunks: vec![],
-            removed_chunks: vec![],
+            new_chunks: HashSet::new(),
+            changed_chunks: HashSet::new(),
+            removed_chunks: HashSet::new(),
         }
     }
 
@@ -152,12 +158,23 @@ impl State {
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
-        self.ecs.internal().read_resource::<TerrainMap>()
+        self.ecs
+            .internal()
+            .read_resource::<TerrainMap>()
     }
 
-    // TODO: Get rid of this since it shouldn't be needed
-    pub fn terrain_mut(&mut self) -> FetchMut<TerrainMap> {
-        self.ecs.internal_mut().write_resource::<TerrainMap>()
+    /// Insert the provided chunk into this state's terrain.
+    pub fn insert_chunk(&mut self, key: Vec3<i32>, chunk: TerrainChunk) {
+        if self.ecs
+            .internal_mut()
+            .write_resource::<TerrainMap>()
+            .insert(key, chunk)
+            .is_some()
+        {
+            self.changes.changed_chunks.insert(key);
+        } else {
+            self.changes.new_chunks.insert(key);
+        }
     }
 
     /// Execute a single tick, simulating the game state by the given duration.

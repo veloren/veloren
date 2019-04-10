@@ -10,3 +10,4 @@ world = { package = "veloren-world", path = "../world" }
 
 specs = "0.14"
 vek = "0.9"
+threadpool = "1.7"

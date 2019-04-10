@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 
 // Library
 use vek::*;
+use serde_derive::{Serialize, Deserialize};
 
 // Local
 use crate::vol::{
@@ -23,6 +24,7 @@ pub enum ChunkErr {
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Chunk<V: Vox, S: VolSize, M> {
     vox: Vec<V>,
     meta: M,
