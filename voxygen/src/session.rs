@@ -105,6 +105,7 @@ impl PlayState for SessionState {
         let mut clock = Clock::new();
 
         // Load a few chunks TODO: Remove this
+        /*
         for x in -6..7 {
             for y in -6..7 {
                 for z in -1..2 {
@@ -112,6 +113,7 @@ impl PlayState for SessionState {
                 }
             }
         }
+        */
 
         // Game loop
         loop {

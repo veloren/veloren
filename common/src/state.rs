@@ -6,18 +6,19 @@ use specs::{
     DispatcherBuilder,
     EntityBuilder as EcsEntityBuilder,
     Entity as EcsEntity,
-    World as EcsWorld,
     storage::{
         Storage as EcsStorage,
         MaskedStorage as EcsMaskedStorage,
     },
     saveload::{MarkedBuilder, MarkerAllocator},
 };
+use sphynx;
 use vek::*;
 use crate::{
     comp,
     sys,
     terrain::TerrainMap,
+    msg::EcsPacket,
 };
 
 /// How much faster should an in-game day be compared to a real day?
@@ -59,95 +60,74 @@ impl Changes {
 /// A type used to represent game state stored on both the client and the server. This includes
 /// things like entity components, terrain data, and global state like weather, time of day, etc.
 pub struct State {
-    ecs_world: EcsWorld,
+    ecs: sphynx::World<EcsPacket>,
     changes: Changes,
 }
 
 impl State {
     /// Create a new `State`.
     pub fn new() -> Self {
-        let mut ecs_world = EcsWorld::new();
-
-        // Register resources used by the ECS
-        ecs_world.add_resource(TimeOfDay(0.0));
-        ecs_world.add_resource(Time(0.0));
-        ecs_world.add_resource(DeltaTime(0.0));
-        ecs_world.add_resource(TerrainMap::new());
-
-        // Register common components with the state
-        comp::register_local_components(&mut ecs_world);
-
         Self {
-            ecs_world,
+            ecs: sphynx::World::new(specs::World::new(), Self::setup_sphynx_world),
             changes: Changes::default(),
         }
+    }
+
+    /// Create a new `State` from an ECS state package
+    pub fn from_state_package(state_package: sphynx::StatePackage<EcsPacket>) -> Self {
+        Self {
+            ecs: sphynx::World::from_state_package(specs::World::new(), Self::setup_sphynx_world, state_package),
+            changes: Changes::default(),
+        }
+    }
+
+    // Create a new Sphynx ECS world
+    fn setup_sphynx_world(ecs: &mut sphynx::World<EcsPacket>) {
+        // Register synced components
+        ecs.register_synced::<comp::phys::Pos>();
+        ecs.register_synced::<comp::phys::Vel>();
+        ecs.register_synced::<comp::phys::Dir>();
+        ecs.register_synced::<comp::Character>();
+        ecs.register_synced::<comp::Player>();
+
+        // Register resources used by the ECS
+        ecs.internal_mut().add_resource(TimeOfDay(0.0));
+        ecs.internal_mut().add_resource(Time(0.0));
+        ecs.internal_mut().add_resource(DeltaTime(0.0));
+        ecs.internal_mut().add_resource(TerrainMap::new());
     }
 
     /// Register a component with the state's ECS
     pub fn with_component<T: Component>(mut self) -> Self
         where <T as Component>::Storage: Default
     {
-        self.ecs_world.register::<T>();
+        self.ecs.internal_mut().register::<T>();
         self
-    }
-
-    /// Build a new entity with a generated UID
-    pub fn build_uid_entity(&mut self) -> EcsEntityBuilder {
-        self.ecs_world.create_entity()
-            .with(comp::util::New)
-            .marked::<comp::Uid>()
-    }
-
-    /// Build an entity with a specific UID
-    pub fn build_uid_entity_with_uid(&mut self, uid: comp::Uid) -> EcsEntityBuilder {
-        let builder = self.build_uid_entity();
-
-        builder.world
-            .write_resource::<comp::UidAllocator>()
-            .allocate(builder.entity, Some(uid.into()));
-
-        builder
-    }
-
-    /// Get an entity from its UID, if it exists
-    pub fn get_entity(&self, uid: comp::Uid) -> Option<EcsEntity> {
-        // Find the ECS entity from its UID
-        self.ecs_world
-            .read_resource::<comp::UidAllocator>()
-            .retrieve_entity_internal(uid.into())
-    }
-
-    /// Delete an entity from the state's ECS, if it exists
-    pub fn delete_entity(&mut self, uid: comp::Uid) {
-        // Find the ECS entity from its UID
-        let ecs_entity = self.ecs_world
-            .read_resource::<comp::UidAllocator>()
-            .retrieve_entity_internal(uid.into());
-
-        // Delete the ECS entity, if it exists
-        if let Some(ecs_entity) = ecs_entity {
-            let _ = self.ecs_world.delete_entity(ecs_entity);
-        }
     }
 
     /// Write a component attributed to a particular entity
     pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
-        let _ = self.ecs_world.write_storage().insert(entity, comp);
+        let _ = self.ecs.internal_mut().write_storage().insert(entity, comp);
+    }
+
+    /// Read a component attributed to a particular entity
+    pub fn read_component_cloned<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
+        self.ecs.internal().read_storage().get(entity).cloned()
     }
 
     /// Get a read-only reference to the storage of a particular component type
     pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
-        self.ecs_world.read_storage::<C>()
+        self.ecs.internal().read_storage::<C>()
     }
 
     /// Get a reference to the internal ECS world
-    pub fn ecs_world(&self) -> &EcsWorld {
-        &self.ecs_world
+    pub fn ecs(&self) -> &sphynx::World<EcsPacket> {
+        &self.ecs
     }
 
     /// Get a mutable reference to the internal ECS world
-    pub fn ecs_world_mut(&mut self) -> &mut EcsWorld {
-        &mut self.ecs_world
+    pub fn ecs_mut(&mut self) -> &mut sphynx::World<EcsPacket> {
+        &mut self.ecs
     }
 
     /// Get a reference to the `Changes` structure of the state. This contains
@@ -156,54 +136,46 @@ impl State {
         &self.changes
     }
 
-    // TODO: Get rid of this since it shouldn't be needed
-    pub fn changes_mut(&mut self) -> &mut Changes {
-        &mut self.changes
-    }
-
     /// Get the current in-game time of day.
     ///
     /// Note that this should not be used for physics, animations or other such localised timings.
     pub fn get_time_of_day(&self) -> f64 {
-        self.ecs_world.read_resource::<TimeOfDay>().0
+        self.ecs.internal().read_resource::<TimeOfDay>().0
     }
 
     /// Get the current in-game time.
     ///
     /// Note that this does not correspond to the time of day.
     pub fn get_time(&self) -> f64 {
-        self.ecs_world.read_resource::<Time>().0
+        self.ecs.internal().read_resource::<Time>().0
     }
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
-        self.ecs_world.read_resource::<TerrainMap>()
+        self.ecs.internal().read_resource::<TerrainMap>()
     }
 
     // TODO: Get rid of this since it shouldn't be needed
     pub fn terrain_mut(&mut self) -> FetchMut<TerrainMap> {
-        self.ecs_world.write_resource::<TerrainMap>()
+        self.ecs.internal_mut().write_resource::<TerrainMap>()
     }
 
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
-        // First, wipe all temporary marker components
-        self.ecs_world.write_storage::<comp::util::New>().clear();
-
         // Change the time accordingly
-        self.ecs_world.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
-        self.ecs_world.write_resource::<Time>().0 += dt.as_secs_f64();
+        self.ecs.internal_mut().write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
+        self.ecs.internal_mut().write_resource::<Time>().0 += dt.as_secs_f64();
 
         // Run systems to update the world
-        self.ecs_world.write_resource::<DeltaTime>().0 = dt.as_secs_f64();
+        self.ecs.internal_mut().write_resource::<DeltaTime>().0 = dt.as_secs_f64();
 
         // Create and run dispatcher for ecs systems
         let mut dispatch_builder = DispatcherBuilder::new();
         sys::add_local_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel
-        dispatch_builder.build().dispatch(&self.ecs_world.res);
+        dispatch_builder.build().dispatch(&self.ecs.internal_mut().res);
 
-        self.ecs_world.maintain();
+        self.ecs.internal_mut().maintain();
     }
 
     /// Clean up the state after a tick

@@ -139,7 +139,8 @@ impl Scene {
             .player()
             .and_then(|ent| client
                 .state()
-                .ecs_world()
+                .ecs()
+                .internal()
                 .read_storage::<comp::phys::Pos>()
                 .get(ent)
                 .map(|pos| pos.0)

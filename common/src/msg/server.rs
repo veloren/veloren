@@ -1,20 +1,15 @@
-use crate::comp::{
-    Uid,
-    phys,
-};
+use super::EcsPacket;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerMsg {
+    Handshake {
+        ecs_state: sphynx::StatePackage<EcsPacket>,
+        player_entity: u64,
+    },
     Shutdown,
     Ping,
     Pong,
     Chat(String),
-    SetPlayerEntity(Uid),
-    EntityPhysics {
-        uid: Uid,
-        pos: phys::Pos,
-        vel: phys::Vel,
-        dir: phys::Dir,
-    },
-    EntityDeleted(Uid),
+    SetPlayerEntity(u64),
+    EcsSync(sphynx::SyncPackage<EcsPacket>),
 }
