@@ -7,10 +7,8 @@ pub use self::{
     biome::BiomeKind,
 };
 
-// Library
 use vek::*;
-
-// Crate
+use serde_derive::{Serialize, Deserialize};
 use crate::{
     vol::VolSize,
     volumes::{
@@ -21,6 +19,7 @@ use crate::{
 
 // TerrainChunkSize
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TerrainChunkSize;
 
 impl VolSize for TerrainChunkSize {
@@ -29,6 +28,7 @@ impl VolSize for TerrainChunkSize {
 
 // TerrainChunkMeta
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct TerrainChunkMeta {
     biome: BiomeKind,
 }

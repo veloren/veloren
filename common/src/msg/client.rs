@@ -1,6 +1,6 @@
 use crate::comp;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
     Connect {
         player: comp::Player,

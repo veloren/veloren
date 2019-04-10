@@ -15,7 +15,7 @@ use std::{
     net::SocketAddr,
 };
 use vek::*;
-use threadpool;
+use threadpool::ThreadPool;
 use specs::Builder;
 use common::{
     comp,
@@ -24,7 +24,6 @@ use common::{
     net::PostBox,
     msg::{ClientMsg, ServerMsg},
 };
-use world::World;
 
 const SERVER_TIMEOUT: f64 = 5.0; // Seconds
 
@@ -33,7 +32,7 @@ pub enum Event {
 }
 
 pub struct Client {
-    thread_pool: threadpool::ThreadPool,
+    thread_pool: ThreadPool,
 
     last_ping: f64,
     postbox: PostBox<ClientMsg, ServerMsg>,
@@ -41,10 +40,7 @@ pub struct Client {
     tick: u64,
     state: State,
     player: Option<EcsEntity>,
-
-    // Testing
-    world: World,
-    pub chunk: Option<TerrainChunk>,
+    view_distance: u64,
 }
 
 impl Client {
@@ -54,6 +50,7 @@ impl Client {
         addr: A,
         player: comp::Player,
         character: Option<comp::Character>,
+        view_distance: u64,
     ) -> Result<Self, Error> {
 
         let mut postbox = PostBox::to_server(addr)?;
@@ -85,10 +82,7 @@ impl Client {
             tick: 0,
             state,
             player,
-
-            // Testing
-            world: World::new(),
-            chunk: None,
+            view_distance,
         })
     }
 
@@ -204,6 +198,7 @@ impl Client {
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => self.player = Some(self.state.ecs().entity_from_uid(uid).unwrap()), // TODO: Don't unwrap here!
                     ServerMsg::EcsSync(sync_package) => self.state.ecs_mut().sync_with_package(sync_package),
+                    ServerMsg::TerrainChunkUpdate { key, chunk } => self.state.insert_chunk(key, chunk),
                 }
             }
         } else if let Some(err) = self.postbox.error() {
