@@ -137,4 +137,8 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> {
         key * S::SIZE.map(|e| e as i32)
     }
+
+    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> {
+        Self::chunk_key(pos)
+    }
 }

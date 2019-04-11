@@ -16,6 +16,8 @@ pub enum ServerMsg {
     EcsSync(sphynx::SyncPackage<EcsPacket>),
     TerrainChunkUpdate {
         key: Vec3<i32>,
-        chunk: TerrainChunk,
+        chunk: Box<TerrainChunk>,
     },
 }
+
+impl middleman::Message for ServerMsg {}

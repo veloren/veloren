@@ -21,7 +21,7 @@ pub struct Client {
 
 impl Client {
     pub fn notify(&mut self, msg: ServerMsg) {
-        self.postbox.send(msg);
+        self.postbox.send_message(msg);
     }
 }
 
