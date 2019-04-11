@@ -11,9 +11,6 @@ pub enum Error {
 
 impl From<PostError> for Error {
     fn from(err: PostError) -> Self {
-        match err {
-            PostError::Disconnect => Error::ServerShutdown,
-            err => Error::Network(err),
-        }
+        Error::Network(err)
     }
 }
