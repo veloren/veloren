@@ -868,14 +868,23 @@ impl CharSelectionUi {
                 const HUMAN_DESC: &str =
                     "The former nomads were only recently able to gain a foothold in the world of Veloren. \n\
                     \n\
-                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.";
+                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.\n\
+                    \n\
+                    Humans are extremely diverse. \n\
+                    Some become wicked witches, slimy scoundrels, and members of the underworld, while others become witch-hunters, sages, and noble knights. \n\
+                    This diversity however creates constant conflict and antagonism between humans themselves, rather than with the other races of Veloren.";
                 const ORC_DESC: &str =
                     "They are considered brutal, rude and combative. \n\
                      But once you gained their trust they will be loyal friends \n\
                      that follow a strict code of honor in all of their actions. \n\
                      \n\
                      Their warriors are masters of melee combat, but their true power \
-                     comes from the magical rituals of their powerful shamans.";
+                     comes from the magical rituals of their powerful shamans. \n\
+                     \n\
+                     They are  divided into three clans. \n\
+                     Two of them are led by the conflicting descendants of the recently deceased High-Warlord. \n\
+                     The third clan was formed by a group of Shamans to prevent the bloodshed caused by the rivaling groups and to secure their source of magic: \n\
+                     A powerful nature crystal, stolen from the Brushwood Elves...";
                 const DWARF_DESC: &str =
                     "Smoking chimneys, the sound of countless hammers and hoes. \
                     Infinite tunnel systems to track down even the last chunk of metal in the ground. \n\
@@ -899,6 +908,8 @@ impl CharSelectionUi {
                     Nature connected Brushwood Elves, that guard ancient powers inside the forests.\n\
                     \n\
                     Gold Elves that hunger for political power in their massive city states. \n\
+                    \n\
+                    Dark Elves, seeking war to brutalize their enemies, with ‘honor.’\n\
                     \n\
                     And many more!";
                 const DANARI_DESC: &str =
