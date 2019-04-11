@@ -23,6 +23,7 @@ use mio_extras::channel::{
     Sender,
 };
 use bincode;
+use middleman::Middleman;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Error {
@@ -56,14 +57,15 @@ impl<T> From<mio_extras::channel::SendError<T>> for Error {
     }
 }
 
-pub trait PostSend = 'static + serde::Serialize + Send;
-pub trait PostRecv = 'static + serde::de::DeserializeOwned + Send;
+pub trait PostSend = 'static + serde::Serialize + Send + middleman::Message;
+pub trait PostRecv = 'static + serde::de::DeserializeOwned + Send + middleman::Message;
 
-const TCP_TOK:     Token = Token(0);
-const CTRL_TOK:    Token = Token(1);
-const POSTBOX_TOK: Token = Token(2);
-const SEND_TOK:    Token = Token(3);
-const RECV_TOK:    Token = Token(4);
+const TCP_TOK:       Token = Token(0);
+const CTRL_TOK:      Token = Token(1);
+const POSTBOX_TOK:   Token = Token(2);
+const SEND_TOK:      Token = Token(3);
+const RECV_TOK:      Token = Token(4);
+const MIDDLEMAN_TOK: Token = Token(5);
 
 const MAX_MSG_BYTES: usize = 1 << 20;
 
@@ -218,7 +220,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         let (recv_tx, recv_rx) = channel();
 
         let worker_poll = Poll::new()?;
-        worker_poll.register(&tcp_stream, TCP_TOK, Ready::readable(), PollOpt::edge())?;
+        worker_poll.register(&tcp_stream, TCP_TOK, Ready::readable() | Ready::writable(), PollOpt::edge())?;
         worker_poll.register(&ctrl_rx, CTRL_TOK, Ready::readable(), PollOpt::edge())?;
         worker_poll.register(&send_rx, SEND_TOK, Ready::readable(), PollOpt::edge())?;
 
@@ -345,12 +347,38 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
     send_rx: Receiver<S>,
     recv_tx: Sender<Result<R, Error>>,
 ) -> Result<(), Error> {
+    fn try_tcp_send(tcp_stream: &mut TcpStream, chunks: &mut VecDeque<Vec<u8>>) -> Result<(), Error> {
+        loop {
+            let chunk = match chunks.pop_front() {
+                Some(chunk) => chunk,
+                None => break,
+            };
+
+            match tcp_stream.write_all(&chunk) {
+                Ok(()) => {},
+                Err(err) if err.kind() == io::ErrorKind::WouldBlock => {
+                    chunks.push_front(chunk);
+                    break;
+                },
+                Err(err) => {
+                    println!("Error: {:?}", err);
+                    return Err(err.into());
+                },
+            }
+        }
+
+        Ok(())
+    }
+
     enum RecvState {
         ReadHead(Vec<u8>),
         ReadBody(usize, Vec<u8>),
     }
 
-    let mut recv_state = RecvState::ReadHead(Vec::with_capacity(8));
+    let mut recv_state = RecvState::ReadHead(Vec::new());
+    let mut chunks = VecDeque::new();
+
+    //let mut recv_state = RecvState::ReadHead(Vec::with_capacity(8));
     let mut events = Events::with_capacity(64);
 
     'work: loop {
@@ -383,18 +411,23 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                                 },
                             };
 
-                            let mut packet = msg_bytes
+                            let mut bytes = msg_bytes
                                 .len()
                                 .to_le_bytes()
                                 .as_ref()
                                 .to_vec();
-                            packet.append(&mut msg_bytes);
+                            bytes.append(&mut msg_bytes);
 
-                            match tcp_stream.write_all(&packet) {
-                                Ok(()) => {},
+                            bytes
+                                .chunks(1024)
+                                .map(|chunk| chunk.to_vec())
+                                .for_each(|chunk| chunks.push_back(chunk));
+
+                            match try_tcp_send(&mut tcp_stream, &mut chunks) {
+                                Ok(_) => {},
                                 Err(err) => {
                                     recv_tx.send(Err(err.into()))?;
-                                    break 'work;
+                                    return Err(Error::Network);
                                 },
                             }
                         },
@@ -402,61 +435,75 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
                         Err(err) => Err(err)?,
                     }
                 },
-                TCP_TOK => loop {
-                    match tcp_stream.take_error() {
-                        Ok(None) => {},
-                        Ok(Some(err)) => {
-                            recv_tx.send(Err(err.into()))?;
-                            break 'work;
-                        },
+                TCP_TOK => {
+                    loop {
+                        // Check TCP error
+                        match tcp_stream.take_error() {
+                            Ok(None) => {},
+                            Ok(Some(err)) => {
+                                recv_tx.send(Err(err.into()))?;
+                                break 'work;
+                            },
+                            Err(err) => {
+                                recv_tx.send(Err(err.into()))?;
+                                break 'work;
+                            },
+                        }
+                        match &mut recv_state {
+                            RecvState::ReadHead(head) => if head.len() == 8 {
+                                let len = usize::from_le_bytes(<[u8; 8]>::try_from(head.as_slice()).unwrap());
+                                if len > MAX_MSG_BYTES {
+                                    println!("TOO BIG! {:x}", len);
+                                    recv_tx.send(Err(Error::InvalidMsg))?;
+                                    break 'work;
+                                } else if len == 0 {
+                                    recv_state = RecvState::ReadHead(Vec::with_capacity(8));
+                                    break;
+                                } else {
+                                    recv_state = RecvState::ReadBody(
+                                        len,
+                                        Vec::new(),
+                                    );
+                                }
+                            } else {
+                                let mut b = [0; 1];
+                                match tcp_stream.read(&mut b) {
+                                    Ok(0) => {},
+                                    Ok(_) => head.push(b[0]),
+                                    Err(_) => break,
+                                }
+                            },
+                            RecvState::ReadBody(len, body) => if body.len() == *len {
+                                match bincode::deserialize(&body) {
+                                    Ok(msg) => {
+                                        recv_tx.send(Ok(msg))?;
+                                        recv_state = RecvState::ReadHead(Vec::with_capacity(8));
+                                    },
+                                    Err(err) => {
+                                        recv_tx.send(Err((*err).into()))?;
+                                        break 'work;
+                                    },
+                                }
+                            } else {
+                                let left = *len - body.len();
+                                let mut buf = vec![0; left];
+                                match tcp_stream.read(&mut buf) {
+                                    Ok(_) => body.append(&mut buf),
+                                    Err(err) => {
+                                        recv_tx.send(Err(err.into()))?;
+                                        break 'work;
+                                    },
+                                }
+                            },
+                        }
+                    }
+
+                    // Now, try sending TCP stuff
+                    match try_tcp_send(&mut tcp_stream, &mut chunks) {
+                        Ok(_) => {},
                         Err(err) => {
                             recv_tx.send(Err(err.into()))?;
-                            break 'work;
-                        },
-                    }
-                    match &mut recv_state {
-                        RecvState::ReadHead(head) => if head.len() == 8 {
-                            let len = usize::from_le_bytes(<[u8; 8]>::try_from(head.as_slice()).unwrap());
-                            if len > MAX_MSG_BYTES {
-                                recv_tx.send(Err(Error::InvalidMsg))?;
-                                break 'work;
-                            } else if len == 0 {
-                                recv_state = RecvState::ReadHead(Vec::with_capacity(8));
-                                break;
-                            } else {
-                                recv_state = RecvState::ReadBody(
-                                    len,
-                                    Vec::new(),
-                                );
-                            }
-                        } else {
-                            let mut b = [0; 1];
-                            match tcp_stream.read(&mut b) {
-                                Ok(_) => head.push(b[0]),
-                                Err(_) => break,
-                            }
-                        },
-                        RecvState::ReadBody(len, body) => if body.len() == *len {
-                            match bincode::deserialize(&body) {
-                                Ok(msg) => {
-                                    recv_tx.send(Ok(msg))?;
-                                    recv_state = RecvState::ReadHead(Vec::with_capacity(8));
-                                },
-                                Err(err) => {
-                                    recv_tx.send(Err((*err).into()))?;
-                                    break 'work;
-                                },
-                            }
-                        } else {
-                            let left = *len - body.len();
-                            let mut buf = vec![0; left];
-                            match tcp_stream.read(&mut buf) {
-                                Ok(_) => body.append(&mut buf),
-                                Err(err) => {
-                                    recv_tx.send(Err(err.into()))?;
-                                    break 'work;
-                                },
-                            }
+                            return Err(Error::Network);
                         },
                     }
                 },
@@ -465,24 +512,28 @@ fn postbox_worker<S: PostSend, R: PostRecv>(
         }
     }
 
-    tcp_stream.shutdown(Shutdown::Both)?;
+    //tcp_stream.shutdown(Shutdown::Both)?;
     Ok(())
 }
 
 // TESTS
 
+/*
+#[derive(Serialize, Deserialize)]
+struct TestMsg<T>(T);
+
 #[test]
 fn connect() {
     let srv_addr = ([127, 0, 0, 1], 12345);
 
-    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
 
     // We should start off with 0 incoming connections
     thread::sleep(Duration::from_millis(250));
     assert_eq!(postoffice.new_connections().len(), 0);
     assert_eq!(postoffice.error(), None);
 
-    let postbox = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+    let postbox = PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap();
 
     // Now a postbox has been created, we should have 1 new
     thread::sleep(Duration::from_millis(250));
@@ -496,21 +547,21 @@ fn connect_fail() {
     let listen_addr = ([0; 4], 12345);
     let connect_addr = ([127, 0, 0, 1], 12212);
 
-    let mut postoffice = PostOffice::<u32, f32>::bind(listen_addr).unwrap();
+    let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(listen_addr).unwrap();
 
     // We should start off with 0 incoming connections
     thread::sleep(Duration::from_millis(250));
     assert_eq!(postoffice.new_connections().len(), 0);
     assert_eq!(postoffice.error(), None);
 
-    assert!(PostBox::<f32, u32>::to_server(connect_addr).is_err());
+    assert!(PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(connect_addr).is_err());
 }
 
 #[test]
 fn connection_count() {
     let srv_addr = ([127, 0, 0, 1], 12346);
 
-    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
     let mut postboxes = Vec::new();
 
     // We should start off with 0 incoming connections
@@ -519,7 +570,7 @@ fn connection_count() {
     assert_eq!(postoffice.error(), None);
 
     for _ in 0..5 {
-        postboxes.push(PostBox::<f32, u32>::to_server(srv_addr).unwrap());
+        postboxes.push(PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap());
     }
 
     // 5 postboxes created, we should have 5
@@ -533,10 +584,10 @@ fn connection_count() {
 fn disconnect() {
     let srv_addr = ([127, 0, 0, 1], 12347);
 
-    let mut postoffice = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
 
     let mut server_postbox = {
-        let mut client_postbox = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+        let mut client_postbox = PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap();
 
         thread::sleep(Duration::from_millis(250));
         let mut incoming = postoffice.new_connections();
@@ -558,52 +609,53 @@ fn disconnect() {
 fn client_to_server() {
     let srv_addr = ([127, 0, 0, 1], 12348);
 
-    let mut po = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut po = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
 
-    let mut client_pb = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+    let mut client_pb = PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap();
 
     thread::sleep(Duration::from_millis(250));
 
     let mut server_pb = po.new_connections().next().unwrap();
 
-    client_pb.send(1337.0);
-    client_pb.send(9821.0);
-    client_pb.send(-3.2);
-    client_pb.send(17.0);
+    client_pb.send(TestMsg(1337.0));
+    client_pb.send(TestMsg(9821.0));
+    client_pb.send(TestMsg(-3.2));
+    client_pb.send(TestMsg(17.0));
 
     thread::sleep(Duration::from_millis(250));
 
     let mut incoming_msgs = server_pb.new_messages();
     assert_eq!(incoming_msgs.len(), 4);
-    assert_eq!(incoming_msgs.next().unwrap(), 1337.0);
-    assert_eq!(incoming_msgs.next().unwrap(), 9821.0);
-    assert_eq!(incoming_msgs.next().unwrap(), -3.2);
-    assert_eq!(incoming_msgs.next().unwrap(), 17.0);
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(1337.0));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(9821.0));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(-3.2));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(17.0));
 }
 
 #[test]
 fn server_to_client() {
     let srv_addr = ([127, 0, 0, 1], 12349);
 
-    let mut po = PostOffice::<u32, f32>::bind(srv_addr).unwrap();
+    let mut po = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
 
-    let mut client_pb = PostBox::<f32, u32>::to_server(srv_addr).unwrap();
+    let mut client_pb = PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap();
 
     thread::sleep(Duration::from_millis(250));
 
     let mut server_pb = po.new_connections().next().unwrap();
 
-    server_pb.send(1337);
-    server_pb.send(9821);
-    server_pb.send(39999999);
-    server_pb.send(17);
+    server_pb.send(TestMsg(1337));
+    server_pb.send(TestMsg(9821));
+    server_pb.send(TestMsg(39999999));
+    server_pb.send(TestMsg(17));
 
     thread::sleep(Duration::from_millis(250));
 
     let mut incoming_msgs = client_pb.new_messages();
     assert_eq!(incoming_msgs.len(), 4);
-    assert_eq!(incoming_msgs.next().unwrap(), 1337);
-    assert_eq!(incoming_msgs.next().unwrap(), 9821);
-    assert_eq!(incoming_msgs.next().unwrap(), 39999999);
-    assert_eq!(incoming_msgs.next().unwrap(), 17);
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(1337));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(9821));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(39999999));
+    assert_eq!(incoming_msgs.next().unwrap(), TestMsg(17));
 }
+*/

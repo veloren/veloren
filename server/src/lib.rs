@@ -151,7 +151,7 @@ impl Server {
 
                 self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
                     key,
-                    chunk: chunk.clone(),
+                    chunk: Box::new(chunk.clone()),
                 });
             }
 
@@ -176,7 +176,7 @@ impl Server {
     fn handle_new_connections(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
-        for mut postbox in self.postoffice.new_connections() {
+        for mut postbox in self.postoffice.new_postboxes() {
             let entity = self.state
                 .ecs_mut()
                 .create_entity_synced()
@@ -245,7 +245,7 @@ impl Server {
                         ClientState::Connected => match msg {
                             ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
                             ClientMsg::Disconnect => disconnect = true,
-                            ClientMsg::Ping => client.postbox.send(ServerMsg::Pong),
+                            ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {},
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
@@ -254,9 +254,9 @@ impl Server {
                                 state.write_component(entity, dir);
                             },
                             ClientMsg::TerrainChunkRequest { key } => match state.terrain().get_key(key) {
-                                Some(chunk) => client.postbox.send(ServerMsg::TerrainChunkUpdate {
+                                Some(chunk) => client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                     key,
-                                    chunk: chunk.clone(),
+                                    chunk: Box::new(chunk.clone()),
                                 }),
                                 None => requested_chunks.push(key),
                             },
@@ -270,7 +270,7 @@ impl Server {
                 disconnect = true;
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT * 0.5 {
                 // Try pinging the client if the timeout is nearing
-                client.postbox.send(ServerMsg::Ping);
+                client.postbox.send_message(ServerMsg::Ping);
             }
 
             if disconnect {
