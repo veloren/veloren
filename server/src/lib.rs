@@ -149,10 +149,12 @@ impl Server {
                 // TODO: Distance check
                 // if self.state.terrain().key_pos(key)
 
+                /*
                 self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
                     key,
                     chunk: Box::new(chunk.clone()),
                 });
+                */
             }
 
             self.state.insert_chunk(key, chunk);
@@ -254,10 +256,10 @@ impl Server {
                                 state.write_component(entity, dir);
                             },
                             ClientMsg::TerrainChunkRequest { key } => match state.terrain().get_key(key) {
-                                Some(chunk) => client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                                Some(chunk) => {}, /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                     key,
                                     chunk: Box::new(chunk.clone()),
-                                }),
+                                }),*/
                                 None => requested_chunks.push(key),
                             },
                         },
