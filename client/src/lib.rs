@@ -153,7 +153,7 @@ impl Client {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
             // TODO: Set acceleration instead
-            self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+            self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY) * 0.1));
             if input.move_dir.magnitude() > 0.01 {
                 self.state.write_component(ecs_entity, comp::phys::Dir(input.move_dir.normalized().into()));
             }
