@@ -91,9 +91,9 @@ impl Figures {
                 .entry(entity)
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
-            state.update(renderer, pos.0, dir.0);
-
             RunAnimation::update_skeleton(&mut state.skeleton, time);
+
+            state.update(renderer, pos.0, dir.0);
         }
 
         self.states.retain(|entity, _| ecs.entities().is_alive(*entity));
