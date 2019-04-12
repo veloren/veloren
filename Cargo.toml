@@ -1,3 +1,9 @@
+[package]
+name = "veloren"
+description = "Veloren is an open-world, open-source multiplayer voxel RPG."
+documentation = "https://docs.veloren.net"
+repository = "https://www.gitlab.com/veloren/veloren"
+
 [workspace]
 members = [
 	"common",
