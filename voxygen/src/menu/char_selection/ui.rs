@@ -78,6 +78,8 @@ widget_ids! {
         //test_chars
         test_char_l_button,
         test_char_l_big,
+        help_text_bg,
+        help_text,
         //test_char_m_button,
         //test_char_r_button,
 
@@ -181,6 +183,7 @@ struct Imgs {
     color_picker_bg: ImgId,
     slider_range: ImgId,
     slider_indicator: ImgId,
+    window_frame_2: ImgId,
 
     //test_char_m_button: ImgId,
     //test_char_r_button: ImgId,
@@ -262,6 +265,7 @@ impl Imgs {
             color_picker_bg: load("element/misc_backgrounds/color_picker_blank.png"),
             slider_range: load("element/slider/track.png"),
             slider_indicator: load("element/slider/indicator.png"),
+            window_frame_2: load("element/frames/window_2.png"),
 
             // Weapon Icons
             daggers: load("element/icons/daggers.png"),
@@ -346,6 +350,7 @@ pub enum Event {
 }
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -476,6 +481,16 @@ impl CharSelectionUi {
                 .label_y(conrod_core::position::Relative::Scalar(-40.0))
                 .label_x(conrod_core::position::Relative::Scalar(-100.0))
                 .set(self.ids.v_logo, ui_widgets);
+            // Click Character to Login <-- Temporary!
+            Image::new(self.imgs.window_frame_2)
+                .mid_top_with_margin_on(self.ids.bg_selection, 60.0)
+                .w_h(700.0, 70.0)
+                .set(self.ids.help_text_bg, ui_widgets);
+            Text::new("Click character to select it")
+                .middle_of(self.ids.help_text_bg)
+                .font_size(40)
+                .color(TEXT_COLOR)
+                .set(self.ids.help_text, ui_widgets);
 
             if let Some(no) = self.selected_char_no {
                 // Selection_Window
