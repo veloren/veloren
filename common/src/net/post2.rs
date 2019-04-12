@@ -365,7 +365,7 @@ mod tests {
         }
 
         let mut recv_msgs = Vec::new();
-        loop_for(Duration::from_millis(2000), || server
+        loop_for(Duration::from_millis(3000), || server
                 .new_messages()
                 .for_each(|msg| recv_msgs.push(msg)));
 
