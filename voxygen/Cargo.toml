@@ -1,5 +1,5 @@
 [package]
-name = "voxygen"
+name = "veloren-voxygen"
 version = "0.2.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
