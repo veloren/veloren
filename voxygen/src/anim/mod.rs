@@ -10,6 +10,7 @@ use crate::render::FigureBoneData;
 pub struct Bone {
     pub offset: Vec3<f32>,
     pub ori: Quaternion<f32>,
+    pub scale: Vec3<f32>,
 }
 
 impl Bone {
@@ -17,11 +18,12 @@ impl Bone {
         Self {
             offset: Vec3::zero(),
             ori: Quaternion::identity(),
+            scale: Vec3::broadcast(1.0 / 11.0),
         }
     }
 
     pub fn compute_base_matrix(&self) -> Mat4<f32> {
-        Mat4::<f32>::translation_3d(self.offset) * Mat4::from(self.ori)
+        Mat4::<f32>::translation_3d(self.offset) * Mat4::scaling_3d(self.scale) * Mat4::from(self.ori)
     }
 }
 
