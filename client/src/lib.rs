@@ -144,6 +144,10 @@ impl Client {
         // Handle new messages from the server
         frontend_events.append(&mut self.handle_new_messages()?);
 
+        self.state.terrain().iter().for_each(|(k, _)| {
+            println!("Chunk at {:?}", k);
+        });
+
         // Step 1
         if let Some(ecs_entity) = self.player {
             // TODO: remove this
