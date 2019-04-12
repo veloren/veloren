@@ -3,6 +3,7 @@ name = "veloren"
 description = "Veloren is an open-world, open-source multiplayer voxel RPG."
 documentation = "https://docs.veloren.net"
 repository = "https://www.gitlab.com/veloren/veloren"
+version = "0.2.0"
 
 [workspace]
 members = [
