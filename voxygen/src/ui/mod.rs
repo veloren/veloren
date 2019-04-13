@@ -43,7 +43,23 @@ pub enum UiError {
 pub struct Event(Input);
 impl Event {
     pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
-        conrod_winit::convert_event(event, window.window()).map(|input| {
+        use conrod_winit::*;
+        use winit;
+        // A wrapper around the winit window that allows us to implement the trait necessary for enabling
+        // the winit <-> conrod conversion functions.
+        struct WindowRef<'a>(&'a winit::Window);
+
+        // Implement the `WinitWindow` trait for `WindowRef` to allow for generating compatible conversion
+        // functions.
+        impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
+            fn get_inner_size(&self) -> Option<(u32, u32)> {
+                winit::Window::get_inner_size(&self.0).map(Into::into)
+            }
+            fn hidpi_factor(&self) -> f32 {
+                winit::Window::get_hidpi_factor(&self.0) as _
+            }
+        }
+        convert_event!(event, &WindowRef(window.window())).map(|input| {
             Self(input)
         })
     }
