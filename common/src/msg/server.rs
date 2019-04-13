@@ -19,5 +19,3 @@ pub enum ServerMsg {
         chunk: Box<TerrainChunk>,
     },
 }
-
-impl middleman::Message for ServerMsg {}
