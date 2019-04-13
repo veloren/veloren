@@ -106,11 +106,9 @@ impl Chat {
             .rgba(0.0, 0.0, 0.0, 0.4)
             .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
-        let (mut items, scrollbar) = List::flow_down(self.messages.len())
+        let (mut items, _scrollbar) = List::flow_down(self.messages.len())
             .middle_of(self.ids.message_box_bg)
-            .scrollbar_next_to()
-            .scrollbar_thickness(18.0)
-            .scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .scroll_kids_vertically()
             .set(self.ids.message_box, ui_widgets);
         while let Some(item) = items.next(ui_widgets) {
             item.set(
@@ -121,9 +119,6 @@ impl Chat {
                 ui_widgets,
             )
         }
-        //if let Some(s) = scrollbar {
-        //    s.set(ui_widgets)
-        //}
 
         // Chat Arrow
         if !self.scrolled_to_bottom(ui_widgets) {
