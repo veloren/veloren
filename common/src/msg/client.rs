@@ -20,5 +20,3 @@ pub enum ClientMsg {
     },
     Disconnect,
 }
-
-impl middleman::Message for ClientMsg {}
