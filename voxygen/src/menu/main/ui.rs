@@ -3,6 +3,7 @@ use crate::{
     ui::{self, ScaleMode, Ui},
     window::Window,
 };
+use common::assets;
 use conrod_core::{
     color::TRANSPARENT,
     image::Id as ImgId,
@@ -57,15 +58,13 @@ impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         // TODO: update paths
         let mut load = |filename| {
-            let image = image::open(
-                &[
-                    env!("CARGO_MANIFEST_DIR"),
-                    "/../assets/voxygen/",
-                    filename,
-                ]
-                .concat(),
-            )
-            .unwrap();
+            let fullpath: String = [
+                "/voxygen/",
+                filename,
+            ].concat();
+            let image = image::load_from_memory(
+                assets::load(fullpath.as_str()).expect("Error loading file").as_slice()
+            ).unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
