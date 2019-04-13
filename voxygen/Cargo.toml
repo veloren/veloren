@@ -18,8 +18,9 @@ gfx = "0.17"
 gfx_device_gl = { version = "0.15", optional = true }
 gfx_window_glutin = "0.28"
 glutin = "0.19"
-conrod_core = "0.63"
-conrod_winit = "0.63"
+winit = "0.18"
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
+conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 
 # ECS
 specs = "0.14"
