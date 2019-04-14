@@ -1,20 +1,21 @@
-use crate::comp::{
-    Uid,
-    phys,
-};
+use vek::*;
+use crate::terrain::TerrainChunk;
+use super::EcsPacket;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
+    Handshake {
+        ecs_state: sphynx::StatePackage<EcsPacket>,
+        player_entity: u64,
+    },
     Shutdown,
     Ping,
     Pong,
     Chat(String),
-    SetPlayerEntity(Uid),
-    EntityPhysics {
-        uid: Uid,
-        pos: phys::Pos,
-        vel: phys::Vel,
-        dir: phys::Dir,
+    SetPlayerEntity(u64),
+    EcsSync(sphynx::SyncPackage<EcsPacket>),
+    TerrainChunkUpdate {
+        key: Vec3<i32>,
+        chunk: Box<TerrainChunk>,
     },
-    EntityDeleted(Uid),
 }

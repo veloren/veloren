@@ -29,7 +29,7 @@ use crate::{
 };
 use self::{
     camera::Camera,
-    figure::Figure,
+    figure::Figures,
     terrain::Terrain,
 };
 
@@ -47,13 +47,7 @@ pub struct Scene {
 
     skybox: Skybox,
     terrain: Terrain,
-
-    test_figure: Figure<CharacterSkeleton>,
-}
-
-// TODO: Make a proper asset loading system
-fn load_segment(filename: &'static str) -> Segment {
-    Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/voxel/").to_string() + filename)).unwrap())
+    figures: Figures,
 }
 
 impl Scene {
@@ -74,30 +68,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(),
-
-            test_figure: Figure::new(
-                renderer,
-                [
-                    Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -6.5, -6.0))),
-                    Some(load_segment("chest.vox").generate_mesh(Vec3::new(-6.0, -3.0, 0.0))),
-                    Some(load_segment("belt.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-                    Some(load_segment("pants.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-                    Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-                    Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-                    Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-                    Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-                    Some(load_segment("sword.vox").generate_mesh(Vec3::new(-6.5, -1.0, 0.0))),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                ],
-                CharacterSkeleton::new(),
-            )
-                .unwrap(),
+            figures: Figures::new(renderer),
         }
     }
 
@@ -133,13 +104,14 @@ impl Scene {
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Get player position
         let player_pos = client
             .player()
             .and_then(|ent| client
                 .state()
-                .ecs_world()
+                .ecs()
+                .internal()
                 .read_storage::<comp::phys::Pos>()
                 .get(ent)
                 .map(|pos| pos.0)
@@ -164,24 +136,13 @@ impl Scene {
         )])
             .expect("Failed to update global constants");
 
-        // Maintain the terrain
+        // Maintain the terrain and figures
         self.terrain.maintain(renderer, client);
-
-        // TODO: Don't do this here
-        RunAnimation::update_skeleton(
-            &mut self.test_figure.skeleton,
-            client.state().get_time(),
-        );
-
-        // Calculate player model matrix
-        let model_mat = Mat4::<f32>::translation_3d(player_pos);
-
-        self.test_figure.update_locals(renderer, FigureLocals::new(model_mat)).unwrap();
-        self.test_figure.update_skeleton(renderer).unwrap();
+        self.figures.maintain(renderer, client);
     }
 
     /// Render the scene using the provided `Renderer`
-    pub fn render_to(&self, renderer: &mut Renderer) {
+    pub fn render(&self, renderer: &mut Renderer, client: &Client) {
         // Render the skybox first (it appears over everything else so must be rendered first)
         renderer.render_skybox(
             &self.skybox.model,
@@ -189,10 +150,8 @@ impl Scene {
             &self.skybox.locals,
         );
 
-        // Render terrain
+        // Render terrain and figures
         self.terrain.render(renderer, &self.globals);
-
-        // Render the test figure
-        self.test_figure.render(renderer, &self.globals);
+        self.figures.render(renderer, client, &self.globals);
     }
 }

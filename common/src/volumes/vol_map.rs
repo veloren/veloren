@@ -126,7 +126,37 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
         self.chunks.insert(key, chunk)
     }
 
-    pub fn remove(&mut self, key: &Vec3<i32>) -> Option<Chunk<V, S, M>> {
-        self.chunks.remove(key)
+    pub fn get_key(&self, key: Vec3<i32>) -> Option<&Chunk<V, S, M>> {
+        self.chunks.get(&key)
+    }
+
+    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Chunk<V, S, M>> {
+        self.chunks.remove(&key)
+    }
+
+    pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> {
+        key * S::SIZE.map(|e| e as i32)
+    }
+
+    pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> {
+        Self::chunk_key(pos)
+    }
+
+    pub fn iter<'a>(&'a self) -> ChunkIter<'a, V, S, M> {
+        ChunkIter {
+            iter: self.chunks.iter(),
+        }
+    }
+}
+
+pub struct ChunkIter<'a, V: Vox, S: VolSize, M> {
+    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Chunk<V, S, M>>,
+}
+
+impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkIter<'a, V, S, M> {
+    type Item = (Vec3<i32>, &'a Chunk<V, S, M>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|(k, c)| (*k, c))
     }
 }

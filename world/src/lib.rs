@@ -24,7 +24,7 @@ impl World {
         Self
     }
 
-    pub fn generate_chunk(&self, chunk_pos: Vec3<i32>) -> TerrainChunk {
+    pub fn generate_chunk(chunk_pos: Vec3<i32>) -> TerrainChunk {
         // TODO: This is all test code, remove/improve this later
 
         let mut chunk = TerrainChunk::filled(Block::empty(), TerrainChunkMeta::void());
