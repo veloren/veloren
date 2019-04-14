@@ -1,10 +1,10 @@
-// Library
 use vek::*;
+use serde_derive::{Serialize, Deserialize};
 
 // Crate
 use crate::vol::Vox;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Block {
     kind: u8,
     color: [u8; 3],

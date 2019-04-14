@@ -1,17 +1,22 @@
-use crate::comp::{
-    Uid,
-    phys,
-};
+use vek::*;
+use crate::comp;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
+    Connect {
+        player: comp::Player,
+        character: Option<comp::Character>,
+    },
     Ping,
     Pong,
     Chat(String),
     PlayerPhysics {
-        pos: phys::Pos,
-        vel: phys::Vel,
-        dir: phys::Dir,
+        pos: comp::phys::Pos,
+        vel: comp::phys::Vel,
+        dir: comp::phys::Dir,
+    },
+    TerrainChunkRequest {
+        key: Vec3<i32>,
     },
     Disconnect,
 }

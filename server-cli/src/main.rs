@@ -24,9 +24,9 @@ fn main() {
 
         for event in events {
             match event {
-                Event::ClientConnected { ecs_entity } => info!("Client connected!"),
-                Event::ClientDisconnected { ecs_entity } => info!("Client disconnected!"),
-                Event::Chat { ecs_entity, msg } => info!("[Client] {}", msg),
+                Event::ClientConnected { entity } => info!("Client connected!"),
+                Event::ClientDisconnected { entity } => info!("Client disconnected!"),
+                Event::Chat { entity, msg } => info!("[Client] {}", msg),
             }
         }
 
