@@ -53,11 +53,13 @@ pub struct Scene {
 impl Scene {
     /// Create a new `Scene` with default parameters.
     pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
+        let resolution = renderer.get_resolution().map(|e| e as f32);
+
         Self {
             globals: renderer
                 .create_consts(&[Globals::default()])
                 .unwrap(),
-            camera: Camera::new(),
+            camera: Camera::new(resolution.x / resolution.y),
 
             skybox: Skybox {
                 model: renderer
