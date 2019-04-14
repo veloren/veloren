@@ -1,3 +1,4 @@
+mod client_init;
 mod ui;
 
 use super::char_selection::CharSelectionState;
@@ -5,11 +6,8 @@ use crate::{
     window::{Event, Window},
     GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client};
-use common::{
-    comp,
-    clock::Clock,
-};
+use client_init::{ClientInit, Error as InitError};
+use common::{clock::Clock, comp};
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
@@ -42,6 +40,9 @@ impl PlayState for MainMenuState {
         // Set up an fps clock
         let mut clock = Clock::new();
 
+        // Used for client creation
+        let mut client_init: Option<ClientInit> = None;
+
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
@@ -58,41 +59,45 @@ impl PlayState for MainMenuState {
 
             global_state.window.renderer_mut().clear(BG_COLOR);
 
-            // Maintain the UI (TODO: Maybe clean this up a little to avoid rightward drift?)
-            for event in self.main_menu_ui.maintain(global_state.window.renderer_mut()) {
+            // Poll client creation
+            match client_init.as_ref().and_then(|init| init.poll())  {
+                Some(Ok(client)) => {
+                    self.main_menu_ui.connected();
+                    return PlayStateResult::Push(Box::new(CharSelectionState::new(
+                        &mut global_state.window,
+                        std::rc::Rc::new(std::cell::RefCell::new(client)),
+                    )));
+                }
+                Some(Err(err)) => {
+                    client_init = None;
+                    self.main_menu_ui.login_error(match err {
+                        InitError::BadAddress(_) | InitError::NoAddress => "No such host is known",
+                        InitError::ConnectionFailed(_) => "Could not connect to address",
+                    }.to_string());
+                },
+                None => {}
+            }
+
+            // Maintain the UI
+            for event in self
+                .main_menu_ui
+                .maintain(global_state.window.renderer_mut())
+            {
                 match event {
-                    MainMenuEvent::LoginAttempt{ username, server_address } => {
-                        use std::net::ToSocketAddrs;
+                    MainMenuEvent::LoginAttempt {
+                        username,
+                        server_address,
+                    } => {
                         const DEFAULT_PORT: u16 = 59003;
-                        // Parses ip address or resolves hostname
-                        // Note: if you use an ipv6 address the number after the last colon will be used as the port unless you use [] around the address
-                        match server_address.to_socket_addrs().or((server_address.as_str(), DEFAULT_PORT).to_socket_addrs()) {
-                            Ok(mut socket_adders) => {
-                                while let Some(socket_addr) = socket_adders.next() {
-                                    // TODO: handle error
-                                    match Client::new(socket_addr, comp::Player::new(username.clone()), Some(comp::Character::test()), 300) {
-                                        Ok(client) => {
-                                            return PlayStateResult::Push(
-                                                Box::new(CharSelectionState::new(
-                                                    &mut global_state.window,
-                                                    std::rc::Rc::new(std::cell::RefCell::new(client)) // <--- TODO: Remove this
-                                                ))
-                                            );
-                                        }
-                                        Err(client::Error::Network(_)) => {} // assume connection failed and try next address
-                                        Err(err) => {
-                                             panic!("Unexpected non Network error when creating client: {:?}", err);
-                                        }
-                                    }
-                                }
-                                // Parsing/host name resolution successful but no connection succeeded
-                                self.main_menu_ui.login_error("Could not connect to address".to_string());
-                            }
-                            Err(err) => {
-                                // Error parsing input string or error resolving host name
-                                self.main_menu_ui.login_error("No such host is known".to_string());
-                            }
-                        }
+                        // Don't try to connect if there is already a connection in progress
+                        client_init = client_init.or(Some(ClientInit::new(
+                            (server_address, DEFAULT_PORT, false),
+                            (
+                                comp::Player::new(username.clone()),
+                                Some(comp::Character::test()),
+                                300,
+                            ),
+                        )));
                     }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
