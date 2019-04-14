@@ -13,9 +13,10 @@ pub use crate::{
 use std::{
     time::Duration,
     net::SocketAddr,
+    collections::HashSet,
 };
 use vek::*;
-use threadpool;
+use threadpool::ThreadPool;
 use specs::Builder;
 use common::{
     comp,
@@ -24,7 +25,6 @@ use common::{
     net::PostBox,
     msg::{ClientMsg, ServerMsg},
 };
-use world::World;
 
 const SERVER_TIMEOUT: f64 = 5.0; // Seconds
 
@@ -33,7 +33,7 @@ pub enum Event {
 }
 
 pub struct Client {
-    thread_pool: threadpool::ThreadPool,
+    thread_pool: ThreadPool,
 
     last_ping: f64,
     postbox: PostBox<ClientMsg, ServerMsg>,
@@ -41,19 +41,38 @@ pub struct Client {
     tick: u64,
     state: State,
     player: Option<EcsEntity>,
+    view_distance: u64,
 
-    // Testing
-    world: World,
-    pub chunk: Option<TerrainChunk>,
+    pending_chunks: HashSet<Vec3<i32>>,
 }
 
 impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
-    pub fn new<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        let state = State::new();
+    pub fn new<A: Into<SocketAddr>>(
+        addr: A,
+        player: comp::Player,
+        character: Option<comp::Character>,
+        view_distance: u64,
+    ) -> Result<Self, Error> {
 
-        let mut postbox = PostBox::to_server(addr)?;
+        let mut postbox = PostBox::to(addr)?;
+
+        // Send connection request
+        postbox.send_message(ClientMsg::Connect {
+            player,
+            character,
+        });
+
+        // Wait for handshake from server
+        let (state, player) = match postbox.next_message() {
+            Some(ServerMsg::Handshake { ecs_state, player_entity }) => {
+                let mut state = State::from_state_package(ecs_state);
+                let player_entity = state.ecs().entity_from_uid(player_entity);
+                (state, player_entity)
+            },
+            _ => return Err(Error::ServerWentMad),
+        };
 
         Ok(Self {
             thread_pool: threadpool::Builder::new()
@@ -65,11 +84,10 @@ impl Client {
 
             tick: 0,
             state,
-            player: None,
+            player,
+            view_distance,
 
-            // Testing
-            world: World::new(),
-            chunk: None,
+            pending_chunks: HashSet::new(),
         })
     }
 
@@ -78,18 +96,6 @@ impl Client {
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
     pub fn thread_pool(&self) -> &threadpool::ThreadPool { &self.thread_pool }
-
-    // TODO: Get rid of this
-    pub fn with_test_state(mut self) -> Self {
-        self.chunk = Some(self.world.generate_chunk(Vec3::zero()));
-        self
-    }
-
-    // TODO: Get rid of this
-    pub fn load_chunk(&mut self, pos: Vec3<i32>) {
-        self.state.terrain_mut().insert(pos, self.world.generate_chunk(pos));
-        self.state.changes_mut().new_chunks.push(pos);
-    }
 
     /// Get a reference to the client's game state.
     #[allow(dead_code)]
@@ -114,7 +120,7 @@ impl Client {
     /// Send a chat message to the server
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
-        self.postbox.send(ClientMsg::Chat(msg))
+        self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration
@@ -138,12 +144,19 @@ impl Client {
         // Handle new messages from the server
         frontend_events.append(&mut self.handle_new_messages()?);
 
+        self.state.terrain().iter().for_each(|(k, _)| {
+            println!("Chunk at {:?}", k);
+        });
+
         // Step 1
         if let Some(ecs_entity) = self.player {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
             // TODO: Set acceleration instead
-            self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY)));
+            self.state.write_component(ecs_entity, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY) * 0.1));
+            if input.move_dir.magnitude() > 0.01 {
+                self.state.write_component(ecs_entity, comp::phys::Dir(input.move_dir.normalized().into()));
+            }
         }
 
         // Tick the client's LocalState (step 3)
@@ -157,9 +170,28 @@ impl Client {
                 self.state.read_storage().get(ecs_entity).cloned(),
             ) {
                 (Some(pos), Some(vel), Some(dir)) => {
-                    self.postbox.send(ClientMsg::PlayerPhysics { pos, vel, dir });
+                    self.postbox.send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
                 },
                 _ => {},
+            }
+        }
+
+        // Request chunks from the server
+        if let Some(player_entity) = self.player {
+            if let Some(pos) = self.state.read_storage::<comp::phys::Pos>().get(player_entity) {
+                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+
+                for i in chunk_pos.x - 0..chunk_pos.x + 1 {
+                    for j in chunk_pos.y - 0..chunk_pos.y + 1 {
+                        for k in 0..3 {
+                            let key = chunk_pos + Vec3::new(i, j, k);
+                            if self.state.terrain().get_key(key).is_none() && !self.pending_chunks.contains(&key) {
+                                self.postbox.send_message(ClientMsg::TerrainChunkRequest { key });
+                                self.pending_chunks.insert(key);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -187,28 +219,16 @@ impl Client {
 
             for msg in new_msgs {
                 match msg {
+                    ServerMsg::Handshake { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
-                    ServerMsg::Ping => self.postbox.send(ClientMsg::Pong),
+                    ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {},
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
-                    ServerMsg::SetPlayerEntity(uid) => {
-                        let ecs_entity = self.state
-                            .get_entity(uid)
-                            .unwrap_or_else(|| self.state.build_uid_entity_with_uid(uid).build());
-
-                        self.player = Some(ecs_entity);
-                    },
-                    ServerMsg::EntityPhysics { uid, pos, vel, dir } => {
-                        let ecs_entity = self.state
-                            .get_entity(uid)
-                            .unwrap_or_else(|| self.state.build_uid_entity_with_uid(uid).build());
-
-                        self.state.write_component(ecs_entity, pos);
-                        self.state.write_component(ecs_entity, vel);
-                        self.state.write_component(ecs_entity, dir);
-                    },
-                    ServerMsg::EntityDeleted(uid) => {
-                        self.state.delete_entity(uid);
+                    ServerMsg::SetPlayerEntity(uid) => self.player = Some(self.state.ecs().entity_from_uid(uid).unwrap()), // TODO: Don't unwrap here!
+                    ServerMsg::EcsSync(sync_package) => self.state.ecs_mut().sync_with_package(sync_package),
+                    ServerMsg::TerrainChunkUpdate { key, chunk } => {
+                        self.state.insert_chunk(key, *chunk);
+                        self.pending_chunks.remove(&key);
                     },
                 }
             }
@@ -218,7 +238,7 @@ impl Client {
             return Err(Error::ServerTimeout);
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
             // Try pinging the server if the timeout is nearing
-            self.postbox.send(ClientMsg::Ping);
+            self.postbox.send_message(ClientMsg::Ping);
         }
 
         Ok(frontend_events)
@@ -227,6 +247,6 @@ impl Client {
 
 impl Drop for Client {
     fn drop(&mut self) {
-        self.postbox.send(ClientMsg::Disconnect);
+        self.postbox.send_message(ClientMsg::Disconnect);
     }
 }

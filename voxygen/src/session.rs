@@ -87,7 +87,7 @@ impl SessionState {
         renderer.clear(BG_COLOR);
 
         // Render the screen using the global renderer
-        self.scene.render_to(renderer);
+        self.scene.render(renderer, &self.client.borrow());
         // Draw the UI to the screen
         self.hud.render(renderer);
 
@@ -105,6 +105,7 @@ impl PlayState for SessionState {
         let mut clock = Clock::new();
 
         // Load a few chunks TODO: Remove this
+        /*
         for x in -6..7 {
             for y in -6..7 {
                 for z in -1..2 {
@@ -112,6 +113,7 @@ impl PlayState for SessionState {
                 }
             }
         }
+        */
 
         // Game loop
         loop {
@@ -155,7 +157,7 @@ impl PlayState for SessionState {
                 .expect("Failed to tick the scene");
 
             // Maintain the scene
-            self.scene.maintain(global_state.window.renderer_mut(), &self.client.borrow());
+            self.scene.maintain(global_state.window.renderer_mut(), &mut self.client.borrow_mut());
             // Maintain the UI
             for event in self.hud.maintain(global_state.window.renderer_mut()) {
                 match event {

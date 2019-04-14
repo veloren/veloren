@@ -1,9 +1,8 @@
-// Library
-use specs::{Component, VecStorage};
+use specs::{Component, VecStorage, FlaggedStorage};
 use vek::*;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-enum Race {
+pub enum Race {
     Danari,
     Dwarf,
     Elf,
@@ -13,7 +12,7 @@ enum Race {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Gender {
+pub enum Gender {
     Female,
     Male,
     Unspecified,
@@ -30,6 +29,21 @@ pub struct Character {
     feet: (),
 }
 
+impl Character {
+    // TODO: Remove this
+    pub fn test() -> Self {
+        Self {
+            race: Race::Human,
+            gender: Gender::Unspecified,
+            head: (),
+            chest: (),
+            belt: (),
+            arms: (),
+            feet: (),
+        }
+    }
+}
+
 impl Component for Character {
-    type Storage = VecStorage<Self>;
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
