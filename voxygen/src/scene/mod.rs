@@ -109,15 +109,12 @@ impl Scene {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Get player position
         let player_pos = client
-            .player()
-            .and_then(|ent| client
-                .state()
-                .ecs()
-                .internal()
-                .read_storage::<comp::phys::Pos>()
-                .get(ent)
-                .map(|pos| pos.0)
-            )
+            .state()
+            .ecs()
+            .internal()
+            .read_storage::<comp::phys::Pos>()
+            .get(client.player())
+            .map(|pos| pos.0)
             .unwrap_or(Vec3::zero());
 
         // Alter camera position to match player

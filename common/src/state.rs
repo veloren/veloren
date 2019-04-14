@@ -1,3 +1,6 @@
+// Reexports
+pub use sphynx::Uid;
+
 use std::{
     time::Duration,
     collections::HashSet,
@@ -90,11 +93,13 @@ impl State {
     // Create a new Sphynx ECS world
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsPacket>) {
         // Register synced components
-        ecs.register_synced::<comp::phys::Pos>();
-        ecs.register_synced::<comp::phys::Vel>();
-        ecs.register_synced::<comp::phys::Dir>();
         ecs.register_synced::<comp::Character>();
         ecs.register_synced::<comp::Player>();
+
+        // Register unsynched (or synced by other means) components
+        ecs.internal_mut().register::<comp::phys::Pos>();
+        ecs.internal_mut().register::<comp::phys::Vel>();
+        ecs.internal_mut().register::<comp::phys::Dir>();
 
         // Register resources used by the ECS
         ecs.internal_mut().add_resource(TimeOfDay(0.0));
