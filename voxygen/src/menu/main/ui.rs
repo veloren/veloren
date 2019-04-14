@@ -7,7 +7,7 @@ use common::assets;
 use conrod_core::{
     color::TRANSPARENT,
     image::Id as ImgId,
-    position::Dimension,
+    position::{Dimension, Relative},
     text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -103,6 +103,7 @@ pub struct MainMenuUi {
     username: String,
     server_address: String,
     login_error: Option<String>,
+    connecting: Option<std::time::Instant>,
 }
 
 impl MainMenuUi {
@@ -138,6 +139,7 @@ impl MainMenuUi {
             username: "Username".to_string(),
             server_address: "veloren.mac94.de".to_string(),
             login_error: None,
+            connecting: None,
         }
     }
 
@@ -154,8 +156,8 @@ impl MainMenuUi {
             .label("Alpha 0.1")
             .label_rgba(1.0, 1.0, 1.0, 1.0)
             .label_font_size(10)
-            .label_y(conrod_core::position::Relative::Scalar(-40.0))
-            .label_x(conrod_core::position::Relative::Scalar(-100.0))
+            .label_y(Relative::Scalar(-40.0))
+            .label_x(Relative::Scalar(-100.0))
             .set(self.ids.v_logo, ui_widgets);
 
         // Input fields
@@ -163,6 +165,7 @@ impl MainMenuUi {
         macro_rules! login {
             () => {
                 self.login_error = None;
+                self.connecting = Some(std::time::Instant::now());
                 events.push(Event::LoginAttempt {
                     username: self.username.clone(),
                     server_address: self.server_address.clone(),
@@ -241,21 +244,43 @@ impl MainMenuUi {
             }
         }
         // Login button
-        if Button::image(self.imgs.login_button)
-            .hover_image(self.imgs.login_button_hover)
-            .press_image(self.imgs.login_button_press)
-            .w_h(258.0, 68.0)
-            .down_from(self.ids.address_bg, 20.0)
-            .align_middle_x_of(self.ids.address_bg)
-            .label("Login")
-            .label_color(TEXT_COLOR)
-            .label_font_size(24)
-            .label_y(conrod_core::position::Relative::Scalar(5.0))
-            .set(self.ids.login_button, ui_widgets)
-            .was_clicked()
-        {
-            login!();
-        }
+        // Change button text and remove hover/press images if a connection is in progress
+        if let Some(start) = self.connecting {
+            Button::image(self.imgs.login_button)
+                .w_h(258.0, 68.0)
+                .down_from(self.ids.address_bg, 20.0)
+                .align_middle_x_of(self.ids.address_bg)
+                .label("Connecting...")
+                .label_color({
+                    let pulse = ((start.elapsed().as_millis() as f32 * 0.008).sin() + 1.0) / 2.0;
+                    Color::Rgba(
+                        TEXT_COLOR.red() * (pulse / 2.0 + 0.5),
+                        TEXT_COLOR.green() * (pulse / 2.0 + 0.5),
+                        TEXT_COLOR.blue() * (pulse / 2.0 + 0.5),
+                        pulse / 4.0 + 0.75,
+                    )
+                })
+                .label_font_size(24)
+                .label_y(Relative::Scalar(5.0))
+                .set(self.ids.login_button, ui_widgets);
+        } else {
+            if Button::image(self.imgs.login_button)
+                .hover_image(self.imgs.login_button_hover)
+                .press_image(self.imgs.login_button_press)
+                .w_h(258.0, 68.0)
+                .down_from(self.ids.address_bg, 20.0)
+                .align_middle_x_of(self.ids.address_bg)
+                .label("Login")
+                .label_color(TEXT_COLOR)
+                .label_font_size(24)
+                .label_y(Relative::Scalar(5.0))
+                .set(self.ids.login_button, ui_widgets)
+                .was_clicked()
+            {
+                login!();
+            }
+        };
+
         // Singleplayer button
         if Button::image(self.imgs.login_button)
             .hover_image(self.imgs.login_button_hover)
@@ -266,8 +291,8 @@ impl MainMenuUi {
             .label("Singleplayer")
             .label_color(TEXT_COLOR)
             .label_font_size(26)
-            .label_y(conrod_core::position::Relative::Scalar(5.0))
-            .label_x(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(Relative::Scalar(5.0))
+            .label_x(Relative::Scalar(2.0))
             .set(self.ids.singleplayer_button, ui_widgets)
             .was_clicked()
         {
@@ -282,7 +307,7 @@ impl MainMenuUi {
             .label("Quit")
             .label_color(TEXT_COLOR)
             .label_font_size(20)
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_y(Relative::Scalar(3.0))
             .set(self.ids.quit_button, ui_widgets)
             .was_clicked()
         {
@@ -297,7 +322,7 @@ impl MainMenuUi {
             .label("Settings")
             .label_color(TEXT_COLOR)
             .label_font_size(20)
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_y(Relative::Scalar(3.0))
             .set(self.ids.settings_button, ui_widgets)
             .was_clicked()
         {};
@@ -310,7 +335,7 @@ impl MainMenuUi {
             .label("Servers")
             .label_color(TEXT_COLOR)
             .label_font_size(20)
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_y(Relative::Scalar(3.0))
             .set(self.ids.servers_button, ui_widgets)
             .was_clicked()
         {};
@@ -320,6 +345,11 @@ impl MainMenuUi {
 
     pub fn login_error(&mut self, msg: String) {
         self.login_error = Some(msg);
+        self.connecting = None;
+    }
+
+    pub fn connected(&mut self) {
+        self.connecting = None;
     }
 
     pub fn handle_event(&mut self, event: ui::Event) {
