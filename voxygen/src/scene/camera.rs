@@ -17,13 +17,13 @@ pub struct Camera {
 
 impl Camera {
     /// Create a new `Camera` with default parameters.
-    pub fn new() -> Self {
+    pub fn new(aspect: f32) -> Self {
         Self {
             focus: Vec3::unit_z() * 10.0,
             ori: Vec3::zero(),
             dist: 150.0,
             fov: 1.3,
-            aspect: 1.618,
+            aspect,
         }
     }
 

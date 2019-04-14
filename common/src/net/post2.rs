@@ -12,21 +12,21 @@ use serde::{Serialize, de::DeserializeOwned};
 
 #[derive(Clone, Debug)]
 pub enum Error {
-    Io, //Io(io::Error),
-    Bincode, //Bincode(bincode::Error),
+    Io(Arc<io::Error>),
+    Bincode(Arc<bincode::Error>),
     ChannelFailure,
     InvalidMessage,
 }
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
-        Error::Io //(err)
+        Error::Io(Arc::new(err))
     }
 }
 
 impl From<bincode::Error> for Error {
     fn from(err: bincode::Error) -> Self {
-        Error::Bincode //(err)
+        Error::Bincode(Arc::new(err))
     }
 }
 
