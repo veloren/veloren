@@ -78,6 +78,8 @@ widget_ids! {
         //test_chars
         test_char_l_button,
         test_char_l_big,
+        help_text_bg,
+        help_text,
         //test_char_m_button,
         //test_char_r_button,
 
@@ -181,6 +183,7 @@ struct Imgs {
     color_picker_bg: ImgId,
     slider_range: ImgId,
     slider_indicator: ImgId,
+    window_frame_2: ImgId,
 
     //test_char_m_button: ImgId,
     //test_char_r_button: ImgId,
@@ -225,13 +228,13 @@ struct Imgs {
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
         let mut load = |filename| {
-            let fullpath: String = [
-                "/voxygen/",
-                filename,
-            ].concat();
+            let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
-                assets::load(fullpath.as_str()).expect("Error loading file").as_slice()
-            ).unwrap();
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
             ui.new_image(renderer, &image).unwrap()
         };
         Imgs {
@@ -262,6 +265,7 @@ impl Imgs {
             color_picker_bg: load("element/misc_backgrounds/color_picker_blank.png"),
             slider_range: load("element/slider/track.png"),
             slider_indicator: load("element/slider/indicator.png"),
+            window_frame_2: load("element/frames/window_2.png"),
 
             // Weapon Icons
             daggers: load("element/icons/daggers.png"),
@@ -345,7 +349,8 @@ pub enum Event {
     Play,
 }
 
-const TEXT_COLOR: Color = Color::Rgba(0.86, 0.86, 0.86, 0.8);
+const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -463,7 +468,7 @@ impl CharSelectionUi {
                 .set(self.ids.test_char_l_button, ui_widgets)
                 .was_clicked()
             {
-                self.selected_char_no = Some(1);                
+                self.selected_char_no = Some(1);
             }
 
             // Veloren Logo and Alpha Version
@@ -476,8 +481,18 @@ impl CharSelectionUi {
                 .label_y(conrod_core::position::Relative::Scalar(-40.0))
                 .label_x(conrod_core::position::Relative::Scalar(-100.0))
                 .set(self.ids.v_logo, ui_widgets);
+            // Click Character to Login <-- Temporary!
+            Image::new(self.imgs.window_frame_2)
+                .mid_top_with_margin_on(self.ids.bg_selection, 60.0)
+                .w_h(700.0, 70.0)
+                .set(self.ids.help_text_bg, ui_widgets);
+            Text::new("Click character to select it")
+                .middle_of(self.ids.help_text_bg)
+                .font_size(40)
+                .color(TEXT_COLOR)
+                .set(self.ids.help_text, ui_widgets);
 
-            if let Some(no) = self.selected_char_no {               
+            if let Some(no) = self.selected_char_no {
                 // Selection_Window
                 Image::new(self.imgs.selection_window)
                     .w_h(522.0, 722.0)
@@ -494,7 +509,6 @@ impl CharSelectionUi {
                     .font_size(30)
                     .color(TEXT_COLOR)
                     .set(self.ids.char_level, ui_widgets);
-
 
                 // Selected Character
                 if no == 1 {
@@ -869,14 +883,23 @@ impl CharSelectionUi {
                 const HUMAN_DESC: &str =
                     "The former nomads were only recently able to gain a foothold in the world of Veloren. \n\
                     \n\
-                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.";
+                    Their greatest strengths are their adaptability and intelligence,  which makes them allrounders in many fields.\n\
+                    \n\
+                    Humans are extremely diverse. \n\
+                    Some become wicked witches, slimy scoundrels, and members of the underworld, while others become witch-hunters, sages, and noble knights. \n\
+                    This diversity however creates constant conflict and antagonism between humans themselves, rather than with the other races of Veloren.";
                 const ORC_DESC: &str =
                     "They are considered brutal, rude and combative. \n\
-                    But once you gained their trust they will be loyal friends \n\
-                    that follow a strict code of honor in all of their actions. \n\
-                    \n\
-                    Their warriors are masters of melee combat, but their true power \
-                    comes from the magical rituals of their powerful shamans.";
+                     But once you gained their trust they will be loyal friends \n\
+                     that follow a strict code of honor in all of their actions. \n\
+                     \n\
+                     Their warriors are masters of melee combat, but their true power \
+                     comes from the magical rituals of their powerful shamans. \n\
+                     \n\
+                     They are  divided into three clans. \n\
+                     Two of them are led by the conflicting descendants of the recently deceased High-Warlord. \n\
+                     The third clan was formed by a group of Shamans to prevent the bloodshed caused by the rivaling groups and to secure their source of magic: \n\
+                     A powerful nature crystal, stolen from the Brushwood Elves...";
                 const DWARF_DESC: &str =
                     "Smoking chimneys, the sound of countless hammers and hoes. \
                     Infinite tunnel systems to track down even the last chunk of metal in the ground. \n\
@@ -900,6 +923,8 @@ impl CharSelectionUi {
                     Nature connected Brushwood Elves, that guard ancient powers inside the forests.\n\
                     \n\
                     Gold Elves that hunger for political power in their massive city states. \n\
+                    \n\
+                    Dark Elves, seeking war to brutalize their enemies, with ‘honor.’\n\
                     \n\
                     And many more!";
                 const DANARI_DESC: &str =
