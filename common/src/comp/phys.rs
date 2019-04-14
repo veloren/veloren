@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage, FlaggedStorage};
+use specs::{Component, VecStorage, FlaggedStorage, NullStorage};
 use vek::*;
 
 // Pos
@@ -26,4 +26,13 @@ pub struct Dir(pub Vec3<f32>);
 
 impl Component for Dir {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+// Dir
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct ForceUpdate;
+
+impl Component for ForceUpdate {
+    type Storage = NullStorage<Self>;
 }
