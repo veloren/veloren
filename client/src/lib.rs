@@ -152,7 +152,7 @@ impl Client {
         if
             self.state.read_storage::<comp::phys::Pos>().get(self.player).is_some() &&
             self.state.read_storage::<comp::phys::Vel>().get(self.player).is_some() &&
-            self.state.read_storage::<comp::phys::Dir>().get(self.player).is_some() == true
+            self.state.read_storage::<comp::phys::Dir>().get(self.player).is_some()
         {
             // TODO: remove this
             const PLAYER_VELOCITY: f32 = 100.0;
