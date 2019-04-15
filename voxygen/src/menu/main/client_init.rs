@@ -46,7 +46,7 @@ impl ClientInit {
                     for socket_addr in first_addrs.into_iter().chain(second_addrs) {
                         match Client::new(socket_addr, player.clone(), character, view_distance) {
                             Ok(client) => {
-                                tx.send(Ok(client));
+                                let _ = tx.send(Ok(client));
                                 return;
                             }
                             Err(err) => {
@@ -65,11 +65,11 @@ impl ClientInit {
                         }
                     }
                     // Parsing/host name resolution successful but no connection succeeded
-                    tx.send(Err(last_err.unwrap_or(Error::NoAddress)));
+                    let _ = tx.send(Err(last_err.unwrap_or(Error::NoAddress)));
                 }
                 Err(err) => {
                     // Error parsing input string or error resolving host name
-                    tx.send(Err(Error::BadAddress(err)));
+                    let _ = tx.send(Err(Error::BadAddress(err)));
                 }
             }
         }));
