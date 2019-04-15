@@ -143,9 +143,7 @@ impl Window {
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
         self.window.hide_cursor(grab);
-        self.window
-            .grab_cursor(grab)
-            .expect("Failed to grab/ungrab cursor");
+        let _ = self.window.grab_cursor(grab);
     }
 
     pub fn needs_refresh_resize(&mut self) {
