@@ -1540,6 +1540,7 @@ impl Hud {
                 }
                 true
             }
+            WinEvent::Zoom(_) => !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
                 if self.typing {
                     self.ui.focus_widget(None);

@@ -249,6 +249,7 @@ impl Ui {
     // Workaround because conrod currently gives us no way to programmatically set which widget is capturing key input
     // Note the widget must be visible and not covered by other widgets at its center for this to work
     // Accepts option so widget can be "unfocused"
+    // TODO: try https://docs.rs/conrod_core/0.63.0/conrod_core/struct.Ui.html#method.keyboard_capture
     pub fn focus_widget(&mut self, id: Option<WidgId>) {
         let (x, y) = match id {
             // get position of widget
@@ -272,6 +273,10 @@ impl Ui {
         );
     }
 
+    // Get whether the a widget besides the window is capturing the mouse
+    pub fn no_widget_capturing_mouse(&self) -> bool {
+        self.ui.global_input().current.widget_capturing_mouse.filter(|id| id != &self.ui.window ).is_none()
+    }
 
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
