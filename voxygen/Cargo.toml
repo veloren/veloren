@@ -22,6 +22,7 @@ glutin = "0.19"
 winit = {version = "0.18", features = ["serde"]}
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
+euc = "0.2"
 
 # ECS
 specs = "0.14"
@@ -41,3 +42,5 @@ config = "0.9"
 serde = "1.0"
 serde_derive = "1.0"
 toml = "0.4"
+guillotiere = "0.4"
+fnv = "1.0"
