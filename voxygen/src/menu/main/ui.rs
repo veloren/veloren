@@ -37,6 +37,8 @@ widget_ids! {
         servers_button,
         settings_button,
         quit_button,
+        // Error
+        error_frame,
     }
 }
 
@@ -53,6 +55,8 @@ struct Imgs {
     button: ImgId,
     button_hover: ImgId,
     button_press: ImgId,
+
+    error_frame: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -83,6 +87,9 @@ impl Imgs {
             button: load("element/buttons/button.png"),
             button_hover: load("element/buttons/button_hover.png"),
             button_press: load("element/buttons/button_press.png"),
+
+            //Error
+            error_frame: load("element/frames/skin_eyes.png"),
         }
     }
 }
@@ -217,20 +224,24 @@ impl MainMenuUi {
         // Login error
         if let Some(msg) = &self.login_error {
             let text = Text::new(&msg)
-                .rgba(0.5, 0.0, 0.0, 1.0)
+                .rgba(1.0, 1.0, 1.0, 1.0)
                 .font_size(30)
                 .font_id(self.font_opensans);
             let x = match text.get_x_dimension(ui_widgets) {
                 Dimension::Absolute(x) => x + 10.0,
                 _ => 0.0,
             };
-            Rectangle::fill([x, 40.0])
-                .rgba(0.2, 0.3, 0.3, 0.7)
+            Rectangle::fill([x, 60.0])
+                .rgba(0.1, 0.1, 0.1, 1.0)
                 .parent(ui_widgets.window)
-                .up_from(self.ids.username_bg, 35.0)
+                .mid_bottom_with_margin_on(self.ids.username_bg, 0.0)
                 .set(self.ids.login_error_bg, ui_widgets);
             text.middle_of(self.ids.login_error_bg)
                 .set(self.ids.login_error, ui_widgets);
+            Image::new(self.imgs.error_frame)
+                .h(60.0)
+                .middle_of(self.ids.login_error)
+                .set(self.ids.error_frame, ui_widgets);
         }
         // Server address
         Image::new(self.imgs.input_bg)
