@@ -402,7 +402,6 @@ pub struct Hud {
     ids: Ids,
     imgs: Imgs,
     chat: chat::Chat,
-    typing: bool,
     cursor_grabbed: bool,
     font_metamorph: FontId,
     font_opensans: FontId,
@@ -456,7 +455,6 @@ impl Hud {
             imgs,
             ids,
             chat,
-            typing: false,
             cursor_grabbed: true,
             settings_tab: SettingsTab::Interface,
             show_help: true,
@@ -1443,14 +1441,6 @@ impl Hud {
             };
         }
 
-        // update whether keyboard is captured
-        self.typing =
-            if let Some(widget_id) = ui_widgets.global_input().current.widget_capturing_keyboard {
-                widget_id == self.chat.input_box_id()
-            } else {
-                false
-            };
-
         events
     }
 
@@ -1530,10 +1520,17 @@ impl Hud {
         self.cursor_grabbed = cursor_grabbed;
     }
 
+    fn typing(&self) -> bool {
+        match self.ui.widget_capturing_keyboard() {
+            Some(id) if id == self.chat.input_box_id() => true,
+            _ => false,
+        }
+    }
+
     pub fn handle_event(&mut self, event: WinEvent) -> bool {
         match event {
             WinEvent::Ui(event) => {
-                if (self.typing && event.is_keyboard())
+                if (self.typing() && event.is_keyboard())
                     || !(self.cursor_grabbed && event.is_keyboard_or_mouse())
                 {
                     self.ui.handle_event(event);
@@ -1542,18 +1539,15 @@ impl Hud {
             }
             WinEvent::Zoom(_) => !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
-                if self.typing {
-                    self.ui.focus_widget(None);
-                    self.typing = false;
+                self.ui.focus_widget(if self.typing() {
+                    None
                 } else {
-                    self.ui.focus_widget(Some(self.chat.input_box_id()));
-                    self.typing = true;
-                };
+                    Some(self.chat.input_box_id())
+                });
                 true
             }
             WinEvent::KeyDown(Key::Escape) => {
-                if self.typing {
-                    self.typing = false;
+                if self.typing() {
                     self.ui.focus_widget(None);
                 } else {
                     // Close windows on esc
@@ -1561,7 +1555,7 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::KeyDown(key) if !self.typing => match key {
+            WinEvent::KeyDown(key) if !self.typing() => match key {
                 Key::Map => {
                     self.toggle_map();
                     true
@@ -1602,9 +1596,9 @@ impl Hud {
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
-                _ => self.typing,
+                _ => self.typing(),
             },
-            WinEvent::Char(_) => self.typing,
+            WinEvent::Char(_) => self.typing(),
             _ => false,
         }
     }
