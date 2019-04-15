@@ -27,7 +27,7 @@ use vek::*;
 use threadpool::ThreadPool;
 use common::{
     comp,
-    state::State,
+    state::{State, Uid},
     net::PostOffice,
     msg::{ServerMsg, ClientMsg},
     terrain::TerrainChunk,
@@ -73,8 +73,11 @@ impl Server {
     pub fn new() -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
+        let mut state = State::new();
+        state.ecs_mut().internal_mut().register::<comp::phys::ForceUpdate>();
+
         Ok(Self {
-            state: State::new(),
+            state,
             world: World::new(),
 
             postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
@@ -184,6 +187,9 @@ impl Server {
                 .create_entity_synced()
                 .build();
 
+            // Make sure the entity gets properly created
+            self.state.ecs_mut().internal_mut().maintain();
+
             self.clients.add(entity, Client {
                 state: ClientState::Connecting,
                 postbox,
@@ -229,6 +235,7 @@ impl Server {
                                 if let Some(character) = character {
                                     state.write_component(entity, character);
                                 }
+                                state.write_component(entity, comp::phys::ForceUpdate);
 
                                 client.state = ClientState::Connected;
 
@@ -303,7 +310,7 @@ impl Server {
 
         // Handle client disconnects
         for entity in disconnected_clients {
-            state.ecs_mut().delete_entity_synced(entity);
+            state.ecs_mut().delete_entity_synced(entity).unwrap();
 
             frontend_events.push(Event::ClientDisconnected {
                 entity,
@@ -320,7 +327,33 @@ impl Server {
 
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
+        // Sync 'logical' state using Sphynx
         self.clients.notify_connected(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
+
+        // Sync 'physical' state
+        for (entity, &uid, &pos, &vel, &dir, force_update) in (
+            &self.state.ecs().internal().entities(),
+            &self.state.ecs().internal().read_storage::<Uid>(),
+            &self.state.ecs().internal().read_storage::<comp::phys::Pos>(),
+            &self.state.ecs().internal().read_storage::<comp::phys::Vel>(),
+            &self.state.ecs().internal().read_storage::<comp::phys::Dir>(),
+            self.state.ecs().internal().read_storage::<comp::phys::ForceUpdate>().maybe(),
+        ).join() {
+            let msg = ServerMsg::EntityPhysics {
+                entity: uid.into(),
+                pos,
+                vel,
+                dir,
+            };
+
+            match force_update {
+                Some(_) => self.clients.notify_connected(msg),
+                None => self.clients.notify_connected_except(entity, msg),
+            }
+        }
+
+        // Remove all force flags
+        self.state.ecs_mut().internal_mut().write_storage::<comp::phys::ForceUpdate>().clear();
     }
 
     pub fn generate_chunk(&mut self, key: Vec3<i32>) {
