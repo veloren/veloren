@@ -74,7 +74,7 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
         };
         Imgs {
             bg: load("background/bg_main.png"),
