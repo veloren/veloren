@@ -246,32 +246,23 @@ impl Ui {
         self.ui.set_widgets()
     }
 
-    // Workaround because conrod currently gives us no way to programmatically set which widget is capturing key input
-    // Note the widget must be visible and not covered by other widgets at its center for this to work
-    // Accepts option so widget can be "unfocused"
+    // Accepts option so widget can be unfocused
     pub fn focus_widget(&mut self, id: Option<WidgId>) {
-        let (x, y) = match id {
-            // get position of widget
-            Some(id) => if let Some([x, y]) = self.ui.xy_of(id) {
-                (x, y)
-            } else {
-                return;
-            },
-            // outside window (origin is center)
-            None => (self.ui.win_h, self.ui.win_w)
-        };
-        // things to consider: does cursor need to be moved back?, should we check if the mouse if already pressed and then trigger a release?
-        self.ui.handle_event(
-            Input::Motion(Motion::MouseCursor { x, y })
-        );
-        self.ui.handle_event(
-            Input::Press(Button::Mouse(MouseButton::Left))
-        );
-        self.ui.handle_event(
-            Input::Release(Button::Mouse(MouseButton::Left))
-        );
+        self.ui.keyboard_capture(match id {
+            Some(id) => id,
+            None => self.ui.window,
+        });
     }
 
+    // Get id of current widget capturing keyboard
+    pub fn widget_capturing_keyboard(&self) -> Option<WidgId> {
+        self.ui.global_input().current.widget_capturing_keyboard
+    }
+
+    // Get whether the a widget besides the window is capturing the mouse
+    pub fn no_widget_capturing_mouse(&self) -> bool {
+        self.ui.global_input().current.widget_capturing_mouse.filter(|id| id != &self.ui.window ).is_none()
+    }
 
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
