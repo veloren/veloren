@@ -12,6 +12,10 @@ pub mod scene;
 pub mod session;
 pub mod ui;
 pub mod window;
+pub mod settings;
+
+// Rust complains that the Settings struct is undeclared without this
+use settings::Settings;
 
 // Reexports
 pub use crate::error::Error;
@@ -31,6 +35,7 @@ use crate::{
 
 /// A type used to store state that is shared between all play states
 pub struct GlobalState {
+    settings: Settings,
     window: Window,
 }
 
@@ -72,9 +77,12 @@ fn main() {
     pretty_env_logger::init();
 
     // Set up the global state
+    let settings = Settings::load().expect("Failed to load configuration file.");
+    let window = Window::new(&settings).expect("Failed to create window");
+
     let mut global_state = GlobalState {
-        window: Window::new()
-            .expect("Failed to create window"),
+        settings,
+        window,
     };
 
     // Set up the initial play state
