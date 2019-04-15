@@ -2,7 +2,7 @@ mod chat;
 
 use crate::{
     render::Renderer,
-    ui::{ScaleMode, ToggleButton, Ui},
+    ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
 };
 use common::assets;
@@ -257,7 +257,7 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
         };
         Imgs {
             // Bag
