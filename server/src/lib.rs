@@ -33,14 +33,21 @@ struct ChatCommand {
     keyword: &'static str,
     arg_fmt: &'static str,
     help_string: &'static str,
+    handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
 }
 
 impl ChatCommand {
-    pub fn new(keyword: &'static str, arg_fmt: &'static str, help_string: &'static str) -> Self {
+    pub fn new(
+        keyword: &'static str,
+        arg_fmt: &'static str,
+        help_string: &'static str,
+        handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
+    ) -> Self {
         Self {
             keyword,
             arg_fmt,
             help_string,
+            handler,
         }
     }
 }
@@ -51,28 +58,126 @@ lazy_static! {
             "jump",
             "{d} {d} {d}",
             "jump: offset your current position by a vector\n
-                Usage: /jump [x] [y] [z]"
+                Usage: /jump [x] [y] [z]",
+            handle_jump
         ),
         ChatCommand::new(
             "goto",
             "{d} {d} {d}",
             "goto: teleport to a given position\n
-                Usage: /goto [x] [y] [z]"
+                Usage: /goto [x] [y] [z]",
+            handle_goto
         ),
         ChatCommand::new(
             "alias",
             "{}",
             "alias: change your player name (cannot contain spaces)\n
-                Usage: /alias [name]"
+                Usage: /alias [name]",
+            handle_alias
         ),
         ChatCommand::new(
             "tp",
             "{}",
             "tp: teleport to a named player\n
-                Usage: /tp [name]"
+                Usage: /tp [name]",
+            handle_tp
         ),
-        ChatCommand::new("help", "", "help: display this message")
+        ChatCommand::new("help", "", "help: display this message", handle_help)
     ];
+}
+
+fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+    match (opt_x, opt_y, opt_z) {
+        (Some(x), Some(y), Some(z)) => {
+            if let Some(current_pos) = server
+                .state
+                .read_component_cloned::<comp::phys::Pos>(entity)
+            {
+                server
+                    .state
+                    .write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)))
+            } else {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::Chat(String::from("Command 'jump' invalid in current state")),
+                )
+            }
+        }
+        _ => server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+    match (opt_x, opt_y, opt_z) {
+        (Some(x), Some(y), Some(z)) => server
+            .state
+            .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z))),
+        _ => server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+    match opt_alias {
+        Some(alias) => server
+            .state
+            .write_component(entity, comp::player::Player { alias }),
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+    match opt_alias {
+        Some(alias) => {
+            let ecs = server.state.ecs().internal();
+            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::player::Player>())
+                .join()
+                .find(|(_, player)| player.alias == alias)
+                .map(|(entity, _)| entity);
+            match opt_player {
+                Some(player) => match server
+                    .state
+                    .read_component_cloned::<comp::phys::Pos>(player)
+                {
+                    Some(pos) => server.state.write_component(entity, pos),
+                    None => server.clients.notify(
+                        entity,
+                        ServerMsg::Chat(format!("Unable to teleport to player '{}'", alias)),
+                    ),
+                },
+
+                None => {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                    );
+                    server
+                        .clients
+                        .notify(entity, ServerMsg::Chat(String::from(action.help_string)));
+                }
+            }
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    for cmd in CHAT_COMMANDS.iter() {
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(cmd.help_string)));
+    }
 }
 
 pub enum Event {
@@ -426,119 +531,16 @@ impl Server {
         };
         let action_opt = CHAT_COMMANDS.iter().find(|x| x.keyword == kwd);
         match action_opt {
-            Some(action) => match action.keyword {
-                "jump" => {
-                    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
-                    match (opt_x, opt_y, opt_z) {
-                        (Some(x), Some(y), Some(z)) => {
-                            if let Some(current_pos) =
-                                self.state.read_component_cloned::<comp::phys::Pos>(entity)
-                            {
-                                self.state.write_component(
-                                    entity,
-                                    comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)),
-                                )
-                            } else {
-                                self.clients.notify(
-                                    entity,
-                                    ServerMsg::Chat(String::from(
-                                        "Command 'jump' invalid in current state",
-                                    )),
-                                )
-                            }
-
-                        }
-                        _ => self
-                            .clients
-                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
-                    }
-                }
-                "goto" => {
-                    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
-                    match (opt_x, opt_y, opt_z) {
-                        (Some(x), Some(y), Some(z)) => self
-                            .state
-                            .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z))),
-                        _ => self
-                            .clients
-                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
-                    }
-                }
-                "alias" => {
-                    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
-                    match opt_alias {
-                        Some(alias) => self
-                            .state
-                            .write_component(entity, comp::player::Player { alias }),
-                        None => self
-                            .clients
-                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
-                    }
-                }
-                "tp" => {
-                    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
-                    match opt_alias {
-                        Some(alias) => {
-                            let ecs = self.state.ecs().internal();
-                            let opt_player =
-                                (&ecs.entities(), &ecs.read_storage::<comp::player::Player>())
-                                    .join()
-                                    .find(|(_, player)| player.alias == alias)
-                                    .map(|(entity, _)| entity);
-                            match opt_player {
-                                Some(player) => match self
-                                    .state
-                                    .read_component_cloned::<comp::phys::Pos>(player)
-                                {
-                                    Some(pos) => self.state.write_component(entity, pos),
-                                    None => self.clients.notify(
-                                        entity,
-                                        ServerMsg::Chat(format!(
-                                            "Unable to teleport to player '{}'",
-                                            alias
-                                        )),
-                                    ),
-                                },
-
-                                None => {
-                                    self.clients.notify(
-                                        entity,
-                                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
-                                    );
-                                    self.clients.notify(
-                                        entity,
-                                        ServerMsg::Chat(String::from(action.help_string)),
-                                    );
-                                }
-                            }
-                        }
-                        None => self
-                            .clients
-                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
-                    }
-                }
-                "help" => {
-                    for cmd in CHAT_COMMANDS.iter() {
-                        self.clients
-                            .notify(entity, ServerMsg::Chat(String::from(cmd.help_string)));
-                    }
-                }
-                _ => {}
-            },
+            Some(action) => (action.handler)(self, entity, args, action),
             // unknown command
             None => {
                 self.clients.notify(
                     entity,
                     ServerMsg::Chat(format!(
-                        "Unrecognised command: '/{}'\n
-                        type '/help' for a list of available commands",
+                        "Unrecognised command: '/{}'\ntype '/help' for a list of available commands",
                         kwd
                     )),
                 );
-                for cmd in CHAT_COMMANDS.iter() {
-                    self.clients
-                        .notify(entity, ServerMsg::Chat(String::from(cmd.keyword)));
-                }
             }
         }
     }
