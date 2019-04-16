@@ -1,7 +1,9 @@
 pub mod run;
+pub mod idle;
 
 // Reexports
 pub use self::run::RunAnimation;
+pub use self::idle::IdleAnimation;
 
 // Crate
 use crate::render::FigureBoneData;

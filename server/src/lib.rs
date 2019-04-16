@@ -234,6 +234,7 @@ impl Server {
                                 state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
                                 if let Some(character) = character {
                                     state.write_component(entity, character);
+                                    
                                 }
                                 state.write_component(entity, comp::phys::ForceUpdate);
 
@@ -257,6 +258,7 @@ impl Server {
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {},
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
+                            ClientMsg::PlayerAnimation(animation) => state.write_component(entity, animation),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
@@ -347,9 +349,23 @@ impl Server {
             };
 
             match force_update {
+                
+
                 Some(_) => self.clients.notify_connected(msg),
                 None => self.clients.notify_connected_except(entity, msg),
             }
+        }
+
+        // Sync animation states
+        for (entity, &uid, &animation) in (
+            &self.state.ecs().internal().entities(),
+            &self.state.ecs().internal().read_storage::<Uid>(),
+            &self.state.ecs().internal().read_storage::<comp::Animation>(),
+        ).join() {
+            self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
+                entity: uid.into(),
+                animation,
+            });
         }
 
         // Remove all force flags
