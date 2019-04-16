@@ -245,8 +245,8 @@ impl Server {
                                 state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
                                 if let Some(character) = character {
                                     state.write_component(entity, character);
-
                                 }
+                                state.write_component(entity, comp::phys::ForceUpdate);
 
                                 client.state = ClientState::Connected;
 
@@ -365,8 +365,6 @@ impl Server {
             };
 
             match force_update {
-
-
                 Some(_) => self.clients.notify_connected(msg),
                 None => self.clients.notify_connected_except(entity, msg),
             }
