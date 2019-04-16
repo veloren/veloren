@@ -12,6 +12,7 @@ pub mod scene;
 pub mod session;
 pub mod ui;
 pub mod window;
+pub mod settings;
 
 // Reexports
 pub use crate::error::Error;
@@ -27,10 +28,12 @@ use pretty_env_logger;
 use crate::{
     menu::main::MainMenuState,
     window::Window,
+    settings::Settings
 };
 
 /// A type used to store state that is shared between all play states
 pub struct GlobalState {
+    settings: Settings,
     window: Window,
 }
 
@@ -72,9 +75,19 @@ fn main() {
     pretty_env_logger::init();
 
     // Set up the global state
+    let settings = match Settings::load() {
+        Ok(settings) => settings,
+        Err(err) => {
+            let settings = Settings::default();
+            settings.save_to_file();
+            settings
+        },
+    };
+    let window = Window::new(&settings).expect("Failed to create window");
+
     let mut global_state = GlobalState {
-        window: Window::new()
-            .expect("Failed to create window"),
+        settings,
+        window,
     };
 
     // Set up the initial play state

@@ -1,6 +1,6 @@
 use crate::{
     render::{Renderer, TgtColorFmt, TgtDepthFmt},
-    ui, Error,
+    ui, Error, settings::Settings,
 };
 use std::collections::HashMap;
 use vek::*;
@@ -15,7 +15,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn new() -> Result<Window, Error> {
+    pub fn new(settings: &Settings) -> Result<Window, Error> {
         let events_loop = glutin::EventsLoop::new();
 
         let win_builder = glutin::WindowBuilder::new()
@@ -36,22 +36,22 @@ impl Window {
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
         let mut key_map = HashMap::new();
-        key_map.insert(glutin::VirtualKeyCode::Tab, Key::ToggleCursor);
-        key_map.insert(glutin::VirtualKeyCode::Escape, Key::Escape);
-        key_map.insert(glutin::VirtualKeyCode::Return, Key::Enter);
-        key_map.insert(glutin::VirtualKeyCode::W, Key::MoveForward);
-        key_map.insert(glutin::VirtualKeyCode::A, Key::MoveLeft);
-        key_map.insert(glutin::VirtualKeyCode::S, Key::MoveBack);
-        key_map.insert(glutin::VirtualKeyCode::D, Key::MoveRight);
-        key_map.insert(glutin::VirtualKeyCode::M, Key::Map);
-        key_map.insert(glutin::VirtualKeyCode::B, Key::Bag);
-        key_map.insert(glutin::VirtualKeyCode::L, Key::QuestLog);
-        key_map.insert(glutin::VirtualKeyCode::C, Key::CharacterWindow);
-        key_map.insert(glutin::VirtualKeyCode::O, Key::Social);
-        key_map.insert(glutin::VirtualKeyCode::P, Key::Spellbook);
-        key_map.insert(glutin::VirtualKeyCode::N, Key::Settings);
-        key_map.insert(glutin::VirtualKeyCode::F1, Key::Help);
-        key_map.insert(glutin::VirtualKeyCode::F2, Key::Interface);
+        key_map.insert(settings.controls.toggle_cursor, Key::ToggleCursor);
+        key_map.insert(settings.controls.escape, Key::Escape);
+        key_map.insert(settings.controls.enter, Key::Enter);
+        key_map.insert(settings.controls.move_forward, Key::MoveForward);
+        key_map.insert(settings.controls.move_left, Key::MoveLeft);
+        key_map.insert(settings.controls.move_back, Key::MoveBack);
+        key_map.insert(settings.controls.move_right, Key::MoveRight);
+        key_map.insert(settings.controls.map, Key::Map);
+        key_map.insert(settings.controls.bag, Key::Bag);
+        key_map.insert(settings.controls.quest_log, Key::QuestLog);
+        key_map.insert(settings.controls.character_window, Key::CharacterWindow);
+        key_map.insert(settings.controls.social, Key::Social);
+        key_map.insert(settings.controls.spellbook, Key::Spellbook);
+        key_map.insert(settings.controls.settings, Key::Settings);
+        key_map.insert(settings.controls.help, Key::Help);
+        key_map.insert(settings.controls.interface, Key::Interface);
 
         let tmp = Ok(Self {
             events_loop,
@@ -113,18 +113,21 @@ impl Window {
                         },
                         _ => {}
                     },
-                    glutin::WindowEvent::MouseWheel {
-                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
-                        ..
-                    } => events.push(Event::Zoom(y as f32)),
-                    _ => {},
+                    _ => {}
                 },
                 glutin::Event::DeviceEvent { event, .. } => match event {
-                    glutin::DeviceEvent::MouseMotion { delta: (dx, dy), .. } if cursor_grabbed =>
-                        events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32))),
-                    _ => {},
+                    glutin::DeviceEvent::MouseMotion {
+                        delta: (dx, dy), ..
+                    } if cursor_grabbed => {
+                        events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32)))
+                    }
+                    glutin::DeviceEvent::MouseWheel {
+                        delta: glutin::MouseScrollDelta::LineDelta(_x, y),
+                        ..
+                    } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    _ => {}
                 },
-                _ => {},
+                _ => {}
             }
         });
         events
