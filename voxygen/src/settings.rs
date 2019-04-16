@@ -3,8 +3,10 @@ use config::{
     ConfigError,
 };
 use serde_derive::{Serialize, Deserialize};
-
 use glutin::VirtualKeyCode;
+use toml;
+use std::fs::File;
+use std::io::prelude::*;
 
 /// Settings contains everything that can be configured in the Settings.toml file
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -56,9 +58,17 @@ impl Settings {
             },
         }
     }
+
     pub fn load() -> Result<Self, ConfigError> {
         let mut config = Config::new();
-        config.merge(config::File::with_name("Settings"))?;
+        config.merge(config::File::with_name("settings"))?;
         config.try_into()
+    }
+
+    pub fn save_to_file(&self) -> std::io::Result<()> {
+        let mut config_file = File::create("settings.toml")?;
+        let s: &str = &toml::to_string_pretty(self).unwrap();
+        config_file.write_all(s.as_bytes()).unwrap();
+        Ok(())
     }
 }

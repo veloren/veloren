@@ -77,7 +77,11 @@ fn main() {
     // Set up the global state
     let settings = match Settings::load() {
         Ok(settings) => settings,
-        Err(err) => Settings::default(),
+        Err(err) => {
+            let settings = Settings::default();
+            settings.save_to_file();
+            settings
+        },
     };
     let window = Window::new(&settings).expect("Failed to create window");
 
