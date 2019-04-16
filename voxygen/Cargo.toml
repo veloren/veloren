@@ -18,7 +18,7 @@ gfx = "0.17"
 gfx_device_gl = { version = "0.15", optional = true }
 gfx_window_glutin = "0.28"
 glutin = "0.19"
-winit = "0.18"
+winit = {version = "0.18", features = ["serde"]}
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 
@@ -36,3 +36,7 @@ log = "0.4"
 pretty_env_logger = "0.3"
 dot_vox = "1.0"
 image = "0.21"
+config = "0.9"
+serde = "1.0"
+serde_derive = "1.0"
+toml = "0.4"
