@@ -149,10 +149,11 @@ impl Client {
         });
 
         // Step 1
-        if let (Some(_), Some(vel), Some(_)) = (
+        if let (Some(_), Some(vel), Some(_), Some(_)) = (
             self.state.read_component_cloned::<comp::phys::Pos>(self.player),
             self.state.read_component_cloned::<comp::phys::Vel>(self.player),
             self.state.read_component_cloned::<comp::phys::Dir>(self.player),
+            self.state.read_component_cloned::<comp::Character>(self.player),
         ) {
             self.state.write_component(self.player, comp::Control {
                 move_dir: input.move_dir,
