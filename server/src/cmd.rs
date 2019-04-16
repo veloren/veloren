@@ -1,3 +1,7 @@
+//! #Implementing new commands
+//! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
+//! and provide a handler function
+
 use crate::Server;
 use common::{comp, msg::ServerMsg};
 use specs::{Entity as EcsEntity, join::Join};
@@ -6,14 +10,20 @@ use vek::*;
 use scan_fmt::scan_fmt;
 use lazy_static::lazy_static;
 
+/// Struct representing a command that a user can run from server chat
 pub struct ChatCommand {
+    /// The keyword used to invoke the function, omitting the leading '/'
     pub keyword: &'static str,
+    /// the format string used by `scan_fmt` to parse arguments
     arg_fmt: &'static str,
+    /// message to explain how the command is used
     help_string: &'static str,
+    /// handler function called when the command is executed
     handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
 }
 
 impl ChatCommand {
+    /// Creates a new chat command
     pub fn new(
         keyword: &'static str,
         arg_fmt: &'static str,
@@ -27,12 +37,14 @@ impl ChatCommand {
             handler,
         }
     }
+    /// Calls the contained handler function, passing `&self` as the last argument
     pub fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
         (self.handler)(server, entity, args, self);
     }
 }
 
 lazy_static! {
+    /// Static list of chat commands available to the server
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
         ChatCommand::new(
             "jump",
