@@ -4,12 +4,12 @@
 
 use crate::Server;
 use common::{comp, msg::ServerMsg};
-use specs::{Entity as EcsEntity, join::Join};
+use specs::{join::Join, Entity as EcsEntity};
 use vek::*;
 
-use scan_fmt::scan_fmt;
-use lazy_static::lazy_static;
 
+use lazy_static::lazy_static;
+use scan_fmt::scan_fmt;
 /// Struct representing a command that a user can run from server chat
 pub struct ChatCommand {
     /// The keyword used to invoke the command, omitting the leading '/'
@@ -88,18 +88,17 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
     match (opt_x, opt_y, opt_z) {
         (Some(x), Some(y), Some(z)) => {
-            if let Some(current_pos) = server
+            match server
                 .state
                 .read_component_cloned::<comp::phys::Pos>(entity)
             {
-                server
+                Some(current_pos) => server
                     .state
-                    .write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)))
-            } else {
-                server.clients.notify(
+                    .write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z))),
+                None => server.clients.notify(
                     entity,
                     ServerMsg::Chat(String::from("Command 'jump' invalid in current state")),
-                )
+                ),
             }
         }
         _ => server
