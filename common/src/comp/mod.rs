@@ -5,3 +5,4 @@ pub mod phys;
 // Reexports
 pub use character::Character;
 pub use player::Player;
+pub use character::Animation;

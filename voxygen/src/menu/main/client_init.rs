@@ -22,10 +22,10 @@ pub struct ClientInit {
 impl ClientInit {
     pub fn new(
         connection_args: (String, u16, bool),
-        client_args: (comp::Player, Option<comp::Character>, u64),
+        client_args: (comp::Player, Option<comp::Character>, Option<comp::Animation>, u64),
     ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
-        let (player, character, view_distance) = client_args;
+        let (player, character, animation, view_distance) = client_args;
 
         let (tx, rx) = channel();
 

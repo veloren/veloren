@@ -160,6 +160,9 @@ impl Client {
             self.state.write_component(self.player, comp::phys::Vel(Vec3::from(input.move_dir * PLAYER_VELOCITY) * 0.1));
             if input.move_dir.magnitude() > 0.01 {
                 self.state.write_component(self.player, comp::phys::Dir(input.move_dir.normalized().into()));
+                self.state.write_component(self.player, comp::Animation::Run);
+            } else {
+                self.state.write_component(self.player, comp::Animation::Idle);
             }
         }
 
@@ -176,6 +179,11 @@ impl Client {
                 self.postbox.send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
             },
             _ => {},
+        }
+
+        // Update the server about the player's currently playing animation
+        if let Some(animation) = self.state.read_storage().get(self.player).cloned() {
+            self.postbox.send_message(ClientMsg::PlayerAnimation(animation));
         }
 
         // Request chunks from the server
@@ -231,6 +239,12 @@ impl Client {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, dir);
+                        },
+                        None => {},
+                    },
+                    ServerMsg::EntityAnimation { entity, animation } => match self.state.ecs().entity_from_uid(entity) {
+                        Some(entity) => {
+                            self.state.write_component(entity, animation);
                         },
                         None => {},
                     },
