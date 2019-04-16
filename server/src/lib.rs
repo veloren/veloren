@@ -486,21 +486,20 @@ impl Server {
                                     .find(|(_, player)| player.alias == alias)
                                     .map(|(entity, _)| entity);
                             match opt_player {
-                                Some(player) => {
-                                    if let Some(pos) =
-                                        self.state.read_component_cloned::<comp::phys::Pos>(player)
-                                    {
-                                        self.state.write_component(entity, pos);
-                                    } else {
-                                        self.clients.notify(
-                                            entity,
-                                            ServerMsg::Chat(format!(
-                                                "Unable to teleport to player '{}'",
-                                                alias
-                                            )),
-                                        );
-                                    }
-                                }
+                                Some(player) => match self
+                                    .state
+                                    .read_component_cloned::<comp::phys::Pos>(player)
+                                {
+                                    Some(pos) => self.state.write_component(entity, pos),
+                                    None => self.clients.notify(
+                                        entity,
+                                        ServerMsg::Chat(format!(
+                                            "Unable to teleport to player '{}'",
+                                            alias
+                                        )),
+                                    ),
+                                },
+
                                 None => {
                                     self.clients.notify(
                                         entity,
@@ -531,7 +530,8 @@ impl Server {
                 self.clients.notify(
                     entity,
                     ServerMsg::Chat(format!(
-                        "Unrecognised command: '/{}'\nAvailable commands:",
+                        "Unrecognised command: '/{}'\n
+                        type '/help' for a list of available commands",
                         kwd
                     )),
                 );
