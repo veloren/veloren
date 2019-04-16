@@ -19,6 +19,12 @@ pub enum Gender {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum Animation {
+    Idle,
+    Run,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Character {
     race: Race,
     gender: Gender,
@@ -27,6 +33,7 @@ pub struct Character {
     belt: (),
     arms: (),
     feet: (),
+    
 }
 
 impl Character {
@@ -45,5 +52,9 @@ impl Character {
 }
 
 impl Component for Character {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Component for Animation {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
