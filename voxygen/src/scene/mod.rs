@@ -97,7 +97,7 @@ impl Scene {
             },
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
-                self.camera.zoom_by(-delta);
+                self.camera.zoom_by(delta * 0.3);
                 true
             },
             // All other events are unhandled
@@ -118,7 +118,7 @@ impl Scene {
             .unwrap_or(Vec3::zero());
 
         // Alter camera position to match player
-        self.camera.set_focus_pos(player_pos);
+        self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 1.5);
 
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
