@@ -95,6 +95,7 @@ impl PlayState for MainMenuState {
                             (
                                 comp::Player::new(username.clone()),
                                 Some(comp::Character::test()),
+                                Some(comp::Animation::Idle),
                                 300,
                             ),
                         )));

@@ -23,6 +23,10 @@ pub enum ServerMsg {
         vel: comp::phys::Vel,
         dir: comp::phys::Dir,
     },
+    EntityAnimation {
+        entity: u64,
+        animation: comp::Animation,
+    },
     TerrainChunkUpdate {
         key: Vec3<i32>,
         chunk: Box<TerrainChunk>,
