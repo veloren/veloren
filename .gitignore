@@ -17,6 +17,7 @@
 # Veloren
 **/server_conf.toml
 **/keybinds.toml
+**/settings.toml
 assets/voxygen
 *.rar
 
