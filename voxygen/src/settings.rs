@@ -7,9 +7,11 @@ use glutin::VirtualKeyCode;
 use toml;
 use std::fs::File;
 use std::io::prelude::*;
+use std::default::Default;
 
 /// Settings contains everything that can be configured in the Settings.toml file
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Settings {
     pub controls: ControlSettings,
 }
@@ -35,8 +37,8 @@ pub struct ControlSettings {
     pub interface: VirtualKeyCode,
 }
 
-impl Settings {
-    pub fn default() -> Self {
+impl Default for Settings {
+    fn default() -> Self {
         Settings {
             controls: ControlSettings {
                 toggle_cursor: VirtualKeyCode::Tab,
@@ -53,14 +55,18 @@ impl Settings {
                 social: VirtualKeyCode::O,
                 spellbook: VirtualKeyCode::P,
                 settings: VirtualKeyCode::N,
-                help: VirtualKeyCode::F2,
+                help: VirtualKeyCode::F1,
                 interface: VirtualKeyCode::F2,
             },
         }
     }
 
+}
+
+impl Settings {
     pub fn load() -> Result<Self, ConfigError> {
         let mut config = Config::new();
+        config.merge(Config::try_from(&Settings::default())?);
         config.merge(config::File::with_name("settings"))?;
         config.try_into()
     }
