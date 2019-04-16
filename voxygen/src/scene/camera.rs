@@ -21,7 +21,7 @@ impl Camera {
         Self {
             focus: Vec3::unit_z() * 10.0,
             ori: Vec3::zero(),
-            dist: 150.0,
+            dist: 10.0,
             fov: 1.3,
             aspect,
         }
