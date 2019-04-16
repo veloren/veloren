@@ -14,9 +14,6 @@ pub mod ui;
 pub mod window;
 pub mod settings;
 
-// Rust complains that the Settings struct is undeclared without this
-use settings::Settings;
-
 // Reexports
 pub use crate::error::Error;
 
@@ -31,6 +28,7 @@ use pretty_env_logger;
 use crate::{
     menu::main::MainMenuState,
     window::Window,
+    settings::Settings
 };
 
 /// A type used to store state that is shared between all play states
@@ -77,7 +75,10 @@ fn main() {
     pretty_env_logger::init();
 
     // Set up the global state
-    let settings = Settings::load().expect("Failed to load configuration file.");
+    let settings = match Settings::load() {
+        Ok(settings) => settings,
+        Err(err) => Settings::default(),
+    };
     let window = Window::new(&settings).expect("Failed to create window");
 
     let mut global_state = GlobalState {
