@@ -8,6 +8,7 @@ use client::Client;
 use common::{
     comp,
     figure::Segment,
+    msg
 };
 use crate::{
     Error,
@@ -27,6 +28,7 @@ use crate::{
         character::{
             CharacterSkeleton,
             RunAnimation,
+            IdleAnimation,
         },
     },
     mesh::Meshable,
@@ -81,17 +83,21 @@ impl Figures {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
         let ecs = client.state_mut().ecs_mut().internal_mut();
-        for (entity, pos, dir, character) in (
+        for (entity, pos, dir, character, animation) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Character>(),
+            &ecs.read_storage::<comp::Animation>(),
         ).join() {
             let state = self.states
                 .entry(entity)
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
-            RunAnimation::update_skeleton(&mut state.skeleton, time);
+            match animation {
+                comp::character::Animation::Idle => IdleAnimation::update_skeleton(&mut state.skeleton, time),
+                comp::character::Animation::Run => RunAnimation::update_skeleton(&mut state.skeleton, time),
+            }
 
             state.update(renderer, pos.0, dir.0);
         }
