@@ -5,53 +5,80 @@ pub mod error;
 pub mod input;
 
 // Reexports
-pub use crate::{
-    error::Error,
-    input::Input,
-};
+pub use crate::{error::Error, input::Input};
 
-use std::{
-    time::Duration,
-    net::SocketAddr,
-    sync::mpsc,
-    collections::HashSet,
-};
-use specs::{
-    Entity as EcsEntity,
-    world::EntityBuilder as EcsEntityBuilder,
-    Builder,
-    join::Join,
-    saveload::MarkedBuilder,
-};
-use vek::*;
-use threadpool::ThreadPool;
+use crate::client::{Client, ClientState, Clients};
 use common::{
     comp,
-    state::{State, Uid},
+    msg::{ClientMsg, ServerMsg},
     net::PostOffice,
-    msg::{ServerMsg, ClientMsg},
+    state::State,
     terrain::TerrainChunk,
 };
-use world::World;
-use crate::client::{
-    ClientState,
-    Client,
-    Clients,
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
 };
+use std::{collections::HashSet, net::SocketAddr, sync::mpsc, time::Duration};
+use threadpool::ThreadPool;
+use vek::*;
+use world::World;
+
+use lazy_static::lazy_static;
+use scan_fmt::scan_fmt;
 
 const CLIENT_TIMEOUT: f64 = 5.0; // Seconds
 
+struct ChatCommand {
+    keyword: &'static str,
+    arg_fmt: &'static str,
+    help_string: &'static str,
+}
+
+impl ChatCommand {
+    pub fn new(keyword: &'static str, arg_fmt: &'static str, help_string: &'static str) -> Self {
+        Self {
+            keyword,
+            arg_fmt,
+            help_string,
+        }
+    }
+}
+
+lazy_static! {
+    static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
+        ChatCommand::new(
+            "jump",
+            "{d} {d} {d}",
+            "jump: offset your current position by a vector\n
+                Usage: /jump [x] [y] [z]"
+        ),
+        ChatCommand::new(
+            "goto",
+            "{d} {d} {d}",
+            "goto: teleport to a given position\n
+                Usage: /goto [x] [y] [z]"
+        ),
+        ChatCommand::new(
+            "alias",
+            "{}",
+            "alias: change your player name (cannot contain spaces)\n
+                Usage: /alias [name]"
+        ),
+        ChatCommand::new(
+            "tp",
+            "{}",
+            "tp: teleport to a named player\n
+                Usage: /tp [name]"
+        ),
+        ChatCommand::new("help", "", "help: display this message")
+    ];
+}
+
 pub enum Event {
-    ClientConnected {
-        entity: EcsEntity,
-    },
-    ClientDisconnected {
-        entity: EcsEntity,
-    },
-    Chat {
-        entity: EcsEntity,
-        msg: String,
-    },
+    ClientConnected { entity: EcsEntity },
+    ClientDisconnected { entity: EcsEntity },
+    Chat { entity: EcsEntity, msg: String },
 }
 
 pub struct Server {
@@ -73,11 +100,8 @@ impl Server {
     pub fn new() -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
-        let mut state = State::new();
-        state.ecs_mut().internal_mut().register::<comp::phys::ForceUpdate>();
-
         Ok(Self {
-            state,
+            state: State::new(),
             world: World::new(),
 
             postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
@@ -94,17 +118,25 @@ impl Server {
 
     /// Get a reference to the server's game state.
     #[allow(dead_code)]
-    pub fn state(&self) -> &State { &self.state }
+    pub fn state(&self) -> &State {
+        &self.state
+    }
     /// Get a mutable reference to the server's game state.
     #[allow(dead_code)]
-    pub fn state_mut(&mut self) -> &mut State { &mut self.state }
+    pub fn state_mut(&mut self) -> &mut State {
+        &mut self.state
+    }
 
     /// Get a reference to the server's world.
     #[allow(dead_code)]
-    pub fn world(&self) -> &World { &self.world }
+    pub fn world(&self) -> &World {
+        &self.world
+    }
     /// Get a mutable reference to the server's world.
     #[allow(dead_code)]
-    pub fn world_mut(&mut self) -> &mut World { &mut self.world }
+    pub fn world_mut(&mut self) -> &mut World {
+        &mut self.world
+    }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
     #[allow(dead_code)]
@@ -147,8 +179,14 @@ impl Server {
             for (entity, player, pos) in (
                 &self.state.ecs().internal().entities(),
                 &self.state.ecs().internal().read_storage::<comp::Player>(),
-                &self.state.ecs().internal().read_storage::<comp::phys::Pos>(),
-            ).join() {
+                &self
+                    .state
+                    .ecs()
+                    .internal()
+                    .read_storage::<comp::phys::Pos>(),
+            )
+                .join()
+            {
                 // TODO: Distance check
                 // if self.state.terrain().key_pos(key)
 
@@ -182,23 +220,18 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         for mut postbox in self.postoffice.new_postboxes() {
-            let entity = self.state
-                .ecs_mut()
-                .create_entity_synced()
-                .build();
+            let entity = self.state.ecs_mut().create_entity_synced().build();
 
-            // Make sure the entity gets properly created
-            self.state.ecs_mut().internal_mut().maintain();
-
-            self.clients.add(entity, Client {
-                state: ClientState::Connecting,
-                postbox,
-                last_ping: self.state.get_time(),
-            });
-
-            frontend_events.push(Event::ClientConnected {
+            self.clients.add(
                 entity,
-            });
+                Client {
+                    state: ClientState::Connecting,
+                    postbox,
+                    last_ping: self.state.get_time(),
+                },
+            );
+
+            frontend_events.push(Event::ClientConnected { entity });
         }
 
         Ok(frontend_events)
@@ -236,7 +269,6 @@ impl Server {
                                     state.write_component(entity, character);
                                     
                                 }
-                                state.write_component(entity, comp::phys::ForceUpdate);
 
                                 client.state = ClientState::Connected;
 
@@ -249,34 +281,36 @@ impl Server {
                                         .unwrap()
                                         .into(),
                                 });
-                            },
+                            }
                             _ => disconnect = true,
                         },
                         ClientState::Connected => match msg {
                             ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
                             ClientMsg::Disconnect => disconnect = true,
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
-                            ClientMsg::Pong => {},
+                            ClientMsg::Pong => {}
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
                             ClientMsg::PlayerAnimation(animation) => state.write_component(entity, animation),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
-                            },
-                            ClientMsg::TerrainChunkRequest { key } => match state.terrain().get_key(key) {
-                                Some(chunk) => {}, /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                            }
+                            ClientMsg::TerrainChunkRequest { key } => {
+                                match state.terrain().get_key(key) {
+                                    Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                     key,
                                     chunk: Box::new(chunk.clone()),
-                                }),*/
-                                None => requested_chunks.push(key),
-                            },
+                                    }),*/
+                                    None => requested_chunks.push(key),
+                                }
+                            }
                         },
                     }
                 }
-            } else if
-                state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
-                client.postbox.error().is_some() // Postbox error
+            } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
+                client.postbox.error().is_some()
+            // Postbox error
             {
                 disconnect = true;
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT * 0.5 {
@@ -294,29 +328,33 @@ impl Server {
 
         // Handle new chat messages
         for (entity, msg) in new_chat_msgs {
-            self.clients.notify_connected(ServerMsg::Chat(match state
-                .ecs()
-                .internal()
-                .read_storage::<comp::Player>()
-                .get(entity)
-            {
-                Some(player) => format!("[{}] {}", &player.alias, msg),
-                None => format!("[<anon>] {}", msg),
-            }));
+            // Handle chat commands
+            if msg.starts_with("/") && msg.len() > 1 {
+                let argv = String::from(&msg[1..]);
+                self.process_chat_cmd(entity, argv);
+            } else {
+                self.clients.notify_connected(ServerMsg::Chat(
+                    match self
+                        .state
+                        .ecs()
+                        .internal()
+                        .read_storage::<comp::Player>()
+                        .get(entity)
+                    {
+                        Some(player) => format!("[{}] {}", &player.alias, msg),
+                        None => format!("[<anon>] {}", msg),
+                    },
+                ));
 
-            frontend_events.push(Event::Chat {
-                entity,
-                msg,
-            });
+                frontend_events.push(Event::Chat { entity, msg });
+            }
         }
 
         // Handle client disconnects
         for entity in disconnected_clients {
-            state.ecs_mut().delete_entity_synced(entity).unwrap();
+            self.state.ecs_mut().delete_entity_synced(entity);
 
-            frontend_events.push(Event::ClientDisconnected {
-                entity,
-            });
+            frontend_events.push(Event::ClientDisconnected { entity });
         }
 
         // Generate requested chunks
@@ -375,7 +413,133 @@ impl Server {
     pub fn generate_chunk(&mut self, key: Vec3<i32>) {
         if self.pending_chunks.insert(key) {
             let chunk_tx = self.chunk_tx.clone();
-            self.thread_pool.execute(move || chunk_tx.send((key, World::generate_chunk(key))).unwrap());
+            self.thread_pool
+                .execute(move || chunk_tx.send((key, World::generate_chunk(key))).unwrap());
+        }
+    }
+
+    fn process_chat_cmd<'a>(&mut self, entity: EcsEntity, cmd: String) {
+        let sep = cmd.find(' ');
+        let (kwd, args) = match sep {
+            Some(i) => (cmd[..i].to_string(), cmd[(i + 1)..].to_string()),
+            None => (cmd, "".to_string()),
+        };
+        let action_opt = CHAT_COMMANDS.iter().find(|x| x.keyword == kwd);
+        match action_opt {
+            Some(action) => match action.keyword {
+                "jump" => {
+                    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+                    match (opt_x, opt_y, opt_z) {
+                        (Some(x), Some(y), Some(z)) => {
+                            if let Some(current_pos) =
+                                self.state.read_component_cloned::<comp::phys::Pos>(entity)
+                            {
+                                self.state.write_component(
+                                    entity,
+                                    comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)),
+                                )
+                            } else {
+                                self.clients.notify(
+                                    entity,
+                                    ServerMsg::Chat(String::from(
+                                        "Command 'jump' invalid in current state",
+                                    )),
+                                )
+                            }
+
+                        }
+                        _ => self
+                            .clients
+                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+                    }
+                }
+                "goto" => {
+                    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+                    match (opt_x, opt_y, opt_z) {
+                        (Some(x), Some(y), Some(z)) => self
+                            .state
+                            .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z))),
+                        _ => self
+                            .clients
+                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+                    }
+                }
+                "alias" => {
+                    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+                    match opt_alias {
+                        Some(alias) => self
+                            .state
+                            .write_component(entity, comp::player::Player { alias }),
+                        None => self
+                            .clients
+                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+                    }
+                }
+                "tp" => {
+                    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+                    match opt_alias {
+                        Some(alias) => {
+                            let ecs = self.state.ecs().internal();
+                            let opt_player =
+                                (&ecs.entities(), &ecs.read_storage::<comp::player::Player>())
+                                    .join()
+                                    .find(|(_, player)| player.alias == alias)
+                                    .map(|(entity, _)| entity);
+                            match opt_player {
+                                Some(player) => {
+                                    if let Some(pos) =
+                                        self.state.read_component_cloned::<comp::phys::Pos>(player)
+                                    {
+                                        self.state.write_component(entity, pos);
+                                    } else {
+                                        self.clients.notify(
+                                            entity,
+                                            ServerMsg::Chat(format!(
+                                                "Unable to teleport to player '{}'",
+                                                alias
+                                            )),
+                                        );
+                                    }
+                                }
+                                None => {
+                                    self.clients.notify(
+                                        entity,
+                                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                                    );
+                                    self.clients.notify(
+                                        entity,
+                                        ServerMsg::Chat(String::from(action.help_string)),
+                                    );
+                                }
+                            }
+                        }
+                        None => self
+                            .clients
+                            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+                    }
+                }
+                "help" => {
+                    for cmd in CHAT_COMMANDS.iter() {
+                        self.clients
+                            .notify(entity, ServerMsg::Chat(String::from(cmd.help_string)));
+                    }
+                }
+                _ => {}
+            },
+            // unknown command
+            None => {
+                self.clients.notify(
+                    entity,
+                    ServerMsg::Chat(format!(
+                        "Unrecognised command: '/{}'\nAvailable commands:",
+                        kwd
+                    )),
+                );
+                for cmd in CHAT_COMMANDS.iter() {
+                    self.clients
+                        .notify(entity, ServerMsg::Chat(String::from(cmd.keyword)));
+                }
+            }
         }
     }
 }
