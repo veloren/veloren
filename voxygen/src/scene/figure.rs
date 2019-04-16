@@ -94,10 +94,12 @@ impl Figures {
                 .entry(entity)
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
-            match animation {
+            let target_skeleton = match animation {
                 comp::character::Animation::Idle => IdleAnimation::update_skeleton(&mut state.skeleton, time),
                 comp::character::Animation::Run => RunAnimation::update_skeleton(&mut state.skeleton, time),
-            }
+            };
+
+            state.skeleton.interpolate(&target_skeleton);
 
             state.update(renderer, pos.0, dir.0);
         }
