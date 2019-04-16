@@ -154,10 +154,11 @@ impl Client {
             self.state.read_component_cloned::<comp::phys::Vel>(self.player),
             self.state.read_component_cloned::<comp::phys::Dir>(self.player),
         ) {
-            self.state.write_component(self.player, comp::phys::Vel(vel.0 + input.move_dir * 2.0 - vel.0.map(|e| e * e.abs() + e) * 0.03));
+            self.state.write_component(self.player, comp::Control {
+                move_dir: input.move_dir,
+            });
 
             if input.move_dir.magnitude() > 0.01 {
-                self.state.write_component(self.player, comp::phys::Dir(vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0)));
                 self.state.write_component(self.player, comp::Animation::Run);
             } else {
                 self.state.write_component(self.player, comp::Animation::Idle);
