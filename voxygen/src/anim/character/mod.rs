@@ -14,6 +14,7 @@ use super::{
     Bone,
 };
 
+#[derive(Clone)]
 pub struct CharacterSkeleton {
     head: Bone,
     chest: Bone,
@@ -64,5 +65,17 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
         ]
+    }
+
+    fn interpolate(&mut self, target: &Self) {
+        self.head.interpolate(&target.head);
+        self.chest.interpolate(&target.chest);
+        self.belt.interpolate(&target.belt);
+        self.shorts.interpolate(&target.shorts);
+        self.l_hand.interpolate(&target.l_hand);
+        self.r_hand.interpolate(&target.r_hand);
+        self.l_foot.interpolate(&target.l_foot);
+        self.r_foot.interpolate(&target.r_foot);
+        self.back.interpolate(&target.back);
     }
 }
