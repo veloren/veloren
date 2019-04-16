@@ -8,9 +8,9 @@ use crate::{
 };
 
 // Basic ECS physics system
-pub struct MovementSys;
+pub struct Sys;
 
-impl<'a> System<'a> for MovementSys {
+impl<'a> System<'a> for Sys {
     type SystemData = (
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Vel>,

@@ -13,7 +13,7 @@ use common::{
     comp,
     msg::{ClientMsg, ServerMsg},
     net::PostOffice,
-    state::State,
+    state::{State, Uid},
     terrain::TerrainChunk,
 };
 use specs::{
@@ -52,8 +52,11 @@ impl Server {
     pub fn new() -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
-        Ok(Self {
-            state: State::new(),
+        let mut state = State::new();
+        state.ecs_mut().internal_mut().register::<comp::phys::ForceUpdate>();
+
+        let mut this = Self {
+            state,
             world: World::new(),
 
             postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
@@ -65,7 +68,17 @@ impl Server {
             chunk_tx,
             chunk_rx,
             pending_chunks: HashSet::new(),
-        })
+        };
+
+        for i in 0..4 {
+            this.create_character(comp::Character::test())
+                .with(comp::Agent::Wanderer(Vec2::zero()))
+                .with(comp::Control::default())
+                .with(comp::Animation::Run)
+                .build();
+        }
+
+        Ok(this)
     }
 
     /// Get a reference to the server's game state.
@@ -88,6 +101,19 @@ impl Server {
     #[allow(dead_code)]
     pub fn world_mut(&mut self) -> &mut World {
         &mut self.world
+    }
+
+    /// Build a non-player character
+    #[allow(dead_code)]
+    pub fn create_character(&mut self, character: comp::Character) -> EcsEntityBuilder {
+        self.state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(comp::phys::Pos(Vec3::zero()))
+            .with(comp::phys::Vel(Vec3::zero()))
+            .with(comp::phys::Dir(Vec3::zero()))
+            .with(character)
+            .with(comp::Animation::Idle)
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
@@ -219,7 +245,7 @@ impl Server {
                                 state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
                                 if let Some(character) = character {
                                     state.write_component(entity, character);
-                                    
+
                                 }
 
                                 client.state = ClientState::Connected;
@@ -339,7 +365,7 @@ impl Server {
             };
 
             match force_update {
-                
+
 
                 Some(_) => self.clients.notify_connected(msg),
                 None => self.clients.notify_connected_except(entity, msg),
