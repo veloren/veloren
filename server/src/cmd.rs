@@ -1,6 +1,6 @@
-//! #Implementing new commands
+//! # Implementing new commands
 //! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
-//! and provide a handler function
+//! and provide a handler function.
 
 use crate::Server;
 use common::{comp, msg::ServerMsg};
@@ -12,13 +12,19 @@ use lazy_static::lazy_static;
 
 /// Struct representing a command that a user can run from server chat
 pub struct ChatCommand {
-    /// The keyword used to invoke the function, omitting the leading '/'
+    /// The keyword used to invoke the command, omitting the leading '/'
     pub keyword: &'static str,
-    /// the format string used by `scan_fmt` to parse arguments
+    /// A format string for parsing arguments
     arg_fmt: &'static str,
     /// message to explain how the command is used
     help_string: &'static str,
-    /// handler function called when the command is executed
+    /// Handler function called when the command is executed
+    /// # Arguments
+    /// * `&mut Server` - the `Server` instance executing the command
+    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the command
+    /// * `String` - a `String` containing the part of the command after the keyword
+    /// * `&ChatCommand` - the command to execute with the above arguments
+    /// Handler functions must parse arguments from the the given `String` (`scan_fmt!` is included for this purpose)
     handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
 }
 
