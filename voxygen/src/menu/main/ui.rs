@@ -23,8 +23,6 @@ widget_ids! {
         // Login, Singleplayer
         login_button,
         login_text,
-        login_error,
-        login_error_bg,
         address_text,
         address_bg,
         address_field,
