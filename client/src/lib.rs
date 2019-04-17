@@ -169,10 +169,8 @@ impl Client {
 
         // Update the server about the player's currently playing animation and the previous one
         if let Some(animationHistory) = self.state.read_storage::<comp::AnimationHistory>().get(self.player).cloned() {
-            if let Some(last) = animationHistory.last {
-                if animationHistory.current != last {
-                    self.postbox.send_message(ClientMsg::PlayerAnimation(animationHistory));
-                }
+            if Some(animationHistory.current) != animationHistory.last {
+                self.postbox.send_message(ClientMsg::PlayerAnimation(animationHistory));
             }
         }
 
