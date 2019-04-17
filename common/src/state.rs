@@ -100,7 +100,7 @@ impl State {
         ecs.internal_mut().register::<comp::phys::Pos>();
         ecs.internal_mut().register::<comp::phys::Vel>();
         ecs.internal_mut().register::<comp::phys::Dir>();
-        ecs.internal_mut().register::<comp::Animation>();
+        ecs.internal_mut().register::<comp::AnimationHistory>();
         ecs.internal_mut().register::<comp::Agent>();
         ecs.internal_mut().register::<comp::Control>();
 
