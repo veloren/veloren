@@ -148,23 +148,9 @@ impl Client {
             println!("Chunk at {:?}", k);
         });
 
-        // Step 1
-        if let (Some(_), Some(vel), Some(_), Some(_)) = (
-            self.state.read_component_cloned::<comp::phys::Pos>(self.player),
-            self.state.read_component_cloned::<comp::phys::Vel>(self.player),
-            self.state.read_component_cloned::<comp::phys::Dir>(self.player),
-            self.state.read_component_cloned::<comp::Character>(self.player),
-        ) {
-            self.state.write_component(self.player, comp::Control {
-                move_dir: input.move_dir,
-            });
-
-            if input.move_dir.magnitude() > 0.01 {
-                self.state.write_component(self.player, comp::Animation::Run);
-            } else {
-                self.state.write_component(self.player, comp::Animation::Idle);
-            }
-        }
+        self.state.write_component(self.player, comp::Control {
+            move_dir: input.move_dir,
+        });
 
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
