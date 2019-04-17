@@ -374,17 +374,15 @@ impl Server {
             &self.state.ecs().internal().read_storage::<Uid>(),
             &self.state.ecs().internal().read_storage::<comp::AnimationHistory>(),
         ).join() {
-            if let Some(last) = animationHistory.last {
-                // Check if we need to sync
-                if animationHistory.current == last {
-                    continue;
-                }
-
-                self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
-                    entity: uid.into(),
-                    animationHistory,
-                });
+            // Check if we need to sync
+            if Some(animationHistory.current) == animationHistory.last {
+                continue;
             }
+
+            self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
+                entity: uid.into(),
+                animationHistory,
+            });
         }
 
         // Update animation last/current state
@@ -392,9 +390,7 @@ impl Server {
             &self.state.ecs().internal().entities(),
             &mut self.state.ecs().internal().write_storage::<comp::AnimationHistory>()
         ).join() {
-            animationHistory.last = None;
-            let mut new = animationHistory.clone();
-            new.last = Some(new.current);
+            animationHistory.last = Some(animationHistory.current);
         }
 
         // Remove all force flags
