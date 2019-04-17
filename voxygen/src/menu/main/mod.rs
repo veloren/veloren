@@ -1,5 +1,6 @@
 mod client_init;
 mod ui;
+mod singleplayer;
 
 use super::char_selection::CharSelectionState;
 use crate::{
@@ -9,6 +10,7 @@ use crate::{
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use std::time::Duration;
+use std::thread;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
 
@@ -99,6 +101,11 @@ impl PlayState for MainMenuState {
                                 300,
                             ),
                         )));
+                    }
+                    MainMenuEvent::StartSingleplayer => {
+                        thread::spawn(move || {
+                            singleplayer::run_server();
+                        });
                     }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
