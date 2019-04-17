@@ -25,7 +25,7 @@ use threadpool::ThreadPool;
 use vek::*;
 use world::World;
 
-const CLIENT_TIMEOUT: f64 = 5.0; // Seconds
+const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
     ClientConnected { entity: EcsEntity },
