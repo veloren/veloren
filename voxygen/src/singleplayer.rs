@@ -7,7 +7,7 @@ use std::{
     thread::JoinHandle
 };
 use std::sync::mpsc::{
-    channel, Receiver, Sender
+    channel, Receiver, Sender, TryRecvError,
 };
 
 const TPS: u64 = 30;
@@ -16,6 +16,8 @@ enum Msg {
     Stop,
 }
 
+/// Used to start and stop the background thread running the server
+/// when in singleplayer mode.
 pub struct Singleplayer {
     server_thread: JoinHandle<()>,
     sender: Sender<Msg>,
@@ -68,8 +70,8 @@ fn run_server(rec: Receiver<Msg>) {
         match rec.try_recv() {
             Ok(msg) => break,
             Err(err) => match err {
-                Empty => (),
-                Disconnected => break,
+                TryRecvError::Empty => (),
+                TryRecvError::Disconnected => break,
             },
         }
 
