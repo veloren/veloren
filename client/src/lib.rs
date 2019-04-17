@@ -26,7 +26,7 @@ use common::{
     msg::{ClientMsg, ServerMsg},
 };
 
-const SERVER_TIMEOUT: f64 = 5.0; // Seconds
+const SERVER_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
     Chat(String),
