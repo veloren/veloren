@@ -168,9 +168,9 @@ impl Client {
         }
 
         // Update the server about the player's currently playing animation and the previous one
-        if let Some(animationHistory) = self.state.read_storage::<comp::AnimationHistory>().get(self.player).cloned() {
-            if Some(animationHistory.current) != animationHistory.last {
-                self.postbox.send_message(ClientMsg::PlayerAnimation(animationHistory));
+        if let Some(animation_history) = self.state.read_storage::<comp::AnimationHistory>().get(self.player).cloned() {
+            if Some(animation_history.current) != animation_history.last {
+                self.postbox.send_message(ClientMsg::PlayerAnimation(animation_history));
             }
         }
 
@@ -230,9 +230,9 @@ impl Client {
                         },
                         None => {},
                     },
-                    ServerMsg::EntityAnimation { entity, animationHistory } => match self.state.ecs().entity_from_uid(entity) {
+                    ServerMsg::EntityAnimation { entity, animation_history } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
-                            self.state.write_component(entity, animationHistory);
+                            self.state.write_component(entity, animation_history);
                         },
                         None => {},
                     },
