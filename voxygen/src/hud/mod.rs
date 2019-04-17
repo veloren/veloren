@@ -515,7 +515,6 @@ impl Hud {
                 Text::new(
                     "Tab = Free Cursor       \n\
                      Esc = Open/Close Menus  \n\
-                     Q = Back to Login       \n\
                      \n\
                      F1 = Toggle this Window \n\
                      F2 = Toggle Interface   \n\
