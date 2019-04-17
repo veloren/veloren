@@ -27,7 +27,7 @@ impl<'a> System<'a> for Sys {
                 dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
                 anims.insert(entity, Animation::Run);
             } else {
-                anims.insert(entity, Animation::Run);
+                anims.insert(entity, Animation::Idle);
             }
         }
     }
