@@ -83,18 +83,18 @@ impl Figures {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
         let ecs = client.state_mut().ecs_mut().internal_mut();
-        for (entity, pos, dir, character, animation) in (
+        for (entity, pos, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Character>(),
-            &ecs.read_storage::<comp::Animation>(),
+            &ecs.read_storage::<comp::AnimationHistory>(),
         ).join() {
             let state = self.states
                 .entry(entity)
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
-            let target_skeleton = match animation {
+            let target_skeleton = match animation_history.current {
                 comp::character::Animation::Idle => IdleAnimation::update_skeleton(&mut state.skeleton, time),
                 comp::character::Animation::Run => RunAnimation::update_skeleton(&mut state.skeleton, time),
             };
