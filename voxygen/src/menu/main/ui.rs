@@ -1,4 +1,5 @@
 use crate::{
+    DEFAULT_PUBLIC_SERVER,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
@@ -137,7 +138,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: "veloren.mac94.de".to_string(),
+            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
             login_error: None,
             connecting: None,
         }
