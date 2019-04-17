@@ -55,32 +55,28 @@ lazy_static! {
         ChatCommand::new(
             "jump",
             "{d} {d} {d}",
-            "jump: offset your current position by a vector\n
-                Usage: /jump [x] [y] [z]",
+            "/jump <dx> <dy> <dz> : Offset your current position",
             handle_jump
         ),
         ChatCommand::new(
             "goto",
             "{d} {d} {d}",
-            "goto: teleport to a given position\n
-                Usage: /goto [x] [y] [z]",
+            "/goto <x> <y> <z> : Teleport to a position",
             handle_goto
         ),
         ChatCommand::new(
             "alias",
             "{}",
-            "alias: change your player name (cannot contain spaces)\n
-                Usage: /alias [name]",
+            "/alias <name> : Change your alias",
             handle_alias
         ),
         ChatCommand::new(
             "tp",
             "{}",
-            "tp: teleport to a named player\n
-                Usage: /tp [name]",
+            "/tp <alias>: Teleport to another player",
             handle_tp
         ),
-        ChatCommand::new("help", "", "help: display this message", handle_help)
+        ChatCommand::new("help", "", "/help: Display this message", handle_help)
     ];
 }
 
@@ -92,9 +88,10 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 .state
                 .read_component_cloned::<comp::phys::Pos>(entity)
             {
-                Some(current_pos) => server
-                    .state
-                    .write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z))),
+                Some(current_pos) => {
+                    server.state.write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)));
+                    server.state.write_component(entity, comp::phys::ForceUpdate);
+                },
                 None => server.clients.notify(
                     entity,
                     ServerMsg::Chat(String::from("Command 'jump' invalid in current state")),
@@ -110,9 +107,10 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
     match (opt_x, opt_y, opt_z) {
-        (Some(x), Some(y), Some(z)) => server
-            .state
-            .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z))),
+        (Some(x), Some(y), Some(z)) => {
+            server.state.write_component(entity, comp::phys::Pos(Vec3::new(x, y, z)));
+            server.state.write_component(entity, comp::phys::ForceUpdate);
+        },
         _ => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
@@ -145,13 +143,15 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                     .state
                     .read_component_cloned::<comp::phys::Pos>(player)
                 {
-                    Some(pos) => server.state.write_component(entity, pos),
+                    Some(pos) => {
+                        server.state.write_component(entity, pos);
+                        server.state.write_component(entity, comp::phys::ForceUpdate);
+                    },
                     None => server.clients.notify(
                         entity,
                         ServerMsg::Chat(format!("Unable to teleport to player '{}'", alias)),
                     ),
                 },
-
                 None => {
                     server.clients.notify(
                         entity,
