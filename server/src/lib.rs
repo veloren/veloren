@@ -74,7 +74,6 @@ impl Server {
             this.create_character(comp::Character::test())
                 .with(comp::Agent::Wanderer(Vec2::zero()))
                 .with(comp::Control::default())
-                .with(comp::Animation::Run)
                 .build();
         }
 
@@ -111,9 +110,8 @@ impl Server {
             .create_entity_synced()
             .with(comp::phys::Pos(Vec3::zero()))
             .with(comp::phys::Vel(Vec3::zero()))
-            .with(comp::phys::Dir(Vec3::zero()))
+            .with(comp::phys::Dir(Vec3::unit_y()))
             .with(character)
-            .with(comp::Animation::Idle)
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
