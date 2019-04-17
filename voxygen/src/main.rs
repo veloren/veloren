@@ -31,6 +31,9 @@ use crate::{
     settings::Settings
 };
 
+/// The URL of the default public server that Voxygen will connect to
+const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
+
 /// A type used to store state that is shared between all play states
 pub struct GlobalState {
     settings: Settings,
