@@ -552,7 +552,7 @@ impl Hud {
                     .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
                     .hover_image(self.imgs.close_button_hover)
                     .press_image(self.imgs.close_button_press)
-                    .top_right_with_margins_on(self.ids.help_bg, 8.0, 4.0)
+                    .top_right_with_margins_on(self.ids.help_bg, 8.0, 3.0)
                     .set(self.ids.button_help2, ui_widgets)
                     .was_clicked()
                 {
