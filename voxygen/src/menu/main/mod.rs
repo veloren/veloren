@@ -62,7 +62,7 @@ impl PlayState for MainMenuState {
             global_state.window.renderer_mut().clear(BG_COLOR);
 
             // Poll client creation
-            match client_init.as_ref().and_then(|init| init.poll())  {
+            match client_init.as_ref().and_then(|init| init.poll()) {
                 Some(Ok(client)) => {
                     self.main_menu_ui.connected();
                     return PlayStateResult::Push(Box::new(CharSelectionState::new(
@@ -72,11 +72,14 @@ impl PlayState for MainMenuState {
                 }
                 Some(Err(err)) => {
                     client_init = None;
-                    self.main_menu_ui.login_error(match err {
-                        InitError::BadAddress(_) | InitError::NoAddress => "No such host is known",
-                        InitError::ConnectionFailed(_) => "Could not connect to address",
-                    }.to_string());
-                },
+                    self.main_menu_ui.login_error(
+                        match err {
+                            InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
+                            InitError::ConnectionFailed(_) => "Connection failed",
+                        }
+                        .to_string(),
+                    );
+                }
                 None => {}
             }
 
