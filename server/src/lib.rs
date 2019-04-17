@@ -266,7 +266,7 @@ impl Server {
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {}
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
-                            ClientMsg::PlayerAnimation(animation) => state.write_component(entity, animation),
+                            ClientMsg::PlayerAnimation(animationHistory) => state.write_component(entity, animationHistory),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
@@ -369,15 +369,31 @@ impl Server {
         }
 
         // Sync animation states
-        for (entity, &uid, &animation) in (
+        for (entity, &uid, &animationHistory) in (
             &self.state.ecs().internal().entities(),
             &self.state.ecs().internal().read_storage::<Uid>(),
-            &self.state.ecs().internal().read_storage::<comp::Animation>(),
+            &self.state.ecs().internal().read_storage::<comp::AnimationHistory>(),
         ).join() {
-            self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
-                entity: uid.into(),
-                animation,
-            });
+            if let Some(last) = animationHistory.last {
+                if animationHistory.current == last {
+                    continue;
+                }
+
+                self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
+                    entity: uid.into(),
+                    animationHistory,
+                });
+            }
+        }
+
+        // Update animation last/current state
+        for (entity, mut animationHistory) in (
+            &self.state.ecs().internal().entities(),
+            &mut self.state.ecs().internal().write_storage::<comp::AnimationHistory>()
+        ).join() {
+            animationHistory.last = None;
+            let mut new = animationHistory.clone();
+            new.last = Some(new.current);
         }
 
         // Remove all force flags

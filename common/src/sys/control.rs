@@ -3,7 +3,7 @@ use specs::{Join, Read, ReadStorage, System, WriteStorage, Entities};
 use vek::*;
 
 // Crate
-use crate::comp::{Control, Animation, phys::{Pos, Vel, Dir}};
+use crate::comp::{Control, Animation, AnimationHistory, phys::{Pos, Vel, Dir}};
 
 // Basic ECS AI agent system
 pub struct Sys;
@@ -13,7 +13,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Dir>,
-        WriteStorage<'a, Animation>,
+        WriteStorage<'a, AnimationHistory>,
         ReadStorage<'a, Control>,
     );
 
@@ -23,12 +23,20 @@ impl<'a> System<'a> for Sys {
             // Apply physics to the player: acceleration and non-linear decceleration
             vel.0 += control.move_dir * 2.0 - vel.0.map(|e| e * e.abs() + e) * 0.03;
 
-            if control.move_dir.magnitude() > 0.01 {
-                dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
-                anims.insert(entity, Animation::Run);
-            } else {
-                anims.insert(entity, Animation::Idle);
-            }
+            let animation =
+                if control.move_dir.magnitude() > 0.01 {
+                    dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
+                    Animation::Run
+                } else {
+                    Animation::Idle
+                };
+
+            let lastAnimation = anims.get_mut(entity).map(|h| h.current);
+
+            anims.insert(entity, AnimationHistory {
+                last: lastAnimation, 
+                current: animation,
+            });
         }
     }
 }

@@ -19,6 +19,12 @@ pub enum Gender {
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct AnimationHistory {
+    pub last: Option<Animation>,
+    pub current: Animation,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Animation {
     Idle,
     Run,
@@ -55,6 +61,6 @@ impl Component for Character {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-impl Component for Animation {
+impl Component for AnimationHistory {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
