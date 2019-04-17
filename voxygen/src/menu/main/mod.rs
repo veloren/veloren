@@ -5,10 +5,12 @@ use super::char_selection::CharSelectionState;
 use crate::{
     window::{Event, Window},
     GlobalState, PlayState, PlayStateResult,
+    singleplayer::Singleplayer,
 };
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use std::time::Duration;
+use std::thread;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
 
@@ -99,6 +101,9 @@ impl PlayState for MainMenuState {
                                 300,
                             ),
                         )));
+                    }
+                    MainMenuEvent::StartSingleplayer => {
+                        global_state.singleplayer = Some(Singleplayer::new());
                     }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
