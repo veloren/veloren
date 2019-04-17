@@ -1,11 +1,12 @@
 use crate::{
-    DEFAULT_PUBLIC_SERVER,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
 };
 use common::assets;
 use conrod_core::{
+    color,
+    color::BLACK,
     color::TRANSPARENT,
     image::Id as ImgId,
     position::{Dimension, Relative},
@@ -23,8 +24,6 @@ widget_ids! {
         // Login, Singleplayer
         login_button,
         login_text,
-        login_error,
-        login_error_bg,
         address_text,
         address_bg,
         address_field,
@@ -39,6 +38,9 @@ widget_ids! {
         quit_button,
         // Error
         error_frame,
+        button_ok,
+        login_error,
+        login_error_bg,
     }
 }
 
@@ -57,6 +59,9 @@ struct Imgs {
     button_press: ImgId,
 
     error_frame: ImgId,
+    button_dark: ImgId,
+    button_dark_hover: ImgId,
+    button_dark_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -90,6 +95,9 @@ impl Imgs {
 
             //Error
             error_frame: load("element/frames/skin_eyes.png"),
+            button_dark: load("element/buttons/button_dark.png"),
+            button_dark_hover: load("element/buttons/button_dark_hover.png"),
+            button_dark_press: load("element/buttons/button_dark_press.png"),
         }
     }
 }
@@ -99,7 +107,6 @@ pub enum Event {
         username: String,
         server_address: String,
     },
-    StartSingleplayer,
     Quit,
 }
 
@@ -146,7 +153,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
+            server_address: "veloren.mac94.de".to_string(),
             login_error: None,
             connecting: None,
         }
@@ -181,18 +188,6 @@ impl MainMenuUi {
                 });
             };
         }
-
-        macro_rules! singleplayer {
-            () => {
-                self.login_error = None;
-                events.push(Event::StartSingleplayer);
-                events.push(Event::LoginAttempt {
-                    username: "singleplayer".to_string(),
-                    server_address: "localhost".to_string(),
-                });
-            };
-        }
-
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
@@ -227,22 +222,30 @@ impl MainMenuUi {
                 .rgba(1.0, 1.0, 1.0, 1.0)
                 .font_size(30)
                 .font_id(self.font_opensans);
-            let x = match text.get_x_dimension(ui_widgets) {
-                Dimension::Absolute(x) => x + 10.0,
-                _ => 0.0,
-            };
-            Rectangle::fill([x, 60.0])
+
+            Rectangle::fill_with([200.0, 100.0], color::BLACK)
                 .rgba(0.1, 0.1, 0.1, 1.0)
                 .parent(ui_widgets.window)
-                .mid_bottom_with_margin_on(self.ids.username_bg, 0.0)
+                .up_from(self.ids.username_bg, 35.0)
                 .set(self.ids.login_error_bg, ui_widgets);
-            text.middle_of(self.ids.login_error_bg)
+            text.mid_top_with_margin_on(self.ids.login_error_bg, 10.0)
                 .set(self.ids.login_error, ui_widgets);
             Image::new(self.imgs.error_frame)
-                .h(60.0)
                 .middle_of(self.ids.login_error)
                 .set(self.ids.error_frame, ui_widgets);
-        }
+            if Button::image(self.imgs.button_dark)
+                .w_h(50.0, 30.0)
+                .mid_top_with_margin_on(self.ids.login_error_bg, 20.0)
+                .hover_image(self.imgs.button_dark_hover)
+                .press_image(self.imgs.button_dark_press)
+                .label("Ok")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.button_ok, ui_widgets)
+                .was_clicked()
+            {}
+        };
+
         // Server address
         Image::new(self.imgs.input_bg)
             .w_h(337.0, 67.0)
@@ -321,7 +324,7 @@ impl MainMenuUi {
             .set(self.ids.singleplayer_button, ui_widgets)
             .was_clicked()
         {
-            singleplayer!();
+            login!();
         }
         // Quit
         if Button::image(self.imgs.button)

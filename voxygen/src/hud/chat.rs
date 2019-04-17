@@ -1,11 +1,10 @@
 use crate::ui::Ui;
 use conrod_core::{
-    color,
     input::Key,
     position::Dimension,
     text::font::Id as FontId,
     widget::{Button, Id, List, Rectangle, Text, TextEdit},
-    widget_ids, Colorable, Positionable, Sizeable, UiCell, Widget,
+    widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget,
 };
 use std::collections::VecDeque;
 
@@ -85,59 +84,48 @@ impl Chat {
 
         // Chat input with rectangle as background
         let text_edit = TextEdit::new(&self.input)
-            .w(460.0)
-            .restrict_to_height(false)
-            .line_spacing(2.0)
-            .font_size(15)
-            .font_id(font);
-        let y = match text_edit.get_y_dimension(ui_widgets) {
-            Dimension::Absolute(y) => y + 6.0,
-            _ => 0.0,
-        };
-        Rectangle::fill([470.0, y])
-            .rgba(0.0, 0.0, 0.0, 0.8)
-            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
             .w(470.0)
+            .restrict_to_height(false)
+            .font_size(15)
+            .font_id(font)
+            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0);
+        let dims = match (
+            text_edit.get_x_dimension(ui_widgets),
+            text_edit.get_y_dimension(ui_widgets),
+        ) {
+            (Dimension::Absolute(x), Dimension::Absolute(y)) => [x, y],
+            _ => [0.0, 0.0],
+        };
+        Rectangle::fill(dims)
+            .rgba(0.0, 0.0, 0.0, 0.8)
+            .x_position(text_edit.get_x_position(ui_widgets))
+            .y_position(text_edit.get_y_position(ui_widgets))
             .set(self.ids.input_bg, ui_widgets);
-        if let Some(str) = text_edit
-            .top_left_with_margins_on(self.ids.input_bg, 1.0, 1.0)
-            .set(self.ids.input, ui_widgets)
-        {
+        if let Some(str) = text_edit.set(self.ids.input, ui_widgets) {
             self.input = str.to_string();
             self.input.retain(|c| c != '\n');
         }
 
         // Message box
-        Rectangle::fill([470.0, 174.0])
+        Rectangle::fill([470.0, 167.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
-            .up_from(self.ids.input_bg, 0.0)
+            .up_from(self.ids.input, 0.0)
             .set(self.ids.message_box_bg, ui_widgets);
-        let (mut items, _) = List::flow_down(self.messages.len() + 1)
-            .top_left_of(self.ids.message_box_bg)
-            .w_h(470.0, 174.0)
-            .scroll_kids_vertically()
+        let (mut items, scrollbar) = List::flow_down(self.messages.len())
+            .top_left_with_margins_on(self.ids.message_box_bg, 0.0, 5.0)
+            .w_h(460.0, 160.0)
+            .scrollbar_next_to()
+            .scrollbar_thickness(18.0)
+            .scrollbar_color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
             .set(self.ids.message_box, ui_widgets);
         while let Some(item) = items.next(ui_widgets) {
-            // This would be easier if conrod used the v-metrics from rusttype
-            let widget = if item.i < self.messages.len() {
-                let text = Text::new(&self.messages[item.i])
+            item.set(
+                Text::new(&self.messages[item.i])
                     .font_size(15)
                     .font_id(font)
-                    .w(470.0)
-                    .rgba(1.0, 1.0, 1.0, 1.0)
-                    .line_spacing(2.0);
-                // Add space between messages
-                let y = match text.get_y_dimension(ui_widgets) {
-                    Dimension::Absolute(y) => y + 2.0,
-                    _ => 0.0,
-                };
-                text.h(y)
-            } else {
-                // Spacer at bottom of the last message so that it is not cut off
-                // Needs to be larger than the space above
-                Text::new("").font_size(6).font_id(font).w(470.0)
-            };
-            item.set(widget, ui_widgets);
+                    .rgba(1.0, 1.0, 1.0, 1.0),
+                ui_widgets,
+            )
         }
 
         // Chat Arrow
