@@ -31,10 +31,10 @@ impl<'a> System<'a> for Sys {
                     Animation::Idle
                 };
 
-            let lastAnimation = anims.get_mut(entity).map(|h| h.current);
+            let last_animation = anims.get_mut(entity).map(|h| h.current);
 
             anims.insert(entity, AnimationHistory {
-                last: lastAnimation, 
+                last: last_animation, 
                 current: animation,
             });
         }
