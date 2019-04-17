@@ -15,6 +15,7 @@ use common::{
     net::PostOffice,
     state::{State, Uid},
     terrain::TerrainChunk,
+    comp::character::Animation,
 };
 use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
@@ -235,28 +236,7 @@ impl Server {
                     match client.state {
                         ClientState::Connecting => match msg {
                             ClientMsg::Connect { player, character } => {
-
-                                // Write client components
-                                state.write_component(entity, player);
-                                state.write_component(entity, comp::phys::Pos(Vec3::zero()));
-                                state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-                                state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-                                if let Some(character) = character {
-                                    state.write_component(entity, character);
-                                }
-                                state.write_component(entity, comp::phys::ForceUpdate);
-
-                                client.state = ClientState::Connected;
-
-                                // Return a handshake with the state of the current world
-                                client.notify(ServerMsg::Handshake {
-                                    ecs_state: state.ecs().gen_state_package(),
-                                    player_entity: state
-                                        .ecs()
-                                        .uid_from_entity(entity)
-                                        .unwrap()
-                                        .into(),
-                                });
+                                Self::initialize_client(state, entity, client, player, character);
                             }
                             _ => disconnect = true,
                         },
@@ -339,6 +319,51 @@ impl Server {
         }
 
         Ok(frontend_events)
+    }
+
+    /// Initialize a new client states with important information
+    fn initialize_client(
+        state: &mut State,
+        entity: specs::Entity,
+        client: &mut Client,
+        player: comp::Player,
+        character: Option<comp::Character>,
+    ) {
+        // Save player metadata (for example the username)
+        state.write_component(entity, player);
+
+        // Give the player it's character if he wants one
+        // (Chat only clients don't need one for example)
+        if let Some(character) = character {
+            state.write_component(entity, character);
+
+            // Every character has to have these components
+            state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+            state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+            state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
+            // Make sure everything is accepted
+            state.write_component(entity, comp::phys::ForceUpdate);
+
+            // Set initial animation
+            state.write_component(entity, comp::AnimationHistory {
+                last: None,
+                current: Animation::Idle
+            });
+        }
+
+        client.state = ClientState::Connected;
+
+        // Return a handshake with the state of the current world
+        // (All components Sphynx tracks)
+        client.notify(ServerMsg::Handshake {
+            ecs_state: state.ecs().gen_state_package(),
+            player_entity: state
+                .ecs()
+                .uid_from_entity(entity)
+                .unwrap()
+                .into(),
+        });
+
     }
 
     /// Sync client states with the most up to date information
