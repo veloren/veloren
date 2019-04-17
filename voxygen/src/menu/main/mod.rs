@@ -1,11 +1,11 @@
 mod client_init;
 mod ui;
-mod singleplayer;
 
 use super::char_selection::CharSelectionState;
 use crate::{
     window::{Event, Window},
     GlobalState, PlayState, PlayStateResult,
+    singleplayer::Singleplayer,
 };
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
@@ -103,9 +103,7 @@ impl PlayState for MainMenuState {
                         )));
                     }
                     MainMenuEvent::StartSingleplayer => {
-                        thread::spawn(move || {
-                            singleplayer::run_server();
-                        });
+                        global_state.singleplayer = Some(Singleplayer::new());
                     }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
