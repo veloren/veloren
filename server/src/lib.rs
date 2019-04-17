@@ -375,6 +375,7 @@ impl Server {
             &self.state.ecs().internal().read_storage::<comp::AnimationHistory>(),
         ).join() {
             if let Some(last) = animationHistory.last {
+                // Check if we need to sync
                 if animationHistory.current == last {
                     continue;
                 }
