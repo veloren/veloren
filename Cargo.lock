@@ -1960,6 +1960,7 @@ dependencies = [
  "vek 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "veloren-client 0.2.0",
  "veloren-common 0.2.0",
+ "veloren-server 0.2.0",
  "winit 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

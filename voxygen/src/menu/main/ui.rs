@@ -92,6 +92,7 @@ pub enum Event {
         username: String,
         server_address: String,
     },
+    StartSingleplayer,
     Quit,
 }
 
@@ -173,6 +174,18 @@ impl MainMenuUi {
                 });
             };
         }
+
+        macro_rules! singleplayer {
+            () => {
+                self.login_error = None;
+                events.push(Event::StartSingleplayer);
+                events.push(Event::LoginAttempt {
+                    username: "singleplayer".to_string(),
+                    server_address: "localhost".to_string(),
+                });
+            };
+        }
+
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
@@ -297,7 +310,7 @@ impl MainMenuUi {
             .set(self.ids.singleplayer_button, ui_widgets)
             .was_clicked()
         {
-            login!();
+            singleplayer!();
         }
         // Quit
         if Button::image(self.imgs.button)
