@@ -364,6 +364,18 @@ impl Server {
                 .into(),
         });
 
+        // Sync logical information other players have authority over, not the server
+        for (other_entity, &uid, &animationHistory) in (
+            &state.ecs().internal().entities(),
+            &state.ecs().internal().read_storage::<common::state::Uid>(),
+            &state.ecs().internal().read_storage::<comp::AnimationHistory>(),
+        ).join() {
+            // AnimationHistory
+            client.postbox.send_message(ServerMsg::EntityAnimation {
+                entity: uid.into(),
+                animationHistory: animationHistory,
+            });
+        }
     }
 
     /// Sync client states with the most up to date information
