@@ -246,7 +246,7 @@ impl Server {
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {}
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
-                            ClientMsg::PlayerAnimation(animationHistory) => state.write_component(entity, animationHistory),
+                            ClientMsg::PlayerAnimation(animation_history) => state.write_component(entity, animation_history),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
@@ -365,7 +365,7 @@ impl Server {
         });
 
         // Sync logical information other players have authority over, not the server
-        for (other_entity, &uid, &animationHistory) in (
+        for (other_entity, &uid, &animation_history) in (
             &state.ecs().internal().entities(),
             &state.ecs().internal().read_storage::<common::state::Uid>(),
             &state.ecs().internal().read_storage::<comp::AnimationHistory>(),
@@ -373,7 +373,7 @@ impl Server {
             // AnimationHistory
             client.postbox.send_message(ServerMsg::EntityAnimation {
                 entity: uid.into(),
-                animationHistory: animationHistory,
+                animation_history: animation_history,
             });
         }
     }
@@ -406,28 +406,28 @@ impl Server {
         }
 
         // Sync animation states
-        for (entity, &uid, &animationHistory) in (
+        for (entity, &uid, &animation_history) in (
             &self.state.ecs().internal().entities(),
             &self.state.ecs().internal().read_storage::<Uid>(),
             &self.state.ecs().internal().read_storage::<comp::AnimationHistory>(),
         ).join() {
             // Check if we need to sync
-            if Some(animationHistory.current) == animationHistory.last {
+            if Some(animation_history.current) == animation_history.last {
                 continue;
             }
 
             self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
                 entity: uid.into(),
-                animationHistory,
+                animation_history,
             });
         }
 
         // Update animation last/current state
-        for (entity, mut animationHistory) in (
+        for (entity, mut animation_history) in (
             &self.state.ecs().internal().entities(),
             &mut self.state.ecs().internal().write_storage::<comp::AnimationHistory>()
         ).join() {
-            animationHistory.last = Some(animationHistory.current);
+            animation_history.last = Some(animation_history.current);
         }
 
         // Remove all force flags
