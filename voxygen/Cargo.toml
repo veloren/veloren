@@ -12,6 +12,7 @@ default = ["gl"]
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
 client = { package = "veloren-client", path = "../client" }
+server = { package = "veloren-server", path = "../server" }
 
 # Graphics
 gfx = "0.17"

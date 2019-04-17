@@ -125,7 +125,10 @@ impl PlayState for SessionState {
                     continue;
                 }
                 let _handled = match event {
-                    Event::Close => return PlayStateResult::Shutdown,
+                    Event::Close => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Shutdown;
+                    },
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state
@@ -166,7 +169,10 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().send_chat(msg);
                     },
                     HudEvent::Logout => return PlayStateResult::Pop,
-                    HudEvent::Quit => return PlayStateResult::Shutdown,
+                    HudEvent::Quit => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Shutdown;
+                    },
                 }
             }
 
