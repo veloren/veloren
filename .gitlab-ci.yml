@@ -70,8 +70,8 @@ nightly-linux-debug:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
     - rm -r -f nightly
     - mkdir nightly
-    - cp target/debug/server-cli nightly
-    - cp target/debug/voxygen nightly
+    - cp target/debug/veloren-server-cli nightly
+    - cp target/debug/veloren-voxygen nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -93,8 +93,8 @@ nightly-windows-debug:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - rm -r -f nightly
     - mkdir nightly
-    - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe nightly
-    - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe nightly
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe nightly
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -115,8 +115,8 @@ nightly-linux-optimized:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
     - rm -r -f nightly
     - mkdir nightly
-    - cp target/release/server-cli nightly
-    - cp target/release/voxygen nightly
+    - cp target/release/veloren-server-cli nightly
+    - cp target/release/veloren-voxygen nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -138,8 +138,8 @@ nightly-windows-optimized:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - rm -r -f nightly
     - mkdir nightly
-    - cp target/x86_64-pc-windows-gnu/release/server-cli.exe nightly
-    - cp target/x86_64-pc-windows-gnu/release/voxygen.exe nightly
+    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe nightly
+    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -161,8 +161,8 @@ stable-linux-optimized:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
     - rm -r -f stable
     - mkdir stable
-    - cp target/release/server-cli stable
-    - cp target/release/voxygen stable
+    - cp target/release/veloren-server-cli stable
+    - cp target/release/veloren-voxygen stable
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -183,8 +183,8 @@ stable-windows-optimized:
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - rm -r -f stable
     - mkdir stable
-    - cp target/x86_64-pc-windows-gnu/release/server-cli.exe stable
-    - cp target/x86_64-pc-windows-gnu/release/voxygen.exe stable
+    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe stable
+    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe stable
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
     - cp -r voxygen/fonts nightly/
@@ -205,8 +205,8 @@ stable-windows-optimized:
 #     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
 #     - rm -r -f nightly
 #     - mkdir nightly
-#     - cp target/x86_64-pc-windows-gnu/debug/server-cli.exe nightly
-#     - cp target/x86_64-pc-windows-gnu/debug/voxygen.exe nightly
+#     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe nightly
+#     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe nightly
 #     - cp -r assets nightly/
 #     - cp -r voxygen/shaders nightly/
 #     - cp -r voxygen/fonts nightly/
