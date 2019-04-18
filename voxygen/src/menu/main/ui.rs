@@ -3,6 +3,7 @@ use crate::{
     ui::{self, ScaleMode, Ui},
     window::Window,
     DEFAULT_PUBLIC_SERVER,
+    GlobalState,
 };
 use common::{
     assets,
@@ -137,7 +138,9 @@ pub struct MainMenuUi {
 }
 
 impl MainMenuUi {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
+        let mut window = &mut global_state.window;
+        let networking = &global_state.settings.networking;
         let mut ui = Ui::new(window).unwrap();
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -162,8 +165,8 @@ impl MainMenuUi {
             ids,
             font_metamorph,
             font_opensans,
-            username: "Username".to_string(),
-            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
+            username: networking.username.clone(),
+            server_address,
             login_error: None,
             connecting: None,
         }
@@ -352,7 +355,6 @@ impl MainMenuUi {
             .was_clicked()
         {
             singleplayer!();
-            login!();
         }
         // Quit
         if Button::image(self.imgs.button)
