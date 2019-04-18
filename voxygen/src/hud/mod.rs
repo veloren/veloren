@@ -20,6 +20,8 @@ widget_ids! {
         bag_space_add,
         inventorytest_button,
         inventorytest_button_label,
+        // Logo
+        v_logo,
 
         // Bag and Inventory
         bag,
@@ -141,6 +143,8 @@ widget_ids! {
 // TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images.
 pub(self) struct Imgs {
     //Missing: ActionBar, Health/Mana/Energy Bar & Char Window BG/Frame
+    //Logo
+    v_logo: ImgId,
     // Bag
     bag: ImgId,
     bag_hover: ImgId,
@@ -326,6 +330,7 @@ impl Imgs {
 
             // Window BG
             window_bg: load("element/misc_backgrounds/window_bg.png"),
+            v_logo: load("element/v_logo.png"),
 
             //Social Window
             social_bg: load("element/misc_backgrounds/small_bg.png"),
@@ -476,6 +481,7 @@ impl Hud {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+        let version = env!("Cargo_PKG_VERSION");
 
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
@@ -505,17 +511,22 @@ impl Hud {
             {
                 events.push(Event::SendMessage(msg));
             }
+            // Alpha Version
+            Text::new(version)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(self.ids.v_logo, ui_widgets);
             // Help Text
             if self.show_help {
                 Image::new(self.imgs.window_frame_2)
-                    .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                    .w_h(300.0, 370.0)
+                    .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
+                    .w_h(300.0, 350.0)
                     .set(self.ids.help_bg, ui_widgets);
 
                 Text::new(
                     "Tab = Free Cursor       \n\
                      Esc = Open/Close Menus  \n\
-                     Q = Back to Login       \n\
                      \n\
                      F1 = Toggle this Window \n\
                      F2 = Toggle Interface   \n\
@@ -536,14 +547,12 @@ impl Hud {
                 .font_id(self.font_opensans)
                 .font_size(18)
                 .set(self.ids.help, ui_widgets);
-                if Button::image(self.imgs.button_dark)
-                    .w_h(50.0, 30.0)
-                    .bottom_right_with_margins_on(self.ids.help_bg, 10.0, 10.0)
-                    .hover_image(self.imgs.button_dark_hover)
-                    .press_image(self.imgs.button_dark_press)
-                    .label("Close")
-                    .label_font_size(10)
-                    .label_color(TEXT_COLOR)
+                // X-button
+                if Button::image(self.imgs.close_button)
+                    .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
+                    .hover_image(self.imgs.close_button_hover)
+                    .press_image(self.imgs.close_button_press)
+                    .top_right_with_margins_on(self.ids.help_bg, 8.0, 3.0)
                     .set(self.ids.button_help2, ui_widgets)
                     .was_clicked()
                 {

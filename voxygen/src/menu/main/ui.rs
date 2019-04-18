@@ -1,11 +1,11 @@
 use crate::{
-    DEFAULT_PUBLIC_SERVER,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
 };
 use common::assets;
 use conrod_core::{
+    color,
     color::TRANSPARENT,
     image::Id as ImgId,
     position::{Dimension, Relative},
@@ -37,6 +37,9 @@ widget_ids! {
         servers_button,
         settings_button,
         quit_button,
+        // Error
+        error_frame,
+        button_ok,
     }
 }
 
@@ -53,6 +56,11 @@ struct Imgs {
     button: ImgId,
     button_hover: ImgId,
     button_press: ImgId,
+
+    error_frame: ImgId,
+    button_dark: ImgId,
+    button_dark_hover: ImgId,
+    button_dark_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -83,6 +91,12 @@ impl Imgs {
             button: load("element/buttons/button.png"),
             button_hover: load("element/buttons/button_hover.png"),
             button_press: load("element/buttons/button_press.png"),
+
+            //Error
+            error_frame: load("element/frames/window_2.png"),
+            button_dark: load("element/buttons/button_dark.png"),
+            button_dark_hover: load("element/buttons/button_dark_hover.png"),
+            button_dark_press: load("element/buttons/button_dark_press.png"),
         }
     }
 }
@@ -92,7 +106,6 @@ pub enum Event {
         username: String,
         server_address: String,
     },
-    StartSingleplayer,
     Quit,
 }
 
@@ -139,7 +152,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
+            server_address: "veloren.mac94.de".to_string(),
             login_error: None,
             connecting: None,
         }
@@ -148,6 +161,7 @@ impl MainMenuUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+        let version = env!("Cargo_PKG_VERSION");
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
@@ -155,7 +169,7 @@ impl MainMenuUi {
         Button::image(self.imgs.v_logo)
             .w_h(346.0, 111.0)
             .top_left_with_margins(30.0, 40.0)
-            .label("Alpha 0.1")
+            .label(version)
             .label_rgba(1.0, 1.0, 1.0, 1.0)
             .label_font_size(10)
             .label_y(Relative::Scalar(-40.0))
@@ -174,18 +188,6 @@ impl MainMenuUi {
                 });
             };
         }
-
-        macro_rules! singleplayer {
-            () => {
-                self.login_error = None;
-                events.push(Event::StartSingleplayer);
-                events.push(Event::LoginAttempt {
-                    username: "singleplayer".to_string(),
-                    server_address: "localhost".to_string(),
-                });
-            };
-        }
-
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
@@ -217,20 +219,34 @@ impl MainMenuUi {
         // Login error
         if let Some(msg) = &self.login_error {
             let text = Text::new(&msg)
-                .rgba(0.5, 0.0, 0.0, 1.0)
+                .rgba(1.0, 1.0, 1.0, 1.0)
                 .font_size(30)
                 .font_id(self.font_opensans);
-            let x = match text.get_x_dimension(ui_widgets) {
-                Dimension::Absolute(x) => x + 10.0,
-                _ => 0.0,
-            };
-            Rectangle::fill([x, 40.0])
-                .rgba(0.2, 0.3, 0.3, 0.7)
+            Rectangle::fill_with([400.0, 100.0], color::TRANSPARENT)
+                .rgba(0.1, 0.1, 0.1, 1.0)
                 .parent(ui_widgets.window)
-                .up_from(self.ids.username_bg, 35.0)
+                .mid_top_with_margin_on(self.ids.username_bg, -35.0)
                 .set(self.ids.login_error_bg, ui_widgets);
-            text.middle_of(self.ids.login_error_bg)
+            Image::new(self.imgs.error_frame)
+                .w_h(400.0, 100.0)
+                .middle_of(self.ids.login_error_bg)
+                .set(self.ids.error_frame, ui_widgets);
+            text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                 .set(self.ids.login_error, ui_widgets);
+            if Button::image(self.imgs.button_dark)
+                .w_h(100.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
+                .hover_image(self.imgs.button_dark_hover)
+                .press_image(self.imgs.button_dark_press)
+                .label_y(Relative::Scalar(2.0))
+                .label("Okay")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.button_ok, ui_widgets)
+                .was_clicked()
+            {
+                self.login_error = None
+            };
         }
         // Server address
         Image::new(self.imgs.input_bg)
@@ -304,13 +320,13 @@ impl MainMenuUi {
             .align_middle_x_of(self.ids.address_bg)
             .label("Singleplayer")
             .label_color(TEXT_COLOR)
-            .label_font_size(26)
+            .label_font_size(24)
             .label_y(Relative::Scalar(5.0))
             .label_x(Relative::Scalar(2.0))
             .set(self.ids.singleplayer_button, ui_widgets)
             .was_clicked()
         {
-            singleplayer!();
+            login!();
         }
         // Quit
         if Button::image(self.imgs.button)

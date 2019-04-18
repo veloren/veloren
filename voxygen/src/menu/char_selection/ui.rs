@@ -411,6 +411,7 @@ impl CharSelectionUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+        let version = env!("Cargo_PKG_VERSION");
 
         // Character Selection /////////////////
         // Supposed functionality:
@@ -475,7 +476,7 @@ impl CharSelectionUi {
             Button::image(self.imgs.v_logo)
                 .w_h(346.0, 111.0)
                 .top_left_with_margins_on(self.ids.bg_selection, 30.0, 40.0)
-                .label("Alpha 0.1")
+                .label(version)
                 .label_rgba(1.0, 1.0, 1.0, 1.0)
                 .label_font_size(10)
                 .label_y(conrod_core::position::Relative::Scalar(-40.0))
