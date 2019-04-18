@@ -411,7 +411,7 @@ impl CharSelectionUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
-        let version = env!("Cargo_PKG_VERSION");
+        let version = env!("CARGO_PKG_VERSION");
 
         // Character Selection /////////////////
         // Supposed functionality:
