@@ -481,7 +481,7 @@ impl Hud {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
-        let version = env!("Cargo_PKG_VERSION");
+        let version = env!("CARGO_PKG_VERSION");
 
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
