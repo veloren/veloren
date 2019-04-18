@@ -21,9 +21,9 @@ pub struct MainMenuState {
 
 impl MainMenuState {
     /// Create a new `MainMenuState`
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
-            main_menu_ui: MainMenuUi::new(window),
+            main_menu_ui: MainMenuUi::new(global_state),
         }
     }
 }
@@ -92,6 +92,12 @@ impl PlayState for MainMenuState {
                         username,
                         server_address,
                     } => {
+                        let mut net_settings = &mut global_state.settings.networking;
+                        net_settings.username = username.clone();
+                        if !net_settings.servers.contains(&server_address) {
+                            net_settings.servers.push(server_address.clone());
+                        }
+                        global_state.settings.save_to_file();
                         const DEFAULT_PORT: u16 = 59003;
                         // Don't try to connect if there is already a connection in progress
                         client_init = client_init.or(Some(ClientInit::new(
