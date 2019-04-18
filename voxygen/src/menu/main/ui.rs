@@ -2,6 +2,7 @@ use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
+    DEFAULT_PUBLIC_SERVER,
 };
 use common::assets;
 use conrod_core::{
@@ -152,7 +153,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: "veloren.mac94.de".to_string(),
+            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
             login_error: None,
             connecting: None,
         }
@@ -161,7 +162,7 @@ impl MainMenuUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
-        let version = env!("Cargo_PKG_VERSION");
+        let version = env!("CARGO_PKG_VERSION");
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
