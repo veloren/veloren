@@ -246,8 +246,6 @@ impl Ui {
         self.image_map.insert(self.cache.new_graphic(graphic))
     }
 
-    // TODO: add function that creates a blank graphic
-
     pub fn new_font(&mut self, font: Font) -> FontId {
         self.ui.fonts.insert(font)
     }
@@ -320,6 +318,7 @@ impl Ui {
             let mut mesh = Mesh::new();
 
             // TODO: this could be removed entirely if the draw call just used both textures
+            //       however this allows for flexibility if we want to interleave other draw calls later
             enum State {
                 Image,
                 Plain,
@@ -396,6 +395,14 @@ impl Ui {
                 use conrod_core::render::PrimitiveKind;
                 match kind {
                     PrimitiveKind::Image { image_id, color, source_rect } => {
+                        let graphic_id = self.image_map.get(&image_id).expect("Image does not exist in image map");
+                        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
+
+                        match graphic_cache.get_graphic(*graphic_id) {
+                            Some(Graphic::Blank) | None => continue,
+                            _ => {}
+                        }
+
                         // Switch to the `Image` state for this image if we're not in it already.
                         if let State::Plain = current_state {
                             self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
@@ -405,7 +412,6 @@ impl Ui {
 
                         let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa());
 
-                        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
 
                         let resolution = Vec2::new(
                             (rect.w() * p_scale_factor) as u16,
@@ -429,7 +435,6 @@ impl Ui {
                                 max: Vec2::new(uv_r, uv_t),
                             }
                         };
-                        let graphic_id = self.image_map.get(&image_id).expect("Image does not exist in image map");
                         let (cache_w, cache_h) = cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                         // Cache graphic at particular resolution
