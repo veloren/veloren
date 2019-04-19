@@ -5,8 +5,10 @@ use crate::comp;
 pub enum ClientMsg {
     Connect {
         player: comp::Player,
-        character: Option<comp::Character>,
         
+    },
+    Character {
+        character: comp::Character,
     },
     Ping,
     Pong,

@@ -98,7 +98,6 @@ impl PlayState for MainMenuState {
                             (server_address, DEFAULT_PORT, false),
                             (
                                 comp::Player::new(username.clone()),
-                                Some(comp::Character::test()),
                                 300,
                             ),
                         )));
