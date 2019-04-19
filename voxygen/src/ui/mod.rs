@@ -1,15 +1,15 @@
 mod widgets;
 mod graphic;
-mod veuc;
+mod util;
 
 pub use widgets::toggle_button::ToggleButton;
 pub use graphic::Graphic;
+pub(self) use util::{srgb_to_linear, linear_to_srgb};
 
 use graphic::{
     GraphicCache,
     Id as GraphicId,
 };
-use image::DynamicImage;
 use conrod_core::{
     Ui as CrUi,
     UiBuilder,
@@ -23,7 +23,7 @@ use conrod_core::{
     widget::{Id as WidgId, id::Generator},
     render::Primitive,
     event::Input,
-    input::{touch::Touch, Widget, Motion, Button, MouseButton},
+    input::{touch::Touch, Widget, Motion, Button},
 };
 use vek::*;
 use crate::{
@@ -410,7 +410,7 @@ impl Ui {
                             current_state = State::Image;
                         }
 
-                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa());
+                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
 
                         let resolution = Vec2::new(
@@ -481,7 +481,7 @@ impl Ui {
                             renderer.update_texture(cache_tex, offset, size, &new_data);
                         }).unwrap();
 
-                        let color = srgb_to_linear(color.to_fsa());
+                        let color = srgb_to_linear(color.to_fsa().into());
 
                         for g in positioned_glyphs {
                             if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
@@ -509,7 +509,7 @@ impl Ui {
                         }
                     }
                     PrimitiveKind::Rectangle { color } => {
-                        let color = srgb_to_linear(color.to_fsa());
+                        let color = srgb_to_linear(color.to_fsa().into());
                         // Don't draw a transparent rectangle
                         if color[3] == 0.0 {
                             continue;
@@ -529,7 +529,7 @@ impl Ui {
                     }
                     PrimitiveKind::TrianglesSingleColor { color, triangles } => {
                         // Don't draw transparent triangle or switch state if there are actually no triangles
-                        let color: [f32; 4] = srgb_to_linear(color.into());
+                        let color = srgb_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
                         if triangles.is_empty() || color[3] == 0.0 {
                             continue;
                         }
@@ -561,9 +561,10 @@ impl Ui {
 
                     }
                     _ => {}
-                    // TODO: Add these
-                    //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
+                    // TODO: Add this
                     //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
+                    // Other uneeded for now
+                    //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
                 }
             }
             // Enter the final command
@@ -612,16 +613,4 @@ fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 { x: screen_w, y: screen_h }
     }
-}
-
-fn srgb_to_linear(color: [f32; 4]) -> [f32; 4] {
-    fn linearize(comp: f32) -> f32 {
-        if comp <= 0.04045 {
-            comp / 12.92
-        } else {
-            ((comp + 0.055) / 1.055).powf(2.4)
-        }
-    }
-
-    [linearize(color[0]), linearize(color[1]), linearize(color[2]), color[3]]
 }

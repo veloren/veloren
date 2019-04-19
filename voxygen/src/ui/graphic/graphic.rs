@@ -1,11 +1,7 @@
 use common::figure::Segment;
-use image::DynamicImage;
-use guillotiere::{
-    AtlasAllocator,
-    Allocation,
-    size2,
-};
 use fnv::FnvHashMap;
+use guillotiere::{size2, Allocation, AtlasAllocator};
+use image::DynamicImage;
 use vek::*;
 
 pub enum Graphic {
@@ -45,14 +41,30 @@ impl GraphicCache {
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
         self.graphic_map.get(&id)
     }
-    pub fn cache_res<F>(&mut self, graphic_id: Id, dims: Vec2<u16>, source: Aabr<f64>, mut cacher: F) -> Option<Aabr<u16>> where F: FnMut(Aabr<u16>, Vec<[u8; 4]>) {
-        match self.rect_map.get(&(graphic_id, dims, source.map(|e| e.to_bits()))) { //<-------- TODO: Replace this with rounded representation of source
+    pub fn cache_res<F>(
+        &mut self,
+        graphic_id: Id,
+        dims: Vec2<u16>,
+        source: Aabr<f64>,
+        mut cacher: F,
+    ) -> Option<Aabr<u16>>
+    where
+        F: FnMut(Aabr<u16>, Vec<[u8; 4]>),
+    {
+        match self
+            .rect_map
+            .get(&(graphic_id, dims, source.map(|e| e.to_bits())))
+        {
+            //<-------- TODO: Replace this with rounded representation of source
             Some(aabr) => Some(*aabr),
             None => match self.graphic_map.get(&graphic_id) {
                 Some(graphic) => {
                     // Allocate rectangle
-                    let aabr = match self.atlas.allocate(size2(i32::from(dims.x + 2), i32::from(dims.y + 2))) {
-                        Some(Allocation{id, rectangle}) => {
+                    let aabr = match self
+                        .atlas
+                        .allocate(size2(i32::from(dims.x + 2), i32::from(dims.y + 2)))
+                    {
+                        Some(Allocation { id, rectangle }) => {
                             let (min, max) = (rectangle.min, rectangle.max);
                             Aabr {
                                 min: Vec2::new(min.x as u16 + 1, min.y as u16 + 1),
@@ -67,16 +79,18 @@ impl GraphicCache {
                     // Render image
                     // TODO: use source
                     let data = match graphic {
-                        Graphic::Image(ref image) => {
-                            image
-                                .resize_exact(u32::from(aabr.size().w), u32::from(aabr.size().h), image::FilterType::Nearest)
-                                .to_rgba()
-                                .pixels()
-                                .map(|p| p.data)
-                                .collect::<Vec<[u8; 4]>>()
-                        }
+                        Graphic::Image(ref image) => image
+                            .resize_exact(
+                                u32::from(aabr.size().w),
+                                u32::from(aabr.size().h),
+                                image::FilterType::Nearest,
+                            )
+                            .to_rgba()
+                            .pixels()
+                            .map(|p| p.data)
+                            .collect::<Vec<[u8; 4]>>(),
                         Graphic::Voxel(segment) => {
-                            super::veuc::draw_vox(&segment, aabr.size().into())
+                            super::renderer::draw_vox(&segment, aabr.size().into())
                         }
                         Graphic::Blank => return None,
                     };
@@ -85,13 +99,14 @@ impl GraphicCache {
                     cacher(aabr, data);
 
                     // Insert area into map for retrieval
-                    self.rect_map.insert((graphic_id, dims, source.map(|e| e.to_bits())), aabr);
+                    self.rect_map
+                        .insert((graphic_id, dims, source.map(|e| e.to_bits())), aabr);
 
                     // Return area
                     Some(aabr)
                 }
                 None => None,
-            }
+            },
         }
     }
 }
