@@ -8,10 +8,10 @@ pub mod cmd;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use crate::{client::{Client, ClientState, Clients}, cmd::CHAT_COMMANDS};
+use crate::{client::{Client, Clients}, cmd::CHAT_COMMANDS};
 use common::{
     comp,
-    msg::{ClientMsg, ServerMsg},
+    msg::{ClientState, ClientMsg, ServerMsg, RequestStateError},
     net::PostOffice,
     state::{State, Uid},
     terrain::TerrainChunk,
@@ -115,7 +115,7 @@ impl Server {
             .with(character)
     }
 
-    pub fn create_player_character(state: &mut State, entity: EcsEntity, character: comp::Character) {
+    pub fn create_player_character(state: &mut State, entity: EcsEntity, client: &mut Client, character: comp::Character) {
         state.write_component(entity, character);
         state.write_component(entity, comp::phys::Pos(Vec3::zero()));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
@@ -128,6 +128,10 @@ impl Server {
             last: None,
             current: Animation::Idle
         });
+
+        // Tell the client his request was successful
+        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
+        client.client_state = ClientState::Character;
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
@@ -171,10 +175,7 @@ impl Server {
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
-                &self
-                    .state
-                    .ecs()
-                    .read_storage::<comp::phys::Pos>(),
+                &self.state.ecs().read_storage::<comp::phys::Pos>(),
             )
                 .join()
             {
@@ -216,7 +217,7 @@ impl Server {
             self.clients.add(
                 entity,
                 Client {
-                    state: ClientState::Connecting,
+                    client_state: ClientState::Disconnected,
                     postbox,
                     last_ping: self.state.get_time(),
                 },
@@ -247,27 +248,62 @@ impl Server {
 
                 // Process incoming messages
                 for msg in new_msgs {
-                    match client.state {
-                        ClientState::Connecting => match msg {
-                            ClientMsg::Connect { player } => {
-                                Self::initialize_client(state, entity, client, player);
+                    match msg {
+                        ClientMsg::RequestState(requested_state) => match requested_state {
+                            ClientState::Spectator => match client.client_state {
+                                // Use ClientMsg::Connect instead
+                                ClientState::Disconnected => {},
+                                ClientState::Spectator => {
+                                    // Already
+                                    client.postbox.send_message(ServerMsg::StateAnswer(
+                                            Err((RequestStateError::Already, ClientState::Spectator))));
+                                },
+                                ClientState::Character => {
+                                    // Always allow
+                                    client.postbox.send_message(ServerMsg::StateAnswer(
+                                            Ok(ClientState::Spectator)));
+                                },
+                            },
+                            // Use ClientMsg::Character instead
+                            ClientState::Character => { unimplemented!("TODO: Check for previously used character"); },
+                            ClientState::Disconnected => disconnect = true,
+                        },
+                        ClientMsg::Connect { player } => match client.client_state {
+                            ClientState::Disconnected => Self::initialize_client(state, entity, client, player),
+                            _ => {},
+                        },
+                        ClientMsg::Character(character) => match client.client_state {
+                            ClientState::Spectator => Self::create_player_character(state, entity, client, character),
+                            // Currently only possible from spectator
+                            _ => disconnect = true,
+                        },
+
+                        // Always possible
+                        ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
+                        ClientMsg::Pong => {}
+                        ClientMsg::Disconnect => disconnect = true,
+
+                        ClientMsg::Chat(msg) => match client.client_state {
+                            ClientState::Disconnected => {}
+                            _ => new_chat_msgs.push((entity, msg)),
+                        },
+
+                        ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
+                            ClientState::Character => {
+                                state.write_component(entity, animation_history);
                             }
                             _ => disconnect = true,
                         },
-                        ClientState::Connected => match msg {
-                            ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
-                            ClientMsg::Disconnect => disconnect = true,
-                            ClientMsg::Character { character } => Self::create_player_character(state, entity, character),
-                            ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
-                            ClientMsg::Pong => {}
-                            ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
-                            ClientMsg::PlayerAnimation(animation_history) => state.write_component(entity, animation_history),
-                            ClientMsg::PlayerPhysics { pos, vel, dir } => {
+                        ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
+                            ClientState::Character => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
-                            }
-                            ClientMsg::TerrainChunkRequest { key } => {
+                            },
+                            _ => disconnect = true,
+                        },
+                        ClientMsg::TerrainChunkRequest { key } => match client.client_state {
+                            ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
                                     Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                     key,
@@ -275,8 +311,9 @@ impl Server {
                                     }),*/
                                     None => requested_chunks.push(key),
                                 }
-                            }
-                        },
+                            },
+                            ClientState::Disconnected => {},
+                        }
                     }
                 }
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
@@ -290,7 +327,10 @@ impl Server {
             }
 
             if disconnect {
+                println!("Someone disconnected!");
                 disconnected_clients.push(entity);
+                client.postbox.send_message(ServerMsg::StateAnswer(
+                        Err((RequestStateError::Impossible, ClientState::Disconnected))));
                 true
             } else {
                 false
@@ -345,13 +385,11 @@ impl Server {
         // Save player metadata (for example the username)
         state.write_component(entity, player);
 
-        client.state = ClientState::Connected;
-
-        // Return a handshake with the state of the current world
+        // Return the state of the current world
         // (All components Sphynx tracks)
-        client.notify(ServerMsg::Handshake {
+        client.notify(ServerMsg::InitialSync {
             ecs_state: state.ecs().gen_state_package(),
-            player_entity: state
+            player_entity_uid: state
                 .ecs()
                 .uid_from_entity(entity)
                 .unwrap()
@@ -370,6 +408,10 @@ impl Server {
                 animation_history: animation_history,
             });
         }
+
+        // Tell the client his request was successful
+        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Spectator)));
+        client.client_state = ClientState::Spectator;
     }
 
     /// Sync client states with the most up to date information

@@ -112,7 +112,7 @@ impl Scene {
             .state()
             .ecs()
             .read_storage::<comp::phys::Pos>()
-            .get(client.player())
+            .get(client.entity())
             .map(|pos| pos.0)
             .unwrap_or(Vec3::zero());
 
