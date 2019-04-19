@@ -285,7 +285,7 @@ impl MainMenuUi {
         if self.show_servers {
             Image::new(self.imgs.error_frame)
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(400.0, 300.0)
+                .w_h(400.0, 400.0)
                 .set(self.ids.servers_frame, ui_widgets);
 
             let netsettings = &global_state.settings.networking;
@@ -305,13 +305,13 @@ impl MainMenuUi {
                 text.push_str(&netsettings.servers[item.i]);
 
                 if item.set(Button::image(self.imgs.button_dark)
-                                .w_h(100.0, 30.0)
+                                .w_h(100.0, 53.0)
                                 .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
                                 .hover_image(self.imgs.button_dark_hover)
                                 .press_image(self.imgs.button_dark_press)
                                 .label_y(Relative::Scalar(2.0))
                                 .label(&text)
-                                .label_font_size(10)
+                                .label_font_size(20)
                                 .label_color(TEXT_COLOR),
                             ui_widgets
                 ).was_clicked() {
@@ -321,13 +321,13 @@ impl MainMenuUi {
             }
 
             if Button::image(self.imgs.button_dark)
-                .w_h(100.0, 30.0)
+                .w_h(200.0, 53.0)
                 .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
                 .hover_image(self.imgs.button_dark_hover)
                 .press_image(self.imgs.button_dark_press)
                 .label_y(Relative::Scalar(2.0))
                 .label("Close")
-                .label_font_size(10)
+                .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .set(self.ids.servers_close, ui_widgets)
                 .was_clicked()
