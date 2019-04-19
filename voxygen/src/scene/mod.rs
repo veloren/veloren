@@ -4,20 +4,11 @@ pub mod terrain;
 
 use vek::*;
 use dot_vox;
-<<<<<<< HEAD
 use common::{
     comp,
     figure::Segment,
 };
 use client::Client;
-=======
-
-// Project
-use common::figure::Segment;
-use client::Client;
-
-// Crate
->>>>>>> fc56d4d1bc9f9ea9b40dc42f600e164d11e2eb40
 use crate::{
     render::{
         Consts,
@@ -79,34 +70,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(),
-<<<<<<< HEAD
             figures: Figures::new(renderer),
-=======
-
-            test_figure: Figure::new(
-                renderer,
-                [
-                    Some(load_segment("dragonhead.vox").generate_mesh(Vec3::new(2.0, -12.0, 2.0))),
-                    Some(load_segment("dragon_body.vox").generate_mesh(Vec3::new(0.0, 0.0, 0.0))),
-                    Some(load_segment("dragon_lfoot.vox").generate_mesh(Vec3::new(10.0, 10.0, -80.0))),
-                    Some(load_segment("dragon_rfoot.vox").generate_mesh(Vec3::new(0.0, 10.0, -4.0))),
-                    Some(load_segment("dragon_rfoot.vox").generate_mesh(Vec3::new(0.0, -10.0, -4.0))),
-                    Some(load_segment("dragon_lfoot.vox").generate_mesh(Vec3::new(0.0, 0.0, 0.0))),
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None,
-                    None, 
-                    None,
-                    None,
-                ],
-                CharacterSkeleton::new(),
-            )
-                .unwrap(),
->>>>>>> fc56d4d1bc9f9ea9b40dc42f600e164d11e2eb40
         }
     }
 
@@ -142,7 +106,6 @@ impl Scene {
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
-<<<<<<< HEAD
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Get player position
         let player_pos = client
@@ -157,9 +120,6 @@ impl Scene {
         // Alter camera position to match player
         self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 1.5);
 
-=======
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
->>>>>>> fc56d4d1bc9f9ea9b40dc42f600e164d11e2eb40
         // Compute camera matrices
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents();
 
@@ -177,18 +137,7 @@ impl Scene {
 
         // Maintain the terrain and figures
         self.terrain.maintain(renderer, client);
-<<<<<<< HEAD
         self.figures.maintain(renderer, client);
-=======
-
-        // TODO: Don't do this here
-        RunAnimation::update_skeleton(
-            &mut self.test_figure.skeleton,
-            client.state().get_time(),
-        );
-        self.test_figure.update_locals(renderer, FigureLocals::default()).unwrap();
-        self.test_figure.update_skeleton(renderer).unwrap();
->>>>>>> fc56d4d1bc9f9ea9b40dc42f600e164d11e2eb40
     }
 
     /// Render the scene using the provided `Renderer`
