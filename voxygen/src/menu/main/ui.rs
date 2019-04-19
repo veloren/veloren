@@ -15,7 +15,7 @@ use conrod_core::{
     image::Id as ImgId,
     position::{Dimension, Relative},
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox, List},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -285,20 +285,40 @@ impl MainMenuUi {
         if self.show_servers {
             Image::new(self.imgs.error_frame)
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(400.0, 100.0)
+                .w_h(400.0, 300.0)
                 .set(self.ids.servers_frame, ui_widgets);
-            let text = global_state.settings.networking.servers.iter()
-                .fold("".to_string(), |mut acc, x| {
-                    acc.push_str(&x);
-                    acc.push_str("\n");
-                    acc
-                });
-            Text::new(&text)
-                .color(TEXT_COLOR)
-                .top_left_with_margins_on(self.ids.servers_frame, 20.0, 20.0)
-                .font_id(self.font_opensans)
-                .font_size(18)
+
+            let netsettings = &global_state.settings.networking;
+
+            let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
+                .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
+                .w_h(400.0, 300.0)
+                .scrollbar_next_to()
+                .scrollbar_thickness(18.0)
+                .scrollbar_color(TEXT_COLOR)
                 .set(self.ids.servers_text, ui_widgets);
+
+            while let Some(item) = items.next(ui_widgets) {
+                let mut text = "".to_string();
+                if &netsettings.servers[item.i] == &self.server_address {text.push_str("* ")}
+                else {text.push_str("  ")}
+                text.push_str(&netsettings.servers[item.i]);
+
+                if item.set(Button::image(self.imgs.button_dark)
+                                .w_h(100.0, 30.0)
+                                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                                .hover_image(self.imgs.button_dark_hover)
+                                .press_image(self.imgs.button_dark_press)
+                                .label_y(Relative::Scalar(2.0))
+                                .label(&text)
+                                .label_font_size(10)
+                                .label_color(TEXT_COLOR),
+                            ui_widgets
+                ).was_clicked() {
+                    // TODO: Set as current server address
+                    self.server_address = netsettings.servers[item.i].clone();
+                }
+            }
 
             if Button::image(self.imgs.button_dark)
                 .w_h(100.0, 30.0)
