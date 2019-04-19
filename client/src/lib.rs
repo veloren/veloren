@@ -52,7 +52,6 @@ impl Client {
     pub fn new<A: Into<SocketAddr>>(
         addr: A,
         player: comp::Player,
-        character: Option<comp::Character>,
         view_distance: u64,
     ) -> Result<Self, Error> {
 
@@ -61,7 +60,6 @@ impl Client {
         // Send connection request
         postbox.send_message(ClientMsg::Connect {
             player,
-            character,
         });
 
         // Wait for handshake from server
