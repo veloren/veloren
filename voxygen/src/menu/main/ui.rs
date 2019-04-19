@@ -4,7 +4,10 @@ use crate::{
     window::Window,
     DEFAULT_PUBLIC_SERVER,
 };
-use common::assets;
+use common::{
+    assets,
+    figure::Segment,
+};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -41,6 +44,7 @@ widget_ids! {
         // Error
         error_frame,
         button_ok,
+        test_vox,
     }
 }
 
@@ -62,10 +66,13 @@ struct Imgs {
     button_dark: ImgId,
     button_dark_hover: ImgId,
     button_dark_press: ImgId,
+    test_vox: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        // TODO: update paths
+        fn load_segment(filename: &'static str) -> Segment {
+            Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/").to_string() + filename)).unwrap())
+        }
         let mut load = |filename| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
@@ -98,6 +105,7 @@ impl Imgs {
             button_dark: load("element/buttons/button_dark.png"),
             button_dark_hover: load("element/buttons/button_dark_hover.png"),
             button_dark_press: load("element/buttons/button_dark_press.png"),
+            test_vox: ui.new_graphic(ui::Graphic::Voxel(load_segment("test.vox"))),
         }
     }
 }
@@ -177,6 +185,11 @@ impl MainMenuUi {
             .label_y(Relative::Scalar(-40.0))
             .label_x(Relative::Scalar(-100.0))
             .set(self.ids.v_logo, ui_widgets);
+
+        Image::new(self.imgs.test_vox)
+            .w_h(750.0, 750.0)
+            .top_right_with_margins_on(self.ids.bg, 50.0, 50.0)
+            .set(self.ids.test_vox, ui_widgets);
 
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field

@@ -11,6 +11,7 @@ use vek::*;
 pub enum Graphic {
     Image(DynamicImage),
     Voxel(Segment),
+    Blank,
 }
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Id(u32);
@@ -40,6 +41,9 @@ impl GraphicCache {
         self.graphic_map.insert(id, graphic);
 
         id
+    }
+    pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
+        self.graphic_map.get(&id)
     }
     pub fn cache_res<F>(&mut self, graphic_id: Id, dims: Vec2<u16>, source: Aabr<f64>, mut cacher: F) -> Option<Aabr<u16>> where F: FnMut(Aabr<u16>, Vec<[u8; 4]>) {
         match self.rect_map.get(&(graphic_id, dims, source.map(|e| e.to_bits()))) { //<-------- TODO: Replace this with rounded representation of source
@@ -74,6 +78,7 @@ impl GraphicCache {
                         Graphic::Voxel(segment) => {
                             super::veuc::draw_vox(&segment, aabr.size().into())
                         }
+                        Graphic::Blank => return None,
                     };
 
                     // Draw to allocated area
