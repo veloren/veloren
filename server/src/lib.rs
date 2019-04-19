@@ -72,7 +72,7 @@ impl Server {
         };
 
         for i in 0..4 {
-            this.create_character(comp::Character::test())
+            this.create_npc(comp::Character::random())
                 .with(comp::Agent::Wanderer(Vec2::zero()))
                 .with(comp::Control::default())
                 .build();
@@ -105,7 +105,7 @@ impl Server {
 
     /// Build a non-player character
     #[allow(dead_code)]
-    pub fn create_character(&mut self, character: comp::Character) -> EcsEntityBuilder {
+    pub fn create_npc(&mut self, character: comp::Character) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
@@ -113,6 +113,21 @@ impl Server {
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(character)
+    }
+
+    pub fn create_player_character(state: &mut State, entity: EcsEntity, character: comp::Character) {
+        state.write_component(entity, character);
+        state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+        state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+        state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
+        // Make sure everything is accepted
+        state.write_component(entity, comp::phys::ForceUpdate);
+
+        // Set initial animation
+        state.write_component(entity, comp::AnimationHistory {
+            last: None,
+            current: Animation::Idle
+        });
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
@@ -234,14 +249,15 @@ impl Server {
                 for msg in new_msgs {
                     match client.state {
                         ClientState::Connecting => match msg {
-                            ClientMsg::Connect { player, character } => {
-                                Self::initialize_client(state, entity, client, player, character);
+                            ClientMsg::Connect { player } => {
+                                Self::initialize_client(state, entity, client, player);
                             }
                             _ => disconnect = true,
                         },
                         ClientState::Connected => match msg {
                             ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
                             ClientMsg::Disconnect => disconnect = true,
+                            ClientMsg::Character { character } => Self::create_player_character(state, entity, character),
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {}
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
@@ -325,29 +341,9 @@ impl Server {
         entity: specs::Entity,
         client: &mut Client,
         player: comp::Player,
-        character: Option<comp::Character>,
     ) {
         // Save player metadata (for example the username)
         state.write_component(entity, player);
-
-        // Give the player it's character if he wants one
-        // (Chat only clients don't need one for example)
-        if let Some(character) = character {
-            state.write_component(entity, character);
-
-            // Every character has to have these components
-            state.write_component(entity, comp::phys::Pos(Vec3::zero()));
-            state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-            state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-            // Make sure everything is accepted
-            state.write_component(entity, comp::phys::ForceUpdate);
-
-            // Set initial animation
-            state.write_component(entity, comp::AnimationHistory {
-                last: None,
-                current: Animation::Idle
-            });
-        }
 
         client.state = ClientState::Connected;
 
