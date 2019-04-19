@@ -85,7 +85,7 @@ impl PlayState for MainMenuState {
             // Maintain the UI
             for event in self
                 .main_menu_ui
-                .maintain(global_state.window.renderer_mut())
+                .maintain(global_state)
             {
                 match event {
                     MainMenuEvent::LoginAttempt {

@@ -38,8 +38,12 @@ widget_ids! {
         username_field,
         singleplayer_button,
         singleplayer_text,
-        // Buttons
+        // Serverlist
         servers_button,
+        servers_frame,
+        servers_text,
+        servers_close,
+        // Buttons
         settings_button,
         quit_button,
         // Error
@@ -135,6 +139,7 @@ pub struct MainMenuUi {
     server_address: String,
     login_error: Option<String>,
     connecting: Option<std::time::Instant>,
+    show_servers: bool,
 }
 
 impl MainMenuUi {
@@ -169,10 +174,11 @@ impl MainMenuUi {
             server_address,
             login_error: None,
             connecting: None,
+            show_servers: false,
         }
     }
 
-    fn update_layout(&mut self) -> Vec<Event> {
+    fn update_layout(&mut self, global_state: &GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -274,6 +280,39 @@ impl MainMenuUi {
                 .was_clicked()
             {
                 self.login_error = None
+            };
+        }
+        if self.show_servers {
+            Image::new(self.imgs.error_frame)
+                .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
+                .w_h(400.0, 100.0)
+                .set(self.ids.servers_frame, ui_widgets);
+            let text = global_state.settings.networking.servers.iter()
+                .fold("".to_string(), |mut acc, x| {
+                    acc.push_str(&x);
+                    acc.push_str("\n");
+                    acc
+                });
+            Text::new(&text)
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(self.ids.servers_frame, 20.0, 20.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.servers_text, ui_widgets);
+
+            if Button::image(self.imgs.button_dark)
+                .w_h(100.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                .hover_image(self.imgs.button_dark_hover)
+                .press_image(self.imgs.button_dark_press)
+                .label_y(Relative::Scalar(2.0))
+                .label("Close")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.servers_close, ui_widgets)
+                .was_clicked()
+            {
+                self.show_servers = false
             };
         }
         // Server address
@@ -396,7 +435,9 @@ impl MainMenuUi {
             .label_y(Relative::Scalar(3.0))
             .set(self.ids.servers_button, ui_widgets)
             .was_clicked()
-        {};
+        {
+            self.show_servers = true;
+        };
 
         events
     }
@@ -414,9 +455,9 @@ impl MainMenuUi {
         self.ui.handle_event(event);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
-        let events = self.update_layout();
-        self.ui.maintain(renderer);
+    pub fn maintain(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
+        let events = self.update_layout(global_state);
+        self.ui.maintain(global_state.window.renderer_mut());
         events
     }
 
