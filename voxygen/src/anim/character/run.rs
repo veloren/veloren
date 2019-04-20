@@ -24,9 +24,12 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (time as f32 * 12.0).sin();
+	    let wavecos = (time as f32 * 12.0).cos();
         let wave_slow = (time as f32 * 6.0 + PI).sin();
+        let wavecos_slow = (time as f32 * 6.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
+<<<<<<< HEAD
         next.head.offset = Vec3::unit_z() * 13.0 / SCALE;
         next.head.ori = Quaternion::rotation_z(wave * 0.3);
 
@@ -52,5 +55,6 @@ impl Animation for RunAnimation {
         next.back.scale = Vec3::one();
 
         next
+
     }
 }
