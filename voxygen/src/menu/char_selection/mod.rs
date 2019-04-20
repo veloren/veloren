@@ -67,7 +67,7 @@ impl PlayState for CharSelectionState {
                         global_state.singleplayer = None;
                         return PlayStateResult::Pop;
                     },
-                    ui::Event::Play => return PlayStateResult::Push(
+                    ui::Event::Play => return PlayStateResult::Switch(
                         Box::new(SessionState::new(&mut global_state.window, self.client.clone()))
                     ),
                 }
