@@ -27,12 +27,11 @@ impl Animation for RunAnimation {
         let fuzzwave = (time as f32 * 12.0).sin();
         let wavecos = (time as f32 * 14.0).cos();
         let wave_slow = (time as f32 * 8.0 + PI).sin();
-        let waveultra_slow = (time as f32 * 0.5 + PI).sin();
         let wavecos_slow = (time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
+
         next.head.offset = Vec3::unit_z() * (12.0 + fuzzwave *0.4)/ SCALE;
-        //next.head.ori = Quaternion::rotation_z();
 
         next.chest.offset = Vec3::unit_z() * (8.0 + fuzzwave * 0.3) / SCALE;
         next.chest.ori = Quaternion::rotation_z(wave * 0.2);
