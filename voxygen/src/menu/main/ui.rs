@@ -4,7 +4,10 @@ use crate::{
     window::Window,
     DEFAULT_PUBLIC_SERVER,
 };
-use common::assets;
+use common::{
+    assets,
+    figure::Segment,
+};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -65,8 +68,7 @@ struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        // TODO: update paths
-        let mut load = |filename| {
+        let mut load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -74,30 +76,41 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
+        };
+        let mut load_vox = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/", filename].concat();
+            let dot_vox = dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
+            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
         };
         Imgs {
-            bg: load("background/bg_main.png"),
-            v_logo: load("element/v_logo.png"),
+            bg: load_img("background/bg_main.png", ui),
+            v_logo: load_img("element/v_logo.png", ui),
 
             // Input fields
-            input_bg: load("element/misc_backgrounds/textbox.png"),
+            input_bg: load_img("element/misc_backgrounds/textbox.png", ui),
 
             // Login button
-            login_button: load("element/buttons/button_login.png"),
-            login_button_hover: load("element/buttons/button_login_hover.png"),
-            login_button_press: load("element/buttons/button_login_press.png"),
+            login_button: load_img("element/buttons/button_login.png", ui),
+            login_button_hover: load_img("element/buttons/button_login_hover.png", ui),
+            login_button_press: load_img("element/buttons/button_login_press.png", ui),
 
             // Servers, settings, and quit buttons
-            button: load("element/buttons/button.png"),
-            button_hover: load("element/buttons/button_hover.png"),
-            button_press: load("element/buttons/button_press.png"),
+            //button: load_vox("element/buttons/button.vox", ui),
+            button: load_img("element/buttons/button.png", ui),
+            button_hover: load_img("element/buttons/button_hover.png", ui),
+            button_press: load_img("element/buttons/button_press.png", ui),
 
             //Error
-            error_frame: load("element/frames/window_2.png"),
-            button_dark: load("element/buttons/button_dark.png"),
-            button_dark_hover: load("element/buttons/button_dark_hover.png"),
-            button_dark_press: load("element/buttons/button_dark_press.png"),
+            error_frame: load_img("element/frames/window_2.png", ui),
+            button_dark: load_img("element/buttons/button_dark.png", ui),
+            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
+            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
         }
     }
 }
