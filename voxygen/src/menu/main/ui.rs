@@ -68,7 +68,7 @@ struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        let mut load_img = |filename, ui: &mut Ui| {
+        let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -78,7 +78,7 @@ impl Imgs {
             .unwrap();
             ui.new_graphic(ui::Graphic::Image(image))
         };
-        let mut load_vox = |filename, ui: &mut Ui| {
+        let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let dot_vox = dot_vox::load_bytes(
                 assets::load(fullpath.as_str())
@@ -146,20 +146,16 @@ impl MainMenuUi {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_opensans = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/OpenSans-Regular.ttf"
-            ))
-            .unwrap(),
-        );
-        let font_metamorph = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/Metamorphous-Regular.ttf"
-            ))
-            .unwrap(),
-        );
+        let load_font = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/font", filename].concat();
+             ui.new_font(conrod_core::text::Font::from_bytes(
+                 assets::load(fullpath.as_str())
+                .expect("Error loading file")
+            ).unwrap())
+        };
+        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
+        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+
         Self {
             ui,
             imgs,
