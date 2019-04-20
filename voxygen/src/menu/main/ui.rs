@@ -2,20 +2,16 @@ use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
-    DEFAULT_PUBLIC_SERVER,
-    GlobalState,
+    GlobalState, DEFAULT_PUBLIC_SERVER,
 };
-use common::{
-    assets,
-    figure::Segment,
-};
+use common::{assets, figure::Segment};
 use conrod_core::{
     color,
     color::TRANSPARENT,
     image::Id as ImgId,
     position::{Dimension, Relative},
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox, List},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -300,21 +296,28 @@ impl MainMenuUi {
 
             while let Some(item) = items.next(ui_widgets) {
                 let mut text = "".to_string();
-                if &netsettings.servers[item.i] == &self.server_address {text.push_str("* ")}
-                else {text.push_str("  ")}
+                if &netsettings.servers[item.i] == &self.server_address {
+                    text.push_str("* ")
+                } else {
+                    text.push_str("  ")
+                }
                 text.push_str(&netsettings.servers[item.i]);
 
-                if item.set(Button::image(self.imgs.button_dark)
-                                .w_h(100.0, 53.0)
-                                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                                .hover_image(self.imgs.button_dark_hover)
-                                .press_image(self.imgs.button_dark_press)
-                                .label_y(Relative::Scalar(2.0))
-                                .label(&text)
-                                .label_font_size(20)
-                                .label_color(TEXT_COLOR),
-                            ui_widgets
-                ).was_clicked() {
+                if item
+                    .set(
+                        Button::image(self.imgs.button_dark)
+                            .w_h(100.0, 53.0)
+                            .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                            .hover_image(self.imgs.button_dark_hover)
+                            .press_image(self.imgs.button_dark_press)
+                            .label_y(Relative::Scalar(2.0))
+                            .label(&text)
+                            .label_font_size(20)
+                            .label_color(TEXT_COLOR),
+                        ui_widgets,
+                    )
+                    .was_clicked()
+                {
                     // TODO: Set as current server address
                     self.server_address = netsettings.servers[item.i].clone();
                 }
