@@ -53,7 +53,7 @@ impl Figures {
         }
 
         let bone_meshes = [
-            Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.5, -7.0, -6.0))),
+            Some(load_segment("head.vox").generate_mesh(Vec3::new(-3.5, -7.0, -6.0))),
             Some(load_segment("chest.vox").generate_mesh(Vec3::new(-3.0, -6.0, 0.0))),
             Some(load_segment("belt.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
             Some(load_segment("pants.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
