@@ -241,15 +241,12 @@ impl Client {
                         self.pending_chunks.remove(&key);
                     },
                     ServerMsg::StateAnswer(Ok(state)) => {
-                        println!("ok state: {:?}", state);
                         self.client_state = state;
                     },
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        println!("err state: {:?}", state);
                         self.client_state = state;
                     },
-                    ServerMsg::ForceState { state } => {
-                        println!("forced state: {:?}", state);
+                    ServerMsg::ForceState(state) => {
                         self.client_state = state;
                     },
                 }
