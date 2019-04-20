@@ -217,7 +217,7 @@ impl Server {
             self.clients.add(
                 entity,
                 Client {
-                    client_state: ClientState::Disconnected,
+                    client_state: ClientState::Visitor,
                     postbox,
                     last_ping: self.state.get_time(),
                 },
@@ -250,15 +250,15 @@ impl Server {
                 for msg in new_msgs {
                     match msg {
                         ClientMsg::RequestState(requested_state) => match requested_state {
-                            ClientState::Disconnected => disconnect = true,
+                            ClientState::Visitor => disconnect = true,
                             ClientState::Connected => match client.client_state {
-                                ClientState::Disconnected => {}, // Use ClientMsg::Connect instead
+                                ClientState::Visitor => {}, // Use ClientMsg::Connect instead
                                 ClientState::Connected => client.error_state(RequestStateError::Already),
                                 ClientState::Spectator => client.allow_state(ClientState::Connected),
                                 ClientState::Character => client.allow_state(ClientState::Connected),
                             },
                             ClientState::Spectator => match requested_state {
-                                ClientState::Disconnected => {}, // Become Connected first
+                                ClientState::Visitor => {}, // Become Connected first
                                 ClientState::Connected => client.allow_state(ClientState::Spectator),
                                 ClientState::Spectator => client.error_state(RequestStateError::Already),
                                 ClientState::Character => client.allow_state(ClientState::Spectator),
@@ -266,17 +266,17 @@ impl Server {
                             ClientState::Character => {}, // Use ClientMsg::Character instead
                         },
                         ClientMsg::Connect { player } => match client.client_state {
-                            ClientState::Disconnected => Self::initialize_client(state, entity, client, player),
+                            ClientState::Visitor => Self::initialize_client(state, entity, client, player),
                             _ => {},
                         },
                         ClientMsg::Character(character) => match client.client_state {
-                            ClientState::Disconnected => {},
+                            ClientState::Visitor => {},
                             ClientState::Connected | ClientState::Spectator =>
                                 Self::create_player_character(state, entity, client, character),
                             ClientState::Character => client.error_state(RequestStateError::Already),
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
-                            ClientState::Disconnected => {},
+                            ClientState::Visitor => {},
                             ClientState::Connected => new_chat_msgs.push((entity, msg)),
                             ClientState::Spectator => new_chat_msgs.push((entity, msg)),
                             ClientState::Character => new_chat_msgs.push((entity, msg)),
@@ -296,7 +296,7 @@ impl Server {
                             _ => disconnect = true,
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
-                            ClientState::Disconnected => {},
+                            ClientState::Visitor => {},
                             ClientState::Connected => disconnect = true,
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
@@ -327,7 +327,7 @@ impl Server {
             if disconnect {
                 disconnected_clients.push(entity);
                 client.postbox.send_message(ServerMsg::StateAnswer(
-                        Err((RequestStateError::Impossible, ClientState::Disconnected))));
+                        Err((RequestStateError::Impossible, ClientState::Visitor))));
                 true
             } else {
                 false

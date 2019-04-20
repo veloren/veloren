@@ -9,7 +9,7 @@ pub use self::ecs_packet::EcsPacket;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ClientState {
-    Disconnected,
+    Visitor,
     Connected,
     Spectator,
     Character,
