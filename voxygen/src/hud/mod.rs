@@ -4,6 +4,7 @@ use crate::{
     render::Renderer,
     ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
+    GlobalState,
 };
 use common::assets;
 use conrod_core::{
@@ -406,7 +407,6 @@ pub struct Hud {
     ids: Ids,
     imgs: Imgs,
     chat: chat::Chat,
-    cursor_grabbed: bool,
     font_metamorph: FontId,
     font_opensans: FontId,
     show_help: bool,
@@ -459,7 +459,6 @@ impl Hud {
             imgs,
             ids,
             chat,
-            cursor_grabbed: true,
             settings_tab: SettingsTab::Interface,
             show_help: true,
             bag_open: false,
@@ -1460,13 +1459,17 @@ impl Hud {
         self.chat.new_message(msg);
     }
 
-    pub fn toggle_menu(&mut self) {
+    fn toggle_menu(&mut self) {
         self.menu_open = !self.menu_open;
     }
-    pub fn toggle_bag(&mut self) {
+    fn toggle_bag(&mut self) {
         self.bag_open = !self.bag_open
     }
-    pub fn toggle_questlog(&mut self) {
+    fn toggle_map(&mut self) {
+        self.map_open = !self.map_open;
+        self.bag_open = false;
+    }
+    fn toggle_questlog(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::Small(Small::Questlog) => Windows::None,
             Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
@@ -1477,11 +1480,7 @@ impl Hud {
             Windows::Settings => Windows::Settings,
         };
     }
-    pub fn toggle_map(&mut self) {
-        self.map_open = !self.map_open;
-        self.bag_open = false;
-    }
-    pub fn toggle_charwindow(&mut self) {
+    fn toggle_charwindow(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::CharacterAnd(small) => match small {
                 Some(small) => Windows::Small(small),
@@ -1492,7 +1491,7 @@ impl Hud {
             Windows::Settings => Windows::Settings,
         }
     }
-    pub fn toggle_social(&mut self) {
+    fn toggle_social(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::Small(Small::Social) => Windows::None,
             Windows::None | Windows::Small(_) => Windows::Small(Small::Social),
@@ -1503,7 +1502,7 @@ impl Hud {
             Windows::Settings => Windows::Settings,
         };
     }
-    pub fn toggle_spellbook(&mut self) {
+    fn toggle_spellbook(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::Small(Small::Spellbook) => Windows::None,
             Windows::None | Windows::Small(_) => Windows::Small(Small::Spellbook),
@@ -1514,22 +1513,36 @@ impl Hud {
             Windows::Settings => Windows::Settings,
         };
     }
-    pub fn toggle_settings(&mut self) {
+    fn toggle_settings(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::Settings => Windows::None,
             _ => Windows::Settings,
         };
         self.bag_open = false;
     }
-    pub fn toggle_help(&mut self) {
+    fn toggle_help(&mut self) {
         self.show_help = !self.show_help
     }
-    pub fn toggle_ui(&mut self) {
+    fn toggle_ui(&mut self) {
         self.show_ui = !self.show_ui;
     }
 
-    pub fn update_grab(&mut self, cursor_grabbed: bool) {
-        self.cursor_grabbed = cursor_grabbed;
+    fn toggle_windows(&mut self) {
+        if self.bag_open
+            || self.menu_open
+            || self.map_open
+            || match self.open_windows {
+                Windows::None => false,
+                _ => true,
+            }
+        {
+            self.bag_open = false;
+            self.menu_open = false;
+            self.map_open = false;
+            self.open_windows = Windows::None;
+        } else {
+            self.menu_open = true;
+        }
     }
 
     fn typing(&self) -> bool {
@@ -1539,11 +1552,12 @@ impl Hud {
         }
     }
 
-    pub fn handle_event(&mut self, event: WinEvent) -> bool {
+    pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
+        let cursor_grabbed = global_state.window.is_cursor_grabbed();
         match event {
             WinEvent::Ui(event) => {
                 if (self.typing() && event.is_keyboard() && self.show_ui)
-                    || !(self.cursor_grabbed && event.is_keyboard_or_mouse())
+                    || !(cursor_grabbed && event.is_keyboard_or_mouse())
                 {
                     self.ui.handle_event(event);
                 }
@@ -1554,7 +1568,7 @@ impl Hud {
                 true
             }
             _ if !self.show_ui => false,
-            WinEvent::Zoom(_) => !self.cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
+            WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
                 self.ui.focus_widget(if self.typing() {
                     None
@@ -1624,22 +1638,5 @@ impl Hud {
 
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer);
-    }
-    pub fn toggle_windows(&mut self) {
-        if self.bag_open
-            || self.menu_open
-            || self.map_open
-            || match self.open_windows {
-                Windows::None => false,
-                _ => true,
-            }
-        {
-            self.bag_open = false;
-            self.menu_open = false;
-            self.map_open = false;
-            self.open_windows = Windows::None;
-        } else {
-            self.menu_open = true;
-        }
     }
 }
