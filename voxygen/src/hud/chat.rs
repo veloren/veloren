@@ -154,13 +154,13 @@ impl Chat {
             }
         }
 
-        // If enter is pressed send the current message
+        // If enter is pressed and the input box is not empty send the current message
         if ui_widgets
             .widget_input(self.ids.input)
             .presses()
             .key()
             .any(|key_press| match key_press.key {
-                Key::Return => true,
+                Key::Return if !self.input.is_empty() => true,
                 _ => false,
             })
         {
