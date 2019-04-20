@@ -47,15 +47,15 @@ impl Figures {
         }
 
         let bone_meshes = [
-            Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -6.5, -6.0))),
-            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-6.0, -3.0, 0.0))),
-            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-            Some(load_segment("sword.vox").generate_mesh(Vec3::new(-6.5, -1.0, 0.0))),
+            Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.5, -7.0, -6.0))),
+            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-3.0, -6.0, 0.0))),
+            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
+            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
+            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
+            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
+            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
+            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
+            Some(load_segment("sword.vox").generate_mesh(Vec3::new(0.0, -0.0, 0.0))),
             None,
             None,
             None,
@@ -138,7 +138,7 @@ impl<S: Skeleton> FigureState<S> {
         let mat =
             Mat4::<f32>::identity() *
             Mat4::translation_3d(pos) *
-            Mat4::rotation_z(dir.y.atan2(dir.x) + f32::consts::PI / 2.0);
+            Mat4::rotation_z(dir.y.atan2(dir.x));// + f32//::consts)::PI / 2.0);
 
         let locals = FigureLocals::new(mat);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
