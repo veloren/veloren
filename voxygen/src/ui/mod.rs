@@ -118,6 +118,10 @@ impl Cache {
     pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> { &self.graphic_cache_tex }
     pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) { (&mut self.graphic_cache, &self.graphic_cache_tex) }
     pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId { self.graphic_cache.new_graphic(graphic) }
+    pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
+        self.graphic_cache.clear_cache(new_size);
+        self.graphic_cache_tex = renderer.create_dynamic_texture(new_size).unwrap();
+    }
 }
 
 enum DrawKind {
@@ -580,6 +584,8 @@ impl Ui {
                 self.scale.window_resized(new_dims, renderer);
                 let (w, h) = self.scale.scaled_window_size().into_tuple();
                 self.ui.handle_event(Input::Resize(w, h));
+                self.cache.clear_graphic_cache(renderer, new_dims.map(|e| (e * 4.0) as u16));
+                // TODO: probably need to resize glyph cache, see conrod's gfx backend for reference
             }
         }
     }
