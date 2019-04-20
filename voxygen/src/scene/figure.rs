@@ -8,7 +8,8 @@ use client::Client;
 use common::{
     comp,
     figure::Segment,
-    msg
+    msg,
+    assets,
 };
 use crate::{
     Error,
@@ -43,7 +44,12 @@ impl Figures {
     pub fn new(renderer: &mut Renderer) -> Self {
         // TODO: Make a proper asset loading system
         fn load_segment(filename: &'static str) -> Segment {
-            Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/voxel/").to_string() + filename)).unwrap())
+            let fullpath: String = ["/voxygen/voxel/", filename].concat();
+            Segment::from(dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            ).unwrap())
         }
 
         let bone_meshes = [
