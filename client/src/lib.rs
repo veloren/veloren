@@ -57,7 +57,7 @@ impl Client {
         view_distance: u64,
     ) -> Result<Self, Error> {
 
-        let mut client_state = ClientState::Disconnected;
+        let mut client_state = ClientState::Visitor;
         let mut postbox = PostBox::to(addr)?;
 
         // Send connection request
