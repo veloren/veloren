@@ -250,51 +250,44 @@ impl Server {
                 for msg in new_msgs {
                     match msg {
                         ClientMsg::RequestState(requested_state) => match requested_state {
-                            ClientState::Spectator => match client.client_state {
-                                // Use ClientMsg::Connect instead
-                                ClientState::Disconnected => {},
-                                ClientState::Spectator => {
-                                    // Already
-                                    client.postbox.send_message(ServerMsg::StateAnswer(
-                                            Err((RequestStateError::Already, ClientState::Spectator))));
-                                },
-                                ClientState::Character => {
-                                    // Always allow
-                                    client.postbox.send_message(ServerMsg::StateAnswer(
-                                            Ok(ClientState::Spectator)));
-                                },
-                            },
-                            // Use ClientMsg::Character instead
-                            ClientState::Character => { unimplemented!("TODO: Check for previously used character"); },
                             ClientState::Disconnected => disconnect = true,
+                            ClientState::Connected => match client.client_state {
+                                ClientState::Disconnected => {}, // Use ClientMsg::Connect instead
+                                ClientState::Connected => client.error_state(RequestStateError::Already),
+                                ClientState::Spectator => client.allow_state(ClientState::Connected),
+                                ClientState::Character => client.allow_state(ClientState::Connected),
+                            },
+                            ClientState::Spectator => match requested_state {
+                                ClientState::Disconnected => {}, // Become Connected first
+                                ClientState::Connected => client.allow_state(ClientState::Spectator),
+                                ClientState::Spectator => client.error_state(RequestStateError::Already),
+                                ClientState::Character => client.allow_state(ClientState::Spectator),
+                            },
+                            ClientState::Character => {}, // Use ClientMsg::Character instead
                         },
                         ClientMsg::Connect { player } => match client.client_state {
                             ClientState::Disconnected => Self::initialize_client(state, entity, client, player),
                             _ => {},
                         },
                         ClientMsg::Character(character) => match client.client_state {
-                            ClientState::Spectator => Self::create_player_character(state, entity, client, character),
-                            // Currently only possible from spectator
-                            _ => disconnect = true,
+                            ClientState::Disconnected => {},
+                            ClientState::Connected | ClientState::Spectator =>
+                                Self::create_player_character(state, entity, client, character),
+                            ClientState::Character => client.error_state(RequestStateError::Already),
                         },
-
-                        // Always possible
-                        ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
-                        ClientMsg::Pong => {}
-                        ClientMsg::Disconnect => disconnect = true,
-
                         ClientMsg::Chat(msg) => match client.client_state {
-                            ClientState::Disconnected => {}
-                            _ => new_chat_msgs.push((entity, msg)),
+                            ClientState::Disconnected => {},
+                            ClientState::Connected => new_chat_msgs.push((entity, msg)),
+                            ClientState::Spectator => new_chat_msgs.push((entity, msg)),
+                            ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-
                         ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
-                            ClientState::Character => {
-                                state.write_component(entity, animation_history);
-                            }
+                            // Only characters can send animations
+                            ClientState::Character => state.write_component(entity, animation_history),
                             _ => disconnect = true,
                         },
                         ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
+                            // Only characters send their position
                             ClientState::Character => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
@@ -303,6 +296,8 @@ impl Server {
                             _ => disconnect = true,
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
+                            ClientState::Disconnected => {},
+                            ClientState::Connected => disconnect = true,
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
                                     Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
@@ -312,8 +307,11 @@ impl Server {
                                     None => requested_chunks.push(key),
                                 }
                             },
-                            ClientState::Disconnected => {},
                         }
+                        // Always possible
+                        ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
+                        ClientMsg::Pong => {},
+                        ClientMsg::Disconnect => disconnect = true,
                     }
                 }
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
@@ -327,7 +325,6 @@ impl Server {
             }
 
             if disconnect {
-                println!("Someone disconnected!");
                 disconnected_clients.push(entity);
                 client.postbox.send_message(ServerMsg::StateAnswer(
                         Err((RequestStateError::Impossible, ClientState::Disconnected))));
@@ -410,8 +407,7 @@ impl Server {
         }
 
         // Tell the client his request was successful
-        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Spectator)));
-        client.client_state = ClientState::Spectator;
+        client.allow_state(ClientState::Connected);
     }
 
     /// Sync client states with the most up to date information
