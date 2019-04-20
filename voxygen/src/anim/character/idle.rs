@@ -27,11 +27,9 @@ impl Animation for IdleAnimation {
         let wave = (time as f32 * 12.0).sin();
         let wavecos = (time as f32 * 12.0).cos();
         let wave_slow = (time as f32 * 6.0 + PI).sin();
-        let wave_slower = (time as f32 * 2.0 + PI).sin();
-        let wavecos_slower = (time as f32 * 2.0 + PI).cos();
+        let wavecos_slow = (time as f32 * 6.0 + PI).cos();
         let waveultra_slow = (time as f32 * 1.0 + PI).sin();
         let waveultracos_slow = (time as f32 * 1.0 + PI).cos();
-        let wavecos_slow = (time as f32 * 6.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         next.head.offset = Vec3::new(0.0, 0.0, 12.0 + waveultra_slow * 0.4) / SCALE;
