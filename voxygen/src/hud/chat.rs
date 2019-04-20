@@ -83,34 +83,42 @@ impl Chat {
             self.new_messages = false;
         }
 
+        // Only show if it has the keyboard captured
         // Chat input with rectangle as background
-        let text_edit = TextEdit::new(&self.input)
-            .w(460.0)
-            .restrict_to_height(false)
-            .line_spacing(2.0)
-            .font_size(15)
-            .font_id(font);
-        let y = match text_edit.get_y_dimension(ui_widgets) {
-            Dimension::Absolute(y) => y + 6.0,
-            _ => 0.0,
-        };
-        Rectangle::fill([470.0, y])
-            .rgba(0.0, 0.0, 0.0, 0.8)
-            .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
-            .w(470.0)
-            .set(self.ids.input_bg, ui_widgets);
-        if let Some(str) = text_edit
-            .top_left_with_margins_on(self.ids.input_bg, 1.0, 1.0)
-            .set(self.ids.input, ui_widgets)
-        {
-            self.input = str.to_string();
-            self.input.retain(|c| c != '\n');
+        let keyboard_captured = ui_widgets.global_input().current.widget_capturing_keyboard.map_or(false, |id| id == self.ids.input);
+        if keyboard_captured {
+            let text_edit = TextEdit::new(&self.input)
+                .w(460.0)
+                .restrict_to_height(false)
+                .line_spacing(2.0)
+                .font_size(15)
+                .font_id(font);
+            let y = match text_edit.get_y_dimension(ui_widgets) {
+                Dimension::Absolute(y) => y + 6.0,
+                _ => 0.0,
+            };
+            Rectangle::fill([470.0, y])
+                .rgba(0.0, 0.0, 0.0, 0.8)
+                .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                .w(470.0)
+                .set(self.ids.input_bg, ui_widgets);
+            if let Some(str) = text_edit
+                .top_left_with_margins_on(self.ids.input_bg, 1.0, 1.0)
+                .set(self.ids.input, ui_widgets)
+            {
+                self.input = str.to_string();
+                self.input.retain(|c| c != '\n');
+            }
         }
 
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
-            .up_from(self.ids.input_bg, 0.0)
+            .and(|r| if keyboard_captured {
+                r.up_from(self.ids.input_bg, 0.0)
+            } else {
+                r.bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+            })
             .set(self.ids.message_box_bg, ui_widgets);
         let (mut items, _) = List::flow_down(self.messages.len() + 1)
             .top_left_of(self.ids.message_box_bg)
@@ -154,13 +162,13 @@ impl Chat {
             }
         }
 
-        // If enter is pressed send the current message
+        // If enter is pressed and the input box is not empty send the current message
         if ui_widgets
             .widget_input(self.ids.input)
             .presses()
             .key()
             .any(|key_press| match key_press.key {
-                Key::Return => true,
+                Key::Return if !self.input.is_empty() => true,
                 _ => false,
             })
         {
