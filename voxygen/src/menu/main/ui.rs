@@ -44,7 +44,6 @@ widget_ids! {
         // Error
         error_frame,
         button_ok,
-        test_vox,
     }
 }
 
@@ -66,14 +65,10 @@ struct Imgs {
     button_dark: ImgId,
     button_dark_hover: ImgId,
     button_dark_press: ImgId,
-    test_vox: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        fn load_segment(filename: &'static str) -> Segment {
-            Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/").to_string() + filename)).unwrap())
-        }
-        let mut load = |filename| {
+        let mut load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -83,29 +78,39 @@ impl Imgs {
             .unwrap();
             ui.new_graphic(ui::Graphic::Image(image))
         };
+        let mut load_vox = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/", filename].concat();
+            let dot_vox = dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
+            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
+        };
         Imgs {
-            bg: load("background/bg_main.png"),
-            v_logo: load("element/v_logo.png"),
+            bg: load_img("background/bg_main.png", ui),
+            v_logo: load_img("element/v_logo.png", ui),
 
             // Input fields
-            input_bg: load("element/misc_backgrounds/textbox.png"),
+            input_bg: load_img("element/misc_backgrounds/textbox.png", ui),
 
             // Login button
-            login_button: load("element/buttons/button_login.png"),
-            login_button_hover: load("element/buttons/button_login_hover.png"),
-            login_button_press: load("element/buttons/button_login_press.png"),
+            login_button: load_img("element/buttons/button_login.png", ui),
+            login_button_hover: load_img("element/buttons/button_login_hover.png", ui),
+            login_button_press: load_img("element/buttons/button_login_press.png", ui),
 
             // Servers, settings, and quit buttons
-            button: load("element/buttons/button.png"),
-            button_hover: load("element/buttons/button_hover.png"),
-            button_press: load("element/buttons/button_press.png"),
+            //button: load_vox("element/buttons/button.vox", ui),
+            button: load_img("element/buttons/button.png", ui),
+            button_hover: load_img("element/buttons/button_hover.png", ui),
+            button_press: load_img("element/buttons/button_press.png", ui),
 
             //Error
-            error_frame: load("element/frames/window_2.png"),
-            button_dark: load("element/buttons/button_dark.png"),
-            button_dark_hover: load("element/buttons/button_dark_hover.png"),
-            button_dark_press: load("element/buttons/button_dark_press.png"),
-            test_vox: ui.new_graphic(ui::Graphic::Voxel(load_segment("test.vox"))),
+            error_frame: load_img("element/frames/window_2.png", ui),
+            button_dark: load_img("element/buttons/button_dark.png", ui),
+            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
+            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
         }
     }
 }
@@ -185,11 +190,6 @@ impl MainMenuUi {
             .label_y(Relative::Scalar(-40.0))
             .label_x(Relative::Scalar(-100.0))
             .set(self.ids.v_logo, ui_widgets);
-
-        Image::new(self.imgs.test_vox)
-            .w_h(750.0, 750.0)
-            .top_right_with_margins_on(self.ids.bg, 50.0, 50.0)
-            .set(self.ids.test_vox, ui_widgets);
 
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field
