@@ -41,6 +41,10 @@ impl GraphicCache {
     pub fn get_graphic(&self, id: Id) -> Option<&Graphic> {
         self.graphic_map.get(&id)
     }
+    pub fn clear_cache(&mut self, new_size: Vec2<u16>) {
+        self.rect_map.clear();
+        self.atlas = AtlasAllocator::new(size2(i32::from(new_size.x), i32::from(new_size.y)));
+    }
     pub fn cache_res<F>(
         &mut self,
         graphic_id: Id,

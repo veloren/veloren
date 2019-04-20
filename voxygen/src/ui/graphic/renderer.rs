@@ -58,7 +58,7 @@ impl<'a> Pipeline for Voxel {
 
 pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>) -> Vec<[u8; 4]> {
     let dims = output_size.map(|e| e as usize).into_array();
-    let mut color = Buffer2d::new(dims, [50; 4]);
+    let mut color = Buffer2d::new(dims, [0; 4]);
     let mut depth = Buffer2d::new(dims, 1.0);
 
     let (w, h, d) = segment.get_size().map(|e| e as f32).into_tuple();
@@ -70,7 +70,8 @@ pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>) -> Vec<[u8; 4]> {
         top: 1.0,
         near: 0.0,
         far: 1.0,
-    }) * Mat4::scaling_3d(2.0 / w.max(h))
+    })  * Mat4::rotation_x(-std::f32::consts::PI / 2.0)
+        * Mat4::scaling_3d([2.0 / w, 2.0 / h, 2.0 / d])
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
         &generate_mesh(segment, Vec3::from(0.0)),
