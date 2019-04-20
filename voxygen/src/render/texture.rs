@@ -81,7 +81,7 @@ impl<P: Pipeline> Texture<P> {
             tex,
             srv,
             sampler: factory.create_sampler(gfx::texture::SamplerInfo::new(
-                gfx::texture::FilterMethod::Bilinear,
+                gfx::texture::FilterMethod::Scale,
                 gfx::texture::WrapMode::Clamp,
             )),
             _phantom: PhantomData,

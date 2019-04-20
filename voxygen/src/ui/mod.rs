@@ -1,8 +1,15 @@
 mod widgets;
+mod graphic;
+mod util;
 
 pub use widgets::toggle_button::ToggleButton;
+pub use graphic::Graphic;
+pub(self) use util::{srgb_to_linear, linear_to_srgb};
 
-use image::DynamicImage;
+use graphic::{
+    GraphicCache,
+    Id as GraphicId,
+};
 use conrod_core::{
     Ui as CrUi,
     UiBuilder,
@@ -16,7 +23,7 @@ use conrod_core::{
     widget::{Id as WidgId, id::Generator},
     render::Primitive,
     event::Input,
-    input::{touch::Touch, Widget, Motion, Button, MouseButton},
+    input::{touch::Touch, Widget, Motion, Button},
 };
 use vek::*;
 use crate::{
@@ -81,9 +88,10 @@ impl Event {
 }
 
 pub struct Cache {
-    blank_texture: Texture<UiPipeline>,
     glyph_cache: GlyphCache<'static>,
     glyph_cache_tex: Texture<UiPipeline>,
+    graphic_cache: graphic::GraphicCache,
+    graphic_cache_tex: Texture<UiPipeline>,
 }
 
 // TODO: Should functions be returning UiError instead of Error?
@@ -93,23 +101,31 @@ impl Cache {
         const SCALE_TOLERANCE: f32 = 0.1;
         const POSITION_TOLERANCE: f32 = 0.1;
 
+        let graphic_cache_dims = Vec2::new(w * 4, h * 4);
         Ok(Self {
-            blank_texture: renderer.create_texture(&DynamicImage::new_rgba8(1, 1))?,
             glyph_cache: GlyphCache::builder()
                 .dimensions(w as u32, h as u32)
                 .scale_tolerance(SCALE_TOLERANCE)
                 .position_tolerance(POSITION_TOLERANCE)
                 .build(),
             glyph_cache_tex: renderer.create_dynamic_texture((w, h).into())?,
+            graphic_cache: GraphicCache::new(graphic_cache_dims),
+            graphic_cache_tex: renderer.create_dynamic_texture(graphic_cache_dims)?,
         })
     }
-    pub fn blank_texture(&self) -> &Texture<UiPipeline> { &self.blank_texture }
     pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> { &self.glyph_cache_tex }
     pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) { (&mut self.glyph_cache, &self.glyph_cache_tex) }
+    pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> { &self.graphic_cache_tex }
+    pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) { (&mut self.graphic_cache, &self.graphic_cache_tex) }
+    pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId { self.graphic_cache.new_graphic(graphic) }
+    pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
+        self.graphic_cache.clear_cache(new_size);
+        self.graphic_cache_tex = renderer.create_dynamic_texture(new_size).unwrap();
+    }
 }
 
 enum DrawKind {
-    Image(ImgId),
+    Image,
     // Text and non-textured geometry
     Plain,
 }
@@ -121,9 +137,9 @@ enum DrawCommand {
     Scissor(Aabr<u16>),
 }
 impl DrawCommand {
-    fn image(model: Model<UiPipeline>, img_id: ImgId) -> DrawCommand {
+    fn image(model: Model<UiPipeline>) -> DrawCommand {
         DrawCommand::Draw {
-            kind: DrawKind::Image(img_id),
+            kind: DrawKind::Image,
             model,
         }
     }
@@ -198,7 +214,7 @@ impl Scale {
 
 pub struct Ui {
     ui: CrUi,
-    image_map: Map<Texture<UiPipeline>>,
+    image_map: Map<GraphicId>,
     cache: Cache,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
@@ -230,8 +246,8 @@ impl Ui {
         self.ui.handle_event(Input::Resize(w, h));
     }
 
-    pub fn new_image(&mut self, renderer: &mut Renderer, image: &DynamicImage) -> Result<ImgId, Error> {
-        Ok(self.image_map.insert(renderer.create_texture(image)?))
+    pub fn new_graphic(&mut self, graphic: Graphic) -> ImgId {
+        self.image_map.insert(self.cache.new_graphic(graphic))
     }
 
     pub fn new_font(&mut self, font: Font) -> FontId {
@@ -246,7 +262,7 @@ impl Ui {
         self.ui.set_widgets()
     }
 
-    // Accepts option so widget can be unfocused
+    // Accepts Option so widget can be unfocused
     pub fn focus_widget(&mut self, id: Option<WidgId>) {
         self.ui.keyboard_capture(match id {
             Some(id) => id,
@@ -259,7 +275,7 @@ impl Ui {
         self.ui.global_input().current.widget_capturing_keyboard
     }
 
-    // Get whether the a widget besides the window is capturing the mouse
+    // Get whether a widget besides the window is capturing the mouse
     pub fn no_widget_capturing_mouse(&self) -> bool {
         self.ui.global_input().current.widget_capturing_mouse.filter(|id| id != &self.ui.window ).is_none()
     }
@@ -305,7 +321,14 @@ impl Ui {
             self.draw_commands.clear();
             let mut mesh = Mesh::new();
 
-            let mut current_img = None;
+            // TODO: this could be removed entirely if the draw call just used both textures
+            //       however this allows for flexibility if we want to interleave other draw calls later
+            enum State {
+                Image,
+                Plain,
+            };
+
+            let mut current_state = State::Plain;
 
             let window_scizzor = default_scissor(renderer);
             let mut current_scizzor = window_scizzor;
@@ -314,9 +337,10 @@ impl Ui {
             // `Plain` state.
             macro_rules! switch_to_plain_state {
                 () => {
-                    if let Some(image_id) = current_img.take() {
-                        self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id));
+                    if let State::Image = current_state {
+                        self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap()));
                         mesh.clear();
+                        current_state = State::Plain;
                     }
                 };
             }
@@ -324,7 +348,7 @@ impl Ui {
             let p_scale_factor = self.scale.scale_factor_physical();
 
             while let Some(prim) = primitives.next() {
-                let Primitive {kind, scizzor, id, rect} = prim;
+                let Primitive {kind, scizzor, id: _id, rect} = prim;
 
                 // Check for a change in the scizzor
                 let new_scizzor = {
@@ -348,12 +372,12 @@ impl Ui {
                 };
                 if new_scizzor != current_scizzor {
                     // Finish the current command
-                    match current_img.take() {
-                        None =>
-                            self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap())),
-                        Some(image_id) =>
-                            self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id)),
-                    }
+                    self.draw_commands.push(match current_state {
+                        State::Plain =>
+                            DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
+                        State::Image =>
+                            DrawCommand::image(renderer.create_model(&mesh).unwrap()),
+                    });
                     mesh.clear();
 
                     // Update the scizzor and produce a command.
@@ -375,52 +399,64 @@ impl Ui {
                 use conrod_core::render::PrimitiveKind;
                 match kind {
                     PrimitiveKind::Image { image_id, color, source_rect } => {
+                        let graphic_id = self.image_map.get(&image_id).expect("Image does not exist in image map");
+                        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
 
-                        // Switch to the `Image` state for this image if we're not in it already.
-                        let new_image_id = image_id;
-                        match current_img {
-                            // If we're already in the drawing mode for this image, we're done.
-                            Some(image_id) if image_id == new_image_id => (),
-                            // If we were in the `Plain` drawing state, switch to Image drawing state.
-                            None => {
-                                self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
-                                mesh.clear();
-                                current_img = Some(new_image_id);
-                            }
-                            // If we were drawing a different image, switch state to draw *this* image.
-                            Some(image_id) => {
-                                self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id));
-                                mesh.clear();
-                                current_img = Some(new_image_id);
-                            }
+                        match graphic_cache.get_graphic(*graphic_id) {
+                            Some(Graphic::Blank) | None => continue,
+                            _ => {}
                         }
 
-                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa());
+                        // Switch to the `Image` state for this image if we're not in it already.
+                        if let State::Plain = current_state {
+                            self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
+                            mesh.clear();
+                            current_state = State::Image;
+                        }
 
-                        // Transform the source rectangle into uv coordinates
-                        let (image_w, image_h) = self.image_map
-                            .get(&image_id)
-                            .expect("Image does not exist in image map")
-                            .get_dimensions()
-                            .map(|e| e as f64)
-                            .into_tuple();
-                        let (uv_l, uv_r, uv_t, uv_b) = match source_rect {
-                            Some(src_rect) => {
-                                let (l, r, b, t) = src_rect.l_r_b_t();
-                                ((l / image_w) as f32,
-                                (r / image_w) as f32,
-                                (b / image_h) as f32,
-                                (t / image_h) as f32)
+                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
+
+
+                        let resolution = Vec2::new(
+                            (rect.w() * p_scale_factor) as u16,
+                            (rect.h() * p_scale_factor) as u16,
+                        );
+                        // Transform the source rectangle into uv coordinate
+                        // TODO: make sure this is right
+                        let source_aabr = {
+                            let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0);/*match source_rect {
+                                Some(src_rect) => {
+                                    let (l, r, b, t) = src_rect.l_r_b_t();
+                                    ((l / image_w) as f32,
+                                    (r / image_w) as f32,
+                                    (b / image_h) as f32,
+                                    (t / image_h) as f32)
+                                }
+                                None => (0.0, 1.0, 0.0, 1.0),
+                            };*/
+                            Aabr {
+                                min: Vec2::new(uv_l, uv_b),
+                                max: Vec2::new(uv_r, uv_t),
                             }
-                            None => (0.0, 1.0, 0.0, 1.0),
                         };
-                        let uv = Aabr {
-                            min: Vec2::new(uv_l, uv_b),
-                            max: Vec2::new(uv_r, uv_t),
+                        let (cache_w, cache_h) = cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
+
+                        // Cache graphic at particular resolution
+                        let uv_aabr = match graphic_cache.cache_res(*graphic_id, resolution, source_aabr, |aabr, data| {
+                            let offset = aabr.min.into_array();
+                            let size = aabr.size().into_array();
+                            renderer.update_texture(cache_tex, offset, size, &data);
+                        }) {
+                            Some(aabr) => Aabr {
+                                min: Vec2::new(aabr.min.x as f32 / cache_w, aabr.max.y as f32 / cache_h),
+                                max: Vec2::new(aabr.max.x as f32 / cache_w, aabr.min.y as f32 / cache_h),
+                            },
+                            None => continue,
                         };
+
                         mesh.push_quad(create_ui_quad(
                             gl_aabr(rect),
-                            uv,
+                            uv_aabr,
                             color,
                             UiMode::Image,
                         ));
@@ -449,7 +485,7 @@ impl Ui {
                             renderer.update_texture(cache_tex, offset, size, &new_data);
                         }).unwrap();
 
-                        let color = srgb_to_linear(color.to_fsa());
+                        let color = srgb_to_linear(color.to_fsa().into());
 
                         for g in positioned_glyphs {
                             if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
@@ -477,7 +513,7 @@ impl Ui {
                         }
                     }
                     PrimitiveKind::Rectangle { color } => {
-                        let color = srgb_to_linear(color.to_fsa());
+                        let color = srgb_to_linear(color.to_fsa().into());
                         // Don't draw a transparent rectangle
                         if color[3] == 0.0 {
                             continue;
@@ -497,7 +533,7 @@ impl Ui {
                     }
                     PrimitiveKind::TrianglesSingleColor { color, triangles } => {
                         // Don't draw transparent triangle or switch state if there are actually no triangles
-                        let color: [f32; 4] = srgb_to_linear(color.into());
+                        let color = srgb_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
                         if triangles.is_empty() || color[3] == 0.0 {
                             continue;
                         }
@@ -529,24 +565,27 @@ impl Ui {
 
                     }
                     _ => {}
-                    // TODO: Add these
-                    //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
+                    // TODO: Add this
                     //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
+                    // Other uneeded for now
+                    //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
                 }
             }
             // Enter the final command
-            match current_img {
-                None =>
-                    self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap())),
-                Some(image_id) =>
-                    self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap(), image_id)),
-            }
+            self.draw_commands.push(match current_state {
+                State::Plain =>
+                    DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
+                State::Image =>
+                    DrawCommand::image(renderer.create_model(&mesh).unwrap()),
+            });
 
             // Handle window resizing
             if let Some(new_dims) = self.window_resized.take() {
                 self.scale.window_resized(new_dims, renderer);
                 let (w, h) = self.scale.scaled_window_size().into_tuple();
                 self.ui.handle_event(Input::Resize(w, h));
+                self.cache.clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
+                // TODO: probably need to resize glyph cache, see conrod's gfx backend for reference
             }
         }
     }
@@ -560,8 +599,8 @@ impl Ui {
                 }
                 DrawCommand::Draw { kind, model } => {
                     let tex = match kind {
-                        DrawKind::Image(image_id) => {
-                            self.image_map.get(&image_id).expect("Image does not exist in image map")
+                        DrawKind::Image => {
+                            self.cache.graphic_cache_tex()
                         }
                         DrawKind::Plain => {
                             self.cache.glyph_cache_tex()
@@ -580,16 +619,4 @@ fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
         min: Vec2 { x: 0, y: 0 },
         max: Vec2 { x: screen_w, y: screen_h }
     }
-}
-
-fn srgb_to_linear(color: [f32; 4]) -> [f32; 4] {
-    fn linearize(comp: f32) -> f32 {
-        if comp <= 0.04045 {
-            comp / 12.92
-        } else {
-            ((comp + 0.055) / 1.055).powf(2.4)
-        }
-    }
-
-    [linearize(color[0]), linearize(color[1]), linearize(color[2]), color[3]]
 }

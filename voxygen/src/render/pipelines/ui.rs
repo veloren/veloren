@@ -65,13 +65,13 @@ impl Mode {
     }
 }
 
-pub fn create_quad(rect: Aabr<f32>, uv_rect: Aabr<f32>, color: [f32; 4], mode: Mode) -> Quad<UiPipeline> {
+pub fn create_quad(rect: Aabr<f32>, uv_rect: Aabr<f32>, color: Rgba<f32>, mode: Mode) -> Quad<UiPipeline> {
     let mode_val = mode.value();
     let v = |pos, uv| {
         Vertex {
             pos,
             uv,
-            color,
+            color: color.into_array(),
             mode: mode_val,
         }
     };
@@ -90,13 +90,13 @@ pub fn create_quad(rect: Aabr<f32>, uv_rect: Aabr<f32>, color: [f32; 4], mode: M
     )
 }
 
-pub fn create_tri(tri: [[f32; 2]; 3], uv_tri: [[f32; 2]; 3], color: [f32; 4], mode: Mode) -> Tri<UiPipeline> {
+pub fn create_tri(tri: [[f32; 2]; 3], uv_tri: [[f32; 2]; 3], color: Rgba<f32>, mode: Mode) -> Tri<UiPipeline> {
     let mode_val = mode.value();
     let v = |pos, uv| {
         Vertex {
             pos,
             uv,
-            color,
+            color: color.into_array(),
             mode: mode_val,
         }
     };
