@@ -74,7 +74,6 @@ nightly-linux-debug:
     - cp target/debug/veloren-voxygen nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f nightly-linux-debug.tar.bz2
     - tar -cvjSf nightly-linux-debug.tar.bz2 nightly
   when: always
@@ -97,7 +96,6 @@ nightly-windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f nightly-windows-debug.zip
     - zip -r nightly-windows-debug.zip nightly
   artifacts:
@@ -119,7 +117,6 @@ nightly-linux-optimized:
     - cp target/release/veloren-voxygen nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f nightly-linux-optimized.tar.bz2
     - tar -cvjSf nightly-linux-optimized.tar.bz2 nightly
   when: manual
@@ -142,7 +139,6 @@ nightly-windows-optimized:
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f nightly-windows-optimized.zip
     - zip -r nightly-windows-optimized.zip nightly
   when: manual
@@ -165,7 +161,6 @@ stable-linux-optimized:
     - cp target/release/veloren-voxygen stable
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f stable-linux-optimized.tar.bz2
     - tar -cvjSf stable-linux-optimized.tar.bz2 stable
   artifacts:
@@ -187,7 +182,6 @@ stable-windows-optimized:
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe stable
     - cp -r assets nightly/
     - cp -r voxygen/shaders nightly/
-    - cp -r voxygen/fonts nightly/
     - rm -f stable-windows-optimized.zip
     - zip -r stable-windows-optimized.zip stable
   artifacts:
