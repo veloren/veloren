@@ -30,44 +30,26 @@ impl Animation for RunAnimation {
         let wavecos_slow = (time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
-<<<<<<< HEAD
-        next.head.offset = Vec3::unit_z() * (12.0 + fuzzwave *0.4)/ SCALE;
+        next.head.offset = Vec3::unit_z() * (12.0 + fuzzwave *1.0)/ SCALE;
 
-        next.chest.offset = Vec3::unit_z() * (8.0 + fuzzwave * 0.3) / SCALE;
-        next.chest.ori = Quaternion::rotation_z(wave * 0.2);
-
-        next.belt.offset = Vec3::unit_z() * (6.0 + fuzzwave * 0.3)/ SCALE;
-        next.belt.ori = Quaternion::rotation_z(wave * 0.2);
-
-        next.shorts.offset = Vec3::unit_z() * (3.0 + fuzzwave * 0.3) / SCALE;
-        next.shorts.ori = Quaternion::rotation_z(wave * 0.1);
-=======
-        next.head.offset = Vec3::unit_z() * (12.0 + fuzzwave *1.0)/ 11.0;
-
-        next.chest.offset = Vec3::unit_z() * (8.0 + fuzzwave * 0.8) / 11.0;
+        next.chest.offset = Vec3::unit_z() * (8.0 + fuzzwave * 0.8) / SCALE;
         next.chest.ori = Quaternion::rotation_z(wave * 0.3);
 
-        next.belt.offset = Vec3::unit_z() * (6.0 + fuzzwave * 0.8)/ 11.0;
+        next.belt.offset = Vec3::unit_z() * (6.0 + fuzzwave * 0.8) / SCALE;
         next.belt.ori = Quaternion::rotation_z(wave * 0.3);
 
-        next.shorts.offset = Vec3::unit_z() * (3.0 + fuzzwave * 0.8) / 11.0;
+        next.shorts.offset = Vec3::unit_z() * (3.0 + fuzzwave * 0.8) / SCALE;
         next.shorts.ori = Quaternion::rotation_z(wave * 0.2);
->>>>>>> animation minor fixes
 
         next.l_hand.offset = Vec3::new(0.0 - wavecos * 1.0, 7.5, 11.0 - wave * 1.0) / SCALE;
         next.l_hand.ori = Quaternion::rotation_y(wave * -1.8);
         next.r_hand.offset = Vec3::new(0.0 + wavecos * 1.0, -7.5, 11.0 + wave * 1.0) / SCALE;
         next.r_hand.ori = Quaternion::rotation_y(wave * 1.8);
 
-<<<<<<< HEAD
-        next.l_foot.offset = Vec3::new(2.5 - wavecos * 4.0, 3.4, 6.0 + wave * 2.5) / SCALE;
+
+        next.l_foot.offset = Vec3::new(2.5 - wavecos * 4.0, 3.4, 6.0 + wave * 2.9) / SCALE;
         next.l_foot.ori = Quaternion::rotation_y(wave * -1.0);
-        next.r_foot.offset = Vec3::new(2.5 + wavecos * 4.0, -3.4, 6.0 - wave * 2.5) / SCALE;
-=======
-        next.l_foot.offset = Vec3::new(2.5 - wavecos * 4.0, 3.4, 6.0 + wave * 2.9) / 11.0;
-        next.l_foot.ori = Quaternion::rotation_y(wave * -1.0);
-        next.r_foot.offset = Vec3::new(2.5 + wavecos * 4.0, -3.4, 6.0 - wave * 2.9) / 11.0;
->>>>>>> animation minor fixes
+        next.r_foot.offset = Vec3::new(2.5 + wavecos * 4.0, -3.4, 6.0 - wave * 2.9) / SCALE;
         next.r_foot.ori = Quaternion::rotation_y(wave * 1.0);
 
         next.back.offset = Vec3::new(-6.0, 16.0, 15.0);
