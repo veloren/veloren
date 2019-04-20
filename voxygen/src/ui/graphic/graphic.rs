@@ -57,22 +57,21 @@ impl GraphicCache {
     {
         match self
             .rect_map
-            .get(&(graphic_id, dims, source.map(|e| e.to_bits())))
+            .get(&(graphic_id, dims, source.map(|e| e.to_bits()))) //<-------- TODO: Replace this with rounded representation of source
         {
-            //<-------- TODO: Replace this with rounded representation of source
             Some(aabr) => Some(*aabr),
             None => match self.graphic_map.get(&graphic_id) {
                 Some(graphic) => {
                     // Allocate rectangle
                     let aabr = match self
                         .atlas
-                        .allocate(size2(i32::from(dims.x + 2), i32::from(dims.y + 2)))
+                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
                     {
                         Some(Allocation { id, rectangle }) => {
                             let (min, max) = (rectangle.min, rectangle.max);
                             Aabr {
-                                min: Vec2::new(min.x as u16 + 1, min.y as u16 + 1),
-                                max: Vec2::new(max.x as u16 - 1, max.y as u16 - 1),
+                                min: Vec2::new(min.x as u16, min.y as u16),
+                                max: Vec2::new(max.x as u16, max.y as u16),
                             }
                         }
                         // Out of room

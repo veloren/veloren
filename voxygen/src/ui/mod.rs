@@ -584,7 +584,7 @@ impl Ui {
                 self.scale.window_resized(new_dims, renderer);
                 let (w, h) = self.scale.scaled_window_size().into_tuple();
                 self.ui.handle_event(Input::Resize(w, h));
-                self.cache.clear_graphic_cache(renderer, new_dims.map(|e| (e * 4.0) as u16));
+                self.cache.clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
                 // TODO: probably need to resize glyph cache, see conrod's gfx backend for reference
             }
         }
