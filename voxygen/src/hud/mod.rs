@@ -2,7 +2,7 @@ mod chat;
 
 use crate::{
     render::Renderer,
-    ui::{ScaleMode, ToggleButton, Ui},
+    ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
 };
 use common::assets;
@@ -144,7 +144,7 @@ widget_ids! {
 pub(self) struct Imgs {
     //Missing: ActionBar, Health/Mana/Energy Bar & Char Window BG/Frame
     //Logo
-    v_logo: ImgId,
+    //v_logo: ImgId,
     // Bag
     bag: ImgId,
     bag_hover: ImgId,
@@ -249,7 +249,7 @@ pub(self) struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        let mut load = |filename| {
+        let mut load = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -257,117 +257,116 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
         };
         Imgs {
             // Bag
-            bag: load("element/buttons/bag/closed.png"),
-            bag_hover: load("element/buttons/bag/closed_hover.png"),
-            bag_press: load("element/buttons/bag/closed_press.png"),
-            bag_open: load("element/buttons/bag/open.png"),
-            bag_open_hover: load("element/buttons/bag/open_hover.png"),
-            bag_open_press: load("element/buttons/bag/open_press.png"),
-            bag_contents: load("element/frames/bag.png"),
-            inv_grid: load("element/frames/inv_grid.png"),
-            inv_slot: load("element/buttons/inv_slot.png"),
+            bag: load("element/buttons/bag/closed.png", ui),
+            bag_hover: load("element/buttons/bag/closed_hover.png", ui),
+            bag_press: load("element/buttons/bag/closed_press.png", ui),
+            bag_open: load("element/buttons/bag/open.png", ui),
+            bag_open_hover: load("element/buttons/bag/open_hover.png", ui),
+            bag_open_press: load("element/buttons/bag/open_press.png", ui),
+            bag_contents: load("element/frames/bag.png", ui),
+            inv_grid: load("element/frames/inv_grid.png", ui),
+            inv_slot: load("element/buttons/inv_slot.png", ui),
 
             // Close button
-            close_button: load("element/buttons/x.png"),
-            close_button_hover: load("element/buttons/x_hover.png"),
-            close_button_press: load("element/buttons/x_press.png"),
+            close_button: load("element/buttons/x.png", ui),
+            close_button_hover: load("element/buttons/x_hover.png", ui),
+            close_button_press: load("element/buttons/x_press.png", ui),
 
             // Esc-Menu
-            esc_bg: load("element/frames/menu.png"),
-            fireplace: load("element/misc_backgrounds/fireplace.png"),
-            button_dark: load("element/buttons/button_dark.png"),
-            button_dark_hover: load("element/buttons/button_dark_hover.png"),
-            button_dark_press: load("element/buttons/button_dark_press.png"),
+            esc_bg: load("element/frames/menu.png", ui),
+            fireplace: load("element/misc_backgrounds/fireplace.png", ui),
+            button_dark: load("element/buttons/button_dark.png", ui),
+            button_dark_hover: load("element/buttons/button_dark_hover.png", ui),
+            button_dark_press: load("element/buttons/button_dark_press.png", ui),
 
             // MiniMap
-            mmap_frame: load("element/frames/mmap.png"),
-            mmap_frame_bg: load("element/misc_backgrounds/mmap_bg.png"),
-            mmap_icons: load("element/buttons/mmap_icons.png"),
+            mmap_frame: load("element/frames/mmap.png", ui),
+            mmap_frame_bg: load("element/misc_backgrounds/mmap_bg.png", ui),
+            mmap_icons: load("element/buttons/mmap_icons.png", ui),
 
             // Settings at Mini-Map
-            mmap_button: load("element/buttons/border.png"),
-            mmap_button_hover: load("element/buttons/border_mo.png"),
-            mmap_button_press: load("element/buttons/border_press.png"),
-            mmap_button_open: load("element/buttons/border_pressed.png"),
+            mmap_button: load("element/buttons/border.png", ui),
+            mmap_button_hover: load("element/buttons/border_mo.png", ui),
+            mmap_button_press: load("element/buttons/border_press.png", ui),
+            mmap_button_open: load("element/buttons/border_pressed.png", ui),
 
             // Skillbar Module
-            sb_grid: load("element/skill_bar/sbar_grid.png"),
-            sb_grid_bg: load("element/skill_bar/sbar_grid_bg.png"),
-            l_click: load("element/skill_bar/l.png"),
-            r_click: load("element/skill_bar/r.png"),
-            mana_bar: load("element/skill_bar/mana_bar.png"),
-            health_bar: load("element/skill_bar/health_bar.png"),
-            xp_bar: load("element/skill_bar/xp_bar.png"),
+            sb_grid: load("element/skill_bar/sbar_grid.png", ui),
+            sb_grid_bg: load("element/skill_bar/sbar_grid_bg.png", ui),
+            l_click: load("element/skill_bar/l.png", ui),
+            r_click: load("element/skill_bar/r.png", ui),
+            mana_bar: load("element/skill_bar/mana_bar.png", ui),
+            health_bar: load("element/skill_bar/health_bar.png", ui),
+            xp_bar: load("element/skill_bar/xp_bar.png", ui),
 
             //Buff Frame(s)
-            //buff_frame: load("element/skill_bar/buff_frame.png"),
-            //buff_frame_bg: load("element/skill_bar/buff_frame_bg.png"),
-            //buff_frame_red: load("element/skill_bar/buff_frame_red.png"),
-            //buff_frame_green: load("element/skill_bar/buff_frame_green.png"),
+            //buff_frame: load("element/skill_bar/buff_frame.png", ui),
+            //buff_frame_bg: load("element/skill_bar/buff_frame_bg.png", ui),
+            //buff_frame_red: load("element/skill_bar/buff_frame_red.png", ui),
+            //buff_frame_green: load("element/skill_bar/buff_frame_green.png", ui),
 
             //Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
-            window_frame: load("element/frames/window.png"),
-            window_frame_2: load("element/frames/window_2.png"),
+            window_frame: load("element/frames/window.png", ui),
+            window_frame_2: load("element/frames/window_2.png", ui),
 
             //Settings Window
-            settings_bg: load("element/frames/settings.png"),
-            settings_icon: load("element/icons/settings.png"),
-            settings_button_mo: load("element/buttons/blue_mo.png"),
-            check: load("element/buttons/check/no.png"),
-            check_mo: load("element/buttons/check/no_mo.png"),
-            check_press: load("element/buttons/check/press.png"),
-            check_checked: load("element/buttons/check/yes.png"),
-            check_checked_mo: load("element/buttons/check/yes_mo.png"),
-            slider: load("element/slider/track.png"),
-            slider_indicator: load("element/slider/indicator.png"),
-            button_blank: load("element/nothing.png"),
-            button_blue_mo: load("element/buttons/blue_mo.png"),
-            button_blue_press: load("element/buttons/blue_press.png"),
+            settings_bg: load("element/frames/settings.png", ui),
+            settings_icon: load("element/icons/settings.png", ui),
+            settings_button_mo: load("element/buttons/blue_mo.png", ui),
+            check: load("element/buttons/check/no.png", ui),
+            check_mo: load("element/buttons/check/no_mo.png", ui),
+            check_press: load("element/buttons/check/press.png", ui),
+            check_checked: load("element/buttons/check/yes.png", ui),
+            check_checked_mo: load("element/buttons/check/yes_mo.png", ui),
+            slider: load("element/slider/track.png", ui),
+            slider_indicator: load("element/slider/indicator.png", ui),
+            button_blank:  ui.new_graphic(ui::Graphic::Blank),
+            button_blue_mo: load("element/buttons/blue_mo.png", ui),
+            button_blue_press: load("element/buttons/blue_press.png", ui),
 
             // Window BG
-            window_bg: load("element/misc_backgrounds/window_bg.png"),
-            v_logo: load("element/v_logo.png"),
+            window_bg: load("element/misc_backgrounds/window_bg.png", ui),
 
             //Social Window
-            social_bg: load("element/misc_backgrounds/small_bg.png"),
-            social_icon: load("element/icons/social.png"),
+            social_bg: load("element/misc_backgrounds/small_bg.png", ui),
+            social_icon: load("element/icons/social.png", ui),
 
             //Map Window
-            map_bg: load("element/misc_backgrounds/small_bg.png"),
-            map_icon: load("element/icons/map.png"),
-            map_frame: load("element/frames/window_map.png"),
+            map_bg: load("element/misc_backgrounds/small_bg.png", ui),
+            map_icon: load("element/icons/map.png", ui),
+            map_frame: load("element/frames/window_map.png", ui),
 
             // Spell Book Window
-            spellbook_bg: load("element/misc_backgrounds/small_bg.png"),
-            spellbook_icon: load("element/icons/spellbook.png"),
+            spellbook_bg: load("element/misc_backgrounds/small_bg.png", ui),
+            spellbook_icon: load("element/icons/spellbook.png", ui),
 
             //Char Window
-            charwindow: load("element/misc_backgrounds/charwindow.png"),
-            charwindow_icon: load("element/icons/charwindow.png"),
-            charwindow_tab_bg: load("element/frames/tab.png"),
-            charwindow_tab: load("element/buttons/tab.png"),
-            charwindow_expbar: load("element/misc_backgrounds/small_bg.png"),
-            progress_frame: load("element/frames/progress_bar.png"),
-            progress: load("element/misc_backgrounds/progress.png"),
+            charwindow: load("element/misc_backgrounds/charwindow.png", ui),
+            charwindow_icon: load("element/icons/charwindow.png", ui),
+            charwindow_tab_bg: load("element/frames/tab.png", ui),
+            charwindow_tab: load("element/buttons/tab.png", ui),
+            charwindow_expbar: load("element/misc_backgrounds/small_bg.png", ui),
+            progress_frame: load("element/frames/progress_bar.png", ui),
+            progress: load("element/misc_backgrounds/progress.png", ui),
 
             //Quest-Log Window
-            questlog_bg: load("element/misc_backgrounds/small_bg.png"),
-            questlog_icon: load("element/icons/questlog.png"),
+            questlog_bg: load("element/misc_backgrounds/small_bg.png", ui),
+            questlog_icon: load("element/icons/questlog.png", ui),
 
             // Chat-Arrows
-            chat_arrow: load("element/buttons/arrow/chat_arrow.png"),
-            chat_arrow_mo: load("element/buttons/arrow/chat_arrow_mo.png"),
-            chat_arrow_press: load("element/buttons/arrow/chat_arrow_press.png"),
-            chat_arrow_up: load("element/buttons/arrow/chat_arrow_up.png"),
-            chat_arrow_up_mo: load("element/buttons/arrow/chat_arrow_up_mo.png"),
-            chat_arrow_up_press: load("element/buttons/arrow/chat_arrow_up_press.png"),
-            chat_arrow_down: load("element/buttons/arrow/chat_arrow_down.png"),
-            chat_arrow_down_mo: load("element/buttons/arrow/chat_arrow_down_mo.png"),
-            chat_arrow_down_press: load("element/buttons/arrow/chat_arrow_down_press.png"),
+            chat_arrow: load("element/buttons/arrow/chat_arrow.png", ui),
+            chat_arrow_mo: load("element/buttons/arrow/chat_arrow_mo.png", ui),
+            chat_arrow_press: load("element/buttons/arrow/chat_arrow_press.png", ui),
+            chat_arrow_up: load("element/buttons/arrow/chat_arrow_up.png", ui),
+            chat_arrow_up_mo: load("element/buttons/arrow/chat_arrow_up_mo.png", ui),
+            chat_arrow_up_press: load("element/buttons/arrow/chat_arrow_up_press.png", ui),
+            chat_arrow_down: load("element/buttons/arrow/chat_arrow_down.png", ui),
+            chat_arrow_down_mo: load("element/buttons/arrow/chat_arrow_down_mo.png", ui),
+            chat_arrow_down_press: load("element/buttons/arrow/chat_arrow_down_press.png", ui),
         }
     }
 }
