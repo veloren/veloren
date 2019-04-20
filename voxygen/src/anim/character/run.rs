@@ -46,7 +46,6 @@ impl Animation for RunAnimation {
         next.r_hand.offset = Vec3::new(0.0 + wavecos * 1.0, -7.5, 11.0 + wave * 1.0) / SCALE;
         next.r_hand.ori = Quaternion::rotation_y(wave * 1.8);
 
-
         next.l_foot.offset = Vec3::new(2.5 - wavecos * 4.0, 3.4, 6.0 + wave * 2.9) / SCALE;
         next.l_foot.ori = Quaternion::rotation_y(wave * -1.0);
         next.r_foot.offset = Vec3::new(2.5 + wavecos * 4.0, -3.4, 6.0 - wave * 2.9) / SCALE;
