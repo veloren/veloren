@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use specs::Entity as EcsEntity;
 use common::{
     comp,
-    msg::{ServerMsg, ClientMsg, ClientState},
+    msg::{ServerMsg, ClientMsg, ClientState, RequestStateError},
     net::PostBox,
 };
 use crate::Error;
@@ -16,6 +16,20 @@ pub struct Client {
 impl Client {
     pub fn notify(&mut self, msg: ServerMsg) {
         self.postbox.send_message(msg);
+    }
+    pub fn allow_state(&mut self, new_state: ClientState) {
+        self.client_state = new_state;
+        self.postbox.send_message(ServerMsg::StateAnswer(
+                Ok(new_state)));
+    }
+    pub fn error_state(&mut self, error: RequestStateError) {
+        self.postbox.send_message(ServerMsg::StateAnswer(
+                Err((error, self.client_state))));
+    }
+    pub fn force_state(&mut self, new_state: ClientState) {
+        self.client_state = new_state;
+        self.postbox.send_message(ServerMsg::ForceState(
+                new_state));
     }
 }
 
