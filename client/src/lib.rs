@@ -53,21 +53,16 @@ impl Client {
     #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(
         addr: A,
-        player: comp::Player,
         view_distance: u64,
     ) -> Result<Self, Error> {
-
         let mut client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
 
-        // Send connection request
-        postbox.send_message(ClientMsg::Connect { player });
-
         // Wait for initial sync
         let (state, player_entity) = match postbox.next_message() {
-            Some(ServerMsg::InitialSync { ecs_state, player_entity_uid }) => {
+            Some(ServerMsg::InitialSync { ecs_state, entity_uid }) => {
                 let mut state = State::from_state_package(ecs_state);
-                let player_entity = state.ecs().entity_from_uid(player_entity_uid).ok_or(Error::ServerWentMad)?;
+                let player_entity = state.ecs().entity_from_uid(entity_uid).ok_or(Error::ServerWentMad)?;
                 (state, player_entity)
             },
             _ => return Err(Error::ServerWentMad),
@@ -89,6 +84,10 @@ impl Client {
 
             pending_chunks: HashSet::new(),
         })
+    }
+
+    pub fn register(&mut self, player: comp::Player) {
+        self.postbox.send_message(ClientMsg::Register { player });
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any

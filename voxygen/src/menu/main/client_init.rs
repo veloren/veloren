@@ -44,8 +44,9 @@ impl ClientInit {
                     let mut last_err = None;
 
                     for socket_addr in first_addrs.into_iter().chain(second_addrs) {
-                        match Client::new(socket_addr, player.clone(), view_distance) {
-                            Ok(client) => {
+                        match Client::new(socket_addr, view_distance) {
+                            Ok(mut client) => {
+                                client.register(player);
                                 let _ = tx.send(Ok(client));
                                 return;
                             }
