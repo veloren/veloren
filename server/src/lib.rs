@@ -264,16 +264,16 @@ impl Server {
                         ClientMsg::RequestState(requested_state) => match requested_state {
                             ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
-                                ClientState::Connected => {}, // Use ClientMsg::Connect instead
+                                ClientState::Connected => disconnect = true, // Use ClientMsg::Register instead
                                 ClientState::Registered => client.error_state(RequestStateError::Already),
-                                ClientState::Spectator => client.allow_state(ClientState::Registered),
-                                ClientState::Character => client.allow_state(ClientState::Registered),
+                                ClientState::Spectator | ClientState::Character
+                                    => client.allow_state(ClientState::Registered),
                             },
                             ClientState::Spectator => match requested_state {
-                                ClientState::Connected => disconnect = true, // Become Connected first
-                                ClientState::Registered => client.allow_state(ClientState::Spectator),
+                                ClientState::Connected => disconnect = true, // Become Registered first
                                 ClientState::Spectator => client.error_state(RequestStateError::Already),
-                                ClientState::Character => client.allow_state(ClientState::Spectator),
+                                ClientState::Registered | ClientState::Character
+                                    => client.allow_state(ClientState::Spectator),
                             },
                             ClientState::Character => disconnect = true, // Use ClientMsg::Character instead
                         },
@@ -282,16 +282,15 @@ impl Server {
                             _ => disconnect = true,
                         },
                         ClientMsg::Character(character) => match client.client_state {
-                            ClientState::Connected => disconnect = true, // Become Connected first
+                            ClientState::Connected => disconnect = true, // Become Registered first
                             ClientState::Registered | ClientState::Spectator =>
                                 Self::create_player_character(state, entity, client, character),
                             ClientState::Character => client.error_state(RequestStateError::Already),
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
                             ClientState::Connected => disconnect = true,
-                            ClientState::Registered => new_chat_msgs.push((entity, msg)),
-                            ClientState::Spectator => new_chat_msgs.push((entity, msg)),
-                            ClientState::Character => new_chat_msgs.push((entity, msg)),
+                            ClientState::Registered | ClientState::Spectator | ClientState::Character
+                                => new_chat_msgs.push((entity, msg)),
                         },
                         ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
                             ClientState::Character => state.write_component(entity, animation_history),
