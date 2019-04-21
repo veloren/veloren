@@ -91,6 +91,7 @@ impl FigureCache {
                         None,
                     ];
 
+
         let mut mesh = Mesh::new();
         bone_meshes
             .iter()
