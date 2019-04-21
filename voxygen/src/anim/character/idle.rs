@@ -13,7 +13,6 @@ use super::{
 
 pub struct IdleAnimation;
 
-//TODO: Make it actually good, possibly add the head rotating slightly, add breathing, etc.
 impl Animation for IdleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
@@ -64,10 +63,9 @@ impl Animation for IdleAnimation {
         next.r_foot.ori = Quaternion::rotation_y(0.04 + waveultra_slow * 0.04);
         next.r_foot.scale = Vec3::one();
 
-
-        next.back.offset = Vec3::new(-4.5, 14.0, 13.0);
-        next.back.ori = Quaternion::rotation_x(2.5);
-        next.back.scale = Vec3::one();
+        next.weapon.offset = Vec3::new(-4.5, 14.0, 13.0);
+        next.weapon.ori = Quaternion::rotation_x(2.5);
+        next.weapon.scale = Vec3::one();
 
 
         next.torso.offset = Vec3::new(0.0, 0.0, 0.0);
