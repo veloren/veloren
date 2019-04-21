@@ -60,7 +60,7 @@ impl Clients {
 
     pub fn notify_connected(&mut self, msg: ServerMsg) {
         for client in self.clients.values_mut() {
-            if client.client_state != ClientState::Visitor {
+            if client.client_state != ClientState::Connected {
                 client.notify(msg.clone());
             }
         }
@@ -68,7 +68,7 @@ impl Clients {
 
     pub fn notify_connected_except(&mut self, except_entity: EcsEntity, msg: ServerMsg) {
         for (entity, client) in self.clients.iter_mut() {
-            if client.client_state != ClientState::Visitor && *entity != except_entity {
+            if client.client_state != ClientState::Connected && *entity != except_entity {
                 client.notify(msg.clone());
             }
         }
