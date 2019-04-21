@@ -213,14 +213,26 @@ impl Server {
 
         for mut postbox in self.postoffice.new_postboxes() {
             let entity = self.state.ecs_mut().create_entity_synced().build();
+            let mut client = Client {
+                client_state: ClientState::Connected,
+                postbox,
+                last_ping: self.state.get_time(),
+            };
+
+            // Return the state of the current world
+            // (All components Sphynx tracks)
+            client.notify(ServerMsg::InitialSync {
+                ecs_state: self.state.ecs().gen_state_package(),
+                entity_uid: self.state
+                    .ecs()
+                    .uid_from_entity(entity)
+                    .unwrap()
+                    .into(),
+            });
 
             self.clients.add(
                 entity,
-                Client {
-                    client_state: ClientState::Connected,
-                    postbox,
-                    last_ping: self.state.get_time(),
-                },
+                client,
             );
 
             frontend_events.push(Event::ClientConnected { entity });
@@ -250,7 +262,7 @@ impl Server {
                 for msg in new_msgs {
                     match msg {
                         ClientMsg::RequestState(requested_state) => match requested_state {
-                            ClientState::Connected => disconnect = true,
+                            ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
                                 ClientState::Connected => {}, // Use ClientMsg::Connect instead
                                 ClientState::Registered => client.error_state(RequestStateError::Already),
@@ -265,8 +277,8 @@ impl Server {
                             },
                             ClientState::Character => disconnect = true, // Use ClientMsg::Character instead
                         },
-                        ClientMsg::Connect { player } => match client.client_state {
-                            ClientState::Connected => Self::initialize_client(state, entity, client, player),
+                        ClientMsg::Register { player } => match client.client_state {
+                            ClientState::Connected => Self::initialize_player(state, entity, client, player),
                             _ => disconnect = true,
                         },
                         ClientMsg::Character(character) => match client.client_state {
@@ -370,7 +382,7 @@ impl Server {
     }
 
     /// Initialize a new client states with important information
-    fn initialize_client(
+    fn initialize_player(
         state: &mut State,
         entity: specs::Entity,
         client: &mut Client,
@@ -378,17 +390,6 @@ impl Server {
     ) {
         // Save player metadata (for example the username)
         state.write_component(entity, player);
-
-        // Return the state of the current world
-        // (All components Sphynx tracks)
-        client.notify(ServerMsg::InitialSync {
-            ecs_state: state.ecs().gen_state_package(),
-            player_entity_uid: state
-                .ecs()
-                .uid_from_entity(entity)
-                .unwrap()
-                .into(),
-        });
 
         // Sync logical information other players have authority over, not the server
         for (other_entity, &uid, &animation_history) in (

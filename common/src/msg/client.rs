@@ -4,7 +4,7 @@ use crate::comp;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
-    Connect { player: comp::Player },
+    Register { player: comp::Player },
     Character(comp::Character),
     RequestState(ClientState),
     Ping,

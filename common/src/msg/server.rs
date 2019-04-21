@@ -14,12 +14,12 @@ pub enum RequestStateError {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
-    StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
-    ForceState(ClientState),
     InitialSync {
         ecs_state: sphynx::StatePackage<EcsPacket>,
-        player_entity_uid: u64,
+        entity_uid: u64,
     },
+    StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
+    ForceState(ClientState),
     Ping,
     Pong,
     Chat(String),
