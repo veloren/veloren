@@ -31,10 +31,9 @@ impl Animation for RunAnimation {
         let wavecos_slow = (time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
-
-        next.head.offset = Vec3::new(6.0, 0.0, 12.0 + wavecos * 1.3);  // / SCALE;
+        next.head.offset = Vec3::new(6.0, 0.0, 12.0 + wavecos * 1.3);
         next.head.ori = Quaternion::rotation_y(-0.15);
-        next.head.scale = Vec3::one(); // / SCALE;
+        next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(2.5, 0.0, 8.0 + wavecos * 1.1);
         next.chest.ori = Quaternion::rotation_z(wave * 0.1);
@@ -64,14 +63,13 @@ impl Animation for RunAnimation {
         next.r_foot.ori = Quaternion::rotation_y(-0.0 + wave * 1.5);
         next.r_foot.scale = Vec3::one();
 
-        next.back.offset = Vec3::new(-5.0, 14.0, 13.0);
-        next.back.ori = Quaternion::rotation_x(2.5);
-        next.back.scale = Vec3::one();
+        next.weapon.offset = Vec3::new(-5.0, 14.0, 13.0);
+        next.weapon.ori = Quaternion::rotation_x(2.5);
+        next.weapon.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(0.0, 0.0, 0.0);
         next.torso.ori = Quaternion::rotation_y(0.25 + wavecos * 0.1);
         next.torso.scale = Vec3::one() / 11.0;
-
 
         next.l_shoulder.offset = Vec3::new(3.0, 6.0, 18.0);
         next.l_shoulder.ori = Quaternion::rotation_y(0.0);

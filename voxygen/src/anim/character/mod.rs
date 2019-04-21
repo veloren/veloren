@@ -26,11 +26,10 @@ pub struct CharacterSkeleton {
     r_hand: Bone,
     l_foot: Bone,
     r_foot: Bone,
-    back: Bone,
+    weapon: Bone,
     torso: Bone,
     l_shoulder: Bone,
     r_shoulder: Bone,
-
 }
 
 impl CharacterSkeleton {
@@ -44,7 +43,7 @@ impl CharacterSkeleton {
             r_hand: Bone::default(),
             l_foot: Bone::default(),
             r_foot: Bone::default(),
-            back: Bone::default(),
+            weapon: Bone::default(),
             torso: Bone::default(),
             l_shoulder: Bone::default(),
             r_shoulder: Bone::default(),
@@ -66,10 +65,12 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * self.r_hand.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * chest_mat * self.back.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.weapon.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::new(torso_mat * self.l_shoulder.compute_base_matrix()),
-            FigureBoneData::new(torso_mat * self.r_shoulder.compute_base_matrix()),
+            //FigureBoneData::new(torso_mat * self.l_shoulder.compute_base_matrix()),
+            //FigureBoneData::new(torso_mat * self.r_shoulder.compute_base_matrix()),
+            FigureBoneData::default(),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -87,7 +88,7 @@ impl Skeleton for CharacterSkeleton {
         self.r_hand.interpolate(&target.r_hand);
         self.l_foot.interpolate(&target.l_foot);
         self.r_foot.interpolate(&target.r_foot);
-        self.back.interpolate(&target.back);
+        self.weapon.interpolate(&target.weapon);
         self.torso.interpolate(&target.torso);
         self.l_shoulder.interpolate(&target.l_shoulder);
         self.r_shoulder.interpolate(&target.r_shoulder);
