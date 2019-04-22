@@ -8,7 +8,8 @@ use client::Client;
 use common::{
     comp,
     figure::Segment,
-    msg
+    msg,
+    assets,
 };
 use crate::{
     Error,
@@ -43,19 +44,25 @@ impl Figures {
     pub fn new(renderer: &mut Renderer) -> Self {
         // TODO: Make a proper asset loading system
         fn load_segment(filename: &'static str) -> Segment {
-            Segment::from(dot_vox::load(&(concat!(env!("CARGO_MANIFEST_DIR"), "/../assets/voxygen/voxel/").to_string() + filename)).unwrap())
+            let fullpath: String = ["/voxygen/voxel/", filename].concat();
+            Segment::from(dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            ).unwrap())
         }
 
         let bone_meshes = [
-            Some(load_segment("head.vox").generate_mesh(Vec3::new(-7.0, -6.5, -6.0))),
-            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-6.0, -3.0, 0.0))),
-            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-5.0, -3.0, 0.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(-2.0, -2.0, -1.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-2.5, -3.0, -2.0))),
-            Some(load_segment("sword.vox").generate_mesh(Vec3::new(-6.5, -1.0, 0.0))),
+
+            Some(load_segment("head.vox").generate_mesh(Vec3::new(-3.5, -7.0, -6.0))),
+            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-3.0, -6.0, 0.0))),
+            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
+            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
+            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
+            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
+            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
+            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
+            Some(load_segment("sword.vox").generate_mesh(Vec3::new(0.0, -0.0, 0.0))),
             None,
             None,
             None,
@@ -82,19 +89,19 @@ impl Figures {
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
-        let ecs = client.state_mut().ecs_mut().internal_mut();
-        for (entity, pos, dir, character, animation) in (
+        let ecs = client.state_mut().ecs_mut();
+        for (entity, pos, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Character>(),
-            &ecs.read_storage::<comp::Animation>(),
+            &ecs.read_storage::<comp::AnimationHistory>(),
         ).join() {
             let state = self.states
                 .entry(entity)
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
-            let target_skeleton = match animation {
+            let target_skeleton = match animation_history.current {
                 comp::character::Animation::Idle => IdleAnimation::update_skeleton(&mut state.skeleton, time),
                 comp::character::Animation::Run => RunAnimation::update_skeleton(&mut state.skeleton, time),
             };
@@ -138,7 +145,7 @@ impl<S: Skeleton> FigureState<S> {
         let mat =
             Mat4::<f32>::identity() *
             Mat4::translation_3d(pos) *
-            Mat4::rotation_z(dir.y.atan2(dir.x) + f32::consts::PI / 2.0);
+            Mat4::rotation_z(dir.y.atan2(dir.x));// + f32//::consts)::PI / 2.0);
 
         let locals = FigureLocals::new(mat);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();

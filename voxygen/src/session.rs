@@ -120,19 +120,20 @@ impl PlayState for SessionState {
             // Handle window events
             for event in global_state.window.fetch_events() {
 
-                // Pass all  events to the ui first
-                if self.hud.handle_event(event.clone()) {
+                // Pass all events to the ui first
+                if self.hud.handle_event(event.clone(), global_state) {
                     continue;
                 }
                 let _handled = match event {
-                    Event::Close => return PlayStateResult::Shutdown,
+                    Event::Close => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Shutdown;
+                    },
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state
                             .window
                             .grab_cursor(!global_state.window.is_cursor_grabbed());
-                        self.hud
-                            .update_grab(global_state.window.is_cursor_grabbed());
                     }
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
@@ -166,7 +167,10 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().send_chat(msg);
                     },
                     HudEvent::Logout => return PlayStateResult::Pop,
-                    HudEvent::Quit => return PlayStateResult::Shutdown,
+                    HudEvent::Quit => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Shutdown;
+                    },
                 }
             }
 

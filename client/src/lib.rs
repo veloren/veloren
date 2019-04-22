@@ -26,7 +26,7 @@ use common::{
     msg::{ClientMsg, ServerMsg},
 };
 
-const SERVER_TIMEOUT: f64 = 5.0; // Seconds
+const SERVER_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
     Chat(String),
@@ -167,9 +167,11 @@ impl Client {
             _ => {},
         }
 
-        // Update the server about the player's currently playing animation
-        if let Some(animation) = self.state.read_storage().get(self.player).cloned() {
-            self.postbox.send_message(ClientMsg::PlayerAnimation(animation));
+        // Update the server about the player's currently playing animation and the previous one
+        if let Some(animation_history) = self.state.read_storage::<comp::AnimationHistory>().get(self.player).cloned() {
+            if Some(animation_history.current) != animation_history.last {
+                self.postbox.send_message(ClientMsg::PlayerAnimation(animation_history));
+            }
         }
 
         // Request chunks from the server
@@ -228,9 +230,9 @@ impl Client {
                         },
                         None => {},
                     },
-                    ServerMsg::EntityAnimation { entity, animation } => match self.state.ecs().entity_from_uid(entity) {
+                    ServerMsg::EntityAnimation { entity, animation_history } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
-                            self.state.write_component(entity, animation);
+                            self.state.write_component(entity, animation_history);
                         },
                         None => {},
                     },
