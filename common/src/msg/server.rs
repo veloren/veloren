@@ -10,6 +10,7 @@ pub enum RequestStateError {
     Denied,
     Already,
     Impossible,
+    WrongMessage,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
