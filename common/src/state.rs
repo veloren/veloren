@@ -97,41 +97,41 @@ impl State {
         ecs.register_synced::<comp::Player>();
 
         // Register unsynched (or synced by other means) components
-        ecs.internal_mut().register::<comp::phys::Pos>();
-        ecs.internal_mut().register::<comp::phys::Vel>();
-        ecs.internal_mut().register::<comp::phys::Dir>();
-        ecs.internal_mut().register::<comp::AnimationHistory>();
-        ecs.internal_mut().register::<comp::Agent>();
-        ecs.internal_mut().register::<comp::Control>();
+        ecs.register::<comp::phys::Pos>();
+        ecs.register::<comp::phys::Vel>();
+        ecs.register::<comp::phys::Dir>();
+        ecs.register::<comp::AnimationHistory>();
+        ecs.register::<comp::Agent>();
+        ecs.register::<comp::Control>();
 
         // Register resources used by the ECS
-        ecs.internal_mut().add_resource(TimeOfDay(0.0));
-        ecs.internal_mut().add_resource(Time(0.0));
-        ecs.internal_mut().add_resource(DeltaTime(0.0));
-        ecs.internal_mut().add_resource(TerrainMap::new());
+        ecs.add_resource(TimeOfDay(0.0));
+        ecs.add_resource(Time(0.0));
+        ecs.add_resource(DeltaTime(0.0));
+        ecs.add_resource(TerrainMap::new());
     }
 
     /// Register a component with the state's ECS
     pub fn with_component<T: Component>(mut self) -> Self
         where <T as Component>::Storage: Default
     {
-        self.ecs.internal_mut().register::<T>();
+        self.ecs.register::<T>();
         self
     }
 
     /// Write a component attributed to a particular entity
     pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
-        let _ = self.ecs.internal_mut().write_storage().insert(entity, comp);
+        let _ = self.ecs.write_storage().insert(entity, comp);
     }
 
     /// Read a component attributed to a particular entity
     pub fn read_component_cloned<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
-        self.ecs.internal().read_storage().get(entity).cloned()
+        self.ecs.read_storage().get(entity).cloned()
     }
 
     /// Get a read-only reference to the storage of a particular component type
     pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
-        self.ecs.internal().read_storage::<C>()
+        self.ecs.read_storage::<C>()
     }
 
     /// Get a reference to the internal ECS world
@@ -154,27 +154,25 @@ impl State {
     ///
     /// Note that this should not be used for physics, animations or other such localised timings.
     pub fn get_time_of_day(&self) -> f64 {
-        self.ecs.internal().read_resource::<TimeOfDay>().0
+        self.ecs.read_resource::<TimeOfDay>().0
     }
 
     /// Get the current in-game time.
     ///
     /// Note that this does not correspond to the time of day.
     pub fn get_time(&self) -> f64 {
-        self.ecs.internal().read_resource::<Time>().0
+        self.ecs.read_resource::<Time>().0
     }
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
         self.ecs
-            .internal()
             .read_resource::<TerrainMap>()
     }
 
     /// Insert the provided chunk into this state's terrain.
     pub fn insert_chunk(&mut self, key: Vec3<i32>, chunk: TerrainChunk) {
         if self.ecs
-            .internal_mut()
             .write_resource::<TerrainMap>()
             .insert(key, chunk)
             .is_some()
@@ -188,19 +186,19 @@ impl State {
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
         // Change the time accordingly
-        self.ecs.internal_mut().write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
-        self.ecs.internal_mut().write_resource::<Time>().0 += dt.as_secs_f64();
+        self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
+        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
 
         // Run systems to update the world
-        self.ecs.internal_mut().write_resource::<DeltaTime>().0 = dt.as_secs_f64();
+        self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f64();
 
         // Create and run dispatcher for ecs systems
         let mut dispatch_builder = DispatcherBuilder::new();
         sys::add_local_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel
-        dispatch_builder.build().dispatch(&self.ecs.internal_mut().res);
+        dispatch_builder.build().dispatch(&self.ecs.res);
 
-        self.ecs.internal_mut().maintain();
+        self.ecs.maintain();
     }
 
     /// Clean up the state after a tick
