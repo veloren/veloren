@@ -235,7 +235,7 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
         };
         Imgs {
             v_logo: load("element/v_logo.png"),
@@ -377,20 +377,16 @@ impl CharSelectionUi {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_opensans = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/OpenSans-Regular.ttf"
-            ))
-            .unwrap(),
-        );
-        let font_metamorph = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/Metamorphous-Regular.ttf"
-            ))
-            .unwrap(),
-        );
+        let load_font = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/font", filename].concat();
+             ui.new_font(conrod_core::text::Font::from_bytes(
+                 assets::load(fullpath.as_str())
+                .expect("Error loading file")
+            ).unwrap())
+        };
+        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
+        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+        
         Self {
             ui,
             imgs,
@@ -411,6 +407,7 @@ impl CharSelectionUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+        let version = env!("CARGO_PKG_VERSION");
 
         // Character Selection /////////////////
         // Supposed functionality:
@@ -475,7 +472,7 @@ impl CharSelectionUi {
             Button::image(self.imgs.v_logo)
                 .w_h(346.0, 111.0)
                 .top_left_with_margins_on(self.ids.bg_selection, 30.0, 40.0)
-                .label("Alpha 0.1")
+                .label(version)
                 .label_rgba(1.0, 1.0, 1.0, 1.0)
                 .label_font_size(10)
                 .label_y(conrod_core::position::Relative::Scalar(-40.0))

@@ -14,6 +14,8 @@ use super::{
     Bone,
 };
 
+const SCALE: f32 = 11.0;
+
 #[derive(Clone)]
 pub struct CharacterSkeleton {
     head: Bone,

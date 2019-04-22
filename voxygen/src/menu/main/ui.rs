@@ -2,9 +2,14 @@ use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
+    DEFAULT_PUBLIC_SERVER,
 };
-use common::assets;
+use common::{
+    assets,
+    figure::Segment,
+};
 use conrod_core::{
+    color,
     color::TRANSPARENT,
     image::Id as ImgId,
     position::{Dimension, Relative},
@@ -36,6 +41,9 @@ widget_ids! {
         servers_button,
         settings_button,
         quit_button,
+        // Error
+        error_frame,
+        button_ok,
     }
 }
 
@@ -52,11 +60,15 @@ struct Imgs {
     button: ImgId,
     button_hover: ImgId,
     button_press: ImgId,
+
+    error_frame: ImgId,
+    button_dark: ImgId,
+    button_dark_hover: ImgId,
+    button_dark_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        // TODO: update paths
-        let mut load = |filename| {
+        let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -64,24 +76,41 @@ impl Imgs {
                     .as_slice(),
             )
             .unwrap();
-            ui.new_image(renderer, &image).unwrap()
+            ui.new_graphic(ui::Graphic::Image(image))
+        };
+        let load_vox = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/", filename].concat();
+            let dot_vox = dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
+            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
         };
         Imgs {
-            bg: load("background/bg_main.png"),
-            v_logo: load("element/v_logo.png"),
+            bg: load_img("background/bg_main.png", ui),
+            v_logo: load_img("element/v_logo.png", ui),
 
             // Input fields
-            input_bg: load("element/misc_backgrounds/textbox.png"),
+            input_bg: load_img("element/misc_backgrounds/textbox.png", ui),
 
             // Login button
-            login_button: load("element/buttons/button_login.png"),
-            login_button_hover: load("element/buttons/button_login_hover.png"),
-            login_button_press: load("element/buttons/button_login_press.png"),
+            login_button: load_img("element/buttons/button_login.png", ui),
+            login_button_hover: load_img("element/buttons/button_login_hover.png", ui),
+            login_button_press: load_img("element/buttons/button_login_press.png", ui),
 
             // Servers, settings, and quit buttons
-            button: load("element/buttons/button.png"),
-            button_hover: load("element/buttons/button_hover.png"),
-            button_press: load("element/buttons/button_press.png"),
+            //button: load_vox("element/buttons/button.vox", ui),
+            button: load_img("element/buttons/button.png", ui),
+            button_hover: load_img("element/buttons/button_hover.png", ui),
+            button_press: load_img("element/buttons/button_press.png", ui),
+
+            //Error
+            error_frame: load_img("element/frames/window_2.png", ui),
+            button_dark: load_img("element/buttons/button_dark.png", ui),
+            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
+            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
         }
     }
 }
@@ -91,6 +120,7 @@ pub enum Event {
         username: String,
         server_address: String,
     },
+    StartSingleplayer,
     Quit,
 }
 
@@ -116,20 +146,16 @@ impl MainMenuUi {
         // Load images
         let imgs = Imgs::new(&mut ui, window.renderer_mut());
         // Load fonts
-        let font_opensans = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/OpenSans-Regular.ttf"
-            ))
-            .unwrap(),
-        );
-        let font_metamorph = ui.new_font(
-            conrod_core::text::font::from_file(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/../assets/voxygen/font/Metamorphous-Regular.ttf"
-            ))
-            .unwrap(),
-        );
+        let load_font = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/font", filename].concat();
+             ui.new_font(conrod_core::text::Font::from_bytes(
+                 assets::load(fullpath.as_str())
+                .expect("Error loading file")
+            ).unwrap())
+        };
+        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
+        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+
         Self {
             ui,
             imgs,
@@ -137,7 +163,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: "Username".to_string(),
-            server_address: "veloren.mac94.de".to_string(),
+            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
             login_error: None,
             connecting: None,
         }
@@ -146,6 +172,7 @@ impl MainMenuUi {
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
+        let version = env!("CARGO_PKG_VERSION");
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
@@ -153,7 +180,7 @@ impl MainMenuUi {
         Button::image(self.imgs.v_logo)
             .w_h(346.0, 111.0)
             .top_left_with_margins(30.0, 40.0)
-            .label("Alpha 0.1")
+            .label(version)
             .label_rgba(1.0, 1.0, 1.0, 1.0)
             .label_font_size(10)
             .label_y(Relative::Scalar(-40.0))
@@ -172,6 +199,20 @@ impl MainMenuUi {
                 });
             };
         }
+
+        //Singleplayer
+        //Used when the singleplayer button is pressed
+        macro_rules! singleplayer {
+            () => {
+                self.login_error = None;
+                events.push(Event::StartSingleplayer);
+                events.push(Event::LoginAttempt {
+                    username: "singleplayer".to_string(),
+                    server_address: "localhost".to_string(),
+                });
+            };
+        }
+
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username
         // TODO: get a lower resolution and cleaner input_bg.png
@@ -203,20 +244,34 @@ impl MainMenuUi {
         // Login error
         if let Some(msg) = &self.login_error {
             let text = Text::new(&msg)
-                .rgba(0.5, 0.0, 0.0, 1.0)
+                .rgba(1.0, 1.0, 1.0, 1.0)
                 .font_size(30)
                 .font_id(self.font_opensans);
-            let x = match text.get_x_dimension(ui_widgets) {
-                Dimension::Absolute(x) => x + 10.0,
-                _ => 0.0,
-            };
-            Rectangle::fill([x, 40.0])
-                .rgba(0.2, 0.3, 0.3, 0.7)
+            Rectangle::fill_with([400.0, 100.0], color::TRANSPARENT)
+                .rgba(0.1, 0.1, 0.1, 1.0)
                 .parent(ui_widgets.window)
-                .up_from(self.ids.username_bg, 35.0)
+                .mid_top_with_margin_on(self.ids.username_bg, -35.0)
                 .set(self.ids.login_error_bg, ui_widgets);
-            text.middle_of(self.ids.login_error_bg)
+            Image::new(self.imgs.error_frame)
+                .w_h(400.0, 100.0)
+                .middle_of(self.ids.login_error_bg)
+                .set(self.ids.error_frame, ui_widgets);
+            text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                 .set(self.ids.login_error, ui_widgets);
+            if Button::image(self.imgs.button_dark)
+                .w_h(100.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
+                .hover_image(self.imgs.button_dark_hover)
+                .press_image(self.imgs.button_dark_press)
+                .label_y(Relative::Scalar(2.0))
+                .label("Okay")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.button_ok, ui_widgets)
+                .was_clicked()
+            {
+                self.login_error = None
+            };
         }
         // Server address
         Image::new(self.imgs.input_bg)
@@ -290,12 +345,13 @@ impl MainMenuUi {
             .align_middle_x_of(self.ids.address_bg)
             .label("Singleplayer")
             .label_color(TEXT_COLOR)
-            .label_font_size(26)
+            .label_font_size(24)
             .label_y(Relative::Scalar(5.0))
             .label_x(Relative::Scalar(2.0))
             .set(self.ids.singleplayer_button, ui_widgets)
             .was_clicked()
         {
+            singleplayer!();
             login!();
         }
         // Quit

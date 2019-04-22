@@ -133,7 +133,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
         Some(alias) => {
-            let ecs = server.state.ecs().internal();
+            let ecs = server.state.ecs();
             let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::player::Player>())
                 .join()
                 .find(|(_, player)| player.alias == alias)

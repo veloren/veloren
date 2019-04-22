@@ -13,12 +13,14 @@ pub mod session;
 pub mod ui;
 pub mod window;
 pub mod settings;
+pub mod singleplayer;
 
 // Reexports
 pub use crate::error::Error;
 
 // Standard
 use std::mem;
+use std::thread;
 
 // Library
 use log;
@@ -28,13 +30,18 @@ use pretty_env_logger;
 use crate::{
     menu::main::MainMenuState,
     window::Window,
-    settings::Settings
+    settings::Settings,
+    singleplayer::Singleplayer,
 };
+
+/// The URL of the default public server that Voxygen will connect to
+const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
 
 /// A type used to store state that is shared between all play states
 pub struct GlobalState {
     settings: Settings,
     window: Window,
+    singleplayer: Option<Singleplayer>,
 }
 
 impl GlobalState {
@@ -88,6 +95,7 @@ fn main() {
     let mut global_state = GlobalState {
         settings,
         window,
+        singleplayer: None,
     };
 
     // Set up the initial play state

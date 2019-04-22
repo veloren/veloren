@@ -15,6 +15,7 @@ use common::{
     net::PostOffice,
     state::{State, Uid},
     terrain::TerrainChunk,
+    comp::character::Animation,
 };
 use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
@@ -25,7 +26,7 @@ use threadpool::ThreadPool;
 use vek::*;
 use world::World;
 
-const CLIENT_TIMEOUT: f64 = 5.0; // Seconds
+const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
     ClientConnected { entity: EcsEntity },
@@ -53,7 +54,7 @@ impl Server {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
-        state.ecs_mut().internal_mut().register::<comp::phys::ForceUpdate>();
+        state.ecs_mut().register::<comp::phys::ForceUpdate>();
 
         let mut this = Self {
             state,
@@ -153,12 +154,11 @@ impl Server {
         for (key, chunk) in self.chunk_rx.try_iter() {
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
-                &self.state.ecs().internal().entities(),
-                &self.state.ecs().internal().read_storage::<comp::Player>(),
+                &self.state.ecs().entities(),
+                &self.state.ecs().read_storage::<comp::Player>(),
                 &self
                     .state
                     .ecs()
-                    .internal()
                     .read_storage::<comp::phys::Pos>(),
             )
                 .join()
@@ -235,28 +235,7 @@ impl Server {
                     match client.state {
                         ClientState::Connecting => match msg {
                             ClientMsg::Connect { player, character } => {
-
-                                // Write client components
-                                state.write_component(entity, player);
-                                state.write_component(entity, comp::phys::Pos(Vec3::zero()));
-                                state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-                                state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-                                if let Some(character) = character {
-                                    state.write_component(entity, character);
-                                }
-                                state.write_component(entity, comp::phys::ForceUpdate);
-
-                                client.state = ClientState::Connected;
-
-                                // Return a handshake with the state of the current world
-                                client.notify(ServerMsg::Handshake {
-                                    ecs_state: state.ecs().gen_state_package(),
-                                    player_entity: state
-                                        .ecs()
-                                        .uid_from_entity(entity)
-                                        .unwrap()
-                                        .into(),
-                                });
+                                Self::initialize_client(state, entity, client, player, character);
                             }
                             _ => disconnect = true,
                         },
@@ -266,7 +245,7 @@ impl Server {
                             ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                             ClientMsg::Pong => {}
                             ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
-                            ClientMsg::PlayerAnimation(animation) => state.write_component(entity, animation),
+                            ClientMsg::PlayerAnimation(animation_history) => state.write_component(entity, animation_history),
                             ClientMsg::PlayerPhysics { pos, vel, dir } => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
@@ -313,7 +292,6 @@ impl Server {
                     match self
                         .state
                         .ecs()
-                        .internal()
                         .read_storage::<comp::Player>()
                         .get(entity)
                     {
@@ -341,6 +319,63 @@ impl Server {
         Ok(frontend_events)
     }
 
+    /// Initialize a new client states with important information
+    fn initialize_client(
+        state: &mut State,
+        entity: specs::Entity,
+        client: &mut Client,
+        player: comp::Player,
+        character: Option<comp::Character>,
+    ) {
+        // Save player metadata (for example the username)
+        state.write_component(entity, player);
+
+        // Give the player it's character if he wants one
+        // (Chat only clients don't need one for example)
+        if let Some(character) = character {
+            state.write_component(entity, character);
+
+            // Every character has to have these components
+            state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+            state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+            state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
+            // Make sure everything is accepted
+            state.write_component(entity, comp::phys::ForceUpdate);
+
+            // Set initial animation
+            state.write_component(entity, comp::AnimationHistory {
+                last: None,
+                current: Animation::Idle
+            });
+        }
+
+        client.state = ClientState::Connected;
+
+        // Return a handshake with the state of the current world
+        // (All components Sphynx tracks)
+        client.notify(ServerMsg::Handshake {
+            ecs_state: state.ecs().gen_state_package(),
+            player_entity: state
+                .ecs()
+                .uid_from_entity(entity)
+                .unwrap()
+                .into(),
+        });
+
+        // Sync logical information other players have authority over, not the server
+        for (other_entity, &uid, &animation_history) in (
+            &state.ecs().entities(),
+            &state.ecs().read_storage::<common::state::Uid>(),
+            &state.ecs().read_storage::<comp::AnimationHistory>(),
+        ).join() {
+            // AnimationHistory
+            client.postbox.send_message(ServerMsg::EntityAnimation {
+                entity: uid.into(),
+                animation_history: animation_history,
+            });
+        }
+    }
+
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
         // Sync 'logical' state using Sphynx
@@ -348,12 +383,12 @@ impl Server {
 
         // Sync 'physical' state
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
-            &self.state.ecs().internal().entities(),
-            &self.state.ecs().internal().read_storage::<Uid>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Pos>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Vel>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Dir>(),
-            self.state.ecs().internal().read_storage::<comp::phys::ForceUpdate>().maybe(),
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<Uid>(),
+            &self.state.ecs().read_storage::<comp::phys::Pos>(),
+            &self.state.ecs().read_storage::<comp::phys::Vel>(),
+            &self.state.ecs().read_storage::<comp::phys::Dir>(),
+            self.state.ecs().read_storage::<comp::phys::ForceUpdate>().maybe(),
         ).join() {
             let msg = ServerMsg::EntityPhysics {
                 entity: uid.into(),
@@ -369,19 +404,32 @@ impl Server {
         }
 
         // Sync animation states
-        for (entity, &uid, &animation) in (
-            &self.state.ecs().internal().entities(),
-            &self.state.ecs().internal().read_storage::<Uid>(),
-            &self.state.ecs().internal().read_storage::<comp::Animation>(),
+        for (entity, &uid, &animation_history) in (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<Uid>(),
+            &self.state.ecs().read_storage::<comp::AnimationHistory>(),
         ).join() {
+            // Check if we need to sync
+            if Some(animation_history.current) == animation_history.last {
+                continue;
+            }
+
             self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
                 entity: uid.into(),
-                animation,
+                animation_history,
             });
         }
 
+        // Update animation last/current state
+        for (entity, mut animation_history) in (
+            &self.state.ecs().entities(),
+            &mut self.state.ecs().write_storage::<comp::AnimationHistory>()
+        ).join() {
+            animation_history.last = Some(animation_history.current);
+        }
+
         // Remove all force flags
-        self.state.ecs_mut().internal_mut().write_storage::<comp::phys::ForceUpdate>().clear();
+        self.state.ecs_mut().write_storage::<comp::phys::ForceUpdate>().clear();
     }
 
     pub fn generate_chunk(&mut self, key: Vec3<i32>) {

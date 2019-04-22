@@ -45,7 +45,10 @@ impl PlayState for CharSelectionState {
             // Handle window events
             for event in global_state.window.fetch_events() {
                 match event {
-                    Event::Close => return PlayStateResult::Shutdown,
+                    Event::Close => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Shutdown;
+                    },
                     // Pass events to ui
                     Event::Ui(event) => {
                         self.char_selection_ui.handle_event(event);
@@ -60,8 +63,11 @@ impl PlayState for CharSelectionState {
             // Maintain the UI
             for event in self.char_selection_ui.maintain(global_state.window.renderer_mut()) {
                 match event {
-                    ui::Event::Logout => return PlayStateResult::Pop,
-                    ui::Event::Play => return PlayStateResult::Push(
+                    ui::Event::Logout => {
+                        global_state.singleplayer = None;
+                        return PlayStateResult::Pop;
+                    },
+                    ui::Event::Play => return PlayStateResult::Switch(
                         Box::new(SessionState::new(&mut global_state.window, self.client.clone()))
                     ),
                 }
