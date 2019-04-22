@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
                     *bearing += Vec2::new(
                         rand::random::<f32>().fract() - 0.5,
                         rand::random::<f32>().fract() - 0.5,
-                    ) - *bearing * 0.05 - pos.0 * 0.001;
+                    ) * 0.1 - *bearing * 0.01 - pos.0 * 0.0002;
 
                     if bearing.magnitude_squared() != 0.0 {
                         control.move_dir = bearing.normalized();
