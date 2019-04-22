@@ -34,7 +34,7 @@ pub struct ControlSettings {
     pub spellbook: VirtualKeyCode,
     pub settings: VirtualKeyCode,
     pub help: VirtualKeyCode,
-    pub interface: VirtualKeyCode,
+    pub toggle_interface: VirtualKeyCode,
 }
 
 impl Default for Settings {
@@ -56,7 +56,7 @@ impl Default for Settings {
                 spellbook: VirtualKeyCode::P,
                 settings: VirtualKeyCode::N,
                 help: VirtualKeyCode::F1,
-                interface: VirtualKeyCode::F2,
+                toggle_interface: VirtualKeyCode::F2,
             },
         }
     }

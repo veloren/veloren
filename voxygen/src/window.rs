@@ -51,7 +51,7 @@ impl Window {
         key_map.insert(settings.controls.spellbook, Key::Spellbook);
         key_map.insert(settings.controls.settings, Key::Settings);
         key_map.insert(settings.controls.help, Key::Help);
-        key_map.insert(settings.controls.interface, Key::Interface);
+        key_map.insert(settings.controls.toggle_interface, Key::ToggleInterface);
 
         let tmp = Ok(Self {
             events_loop,
@@ -180,7 +180,7 @@ pub enum Key {
     Social,
     Spellbook,
     Settings,
-    Interface,
+    ToggleInterface,
     Help,
 }
 

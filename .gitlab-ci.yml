@@ -1,0 +1,232 @@
+#cache:
+#  paths:
+#    - target/
+
+stages:
+  - build
+  - test
+  - deploy
+  - post-run
+
+# our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
+# speeds up building because we skip the git clean and dont need any gitlab caches
+variables:
+  GIT_STRATEGY: none
+before_script:
+  - if [ -d .git ]; then
+       echo "is git dir";
+    else
+       git clone $CI_REPOSITORY_URL . ;
+    fi;
+  - rm -f .git/index.lock
+  - rm -f .git/shallow.lock
+  - rm -f .git/HEAD.lock
+  - rm -f .git/hocks/post-checkout
+  - git remote set-url origin $CI_REPOSITORY_URL
+  - git fetch origin --prune +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+  - git checkout -f -q $CI_COMMIT_SHA
+  - if [ ! -z "${SOURCE_PROJECT}" -a "${SOURCE_PROJECT}" != " " ]; then
+        echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
+        git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
+    fi;
+  - git submodule update --init --recursive
+  - git status
+  - if [ -d target ]; then
+       ls -la target;
+    fi;
+#  - git submodule update --init --recursive
+
+clean-code:
+  stage: build
+  script:
+    - rustup component add rustfmt-preview
+    - cargo fmt --all -- --check
+  allow_failure: true
+
+build-voxygen:
+  stage: build
+  script:
+    - (cd voxygen && cargo build)
+
+build-server-cli:
+  stage: build
+  script:
+    - (cd server-cli && cargo build)
+
+unittests:
+  stage: test
+  script:
+    - cargo test
+
+#benchmarktests:
+#  stage: test
+#  script:
+#    - cargo bench
+
+nightly-linux-debug:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/debug/veloren-server-cli nightly
+    - cp target/debug/veloren-voxygen nightly
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f nightly-linux-debug.tar.bz2
+    - tar -cvjSf nightly-linux-debug.tar.bz2 nightly
+  when: always
+  artifacts:
+    paths:
+      - nightly-linux-debug.tar.bz2
+    expire_in: 1 week
+  only:
+    refs:
+      - master
+
+nightly-windows-debug:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe nightly
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe nightly
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f nightly-windows-debug.zip
+    - zip -r nightly-windows-debug.zip nightly
+  artifacts:
+    paths:
+      - nightly-windows-debug.zip
+    expire_in: 1 week
+  only:
+    refs:
+      - master
+
+nightly-linux-optimized:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/release/veloren-server-cli nightly
+    - cp target/release/veloren-voxygen nightly
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f nightly-linux-optimized.tar.bz2
+    - tar -cvjSf nightly-linux-optimized.tar.bz2 nightly
+  when: manual
+  artifacts:
+    paths:
+      - nightly-linux-optimized.tar.bz2
+    expire_in: 2 days
+  only:
+    refs:
+      - master
+
+nightly-windows-optimized:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - rm -r -f nightly
+    - mkdir nightly
+    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe nightly
+    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f nightly-windows-optimized.zip
+    - zip -r nightly-windows-optimized.zip nightly
+  when: manual
+  artifacts:
+    paths:
+      - nightly-windows-optimized.zip
+    expire_in: 2 days
+  only:
+    refs:
+      - master
+
+stable-linux-optimized:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
+    - rm -r -f stable
+    - mkdir stable
+    - cp target/release/veloren-server-cli stable
+    - cp target/release/veloren-voxygen stable
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f stable-linux-optimized.tar.bz2
+    - tar -cvjSf stable-linux-optimized.tar.bz2 stable
+  artifacts:
+    paths:
+      - stable-linux-optimized.tar.bz2
+    expire_in: 30d
+  only:
+    refs:
+      - /^v[0-9]+\.[0-9]+\.[0-9]+/
+
+stable-windows-optimized:
+  stage: deploy
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - rm -r -f stable
+    - mkdir stable
+    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe stable
+    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe stable
+    - cp -r assets nightly/
+    - cp -r voxygen/shaders nightly/
+    - rm -f stable-windows-optimized.zip
+    - zip -r stable-windows-optimized.zip stable
+  artifacts:
+    paths:
+      - stable-windows-optimized.zip
+    expire_in: 30d
+  only:
+    refs:
+      - /^v[0-9]+\.[0-9]+\.[0-9]+/
+
+# nightly-windows-release:
+#   stage: deploy
+#   script:
+#     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+#     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+#     - rm -r -f nightly
+#     - mkdir nightly
+#     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe nightly
+#     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe nightly
+#     - cp -r assets nightly/
+#     - cp -r voxygen/shaders nightly/
+#     - cp -r voxygen/fonts nightly/
+#     - rm -f nightly-windows-release.zip
+#     - zip -r nightly-windows-release.zip nightly
+#   artifacts:
+#     paths:
+#       - nightly-windows-release.zip
+#     expire_in: 1 week
+#   only:
+#     refs:
+#       - master
+
+coverage:
+  stage: post-run
+  script:
+    - if cargo install --list | grep -i "cargo-tarpaulin"; then
+        echo "tarpaulin already installed";
+      else
+        RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin;
+      fi
+    - cargo tarpaulin --skip-clean --all || echo "There is a problem in tarpaulin which sometimes fails"
+
+clippy:
+  stage: post-run
+  script:
+    - rustup component add clippy-preview --toolchain=nightly
+    - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
+  allow_failure: true
