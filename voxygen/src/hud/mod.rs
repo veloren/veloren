@@ -20,6 +20,7 @@ widget_ids! {
         bag_space_add,
         inventorytest_button,
         inventorytest_button_label,
+        fps_counter,
 
         // Bag and Inventory
         bag,
@@ -473,7 +474,7 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self) -> Vec<Event> {
+    fn update_layout(&mut self, tps: f64) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
 
@@ -481,6 +482,15 @@ impl Hud {
         const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
         const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
         const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
+
+        // Always display an FPS counter
+        // TODO: move this to a better place
+        Text::new(&format!("FPS: {:.1}", tps))
+            .color(Color::Rgba(1.0, 0.0, 0.0, 1.0))
+            .down_from(self.ids.mmap_frame, 40.0)
+            .font_id(self.font_opensans)
+            .font_size(30)
+            .set(self.ids.fps_counter, ui_widgets);
 
         if self.show_ui {
             // Add Bag-Space Button
@@ -1603,8 +1613,8 @@ impl Hud {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
-        let events = self.update_layout();
+    pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
+        let events = self.update_layout(tps);
         self.ui.maintain(renderer);
         events
     }
