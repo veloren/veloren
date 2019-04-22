@@ -111,7 +111,6 @@ impl Scene {
         let player_pos = client
             .state()
             .ecs()
-            .internal()
             .read_storage::<comp::phys::Pos>()
             .get(client.player())
             .map(|pos| pos.0)
