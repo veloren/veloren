@@ -349,7 +349,7 @@ impl Server {
                 let argv = String::from(&msg[1..]);
                 self.process_chat_cmd(entity, argv);
             } else {
-                self.clients.notify_connected(ServerMsg::Chat(
+                self.clients.notify_registered(ServerMsg::Chat(
                     match self
                         .state
                         .ecs()
@@ -410,7 +410,7 @@ impl Server {
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
         // Sync 'logical' state using Sphynx
-        self.clients.notify_connected(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
+        self.clients.notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
         // Sync 'physical' state
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
@@ -429,8 +429,8 @@ impl Server {
             };
 
             match force_update {
-                Some(_) => self.clients.notify_connected(msg),
-                None => self.clients.notify_connected_except(entity, msg),
+                Some(_) => self.clients.notify_ingame(msg),
+                None => self.clients.notify_ingame_except(entity, msg),
             }
         }
 
@@ -445,7 +445,7 @@ impl Server {
                 continue;
             }
 
-            self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
+            self.clients.notify_ingame_except(entity, ServerMsg::EntityAnimation {
                 entity: uid.into(),
                 animation_history,
             });
@@ -499,6 +499,6 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
-        self.clients.notify_connected(ServerMsg::Shutdown);
+        self.clients.notify_registered(ServerMsg::Shutdown);
     }
 }

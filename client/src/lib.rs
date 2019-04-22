@@ -59,11 +59,11 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, player_entity) = match postbox.next_message() {
+        let (state, entity) = match postbox.next_message() {
             Some(ServerMsg::InitialSync { ecs_state, entity_uid }) => {
                 let mut state = State::from_state_package(ecs_state);
-                let player_entity = state.ecs().entity_from_uid(entity_uid).ok_or(Error::ServerWentMad)?;
-                (state, player_entity)
+                let entity = state.ecs().entity_from_uid(entity_uid).ok_or(Error::ServerWentMad)?;
+                (state, entity)
             },
             _ => return Err(Error::ServerWentMad),
         };
@@ -79,7 +79,7 @@ impl Client {
 
             tick: 0,
             state,
-            entity: player_entity,
+            entity,
             view_distance,
 
             pending_chunks: HashSet::new(),
