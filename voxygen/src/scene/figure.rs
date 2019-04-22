@@ -192,7 +192,7 @@ impl FigureCache {
     }
 
     pub fn render(&mut self, renderer: &mut Renderer, client: &Client, globals: &Consts<Globals>) {
-        let ecs = client.state().ecs().internal();
+        let ecs = client.state().ecs();
         let models = &mut self.models;
         for (entity, &character) in (
             &ecs.entities(),
