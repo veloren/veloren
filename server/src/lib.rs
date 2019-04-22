@@ -264,37 +264,42 @@ impl Server {
                         ClientMsg::RequestState(requested_state) => match requested_state {
                             ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
-                                ClientState::Connected => disconnect = true, // Use ClientMsg::Register instead
+                                // Use ClientMsg::Register instead
+                                ClientState::Connected => client.error_state(RequestStateError::Impossible),
                                 ClientState::Registered => client.error_state(RequestStateError::Already),
                                 ClientState::Spectator | ClientState::Character
                                     => client.allow_state(ClientState::Registered),
                             },
                             ClientState::Spectator => match requested_state {
-                                ClientState::Connected => disconnect = true, // Become Registered first
+                                // Become Registered first
+                                ClientState::Connected => client.error_state(RequestStateError::Impossible),
                                 ClientState::Spectator => client.error_state(RequestStateError::Already),
                                 ClientState::Registered | ClientState::Character
                                     => client.allow_state(ClientState::Spectator),
                             },
-                            ClientState::Character => disconnect = true, // Use ClientMsg::Character instead
+                            // Use ClientMsg::Character instead
+                            ClientState::Character => client.error_state(RequestStateError::WrongMessage),
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => Self::initialize_player(state, entity, client, player),
-                            _ => disconnect = true,
+                            _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Character(character) => match client.client_state {
-                            ClientState::Connected => disconnect = true, // Become Registered first
+                            // Become Registered first
+                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
                             ClientState::Registered | ClientState::Spectator =>
                                 Self::create_player_character(state, entity, client, character),
                             ClientState::Character => client.error_state(RequestStateError::Already),
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
-                            ClientState::Connected => disconnect = true,
+                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
                             ClientState::Registered | ClientState::Spectator | ClientState::Character
                                 => new_chat_msgs.push((entity, msg)),
                         },
                         ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
                             ClientState::Character => state.write_component(entity, animation_history),
-                            _ => disconnect = true, // Only characters can send animations
+                            // Only characters can send animations
+                            _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
                             ClientState::Character => {
@@ -302,10 +307,13 @@ impl Server {
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
                             },
-                            _ => disconnect = true, // Only characters send their position
+                            // Only characters send their position
+                            _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
-                            ClientState::Connected  | ClientState::Registered => disconnect = true, // Not allowed
+                            ClientState::Connected  | ClientState::Registered => {
+                                client.error_state(RequestStateError::Impossible);
+                            }
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
                                     Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
