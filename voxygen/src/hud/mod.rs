@@ -21,7 +21,13 @@ widget_ids! {
         bag_space_add,
         inventorytest_button,
         inventorytest_button_label,
+
+        // Debug
+        debug_bg,
+        debug_button,
+        debug_button_label,
         fps_counter,
+
         // Logo
         v_logo,
 
@@ -326,7 +332,7 @@ impl Imgs {
             check_checked_mo: load("element/buttons/check/yes_mo.png", ui),
             slider: load("element/slider/track.png", ui),
             slider_indicator: load("element/slider/indicator.png", ui),
-            button_blank:  ui.new_graphic(ui::Graphic::Blank),
+            button_blank: ui.new_graphic(ui::Graphic::Blank),
             button_blue_mo: load("element/buttons/blue_mo.png", ui),
             button_blue_press: load("element/buttons/blue_press.png", ui),
 
@@ -411,6 +417,7 @@ pub struct Hud {
     font_metamorph: FontId,
     font_opensans: FontId,
     show_help: bool,
+    show_debug: bool,
     bag_open: bool,
     menu_open: bool,
     open_windows: Windows,
@@ -441,10 +448,12 @@ impl Hud {
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-             ui.new_font(conrod_core::text::Font::from_bytes(
-                 assets::load(fullpath.as_str())
-                .expect("Error loading file")
-            ).unwrap())
+            ui.new_font(
+                conrod_core::text::Font::from_bytes(
+                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                )
+                .unwrap(),
+            )
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
@@ -458,6 +467,7 @@ impl Hud {
             chat,
             settings_tab: SettingsTab::Interface,
             show_help: true,
+            show_debug: false,
             bag_open: false,
             menu_open: false,
             map_open: false,
@@ -483,20 +493,26 @@ impl Hud {
         const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
         const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 
-        // Always display an FPS counter
-        // TODO: move this to a better place
-        Text::new(&format!("FPS: {:.1}", tps))
-            .color(Color::Rgba(1.0, 0.0, 0.0, 1.0))
-            .down_from(self.ids.mmap_frame, 40.0)
-            .font_id(self.font_opensans)
-            .font_size(30)
-            .set(self.ids.fps_counter, ui_widgets);
-    
         // Don't show anything if the ui is toggled off
         if !self.show_ui {
             return events;
         }
-        
+
+        // Display debug window
+        // TODO: move this to a better place?
+        if self.show_debug {
+            Image::new(self.imgs.window_frame_2)
+                .down_from(self.ids.mmap_frame, 20.0)
+                .w_h(300.0, 350.0)
+                .set(self.ids.debug_bg, ui_widgets);
+            Text::new(&format!("FPS: {:.1}", tps))
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(self.ids.debug_bg, 20.0, 20.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.fps_counter, ui_widgets);
+        }
+
         // Add Bag-Space Button
         if self.inventorytest_button {
             if Button::image(self.imgs.mmap_button)
@@ -534,21 +550,21 @@ impl Hud {
 
             Text::new(
                 "Tab = Free Cursor       \n\
-                    Esc = Open/Close Menus  \n\
-                    \n\
-                    F1 = Toggle this Window \n\
-                    F2 = Toggle Interface   \n\
-                    \n\
-                    Enter = Open Chat       \n\
-                    Mouse Wheel = Scroll Chat\n\
-                    \n\
-                    M = Map                 \n\
-                    B = Bag                 \n\
-                    L = Quest-Log           \n\
-                    C = Character Window    \n\
-                    O = Social              \n\
-                    P = Spellbook           \n\
-                    N = Settings",
+                 Esc = Open/Close Menus  \n\
+                 \n\
+                 F1 = Toggle this Window \n\
+                 F2 = Toggle Interface   \n\
+                 \n\
+                 Enter = Open Chat       \n\
+                 Mouse Wheel = Scroll Chat\n\
+                 \n\
+                 M = Map                 \n\
+                 B = Bag                 \n\
+                 L = Quest-Log           \n\
+                 C = Character Window    \n\
+                 O = Social              \n\
+                 P = Spellbook           \n\
+                 N = Settings",
             )
             .color(TEXT_COLOR)
             .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
@@ -978,6 +994,22 @@ impl Hud {
                     .graphics_for(self.ids.inventorytest_button)
                     .color(TEXT_COLOR)
                     .set(self.ids.inventorytest_button_label, ui_widgets);
+
+                self.show_debug =
+                    ToggleButton::new(self.show_debug, self.imgs.check, self.imgs.check_checked)
+                        .w_h(288.0 / 24.0, 288.0 / 24.0)
+                        .top_left_with_margins_on(self.ids.rectangle, 65.0, 15.0)
+                        .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                        .press_images(self.imgs.check_press, self.imgs.check_press)
+                        .set(self.ids.debug_button, ui_widgets);
+                Text::new("Show Debug Window")
+                    .right_from(self.ids.debug_button, 10.0)
+                    .font_size(12)
+                    .font_id(self.font_opensans)
+                    .graphics_for(self.ids.debug_button)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.debug_button_label, ui_widgets);
+
             }
             //2 Gameplay////////////////
             if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
