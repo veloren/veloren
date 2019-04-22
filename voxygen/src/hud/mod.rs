@@ -472,7 +472,7 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self) -> Vec<Event> {
+    fn update_layout(&mut self, tps: f64) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -1626,8 +1626,8 @@ impl Hud {
         }
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
-        let events = self.update_layout();
+    pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
+        let events = self.update_layout(tps);
         self.ui.maintain(renderer);
         events
     }
