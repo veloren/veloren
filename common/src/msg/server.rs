@@ -12,7 +12,7 @@ pub enum RequestStateError {
     Impossible,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
         ecs_state: sphynx::StatePackage<EcsPacket>,

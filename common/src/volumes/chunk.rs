@@ -24,7 +24,7 @@ pub enum ChunkErr {
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chunk<V: Vox, S: VolSize, M> {
     vox: Vec<V>,
     meta: M,
