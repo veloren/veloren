@@ -54,7 +54,7 @@ impl Server {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
-        state.ecs_mut().internal_mut().register::<comp::phys::ForceUpdate>();
+        state.ecs_mut().register::<comp::phys::ForceUpdate>();
 
         let mut this = Self {
             state,
@@ -154,12 +154,11 @@ impl Server {
         for (key, chunk) in self.chunk_rx.try_iter() {
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
-                &self.state.ecs().internal().entities(),
-                &self.state.ecs().internal().read_storage::<comp::Player>(),
+                &self.state.ecs().entities(),
+                &self.state.ecs().read_storage::<comp::Player>(),
                 &self
                     .state
                     .ecs()
-                    .internal()
                     .read_storage::<comp::phys::Pos>(),
             )
                 .join()
@@ -293,7 +292,6 @@ impl Server {
                     match self
                         .state
                         .ecs()
-                        .internal()
                         .read_storage::<comp::Player>()
                         .get(entity)
                     {
@@ -366,9 +364,9 @@ impl Server {
 
         // Sync logical information other players have authority over, not the server
         for (other_entity, &uid, &animation_history) in (
-            &state.ecs().internal().entities(),
-            &state.ecs().internal().read_storage::<common::state::Uid>(),
-            &state.ecs().internal().read_storage::<comp::AnimationHistory>(),
+            &state.ecs().entities(),
+            &state.ecs().read_storage::<common::state::Uid>(),
+            &state.ecs().read_storage::<comp::AnimationHistory>(),
         ).join() {
             // AnimationHistory
             client.postbox.send_message(ServerMsg::EntityAnimation {
@@ -385,12 +383,12 @@ impl Server {
 
         // Sync 'physical' state
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
-            &self.state.ecs().internal().entities(),
-            &self.state.ecs().internal().read_storage::<Uid>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Pos>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Vel>(),
-            &self.state.ecs().internal().read_storage::<comp::phys::Dir>(),
-            self.state.ecs().internal().read_storage::<comp::phys::ForceUpdate>().maybe(),
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<Uid>(),
+            &self.state.ecs().read_storage::<comp::phys::Pos>(),
+            &self.state.ecs().read_storage::<comp::phys::Vel>(),
+            &self.state.ecs().read_storage::<comp::phys::Dir>(),
+            self.state.ecs().read_storage::<comp::phys::ForceUpdate>().maybe(),
         ).join() {
             let msg = ServerMsg::EntityPhysics {
                 entity: uid.into(),
@@ -407,9 +405,9 @@ impl Server {
 
         // Sync animation states
         for (entity, &uid, &animation_history) in (
-            &self.state.ecs().internal().entities(),
-            &self.state.ecs().internal().read_storage::<Uid>(),
-            &self.state.ecs().internal().read_storage::<comp::AnimationHistory>(),
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<Uid>(),
+            &self.state.ecs().read_storage::<comp::AnimationHistory>(),
         ).join() {
             // Check if we need to sync
             if Some(animation_history.current) == animation_history.last {
@@ -424,14 +422,14 @@ impl Server {
 
         // Update animation last/current state
         for (entity, mut animation_history) in (
-            &self.state.ecs().internal().entities(),
-            &mut self.state.ecs().internal().write_storage::<comp::AnimationHistory>()
+            &self.state.ecs().entities(),
+            &mut self.state.ecs().write_storage::<comp::AnimationHistory>()
         ).join() {
             animation_history.last = Some(animation_history.current);
         }
 
         // Remove all force flags
-        self.state.ecs_mut().internal_mut().write_storage::<comp::phys::ForceUpdate>().clear();
+        self.state.ecs_mut().write_storage::<comp::phys::ForceUpdate>().clear();
     }
 
     pub fn generate_chunk(&mut self, key: Vec3<i32>) {

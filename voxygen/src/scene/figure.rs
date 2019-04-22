@@ -89,7 +89,7 @@ impl Figures {
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
-        let ecs = client.state_mut().ecs_mut().internal_mut();
+        let ecs = client.state_mut().ecs_mut();
         for (entity, pos, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
