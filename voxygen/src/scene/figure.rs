@@ -48,7 +48,7 @@ use crate::{
 };
 
 pub struct FigureCache {
-    models: HashMap<Character, Model<FigurePipeline>>,
+    models: HashMap<Character, (Model<FigurePipeline>, u64)>,
     states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
 }
 
@@ -61,41 +61,56 @@ impl FigureCache {
     }
 
     pub fn get_or_create_model<'a>(
-        models: &'a mut HashMap<Character, Model<FigurePipeline>>,
+        models: &'a mut HashMap<Character, (Model<FigurePipeline>, u64)>,
         renderer: &mut Renderer,
+        tick: u64,
         character: Character)
-    -> &'a Model<FigurePipeline> {
-        models.entry(character).or_insert_with(|| {
-            let bone_meshes = [
-                Some(Self::load_head(character.head)),
-                Some(Self::load_chest(character.chest)),
-                Some(Self::load_belt(character.belt)),
-                Some(Self::load_pants(character.pants)),
-                Some(Self::load_left_hand(character.hand)),
-                Some(Self::load_right_hand(character.hand)),
-                Some(Self::load_left_foot(character.foot)),
-                Some(Self::load_right_foot(character.foot)),
-                Some(Self::load_weapon(character.weapon)),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-            ];
+    -> &'a (Model<FigurePipeline>, u64) {
+        match models.get_mut(&character) {
+            Some((model, last_used)) => {
+                *last_used = tick;
+            }
+            None => {
+                models.insert(character, ({
+                    let bone_meshes = [
+                        Some(Self::load_head(character.head)),
+                        Some(Self::load_chest(character.chest)),
+                        Some(Self::load_belt(character.belt)),
+                        Some(Self::load_pants(character.pants)),
+                        Some(Self::load_left_hand(character.hand)),
+                        Some(Self::load_right_hand(character.hand)),
+                        Some(Self::load_left_foot(character.foot)),
+                        Some(Self::load_right_foot(character.foot)),
+                        Some(Self::load_weapon(character.weapon)),
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ];
 
-            let mut mesh = Mesh::new();
-            bone_meshes
-                .iter()
-                .enumerate()
-                .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-                .for_each(|(i, bone_mesh)| {
-                    mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
-                });
+                    let mut mesh = Mesh::new();
+                    bone_meshes
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
+                        .for_each(|(i, bone_mesh)| {
+                            mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
+                        });
 
-            renderer.create_model(&mesh).unwrap()
-        })
+                    renderer.create_model(&mesh).unwrap()
+                }, tick));
+            }
+        }
+
+        &models[&character]
+    }
+
+    pub fn clean(&mut self, tick: u64) {
+        // TODO: Don't hard-code this
+        self.models.retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
     fn load_mesh(filename: &'static str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
@@ -191,17 +206,19 @@ impl FigureCache {
         self.states.retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, globals: &Consts<Globals>) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client, globals: &Consts<Globals>) {
+        let tick = client.get_tick();
         let ecs = client.state().ecs();
         let models = &mut self.models;
+
         for (entity, &character) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Character>(),
         ).join() {
-            let model = Self::get_or_create_model(models, renderer, character);
+            let model = Self::get_or_create_model(models, renderer, tick, character);
             let state = self.states.get(&entity).unwrap();
             renderer.render_figure(
-                model,
+                &model.0,
                 globals,
                 &state.locals,
                 &state.bone_consts,

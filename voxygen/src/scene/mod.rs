@@ -139,10 +139,13 @@ impl Scene {
 
         // Maintain the figures
         self.figure_cache.maintain(renderer, client);
+
+        // Remove unused figures
+        self.figure_cache.clean(client.get_tick());
     }
 
     /// Render the scene using the provided `Renderer`
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Render the skybox first (it appears over everything else so must be rendered first)
         renderer.render_skybox(
             &self.skybox.model,
