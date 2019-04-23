@@ -112,7 +112,7 @@ impl Server {
         self.state
             .ecs_mut()
             .create_entity_synced()
-            .with(comp::phys::Pos(Vec3::zero()))
+            .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(character)
@@ -125,7 +125,7 @@ impl Server {
         character: comp::Character,
     ) {
         state.write_component(entity, character);
-        state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+        state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
         // Make sure everything is accepted
@@ -182,7 +182,6 @@ impl Server {
         // Fetch any generated `TerrainChunk`s and insert them into the terrain
         // Also, send the chunk data to anybody that is close by
         for (key, chunk) in self.chunk_rx.try_iter() {
-            println!("Generation finished {:?}", key);
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
@@ -194,7 +193,6 @@ impl Server {
                 // TODO: Distance check
                 // if self.state.terrain().key_pos(key)
 
-                println!("Send to player {:?}", key);
                 self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
                     key,
                     chunk: Box::new(chunk.clone()),
