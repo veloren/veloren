@@ -4,28 +4,21 @@ pub mod error;
 pub mod input;
 
 // Reexports
-pub use specs::Entity as EcsEntity;
+pub use crate::{error::Error, input::Input};
 pub use specs::join::Join;
-pub use crate::{
-    error::Error,
-    input::Input,
-};
+pub use specs::Entity as EcsEntity;
 
-use std::{
-    time::Duration,
-    net::SocketAddr,
-    collections::HashSet,
-};
-use vek::*;
-use threadpool::ThreadPool;
-use specs::Builder;
 use common::{
     comp,
+    msg::{ClientMsg, ClientState, ServerMsg},
+    net::PostBox,
     state::State,
     terrain::TerrainChunk,
-    net::PostBox,
-    msg::{ClientState, ClientMsg, ServerMsg},
 };
+use specs::Builder;
+use std::{collections::HashSet, net::SocketAddr, time::Duration};
+use threadpool::ThreadPool;
+use vek::*;
 
 const SERVER_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -51,20 +44,23 @@ pub struct Client {
 impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
-    pub fn new<A: Into<SocketAddr>>(
-        addr: A,
-        view_distance: u64,
-    ) -> Result<Self, Error> {
+    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: u64) -> Result<Self, Error> {
         let mut client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
         let (state, entity) = match postbox.next_message() {
-            Some(ServerMsg::InitialSync { ecs_state, entity_uid }) => {
+            Some(ServerMsg::InitialSync {
+                ecs_state,
+                entity_uid,
+            }) => {
                 let mut state = State::from_state_package(ecs_state);
-                let entity = state.ecs().entity_from_uid(entity_uid).ok_or(Error::ServerWentMad)?;
+                let entity = state
+                    .ecs()
+                    .entity_from_uid(entity_uid)
+                    .ok_or(Error::ServerWentMad)?;
                 (state, entity)
-            },
+            }
             _ => return Err(Error::ServerWentMad),
         };
 
@@ -94,15 +90,21 @@ impl Client {
     /// computationally expensive operations that run outside of the main thread (i.e: threads that
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
-    pub fn thread_pool(&self) -> &threadpool::ThreadPool { &self.thread_pool }
+    pub fn thread_pool(&self) -> &threadpool::ThreadPool {
+        &self.thread_pool
+    }
 
     /// Get a reference to the client's game state.
     #[allow(dead_code)]
-    pub fn state(&self) -> &State { &self.state }
+    pub fn state(&self) -> &State {
+        &self.state
+    }
 
     /// Get a mutable reference to the client's game state.
     #[allow(dead_code)]
-    pub fn state_mut(&mut self) -> &mut State { &mut self.state }
+    pub fn state_mut(&mut self) -> &mut State {
+        &mut self.state
+    }
 
     /// Get the player's entity
     #[allow(dead_code)]
@@ -147,9 +149,12 @@ impl Client {
             println!("Chunk at {:?}", k);
         });
 
-        self.state.write_component(self.entity, comp::Control {
-            move_dir: input.move_dir,
-        });
+        self.state.write_component(
+            self.entity,
+            comp::Control {
+                move_dir: input.move_dir,
+            },
+        );
 
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
@@ -161,28 +166,42 @@ impl Client {
             self.state.read_storage().get(self.entity).cloned(),
         ) {
             (Some(pos), Some(vel), Some(dir)) => {
-                self.postbox.send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
-            },
-            _ => {},
+                self.postbox
+                    .send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
+            }
+            _ => {}
         }
 
         // Update the server about the player's currently playing animation and the previous one
-        if let Some(animation_history) = self.state.read_storage::<comp::AnimationHistory>().get(self.entity).cloned() {
+        if let Some(animation_history) = self
+            .state
+            .read_storage::<comp::AnimationHistory>()
+            .get(self.entity)
+            .cloned()
+        {
             if Some(animation_history.current) != animation_history.last {
-                self.postbox.send_message(ClientMsg::PlayerAnimation(animation_history));
+                self.postbox
+                    .send_message(ClientMsg::PlayerAnimation(animation_history));
             }
         }
 
         // Request chunks from the server
-        if let Some(pos) = self.state.read_storage::<comp::phys::Pos>().get(self.entity) {
+        if let Some(pos) = self
+            .state
+            .read_storage::<comp::phys::Pos>()
+            .get(self.entity)
+        {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
             for i in chunk_pos.x - 1..chunk_pos.x + 1 {
                 for j in chunk_pos.y - 1..chunk_pos.y + 1 {
                     for k in -1..3 {
                         let key = chunk_pos + Vec3::new(i, j, k);
-                        if self.state.terrain().get_key(key).is_none() && !self.pending_chunks.contains(&key) {
-                            self.postbox.send_message(ClientMsg::TerrainChunkRequest { key });
+                        if self.state.terrain().get_key(key).is_none()
+                            && !self.pending_chunks.contains(&key)
+                        {
+                            self.postbox
+                                .send_message(ClientMsg::TerrainChunkRequest { key });
                             self.pending_chunks.insert(key);
                         }
                     }
@@ -217,7 +236,7 @@ impl Client {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
-                    ServerMsg::Pong => {},
+                    ServerMsg::Pong => {}
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => self.entity = self.state.ecs().entity_from_uid(uid).unwrap(), // TODO: Don't unwrap here!
                     ServerMsg::EcsSync(sync_package) => self.state.ecs_mut().sync_with_package(sync_package),
@@ -226,28 +245,28 @@ impl Client {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, dir);
-                        },
-                        None => {},
+                        }
+                        None => {}
                     },
                     ServerMsg::EntityAnimation { entity, animation_history } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, animation_history);
-                        },
-                        None => {},
+                        }
+                        None => {}
                     },
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         self.state.insert_chunk(key, *chunk);
                         self.pending_chunks.remove(&key);
-                    },
+                    }
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
-                    },
+                    }
                     ServerMsg::StateAnswer(Err((error, state))) => {
                         self.client_state = state;
-                    },
+                    }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;
-                    },
+                    }
                 }
             }
         } else if let Some(err) = self.postbox.error() {
