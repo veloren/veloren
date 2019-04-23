@@ -19,7 +19,7 @@ use crate::{
 
 // TerrainChunkSize
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerrainChunkSize;
 
 impl VolSize for TerrainChunkSize {
@@ -28,7 +28,7 @@ impl VolSize for TerrainChunkSize {
 
 // TerrainChunkMeta
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerrainChunkMeta {
     biome: BiomeKind,
 }
