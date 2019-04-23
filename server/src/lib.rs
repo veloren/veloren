@@ -1,21 +1,24 @@
 #![feature(drain_filter)]
 
 pub mod client;
+pub mod cmd;
 pub mod error;
 pub mod input;
-pub mod cmd;
 
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use crate::{client::{Client, ClientState, Clients}, cmd::CHAT_COMMANDS};
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
+};
 use common::{
     comp,
-    msg::{ClientMsg, ServerMsg},
+    comp::character::Animation,
+    msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
     terrain::TerrainChunk,
-    comp::character::Animation,
 };
 use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
@@ -72,7 +75,7 @@ impl Server {
         };
 
         for i in 0..4 {
-            this.create_character(comp::Character::test())
+            this.create_npc(comp::Character::random())
                 .with(comp::Agent::Wanderer(Vec2::zero()))
                 .with(comp::Control::default())
                 .build();
@@ -105,7 +108,7 @@ impl Server {
 
     /// Build a non-player character
     #[allow(dead_code)]
-    pub fn create_character(&mut self, character: comp::Character) -> EcsEntityBuilder {
+    pub fn create_npc(&mut self, character: comp::Character) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
@@ -113,6 +116,33 @@ impl Server {
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(character)
+    }
+
+    pub fn create_player_character(
+        state: &mut State,
+        entity: EcsEntity,
+        client: &mut Client,
+        character: comp::Character,
+    ) {
+        state.write_component(entity, character);
+        state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+        state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+        state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
+        // Make sure everything is accepted
+        state.write_component(entity, comp::phys::ForceUpdate);
+
+        // Set initial animation
+        state.write_component(
+            entity,
+            comp::AnimationHistory {
+                last: None,
+                current: Animation::Idle,
+            },
+        );
+
+        // Tell the client his request was successful
+        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
+        client.client_state = ClientState::Character;
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration
@@ -156,10 +186,7 @@ impl Server {
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
-                &self
-                    .state
-                    .ecs()
-                    .read_storage::<comp::phys::Pos>(),
+                &self.state.ecs().read_storage::<comp::phys::Pos>(),
             )
                 .join()
             {
@@ -197,15 +224,20 @@ impl Server {
 
         for mut postbox in self.postoffice.new_postboxes() {
             let entity = self.state.ecs_mut().create_entity_synced().build();
+            let mut client = Client {
+                client_state: ClientState::Connected,
+                postbox,
+                last_ping: self.state.get_time(),
+            };
 
-            self.clients.add(
-                entity,
-                Client {
-                    state: ClientState::Connecting,
-                    postbox,
-                    last_ping: self.state.get_time(),
-                },
-            );
+            // Return the state of the current world
+            // (All components Sphynx tracks)
+            client.notify(ServerMsg::InitialSync {
+                ecs_state: self.state.ecs().gen_state_package(),
+                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(),
+            });
+
+            self.clients.add(entity, client);
 
             frontend_events.push(Event::ClientConnected { entity });
         }
@@ -232,26 +264,63 @@ impl Server {
 
                 // Process incoming messages
                 for msg in new_msgs {
-                    match client.state {
-                        ClientState::Connecting => match msg {
-                            ClientMsg::Connect { player, character } => {
-                                Self::initialize_client(state, entity, client, player, character);
-                            }
-                            _ => disconnect = true,
+                    match msg {
+                        ClientMsg::RequestState(requested_state) => match requested_state {
+                            ClientState::Connected => disconnect = true, // Default state
+                            ClientState::Registered => match client.client_state {
+                                // Use ClientMsg::Register instead
+                                ClientState::Connected => client.error_state(RequestStateError::WrongMessage),
+                                ClientState::Registered => client.error_state(RequestStateError::Already),
+                                ClientState::Spectator | ClientState::Character
+                                    => client.allow_state(ClientState::Registered),
+                            },
+                            ClientState::Spectator => match requested_state {
+                                // Become Registered first
+                                ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                                ClientState::Spectator => client.error_state(RequestStateError::Already),
+                                ClientState::Registered | ClientState::Character
+                                    => client.allow_state(ClientState::Spectator),
+                            },
+                            // Use ClientMsg::Character instead
+                            ClientState::Character => client.error_state(RequestStateError::WrongMessage),
                         },
-                        ClientState::Connected => match msg {
-                            ClientMsg::Connect { .. } => disconnect = true, // Not allowed when already connected
-                            ClientMsg::Disconnect => disconnect = true,
-                            ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
-                            ClientMsg::Pong => {}
-                            ClientMsg::Chat(msg) => new_chat_msgs.push((entity, msg)),
-                            ClientMsg::PlayerAnimation(animation_history) => state.write_component(entity, animation_history),
-                            ClientMsg::PlayerPhysics { pos, vel, dir } => {
+                        ClientMsg::Register { player } => match client.client_state {
+                            ClientState::Connected => Self::initialize_player(state, entity, client, player),
+                            // Use RequestState instead (No need to send `player` again)
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
+                        ClientMsg::Character(character) => match client.client_state {
+                            // Become Registered first
+                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                            ClientState::Registered | ClientState::Spectator =>
+                                Self::create_player_character(state, entity, client, character),
+                            ClientState::Character => client.error_state(RequestStateError::Already),
+                        },
+                        ClientMsg::Chat(msg) => match client.client_state {
+                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                            ClientState::Registered
+                            | ClientState::Spectator
+                            | ClientState::Character => new_chat_msgs.push((entity, msg)),
+                        },
+                        ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
+                            ClientState::Character => state.write_component(entity, animation_history),
+                            // Only characters can send animations
+                            _ => client.error_state(RequestStateError::Impossible),
+                        }
+                        ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
+                            ClientState::Character => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
                             }
-                            ClientMsg::TerrainChunkRequest { key } => {
+                            // Only characters send their position
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
+                        ClientMsg::TerrainChunkRequest { key } => match client.client_state {
+                            ClientState::Connected | ClientState::Registered => {
+                                client.error_state(RequestStateError::Impossible);
+                            }
+                            ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
                                     Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                     key,
@@ -261,6 +330,10 @@ impl Server {
                                 }
                             }
                         },
+                        // Always possible
+                        ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
+                        ClientMsg::Pong => {}
+                        ClientMsg::Disconnect => disconnect = true,
                     }
                 }
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
@@ -275,6 +348,7 @@ impl Server {
 
             if disconnect {
                 disconnected_clients.push(entity);
+                client.postbox.send_message(ServerMsg::Disconnect);
                 true
             } else {
                 false
@@ -288,13 +362,8 @@ impl Server {
                 let argv = String::from(&msg[1..]);
                 self.process_chat_cmd(entity, argv);
             } else {
-                self.clients.notify_connected(ServerMsg::Chat(
-                    match self
-                        .state
-                        .ecs()
-                        .read_storage::<comp::Player>()
-                        .get(entity)
-                    {
+                self.clients.notify_registered(ServerMsg::Chat(
+                    match self.state.ecs().read_storage::<comp::Player>().get(entity) {
                         Some(player) => format!("[{}] {}", &player.alias, msg),
                         None => format!("[<anon>] {}", msg),
                     },
@@ -320,66 +389,39 @@ impl Server {
     }
 
     /// Initialize a new client states with important information
-    fn initialize_client(
+    fn initialize_player(
         state: &mut State,
         entity: specs::Entity,
         client: &mut Client,
         player: comp::Player,
-        character: Option<comp::Character>,
     ) {
         // Save player metadata (for example the username)
         state.write_component(entity, player);
-
-        // Give the player it's character if he wants one
-        // (Chat only clients don't need one for example)
-        if let Some(character) = character {
-            state.write_component(entity, character);
-
-            // Every character has to have these components
-            state.write_component(entity, comp::phys::Pos(Vec3::zero()));
-            state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-            state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-            // Make sure everything is accepted
-            state.write_component(entity, comp::phys::ForceUpdate);
-
-            // Set initial animation
-            state.write_component(entity, comp::AnimationHistory {
-                last: None,
-                current: Animation::Idle
-            });
-        }
-
-        client.state = ClientState::Connected;
-
-        // Return a handshake with the state of the current world
-        // (All components Sphynx tracks)
-        client.notify(ServerMsg::Handshake {
-            ecs_state: state.ecs().gen_state_package(),
-            player_entity: state
-                .ecs()
-                .uid_from_entity(entity)
-                .unwrap()
-                .into(),
-        });
 
         // Sync logical information other players have authority over, not the server
         for (other_entity, &uid, &animation_history) in (
             &state.ecs().entities(),
             &state.ecs().read_storage::<common::state::Uid>(),
             &state.ecs().read_storage::<comp::AnimationHistory>(),
-        ).join() {
+        )
+            .join()
+        {
             // AnimationHistory
             client.postbox.send_message(ServerMsg::EntityAnimation {
                 entity: uid.into(),
                 animation_history: animation_history,
             });
         }
+
+        // Tell the client his request was successful
+        client.allow_state(ClientState::Registered);
     }
 
     /// Sync client states with the most up to date information
     fn sync_clients(&mut self) {
         // Sync 'logical' state using Sphynx
-        self.clients.notify_connected(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
+        self.clients
+            .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
         // Sync 'physical' state
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
@@ -389,7 +431,9 @@ impl Server {
             &self.state.ecs().read_storage::<comp::phys::Vel>(),
             &self.state.ecs().read_storage::<comp::phys::Dir>(),
             self.state.ecs().read_storage::<comp::phys::ForceUpdate>().maybe(),
-        ).join() {
+        )
+            .join()
+        {
             let msg = ServerMsg::EntityPhysics {
                 entity: uid.into(),
                 pos,
@@ -398,8 +442,8 @@ impl Server {
             };
 
             match force_update {
-                Some(_) => self.clients.notify_connected(msg),
-                None => self.clients.notify_connected_except(entity, msg),
+                Some(_) => self.clients.notify_ingame(msg),
+                None => self.clients.notify_ingame_except(entity, msg),
             }
         }
 
@@ -408,23 +452,30 @@ impl Server {
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::AnimationHistory>(),
-        ).join() {
+        )
+            .join()
+        {
             // Check if we need to sync
             if Some(animation_history.current) == animation_history.last {
                 continue;
             }
 
-            self.clients.notify_connected_except(entity, ServerMsg::EntityAnimation {
-                entity: uid.into(),
-                animation_history,
-            });
+            self.clients.notify_ingame_except(
+                entity,
+                ServerMsg::EntityAnimation {
+                    entity: uid.into(),
+                    animation_history,
+                },
+            );
         }
 
         // Update animation last/current state
         for (entity, mut animation_history) in (
             &self.state.ecs().entities(),
-            &mut self.state.ecs().write_storage::<comp::AnimationHistory>()
-        ).join() {
+            &mut self.state.ecs().write_storage::<comp::AnimationHistory>(),
+        )
+            .join()
+        {
             animation_history.last = Some(animation_history.current);
         }
 
@@ -468,6 +519,6 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
-        self.clients.notify_connected(ServerMsg::Shutdown);
+        self.clients.notify_registered(ServerMsg::Shutdown);
     }
 }

@@ -21,15 +21,14 @@ use crate::{
         create_skybox_mesh,
     },
     window::Event,
-    mesh::Meshable,
-    anim::{
+    mesh::Meshable, anim::{
         Animation,
         character::{CharacterSkeleton, RunAnimation},
     },
 };
 use self::{
     camera::Camera,
-    figure::Figures,
+    figure::FigureCache,
     terrain::Terrain,
 };
 
@@ -47,7 +46,8 @@ pub struct Scene {
 
     skybox: Skybox,
     terrain: Terrain,
-    figures: Figures,
+
+    figure_cache: FigureCache,
 }
 
 impl Scene {
@@ -70,7 +70,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(),
-            figures: Figures::new(renderer),
+            figure_cache: FigureCache::new(),
         }
     }
 
@@ -112,7 +112,7 @@ impl Scene {
             .state()
             .ecs()
             .read_storage::<comp::phys::Pos>()
-            .get(client.player())
+            .get(client.entity())
             .map(|pos| pos.0)
             .unwrap_or(Vec3::zero());
 
@@ -134,13 +134,18 @@ impl Scene {
         )])
             .expect("Failed to update global constants");
 
-        // Maintain the terrain and figures
+        // Maintain the terrain
         self.terrain.maintain(renderer, client);
-        self.figures.maintain(renderer, client);
+
+        // Maintain the figures
+        self.figure_cache.maintain(renderer, client);
+
+        // Remove unused figures
+        self.figure_cache.clean(client.get_tick());
     }
 
     /// Render the scene using the provided `Renderer`
-    pub fn render(&self, renderer: &mut Renderer, client: &Client) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
         // Render the skybox first (it appears over everything else so must be rendered first)
         renderer.render_skybox(
             &self.skybox.model,
@@ -150,6 +155,6 @@ impl Scene {
 
         // Render terrain and figures
         self.terrain.render(renderer, &self.globals);
-        self.figures.render(renderer, client, &self.globals);
+        self.figure_cache.render(renderer, client, &self.globals);
     }
 }
