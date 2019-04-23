@@ -147,7 +147,7 @@ impl Client {
         frontend_events.append(&mut self.handle_new_messages()?);
 
         self.state.terrain().iter().for_each(|(k, _)| {
-            println!("Chunk at {:?}", k);
+            //println!("Chunk at {:?}", k);
         });
 
         self.state.write_component(
@@ -194,9 +194,9 @@ impl Client {
         {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
-            for i in chunk_pos.x - 1..chunk_pos.x + 1 {
-                for j in chunk_pos.y - 1..chunk_pos.y + 1 {
-                    for k in -1..3 {
+            for i in chunk_pos.x - 2..chunk_pos.x + 2 {
+                for j in chunk_pos.y - 2..chunk_pos.y + 2 {
+                    for k in 0..1 {
                         let key = chunk_pos + Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
                             && !self.pending_chunks.contains(&key)
