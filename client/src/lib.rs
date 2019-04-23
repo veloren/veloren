@@ -194,10 +194,10 @@ impl Client {
         {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
-            for i in chunk_pos.x - 2..chunk_pos.x + 2 {
-                for j in chunk_pos.y - 2..chunk_pos.y + 2 {
+            for i in chunk_pos.x - 3..chunk_pos.x + 3 {
+                for j in chunk_pos.y - 3..chunk_pos.y + 3 {
                     for k in 0..1 {
-                        let key = chunk_pos + Vec3::new(i, j, k);
+                        let key = Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
                             && !self.pending_chunks.contains(&key)
                         {
