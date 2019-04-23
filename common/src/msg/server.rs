@@ -40,5 +40,6 @@ pub enum ServerMsg {
         key: Vec3<i32>,
         chunk: Box<TerrainChunk>,
     },
+    Disconnect,
     Shutdown,
 }
