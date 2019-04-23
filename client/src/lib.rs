@@ -24,10 +24,11 @@ const SERVER_TIMEOUT: f64 = 20.0; // Seconds
 
 pub enum Event {
     Chat(String),
+    Disconnect,
 }
 
 pub struct Client {
-    client_state: ClientState,
+    client_state: Option<ClientState>,
     thread_pool: ThreadPool,
 
     last_ping: f64,
@@ -45,7 +46,7 @@ impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: u64) -> Result<Self, Error> {
-        let mut client_state = ClientState::Connected;
+        let mut client_state = Some(ClientState::Connected);
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
@@ -259,13 +260,17 @@ impl Client {
                         self.pending_chunks.remove(&key);
                     }
                     ServerMsg::StateAnswer(Ok(state)) => {
-                        self.client_state = state;
+                        self.client_state = Some(state);
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        self.client_state = state;
+                        self.client_state = Some(state);
                     }
                     ServerMsg::ForceState(state) => {
-                        self.client_state = state;
+                        self.client_state = Some(state);
+                    }
+                    ServerMsg::Disconnect => {
+                        self.client_state = None;
+                        frontend_events.push(Event::Disconnect);
                     }
                 }
             }
