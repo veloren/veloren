@@ -87,7 +87,7 @@ impl SessionState {
         renderer.clear(BG_COLOR);
 
         // Render the screen using the global renderer
-        self.scene.render(renderer, &self.client.borrow());
+        self.scene.render(renderer, &mut self.client.borrow_mut());
         // Draw the UI to the screen
         self.hud.render(renderer);
 
