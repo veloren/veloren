@@ -99,14 +99,22 @@ impl Terrain {
             // What happens if the block on the edge of a chunk gets modified? We need to spawn
             // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
             // elision information changes too!
-            match self.mesh_todo.iter_mut().find(|todo| todo.pos == *pos) {
-                Some(todo) => todo.started_tick = current_tick,
-                // The chunk it's queued yet, add it to the queue
-                None => self.mesh_todo.push_back(ChunkMeshState {
-                    pos: *pos,
-                    started_tick: current_tick,
-                    active_worker: false,
-                }),
+            for i in -1..2 {
+                for j in -1..2 {
+                    for k in -1..2 {
+                        let pos = pos + Vec3::new(i, j, k);
+
+                        match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
+                            Some(todo) => todo.started_tick = current_tick,
+                            // The chunk it's queued yet, add it to the queue
+                            None => self.mesh_todo.push_back(ChunkMeshState {
+                                pos,
+                                started_tick: current_tick,
+                                active_worker: false,
+                            }),
+                        }
+                    }
+                }
             }
         }
 
