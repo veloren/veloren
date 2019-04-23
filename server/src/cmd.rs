@@ -7,7 +7,6 @@ use common::{comp, msg::ServerMsg};
 use specs::{join::Join, Entity as EcsEntity};
 use vek::*;
 
-
 use lazy_static::lazy_static;
 use scan_fmt::scan_fmt;
 /// Struct representing a command that a user can run from server chat
