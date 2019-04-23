@@ -182,6 +182,7 @@ impl Server {
         // Fetch any generated `TerrainChunk`s and insert them into the terrain
         // Also, send the chunk data to anybody that is close by
         for (key, chunk) in self.chunk_rx.try_iter() {
+            println!("Generation finished {:?}", key);
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
@@ -193,12 +194,11 @@ impl Server {
                 // TODO: Distance check
                 // if self.state.terrain().key_pos(key)
 
-                /*
+                println!("Send to player {:?}", key);
                 self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
                     key,
                     chunk: Box::new(chunk.clone()),
                 });
-                */
             }
 
             self.state.insert_chunk(key, chunk);
@@ -322,10 +322,10 @@ impl Server {
                             }
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
-                                    Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
-                                    key,
-                                    chunk: Box::new(chunk.clone()),
-                                    }),*/
+                                    Some(chunk) => client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                                        key,
+                                        chunk: Box::new(chunk.clone()),
+                                    }),
                                     None => requested_chunks.push(key),
                                 }
                             }
