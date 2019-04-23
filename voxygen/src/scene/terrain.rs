@@ -106,9 +106,9 @@ impl Terrain {
 
                         if client.state().terrain().get_key(pos).is_some() {
                             match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
-                                Some(todo) => todo.started_tick = current_tick,
+                                //Some(todo) => todo.started_tick = current_tick,
                                 // The chunk it's queued yet, add it to the queue
-                                None => self.mesh_todo.push_back(ChunkMeshState {
+                                _ /* None */ => self.mesh_todo.push_back(ChunkMeshState {
                                     pos,
                                     started_tick: current_tick,
                                     active_worker: false,

@@ -40,8 +40,8 @@ impl World {
             let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
             let wposf = wpos.map(|e| e as f64);
 
-            let freq = 1.0 / 32.0;
-            let ampl = 16.0;
+            let freq = 1.0 / 64.0;
+            let ampl = 12.0;
             let offs = 16.0;
             let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl + offs;
 
@@ -49,7 +49,7 @@ impl World {
                 if wposf.z < height - 1.0 {
                     stone
                 } else {
-                    sand
+                    grass
                 }
             } else {
                 air
