@@ -104,14 +104,16 @@ impl Terrain {
                     for k in -1..2 {
                         let pos = pos + Vec3::new(i, j, k);
 
-                        match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
-                            Some(todo) => todo.started_tick = current_tick,
-                            // The chunk it's queued yet, add it to the queue
-                            None => self.mesh_todo.push_back(ChunkMeshState {
-                                pos,
-                                started_tick: current_tick,
-                                active_worker: false,
-                            }),
+                        if client.state().terrain().get_key(pos).is_some() {
+                            match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
+                                Some(todo) => todo.started_tick = current_tick,
+                                // The chunk it's queued yet, add it to the queue
+                                None => self.mesh_todo.push_back(ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: false,
+                                }),
+                            }
                         }
                     }
                 }
