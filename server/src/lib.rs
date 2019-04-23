@@ -348,10 +348,7 @@ impl Server {
 
             if disconnect {
                 disconnected_clients.push(entity);
-                client.postbox.send_message(ServerMsg::StateAnswer(Err((
-                    RequestStateError::Impossible,
-                    ClientState::Connected,
-                ))));
+                client.postbox.send_message(ServerMsg::Disconnect);
                 true
             } else {
                 false
