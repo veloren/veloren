@@ -265,7 +265,7 @@ impl Server {
                             ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
                                 // Use ClientMsg::Register instead
-                                ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                                ClientState::Connected => client.error_state(RequestStateError::WrongMessage),
                                 ClientState::Registered => client.error_state(RequestStateError::Already),
                                 ClientState::Spectator | ClientState::Character
                                     => client.allow_state(ClientState::Registered),
@@ -282,6 +282,7 @@ impl Server {
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => Self::initialize_player(state, entity, client, player),
+                            // Use RequestState instead (No need to send `player` again)
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Character(character) => match client.client_state {
