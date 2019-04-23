@@ -499,7 +499,6 @@ impl Hud {
         }
 
         // Display debug window
-        // TODO: move this to a better place?
         if self.show_debug {
             Image::new(self.imgs.window_frame_2)
                 .down_from(self.ids.mmap_frame, 20.0)
