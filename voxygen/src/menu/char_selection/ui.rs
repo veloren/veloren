@@ -3,7 +3,21 @@ use crate::{
     ui::{self, ScaleMode, Ui},
     window::Window,
 };
-use common::assets;
+use common::{
+    assets,
+    comp::character::{
+        Character,
+        Race,
+        Gender,
+        Head,
+        Chest,
+        Belt,
+        Pants,
+        Hand,
+        Foot,
+        Weapon,
+    }
+};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -65,8 +79,8 @@ widget_ids! {
         race_4,
         race_5,
         race_6,
-        sex_1,
-        sex_2,
+        gender_1,
+        gender_2,
         weapon_1,
         weapon_2,
         weapon_3,
@@ -315,33 +329,12 @@ enum CreationState {
     Weapon,
     Body(BodyPart),
 }
-enum Races {
-    Human,
-    Orc,
-    Elf,
-    Dwarf,
-    Undead,
-    Danari,
-}
+
 #[derive(Clone, Copy)]
 enum BodyPart {
     SkinEyes,
     Hair,
     Accessories,
-}
-enum Sex {
-    Male,
-    Female,
-    Undefined,
-}
-enum Weapons {
-    Daggers,
-    SwordShield,
-    Sword,
-    Axe,
-    Hammer,
-    Bow,
-    Staff,
 }
 
 pub enum Event {
@@ -360,11 +353,9 @@ pub struct CharSelectionUi {
     font_opensans: FontId,
     character_creation: bool,
     selected_char_no: Option<i32>,
-    race: Races,
-    sex: Sex,
-    weapon: Weapons,
-    creation_state: CreationState,
     character_name: String,
+    pub character: Character,
+    creation_state: CreationState,
 }
 
 impl CharSelectionUi {
@@ -386,7 +377,8 @@ impl CharSelectionUi {
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
-        
+
+        // TODO: Randomize initial values
         Self {
             ui,
             imgs,
@@ -396,9 +388,7 @@ impl CharSelectionUi {
             character_creation: false,
             selected_char_no: None,
             character_name: "Character Name".to_string(),
-            race: Races::Human,
-            sex: Sex::Male,
-            weapon: Weapons::Sword,
+            character: Character::random(),
             creation_state: CreationState::Race,
         }
     }
@@ -581,6 +571,7 @@ impl CharSelectionUi {
                 .set(self.ids.create_button, ui_widgets)
                 .was_clicked()
             {
+                // TODO: Save character
                 self.character_creation = false;
             }
             // Character Name Input
@@ -704,7 +695,7 @@ impl CharSelectionUi {
                     .w_h(68.0, 68.0)
                     .mid_left_of(self.ids.gender_bg)
                     .set(self.ids.male, ui_widgets);
-                if Button::image(if let Sex::Male = self.sex {
+                if Button::image(if let Gender::Male = self.character.gender {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -712,17 +703,17 @@ impl CharSelectionUi {
                 .middle_of(self.ids.male)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .set(self.ids.sex_1, ui_widgets)
+                .set(self.ids.gender_1, ui_widgets)
                 .was_clicked()
                 {
-                    self.sex = Sex::Male;
+                    self.character.gender = Gender::Male;
                 }
                 // Female
                 Image::new(self.imgs.female)
                     .w_h(68.0, 68.0)
                     .right_from(self.ids.male, 16.0)
                     .set(self.ids.female, ui_widgets);
-                if Button::image(if let Sex::Female = self.sex {
+                if Button::image(if let Gender::Female = self.character.gender {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -730,10 +721,10 @@ impl CharSelectionUi {
                 .middle_of(self.ids.female)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
-                .set(self.ids.sex_2, ui_widgets)
+                .set(self.ids.gender_2, ui_widgets)
                 .was_clicked()
                 {
-                    self.sex = Sex::Female;
+                    self.character.gender = Gender::Female;
                 }
                 // for alignment
                 Rectangle::fill_with([458.0, 68.0], color::TRANSPARENT)
@@ -741,7 +732,7 @@ impl CharSelectionUi {
                     .set(self.ids.races_bg, ui_widgets);
                 // TODO: If races where in some sort of array format we could do this in a loop
                 // Human
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.human_m
                 } else {
                     self.imgs.human_f
@@ -749,7 +740,7 @@ impl CharSelectionUi {
                 .w_h(68.0, 68.0)
                 .mid_left_of(self.ids.races_bg)
                 .set(self.ids.human, ui_widgets);
-                if Button::image(if let Races::Human = self.race {
+                if Button::image(if let Race::Human = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -760,11 +751,11 @@ impl CharSelectionUi {
                 .set(self.ids.race_1, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Human;
+                    self.character.race = Race::Human;
                 }
 
                 // Orc
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.orc_m
                 } else {
                     self.imgs.orc_f
@@ -772,7 +763,7 @@ impl CharSelectionUi {
                 .w_h(68.0, 68.0)
                 .right_from(self.ids.human, 10.0)
                 .set(self.ids.orc, ui_widgets);
-                if Button::image(if let Races::Orc = self.race {
+                if Button::image(if let Race::Orc = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -783,10 +774,10 @@ impl CharSelectionUi {
                 .set(self.ids.race_2, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Orc;
+                    self.character.race = Race::Orc;
                 }
                 // Dwarf
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.dwarf_m
                 } else {
                     self.imgs.dwarf_f
@@ -794,7 +785,7 @@ impl CharSelectionUi {
                 .w_h(68.0, 68.0)
                 .right_from(self.ids.human, 10.0 * 2.0 + 68.0)
                 .set(self.ids.dwarf, ui_widgets);
-                if Button::image(if let Races::Dwarf = self.race {
+                if Button::image(if let Race::Dwarf = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -805,10 +796,10 @@ impl CharSelectionUi {
                 .set(self.ids.race_3, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Dwarf;
+                    self.character.race = Race::Dwarf;
                 }
                 // Elf
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.elf_m
                 } else {
                     self.imgs.elf_f
@@ -816,7 +807,7 @@ impl CharSelectionUi {
                 .w_h(68.0, 68.0)
                 .right_from(self.ids.human, 10.0 * 3.0 + 68.0 * 2.0)
                 .set(self.ids.elf, ui_widgets);
-                if Button::image(if let Races::Elf = self.race {
+                if Button::image(if let Race::Elf = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -827,10 +818,10 @@ impl CharSelectionUi {
                 .set(self.ids.race_4, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Elf;
+                    self.character.race = Race::Elf;
                 }
                 // Undead
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.undead_m
                 } else {
                     self.imgs.undead_f
@@ -838,7 +829,7 @@ impl CharSelectionUi {
                 .w_h(68.0, 68.0)
                 .right_from(self.ids.human, 10.0 * 4.0 + 68.0 * 3.0)
                 .set(self.ids.undead, ui_widgets);
-                if Button::image(if let Races::Undead = self.race {
+                if Button::image(if let Race::Undead = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -849,17 +840,17 @@ impl CharSelectionUi {
                 .set(self.ids.race_5, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Undead;
+                    self.character.race = Race::Undead;
                 }
                 // Danari
-                Image::new(if let Sex::Male = self.sex {
+                Image::new(if let Gender::Male = self.character.gender {
                     self.imgs.danari_m
                 } else {
                     self.imgs.danari_f
                 })
                 .right_from(self.ids.human, 10.0 * 5.0 + 68.0 * 4.0)
                 .set(self.ids.danari, ui_widgets);
-                if Button::image(if let Races::Danari = self.race {
+                if Button::image(if let Race::Danari = self.character.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -871,7 +862,7 @@ impl CharSelectionUi {
                 .set(self.ids.race_6, ui_widgets)
                 .was_clicked()
                 {
-                    self.race = Races::Danari;
+                    self.character.race = Race::Danari;
                 }
 
                 // Description Headline and Text
@@ -932,13 +923,13 @@ impl CharSelectionUi {
                     \n\
                     Outcast communities consisting of these Blessed Danari have formed all over the land.";
 
-                let (race_str, race_desc) = match self.race {
-                    Races::Human => ("Humans", HUMAN_DESC),
-                    Races::Orc => ("Orcs", ORC_DESC),
-                    Races::Dwarf => ("Dwarves", DWARF_DESC),
-                    Races::Undead => ("Undead", UNDEAD_DESC),
-                    Races::Elf => ("Elves", ELF_DESC),
-                    Races::Danari => ("Danari", DANARI_DESC),
+                let (race_str, race_desc) = match self.character.race {
+                    Race::Human => ("Humans", HUMAN_DESC),
+                    Race::Orc => ("Orcs", ORC_DESC),
+                    Race::Dwarf => ("Dwarves", DWARF_DESC),
+                    Race::Undead => ("Undead", UNDEAD_DESC),
+                    Race::Elf => ("Elves", ELF_DESC),
+                    Race::Danari => ("Danari", DANARI_DESC),
                 };
                 Text::new(race_str)
                     .mid_top_with_margin_on(self.ids.creation_window, 370.0)
@@ -972,7 +963,7 @@ impl CharSelectionUi {
                     .w_h(60.0, 60.0)
                     .mid_left_of(self.ids.weapon_bg)
                     .set(self.ids.sword_shield, ui_widgets);
-                if Button::image(if let Weapons::SwordShield = self.weapon {
+                if Button::image(if let Weapon::SwordShield = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -983,7 +974,7 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_1, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::SwordShield;
+                    self.character.weapon = Weapon::SwordShield;
                 }
 
                 // Daggers
@@ -991,7 +982,7 @@ impl CharSelectionUi {
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0)
                     .set(self.ids.daggers, ui_widgets);
-                if Button::image(if let Weapons::Daggers = self.weapon {
+                if Button::image(if let Weapon::Daggers = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1002,7 +993,7 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_2, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Daggers;
+                    self.character.weapon = Weapon::Daggers;
                 }
 
                 // Sword
@@ -1010,7 +1001,7 @@ impl CharSelectionUi {
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0 * 2.0 + 60.0 * 1.0)
                     .set(self.ids.sword, ui_widgets);
-                if Button::image(if let Weapons::Sword = self.weapon {
+                if Button::image(if let Weapon::Sword = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1021,14 +1012,14 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_3, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Sword;
+                    self.character.weapon = Weapon::Sword;
                 }
                 // Axe
                 Image::new(self.imgs.axe)
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0 * 3.0 + 60.0 * 2.0)
                     .set(self.ids.axe, ui_widgets);
-                if Button::image(if let Weapons::Axe = self.weapon {
+                if Button::image(if let Weapon::Axe = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1039,14 +1030,14 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_4, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Axe;
+                    self.character.weapon = Weapon::Axe;
                 }
                 // Hammer
                 Image::new(self.imgs.hammer)
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0 * 4.0 + 60.0 * 3.0)
                     .set(self.ids.hammer, ui_widgets);
-                if Button::image(if let Weapons::Hammer = self.weapon {
+                if Button::image(if let Weapon::Hammer = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1057,14 +1048,14 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_5, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Hammer;
+                    self.character.weapon = Weapon::Hammer;
                 }
                 // Bow
                 Image::new(self.imgs.bow)
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0 * 5.0 + 60.0 * 4.0)
                     .set(self.ids.bow, ui_widgets);
-                if Button::image(if let Weapons::Bow = self.weapon {
+                if Button::image(if let Weapon::Bow = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1075,14 +1066,14 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_6, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Bow;
+                    self.character.weapon = Weapon::Bow;
                 }
                 // Staff
                 Image::new(self.imgs.staff)
                     .w_h(60.0, 60.0)
                     .right_from(self.ids.sword_shield, 8.0 * 6.0 + 60.0 * 5.0)
                     .set(self.ids.staff, ui_widgets);
-                if Button::image(if let Weapons::Staff = self.weapon {
+                if Button::image(if let Weapon::Staff = self.character.weapon {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
@@ -1093,7 +1084,7 @@ impl CharSelectionUi {
                 .set(self.ids.weapon_7, ui_widgets)
                 .was_clicked()
                 {
-                    self.weapon = Weapons::Staff;
+                    self.character.weapon = Weapon::Staff;
                 }
 
                 // TODO: Load these from files (or from the server???)
@@ -1105,14 +1096,14 @@ impl CharSelectionUi {
                 const BOW_DESC: &str = " MISSING ";
                 const STAFF_DESC: &str = " MISSING ";
 
-                let (weapon_str, weapon_desc) = match self.weapon {
-                    Weapons::SwordShield => ("Sword and Shield", SWORDSHIELD_DESC),
-                    Weapons::Daggers => ("Daggers", DAGGERS_DESC),
-                    Weapons::Sword => ("Sword", SWORD_DESC),
-                    Weapons::Axe => ("Axe", AXE_DESC),
-                    Weapons::Hammer => ("Hammer", HAMMER_DESC),
-                    Weapons::Bow => ("Bow", BOW_DESC),
-                    Weapons::Staff => ("Staff", STAFF_DESC),
+                let (weapon_str, weapon_desc) = match self.character.weapon {
+                    Weapon::SwordShield => ("Sword and Shield", SWORDSHIELD_DESC),
+                    Weapon::Daggers => ("Daggers", DAGGERS_DESC),
+                    Weapon::Sword => ("Sword", SWORD_DESC),
+                    Weapon::Axe => ("Axe", AXE_DESC),
+                    Weapon::Hammer => ("Hammer", HAMMER_DESC),
+                    Weapon::Bow => ("Bow", BOW_DESC),
+                    Weapon::Staff => ("Staff", STAFF_DESC),
                 };
                 Text::new(weapon_str)
                     .mid_top_with_margin_on(self.ids.creation_window, 370.0)
@@ -1452,7 +1443,7 @@ impl CharSelectionUi {
                             .was_clicked()
                         {};
                         // Beard -> Only active when "male" was chosen
-                        if let Sex::Male = self.sex {
+                        if let Gender::Male = self.character.gender {
                             Text::new("Beard Style")
                                 .mid_top_with_margin_on(self.ids.hair_window, 340.0)
                                 .color(TEXT_COLOR)
@@ -1483,8 +1474,8 @@ impl CharSelectionUi {
                     // Color -> Picker
                     // Brightness -> Slider
                     BodyPart::Accessories => {
-                        match self.race {
-                            Races::Human => {
+                        match self.character.race {
+                            Race::Human => {
                                 Text::new("Head Band")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)
@@ -1550,7 +1541,7 @@ impl CharSelectionUi {
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Human
-                            Races::Orc => {
+                            Race::Orc => {
                                 Text::new("Head Band")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)
@@ -1616,7 +1607,7 @@ impl CharSelectionUi {
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Orc
-                            Races::Elf => {
+                            Race::Elf => {
                                 Text::new("Tribe Markings")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)
@@ -1682,7 +1673,7 @@ impl CharSelectionUi {
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Elf
-                            Races::Dwarf => {
+                            Race::Dwarf => {
                                 Text::new("War Paint")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)
@@ -1748,7 +1739,7 @@ impl CharSelectionUi {
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Dwarf
-                            Races::Undead => {
+                            Race::Undead => {
                                 Text::new("Teeth")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)
@@ -1814,7 +1805,7 @@ impl CharSelectionUi {
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             } // Undead
-                            Races::Danari => {
+                            Race::Danari => {
                                 Text::new("Horns")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
                                     .color(TEXT_COLOR)

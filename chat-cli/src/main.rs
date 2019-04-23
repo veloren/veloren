@@ -18,8 +18,10 @@ fn main() {
     let mut clock = Clock::new();
 
     // Create client
-    let mut client = Client::new(([127, 0, 0, 1], 59003), comp::Player::new("test".to_string()), None, 300)
+    let mut client = Client::new(([127, 0, 0, 1], 59003), 300)
         .expect("Failed to create client instance");
+
+    client.register(comp::Player::new("test".to_string()));
 
     client.send_chat("Hello!".to_string());
 

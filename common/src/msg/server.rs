@@ -3,15 +3,24 @@ use crate::{
     comp,
     terrain::TerrainChunk,
 };
-use super::EcsPacket;
+use super::{EcsPacket, ClientState};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum RequestStateError {
+    Denied,
+    Already,
+    Impossible,
+    WrongMessage,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
-    Handshake {
+    InitialSync {
         ecs_state: sphynx::StatePackage<EcsPacket>,
-        player_entity: u64,
+        entity_uid: u64,
     },
-    Shutdown,
+    StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
+    ForceState(ClientState),
     Ping,
     Pong,
     Chat(String),
@@ -31,4 +40,6 @@ pub enum ServerMsg {
         key: Vec3<i32>,
         chunk: Box<TerrainChunk>,
     },
+    Disconnect,
+    Shutdown,
 }

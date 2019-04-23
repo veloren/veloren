@@ -6,7 +6,10 @@ use crate::{
     GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::clock::Clock;
+use common::{
+    clock::Clock,
+    msg::ClientMsg,
+};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
 use vek::*;
@@ -67,9 +70,10 @@ impl PlayState for CharSelectionState {
                         global_state.singleplayer = None;
                         return PlayStateResult::Pop;
                     },
-                    ui::Event::Play => return PlayStateResult::Switch(
-                        Box::new(SessionState::new(&mut global_state.window, self.client.clone()))
-                    ),
+                    ui::Event::Play => {
+                        self.client.borrow_mut().postbox.send_message(ClientMsg::Character(self.char_selection_ui.character));
+                        return PlayStateResult::Switch( Box::new(SessionState::new(&mut global_state.window, self.client.clone())));
+                    }
                 }
             }
 

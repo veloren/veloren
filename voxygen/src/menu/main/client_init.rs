@@ -22,10 +22,10 @@ pub struct ClientInit {
 impl ClientInit {
     pub fn new(
         connection_args: (String, u16, bool),
-        client_args: (comp::Player, Option<comp::Character>, u64),
+        client_args: (comp::Player, u64),
     ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
-        let (player, character, view_distance) = client_args;
+        let (player, view_distance) = client_args;
 
         let (tx, rx) = channel();
 
@@ -44,8 +44,9 @@ impl ClientInit {
                     let mut last_err = None;
 
                     for socket_addr in first_addrs.into_iter().chain(second_addrs) {
-                        match Client::new(socket_addr, player.clone(), character, view_distance) {
-                            Ok(client) => {
+                        match Client::new(socket_addr, view_distance) {
+                            Ok(mut client) => {
+                                client.register(player);
                                 let _ = tx.send(Ok(client));
                                 return;
                             }

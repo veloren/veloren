@@ -1,6 +1,6 @@
 use serde_derive::{Serialize, Deserialize};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BiomeKind {
     Void,
     Grassland,

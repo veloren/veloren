@@ -6,7 +6,19 @@ use specs::{Entity as EcsEntity, Component, VecStorage, Join};
 use vek::*;
 use client::Client;
 use common::{
-    comp,
+    comp::{
+        self,
+        character::{
+            Character,
+            Head,
+            Chest,
+            Belt,
+            Pants,
+            Hand,
+            Foot,
+            Weapon,
+        }
+    },
     figure::Segment,
     msg,
     assets,
@@ -35,56 +47,136 @@ use crate::{
     mesh::Meshable,
 };
 
-pub struct Figures {
-    test_model: Model<FigurePipeline>,
+pub struct FigureCache {
+    models: HashMap<Character, (Model<FigurePipeline>, u64)>,
     states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
 }
 
-impl Figures {
-    pub fn new(renderer: &mut Renderer) -> Self {
-        // TODO: Make a proper asset loading system
-        fn load_segment(filename: &'static str) -> Segment {
-            let fullpath: String = ["/voxygen/voxel/", filename].concat();
-            Segment::from(dot_vox::load_bytes(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            ).unwrap())
-        }
-
-        let bone_meshes = [
-
-            Some(load_segment("head.vox").generate_mesh(Vec3::new(-3.5, -7.0, -6.0))),
-            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-3.0, -6.0, 0.0))),
-            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
-            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-3.0, -5.0, 0.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
-            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -6.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
-            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-4.0, -2.5, -6.0))),
-            Some(load_segment("sword.vox").generate_mesh(Vec3::new(0.0, -0.0, 0.0))),
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-        ];
-
-        let mut mesh = Mesh::new();
-        bone_meshes
-            .iter()
-            .enumerate()
-            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-            .for_each(|(i, bone_mesh)| {
-                mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
-            });
-
+impl FigureCache {
+    pub fn new() -> Self {
         Self {
-            test_model: renderer.create_model(&mesh).unwrap(),
+            models: HashMap::new(),
             states: HashMap::new(),
         }
+    }
+
+    pub fn get_or_create_model<'a>(
+        models: &'a mut HashMap<Character, (Model<FigurePipeline>, u64)>,
+        renderer: &mut Renderer,
+        tick: u64,
+        character: Character)
+    -> &'a (Model<FigurePipeline>, u64) {
+        match models.get_mut(&character) {
+            Some((model, last_used)) => {
+                *last_used = tick;
+            }
+            None => {
+                models.insert(character, ({
+                    let bone_meshes = [
+                        Some(Self::load_head(character.head)),
+                        Some(Self::load_chest(character.chest)),
+                        Some(Self::load_belt(character.belt)),
+                        Some(Self::load_pants(character.pants)),
+                        Some(Self::load_left_hand(character.hand)),
+                        Some(Self::load_right_hand(character.hand)),
+                        Some(Self::load_left_foot(character.foot)),
+                        Some(Self::load_right_foot(character.foot)),
+                        Some(Self::load_weapon(character.weapon)),
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ];
+
+                    let mut mesh = Mesh::new();
+                    bone_meshes
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
+                        .for_each(|(i, bone_mesh)| {
+                            mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
+                        });
+
+                    renderer.create_model(&mesh).unwrap()
+                }, tick));
+            }
+        }
+
+        &models[&character]
+    }
+
+    pub fn clean(&mut self, tick: u64) {
+        // TODO: Don't hard-code this
+        self.models.retain(|_, (_, last_used)| *last_used + 60 > tick);
+    }
+
+    fn load_mesh(filename: &'static str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
+        let fullpath: String = ["/voxygen/voxel/", filename].concat();
+        Segment::from(dot_vox::load_bytes(
+            assets::load(fullpath.as_str())
+                .expect("Error loading file")
+                .as_slice(),
+        ).unwrap())
+            .generate_mesh(position)
+    }
+
+    fn load_head(head: Head) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match head {
+            Head::DefaultHead => "head.vox",
+        }, Vec3::new(-3.5, -7.0, -6.0))
+    }
+
+    fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match chest {
+            Chest::DefaultChest => "chest.vox",
+        }, Vec3::new(-3.0, -6.0, 0.0))
+    }
+
+    fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match belt {
+            Belt::DefaultBelt => "belt.vox",
+        }, Vec3::new(-3.0, -5.0, 0.0))
+    }
+
+    fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match pants {
+            Pants::DefaultPants => "pants.vox",
+        }, Vec3::new(-3.0, -5.0, 0.0))
+    }
+
+    fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match hand {
+            Hand::DefaultHand => "hand.vox",
+        }, Vec3::new(0.0, -2.0, -6.0))
+    }
+
+    fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match hand {
+            Hand::DefaultHand => "hand.vox",
+        }, Vec3::new(0.0, -2.0, -6.0))
+    }
+
+    fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match foot {
+            Foot::DefaultFoot => "foot.vox",
+        }, Vec3::new(-4.0, -2.5, -6.0))
+    }
+
+    fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match foot {
+            Foot::DefaultFoot => "foot.vox",
+        }, Vec3::new(-4.0, -2.5, -6.0))
+    }
+
+    fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
+        Self::load_mesh(match weapon {
+            Weapon::Sword => "sword.vox",
+            // TODO actually match against other weapons and set the right model
+            _ => "sword.vox",
+        }, Vec3::new(0.0, 0.0, 0.0))
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
@@ -114,10 +206,19 @@ impl Figures {
         self.states.retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
-    pub fn render(&self, renderer: &mut Renderer, client: &Client, globals: &Consts<Globals>) {
-        for state in self.states.values() {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client, globals: &Consts<Globals>) {
+        let tick = client.get_tick();
+        let ecs = client.state().ecs();
+        let models = &mut self.models;
+
+        for (entity, &character) in (
+            &ecs.entities(),
+            &ecs.read_storage::<comp::Character>(),
+        ).join() {
+            let model = Self::get_or_create_model(models, renderer, tick, character);
+            let state = self.states.get(&entity).unwrap();
             renderer.render_figure(
-                &self.test_model,
+                &model.0,
                 globals,
                 &state.locals,
                 &state.bone_consts,
