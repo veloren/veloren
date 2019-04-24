@@ -25,13 +25,10 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         }
     }
 
-    pub fn until<G: RayUntil<V::Vox>>(self, g: G) -> Ray<'a, V, G> {
+    pub fn until(self, f: F) -> Ray<'a, V, F> {
         Ray {
-            vol: self.vol,
-            from: self.from,
-            to: self.to,
-            until: g,
-            max_iter: self.max_iter,
+            until: f,
+            ..self
         }
     }
 
@@ -52,7 +49,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         let mut ipos = pos.map(|e| e as i32);
 
         for _ in 0..self.max_iter {
-            pos = dir * dist;
+            pos = self.from + dir * dist;
             ipos = pos.map(|e| e as i32);
 
             match self.vol
