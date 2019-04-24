@@ -28,6 +28,8 @@ pub struct CharacterSkeleton {
     r_foot: Bone,
     back: Bone,
     torso: Bone,
+    l_shoulder: Bone,
+    r_shoulder: Bone,
 
 }
 
@@ -44,6 +46,8 @@ impl CharacterSkeleton {
             r_foot: Bone::default(),
             back: Bone::default(),
             torso: Bone::default(),
+            l_shoulder: Bone::default(),
+            r_shoulder: Bone::default(),
 
         }
     }
@@ -64,8 +68,8 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * self.back.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::default(),
-            FigureBoneData::default(),
+            FigureBoneData::new(torso_mat * self.l_shoulder.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.r_shoulder.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -85,6 +89,8 @@ impl Skeleton for CharacterSkeleton {
         self.r_foot.interpolate(&target.r_foot);
         self.back.interpolate(&target.back);
         self.torso.interpolate(&target.torso);
+        self.l_shoulder.interpolate(&target.l_shoulder);
+        self.r_shoulder.interpolate(&target.r_shoulder);
 
     }
 }
