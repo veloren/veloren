@@ -90,28 +90,6 @@ impl FigureCache {
                         None,
                         None,
                     ];
-//        let bone_meshes = [
-//
-//
-//            Some(load_segment("head.vox").generate_mesh(Vec3::new(-5.5, -7.0, -6.0))),
-//            Some(load_segment("chest.vox").generate_mesh(Vec3::new(-2.5, -6.0, 0.0))),
-//            Some(load_segment("belt.vox").generate_mesh(Vec3::new(-2.5, -5.0, 0.0))),
-//            Some(load_segment("pants.vox").generate_mesh(Vec3::new(-2.5, -5.0, 0.0))),
-//            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -7.0))),
-//            Some(load_segment("hand.vox").generate_mesh(Vec3::new(0.0, -2.0, -7.0))),
-//         Some(load_segment("foot.vox").generate_mesh(Vec3::new(-3.5, -2.5, -8.0))),
-//            Some(load_segment("foot.vox").generate_mesh(Vec3::new(-3.5, -2.5, -8.0))),
-//            Some(load_segment("sword.vox").generate_mesh(Vec3::new(0.0, -0.0, -4.0))),
-//            None,
-            //Some(load_segment("shoulder_left.vox").generate_mesh(Vec3::new(-3.0, -2.5, -8.0))),
-            //Some(load_segment("shoulder_right.vox").generate_mesh(Vec3::new(-3.0, -2.5, -8.0))),
-//            None,
-//            None,
-//            None,
-//            None,
-//            None,
-//            None,
-//        ];
 
         let mut mesh = Mesh::new();
         bone_meshes
