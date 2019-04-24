@@ -5,6 +5,7 @@ use crate::{
 };
 use common::{
     assets,
+    figure::Segment,
     comp::character::{
         Character,
         Race,
@@ -33,7 +34,7 @@ widget_ids! {
         bg_selection,
         bg_creation,
         v_logo,
-        alpha_version,
+        version,
 
         // Windows
         selection_window,
@@ -173,12 +174,12 @@ struct Imgs {
     v_logo: ImgId,
     bg_selection: ImgId,
     bg_creation: ImgId,
-    button_dark: ImgId,
-    button_dark_hover: ImgId,
-    button_dark_press: ImgId,
-    button_dark_red: ImgId,
-    button_dark_red_hover: ImgId,
-    button_dark_red_press: ImgId,
+    button: ImgId,
+    button_hover: ImgId,
+    button_press: ImgId,
+    button_red: ImgId,
+    button_red_hover: ImgId,
+    button_red_press: ImgId,
     selection_window: ImgId,
     test_char_l_button: ImgId,
     test_char_l_big: ImgId,
@@ -241,7 +242,7 @@ struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        let mut load = |filename| {
+        let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -251,75 +252,85 @@ impl Imgs {
             .unwrap();
             ui.new_graphic(ui::Graphic::Image(image))
         };
+        let load_vox = |filename, ui: &mut Ui| {
+            let fullpath: String = ["/voxygen/", filename].concat();
+            let dot_vox = dot_vox::load_bytes(
+                assets::load(fullpath.as_str())
+                    .expect("Error loading file")
+                    .as_slice(),
+            )
+            .unwrap();
+            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
+        };
         Imgs {
-            v_logo: load("element/v_logo.png"),
-            bg_selection: load("background/bg_selection.png"),
-            bg_creation: load("background/bg_creation.png"),
-            selection_window: load("element/frames/selection.png"),
-            button_dark: load("element/buttons/button_dark.png"),
-            button_dark_hover: load("element/buttons/button_dark_hover.png"),
-            button_dark_press: load("element/buttons/button_dark_press.png"),
-            button_dark_red: load("element/buttons/button_dark_red.png"),
-            button_dark_red_hover: load("element/buttons/button_dark_red_hover.png"),
-            button_dark_red_press: load("element/buttons/button_dark_red_press.png"),
-            test_char_l_button: load("element/misc_backgrounds/test_char_l.png"),
-            test_char_l_big: load("element/misc_backgrounds/test_char_l_big.png"),
-            name_input: load("element/misc_backgrounds/textbox.png"),
-            creation_window: load("element/frames/char_creation.png"),
-            creation_window_body: load("element/frames/body_creation.png"),
-            frame_closed: load("element/buttons/frame/closed.png"),
-            frame_closed_mo: load("element/buttons/frame/closed_mo.png"),
-            frame_closed_press: load("element/buttons/frame/closed_press.png"),
-            frame_open: load("element/buttons/frame/open.png"),
-            frame_open_mo: load("element/buttons/frame/open_mo.png"),
-            frame_open_press: load("element/buttons/frame/open_press.png"),
-            skin_eyes_window: load("element/frames/skin_eyes.png"),
-            hair_window: load("element/frames/skin_eyes.png"),
-            accessories_window: load("element/frames/skin_eyes.png"),
-            color_picker_bg: load("element/misc_backgrounds/color_picker_blank.png"),
-            slider_range: load("element/slider/track.png"),
-            slider_indicator: load("element/slider/indicator.png"),
-            window_frame_2: load("element/frames/window_2.png"),
+            v_logo: load_vox("element/v_logo.vox", ui),
+            bg_selection: load_img("background/bg_selection.png", ui),
+            bg_creation: load_img("background/bg_creation.png", ui),
+            selection_window: load_img("element/frames/selection.png", ui),
+            button: load_vox("element/buttons/button.vox", ui),
+            button_hover: load_vox("element/buttons/button_hover.vox", ui),
+            button_press: load_vox("element/buttons/button_press.vox", ui),
+            button_red: load_vox("element/buttons/button_red.vox", ui),
+            button_red_hover: load_vox("element/buttons/button_red_hover.vox", ui),
+            button_red_press: load_vox("element/buttons/button_red_press.vox", ui),
+            test_char_l_button: load_img("element/misc_bg/test_char_l.png", ui),
+            test_char_l_big: load_img("element/misc_bg/test_char_l_big.png", ui),
+            name_input: load_vox("element/misc_bg/textbox.vox", ui),
+            creation_window: load_img("element/frames/char_creation.png", ui),
+            creation_window_body: load_img("element/frames/body_creation.png", ui),
+            frame_closed: load_img("element/buttons/frame/closed.png", ui),
+            frame_closed_mo: load_img("element/buttons/frame/closed_mo.png", ui),
+            frame_closed_press: load_img("element/buttons/frame/closed_press.png", ui),
+            frame_open: load_img("element/buttons/frame/open.png", ui),
+            frame_open_mo: load_img("element/buttons/frame/open_mo.png", ui),
+            frame_open_press: load_img("element/buttons/frame/open_press.png", ui),
+            skin_eyes_window: load_img("element/frames/skin_eyes.png", ui),
+            hair_window: load_img("element/frames/skin_eyes.png", ui),
+            accessories_window: load_img("element/frames/skin_eyes.png", ui),
+            color_picker_bg: load_img("element/misc_bg/color_picker_blank.png", ui),
+            slider_range: load_img("element/slider/track.png", ui),
+            slider_indicator: load_img("element/slider/indicator.png", ui),
+            window_frame_2: load_img("element/frames/window_2.png", ui),
 
             // Weapon Icons
-            daggers: load("element/icons/daggers.png"),
-            sword_shield: load("element/icons/swordshield.png"),
-            sword: load("element/icons/sword.png"),
-            axe: load("element/icons/axe.png"),
-            hammer: load("element/icons/hammer.png"),
-            bow: load("element/icons/bow.png"),
-            staff: load("element/icons/staff.png"),
-            //test_char_m_button: load("test_char_m_button"),
-            //test_char_r_button: load("test_char_r_button"),
+            daggers: load_img("element/icons/daggers.png", ui),
+            sword_shield: load_img("element/icons/swordshield.png", ui),
+            sword: load_img("element/icons/sword.png", ui),
+            axe: load_img("element/icons/axe.png", ui),
+            hammer: load_img("element/icons/hammer.png", ui),
+            bow: load_img("element/icons/bow.png", ui),
+            staff: load_img("element/icons/staff.png", ui),
+            //test_char_m_button: load_img("test_char_m_button"),
+            //test_char_r_button: load_img("test_char_r_button"),
             // Race Icons
-            male: load("element/icons/male.png"),
-            female: load("element/icons/female.png"),
-            human_m: load("element/icons/human_m.png"),
-            human_f: load("element/icons/human_f.png"),
-            orc_m: load("element/icons/orc_m.png"),
-            orc_f: load("element/icons/orc_f.png"),
-            dwarf_m: load("element/icons/dwarf_m.png"),
-            dwarf_f: load("element/icons/dwarf_f.png"),
-            undead_m: load("element/icons/ud_m.png"),
-            undead_f: load("element/icons/ud_f.png"),
-            elf_m: load("element/icons/elf_m.png"),
-            elf_f: load("element/icons/elf_f.png"),
-            danari_m: load("element/icons/danari_m.png"),
-            danari_f: load("element/icons/danari_f.png"),
+            male: load_img("element/icons/male.png", ui),
+            female: load_img("element/icons/female.png", ui),
+            human_m: load_img("element/icons/human_m.png", ui),
+            human_f: load_img("element/icons/human_f.png", ui),
+            orc_m: load_img("element/icons/orc_m.png", ui),
+            orc_f: load_img("element/icons/orc_f.png", ui),
+            dwarf_m: load_img("element/icons/dwarf_m.png", ui),
+            dwarf_f: load_img("element/icons/dwarf_f.png", ui),
+            undead_m: load_img("element/icons/ud_m.png", ui),
+            undead_f: load_img("element/icons/ud_f.png", ui),
+            elf_m: load_img("element/icons/elf_m.png", ui),
+            elf_f: load_img("element/icons/elf_f.png", ui),
+            danari_m: load_img("element/icons/danari_m.png", ui),
+            danari_f: load_img("element/icons/danari_f.png", ui),
             // Arrows
-            arrow_left: load("element/buttons/arrow/left.png"),
-            arrow_left_mo: load("element/buttons/arrow/left_mo.png"),
-            arrow_left_press: load("element/buttons/arrow/left_press.png"),
-            arrow_left_grey: load("element/buttons/arrow/left_inactive.png"),
-            arrow_right: load("element/buttons/arrow/right.png"),
-            arrow_right_mo: load("element/buttons/arrow/right_mo.png"),
-            arrow_right_press: load("element/buttons/arrow/right_press.png"),
-            arrow_right_grey: load("element/buttons/arrow/right_inactive.png"),
+            arrow_left: load_img("element/buttons/arrow/left.png", ui),
+            arrow_left_mo: load_img("element/buttons/arrow/left_mo.png", ui),
+            arrow_left_press: load_img("element/buttons/arrow/left_press.png", ui),
+            arrow_left_grey: load_img("element/buttons/arrow/left_inactive.png", ui),
+            arrow_right: load_img("element/buttons/arrow/right.png", ui),
+            arrow_right_mo: load_img("element/buttons/arrow/right_mo.png", ui),
+            arrow_right_press: load_img("element/buttons/arrow/right_press.png", ui),
+            arrow_right_grey: load_img("element/buttons/arrow/right_inactive.png", ui),
             // Icon Borders
-            icon_border: load("element/buttons/border.png"),
-            icon_border_mo: load("element/buttons/border_mo.png"),
-            icon_border_press: load("element/buttons/border_press.png"),
-            icon_border_pressed: load("element/buttons/border_pressed.png"),
+            icon_border: load_img("element/buttons/border.png", ui),
+            icon_border_mo: load_img("element/buttons/border_mo.png", ui),
+            icon_border_press: load_img("element/buttons/border_press.png", ui),
+            icon_border_pressed: load_img("element/buttons/border_pressed.png", ui),
         }
     }
 }
@@ -415,11 +426,11 @@ impl CharSelectionUi {
                 .set(self.ids.bg_selection, ui_widgets);
 
             // Logout_Button
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .bottom_left_with_margins_on(self.ids.bg_selection, 10.0, 10.0)
                 .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Logout")
                 .label_color(TEXT_COLOR)
                 .label_font_size(18)
@@ -431,11 +442,11 @@ impl CharSelectionUi {
             }
 
             // Create Character Button
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_bottom_with_margin_on(self.ids.bg_selection, 10.0)
                 .w_h(270.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Create Character")
                 .label_color(TEXT_COLOR)
                 .label_font_size(20)
@@ -459,15 +470,15 @@ impl CharSelectionUi {
             }
 
             // Veloren Logo and Alpha Version
-            Button::image(self.imgs.v_logo)
-                .w_h(346.0, 111.0)
-                .top_left_with_margins_on(self.ids.bg_selection, 30.0, 40.0)
-                .label(version)
-                .label_rgba(1.0, 1.0, 1.0, 1.0)
-                .label_font_size(10)
-                .label_y(conrod_core::position::Relative::Scalar(-40.0))
-                .label_x(conrod_core::position::Relative::Scalar(-100.0))
+            Image::new(self.imgs.v_logo)
+                .w_h(123.0*3.0, 35.0*3.0)
+                .top_left_with_margins(30.0, 30.0)
                 .set(self.ids.v_logo, ui_widgets);
+            Text::new(version)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(self.ids.version, ui_widgets);
             // Click Character to Login <-- Temporary!
             Image::new(self.imgs.window_frame_2)
                 .mid_top_with_margin_on(self.ids.bg_selection, 60.0)
@@ -506,11 +517,11 @@ impl CharSelectionUi {
                 }
 
                 // Enter World Button
-                if Button::image(self.imgs.button_dark)
+                if Button::image(self.imgs.button)
                     .mid_bottom_with_margin_on(self.ids.selection_window, 65.0)
                     .w_h(210.0, 55.0)
-                    .hover_image(self.imgs.button_dark_hover)
-                    .press_image(self.imgs.button_dark_press)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
                     .label("Enter World")
                     .label_color(TEXT_COLOR)
                     .label_font_size(22)
@@ -523,11 +534,11 @@ impl CharSelectionUi {
                 }
 
                 // Delete Button
-                if Button::image(self.imgs.button_dark_red)
+                if Button::image(self.imgs.button_red)
                     .bottom_right_with_margins_on(self.ids.selection_window, -25.0, 0.0)
                     .w_h(100.0, 20.0)
-                    .hover_image(self.imgs.button_dark_red_hover)
-                    .press_image(self.imgs.button_dark_red_press)
+                    .hover_image(self.imgs.button_red_hover)
+                    .press_image(self.imgs.button_red_press)
                     .label("Delete")
                     .label_color(TEXT_COLOR)
                     .label_font_size(12)
@@ -544,11 +555,11 @@ impl CharSelectionUi {
                 .middle_of(ui_widgets.window)
                 .set(self.ids.bg_creation, ui_widgets);
             // Back Button
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .bottom_left_with_margins_on(self.ids.bg_creation, 10.0, 10.0)
                 .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Back")
                 .label_color(TEXT_COLOR)
                 .label_font_size(18)
@@ -559,11 +570,11 @@ impl CharSelectionUi {
                 self.character_creation = false;
             }
             // Create Button
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .bottom_right_with_margins_on(self.ids.bg_creation, 10.0, 10.0)
                 .w_h(150.0, 40.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Create")
                 .label_color(TEXT_COLOR)
                 .label_font_size(18)
