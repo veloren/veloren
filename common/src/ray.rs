@@ -37,7 +37,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         self
     }
 
-    pub fn cast(mut self) -> (f32, Result<&'a V::Vox, V::Err>) {
+    pub fn cast(mut self) -> (f32, Result<Option<&'a V::Vox>, V::Err>) {
         // TODO: Fully test this!
 
         const PLANCK: f32 = 0.001;
@@ -56,7 +56,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
                 .get(ipos)
                 .map(|vox| (vox, (self.until)(vox)))
             {
-                Ok((vox, true)) => return (dist, Ok(vox)),
+                Ok((vox, true)) => return (dist, Ok(Some(vox))),
                 Ok((_, false)) => {},
                 Err(err) => return (dist, Err(err)),
             }
@@ -69,6 +69,6 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             dist += deltas.reduce(f32::min).max(PLANCK);
         }
 
-        (dist, self.vol.get(ipos))
+        (dist, Ok(None))
     }
 }
