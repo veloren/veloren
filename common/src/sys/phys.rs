@@ -29,13 +29,16 @@ impl<'a> System<'a> for Sys {
             pos.0 += vel.0 * dt.0 as f32;
 
             // Basic collision with terrain
+            let mut i = 0;
             while terrain
                 .get(pos.0.map(|e| e as i32))
                 .map(|vox| !vox.is_empty())
-                .unwrap_or(false)
+                .unwrap_or(false) &&
+                i < 20
             {
-                pos.0.z += 0.05;
+                pos.0.z += 0.01;
                 vel.0.z = 0.0;
+                i += 1;
             }
         }
     }
