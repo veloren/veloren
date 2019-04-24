@@ -22,7 +22,7 @@ use std::{
 use threadpool::ThreadPool;
 use vek::*;
 
-const SERVER_TIMEOUT: f64 = 20.0; // Seconds
+const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
 pub enum Event {
     Chat(String),
@@ -33,7 +33,6 @@ pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
 
-    last_ping: f64,
     postbox: PostBox<ClientMsg, ServerMsg>,
 
     last_server_ping: Instant,
@@ -70,13 +69,14 @@ impl Client {
             _ => return Err(Error::ServerWentMad),
         };
 
+        postbox.send_message(ClientMsg::Ping);
+
         Ok(Self {
             client_state,
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
 
-            last_ping: state.get_time(),
             postbox,
 
             last_server_ping: Instant::now(),
@@ -91,7 +91,7 @@ impl Client {
         })
     }
 
-    /// Request a state transition to `ClientState::Registered`.
+    /// Ask the server to transition the player into the `Registered` state
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
         self.client_state = ClientState::Pending;
@@ -310,12 +310,9 @@ impl Client {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
-        // Step 1
         let new_msgs = self.postbox.new_messages();
 
         if new_msgs.len() > 0 {
-            self.last_ping = self.state.get_time();
-
             for msg in new_msgs {
                 match msg {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
@@ -375,14 +372,10 @@ impl Client {
             }
         } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
-        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
+        // We regularily ping in the tick method
+        } else if Instant::now().duration_since(self.last_server_ping) > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
-        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            // Try pinging the server if the timeout is nearing.
-            self.postbox.send_message(ClientMsg::Ping);
-            self.last_server_ping = Instant::now();
         }
-
         Ok(frontend_events)
     }
 
@@ -428,6 +421,18 @@ impl Client {
     pub fn state_mut(&mut self) -> &mut State {
         &mut self.state
     }
+
+    /// Get a vector of all the players on the server
+    pub fn get_players(&mut self) -> Vec<(EcsEntity, comp::Player)> {
+        (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Player>(),
+        )
+            .join()
+            .map(|(e, p)| (e, p.clone()))
+            .collect()
+    }
+
 }
 
 impl Drop for Client {

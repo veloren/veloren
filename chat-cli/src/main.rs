@@ -20,13 +20,20 @@ fn main() {
 
     client.register(comp::Player::new("test".to_string(), None));
 
+    println!("Players online: {:?}",
+        client.get_players()
+            .into_iter()
+            .map(|(e, p)| p)
+            .collect::<Vec<comp::Player>>()
+    );
+
     client.send_chat("Hello!".to_string());
 
     loop {
         let events = match client.tick(comp::Control::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
-                println!("Error: {:?}", err);
+                error!("Error: {:?}", err);
                 break;
             }
         };

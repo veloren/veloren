@@ -67,9 +67,7 @@ impl SessionState {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
                 }
-                client::Event::Disconnect => {
-                    // TODO
-                }
+                client::Event::Disconnect => {} // TODO
             }
         }
 
