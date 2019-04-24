@@ -32,6 +32,8 @@ pub struct Client {
     thread_pool: ThreadPool,
 
     last_ping: f64,
+    ping_time: Option<f64>,
+
     pub postbox: PostBox<ClientMsg, ServerMsg>,
 
     tick: u64,
@@ -65,6 +67,8 @@ impl Client {
             _ => return Err(Error::ServerWentMad),
         };
 
+        postbox.send_message(ClientMsg::Ping);
+
         Ok(Self {
             client_state,
             thread_pool: threadpool::Builder::new()
@@ -72,6 +76,7 @@ impl Client {
                 .build(),
 
             last_ping: state.get_time(),
+            ping_time: None,
             postbox,
 
             tick: 0,
@@ -83,6 +88,22 @@ impl Client {
         })
     }
 
+    /// Get a vector of all the players on the server
+    pub fn get_players(&mut self) -> Vec<(EcsEntity, comp::Player)> {
+        (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Player>(),
+        )
+            .join()
+            .map(|(e, p)| (e, p.clone()))
+            .collect()
+    }
+
+    pub fn request_character(&mut self, character: comp::Character) {
+        self.postbox.send_message(ClientMsg::Character(character));
+    }
+
+    /// Ask the server to transition the player into the `Registered` state
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
     }
@@ -117,6 +138,10 @@ impl Client {
     #[allow(dead_code)]
     pub fn get_tick(&self) -> u64 {
         self.tick
+    }
+
+    pub fn get_ping_time(&self) -> Option<f64> {
+        self.ping_time
     }
 
     /// Send a chat message to the server
@@ -236,18 +261,18 @@ impl Client {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
-        // Step 1
         let new_msgs = self.postbox.new_messages();
 
         if new_msgs.len() > 0 {
-            self.last_ping = self.state.get_time();
-
             for msg in new_msgs {
                 match msg {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
-                    ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
-                    ServerMsg::Pong => {}
+                    ServerMsg::Ping => {
+                        self.last_ping = self.state.get_time();
+                        self.postbox.send_message(ClientMsg::Pong);
+                    }
+                    ServerMsg::Pong => self.ping_time = Some((self.state.get_time() - self.last_ping) / 2.0),
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
@@ -301,7 +326,8 @@ impl Client {
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            // Try pinging the server if the timeout is nearing
+            // Ping the server from time to time
+            self.last_ping = self.state.get_time();
             self.postbox.send_message(ClientMsg::Ping);
         }
 
