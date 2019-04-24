@@ -80,14 +80,6 @@ impl Animation for IdleAnimation {
         next.r_shoulder.ori = Quaternion::rotation_y(0.0);
         next.r_shoulder.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(2.9, 6.0, 18.0) / SCALE;
-        next.l_shoulder.ori = Quaternion::rotation_y(0.0);
-        next.l_shoulder.scale = Vec3::one() / SCALE;
-
-        next.r_shoulder.offset = Vec3::new(2.9, -6.0, 18.0) / SCALE;
-        next.r_shoulder.ori = Quaternion::rotation_y(0.0);
-        next.r_shoulder.scale = Vec3::one() / SCALE;
-
         next
     }
 }
