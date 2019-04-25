@@ -16,6 +16,8 @@ pub mod terrain;
 pub mod util;
 pub mod volumes;
 pub mod vol;
+pub mod ray;
+
 // TODO: unignore the code here, for some reason it refuses to compile here while has no problems copy-pasted elsewhere
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client
 /// # Examples

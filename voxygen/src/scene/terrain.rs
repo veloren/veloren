@@ -99,14 +99,24 @@ impl Terrain {
             // What happens if the block on the edge of a chunk gets modified? We need to spawn
             // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
             // elision information changes too!
-            match self.mesh_todo.iter_mut().find(|todo| todo.pos == *pos) {
-                Some(todo) => todo.started_tick = current_tick,
-                // The chunk it's queued yet, add it to the queue
-                None => self.mesh_todo.push_back(ChunkMeshState {
-                    pos: *pos,
-                    started_tick: current_tick,
-                    active_worker: false,
-                }),
+            for i in -1..2 {
+                for j in -1..2 {
+                    for k in -1..2 {
+                        let pos = pos + Vec3::new(i, j, k);
+
+                        if client.state().terrain().get_key(pos).is_some() {
+                            match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
+                                //Some(todo) => todo.started_tick = current_tick,
+                                // The chunk it's queued yet, add it to the queue
+                                _ /* None */ => self.mesh_todo.push_back(ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: false,
+                                }),
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -155,8 +165,10 @@ impl Terrain {
                 todo.active_worker = true;
             });
 
-        // Receive chunk meshes from worker threads, upload them to the GPU and then store them
-        while let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
+        // Receive a chunk mesh from a worker thread, upload it to the GPU and then store it
+        // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
+        // to the GPU upload. That still gives us a 60 chunks / second budget to play with.
+        if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
             match self.mesh_todo.iter().find(|todo| todo.pos == response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course)
@@ -170,7 +182,7 @@ impl Terrain {
                 },
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed
-                _ => continue,
+                _ => {},
             }
         }
     }

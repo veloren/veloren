@@ -54,6 +54,8 @@ impl<M> Meshable for Dyna<Block, M> {
             .filter(|pos| pos.map(|e| e >= 1).reduce_and())
             .filter(|pos| pos.map2(self.get_size(), |e, sz| e < sz as i32 - 1).reduce_and())
         {
+            let offs = pos.map(|e| e as f32 - 1.0);
+
             if let Some(col) = self
                 .get(pos)
                 .ok()
@@ -67,9 +69,9 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32) + Vec3::unit_y(),
-                        -Vec3::unit_y(),
+                        offs,
                         Vec3::unit_z(),
+                        Vec3::unit_y(),
                         -Vec3::unit_x(),
                         col,
                     ));
@@ -80,7 +82,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32) + Vec3::unit_x(),
+                        offs + Vec3::unit_x(),
                         Vec3::unit_y(),
                         Vec3::unit_z(),
                         Vec3::unit_x(),
@@ -93,7 +95,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32),
+                        offs,
                         Vec3::unit_x(),
                         Vec3::unit_z(),
                         -Vec3::unit_y(),
@@ -106,7 +108,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32) + Vec3::unit_y(),
+                        offs + Vec3::unit_y(),
                         Vec3::unit_z(),
                         Vec3::unit_x(),
                         Vec3::unit_y(),
@@ -119,7 +121,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32),
+                        offs,
                         Vec3::unit_y(),
                         Vec3::unit_x(),
                         -Vec3::unit_z(),
@@ -132,7 +134,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        Vec3::one() + pos.map(|e| e as f32) + Vec3::unit_z(),
+                        offs + Vec3::unit_z(),
                         Vec3::unit_x(),
                         Vec3::unit_y(),
                         Vec3::unit_z(),
