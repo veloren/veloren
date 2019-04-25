@@ -309,7 +309,7 @@ impl Ui {
     }
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
-            Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),
+            Input::Resize(w, h) if w > 1.0 && h > 1.0 => self.window_resized = Some(Vec2::new(w, h)),
             Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
                 xy: self.scale.scale_point(touch.xy.into()).into_array(),
                 ..touch
