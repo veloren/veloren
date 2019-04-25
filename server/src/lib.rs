@@ -194,13 +194,15 @@ impl Server {
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
             ).join() {
-                // TODO: Distance check
-                // if self.state.terrain().key_pos(key)
+                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
 
-                self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
-                    key,
-                    chunk: Box::new(chunk.clone()),
-                });
+                if dist < 4 {
+                    self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
+                        key,
+                        chunk: Box::new(chunk.clone()),
+                    });
+                }
             }
 
             self.state.insert_chunk(key, chunk);
@@ -209,7 +211,7 @@ impl Server {
 
         // Remove chunks that are too far from players
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain().iter().for_each(|(k, _)| {
+        self.state.terrain().iter().for_each(|(key, _)| {
             let mut min_dist = i32::MAX;
 
             // For each player with a position, calculate the distance
@@ -218,12 +220,12 @@ impl Server {
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
             ).join() {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (chunk_pos - k).map(|e| e.abs()).reduce_max();
+                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
                 min_dist = min_dist.min(dist);
             }
 
             if min_dist > 3 {
-                chunks_to_remove.push(k);
+                chunks_to_remove.push(key);
             }
         });
         for key in chunks_to_remove {

@@ -212,7 +212,6 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
                 // Try sending bytes through the TCP stream
                 for _ in 0..100 {
-                    //println!("HERE! Outgoing len: {}", outgoing_chunks.len());
                     match outgoing_chunks.pop_front() {
                         Some(mut chunk) => match stream.write(&chunk) {
                             Ok(n) => if n == chunk.len() {},
@@ -227,7 +226,6 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             },
                             // Worker error
                             Err(e) => {
-                                println!("SEND ERROR: {:?}", e);
                                 recv_tx.send(Err(e.into())).unwrap();
                                 break 'work;
                             },
@@ -265,7 +263,6 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                 match bincode::deserialize(&incoming_buf[8..len + 8]) {
                                     Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
                                     Err(err) => {
-                                        println!("Invalid message: {:?}", err);
                                         recv_tx.send(Err(err.into())).unwrap()
                                     },
                                 }
