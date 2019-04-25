@@ -100,7 +100,7 @@ fn main() {
 
     // Set up the initial play state
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(
-        &mut global_state.window,
+        &mut global_state,
     ))];
     states.last().map(|current_state| {
         log::info!("Started game with state '{}'", current_state.name())

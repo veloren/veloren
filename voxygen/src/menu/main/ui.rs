@@ -2,19 +2,16 @@ use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
-    DEFAULT_PUBLIC_SERVER,
+    GlobalState, DEFAULT_PUBLIC_SERVER,
 };
-use common::{
-    assets,
-    figure::Segment,
-};
+use common::{assets, figure::Segment};
 use conrod_core::{
     color,
     color::TRANSPARENT,
     image::Id as ImgId,
     position::{Dimension, Relative},
     text::font::Id as FontId,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
@@ -37,8 +34,12 @@ widget_ids! {
         username_field,
         singleplayer_button,
         singleplayer_text,
-        // Buttons
+        // Serverlist
         servers_button,
+        servers_frame,
+        servers_text,
+        servers_close,
+        // Buttons
         settings_button,
         quit_button,
         // Error
@@ -134,10 +135,13 @@ pub struct MainMenuUi {
     server_address: String,
     login_error: Option<String>,
     connecting: Option<std::time::Instant>,
+    show_servers: bool,
 }
 
 impl MainMenuUi {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
+        let mut window = &mut global_state.window;
+        let networking = &global_state.settings.networking;
         let mut ui = Ui::new(window).unwrap();
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -148,10 +152,12 @@ impl MainMenuUi {
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-             ui.new_font(conrod_core::text::Font::from_bytes(
-                 assets::load(fullpath.as_str())
-                .expect("Error loading file")
-            ).unwrap())
+            ui.new_font(
+                conrod_core::text::Font::from_bytes(
+                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                )
+                .unwrap(),
+            )
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
@@ -162,14 +168,15 @@ impl MainMenuUi {
             ids,
             font_metamorph,
             font_opensans,
-            username: "Username".to_string(),
-            server_address: DEFAULT_PUBLIC_SERVER.to_string(),
+            username: networking.username.clone(),
+            server_address: networking.servers[networking.default_server].clone(),
             login_error: None,
             connecting: None,
+            show_servers: false,
         }
     }
 
-    fn update_layout(&mut self) -> Vec<Event> {
+    fn update_layout(&mut self, global_state: &GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -273,6 +280,66 @@ impl MainMenuUi {
                 self.login_error = None
             };
         }
+        if self.show_servers {
+            Image::new(self.imgs.error_frame)
+                .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
+                .w_h(400.0, 400.0)
+                .set(self.ids.servers_frame, ui_widgets);
+
+            let netsettings = &global_state.settings.networking;
+
+            let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
+                .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
+                .w_h(400.0, 300.0)
+                .scrollbar_next_to()
+                .scrollbar_thickness(18.0)
+                .scrollbar_color(TEXT_COLOR)
+                .set(self.ids.servers_text, ui_widgets);
+
+            while let Some(item) = items.next(ui_widgets) {
+                let mut text = "".to_string();
+                if &netsettings.servers[item.i] == &self.server_address {
+                    text.push_str("* ")
+                } else {
+                    text.push_str("  ")
+                }
+                text.push_str(&netsettings.servers[item.i]);
+
+                if item
+                    .set(
+                        Button::image(self.imgs.button_dark)
+                            .w_h(100.0, 53.0)
+                            .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                            .hover_image(self.imgs.button_dark_hover)
+                            .press_image(self.imgs.button_dark_press)
+                            .label_y(Relative::Scalar(2.0))
+                            .label(&text)
+                            .label_font_size(20)
+                            .label_color(TEXT_COLOR),
+                        ui_widgets,
+                    )
+                    .was_clicked()
+                {
+                    // TODO: Set as current server address
+                    self.server_address = netsettings.servers[item.i].clone();
+                }
+            }
+
+            if Button::image(self.imgs.button_dark)
+                .w_h(200.0, 53.0)
+                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                .hover_image(self.imgs.button_dark_hover)
+                .press_image(self.imgs.button_dark_press)
+                .label_y(Relative::Scalar(2.0))
+                .label("Close")
+                .label_font_size(20)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.servers_close, ui_widgets)
+                .was_clicked()
+            {
+                self.show_servers = false
+            };
+        }
         // Server address
         Image::new(self.imgs.input_bg)
             .w_h(337.0, 67.0)
@@ -352,7 +419,6 @@ impl MainMenuUi {
             .was_clicked()
         {
             singleplayer!();
-            login!();
         }
         // Quit
         if Button::image(self.imgs.button)
@@ -394,7 +460,9 @@ impl MainMenuUi {
             .label_y(Relative::Scalar(3.0))
             .set(self.ids.servers_button, ui_widgets)
             .was_clicked()
-        {};
+        {
+            self.show_servers = true;
+        };
 
         events
     }
@@ -412,9 +480,9 @@ impl MainMenuUi {
         self.ui.handle_event(event);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
-        let events = self.update_layout();
-        self.ui.maintain(renderer);
+    pub fn maintain(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
+        let events = self.update_layout(global_state);
+        self.ui.maintain(global_state.window.renderer_mut());
         events
     }
 
