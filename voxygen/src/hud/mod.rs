@@ -956,31 +956,29 @@ impl Hud {
         }
 
         // Bag
-        if self.show_ui {
-            if !self.map_open && self.show_ui {
-                self.bag_open = ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
-                    .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                    .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
-                    .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
-                    .w_h(420.0 / 10.0, 480.0 / 10.0)
-                    .set(self.ids.bag, ui_widgets);
-                    Text::new("B")
-                    .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
-                    .font_size(10)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.bag_text, ui_widgets);
-            } else {
-                Image::new(self.imgs.bag)
-                    .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                    .w_h(420.0 / 10.0, 480.0 / 10.0)
-                    .set(self.ids.bag_map_open, ui_widgets);
+        if !self.map_open && self.show_ui {
+            self.bag_open = ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
+                .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
+                .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
+                .w_h(420.0 / 10.0, 480.0 / 10.0)
+                .set(self.ids.bag, ui_widgets);
                 Text::new("B")
-                    .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
-                    .font_size(10)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.bag_text, ui_widgets);
+                .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
+                .font_size(10)
+                .color(TEXT_COLOR)
+                .set(self.ids.bag_text, ui_widgets);
+        } else {
+            Image::new(self.imgs.bag)
+                .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .w_h(420.0 / 10.0, 480.0 / 10.0)
+                .set(self.ids.bag_map_open, ui_widgets);
+            Text::new("B")
+                .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
+                .font_size(10)
+                .color(TEXT_COLOR)
+                .set(self.ids.bag_text, ui_widgets);
 
-            }
         }
 
         //Windows
