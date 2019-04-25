@@ -1666,7 +1666,7 @@ impl Hud {
         self.show_ui = !self.show_ui;
     }
 
-    fn toggle_windows(&mut self) {
+    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
         if self.bag_open
             || self.menu_open
             || self.map_open
@@ -1679,8 +1679,10 @@ impl Hud {
             self.menu_open = false;
             self.map_open = false;
             self.open_windows = Windows::None;
+            global_state.window.grab_cursor(true);
         } else {
             self.menu_open = true;
+            global_state.window.grab_cursor(false);
         }
     }
 
@@ -1721,7 +1723,7 @@ impl Hud {
                     self.ui.focus_widget(None);
                 } else {
                     // Close windows on esc
-                    self.toggle_windows();
+                    self.toggle_windows(global_state);
                 }
                 true
             }
