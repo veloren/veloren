@@ -11,7 +11,6 @@ pub struct Window {
     window: glutin::GlWindow,
     cursor_grabbed: bool,
     needs_refresh_resize: bool,
-    settings_changed: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
     supplement_events: Vec<Event>,
 }
@@ -61,7 +60,6 @@ impl Window {
             window,
             cursor_grabbed: false,
             needs_refresh_resize: false,
-            settings_changed: true,
             key_map,
             supplement_events: vec![],
         });
@@ -82,11 +80,6 @@ impl Window {
         if self.needs_refresh_resize {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
-        }
-
-        if self.settings_changed {
-            events.push(Event::SettingsChanged);
-            self.settings_changed = false;
         }
 
         // Copy data that is needed by the events closure to avoid lifetime errors
@@ -219,8 +212,4 @@ pub enum Event {
     Ui(ui::Event),
     /// Game settings have changed
     SettingsChanged,
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> Update help window to use player's keybindings (fix #42)

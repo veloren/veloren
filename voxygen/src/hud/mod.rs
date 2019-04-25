@@ -480,11 +480,7 @@ pub struct Hud {
     mana_percentage: f64,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
-<<<<<<< HEAD
     settings: Settings,
-=======
-    help_text: String,
->>>>>>> Update help window to use player's keybindings (fix #42)
 }
 
 //#[inline]
@@ -536,11 +532,7 @@ impl Hud {
             xp_percentage: 0.4,
             hp_percentage: 1.0,
             mana_percentage: 1.0,
-<<<<<<< HEAD
             settings: settings,
-=======
-            help_text: get_help_text(&Settings::default().controls),
->>>>>>> Update help window to use player's keybindings (fix #42)
         }
     }
 
@@ -1772,11 +1764,7 @@ impl Hud {
             },
             WinEvent::Char(_) => self.typing(),
             WinEvent::SettingsChanged => {
-<<<<<<< HEAD
                 self.settings = global_state.settings.clone();
-=======
-                self.help_text = get_help_text(&global_state.settings.controls);
->>>>>>> Update help window to use player's keybindings (fix #42)
                 true
             },
             _ => false,
