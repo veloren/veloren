@@ -83,9 +83,6 @@ fn main() {
     };
     let window = Window::new(&settings).expect("Failed to create window");
 
-    // Set up file logging
-    //simple_logging::log_to_file(&settings.log.file, log::LevelFilter::Info);
-
     // Init logging
     CombinedLogger::init(vec![
         TermLogger::new(log::LevelFilter::Warn, Config::default()).unwrap(),
