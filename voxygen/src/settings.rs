@@ -1,15 +1,9 @@
-use config::{
-    Config,
-    ConfigError,
-};
-use serde_derive::{Serialize, Deserialize};
+use config::{Config, ConfigError};
+use directories::ProjectDirs;
 use glutin::VirtualKeyCode;
+use serde_derive::{Deserialize, Serialize};
+use std::{fs::File, io::prelude::*, path::PathBuf};
 use toml;
-use std::{
-    io::prelude::*,
-    fs::File,
-    path::PathBuf,
-};
 
 /// Settings contains everything that can be configured in the Settings.toml file
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -76,7 +70,7 @@ impl Default for Settings {
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
-                servers: vec!("server.veloren.net".to_string()),
+                servers: vec!["server.veloren.net".to_string()],
                 default_server: 0,
             },
             log: Log {
@@ -84,21 +78,39 @@ impl Default for Settings {
             },
         }
     }
-
 }
 
 impl Settings {
     pub fn load() -> Result<Self, ConfigError> {
         let mut config = Config::new();
-        config.merge(Config::try_from(&Settings::default())?);
-        config.merge(config::File::with_name("settings"))?;
+
+        config.merge(
+            Config::try_from(&Settings::default())
+                .expect("Default settings struct could not be converted to Config"),
+        );
+
+        let path = Settings::get_settings_path();
+
+        config.merge::<config::File<config::FileSourceFile>>(path.into())?;
+
         config.try_into()
     }
 
     pub fn save_to_file(&self) -> std::io::Result<()> {
-        let mut config_file = File::create("settings.toml")?;
+        let path = Settings::get_settings_path();
+
+        let mut config_file = File::create(path)?;
         let s: &str = &toml::to_string_pretty(self).unwrap();
         config_file.write_all(s.as_bytes()).unwrap();
         Ok(())
+    }
+
+    fn get_settings_path() -> PathBuf {
+        let proj_dirs =
+            ProjectDirs::from("net", "veloren", "voxygen").expect("No home directory defined.");
+        let path = proj_dirs.config_dir();
+        path.join("settings");
+        let path = path.with_extension("toml");
+        path
     }
 }
