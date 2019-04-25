@@ -14,6 +14,7 @@ use std::default::Default;
 #[serde(default)]
 pub struct Settings {
     pub controls: ControlSettings,
+    pub networking: NetworkingSettings,
 }
 
 /// ControlSettings contains keybindings
@@ -37,6 +38,13 @@ pub struct ControlSettings {
     pub toggle_interface: VirtualKeyCode,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct NetworkingSettings {
+    pub username: String,
+    pub servers: Vec<String>,
+    pub default_server: usize,
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Settings {
@@ -57,6 +65,11 @@ impl Default for Settings {
                 settings: VirtualKeyCode::N,
                 help: VirtualKeyCode::F1,
                 toggle_interface: VirtualKeyCode::F2,
+            },
+            networking: NetworkingSettings {
+                username: "Username".to_string(),
+                servers: vec!("server.veloren.net".to_string()),
+                default_server: 0,
             },
         }
     }
