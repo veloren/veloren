@@ -146,10 +146,8 @@ impl Client {
         // Handle new messages from the server
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        self.state.terrain().iter().for_each(|(k, _)| {
-            //println!("Chunk at {:?}", k);
-        });
-
+        // Pass character control from frontend input to the player's entity
+        // TODO: Only do this if the entity already has a Control component!
         self.state.write_component(
             self.entity,
             comp::Control {
@@ -186,16 +184,28 @@ impl Client {
             }
         }
 
-        // Request chunks from the server
-        if let Some(pos) = self
+        let pos = self
             .state
             .read_storage::<comp::phys::Pos>()
             .get(self.entity)
-        {
+            .cloned();
+        if let Some(pos) = pos {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
-            for i in chunk_pos.x - 1..chunk_pos.x + 1 {
-                for j in chunk_pos.y - 1..chunk_pos.y + 1 {
+            // Remove chunks that are too far from the player
+            let mut chunks_to_remove = Vec::new();
+            self.state.terrain().iter().for_each(|(k, _)| {
+                if (chunk_pos - k).map(|e| e.abs()).reduce_max() > 3 {
+                    chunks_to_remove.push(k);
+                }
+            });
+            for key in chunks_to_remove {
+                self.state.remove_chunk(key);
+            }
+
+            // Request chunks from the server
+            for i in chunk_pos.x - 1..chunk_pos.x + 2 {
+                for j in chunk_pos.y - 1..chunk_pos.y + 2 {
                     for k in 0..2 {
                         let key = Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
