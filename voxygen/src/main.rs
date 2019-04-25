@@ -100,7 +100,7 @@ A critical error has occured and Voxygen has been forced to terminate in an unus
 
 > What should I do?
 
-This panic is not intended, and we need your help to fix it. You can do that by contacting us (the Veloren developers) to report this problem. You can open an issue on the Veloren issue tracker here:
+We need your help to fix this! You can help by contacting us and reporting this problem. To do this, open an issue on the Veloren issue tracker:
 
 https://www.gitlab.com/veloren/veloren/issues/new
 
@@ -108,15 +108,15 @@ If you're on the Veloren community Discord server, we'd be grateful if you could
 
 > What should I include?
 
-The error information below will be useful to us in determining the source of the problem. Please also include as much information as you can about your setup and the events that led up to the panic.
+The error information below will be useful in finding and fixing the problem. Please include as much information about your setup and the events that led up to the panic as possible.
 
-Voxygen has also logged information about the problem (including this message) to the file {:#?}. Please include the contents of this file in your bug report.
+Voxygen has logged information about the problem (including this message) to the file {:#?}. Please include the contents of this file in your bug report.
 
 > Error information
 
 The information below is intended for developers and testers.
 
-{:#?}", settings_clone.log.file, panic_info);
+{:?}", settings_clone.log.file, panic_info);
 
         log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
 
