@@ -152,10 +152,12 @@ impl MainMenuUi {
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-             ui.new_font(conrod_core::text::Font::from_bytes(
-                 assets::load(fullpath.as_str())
-                .expect("Error loading file")
-            ).unwrap())
+            ui.new_font(
+                conrod_core::text::Font::from_bytes(
+                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                )
+                .unwrap(),
+            )
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
@@ -167,7 +169,7 @@ impl MainMenuUi {
             font_metamorph,
             font_opensans,
             username: networking.username.clone(),
-            server_address,
+            server_address: networking.servers[networking.default_server].clone(),
             login_error: None,
             connecting: None,
             show_servers: false,
