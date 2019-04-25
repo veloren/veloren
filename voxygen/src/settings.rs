@@ -5,9 +5,11 @@ use config::{
 use serde_derive::{Serialize, Deserialize};
 use glutin::VirtualKeyCode;
 use toml;
-use std::fs::File;
-use std::io::prelude::*;
-use std::default::Default;
+use std::{
+    io::prelude::*,
+    fs::File,
+    path::PathBuf,
+};
 
 /// Settings contains everything that can be configured in the Settings.toml file
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -15,6 +17,7 @@ use std::default::Default;
 pub struct Settings {
     pub controls: ControlSettings,
     pub networking: NetworkingSettings,
+    pub log: Log,
 }
 
 /// ControlSettings contains keybindings
@@ -45,6 +48,11 @@ pub struct NetworkingSettings {
     pub default_server: usize,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Log {
+    pub file: PathBuf,
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Settings {
@@ -70,6 +78,9 @@ impl Default for Settings {
                 username: "Username".to_string(),
                 servers: vec!("server.veloren.net".to_string()),
                 default_server: 0,
+            },
+            log: Log {
+                file: "voxygen.log".into(),
             },
         }
     }
