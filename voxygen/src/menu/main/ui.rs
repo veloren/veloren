@@ -1,10 +1,11 @@
 use crate::{
+    assets,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
-use common::{assets, figure::Segment};
+use common::figure::Segment;
 use conrod_core::{
     color,
     color::TRANSPARENT,

@@ -1,4 +1,5 @@
 use crate::{
+    assets,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
