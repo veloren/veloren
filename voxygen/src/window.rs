@@ -83,6 +83,7 @@ impl Window {
 
         if self.settings_changed {
             events.push(Event::SettingsChanged);
+            self.settings_changed = false;
         }
 
         // Copy data that is needed by the events closure to avoid lifetime errors
