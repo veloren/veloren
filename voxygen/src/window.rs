@@ -11,8 +11,8 @@ pub struct Window {
     window: glutin::GlWindow,
     cursor_grabbed: bool,
     needs_refresh_resize: bool,
-    settings_changed: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
+    supplement_events: Vec<Event>,
 }
 
 impl Window {
@@ -60,8 +60,8 @@ impl Window {
             window,
             cursor_grabbed: false,
             needs_refresh_resize: false,
-            settings_changed: true,
             key_map,
+            supplement_events: vec![],
         });
         tmp
     }
@@ -75,15 +75,11 @@ impl Window {
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
         let mut events = vec![];
+        events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
             self.needs_refresh_resize = false;
-        }
-
-        if self.settings_changed {
-            events.push(Event::SettingsChanged);
-            self.settings_changed = false;
         }
 
         // Copy data that is needed by the events closure to avoid lifetime errors
@@ -169,8 +165,8 @@ impl Window {
         Vec2::new(w, h)
     }
     
-    pub fn settings_changed(&mut self) {
-        self.settings_changed = true;
+    pub fn send_supplement_event(&mut self, event: Event) {
+        self.supplement_events.push(event)
     }
 }
 

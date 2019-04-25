@@ -480,7 +480,7 @@ pub struct Hud {
     mana_percentage: f64,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
-    help_text: String,
+    settings: Settings,
 }
 
 //#[inline]
@@ -489,7 +489,7 @@ pub struct Hud {
 //}
 
 impl Hud {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(window: &mut Window, settings: Settings) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -532,7 +532,7 @@ impl Hud {
             xp_percentage: 0.4,
             hp_percentage: 1.0,
             mana_percentage: 1.0,
-            help_text: get_help_text(&Settings::default().controls),
+            settings: settings,
         }
     }
 
@@ -602,7 +602,7 @@ impl Hud {
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
                 .w_h(300.0, 450.0)
                 .set(self.ids.help_bg, ui_widgets);
-            Text::new(self.help_text.as_str())
+            Text::new(get_help_text(&self.settings.controls).as_str())
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
                 .font_id(self.font_opensans)
@@ -959,7 +959,7 @@ impl Hud {
                 .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag, ui_widgets);
-                Text::new("B")
+                Text::new(&format!("{:?}", self.settings.controls.bag))
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .color(TEXT_COLOR)
@@ -969,7 +969,7 @@ impl Hud {
                 .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag_map_open, ui_widgets);
-            Text::new("B")
+            Text::new(&format!("{:?}", self.settings.controls.bag))
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .color(TEXT_COLOR)
@@ -1764,7 +1764,7 @@ impl Hud {
             },
             WinEvent::Char(_) => self.typing(),
             WinEvent::SettingsChanged => {
-                self.help_text = get_help_text(&global_state.settings.controls);
+                self.settings = global_state.settings.clone();
                 true
             },
             _ => false,
