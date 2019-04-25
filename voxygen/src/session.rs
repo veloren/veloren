@@ -15,6 +15,7 @@ use crate::{
     window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
+    settings::Settings,
     hud::{Hud, Event as HudEvent},
 };
 
@@ -31,14 +32,14 @@ pub struct SessionState {
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
     /// Create a new `SessionState`
-    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>) -> Self {
+    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, settings: Settings) -> Self {
         // Create a scene for this session. The scene handles visible elements of the game world
         let scene = Scene::new(window.renderer_mut(), &client.borrow());
         Self {
             scene,
             client,
             key_state: KeyState::new(),
-            hud: Hud::new(window),
+            hud: Hud::new(window, settings),
         }
     }
 }
