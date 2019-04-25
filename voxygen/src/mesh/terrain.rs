@@ -95,7 +95,7 @@ impl<M> Meshable for Dyna<Block, M> {
                     .unwrap_or(true)
                 {
                     mesh.push_quad(create_quad(
-                        -Vec3::one() + pos.map(|e| e as f32),
+                        offs,
                         Vec3::unit_x(),
                         Vec3::unit_z(),
                         -Vec3::unit_y(),

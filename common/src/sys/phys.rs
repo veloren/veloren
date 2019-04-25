@@ -10,7 +10,7 @@ use crate::{
 // Basic ECS physics system
 pub struct Sys;
 
-const GRAVITY: f32 = 9.81;
+const GRAVITY: f32 = 9.81 * 2.0;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -31,12 +31,12 @@ impl<'a> System<'a> for Sys {
             // Basic collision with terrain
             let mut i = 0;
             while terrain
-                .get(pos.0.map(|e| e as i32))
+                .get(pos.0.map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false) &&
-                i < 20
+                i < 80
             {
-                pos.0.z += 0.01;
+                pos.0.z += 0.005;
                 vel.0.z = 0.0;
                 i += 1;
             }
