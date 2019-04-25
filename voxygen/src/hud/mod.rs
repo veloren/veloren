@@ -2,6 +2,7 @@ mod chat;
 
 use crate::{
     render::Renderer,
+    settings::{Settings, ControlSettings},
     ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
@@ -479,6 +480,7 @@ pub struct Hud {
     mana_percentage: f64,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
+    help_text: String,
 }
 
 //#[inline]
@@ -530,6 +532,7 @@ impl Hud {
             xp_percentage: 0.4,
             hp_percentage: 1.0,
             mana_percentage: 1.0,
+            help_text: get_help_text(&Settings::default().controls),
         }
     }
 
@@ -597,25 +600,14 @@ impl Hud {
         if self.show_help {
             Image::new(self.imgs.window_frame_2)
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(300.0, 190.0)
+                .w_h(300.0, 450.0)
                 .set(self.ids.help_bg, ui_widgets);
-
-            Text::new(
-                "Tab = Free Cursor       \n\
-                 Esc = Open/Close Menus  \n\
-                 \n\
-                 F1 = Toggle this Window \n\
-                 F2 = Toggle Interface   \n\
-                 \n\
-                 Enter = Open Chat       \n\
-                 Mouse Wheel = Scroll Chat"
-            )
+            Text::new(self.help_text.as_str())
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
                 .font_id(self.font_opensans)
                 .font_size(18)
                 .set(self.ids.help, ui_widgets);
-
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(100.0 * 0.2, 100.0 * 0.2)
@@ -1771,6 +1763,10 @@ impl Hud {
                 _ => self.typing(),
             },
             WinEvent::Char(_) => self.typing(),
+            WinEvent::SettingsChanged => {
+                self.help_text = get_help_text(&global_state.settings.controls);
+                true
+            },
             _ => false,
         }
     }
@@ -1784,4 +1780,30 @@ impl Hud {
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer);
     }
+}
+
+fn get_help_text(cs: &ControlSettings) -> String {
+    [
+        format!("{:?} = Free cursor\n", cs.toggle_cursor),
+        format!("{:?} = Open/close menus\n", cs.escape),
+        String::from("\n"),
+        format!("{:?} = Toggle this window\n", cs.help),
+        format!("{:?} = Toggle interface\n", cs.toggle_interface),
+        String::from("\n"),
+        format!("{:?} = Open chat\n", cs.enter),
+        String::from("Mouse Wheel = Scroll chat\n"),
+        String::from("\n"),
+        format!("{:?} = Move forward\n", cs.move_forward),
+        format!("{:?} = Move left\n", cs.move_left),
+        format!("{:?} = Move right\n", cs.move_right),
+        format!("{:?} = Move backwards\n", cs.move_back),
+        String::from("\n"),
+        format!("{:?} = Map\n", cs.map),
+        format!("{:?} = Bag\n", cs.bag),
+        format!("{:?} = Quest log\n", cs.quest_log),
+        format!("{:?} = Character window\n", cs.character_window),
+        format!("{:?} = Social\n", cs.social),
+        format!("{:?} = Spellbook\n", cs.spellbook),
+        format!("{:?} = Settings\n", cs.settings)
+    ].concat()
 }
