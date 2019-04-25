@@ -92,15 +92,6 @@ impl FigureCache {
                     ];
 
 
-        let mut mesh = Mesh::new();
-        bone_meshes
-            .iter()
-            .enumerate()
-            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
-            .for_each(|(i, bone_mesh)| {
-                mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
-            });
-
                     let mut mesh = Mesh::new();
                     bone_meshes
                         .iter()
