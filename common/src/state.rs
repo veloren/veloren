@@ -183,6 +183,17 @@ impl State {
         }
     }
 
+    /// Remove the chunk with the given key from this state's terrain, if it exists
+    pub fn remove_chunk(&mut self, key: Vec3<i32>) {
+        if self.ecs
+            .write_resource::<TerrainMap>()
+            .remove(key)
+            .is_some()
+        {
+            self.changes.removed_chunks.insert(key);
+        }
+    }
+
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
         // Change the time accordingly

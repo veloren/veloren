@@ -1,5 +1,5 @@
-// Library
 use vek::*;
+use crate::ray::{Ray, RayUntil};
 
 /// A voxel
 pub trait Vox {
@@ -64,6 +64,12 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
+
+    fn ray(&self, from: Vec3<f32>, to: Vec3<f32>) -> Ray<Self, fn(&Self::Vox) -> bool>
+        where Self: Sized
+    {
+        Ray::new(self, from, to, |vox| !vox.is_empty())
+    }
 }
 
 /// A volume that provides the ability to sample (i.e: clone a section of) its voxel data.
