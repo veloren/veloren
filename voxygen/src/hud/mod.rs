@@ -630,10 +630,10 @@ impl Hud {
         }
 
         // Minimap frame and bg
-        Image::new(self.imgs.mmap_frame_bg)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);
+        //Image::new(self.imgs.mmap_frame_bg)
+            //.w_h(1750.0 / 8.0, 1650.0 / 8.0)
+            //.top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            //.set(self.ids.mmap_frame_bg, ui_widgets);
 
         Image::new(self.imgs.mmap_frame)
             .w_h(1750.0 / 8.0, 1650.0 / 8.0)

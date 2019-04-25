@@ -30,8 +30,9 @@ impl World {
         let mut chunk = TerrainChunk::filled(Block::empty(), TerrainChunkMeta::void());
 
         let air = Block::empty();
-        let stone = Block::new(1, Rgb::new(200, 220, 255));
-        let grass = Block::new(2, Rgb::new(50, 255, 0));
+        let stone = Block::new(1, Rgb::new(200, 220, 255));        
+        let grass = Block::new(2, Rgb::new(75, 150, 0));
+        //let grass = Block::new(2, Rgb::new(50, 255, 0));
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
         let sand = Block::new(4, Rgb::new(180, 150, 50));
 
