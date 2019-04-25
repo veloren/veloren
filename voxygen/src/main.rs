@@ -18,15 +18,9 @@ pub mod singleplayer;
 // Reexports
 pub use crate::error::Error;
 
-// Standard
-use std::mem;
-use std::thread;
-
-// Library
+use std::{mem, thread, panic, fs::File};
 use log;
-use pretty_env_logger;
-
-// Crate
+use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config};
 use crate::{
     menu::main::MainMenuState,
     window::Window,
@@ -78,9 +72,6 @@ pub trait PlayState {
 }
 
 fn main() {
-    // Init logging
-    pretty_env_logger::init();
-
     // Set up the global state
     let settings = match Settings::load() {
         Ok(settings) => settings,
@@ -91,6 +82,43 @@ fn main() {
         },
     };
     let window = Window::new(&settings).expect("Failed to create window");
+
+    // Init logging
+    CombinedLogger::init(vec![
+        TermLogger::new(log::LevelFilter::Warn, Config::default()).unwrap(),
+        WriteLogger::new(log::LevelFilter::Info, Config::default(), File::create(&settings.log.file).unwrap()),
+    ]).unwrap();
+
+    // Set up panic handler to relay swish panic messages to the user
+    let settings_clone = settings.clone();
+    panic::set_hook(Box::new(move |panic_info| {
+        let msg = format!(" \
+A critical error has occured and Voxygen has been forced to terminate in an unusual manner. Details about the error can be found below.
+
+> What should I do?
+
+We need your help to fix this! You can help by contacting us and reporting this problem. To do this, open an issue on the Veloren issue tracker:
+
+https://www.gitlab.com/veloren/veloren/issues/new
+
+If you're on the Veloren community Discord server, we'd be grateful if you could also post a message in the #support channel.
+
+> What should I include?
+
+The error information below will be useful in finding and fixing the problem. Please include as much information about your setup and the events that led up to the panic as possible.
+
+Voxygen has logged information about the problem (including this message) to the file {:#?}. Please include the contents of this file in your bug report.
+
+> Error information
+
+The information below is intended for developers and testers.
+
+{:?}", settings_clone.log.file, panic_info);
+
+        log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
+
+        msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
+    }));
 
     let mut global_state = GlobalState {
         settings,
