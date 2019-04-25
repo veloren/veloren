@@ -170,106 +170,113 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
         let mut incoming_buf = Vec::new();
 
         'work: while running.load(Ordering::Relaxed) {
-            // Get stream errors
-            match stream.take_error() {
-                Ok(Some(e)) | Err(e) => {
-                    recv_tx.send(Err(e.into())).unwrap();
-                    break 'work;
-                },
-                Ok(None) => {},
-            }
-
-            // Try getting messages from the send channel
-            for _ in 0..1000 {
-                match send_rx.try_recv() {
-                    Ok(send_msg) => {
-                        // Serialize message
-                        let mut msg_bytes = bincode::serialize(&send_msg).unwrap();
-
-                        // Assemble into packet
-                        let mut packet_bytes = msg_bytes
-                            .len()
-                            .to_le_bytes()
-                            .as_ref()
-                            .to_vec();
-                        packet_bytes.append(&mut msg_bytes);
-
-                        // Split packet into chunks
-                        packet_bytes
-                            .chunks(4096)
-                            .map(|chunk| chunk.to_vec())
-                            .for_each(|chunk| outgoing_chunks.push_back(chunk))
-                    },
-                    Err(mpsc::TryRecvError::Empty) => break,
-                    // Worker error
-                    Err(e) => {
-                        let _ = recv_tx.send(Err(e.into()));
+            for _ in 0..30 {
+                // Get stream errors
+                match stream.take_error() {
+                    Ok(Some(e)) | Err(e) => {
+                        recv_tx.send(Err(e.into())).unwrap();
                         break 'work;
                     },
+                    Ok(None) => {},
                 }
-            }
 
-            // Try sending bytes through the TCP stream
-            for _ in 0..1000 {
-                //println!("HERE! Outgoing len: {}", outgoing_chunks.len());
-                match outgoing_chunks.pop_front() {
-                    Some(chunk) => match stream.write_all(&chunk) {
-                        Ok(()) => {},
-                        Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                            // Return chunk to the queue to try again later
-                            outgoing_chunks.push_front(chunk);
-                            break;
+                // Try getting messages from the send channel
+                for _ in 0..100 {
+                    match send_rx.try_recv() {
+                        Ok(send_msg) => {
+                            // Serialize message
+                            let mut msg_bytes = bincode::serialize(&send_msg).unwrap();
+
+                            // Assemble into packet
+                            let mut packet_bytes = msg_bytes
+                                .len()
+                                .to_le_bytes()
+                                .as_ref()
+                                .to_vec();
+                            packet_bytes.append(&mut msg_bytes);
+
+                            // Split packet into chunks
+                            packet_bytes
+                                .chunks(4096)
+                                .map(|chunk| chunk.to_vec())
+                                .for_each(|chunk| outgoing_chunks.push_back(chunk))
                         },
+                        Err(mpsc::TryRecvError::Empty) => break,
+                        // Worker error
+                        Err(e) => {
+                            let _ = recv_tx.send(Err(e.into()));
+                            break 'work;
+                        },
+                    }
+                }
+
+                // Try sending bytes through the TCP stream
+                for _ in 0..100 {
+                    //println!("HERE! Outgoing len: {}", outgoing_chunks.len());
+                    match outgoing_chunks.pop_front() {
+                        Some(mut chunk) => match stream.write(&chunk) {
+                            Ok(n) => if n == chunk.len() {},
+                            Ok(n) => {
+                                outgoing_chunks.push_front(chunk.split_off(n));
+                                break;
+                            },
+                            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                                // Return chunk to the queue to try again later
+                                outgoing_chunks.push_front(chunk);
+                                break;
+                            },
+                            // Worker error
+                            Err(e) => {
+                                println!("SEND ERROR: {:?}", e);
+                                recv_tx.send(Err(e.into())).unwrap();
+                                break 'work;
+                            },
+                        },
+                        None => break,
+                    }
+                }
+
+                // Try receiving bytes from the TCP stream
+                for _ in 0..100 {
+                    let mut buf = [0; 4096];
+
+                    match stream.read(&mut buf) {
+                        Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
+                        Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
                         // Worker error
                         Err(e) => {
                             recv_tx.send(Err(e.into())).unwrap();
                             break 'work;
                         },
-                    },
-                    None => break,
+                    }
                 }
-            }
 
-            // Try receiving bytes from the TCP stream
-            for _ in 0..1000 {
-                let mut buf = [0; 1024];
+                // Try turning bytes into messages
+                for _ in 0..100 {
+                    match incoming_buf.get(0..8) {
+                        Some(len_bytes) => {
+                            let len = usize::from_le_bytes(<[u8; 8]>::try_from(len_bytes).unwrap()); // Can't fail
 
-                match stream.read(&mut buf) {
-                    Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
-                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                    Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
-                    // Worker error
-                    Err(e) => {
-                        recv_tx.send(Err(e.into())).unwrap();
-                        break 'work;
-                    },
-                }
-            }
+                            if len > MAX_MSG_SIZE {
+                                recv_tx.send(Err(Error::InvalidMessage)).unwrap();
+                                break 'work;
+                            } else if incoming_buf.len() >= len + 8 {
+                                match bincode::deserialize(&incoming_buf[8..len + 8]) {
+                                    Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
+                                    Err(err) => {
+                                        println!("Invalid message: {:?}", err);
+                                        recv_tx.send(Err(err.into())).unwrap()
+                                    },
+                                }
 
-            // Try turning bytes into messages
-            for _ in 0..1000 {
-                match incoming_buf.get(0..8) {
-                    Some(len_bytes) => {
-                        let len = usize::from_le_bytes(<[u8; 8]>::try_from(len_bytes).unwrap()); // Can't fail
-
-                        if len > MAX_MSG_SIZE {
-                            recv_tx.send(Err(Error::InvalidMessage)).unwrap();
-                            break 'work;
-                        } else if incoming_buf.len() >= len + 8 {
-                            match bincode::deserialize(&incoming_buf[8..len + 8]) {
-                                Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
-                                Err(err) => {
-                                    println!("Invalid message: {:?}", err);
-                                    recv_tx.send(Err(err.into())).unwrap()
-                                },
+                                incoming_buf = incoming_buf.split_off(len + 8);
+                            } else {
+                                break;
                             }
-
-                            incoming_buf = incoming_buf.split_off(len + 8);
-                        } else {
-                            break;
-                        }
-                    },
-                    None => break,
+                        },
+                        None => break,
+                    }
                 }
             }
 
