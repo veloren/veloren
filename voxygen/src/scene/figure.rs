@@ -91,6 +91,16 @@ impl FigureCache {
                         None,
                     ];
 
+
+        let mut mesh = Mesh::new();
+        bone_meshes
+            .iter()
+            .enumerate()
+            .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i, bm)))
+            .for_each(|(i, bone_mesh)| {
+                mesh.push_mesh_map(bone_mesh, |vert| vert.with_bone_idx(i as u8))
+            });
+
                     let mut mesh = Mesh::new();
                     bone_meshes
                         .iter()
@@ -126,49 +136,49 @@ impl FigureCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(match head {
             Head::DefaultHead => "head.vox",
-        }, Vec3::new(-3.5, -7.0, -6.0))
+        }, Vec3::new(-5.5, -7.0, -6.0))
     }
 
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(match chest {
             Chest::DefaultChest => "chest.vox",
-        }, Vec3::new(-3.0, -6.0, 0.0))
+        }, Vec3::new(-2.5, -6.0, 0.0))
     }
 
     fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
         Self::load_mesh(match belt {
             Belt::DefaultBelt => "belt.vox",
-        }, Vec3::new(-3.0, -5.0, 0.0))
+        }, Vec3::new(-2.5, -5.0, 0.0))
     }
 
     fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
         Self::load_mesh(match pants {
             Pants::DefaultPants => "pants.vox",
-        }, Vec3::new(-3.0, -5.0, 0.0))
+        }, Vec3::new(-2.5, -5.0, 0.0))
     }
 
     fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(match hand {
             Hand::DefaultHand => "hand.vox",
-        }, Vec3::new(0.0, -2.0, -6.0))
+        }, Vec3::new(0.0, -2.0, -7.0))
     }
 
     fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(match hand {
             Hand::DefaultHand => "hand.vox",
-        }, Vec3::new(0.0, -2.0, -6.0))
+        }, Vec3::new(0.0, -2.0, -7.0))
     }
 
     fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(match foot {
             Foot::DefaultFoot => "foot.vox",
-        }, Vec3::new(-4.0, -2.5, -6.0))
+        }, Vec3::new(-3.5, -2.5, -8.0))
     }
 
     fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(match foot {
             Foot::DefaultFoot => "foot.vox",
-        }, Vec3::new(-4.0, -2.5, -6.0))
+        }, Vec3::new(-3.5, -2.5, -8.0))
     }
 
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
@@ -176,8 +186,9 @@ impl FigureCache {
             Weapon::Sword => "sword.vox",
             // TODO actually match against other weapons and set the right model
             _ => "sword.vox",
-        }, Vec3::new(0.0, 0.0, 0.0))
+        }, Vec3::new(0.0, 0.0, -4.0))
     }
+
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();

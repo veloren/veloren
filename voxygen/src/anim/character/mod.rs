@@ -26,7 +26,10 @@ pub struct CharacterSkeleton {
     r_hand: Bone,
     l_foot: Bone,
     r_foot: Bone,
-    back: Bone,
+    weapon: Bone,
+    torso: Bone,
+    l_shoulder: Bone,
+    r_shoulder: Bone,
 }
 
 impl CharacterSkeleton {
@@ -40,7 +43,11 @@ impl CharacterSkeleton {
             r_hand: Bone::default(),
             l_foot: Bone::default(),
             r_foot: Bone::default(),
-            back: Bone::default(),
+            weapon: Bone::default(),
+            torso: Bone::default(),
+            l_shoulder: Bone::default(),
+            r_shoulder: Bone::default(),
+
         }
     }
 }
@@ -48,24 +55,27 @@ impl CharacterSkeleton {
 impl Skeleton for CharacterSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let chest_mat = self.chest.compute_base_matrix();
-
+        let torso_mat = self.torso.compute_base_matrix();
         [
-            FigureBoneData::new(self.head.compute_base_matrix()),
-            FigureBoneData::new(chest_mat),
-            FigureBoneData::new(self.belt.compute_base_matrix()),
-            FigureBoneData::new(self.shorts.compute_base_matrix()),
-            FigureBoneData::new(self.l_hand.compute_base_matrix()),
-            FigureBoneData::new(self.r_hand.compute_base_matrix()),
-            FigureBoneData::new(self.l_foot.compute_base_matrix()),
-            FigureBoneData::new(self.r_foot.compute_base_matrix()),
-            FigureBoneData::new(chest_mat * self.back.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat),
+            FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.l_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.r_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.weapon.compute_base_matrix()),
+            FigureBoneData::new(torso_mat),
+            //FigureBoneData::new(torso_mat * self.l_shoulder.compute_base_matrix()),
+            //FigureBoneData::new(torso_mat * self.r_shoulder.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-            FigureBoneData::default(),
+
         ]
     }
 
@@ -78,6 +88,10 @@ impl Skeleton for CharacterSkeleton {
         self.r_hand.interpolate(&target.r_hand);
         self.l_foot.interpolate(&target.l_foot);
         self.r_foot.interpolate(&target.r_foot);
-        self.back.interpolate(&target.back);
+        self.weapon.interpolate(&target.weapon);
+        self.torso.interpolate(&target.torso);
+        self.l_shoulder.interpolate(&target.l_shoulder);
+        self.r_shoulder.interpolate(&target.r_shoulder);
+
     }
 }
