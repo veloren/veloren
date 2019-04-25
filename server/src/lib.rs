@@ -8,10 +8,20 @@ pub mod input;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use crate::{
-    client::{Client, Clients},
-    cmd::CHAT_COMMANDS,
+use std::{
+    collections::HashSet,
+    net::SocketAddr,
+    sync::mpsc,
+    time::Duration,
+    i32,
 };
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
+};
+use threadpool::ThreadPool;
+use vek::*;
+use world::World;
 use common::{
     comp,
     comp::character::Animation,
@@ -20,14 +30,10 @@ use common::{
     state::{State, Uid},
     terrain::TerrainChunk,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
 };
-use std::{collections::HashSet, net::SocketAddr, sync::mpsc, time::Duration};
-use threadpool::ThreadPool;
-use vek::*;
-use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -187,9 +193,7 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
-            )
-                .join()
-            {
+            ).join() {
                 // TODO: Distance check
                 // if self.state.terrain().key_pos(key)
 
@@ -200,6 +204,30 @@ impl Server {
             }
 
             self.state.insert_chunk(key, chunk);
+            self.pending_chunks.remove(&key);
+        }
+
+        // Remove chunks that are too far from players
+        let mut chunks_to_remove = Vec::new();
+        self.state.terrain().iter().for_each(|(k, _)| {
+            let mut min_dist = i32::MAX;
+
+            // For each player with a position, calculate the distance
+            for (_, pos) in (
+                &self.state.ecs().read_storage::<comp::Player>(),
+                &self.state.ecs().read_storage::<comp::phys::Pos>(),
+            ).join() {
+                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+                let dist = (chunk_pos - k).map(|e| e.abs()).reduce_max();
+                min_dist = min_dist.min(dist);
+            }
+
+            if min_dist > 3 {
+                chunks_to_remove.push(k);
+            }
+        });
+        for key in chunks_to_remove {
+            self.state.remove_chunk(key);
         }
 
         // Synchronise clients with the new state of the world
