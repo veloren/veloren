@@ -8,10 +8,20 @@ pub mod input;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use crate::{
-    client::{Client, Clients},
-    cmd::CHAT_COMMANDS,
+use std::{
+    collections::HashSet,
+    net::SocketAddr,
+    sync::mpsc,
+    time::Duration,
+    i32,
 };
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
+};
+use threadpool::ThreadPool;
+use vek::*;
+use world::World;
 use common::{
     comp,
     comp::character::Animation,
@@ -20,14 +30,10 @@ use common::{
     state::{State, Uid},
     terrain::TerrainChunk,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
 };
-use std::{collections::HashSet, net::SocketAddr, sync::mpsc, time::Duration};
-use threadpool::ThreadPool;
-use vek::*;
-use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -112,7 +118,7 @@ impl Server {
         self.state
             .ecs_mut()
             .create_entity_synced()
-            .with(comp::phys::Pos(Vec3::zero()))
+            .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(character)
@@ -125,7 +131,7 @@ impl Server {
         character: comp::Character,
     ) {
         state.write_component(entity, character);
-        state.write_component(entity, comp::phys::Pos(Vec3::zero()));
+        state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
         // Make sure everything is accepted
@@ -187,21 +193,43 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
-            )
-                .join()
-            {
-                // TODO: Distance check
-                // if self.state.terrain().key_pos(key)
+            ).join() {
+                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
 
-                /*
-                self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
-                    key,
-                    chunk: Box::new(chunk.clone()),
-                });
-                */
+                if dist < 4 {
+                    self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
+                        key,
+                        chunk: Box::new(chunk.clone()),
+                    });
+                }
             }
 
             self.state.insert_chunk(key, chunk);
+            self.pending_chunks.remove(&key);
+        }
+
+        // Remove chunks that are too far from players
+        let mut chunks_to_remove = Vec::new();
+        self.state.terrain().iter().for_each(|(key, _)| {
+            let mut min_dist = i32::MAX;
+
+            // For each player with a position, calculate the distance
+            for (_, pos) in (
+                &self.state.ecs().read_storage::<comp::Player>(),
+                &self.state.ecs().read_storage::<comp::phys::Pos>(),
+            ).join() {
+                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
+                min_dist = min_dist.min(dist);
+            }
+
+            if min_dist > 3 {
+                chunks_to_remove.push(key);
+            }
+        });
+        for key in chunks_to_remove {
+            self.state.remove_chunk(key);
         }
 
         // Synchronise clients with the new state of the world
@@ -322,10 +350,10 @@ impl Server {
                             }
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
-                                    Some(chunk) => {} /*client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
-                                    key,
-                                    chunk: Box::new(chunk.clone()),
-                                    }),*/
+                                    Some(chunk) => client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                                        key,
+                                        chunk: Box::new(chunk.clone()),
+                                    }),
                                     None => requested_chunks.push(key),
                                 }
                             }
