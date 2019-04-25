@@ -165,8 +165,10 @@ impl Terrain {
                 todo.active_worker = true;
             });
 
-        // Receive chunk meshes from worker threads, upload them to the GPU and then store them
-        while let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
+        // Receive a chunk mesh from a worker thread, upload it to the GPU and then store it
+        // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
+        // to the GPU upload. That still gives us a 60 chunks / second budget to play with.
+        if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
             match self.mesh_todo.iter().find(|todo| todo.pos == response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course)
@@ -180,7 +182,7 @@ impl Terrain {
                 },
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed
-                _ => continue,
+                _ => {},
             }
         }
     }
