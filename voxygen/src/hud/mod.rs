@@ -7,7 +7,8 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
-use common::{assets, figure::Segment};
+
+use common::figure::Segment;
 
 use conrod_core::{
     color,
@@ -23,11 +24,13 @@ widget_ids! {
         bag_space_add,
         inventorytest_button,
         inventorytest_button_label,
+        
         // Debug
         debug_bg,
         debug_button,
         debug_button_label,
         fps_counter,
+        
         // Game Version
         version,
 
@@ -56,10 +59,12 @@ widget_ids! {
         qlog_button_bg,
         bag_text,
         mmap_button,
-        //help
+        
+        // Help
         help,
         help_bg,
-        //ESC-Menu
+
+        // ESC-Menu
         esc_bg,
         fireplace,
         menu_button_1,
@@ -67,11 +72,13 @@ widget_ids! {
         menu_button_3,
         menu_button_4,
         menu_button_5,
-        //Mini-Map
+
+        // Mini-Map
         mmap_frame,
         mmap_frame_bg,
         mmap_location,
-        //Action-Bar
+
+        // Action-Bar
         xp_bar,
         l_click,
         r_click,
@@ -84,17 +91,20 @@ widget_ids! {
         xp_bar_progress,
         health_bar_color,
         mana_bar_color,
+
         // Level Display
         level_text,
         next_level_text,
-        //Window Frames
+
+        // Window Frames
         window_frame_0,
         window_frame_1,
         window_frame_2,
         window_frame_3,
         window_frame_4,
         window_frame_5,
-        //0 Settings-Window
+
+        // 0 Settings-Window
         settings_bg,
         settings_content,
         settings_icon,
@@ -106,7 +116,8 @@ widget_ids! {
         settings_scrollbar,
         controls_text,
         controls_controls,
-        //Contents
+        
+        // Contents
         button_help,
         button_help2,
         show_help_label,
@@ -116,13 +127,15 @@ widget_ids! {
         gameplay,
         controls,
         rectangle,
-        //1 Social
+
+        // 1 Social
         social_frame,
         social_bg,
         social_icon,
         social_close,
         social_title,
-        //2 Map
+
+        // 2 Map
         map_frame,
         map_bg,
         map_icon,
@@ -132,13 +145,15 @@ widget_ids! {
         map_frame_r,
         map_frame_bl,
         map_frame_br,
-        //3 Spellbook
+        
+        // 3 Spellbook
         spellbook_frame,
         spellbook_bg,
         spellbook_icon,
         spellbook_close,
         spellbook_title,
-        //4 Charwindow
+
+        // 4 Charwindow
         charwindow_frame,
         charwindow,
         charwindow_bg,
@@ -157,310 +172,13 @@ widget_ids! {
         charwindow_rectangle,
         charwindow_exp_rectangle,
         charwindow_exp_progress_rectangle,
-        //5 Quest-Log
+
+        // 5 Quest-Log
         questlog_frame,
         questlog_bg,
         questlog_icon,
         questlog_close,
         questlog_title,
-    }
-}
-
-// TODO: make macro to mimic widget_ids! for images ids or find another solution to simplify addition of new images.
-pub(self) struct Imgs {
-    // Bag
-    bag: ImgId,
-    bag_hover: ImgId,
-    bag_press: ImgId,
-    bag_open: ImgId,
-    bag_open_hover: ImgId,
-    bag_open_press: ImgId,
-    bag_contents: ImgId,
-    inv_grid: ImgId,
-    inv_slot: ImgId,
-
-    // Buttons
-    mmap_closed: ImgId,
-    mmap_closed_hover: ImgId,
-    mmap_closed_press: ImgId,
-    mmap_open: ImgId,
-    mmap_open_hover: ImgId,
-    mmap_open_press: ImgId,
-
-    settings: ImgId,
-    settings_hover: ImgId,
-    settings_press: ImgId,
-
-    social_button: ImgId,
-    social_hover: ImgId,
-    social_press: ImgId,
-
-    map_button: ImgId,
-    map_hover: ImgId,
-    map_press: ImgId,
-
-    spellbook_button: ImgId,
-    spellbook_hover: ImgId,
-    spellbook_press: ImgId,
-
-    character_button: ImgId,
-    character_hover: ImgId,
-    character_press: ImgId,
-
-    qlog_button: ImgId,
-    qlog_hover: ImgId,
-    qlog_press: ImgId,
-
-    // Close button
-    close_button: ImgId,
-    close_button_hover: ImgId,
-    close_button_press: ImgId,
-
-    // Menu
-    esc_bg: ImgId,
-    fireplace: ImgId,
-    button: ImgId,
-    button_hover: ImgId,
-    button_press: ImgId,
-
-    // MiniMap
-    mmap_frame: ImgId,
-    mmap_frame_closed: ImgId,
-
-    // SkillBar Module
-    sb_grid: ImgId,
-    sb_grid_bg: ImgId,
-    l_click: ImgId,
-    r_click: ImgId,
-    mana_bar: ImgId,
-    health_bar: ImgId,
-    xp_bar: ImgId,
-
-    //Buff Frame(s)
-    //buff_frame: ImgId,
-    //buff_frame_bg: ImgId,
-    //buff_frame_red: ImgId,
-    //buff_frame_green: ImgId,
-
-    //Missing: Buff Frame Animation
-    window_frame: ImgId,
-    window_frame_2: ImgId,
-    //Settings-Window
-    settings_frame_r: ImgId,
-    settings_frame_l: ImgId,
-    settings_button: ImgId,
-    settings_button_pressed: ImgId,
-    settings_button_hover: ImgId,
-    settings_button_press: ImgId,
-    settings_bg: ImgId,
-    settings_icon: ImgId,
-    settings_button_mo: ImgId,
-    check: ImgId,
-    check_mo: ImgId,
-    check_press: ImgId,
-    check_checked: ImgId,
-    check_checked_mo: ImgId,
-    slider: ImgId,
-    slider_indicator: ImgId,
-    button_blank: ImgId,
-    button_blue_mo: ImgId,
-    button_blue_press: ImgId,
-    window_bg: ImgId,
-    // Social-Window
-    social_bg: ImgId,
-    social_icon: ImgId,
-    // Map-Window
-    map_bg: ImgId,
-    map_icon: ImgId,
-    map_frame_l: ImgId,
-    map_frame_r: ImgId,
-    map_frame_bl: ImgId,
-    map_frame_br: ImgId,
-    // Spell Book Window
-    spellbook_bg: ImgId,
-    spellbook_icon: ImgId,
-    // Char Window
-    charwindow: ImgId,
-    charwindow_icon: ImgId,
-    charwindow_tab_bg: ImgId,
-    charwindow_tab: ImgId,
-    charwindow_expbar: ImgId,
-    progress_frame: ImgId,
-    progress: ImgId,
-
-    // Buttons
-    grid_button: ImgId,
-    grid_button_hover: ImgId,
-    grid_button_press: ImgId,
-    grid_button_open: ImgId,
-
-    // Quest-Log Window
-    questlog_bg: ImgId,
-    questlog_icon: ImgId,
-    //help
-    // Chat-Arrow
-    chat_arrow: ImgId,
-    chat_arrow_mo: ImgId,
-    chat_arrow_press: ImgId,
-}
-impl Imgs {
-    fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-        let mut load_img = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let image = image::load_from_memory(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading Main UI Image")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Image(image))
-        };
-        let mut load_vox = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = dot_vox::load_bytes(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading Main UI .vox")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
-        };
-        Imgs {
-            // Bag
-            bag: load_img("element/buttons/bag/closed.png", ui),
-            bag_hover: load_img("element/buttons/bag/closed_hover.png", ui),
-            bag_press: load_img("element/buttons/bag/closed_press.png", ui),
-            bag_open: load_img("element/buttons/bag/open.png", ui),
-            bag_open_hover: load_img("element/buttons/bag/open_hover.png", ui),
-            bag_open_press: load_img("element/buttons/bag/open_press.png", ui),
-            bag_contents: load_vox("element/frames/bag.vox", ui),
-            inv_grid: load_vox("element/frames/inv_grid.vox", ui),
-            inv_slot: load_vox("element/buttons/inv_slot.vox", ui),
-
-            // Buttons
-            mmap_closed: load_vox("element/buttons/button_mmap_closed.vox", ui),
-            mmap_closed_hover: load_vox("element/buttons/button_mmap_closed_hover.vox", ui),
-            mmap_closed_press: load_vox("element/buttons/button_mmap_closed_press.vox", ui),
-            mmap_open: load_vox("element/buttons/button_mmap_open.vox", ui),
-            mmap_open_hover: load_vox("element/buttons/button_mmap_open_hover.vox", ui),
-            mmap_open_press: load_vox("element/buttons/button_mmap_open_press.vox", ui),
-
-            settings: load_vox("element/buttons/settings.vox", ui),
-            settings_hover: load_vox("element/buttons/settings_hover.vox", ui),
-            settings_press: load_vox("element/buttons/settings_press.vox", ui),
-
-            social_button: load_vox("element/buttons/social.vox", ui),
-            social_hover: load_vox("element/buttons/social_hover.vox", ui),
-            social_press: load_vox("element/buttons/social_press.vox", ui),
-
-            map_button: load_vox("element/buttons/map.vox", ui),
-            map_hover: load_vox("element/buttons/map_hover.vox", ui),
-            map_press: load_vox("element/buttons/map_press.vox", ui),
-
-            spellbook_button: load_vox("element/buttons/spellbook.vox", ui),
-            spellbook_hover: load_vox("element/buttons/spellbook_hover.vox", ui),
-            spellbook_press: load_vox("element/buttons/spellbook_press.vox", ui),
-
-            character_button: load_vox("element/buttons/character.vox", ui),
-            character_hover: load_vox("element/buttons/character_hover.vox", ui),
-            character_press: load_vox("element/buttons/character_press.vox", ui),
-
-            qlog_button: load_vox("element/buttons/qlog.vox", ui),
-            qlog_hover: load_vox("element/buttons/qlog_hover.vox", ui),
-            qlog_press: load_vox("element/buttons/qlog_press.vox", ui),
-
-            grid_button: load_img("element/buttons/border.png", ui),
-            grid_button_hover: load_img("element/buttons/border_mo.png", ui),
-            grid_button_press: load_img("element/buttons/border_press.png", ui),
-            grid_button_open: load_img("element/buttons/border_pressed.png", ui),
-
-            // Close button
-            close_button: load_vox("element/buttons/x.vox", ui),
-            close_button_hover: load_vox("element/buttons/x_hover.vox", ui),
-            close_button_press: load_vox("element/buttons/x_press.vox", ui),
-
-            // Esc-Menu
-            esc_bg: load_img("element/frames/menu.png", ui),
-            fireplace: load_vox("element/misc_bg/fireplace.vox", ui),
-            button: load_vox("element/buttons/button.vox", ui),
-            button_hover: load_vox("element/buttons/button_hover.vox", ui),
-            button_press: load_vox("element/buttons/button_press.vox", ui),
-
-            // MiniMap
-            mmap_frame: load_vox("element/frames/mmap.vox", ui),
-            mmap_frame_closed: load_vox("element/frames/mmap_closed.vox", ui),
-
-            // Skillbar Module
-            sb_grid: load_img("element/skill_bar/sbar_grid.png", ui),
-            sb_grid_bg: load_img("element/skill_bar/sbar_grid_bg.png", ui),
-            l_click: load_img("element/skill_bar/l.png", ui),
-            r_click: load_img("element/skill_bar/r.png", ui),
-            mana_bar: load_img("element/skill_bar/mana_bar.png", ui),
-            health_bar: load_img("element/skill_bar/health_bar.png", ui),
-            xp_bar: load_img("element/skill_bar/xp_bar.png", ui),
-
-            // Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
-            window_frame: load_vox("element/frames/window2.vox", ui),
-            window_frame_2: load_img("element/frames/window_2.png", ui),
-
-            // Settings Window
-            settings_frame_r: load_vox("element/frames/settings_r.vox", ui),
-            settings_frame_l: load_vox("element/frames/settings_l.vox", ui),
-            settings_button: load_vox("element/buttons/settings_button.vox", ui),
-            settings_button_pressed: load_vox("element/buttons/settings_button_pressed.vox", ui),
-            settings_button_hover: load_vox("element/buttons/settings_button_hover.vox", ui),
-            settings_button_press: load_vox("element/buttons/settings_button_press.vox", ui),
-            settings_bg: load_img("element/frames/settings.png", ui),
-            settings_icon: load_img("element/icons/settings.png", ui),
-            settings_button_mo: load_img("element/buttons/blue_mo.png", ui),
-            check: load_vox("element/buttons/check/no.vox", ui),
-            check_mo: load_vox("element/buttons/check/no_mo.vox", ui),
-            check_press: load_vox("element/buttons/check/press.vox", ui),
-            check_checked: load_vox("element/buttons/check/yes.vox", ui),
-            check_checked_mo: load_vox("element/buttons/check/yes_mo.vox", ui),
-            slider: load_vox("element/slider/track.vox", ui),
-            slider_indicator: load_vox("element/slider/indicator.vox", ui),
-            button_blank: ui.new_graphic(ui::Graphic::Blank),
-            button_blue_mo: load_img("element/buttons/blue_mo.png", ui),
-            button_blue_press: load_img("element/buttons/blue_press.png", ui),
-
-            // Window BG
-            window_bg: load_img("element/misc_bg/window_bg.png", ui),
-
-            // Social Window
-            social_bg: load_img("element/misc_bg/small_bg.png", ui),
-            social_icon: load_img("element/icons/social.png", ui),
-
-            // Map Window
-            map_bg: load_img("element/misc_bg/small_bg.png", ui),
-            map_icon: load_img("element/icons/map.png", ui),
-            map_frame_l: load_vox("element/frames/map_l.vox", ui),
-            map_frame_r: load_vox("element/frames/map_r.vox", ui),
-            map_frame_bl: load_vox("element/frames/map_bl.vox", ui),
-            map_frame_br: load_vox("element/frames/map_br.vox", ui),
-
-            // Spell Book Window
-            spellbook_bg: load_img("element/misc_bg/small_bg.png", ui),
-            spellbook_icon: load_img("element/icons/spellbook.png", ui),
-
-            // Char Window
-            charwindow: load_img("element/misc_bg/charwindow.png", ui),
-            charwindow_icon: load_img("element/icons/charwindow.png", ui),
-            charwindow_tab_bg: load_img("element/frames/tab.png", ui),
-            charwindow_tab: load_img("element/buttons/tab.png", ui),
-            charwindow_expbar: load_img("element/misc_bg/small_bg.png", ui),
-            progress_frame: load_img("element/frames/progress_bar.png", ui),
-            progress: load_img("element/misc_bg/progress.png", ui),
-
-            // Quest-Log Window
-            questlog_bg: load_img("element/misc_bg/small_bg.png", ui),
-            questlog_icon: load_img("element/icons/questlog.png", ui),
-
-            // Chat-Arrows
-            chat_arrow: load_vox("element/buttons/arrow_down.vox", ui),
-            chat_arrow_mo: load_vox("element/buttons/arrow_down_hover.vox", ui),
-            chat_arrow_press: load_vox("element/buttons/arrow_down_press.vox", ui),
-        }
     }
 }
 
