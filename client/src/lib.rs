@@ -194,9 +194,9 @@ impl Client {
 
             // Remove chunks that are too far from the player
             let mut chunks_to_remove = Vec::new();
-            self.state.terrain().iter().for_each(|(k, _)| {
-                if (chunk_pos - k).map(|e| e.abs()).reduce_max() > 3 {
-                    chunks_to_remove.push(k);
+            self.state.terrain().iter().for_each(|(key, _)| {
+                if (chunk_pos - key).map(|e| e.abs()).reduce_max() > 3 {
+                    chunks_to_remove.push(key);
                 }
             });
             for key in chunks_to_remove {
