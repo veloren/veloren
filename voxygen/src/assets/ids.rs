@@ -49,7 +49,7 @@ macro_rules! image_ids {
             impl $Ids {
                 pub fn load(ui: &mut Ui) -> Result<Self, std::io::Error> {
                     Ok(Self {
-                        $( $name: Id::to_ui_asset(<$T>::load($file)?, ui), )*
+                        $( $name: UiId::to_ui_asset(<$T>::load($file)?, ui), )*
                     })
                 }
             }
