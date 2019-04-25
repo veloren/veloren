@@ -375,8 +375,8 @@ impl Ui {
                 let Primitive {
                     kind,
                     scizzor,
-                    id: _id,
                     rect,
+                    ...
                 } = prim;
 
                 // Check for a change in the scizzor
@@ -441,7 +441,7 @@ impl Ui {
                             _ => {}
                         }
 
-                        // Switch to the `Image` state for this image if we're not in it already.
+                        // Switch to the image state if we are not in it already
                         if let State::Plain = current_state {
                             self.draw_commands
                                 .push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
