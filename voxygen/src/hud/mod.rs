@@ -38,7 +38,8 @@ widget_ids! {
         bag_close,
         bag_map_open,
         inv_alignment,
-        inv_grid,
+        inv_grid_1,
+        inv_grid_2,
         inv_scrollbar,
         inv_slot_0,
         inv_slot[],
@@ -629,10 +630,10 @@ impl Hud {
         }
 
         // Minimap frame and bg
-        Image::new(self.imgs.mmap_frame_bg)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);
+        //Image::new(self.imgs.mmap_frame_bg)
+            //.w_h(1750.0 / 8.0, 1650.0 / 8.0)
+            //.top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            //.set(self.ids.mmap_frame_bg, ui_widgets);
 
         Image::new(self.imgs.mmap_frame)
             .w_h(1750.0 / 8.0, 1650.0 / 8.0)
@@ -910,50 +911,53 @@ impl Hud {
             .set(self.ids.next_level_text, ui_widgets);
 
         // Bag contents
-        if self.bag_open {
-            // Contents
-            Image::new(self.imgs.bag_contents)
-                .w_h(307.0, 545.0)
-                .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
-                .set(self.ids.bag_contents, ui_widgets);
+            if self.bag_open {
+                // Contents
+                Image::new(self.imgs.bag_contents)
+                    .w_h(68.0*4.0, 123.0*4.0)
+                    .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
+                    .set(self.ids.bag_contents, ui_widgets);
 
-            // Alignment for Grid
-            Rectangle::fill_with([246.0, 465.0], color::TRANSPARENT)
-                .top_left_with_margins_on(self.ids.bag_contents, 27.0, 23.0)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(self.ids.inv_alignment, ui_widgets);
-            // Grid
-            Image::new(self.imgs.inv_grid)
-                .w_h(232.0, 1104.0)
-                .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
-                .set(self.ids.inv_grid, ui_widgets);
-            Scrollbar::y_axis(self.ids.inv_alignment)
-                .thickness(5.0)
-                .rgba(0.86, 0.86, 0.86, 0.1)
-                .set(self.ids.inv_scrollbar, ui_widgets);
+                // Alignment for Grid
+                Rectangle::fill_with([(58.0*4.0)-5.0, 100.0*4.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(self.ids.bag_contents, 11.0*4.0, 5.0*4.0)
+                    .scroll_kids()
+                    .scroll_kids_vertically()
+                    .set(self.ids.inv_alignment, ui_widgets);
+                // Grid
+                Image::new(self.imgs.inv_grid)
+                    .w_h(58.0*4.0, 111.0*4.0)
+                    .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
+                    .set(self.ids.inv_grid_1, ui_widgets);
+                Image::new(self.imgs.inv_grid)
+                    .w_h(58.0*4.0, 111.0*4.0)
+                    .mid_top_with_margin_on(self.ids.inv_alignment, 110.0*4.0)
+                    .set(self.ids.inv_grid_2, ui_widgets);
+                Scrollbar::y_axis(self.ids.inv_alignment)
+                    .thickness(5.0)
+                    .rgba(0.33, 0.33, 0.33, 1.0)
+                    .set(self.ids.inv_scrollbar, ui_widgets);
 
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 3.0, 244.0 * 0.22 / 3.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 5.0, 17.0)
-                .set(self.ids.bag_close, ui_widgets)
-                .was_clicked()
-            {
-                self.bag_open = false;
+                // X-button
+                if Button::image(self.imgs.close_button)
+                    .w_h(4.0*4.0, 4.0*4.0)
+                    .hover_image(self.imgs.close_button_hover)
+                    .press_image(self.imgs.close_button_press)
+                    .top_right_with_margins_on(self.ids.bag_contents, 4.5, 4.5)
+                    .set(self.ids.bag_close, ui_widgets)
+                    .was_clicked()
+                {
+                    self.bag_open = false;
+                }
+
+                if self.inventory_space > 0 {
+                    // First Slot
+                    Button::image(self.imgs.inv_slot)
+                        .top_left_with_margins_on(self.ids.inv_grid_1, 4.0, 4.0)
+                        .w_h(10.0*4.0, 10.0*4.0)
+                        .set(self.ids.inv_slot_0, ui_widgets);
+                }               
             }
-
-            if self.inventory_space > 0 {
-                // First Slot
-                Button::image(self.imgs.inv_slot)
-                    .top_left_with_margins_on(self.ids.inv_grid, 5.0, 5.0)
-                    .w_h(40.0, 40.0)
-                    .set(self.ids.inv_slot_0, ui_widgets);
-            }
-
-        }
 
         // Bag
         if !self.map_open && self.show_ui {
