@@ -45,6 +45,7 @@ widget_ids! {
         // Error
         error_frame,
         button_ok,
+        version,
     }
 }
 
@@ -54,18 +55,13 @@ struct Imgs {
 
     input_bg: ImgId,
 
-    login_button: ImgId,
-    login_button_hover: ImgId,
-    login_button_press: ImgId,
-
-    button: ImgId,
-    button_hover: ImgId,
-    button_press: ImgId,
-
     error_frame: ImgId,
     button_dark: ImgId,
     button_dark_hover: ImgId,
     button_dark_press: ImgId,
+    button: ImgId,
+    button_hover: ImgId,
+    button_press: ImgId,
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
@@ -91,27 +87,18 @@ impl Imgs {
         };
         Imgs {
             bg: load_img("background/bg_main.png", ui),
-            v_logo: load_img("element/v_logo.png", ui),
+            v_logo: load_vox("element/v_logo.vox", ui),
 
             // Input fields
-            input_bg: load_img("element/misc_backgrounds/textbox.png", ui),
+            input_bg: load_vox("element/misc_bg/textbox.vox", ui),
 
-            // Login button
-            login_button: load_img("element/buttons/button_login.png", ui),
-            login_button_hover: load_img("element/buttons/button_login_hover.png", ui),
-            login_button_press: load_img("element/buttons/button_login_press.png", ui),
-
-            // Servers, settings, and quit buttons
-            //button: load_vox("element/buttons/button.vox", ui),
-            button: load_img("element/buttons/button.png", ui),
-            button_hover: load_img("element/buttons/button_hover.png", ui),
-            button_press: load_img("element/buttons/button_press.png", ui),
-
-            //Error
             error_frame: load_img("element/frames/window_2.png", ui),
-            button_dark: load_img("element/buttons/button_dark.png", ui),
-            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
-            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
+            button_dark: load_vox("element/buttons/button_dark.vox", ui),
+            button_dark_hover: load_vox("element/buttons/button_dark_hover.vox", ui),
+            button_dark_press: load_vox("element/buttons/button_dark_press.vox", ui),
+            button: load_vox("element/buttons/button.vox", ui),
+            button_hover: load_vox("element/buttons/button_hover.vox", ui),
+            button_press: load_vox("element/buttons/button_press.vox", ui),
         }
     }
 }
@@ -184,16 +171,15 @@ impl MainMenuUi {
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
             .set(self.ids.bg, ui_widgets);
-        Button::image(self.imgs.v_logo)
-            .w_h(346.0, 111.0)
-            .top_left_with_margins(30.0, 40.0)
-            .label(version)
-            .label_rgba(1.0, 1.0, 1.0, 1.0)
-            .label_font_size(10)
-            .label_y(Relative::Scalar(-40.0))
-            .label_x(Relative::Scalar(-100.0))
+        Image::new(self.imgs.v_logo)
+            .w_h(123.0*3.0, 35.0*3.0)
+            .top_left_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
-
+        Text::new(version)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(self.ids.version, ui_widgets);
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field
         macro_rules! login {
@@ -368,7 +354,7 @@ impl MainMenuUi {
         // Login button
         // Change button text and remove hover/press images if a connection is in progress
         if let Some(start) = self.connecting {
-            Button::image(self.imgs.login_button)
+            Button::image(self.imgs.button)
                 .w_h(258.0, 68.0)
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
@@ -386,9 +372,9 @@ impl MainMenuUi {
                 .label_y(Relative::Scalar(5.0))
                 .set(self.ids.login_button, ui_widgets);
         } else {
-            if Button::image(self.imgs.login_button)
-                .hover_image(self.imgs.login_button_hover)
-                .press_image(self.imgs.login_button_press)
+             if Button::image(self.imgs.button)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .w_h(258.0, 68.0)
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
@@ -404,9 +390,9 @@ impl MainMenuUi {
         };
 
         // Singleplayer button
-        if Button::image(self.imgs.login_button)
-            .hover_image(self.imgs.login_button_hover)
-            .press_image(self.imgs.login_button_press)
+         if Button::image(self.imgs.button)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .w_h(258.0, 68.0)
             .down_from(self.ids.login_button, 20.0)
             .align_middle_x_of(self.ids.address_bg)
