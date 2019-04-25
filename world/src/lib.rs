@@ -40,10 +40,15 @@ impl World {
             let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
             let wposf = wpos.map(|e| e as f64);
 
-            let freq = 1.0 / 64.0;
-            let ampl = 12.0;
-            let offs = 16.0;
-            let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl + offs;
+            let freq = 1.0 / 128.0;
+            let ampl = 32.0;
+            let small_freq = 1.0 / 16.0;
+            let small_ampl = 8.0;
+            let offs = 32.0;
+            let height =
+                perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl
+                + perlin_nz.get(Vec2::from(wposf * small_freq).into_array()) * small_ampl
+                + offs;
 
             chunk.set(lpos, if wposf.z < height {
                 if wposf.z < height - 1.0 {

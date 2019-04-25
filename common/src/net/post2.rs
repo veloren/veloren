@@ -73,6 +73,7 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
             match self.listener.accept() {
                 Ok((stream, sock)) => new.push(PostBox::from_stream(stream).unwrap()),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
@@ -179,7 +180,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             }
 
             // Try getting messages from the send channel
-            for _ in 0..100 {
+            for _ in 0..1000 {
                 match send_rx.try_recv() {
                     Ok(send_msg) => {
                         // Serialize message
@@ -209,7 +210,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             }
 
             // Try sending bytes through the TCP stream
-            for _ in 0..100 {
+            for _ in 0..1000 {
                 //println!("HERE! Outgoing len: {}", outgoing_chunks.len());
                 match outgoing_chunks.pop_front() {
                     Some(chunk) => match stream.write_all(&chunk) {
@@ -230,12 +231,13 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             }
 
             // Try receiving bytes from the TCP stream
-            for _ in 0..100 {
+            for _ in 0..1000 {
                 let mut buf = [0; 1024];
 
                 match stream.read(&mut buf) {
                     Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
                     Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
                     // Worker error
                     Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
@@ -245,7 +247,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             }
 
             // Try turning bytes into messages
-            for _ in 0..100 {
+            for _ in 0..1000 {
                 match incoming_buf.get(0..8) {
                     Some(len_bytes) => {
                         let len = usize::from_le_bytes(<[u8; 8]>::try_from(len_bytes).unwrap()); // Can't fail
@@ -254,13 +256,14 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             recv_tx.send(Err(Error::InvalidMessage)).unwrap();
                             break 'work;
                         } else if incoming_buf.len() >= len + 8 {
-                            let deserialize_result = bincode::deserialize(&incoming_buf[8..len + 8]);
-
-                            if let Err(e) = &deserialize_result {
-                                println!("DESERIALIZE ERROR: {:?}", e);
+                            match bincode::deserialize(&incoming_buf[8..len + 8]) {
+                                Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
+                                Err(err) => {
+                                    println!("Invalid message: {:?}", err);
+                                    recv_tx.send(Err(err.into())).unwrap()
+                                },
                             }
 
-                            recv_tx.send(deserialize_result.map_err(|e| e.into()));
                             incoming_buf = incoming_buf.split_off(len + 8);
                         } else {
                             break;
