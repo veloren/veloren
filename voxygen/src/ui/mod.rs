@@ -1,4 +1,7 @@
+mod cache;
+mod event;
 mod graphic;
+mod scale;
 mod util;
 mod widgets;
 #[macro_use]
@@ -6,128 +9,40 @@ mod img_ids;
 #[macro_use]
 mod font_ids;
 
+pub use event::Event;
 pub use graphic::Graphic;
 pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
-pub(self) use util::{linear_to_srgb, srgb_to_linear};
+pub use scale::ScaleMode;
 pub use widgets::toggle_button::ToggleButton;
 
 use crate::{
     render::{
-        create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, Texture, UiMode,
-        UiPipeline,
+        create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, UiMode, UiPipeline,
     },
     window::Window,
     Error,
 };
+use cache::Cache;
 use common::assets;
 use conrod_core::{
     event::Input,
     graph::Graph,
     image::{Id as ImgId, Map},
-    input::{touch::Touch, Button, Motion, Widget},
+    input::{touch::Touch, Motion, Widget},
     render::Primitive,
-    text::{self, GlyphCache},
+    text::{self, font},
     widget::{id::Generator, Id as WidgId},
     Ui as CrUi, UiBuilder, UiCell,
 };
-use graphic::{GraphicCache, Id as GraphicId};
+use graphic::Id as GraphicId;
+use scale::Scale;
 use std::sync::Arc;
+use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
 
 #[derive(Debug)]
 pub enum UiError {
     RenderError(RenderError),
-}
-#[derive(Clone)]
-pub struct Event(Input);
-impl Event {
-    pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
-        use conrod_winit::*;
-        use winit;
-        // A wrapper around the winit window that allows us to implement the trait necessary for enabling
-        // the winit <-> conrod conversion functions.
-        struct WindowRef<'a>(&'a winit::Window);
-
-        // Implement the `WinitWindow` trait for `WindowRef` to allow for generating compatible conversion
-        // functions.
-        impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
-            fn get_inner_size(&self) -> Option<(u32, u32)> {
-                winit::Window::get_inner_size(&self.0).map(Into::into)
-            }
-            fn hidpi_factor(&self) -> f32 {
-                winit::Window::get_hidpi_factor(&self.0) as _
-            }
-        }
-        convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
-    }
-    pub fn is_keyboard_or_mouse(&self) -> bool {
-        match self.0 {
-            Input::Press(_)
-            | Input::Release(_)
-            | Input::Motion(_)
-            | Input::Touch(_)
-            | Input::Text(_) => true,
-            _ => false,
-        }
-    }
-    pub fn is_keyboard(&self) -> bool {
-        match self.0 {
-            Input::Press(Button::Keyboard(_))
-            | Input::Release(Button::Keyboard(_))
-            | Input::Text(_) => true,
-            _ => false,
-        }
-    }
-    pub fn new_resize(dims: Vec2<f64>) -> Self {
-        Self(Input::Resize(dims.x, dims.y))
-    }
-}
-
-pub struct Cache {
-    glyph_cache: GlyphCache<'static>,
-    glyph_cache_tex: Texture<UiPipeline>,
-    graphic_cache: graphic::GraphicCache,
-    graphic_cache_tex: Texture<UiPipeline>,
-}
-
-// TODO: Should functions be returning UiError instead of Error?
-impl Cache {
-    pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
-        let (w, h) = renderer.get_resolution().into_tuple();
-        const SCALE_TOLERANCE: f32 = 0.1;
-        const POSITION_TOLERANCE: f32 = 0.1;
-
-        let graphic_cache_dims = Vec2::new(w * 4, h * 4);
-        Ok(Self {
-            glyph_cache: GlyphCache::builder()
-                .dimensions(w as u32, h as u32)
-                .scale_tolerance(SCALE_TOLERANCE)
-                .position_tolerance(POSITION_TOLERANCE)
-                .build(),
-            glyph_cache_tex: renderer.create_dynamic_texture((w, h).into())?,
-            graphic_cache: GraphicCache::new(graphic_cache_dims),
-            graphic_cache_tex: renderer.create_dynamic_texture(graphic_cache_dims)?,
-        })
-    }
-    pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> {
-        &self.glyph_cache_tex
-    }
-    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) {
-        (&mut self.glyph_cache, &self.glyph_cache_tex)
-    }
-    pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> {
-        &self.graphic_cache_tex
-    }
-    pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) {
-        (&mut self.graphic_cache, &self.graphic_cache_tex)
-    }
-    pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
-        self.graphic_cache.add_graphic(graphic)
-    }
-    pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
-        self.graphic_cache.clear_cache(new_size);
-        self.graphic_cache_tex = renderer.create_dynamic_texture(new_size).unwrap();
-    }
 }
 
 enum DrawKind {
@@ -154,69 +69,6 @@ impl DrawCommand {
             kind: DrawKind::Plain,
             model,
         }
-    }
-}
-
-// How to scale the ui
-pub enum ScaleMode {
-    // Scale against physical size
-    Absolute(f64),
-    // Use the dpi factor provided by the windowing system (i.e. use logical size)
-    DpiFactor,
-    // Scale based on the window's physical size, but maintain aspect ratio of widgets
-    // Contains width and height of the "default" window size (ie where there should be no scaling)
-    RelativeToWindow(Vec2<f64>),
-}
-
-struct Scale {
-    // Type of scaling to use
-    mode: ScaleMode,
-    // Current dpi factor
-    dpi_factor: f64,
-    // Current logical window size
-    window_dims: Vec2<f64>,
-}
-
-impl Scale {
-    fn new(window: &Window, mode: ScaleMode) -> Self {
-        let window_dims = window.logical_size();
-        let dpi_factor = window.renderer().get_resolution().x as f64 / window_dims.x;
-        Scale {
-            mode,
-            dpi_factor,
-            window_dims,
-        }
-    }
-    // Change the scaling mode
-    pub fn scaling_mode(&mut self, mode: ScaleMode) {
-        self.mode = mode;
-    }
-    // Calculate factor to transform between logical coordinates and our scaled coordinates
-    fn scale_factor_logical(&self) -> f64 {
-        match self.mode {
-            ScaleMode::Absolute(scale) => scale / self.dpi_factor,
-            ScaleMode::DpiFactor => 1.0,
-            ScaleMode::RelativeToWindow(dims) => {
-                (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y)
-            }
-        }
-    }
-    // Calculate factor to transform between physical coordinates and our scaled coordinates
-    fn scale_factor_physical(&self) -> f64 {
-        self.scale_factor_logical() * self.dpi_factor
-    }
-    // Updates internal window size (and/or dpi_factor)
-    fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
-        self.dpi_factor = renderer.get_resolution().x as f64 / new_dims.x;
-        self.window_dims = new_dims;
-    }
-    // Get scaled window size
-    fn scaled_window_size(&self) -> Vec2<f64> {
-        self.window_dims / self.scale_factor_logical()
-    }
-    // Transform point from logical to scaled coordinates
-    fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> {
-        point / self.scale_factor_logical()
     }
 }
 
@@ -268,7 +120,7 @@ impl Ui {
         self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
-    pub fn new_font(&mut self, mut font: Arc<Font>) -> text::font::Id {
+    pub fn new_font(&mut self, mut font: Arc<Font>) -> font::Id {
         self.ui.fonts.insert(font.as_ref().0.clone())
     }
 
@@ -309,7 +161,9 @@ impl Ui {
     }
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
-            Input::Resize(w, h) if w > 1.0 && h > 1.0 => self.window_resized = Some(Vec2::new(w, h)),
+            Input::Resize(w, h) if w > 1.0 && h > 1.0 => {
+                self.window_resized = Some(Vec2::new(w, h))
+            }
             Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
                 xy: self.scale.scale_point(touch.xy.into()).into_array(),
                 ..touch
@@ -376,7 +230,7 @@ impl Ui {
                     kind,
                     scizzor,
                     rect,
-                    ...
+                    ..
                 } = prim;
 
                 // Check for a change in the scizzor
