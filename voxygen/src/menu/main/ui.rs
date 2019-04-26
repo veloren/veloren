@@ -1,11 +1,13 @@
 use crate::{
-    assets,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
-use common::figure::Segment;
+use common::{
+    assets,
+    figure::Segment,
+};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -64,26 +66,18 @@ struct Imgs {
     button_press: ImgId,
 }
 impl Imgs {
-    fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
+    fn new(ui: &mut Ui) -> Imgs {
         let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let image = image::load_from_memory(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Image(image))
+            let image = assets::load::<image::DynamicImage>(fullpath.as_str())
+                .expect("Error loading file");
+            ui.new_graphic(image.into())
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = dot_vox::load_bytes(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
+            let segment = assets::load::<common::figure::Segment>(fullpath.as_str())
+                .expect("Error loading file");
+            ui.new_graphic(segment.into())
         };
         Imgs {
             bg: load_img("background/bg_main.png", ui),
@@ -132,13 +126,13 @@ impl MainMenuUi {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::new(&mut ui, window.renderer_mut());
+        let imgs = Imgs::new(&mut ui);
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
             ui.new_font(
                 conrod_core::text::Font::from_bytes(
-                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                     assets::load_from_path(fullpath.as_str()).expect("Error loading file")
                 )
                 .unwrap(),
             )

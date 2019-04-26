@@ -1,6 +1,8 @@
 mod graphic;
 mod util;
 mod widgets;
+#[macro_use]
+mod img_ids;
 
 pub use graphic::Graphic;
 pub(self) use util::{linear_to_srgb, srgb_to_linear};
