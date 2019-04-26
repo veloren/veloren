@@ -633,12 +633,17 @@ impl Hud {
         //Image::new(self.imgs.mmap_frame_bg)
             //.w_h(1750.0 / 8.0, 1650.0 / 8.0)
             //.top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            //.set(self.ids.mmap_frame_bg, ui_widgets);
+            //.set(self.ids.mmap_frame_bg, ui_widgets);        
+        
 
         Image::new(self.imgs.mmap_frame)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
+            .w_h(100.0*2.5, 100.0*2.5)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .set(self.ids.mmap_frame, ui_widgets);
+
+        Rectangle::fill_with([92.0*2.5, 82.0*2.5], color::RED)
+            .mid_top_with_margin_on(self.ids.mmap_frame, 13.0*2.5+2.5)
+            .set(self.ids.mmap_frame_bg, ui_widgets);
 
         // Title
         // Make it display the actual location
@@ -1236,7 +1241,7 @@ impl Hud {
                     }
                     // Title
                     Text::new("Social")
-                        .mid_top_with_margin_on(self.ids.social_frame, 16.0)
+                        .mid_top_with_margin_on(self.ids.social_frame, 17.0)
                         .font_id(self.font_metamorph)
                         .font_size(14)
                         .color(TEXT_COLOR)
