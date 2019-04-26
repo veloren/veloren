@@ -1,7 +1,8 @@
 #![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
-pub mod assets;
+#[macro_use]
+pub mod ui;
 pub mod anim;
 pub mod error;
 pub mod hud;

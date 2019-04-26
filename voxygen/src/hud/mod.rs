@@ -6,21 +6,17 @@ use self::character_window::CharacterWindow;
 use crate::{
     render::Renderer,
     settings::{ControlSettings, Settings},
-    ui::{self, ScaleMode, ToggleButton, Ui},
+    ui::{ScaleMode, ToggleButton, Ui, Graphic},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
-use common::{
-    assets,
-    figure::Segment};
-
 use conrod_core::{
     color,
-    image::Id as ImgId,
     text::font::Id as FontId,
     widget::{self,Style, Button, Image, Rectangle, Scrollbar, Text},
     WidgetStyle, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use common::assets;
 
 // TODO: Use styles?
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -210,6 +206,138 @@ widget_ids! {
     }
 }
 
+image_ids! {
+    pub(self) struct<common::figure::Segment> Voxs {
+        // Bag
+        bag_contents: "/voxygen/element/frames/bag.vox",
+        inv_grid: "/voxygen/element/frames/inv_grid.vox",
+        inv_slot: "/voxygen/element/buttons/inv_slot.vox",
+
+        // Buttons
+        settings: "/voxygen/element/buttons/settings.vox",
+        settings_hover: "/voxygen/element/buttons/settings_hover.vox",
+        settings_press: "/voxygen/element/buttons/settings_press.vox",
+
+        social_button: "/voxygen/element/buttons/social.vox",
+        social_hover: "/voxygen/element/buttons/social_hover.vox",
+        social_press: "/voxygen/element/buttons/social_press.vox",
+
+        map_button: "/voxygen/element/buttons/map.vox",
+        map_hover: "/voxygen/element/buttons/map_hover.vox",
+        map_press: "/voxygen/element/buttons/map_press.vox",
+
+        spellbook_button: "/voxygen/element/buttons/spellbook.vox",
+        spellbook_hover: "/voxygen/element/buttons/spellbook_hover.vox",
+        spellbook_press: "/voxygen/element/buttons/spellbook_press.vox",
+
+        character_button: "/voxygen/element/buttons/character.vox",
+        character_hover: "/voxygen/element/buttons/character_hover.vox",
+        character_press: "/voxygen/element/buttons/character_press.vox",
+
+        qlog_button: "/voxygen/element/buttons/qlog.vox",
+        qlog_hover: "/voxygen/element/buttons/qlog_hover.vox",
+        qlog_press: "/voxygen/element/buttons/qlog_press.vox",
+
+        close_button: "/voxygen/element/buttons/x.vox",
+        close_button_hover: "/voxygen/element/buttons/x_hover.vox",
+        close_button_press: "/voxygen/element/buttons/x_press.vox",
+
+        //  Esc menu
+        fireplace: "/voxygen/element/misc_bg/fireplace.vox",
+        button_dark: "/voxygen/element/buttons/button_dark.vox",
+
+        // Minimap
+        mmap_frame: "/voxygen/element/frames/mmap.vox",
+        window_frame: "/voxygen/element/frames/window2.vox",
+        map_frame_l: "/voxygen/element/frames/map_l.vox",
+        map_frame_r: "/voxygen/element/frames/map_r.vox",
+    }
+
+    pub(self) struct<image::DynamicImage> Imgs {
+        // Bag
+        bag: "/voxygen/element/buttons/bag/closed.png",
+        bag_hover: "/voxygen/element/buttons/bag/closed_hover.png",
+        bag_press: "/voxygen/element/buttons/bag/closed_press.png",
+        bag_open: "/voxygen/element/buttons/bag/open.png",
+        bag_open_hover: "/voxygen/element/buttons/bag/open_hover.png",
+        bag_open_press: "/voxygen/element/buttons/bag/open_press.png",
+
+        // Buttons
+        mmap_button: "/voxygen/element/buttons/border.png",
+        mmap_button_hover: "/voxygen/element/buttons/border_mo.png",
+        mmap_button_press: "/voxygen/element/buttons/border_press.png",
+        mmap_button_open: "/voxygen/element/buttons/border_pressed.png",
+
+        // Esc-Menu
+        esc_bg: "/voxygen/element/frames/menu.png",
+        button_dark_hover: "/voxygen/element/buttons/button_dark_hover.png",
+        button_dark_press: "/voxygen/element/buttons/button_dark_press.png",
+
+        // MiniMap
+        mmap_frame_bg: "/voxygen/element/misc_bg/mmap_bg.png",
+
+        // Skillbar Module
+        sb_grid: "/voxygen/element/skill_bar/sbar_grid.png",
+        sb_grid_bg: "/voxygen/element/skill_bar/sbar_grid_bg.png",
+        l_click: "/voxygen/element/skill_bar/l.png",
+        r_click: "/voxygen/element/skill_bar/r.png",
+        mana_bar: "/voxygen/element/skill_bar/mana_bar.png",
+        health_bar: "/voxygen/element/skill_bar/health_bar.png",
+        xp_bar: "/voxygen/element/skill_bar/xp_bar.png",
+
+        // Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
+        window_frame_2: "/voxygen/element/frames/window_2.png",
+
+        // Settings Window
+        settings_bg: "/voxygen/element/frames/settings.png",
+        settings_icon: "/voxygen/element/icons/settings.png",
+        settings_button_mo: "/voxygen/element/buttons/blue_mo.png",
+        check: "/voxygen/element/buttons/check/no.png",
+        check_mo: "/voxygen/element/buttons/check/no_mo.png",
+        check_press: "/voxygen/element/buttons/check/press.png",
+        check_checked: "/voxygen/element/buttons/check/yes.png",
+        check_checked_mo: "/voxygen/element/buttons/check/yes_mo.png",
+        slider: "/voxygen/element/slider/track.png",
+        slider_indicator: "/voxygen/element/slider/indicator.png",
+        //button_blank:  ui.new_graphic(ui::Graphic::Blank),
+        button_blue_mo: "/voxygen/element/buttons/blue_mo.png",
+        button_blue_press: "/voxygen/element/buttons/blue_press.png",
+
+        // Window BG
+        window_bg: "/voxygen/element/misc_bg/window_bg.png",
+
+        // Social Window
+        social_bg: "/voxygen/element/misc_bg/small_bg.png",
+        social_icon: "/voxygen/element/icons/social.png",
+
+        // Map Window
+        map_bg: "/voxygen/element/misc_bg/small_bg.png",
+        map_icon: "/voxygen/element/icons/map.png",
+
+        // Spell Book Window
+        spellbook_bg: "/voxygen/element/misc_bg/small_bg.png",
+        spellbook_icon: "/voxygen/element/icons/spellbook.png",
+
+        // Char Window
+        charwindow: "/voxygen/element/misc_bg/charwindow.png",
+        charwindow_icon: "/voxygen/element/icons/charwindow.png",
+        charwindow_tab_bg: "/voxygen/element/frames/tab.png",
+        charwindow_tab: "/voxygen/element/buttons/tab.png",
+        charwindow_expbar: "/voxygen/element/misc_bg/small_bg.png",
+        progress_frame: "/voxygen/element/frames/progress_bar.png",
+        progress: "/voxygen/element/misc_bg/progress.png",
+
+        // Quest-Log Window
+        questlog_bg: "/voxygen/element/misc_bg/small_bg.png",
+        questlog_icon: "/voxygen/element/icons/questlog.png",
+
+        // Chat-Arrows
+        chat_arrow: "/voxygen/element/buttons/arrow/chat_arrow.png",
+        chat_arrow_mo: "/voxygen/element/buttons/arrow/chat_arrow_mo.png",
+        chat_arrow_press: "/voxygen/element/buttons/arrow/chat_arrow_press.png",
+    }
+}
+
 enum SettingsTab {
     Interface,
     Video,
@@ -244,6 +372,8 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
+    voxs: Voxs,
+    blank_img: conrod_core::image::Id,
     chat: chat::Chat,
     font_metamorph: FontId,
     font_opensans: FontId,
@@ -277,13 +407,18 @@ impl Hud {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::new(&mut ui, window.renderer_mut());
+        let imgs = Imgs::load(&mut ui).unwrap();
+        // Load vox files
+        let voxs = Voxs::load(&mut ui).unwrap();
+        // Blank graphic
+        let blank_img = ui.new_graphic(Graphic::Blank);
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
+            // TODO: use Asset trait to load font
             ui.new_font(
                 conrod_core::text::Font::from_bytes(
-                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                    assets::load_from_path(fullpath.as_str()).expect("Error loading file")
                 )
                 .unwrap(),
             )
@@ -296,6 +431,8 @@ impl Hud {
         Self {
             ui,
             imgs,
+            voxs,
+            blank_img,
             ids,
             chat,
             settings_tab: SettingsTab::Interface,
@@ -387,10 +524,10 @@ impl Hud {
                 .font_size(18)
                 .set(self.ids.help, ui_widgets);
             // X-button
-            if Button::image(self.imgs.close_button)
+            if Button::image(self.voxs.close_button)
                 .w_h(100.0 * 0.2, 100.0 * 0.2)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
+                .hover_image(self.voxs.close_button_hover)
+                .press_image(self.voxs.close_button_press)
                 .top_right_with_margins_on(self.ids.help_bg, 8.0, 3.0)
                 .set(self.ids.button_help2, ui_widgets)
                 .was_clicked()
@@ -451,7 +588,7 @@ impl Hud {
         // Buttons at Bag
 
         // 0 Settings
-        if Button::image(self.imgs.settings)
+        if Button::image(self.voxs.settings)
             .w_h(29.0, 25.0)
             .bottom_right_with_margins_on(ui_widgets.window, 5.0, 57.0)
             .hover_image(self.imgs.settings_hover)
@@ -474,7 +611,7 @@ impl Hud {
         };
 
         // 2 Map
-        if Button::image(self.imgs.map_button)
+        if Button::image(self.voxs.map_button)
             .w_h(22.0, 25.0)
             .left_from(self.ids.social_button, 10.0)
             .hover_image(self.imgs.map_hover)
@@ -495,19 +632,19 @@ impl Hud {
         // Other Windows can only be accessed, when Settings are closed.
         // Opening Settings will close all other Windows including the Bag.
         // Opening the Map won't close the windows displayed before.
-        Image::new(self.imgs.social_button)
+        Image::new(self.voxs.social_button)
             .w_h(25.0, 25.0)
             .left_from(self.ids.settings_button, 10.0)
             .set(self.ids.social_button_bg, ui_widgets);
-        Image::new(self.imgs.spellbook_button)
+        Image::new(self.voxs.spellbook_button)
             .w_h(28.0, 25.0)
             .left_from(self.ids.map_button, 10.0)
             .set(self.ids.spellbook_button_bg, ui_widgets);
-        Image::new(self.imgs.character_button)
+        Image::new(self.voxs.character_button)
             .w_h(27.0, 25.0)
             .left_from(self.ids.spellbook_button, 10.0)
             .set(self.ids.character_button_bg, ui_widgets);
-        Image::new(self.imgs.qlog_button)
+        Image::new(self.voxs.qlog_button)
             .w_h(23.0, 25.0)
             .left_from(self.ids.character_button, 10.0)
             .set(self.ids.qlog_button_bg, ui_widgets);
@@ -518,7 +655,7 @@ impl Hud {
         } && self.map_open == false
         {
             // 1 Social
-            if Button::image(self.imgs.social_button)
+            if Button::image(self.voxs.social_button)
                 .w_h(25.0, 25.0)
                 .left_from(self.ids.settings_button, 10.0)
                 .hover_image(self.imgs.social_hover)
@@ -544,7 +681,7 @@ impl Hud {
             }
 
             // 3 Spellbook
-            if Button::image(self.imgs.spellbook_button)
+            if Button::image(self.voxs.spellbook_button)
                 .w_h(28.0, 25.0)
                 .left_from(self.ids.map_button, 10.0)
                 .hover_image(self.imgs.spellbook_hover)
@@ -570,7 +707,7 @@ impl Hud {
             }
 
             // 4 Char-Window
-            if Button::image(self.imgs.character_button)
+            if Button::image(self.voxs.character_button)
                 .w_h(27.0, 25.0)
                 .left_from(self.ids.spellbook_button, 10.0)
                 .hover_image(self.imgs.character_hover)
@@ -1182,12 +1319,12 @@ impl Hud {
                 Small::Social => {
                     //Frame
                     if char_window_open {
-                        Image::new(self.imgs.window_frame)
+                        Image::new(self.voxs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
                     } else {
-                        Image::new(self.imgs.window_frame)
+                        Image::new(self.voxs.window_frame)
                             .top_left_with_margins_on(ui_widgets.window, 200.0, 10.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
@@ -1232,7 +1369,7 @@ impl Hud {
                 Small::Spellbook => {
                     // Frame
                     if char_window_open {
-                        Image::new(self.imgs.window_frame)
+                        Image::new(self.voxs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.spellbook_frame, ui_widgets);
@@ -1281,7 +1418,7 @@ impl Hud {
                 Small::Questlog => {
                     // Frame
                     if char_window_open {
-                        Image::new(self.imgs.window_frame)
+                        Image::new(self.voxs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.questlog_frame, ui_widgets);
@@ -1342,7 +1479,7 @@ impl Hud {
                 .scroll_kids_vertically()
                 .set(self.ids.map_bg, ui_widgets);
             // Frame
-            Image::new(self.imgs.map_frame_l)
+            Image::new(self.voxs.map_frame_l)
                 .top_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_l, ui_widgets);
@@ -1392,7 +1529,7 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .set(self.ids.esc_bg, ui_widgets);
 
-            Image::new(self.imgs.fireplace)
+            Image::new(self.voxs.fireplace)
                 .w_h(180.0, 60.0)
                 .mid_top_with_margin_on(self.ids.esc_bg, 50.0)
                 .set(self.ids.fireplace, ui_widgets);
