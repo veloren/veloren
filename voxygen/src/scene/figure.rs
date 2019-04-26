@@ -100,15 +100,9 @@ impl FigureCache {
 
     fn load_mesh(filename: &'static str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
         let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(
-            dot_vox::load_bytes(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            )
-            .unwrap(),
-        )
-        .generate_mesh(position)
+        assets::load::<Segment>(fullpath.as_str())
+            .expect("Error loading file")
+            .generate_mesh(position)
     }
 
     fn load_head(head: Head) -> Mesh<FigurePipeline> {

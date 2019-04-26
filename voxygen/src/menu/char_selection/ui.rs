@@ -1,5 +1,4 @@
 use crate::{
-    assets,
     render::Renderer,
     ui::{self, ScaleMode, Ui},
     window::Window,
@@ -232,26 +231,18 @@ struct Imgs {
     icon_border_pressed: ImgId,
 }
 impl Imgs {
-    fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
+    fn new(ui: &mut Ui) -> Imgs {
         let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let image = image::load_from_memory(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Image(image))
+            let image = assets::load::<image::DynamicImage>(fullpath.as_str())
+                .expect("Error loading file");
+            ui.new_graphic(image.into())
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = dot_vox::load_bytes(
-                assets::load(fullpath.as_str())
-                    .expect("Error loading file")
-                    .as_slice(),
-            )
-            .unwrap();
-            ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
+            let segment = assets::load::<common::figure::Segment>(fullpath.as_str())
+                .expect("Error loading file");
+            ui.new_graphic(segment.into())
         };
         Imgs {
             v_logo: load_vox("element/v_logo.vox", ui),
@@ -368,16 +359,14 @@ impl CharSelectionUi {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::new(&mut ui, window.renderer_mut());
+        let imgs = Imgs::new(&mut ui);
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-            ui.new_font(
-                conrod_core::text::Font::from_bytes(
-                    assets::load(fullpath.as_str()).expect("Error loading file"),
-                )
-                .unwrap(),
-            )
+             ui.new_font(conrod_core::text::Font::from_bytes(
+                assets::load_from_path(fullpath.as_str())
+                .expect("Error loading file")
+            ).unwrap())
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
