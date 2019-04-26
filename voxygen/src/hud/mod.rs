@@ -1,4 +1,7 @@
 mod chat;
+mod character_window;
+
+use self::character_window::CharacterWindow;
 
 use crate::{
     render::Renderer,
@@ -7,16 +10,41 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
-
-use common::figure::Segment;
+use common::{
+    assets,
+    figure::Segment};
 
 use conrod_core::{
     color,
     image::Id as ImgId,
-    text::{self, font::Id as FontId},
-    widget::{Button, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    text::font::Id as FontId,
+    widget::{self,Style, Button, Image, Rectangle, Scrollbar, Text},
+    WidgetStyle, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+
+// TODO: Use styles?
+const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
+const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
+const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
+
+
+/// Styling for windows
+#[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
+pub struct WindowStyle {
+    /// Color of the button.
+    #[conrod(default = "theme.shape_color")]
+    pub color: Option<conrod_core::Color>,
+    /// Color of the button's label.
+    #[conrod(default = "theme.label_color")]
+    pub label_color: Option<conrod_core::Color>,
+    /// Font size of the button's label.
+    #[conrod(default = "theme.font_size_medium")]
+    pub label_font_size: Option<conrod_core::FontSize>,
+    /// Specify a unique font for the label.
+    #[conrod(default = "theme.font_id")]
+    pub label_font_id: Option<Option<conrod_core::text::font::Id>>,
+}
 
 widget_ids! {
     struct Ids {
@@ -1301,126 +1329,8 @@ impl Hud {
             }
         }
 
-        // 4 Char-Window
         if let Windows::CharacterAnd(small) = self.open_windows {
-            // Frame
-            Image::new(self.imgs.window_frame)
-                .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                .set(self.ids.charwindow_frame, ui_widgets);
-
-            // BG
-            //Image::new(self.imgs.window_bg)
-            //.w_h(348.0, 404.0)
-            //.mid_top_with_margin_on(self.ids.charwindow_frame, 48.0)
-            //.set(self.ids.charwindow_bg, ui_widgets);
-
-            // Overlay
-            //Image::new(self.imgs.charwindow)
-            //.middle_of(self.ids.charwindow_bg)
-            //.set(self.ids.charwindow, ui_widgets);
-
-            // Icon
-            //Image::new(self.imgs.charwindow_icon)
-            //.w_h(224.0 / 3.0, 224.0 / 3.0)
-            //.top_left_with_margins_on(self.ids.charwindow_frame, -10.0, -10.0)
-            //.set(self.ids.charwindow_icon, ui_widgets);
-
-            // X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.charwindow_frame, 4.0, 4.0)
-                .set(self.ids.charwindow_close, ui_widgets)
-                .was_clicked()
-            {
-                self.open_windows = match small {
-                    Some(small) => Windows::Small(small),
-                    None => Windows::None,
-                }
-            }
-
-            // Title
-            Text::new("Character Name") //Add in actual Character Name
-                .mid_top_with_margin_on(self.ids.charwindow_frame, 7.0)
-                .color(TEXT_COLOR)
-                .set(self.ids.charwindow_title, ui_widgets);
-            // Tab BG
-            Image::new(self.imgs.charwindow_tab_bg)
-                .w_h(205.0, 412.0)
-                .mid_left_with_margin_on(self.ids.charwindow_frame, -205.0)
-                .set(self.ids.charwindow_tab_bg, ui_widgets);
-            // Tab Rectangle
-            Rectangle::fill_with([192.0, 371.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .top_right_with_margins_on(self.ids.charwindow_tab_bg, 20.0, 0.0)
-                .set(self.ids.charwindow_rectangle, ui_widgets);
-            // Tab Button
-            Button::image(self.imgs.charwindow_tab)
-                .w_h(65.0, 23.0)
-                .top_left_with_margins_on(self.ids.charwindow_tab_bg, -18.0, 2.0)
-                .label("Stats")
-                .label_color(TEXT_COLOR)
-                .label_font_id(self.font_opensans)
-                .label_font_size(14)
-                .set(self.ids.charwindow_tab1, ui_widgets);
-            Text::new("1") //Add in actual Character Level
-                .mid_top_with_margin_on(self.ids.charwindow_rectangle, 10.0)
-                .font_id(self.font_opensans)
-                .font_size(30)
-                .color(TEXT_COLOR)
-                .set(self.ids.charwindow_tab1_level, ui_widgets);
-            // Exp-Bar Background
-            Rectangle::fill_with([170.0, 10.0], color::BLACK)
-                .mid_top_with_margin_on(self.ids.charwindow_rectangle, 50.0)
-                .set(self.ids.charwindow_exp_rectangle, ui_widgets);
-            // Exp-Bar Progress
-            Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percantage
-                .mid_left_with_margin_on(self.ids.charwindow_tab1_expbar, 1.0)
-                .set(self.ids.charwindow_exp_progress_rectangle, ui_widgets);
-            // Exp-Bar Foreground Frame
-            Image::new(self.imgs.progress_frame)
-                .w_h(170.0, 10.0)
-                .middle_of(self.ids.charwindow_exp_rectangle)
-                .set(self.ids.charwindow_tab1_expbar, ui_widgets);
-            // Exp-Text
-            Text::new("120/170") // Shows the Exp / Exp to reach the next level
-                .mid_top_with_margin_on(self.ids.charwindow_tab1_expbar, 10.0)
-                .font_id(self.font_opensans)
-                .font_size(15)
-                .color(TEXT_COLOR)
-                .set(self.ids.charwindow_tab1_exp, ui_widgets);
-
-            // Stats
-            Text::new(
-                "Stamina\n\
-                 \n\
-                 Strength\n\
-                 \n\
-                 Dexterity\n\
-                 \n\
-                 Intelligence",
-            )
-            .top_left_with_margins_on(self.ids.charwindow_rectangle, 100.0, 20.0)
-            .font_id(self.font_opensans)
-            .font_size(16)
-            .color(TEXT_COLOR)
-            .set(self.ids.charwindow_tab1_statnames, ui_widgets);
-
-            Text::new(
-                "1234\n\
-                 \n\
-                 12312\n\
-                 \n\
-                 12414\n\
-                 \n\
-                 124124",
-            )
-            .right_from(self.ids.charwindow_tab1_statnames, 10.0)
-            .font_id(self.font_opensans)
-            .font_size(16)
-            .color(TEXT_COLOR)
-            .set(self.ids.charwindow_tab1_stats, ui_widgets);
+            CharacterWindow::new();
         }
 
         // 2 Map
