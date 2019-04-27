@@ -89,14 +89,16 @@ clean-code:
     - cargo fmt --all -- --check
   allow_failure: true  
 
-coverage:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo tarpaulin --skip-clean --all || echo "There is a problem in tarpaulin which sometimes fails"
-  allow_failure: true
+# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
+# # https://github.com/rust-lang/rust/issues/58375
+# coverage:
+#   stage: post-build
+#   image: registry.gitlab.com/veloren/veloren-docker-ci
+#   tags:
+#     - veloren-docker
+#   script:
+#     - cargo tarpaulin --all
+#   allow_failure: true
 
 clippy:
   stage: post-build
