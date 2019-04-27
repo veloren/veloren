@@ -1,11 +1,12 @@
 mod client_init;
+mod start_singleplayer;
 mod ui;
 
+use start_singleplayer::StartSingleplayerState;
 use super::char_selection::CharSelectionState;
 use crate::{
     window::{Event, Window},
-    GlobalState, PlayState, PlayStateResult,
-    singleplayer::Singleplayer,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
@@ -28,6 +29,8 @@ impl MainMenuState {
     }
 }
 
+const DEFAULT_PORT: u16 = 59003;
+
 // Background colour
 const BG_COLOR: Rgba<f32> = Rgba {
     r: 0.0,
@@ -37,7 +40,7 @@ const BG_COLOR: Rgba<f32> = Rgba {
 };
 
 impl PlayState for MainMenuState {
-    fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
+    fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock
         let mut clock = Clock::new();
 
@@ -98,7 +101,6 @@ impl PlayState for MainMenuState {
                             net_settings.servers.push(server_address.clone());
                         }
                         global_state.settings.save_to_file();
-                        const DEFAULT_PORT: u16 = 59003;
                         // Don't try to connect if there is already a connection in progress
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),
@@ -109,7 +111,7 @@ impl PlayState for MainMenuState {
                         )));
                     },
                     MainMenuEvent::StartSingleplayer => {
-                        global_state.singleplayer = Some(Singleplayer::new());
+                        return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
                     },
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
