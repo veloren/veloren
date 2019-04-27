@@ -3,7 +3,7 @@ mod ui;
 use crate::{
     window::{Event, Window},
     session::SessionState,
-    GlobalState, PlayState, PlayStateResult,
+    Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{
@@ -40,7 +40,7 @@ const BG_COLOR: Rgba<f32> = Rgba {
 };
 
 impl PlayState for CharSelectionState {
-    fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
+    fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock
         let mut clock = Clock::new();
 
@@ -49,7 +49,6 @@ impl PlayState for CharSelectionState {
             for event in global_state.window.fetch_events() {
                 match event {
                     Event::Close => {
-                        global_state.singleplayer = None;
                         return PlayStateResult::Shutdown;
                     },
                     // Pass events to ui
@@ -67,7 +66,6 @@ impl PlayState for CharSelectionState {
             for event in self.char_selection_ui.maintain(global_state.window.renderer_mut()) {
                 match event {
                     ui::Event::Logout => {
-                        global_state.singleplayer = None;
                         return PlayStateResult::Pop;
                     },
                     ui::Event::Play => {
