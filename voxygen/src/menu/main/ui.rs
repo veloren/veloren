@@ -176,10 +176,11 @@ impl MainMenuUi {
             .top_left_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
         Text::new(version)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .font_size(14)
-                .color(TEXT_COLOR)
-                .set(self.ids.version, ui_widgets);
+            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            .font_size(14)
+            .color(TEXT_COLOR)
+            .set(self.ids.version, ui_widgets);
+
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field
         macro_rules! login {
@@ -390,7 +391,7 @@ impl MainMenuUi {
         };
 
         // Singleplayer button
-         if Button::image(self.imgs.button)
+        if Button::image(self.imgs.button)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .w_h(258.0, 68.0)
