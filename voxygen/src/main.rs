@@ -25,7 +25,6 @@ use crate::{
     menu::main::MainMenuState,
     window::Window,
     settings::Settings,
-    singleplayer::Singleplayer,
 };
 
 /// The URL of the default public server that Voxygen will connect to
@@ -35,7 +34,6 @@ const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
 pub struct GlobalState {
     settings: Settings,
     window: Window,
-    singleplayer: Option<Singleplayer>,
 }
 
 impl GlobalState {
@@ -45,6 +43,11 @@ impl GlobalState {
         self.window.grab_cursor(false);
         self.window.needs_refresh_resize();
     }
+}
+
+pub enum Direction {
+    Forwards,
+    Backwards,
 }
 
 // States can either close (and revert to a previous state), push a new state on top of themselves,
@@ -65,7 +68,7 @@ pub enum PlayStateResult {
 pub trait PlayState {
     /// Play the state until some change of state is required (i.e: a menu is opened or the game
     /// is closed).
-    fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult;
+    fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
 
     /// Get a descriptive name for this state type
     fn name(&self) -> &'static str;
@@ -123,7 +126,6 @@ The information below is intended for developers and testers.
     let mut global_state = GlobalState {
         settings,
         window,
-        singleplayer: None,
     };
 
     // Set up the initial play state
@@ -141,10 +143,12 @@ The information below is intended for developers and testers.
     // which can in turn push a "settings" state or a "game session" state on top of it.
     // The code below manages the state transfer logic automatically so that we don't have to
     // re-engineer it for each menu we decide to add to the game.
-    while let Some(state_result) = states.last_mut().map(|last| last.play(&mut global_state)){
+    let mut direction = Direction::Forwards;
+    while let Some(state_result) = states.last_mut().map(|last| last.play(direction, &mut global_state)){
         // Implement state transfer logic
         match state_result {
             PlayStateResult::Shutdown => {
+                direction = Direction::Backwards;
                 log::info!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
@@ -154,17 +158,20 @@ The information below is intended for developers and testers.
                 }
             },
             PlayStateResult::Pop => {
+                direction = Direction::Backwards;
                 states.pop().map(|old_state| {
                     log::info!("Popped state '{}'", old_state.name());
                     global_state.on_play_state_changed();
                 });
             },
             PlayStateResult::Push(new_state) => {
+                direction = Direction::Forwards;
                 log::info!("Pushed state '{}'", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
             },
             PlayStateResult::Switch(mut new_state) => {
+                direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
                     log::info!("Switching to state '{}' from state '{}'", new_state.name(), old_state.name());
                     mem::swap(old_state, &mut new_state);

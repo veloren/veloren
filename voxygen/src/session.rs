@@ -6,6 +6,7 @@ use client::{
     Client,
 };
 use crate::{
+    Direction,
     Error,
     PlayState,
     PlayStateResult,
@@ -100,7 +101,7 @@ impl SessionState {
 }
 
 impl PlayState for SessionState {
-    fn play(&mut self, global_state: &mut GlobalState) -> PlayStateResult {
+    fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Trap the cursor
         global_state.window.grab_cursor(true);
 
@@ -129,7 +130,6 @@ impl PlayState for SessionState {
                 }
                 let _handled = match event {
                     Event::Close => {
-                        global_state.singleplayer = None;
                         return PlayStateResult::Shutdown;
                     },
                     // Toggle cursor grabbing
@@ -171,7 +171,6 @@ impl PlayState for SessionState {
                     },
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => {
-                        global_state.singleplayer = None;
                         return PlayStateResult::Shutdown;
                     },
                 }
