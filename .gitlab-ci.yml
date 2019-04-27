@@ -42,7 +42,7 @@ build-voxygen:
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && cargo build)
 
@@ -50,7 +50,7 @@ build-server-cli:
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd server-cli && cargo build)
 
@@ -62,7 +62,7 @@ unittests:
   stage: test
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo test
 
@@ -70,7 +70,7 @@ benchmarktests:
   stage: test
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo bench
   allow_failure: true
@@ -84,7 +84,7 @@ clean-code:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo fmt --all -- --check
   allow_failure: true  
@@ -93,7 +93,7 @@ coverage:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo tarpaulin --skip-clean --all || echo "There is a problem in tarpaulin which sometimes fails"
   allow_failure: true
@@ -102,7 +102,7 @@ clippy:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
   allow_failure: true
@@ -115,7 +115,7 @@ commit-linux-debug:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
@@ -137,13 +137,12 @@ commit-linux-debug:
   only:
     refs:
       - master
-      - add-docker-gitlab-ci
 
 commit-windows-debug:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
@@ -165,7 +164,6 @@ commit-windows-debug:
   only:
     refs:
       - master
-      - add-docker-gitlab-ci
 
 #############
 # NIGHTLY
@@ -175,7 +173,7 @@ nightly-linux-optimized:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
@@ -199,7 +197,7 @@ nightly-windows-optimized:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
