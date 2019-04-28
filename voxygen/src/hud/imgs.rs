@@ -1,6 +1,8 @@
+use crate::ui::{ImageGraphic, VoxelGraphic, BlankGraphic};
+
 image_ids! {
     pub struct Imgs {
-        <dot_vox::DotVoxData>
+        <VoxelGraphic>
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
@@ -45,7 +47,7 @@ image_ids! {
         map_frame_l: "/voxygen/element/frames/map_l.vox",
         map_frame_r: "/voxygen/element/frames/map_r.vox",
 
-        <image::DynamicImage>
+        <ImageGraphic>
         // Bag
         bag: "/voxygen/element/buttons/bag/closed.png",
         bag_hover: "/voxygen/element/buttons/bag/closed_hover.png",
@@ -127,5 +129,8 @@ image_ids! {
         chat_arrow: "/voxygen/element/buttons/arrow/chat_arrow.png",
         chat_arrow_mo: "/voxygen/element/buttons/arrow/chat_arrow_mo.png",
         chat_arrow_press: "/voxygen/element/buttons/arrow/chat_arrow_press.png",
+
+        <BlankGraphic>
+        blank: (),
     }
 }
