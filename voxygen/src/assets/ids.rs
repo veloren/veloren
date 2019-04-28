@@ -30,35 +30,35 @@ impl UiId for DotVoxData {
 /// Example usage:
 /// ```
 /// image_ids! {
-///     struct<DotVoxData> Voxs {
+///     pub struct Ids {
+///         <DotVoxData>
 ///         button1: "filename1.vox",
 ///         button2: "filename2.vox",
-///     }
-///     struct<DynamicImage> Voxs {
+///
+///         <DynamicImage>
 ///         background: "background.png",
 ///     }
 /// }
 /// ```
 macro_rules! image_ids {
-    ($(pub struct<$T:ty> $Ids:ident { $( $name:ident: $file:expr ), *$(,)? } )*) => {
-        $(
-            pub struct $Ids {
-                $( $name: ImgId, )*
-            }
+    (pub struct $Ids:ident { $( <$T:ty> $( $name:ident: $file:expr ),* $(,)? )* }) => {
+        pub struct $Ids {
+            $($( $name: ImgId, )*)*
+        }
 
-            impl $Ids {
-                pub fn load(ui: &mut Ui) -> Result<Self, std::io::Error> {
-                    Ok(Self {
-                        $( $name: UiId::to_ui_asset(<$T>::load($file)?, ui), )*
-                    })
-                }
+        impl $Ids {
+            pub fn load(ui: &mut Ui) -> Result<Self, std::io::Error> {
+                Ok(Self {
+                    $($( $name: UiId::to_ui_asset(<$T>::load($file)?, ui), )*)*
+                })
             }
-        )*
+        }
     };
 }
 
 image_ids! {
-    pub struct<DotVoxData> Voxs {
+    pub struct Ids {
+        <DotVoxData>
         // Bag
         bag_contents: "element/frames/bag.vox",
         inv_grid: "element/frames/inv_grid.vox",
@@ -102,9 +102,8 @@ image_ids! {
         window_frame: "element/frames/window2.vox",
         map_frame_l: "element/frames/map_l.vox",
         map_frame_r: "element/frames/map_r.vox",
-    }
 
-    pub struct<DynamicImage> Imgs {
+        <DynamicImage>
         // Bag
         bag: "element/buttons/bag/closed.png",
         bag_hover: "element/buttons/bag/closed_hover.png",
