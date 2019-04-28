@@ -5,8 +5,9 @@ mod widgets;
 mod img_ids;
 
 pub use graphic::Graphic;
-pub(self) use util::{linear_to_srgb, srgb_to_linear};
 pub use widgets::toggle_button::ToggleButton;
+pub use img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, GraphicCreator};
+pub(self) use util::{srgb_to_linear, linear_to_srgb};
 
 use crate::{
     render::{
@@ -115,7 +116,7 @@ impl Cache {
     pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) {
         (&mut self.graphic_cache, &self.graphic_cache_tex)
     }
-    pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId {
+    pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
         self.graphic_cache.new_graphic(graphic)
     }
     pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
@@ -249,8 +250,8 @@ impl Ui {
         self.ui.handle_event(Input::Resize(w, h));
     }
 
-    pub fn new_graphic(&mut self, graphic: Graphic) -> ImgId {
-        self.image_map.insert(self.cache.new_graphic(graphic))
+    pub fn add_graphic(&mut self, graphic: Graphic) -> ImgId {
+        self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
     pub fn new_font(&mut self, font: Font) -> FontId {
