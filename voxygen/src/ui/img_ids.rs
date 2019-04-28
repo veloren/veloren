@@ -19,11 +19,11 @@ macro_rules! image_ids {
     ($($v:vis struct<$T:ty> $Ids:ident { $( $name:ident: $specifier:expr ), *$(,)? } )*) => {
         $(
             $v struct $Ids {
-                $( $name: conrod_core::image::Id, )*
+                $( $v $name: conrod_core::image::Id, )*
             }
 
             impl $Ids {
-                pub fn load(ui: &mut Ui) -> Result<Self, common::assets::Error> {
+                pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
                     Ok(Self {
                         $( $name: ui.new_graphic(common::assets::load::<$T>($specifier)?.into()), )*
                     })
