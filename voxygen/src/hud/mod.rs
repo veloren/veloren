@@ -6,9 +6,7 @@ use crate::{
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
-use common::{
-    assets,
-    figure::Segment};
+use common::{assets, figure::Segment};
 
 use conrod_core::{
     color,
@@ -24,13 +22,13 @@ widget_ids! {
         bag_space_add,
         inventorytest_button,
         inventorytest_button_label,
-        //Debug
+        // Debug
         debug_bg,
         debug_button,
         debug_button_label,
         fps_counter,
-        // Logo
-        v_logo,
+        // Game Version
+        version,
 
         // Bag and Inventory
         bag,
@@ -56,6 +54,7 @@ widget_ids! {
         character_button_bg,
         qlog_button_bg,
         bag_text,
+        mmap_button,
         //help
         help,
         help_bg,
@@ -172,6 +171,14 @@ pub(self) struct Imgs {
     inv_slot: ImgId,
 
     // Buttons
+
+    mmap_closed: ImgId,
+    mmap_closed_hover: ImgId,
+    mmap_closed_press: ImgId,
+    mmap_open: ImgId,
+    mmap_open_hover: ImgId,
+    mmap_open_press: ImgId,
+
     settings: ImgId,
     settings_hover: ImgId,
     settings_press: ImgId,
@@ -209,8 +216,8 @@ pub(self) struct Imgs {
     button_dark_press: ImgId,
 
     // MiniMap
-    mmap_frame: ImgId,
-    mmap_frame_bg: ImgId,
+    mmap_frame: ImgId,    
+    mmap_frame_closed: ImgId,
 
     // SkillBar Module
     sb_grid: ImgId,
@@ -266,10 +273,10 @@ pub(self) struct Imgs {
     progress: ImgId,
 
     // Buttons
-    mmap_button: ImgId,
-    mmap_button_hover: ImgId,
-    mmap_button_press: ImgId,
-    mmap_button_open: ImgId,
+    grid_button: ImgId,
+    grid_button_hover: ImgId,
+    grid_button_press: ImgId,
+    grid_button_open: ImgId,
 
     // Quest-Log Window
     questlog_bg: ImgId,
@@ -282,7 +289,7 @@ pub(self) struct Imgs {
 }
 impl Imgs {
     fn new(ui: &mut Ui, renderer: &mut Renderer) -> Imgs {
-         let mut load_img = |filename, ui: &mut Ui| {
+        let mut load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = image::load_from_memory(
                 assets::load(fullpath.as_str())
@@ -302,9 +309,9 @@ impl Imgs {
             .unwrap();
             ui.new_graphic(ui::Graphic::Voxel(Segment::from(dot_vox)))
         };
-         Imgs {
+        Imgs {
             // Bag
-           bag: load_img("element/buttons/bag/closed.png", ui),
+            bag: load_img("element/buttons/bag/closed.png", ui),
             bag_hover: load_img("element/buttons/bag/closed_hover.png", ui),
             bag_press: load_img("element/buttons/bag/closed_press.png", ui),
             bag_open: load_img("element/buttons/bag/open.png", ui),
@@ -315,7 +322,13 @@ impl Imgs {
             inv_slot: load_vox("element/buttons/inv_slot.vox", ui),
 
             // Buttons
-
+            mmap_closed: load_vox("element/buttons/button_mmap_closed.vox", ui),
+            mmap_closed_hover: load_vox("element/buttons/button_mmap_closed_hover.vox", ui),
+            mmap_closed_press: load_vox("element/buttons/button_mmap_closed_press.vox", ui),
+            mmap_open: load_vox("element/buttons/button_mmap_open.vox", ui),
+            mmap_open_hover: load_vox("element/buttons/button_mmap_open_hover.vox", ui),
+            mmap_open_press: load_vox("element/buttons/button_mmap_open_press.vox", ui),
+        
             settings: load_vox("element/buttons/settings.vox", ui),
             settings_hover: load_vox("element/buttons/settings_hover.vox", ui),
             settings_press: load_vox("element/buttons/settings_press.vox", ui),
@@ -340,10 +353,10 @@ impl Imgs {
             qlog_hover: load_vox("element/buttons/qlog_hover.vox", ui),
             qlog_press: load_vox("element/buttons/qlog_press.vox", ui),
 
-            mmap_button: load_img("element/buttons/border.png", ui),
-            mmap_button_hover: load_img("element/buttons/border_mo.png", ui),
-            mmap_button_press: load_img("element/buttons/border_press.png", ui),
-            mmap_button_open: load_img("element/buttons/border_pressed.png", ui),
+            grid_button: load_img("element/buttons/border.png", ui),
+            grid_button_hover: load_img("element/buttons/border_mo.png", ui),
+            grid_button_press: load_img("element/buttons/border_press.png", ui),
+            grid_button_open: load_img("element/buttons/border_pressed.png", ui),
 
             // Close button
             close_button: load_vox("element/buttons/x.vox", ui),
@@ -358,9 +371,8 @@ impl Imgs {
             button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
 
             // MiniMap
-            mmap_frame: load_vox("element/frames/mmap.vox", ui),
-            mmap_frame_bg: load_img("element/misc_bg/mmap_bg.png", ui),
-
+            mmap_frame: load_vox("element/frames/mmap.vox", ui),            
+            mmap_frame_closed: load_vox("element/frames/mmap_closed.vox", ui),
 
             // Skillbar Module
             sb_grid: load_img("element/skill_bar/sbar_grid.png", ui),
@@ -386,7 +398,7 @@ impl Imgs {
             check_checked_mo: load_img("element/buttons/check/yes_mo.png", ui),
             slider: load_img("element/slider/track.png", ui),
             slider_indicator: load_img("element/slider/indicator.png", ui),
-            button_blank:  ui.new_graphic(ui::Graphic::Blank),
+            button_blank: ui.new_graphic(ui::Graphic::Blank),
             button_blue_mo: load_img("element/buttons/blue_mo.png", ui),
             button_blue_press: load_img("element/buttons/blue_press.png", ui),
 
@@ -424,7 +436,6 @@ impl Imgs {
             chat_arrow: load_img("element/buttons/arrow/chat_arrow.png", ui),
             chat_arrow_mo: load_img("element/buttons/arrow/chat_arrow_mo.png", ui),
             chat_arrow_press: load_img("element/buttons/arrow/chat_arrow_press.png", ui),
-
         }
     }
 }
@@ -472,6 +483,7 @@ pub struct Hud {
     menu_open: bool,
     open_windows: Windows,
     map_open: bool,
+    mmap_open: bool,
     show_ui: bool,
     inventory_space: u32,
     xp_percentage: f64,
@@ -521,6 +533,7 @@ impl Hud {
             bag_open: false,
             menu_open: false,
             map_open: false,
+            mmap_open: true,
             show_ui: true,
             inventorytest_button: false,
             inventory_space: 0,
@@ -550,27 +563,30 @@ impl Hud {
 
         // Display debug window
         if self.show_debug {
-            Image::new(self.imgs.window_frame_2)
-                .down_from(self.ids.mmap_frame, 20.0)
-                .w_h(300.0, 350.0)
-                .set(self.ids.debug_bg, ui_widgets);
+            // Alpha Version
+            Text::new(version)
+                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .font_size(14)
+                .font_id(self.font_opensans)
+                .color(TEXT_COLOR)
+                .set(self.ids.version, ui_widgets);
             Text::new(&format!("FPS: {:.1}", tps))
                 .color(TEXT_COLOR)
-                .top_left_with_margins_on(self.ids.debug_bg, 20.0, 20.0)
+                .down_from(self.ids.version, 5.0)
                 .font_id(self.font_opensans)
-                .font_size(18)
+                .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
         }
 
         // Add Bag-Space Button
         if self.inventorytest_button {
-            if Button::image(self.imgs.mmap_button)
+            if Button::image(self.imgs.grid_button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
                 .label("1 Up!")
                 .label_font_size(20)
-                .hover_image(self.imgs.mmap_button_hover)
-                .press_image(self.imgs.mmap_button_press)
+                .hover_image(self.imgs.grid_button_hover)
+                .press_image(self.imgs.grid_button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
@@ -585,13 +601,6 @@ impl Hud {
         {
             events.push(Event::SendMessage(msg));
         }
-
-        // Alpha Version
-        Text::new(version)
-            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_size(14)
-            .color(TEXT_COLOR)
-            .set(self.ids.v_logo, ui_widgets);
 
         // Help Text
         if self.show_help {
@@ -608,13 +617,13 @@ impl Hud {
                  F2 = Toggle Interface   \n\
                  \n\
                  Enter = Open Chat       \n\
-                 Mouse Wheel = Scroll Chat"
+                 Mouse Wheel = Scroll Chat",
             )
-                .color(TEXT_COLOR)
-                .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
-                .font_id(self.font_opensans)
-                .font_size(18)
-                .set(self.ids.help, ui_widgets);
+            .color(TEXT_COLOR)
+            .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
+            .font_id(self.font_opensans)
+            .font_size(18)
+            .set(self.ids.help, ui_widgets);
 
             // X-button
             if Button::image(self.imgs.close_button)
@@ -629,21 +638,40 @@ impl Hud {
             };
         }
 
-        // Minimap frame and bg
-        //Image::new(self.imgs.mmap_frame_bg)
-            //.w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            //.top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            //.set(self.ids.mmap_frame_bg, ui_widgets);
+        // Minimap 
 
-        Image::new(self.imgs.mmap_frame)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
+        if self.mmap_open { 
+            Image::new(self.imgs.mmap_frame)
+            .w_h(100.0 * 2.0, 100.0 * 2.0)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .set(self.ids.mmap_frame, ui_widgets);
+
+        Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
+            .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
+            .set(self.ids.mmap_frame_bg, ui_widgets);        
+            }
+            else {
+                Image::new(self.imgs.mmap_frame_closed)
+                .w_h(100.0 * 2.0, 11.0 * 2.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .set(self.ids.mmap_frame, ui_widgets);                
+            };
+        
+        if Button::image(if self.mmap_open {self.imgs.mmap_open} else {self.imgs.mmap_closed})
+                .w_h(10.0 * 2.0, 10.0 * 2.0)
+                .hover_image(if self.mmap_open {self.imgs.mmap_open_hover} else {self.imgs.mmap_closed_hover})
+                .press_image(if self.mmap_open {self.imgs.mmap_open_press} else {self.imgs.mmap_closed_press})
+                .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
+                .set(self.ids.mmap_button, ui_widgets)
+                .was_clicked()
+            {
+                self.mmap_open = !self.mmap_open;
+            };
 
         // Title
         // Make it display the actual location
         Text::new("Uncanny Valley")
-            .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
+            .mid_top_with_margin_on(self.ids.mmap_frame, 3.0)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(self.ids.mmap_location, ui_widgets);
@@ -658,6 +686,8 @@ impl Hud {
             .press_image(self.imgs.settings_press)
             .label("N")
             .label_font_size(10)
+            .label_font_id(self.font_metamorph)
+            .color(TEXT_COLOR)
             .label_color(TEXT_COLOR)
             .label_y(conrod_core::position::Relative::Scalar(-7.0))
             .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -679,6 +709,7 @@ impl Hud {
             .press_image(self.imgs.map_press)
             .label("M")
             .label_font_size(10)
+            .label_font_id(self.font_metamorph)
             .label_color(TEXT_COLOR)
             .label_y(conrod_core::position::Relative::Scalar(-7.0))
             .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -712,7 +743,8 @@ impl Hud {
         if match self.open_windows {
             Windows::Settings => false,
             _ => true,
-        } && self.map_open == false {
+        } && self.map_open == false
+        {
             // 1 Social
             if Button::image(self.imgs.social_button)
                 .w_h(25.0, 25.0)
@@ -721,6 +753,7 @@ impl Hud {
                 .press_image(self.imgs.social_press)
                 .label("O")
                 .label_font_size(10)
+                .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
                 .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -746,6 +779,7 @@ impl Hud {
                 .press_image(self.imgs.spellbook_press)
                 .label("P")
                 .label_font_size(10)
+                .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
                 .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -771,6 +805,7 @@ impl Hud {
                 .press_image(self.imgs.character_press)
                 .label("C")
                 .label_font_size(10)
+                .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
                 .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -788,20 +823,21 @@ impl Hud {
                 }
             }
 
-           // 5 Quest-Log
-           if Button::image(self.imgs.qlog_button)
-               .w_h(23.0, 25.0)
-               .left_from(self.ids.character_button, 10.0)
-               .hover_image(self.imgs.qlog_hover)
-               .press_image(self.imgs.qlog_press)
-               .label("L")
-               .label_font_size(10)
-               .label_color(TEXT_COLOR)
-               .label_y(conrod_core::position::Relative::Scalar(-7.0))
-               .label_x(conrod_core::position::Relative::Scalar(10.0))
-               .set(self.ids.qlog_button, ui_widgets)
-               .was_clicked()
-           {
+            // 5 Quest-Log
+            if Button::image(self.imgs.qlog_button)
+                .w_h(23.0, 25.0)
+                .left_from(self.ids.character_button, 10.0)
+                .hover_image(self.imgs.qlog_hover)
+                .press_image(self.imgs.qlog_press)
+                .label("L")
+                .label_font_size(10)
+                .label_font_id(self.font_metamorph)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(-7.0))
+                .label_x(conrod_core::position::Relative::Scalar(10.0))
+                .set(self.ids.qlog_button, ui_widgets)
+                .was_clicked()
+            {
                 self.open_windows = match self.open_windows {
                     Windows::Small(Small::Questlog) => Windows::None,
                     Windows::None | Windows::Small(_) => Windows::Small(Small::Questlog),
@@ -813,7 +849,6 @@ impl Hud {
                 };
             }
         }
-
 
         // Skillbar Module
 
@@ -911,53 +946,53 @@ impl Hud {
             .set(self.ids.next_level_text, ui_widgets);
 
         // Bag contents
-            if self.bag_open {
-                // Contents
-                Image::new(self.imgs.bag_contents)
-                    .w_h(68.0*4.0, 123.0*4.0)
-                    .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
-                    .set(self.ids.bag_contents, ui_widgets);
+        if self.bag_open {
+            // Contents
+            Image::new(self.imgs.bag_contents)
+                .w_h(68.0 * 4.0, 123.0 * 4.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
+                .set(self.ids.bag_contents, ui_widgets);
 
-                // Alignment for Grid
-                Rectangle::fill_with([(58.0*4.0)-5.0, 100.0*4.0], color::TRANSPARENT)
-                    .top_left_with_margins_on(self.ids.bag_contents, 11.0*4.0, 5.0*4.0)
-                    .scroll_kids()
-                    .scroll_kids_vertically()
-                    .set(self.ids.inv_alignment, ui_widgets);
-                // Grid
-                Image::new(self.imgs.inv_grid)
-                    .w_h(58.0*4.0, 111.0*4.0)
-                    .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
-                    .set(self.ids.inv_grid_1, ui_widgets);
-                Image::new(self.imgs.inv_grid)
-                    .w_h(58.0*4.0, 111.0*4.0)
-                    .mid_top_with_margin_on(self.ids.inv_alignment, 110.0*4.0)
-                    .set(self.ids.inv_grid_2, ui_widgets);
-                Scrollbar::y_axis(self.ids.inv_alignment)
-                    .thickness(5.0)
-                    .rgba(0.33, 0.33, 0.33, 1.0)
-                    .set(self.ids.inv_scrollbar, ui_widgets);
+            // Alignment for Grid
+            Rectangle::fill_with([(58.0 * 4.0) - 5.0, 100.0 * 4.0], color::TRANSPARENT)
+                .top_left_with_margins_on(self.ids.bag_contents, 11.0 * 4.0, 5.0 * 4.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.inv_alignment, ui_widgets);
+            // Grid
+            Image::new(self.imgs.inv_grid)
+                .w_h(58.0 * 4.0, 111.0 * 4.0)
+                .mid_top_with_margin_on(self.ids.inv_alignment, 0.0)
+                .set(self.ids.inv_grid_1, ui_widgets);
+            Image::new(self.imgs.inv_grid)
+                .w_h(58.0 * 4.0, 111.0 * 4.0)
+                .mid_top_with_margin_on(self.ids.inv_alignment, 110.0 * 4.0)
+                .set(self.ids.inv_grid_2, ui_widgets);
+            Scrollbar::y_axis(self.ids.inv_alignment)
+                .thickness(5.0)
+                .rgba(0.33, 0.33, 0.33, 1.0)
+                .set(self.ids.inv_scrollbar, ui_widgets);
 
-                // X-button
-                if Button::image(self.imgs.close_button)
-                    .w_h(4.0*4.0, 4.0*4.0)
-                    .hover_image(self.imgs.close_button_hover)
-                    .press_image(self.imgs.close_button_press)
-                    .top_right_with_margins_on(self.ids.bag_contents, 4.5, 4.5)
-                    .set(self.ids.bag_close, ui_widgets)
-                    .was_clicked()
-                {
-                    self.bag_open = false;
-                }
-
-                if self.inventory_space > 0 {
-                    // First Slot
-                    Button::image(self.imgs.inv_slot)
-                        .top_left_with_margins_on(self.ids.inv_grid_1, 4.0, 4.0)
-                        .w_h(10.0*4.0, 10.0*4.0)
-                        .set(self.ids.inv_slot_0, ui_widgets);
-                }               
+            // X-button
+            if Button::image(self.imgs.close_button)
+                .w_h(4.0 * 4.0, 4.0 * 4.0)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
+                .top_right_with_margins_on(self.ids.bag_contents, 4.5, 4.5)
+                .set(self.ids.bag_close, ui_widgets)
+                .was_clicked()
+            {
+                self.bag_open = false;
             }
+
+            if self.inventory_space > 0 {
+                // First Slot
+                Button::image(self.imgs.inv_slot)
+                    .top_left_with_margins_on(self.ids.inv_grid_1, 4.0, 4.0)
+                    .w_h(10.0 * 4.0, 10.0 * 4.0)
+                    .set(self.ids.inv_slot_0, ui_widgets);
+            }
+        }
 
         // Bag
         if !self.map_open && self.show_ui {
@@ -967,9 +1002,10 @@ impl Hud {
                 .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag, ui_widgets);
-                Text::new("B")
+            Text::new("B")
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
+                .font_id(self.font_metamorph)
                 .color(TEXT_COLOR)
                 .set(self.ids.bag_text, ui_widgets);
         } else {
@@ -980,9 +1016,8 @@ impl Hud {
             Text::new("B")
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
-                .color(TEXT_COLOR)
+                .font_id(self.font_metamorph)
                 .set(self.ids.bag_text, ui_widgets);
-
         }
 
         //Windows
@@ -994,7 +1029,7 @@ impl Hud {
 
         if let Windows::Settings = self.open_windows {
             // BG
-            Image::new(self.imgs.settings_bg)
+            Image::new(self.imgs.window_frame)
                 .middle_of(ui_widgets.window)
                 .w_h(1648.0 / 2.5, 1952.0 / 2.5)
                 .set(self.ids.settings_bg, ui_widgets);
@@ -1068,11 +1103,11 @@ impl Hud {
                     self.imgs.check,
                     self.imgs.check_checked,
                 )
-                    .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .top_left_with_margins_on(self.ids.rectangle, 40.0, 15.0)
-                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-                    .press_images(self.imgs.check_press, self.imgs.check_press)
-                    .set(self.ids.inventorytest_button, ui_widgets);
+                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .top_left_with_margins_on(self.ids.rectangle, 40.0, 15.0)
+                .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                .press_images(self.imgs.check_press, self.imgs.check_press)
+                .set(self.ids.inventorytest_button, ui_widgets);
 
                 Text::new("Show Inventory Test Button")
                     .right_from(self.ids.inventorytest_button, 10.0)
@@ -1082,16 +1117,13 @@ impl Hud {
                     .color(TEXT_COLOR)
                     .set(self.ids.inventorytest_button_label, ui_widgets);
 
-                self.show_debug = ToggleButton::new(
-                    self.show_debug,
-                    self.imgs.check,
-                    self.imgs.check_checked
-                )
-                    .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .top_left_with_margins_on(self.ids.rectangle, 65.0, 15.0)
-                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-                    .press_images(self.imgs.check_press, self.imgs.check_press)
-                    .set(self.ids.debug_button, ui_widgets);
+                self.show_debug =
+                    ToggleButton::new(self.show_debug, self.imgs.check, self.imgs.check_checked)
+                        .w_h(288.0 / 24.0, 288.0 / 24.0)
+                        .top_left_with_margins_on(self.ids.rectangle, 65.0, 15.0)
+                        .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                        .press_images(self.imgs.check_press, self.imgs.check_press)
+                        .set(self.ids.debug_button, ui_widgets);
 
                 Text::new("Show Debug Window")
                     .right_from(self.ids.debug_button, 10.0)
@@ -1100,85 +1132,80 @@ impl Hud {
                     .graphics_for(self.ids.debug_button)
                     .color(TEXT_COLOR)
                     .set(self.ids.debug_button_label, ui_widgets);
-
             }
 
             // 2 Gameplay////////////////
             if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
-                    self.imgs.button_blue_mo
-                } else {
-                    self.imgs.button_blank
-                }
-            )
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.interface, 1.0)
-                .label("Gameplay")
-                .label_font_size(14)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.gameplay, ui_widgets)
-                .was_clicked()
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.interface, 1.0)
+            .label("Gameplay")
+            .label_font_size(14)
+            .label_color(TEXT_COLOR)
+            .set(self.ids.gameplay, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Gameplay;
             }
 
             // 3 Controls/////////////////////
             if Button::image(if let SettingsTab::Controls = self.settings_tab {
-                    self.imgs.button_blue_mo
-                } else {
-                    self.imgs.button_blank
-                }
-            )
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.gameplay, 1.0)
-                .label("Controls")
-                .label_font_size(14)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.controls, ui_widgets)
-                .was_clicked()
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.gameplay, 1.0)
+            .label("Controls")
+            .label_font_size(14)
+            .label_color(TEXT_COLOR)
+            .set(self.ids.controls, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Controls;
             }
 
             // 4 Video////////////////////////////////
             if Button::image(if let SettingsTab::Video = self.settings_tab {
-                    self.imgs.button_blue_mo
-                } else {
-                    self.imgs.button_blank
-                }
-            )
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.controls, 1.0)
-                .label("Video")
-                .label_font_size(14)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.video, ui_widgets)
-                .was_clicked()
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.controls, 1.0)
+            .label("Video")
+            .label_font_size(14)
+            .label_color(TEXT_COLOR)
+            .set(self.ids.video, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Video;
             }
 
             // 5 Sound///////////////////////////////
             if Button::image(if let SettingsTab::Sound = self.settings_tab {
-                    self.imgs.button_blue_mo
-                } else {
-                    self.imgs.button_blank
-                }
-            )
-                .w_h(304.0 / 2.5, 80.0 / 2.5)
-                .hover_image(self.imgs.button_blue_mo)
-                .press_image(self.imgs.button_blue_press)
-                .down_from(self.ids.video, 1.0)
-                .label("Sound")
-                .label_font_size(14)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.sound, ui_widgets)
-                .was_clicked()
+                self.imgs.button_blue_mo
+            } else {
+                self.imgs.button_blank
+            })
+            .w_h(304.0 / 2.5, 80.0 / 2.5)
+            .hover_image(self.imgs.button_blue_mo)
+            .press_image(self.imgs.button_blue_press)
+            .down_from(self.ids.video, 1.0)
+            .label("Sound")
+            .label_font_size(14)
+            .label_color(TEXT_COLOR)
+            .set(self.ids.sound, ui_widgets)
+            .was_clicked()
             {
                 self.settings_tab = SettingsTab::Sound;
             }
@@ -1196,12 +1223,12 @@ impl Hud {
                     if char_window_open {
                         Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
-                            .w_h(107.0*4.0, 125.0*4.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
                     } else {
                         Image::new(self.imgs.window_frame)
                             .top_left_with_margins_on(ui_widgets.window, 200.0, 10.0)
-                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
                     }
 
@@ -1217,7 +1244,6 @@ impl Hud {
                         .scroll_kids()
                         .scroll_kids_vertically()
                         .set(self.ids.social_bg, ui_widgets);
-
 
                     // X-Button
                     if Button::image(self.imgs.close_button)
@@ -1236,7 +1262,7 @@ impl Hud {
                     }
                     // Title
                     Text::new("Social")
-                        .mid_top_with_margin_on(self.ids.social_frame, 16.0)
+                        .mid_top_with_margin_on(self.ids.social_frame, 17.0)
                         .font_id(self.font_metamorph)
                         .font_size(14)
                         .color(TEXT_COLOR)
@@ -1247,33 +1273,34 @@ impl Hud {
                     if char_window_open {
                         Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
-                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.spellbook_frame, ui_widgets);
                     } else {
                         Image::new(self.imgs.window_frame)
-                            .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
-                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .top_left_with_margins_on(ui_widgets.window, 200.0, 10.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.spellbook_frame, ui_widgets);
                     }
 
-                    // BG
-                    Image::new(self.imgs.spellbook_bg)
-                        .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                        .middle_of(self.ids.spellbook_frame)
-                        .set(self.ids.spellbook_bg, ui_widgets);
-
                     // Icon
                     Image::new(self.imgs.spellbook_icon)
-                        .w_h(224.0 / 3.0, 224.0 / 3.0)
-                        .top_left_with_margins_on(self.ids.spellbook_frame, -10.0, -10.0)
+                        .w_h(40.0, 40.0)
+                        .top_left_with_margins_on(self.ids.spellbook_frame, 4.0, 4.0)
                         .set(self.ids.spellbook_icon, ui_widgets);
+
+                    // Content alignment
+                    Rectangle::fill_with([362.0, 418.0], color::TRANSPARENT)
+                        .bottom_right_with_margins_on(self.ids.spellbook_frame, 17.0, 17.0)
+                        .scroll_kids()
+                        .scroll_kids_vertically()
+                        .set(self.ids.spellbook_bg, ui_widgets);
 
                     // X-Button
                     if Button::image(self.imgs.close_button)
-                        .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
+                        .w_h(20.0, 20.0)
                         .hover_image(self.imgs.close_button_hover)
                         .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.spellbook_frame, 4.0, 4.0)
+                        .top_right_with_margins_on(self.ids.spellbook_frame, 17.0, 5.0)
                         .set(self.ids.spellbook_close, ui_widgets)
                         .was_clicked()
                     {
@@ -1285,7 +1312,8 @@ impl Hud {
                     }
                     // Title
                     Text::new("Spellbook")
-                        .mid_top_with_margin_on(self.ids.spellbook_frame, 7.0)
+                        .mid_top_with_margin_on(self.ids.spellbook_frame, 17.0)
+                        .font_size(14)
                         .color(TEXT_COLOR)
                         .set(self.ids.spellbook_title, ui_widgets);
                 }
@@ -1294,33 +1322,33 @@ impl Hud {
                     if char_window_open {
                         Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
-                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.questlog_frame, ui_widgets);
                     } else {
                         Image::new(self.imgs.window_frame)
-                            .top_left_with_margins_on(ui_widgets.window, 200.0, 90.0)
-                            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                            .top_left_with_margins_on(ui_widgets.window, 200.0, 10.0)
+                            .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.questlog_frame, ui_widgets);
                     }
 
-                    // BG
-                    Image::new(self.imgs.questlog_bg)
-                        .w_h(1648.0 / 4.0, 1952.0 / 4.0)
-                        .middle_of(self.ids.questlog_frame)
-                        .set(self.ids.questlog_bg, ui_widgets);
-
                     // Icon
                     Image::new(self.imgs.questlog_icon)
-                        .w_h(224.0 / 3.0, 224.0 / 3.0)
-                        .top_left_with_margins_on(self.ids.questlog_frame, -10.0, -10.0)
+                        .w_h(40.0, 40.0)
+                        .top_left_with_margins_on(self.ids.questlog_frame, 4.0, 4.0)
                         .set(self.ids.questlog_icon, ui_widgets);
+
+                    // Content alignment
+                    Rectangle::fill_with([362.0, 418.0], color::TRANSPARENT)
+                        .bottom_right_with_margins_on(self.ids.questlog_frame, 17.0, 17.0)
+                        .scroll_kids()
+                        .scroll_kids_vertically()
+                        .set(self.ids.questlog_bg, ui_widgets);
 
                     // X-Button
                     if Button::image(self.imgs.close_button)
-                        .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-                        .hover_image(self.imgs.close_button_hover)
+                        .w_h(20.0, 20.0)
                         .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.questlog_frame, 4.0, 4.0)
+                        .top_right_with_margins_on(self.ids.questlog_frame, 17.0, 5.0)
                         .set(self.ids.questlog_close, ui_widgets)
                         .was_clicked()
                     {
@@ -1332,8 +1360,9 @@ impl Hud {
                     }
                     // Title
                     Text::new("Quest-Log")
-                        .mid_top_with_margin_on(self.ids.questlog_frame, 7.0)
+                        .mid_top_with_margin_on(self.ids.questlog_frame, 17.0)
                         .color(TEXT_COLOR)
+                        .font_size(14)
                         .set(self.ids.questlog_title, ui_widgets);
                 }
             }
@@ -1348,15 +1377,15 @@ impl Hud {
                 .set(self.ids.charwindow_frame, ui_widgets);
 
             // BG
-            Image::new(self.imgs.window_bg)
-                .w_h(348.0, 404.0)
-                .mid_top_with_margin_on(self.ids.charwindow_frame, 48.0)
-                .set(self.ids.charwindow_bg, ui_widgets);
+            //Image::new(self.imgs.window_bg)
+            //.w_h(348.0, 404.0)
+            //.mid_top_with_margin_on(self.ids.charwindow_frame, 48.0)
+            //.set(self.ids.charwindow_bg, ui_widgets);
 
             // Overlay
-            Image::new(self.imgs.charwindow)
-                .middle_of(self.ids.charwindow_bg)
-                .set(self.ids.charwindow, ui_widgets);
+            //Image::new(self.imgs.charwindow)
+            //.middle_of(self.ids.charwindow_bg)
+            //.set(self.ids.charwindow, ui_widgets);
 
             // Icon
             //Image::new(self.imgs.charwindow_icon)
@@ -1439,11 +1468,11 @@ impl Hud {
                  \n\
                  Intelligence",
             )
-                .top_left_with_margins_on(self.ids.charwindow_rectangle, 100.0, 20.0)
-                .font_id(self.font_opensans)
-                .font_size(16)
-                .color(TEXT_COLOR)
-                .set(self.ids.charwindow_tab1_statnames, ui_widgets);
+            .top_left_with_margins_on(self.ids.charwindow_rectangle, 100.0, 20.0)
+            .font_id(self.font_opensans)
+            .font_size(16)
+            .color(TEXT_COLOR)
+            .set(self.ids.charwindow_tab1_statnames, ui_widgets);
 
             Text::new(
                 "1234\n\
@@ -1454,11 +1483,11 @@ impl Hud {
                  \n\
                  124124",
             )
-                .right_from(self.ids.charwindow_tab1_statnames, 10.0)
-                .font_id(self.font_opensans)
-                .font_size(16)
-                .color(TEXT_COLOR)
-                .set(self.ids.charwindow_tab1_stats, ui_widgets);
+            .right_from(self.ids.charwindow_tab1_statnames, 10.0)
+            .font_id(self.font_opensans)
+            .font_size(16)
+            .color(TEXT_COLOR)
+            .set(self.ids.charwindow_tab1_stats, ui_widgets);
         }
 
         // 2 Map
@@ -1466,7 +1495,7 @@ impl Hud {
             // BG
             Image::new(self.imgs.map_bg)
                 .w_h(824.0, 488.0)
-                .middle_of(ui_widgets.window)
+                .mid_top_with_margin_on(ui_widgets.window, 200.0)
                 .set(self.ids.map_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.map_frame_l)
@@ -1486,10 +1515,10 @@ impl Hud {
 
             // X-Button
             if Button::image(self.imgs.close_button)
-                .w_h(4.0*2.0, 4.0*2.0)
+                .w_h(20.0, 20.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.map_frame_r, 1.0, 1.0)
+                .top_right_with_margins_on(self.ids.map_frame_r, 17.0, 5.0)
                 .set(self.ids.map_close, ui_widgets)
                 .was_clicked()
             {
@@ -1498,11 +1527,10 @@ impl Hud {
             // Title
             Text::new("Map")
                 .mid_top_with_margin_on(self.ids.map_bg, -7.0)
-                .font_size(50)
+                .font_size(14)
                 .color(TEXT_COLOR)
                 .set(self.ids.map_title, ui_widgets);
         }
-
 
         // ESC-MENU
         // Background
