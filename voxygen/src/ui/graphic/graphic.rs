@@ -1,13 +1,13 @@
 use std::sync::Arc;
-use common::figure::Segment;
 use fnv::FnvHashMap;
 use guillotiere::{size2, Allocation, AtlasAllocator};
 use image::DynamicImage;
+use dot_vox::DotVoxData;
 use vek::*;
 
 pub enum Graphic {
     Image(Arc<DynamicImage>),
-    Voxel(Arc<Segment>),
+    Voxel(Arc<DotVoxData>),
     Blank,
 }
 
@@ -16,8 +16,8 @@ impl From<Arc<DynamicImage>> for Graphic {
         Graphic::Image(image)
     }
 }
-impl From<Arc<Segment>> for Graphic {
-    fn from(vox: Arc<Segment>) -> Self {
+impl From<Arc<DotVoxData>> for Graphic {
+    fn from(vox: Arc<DotVoxData>) -> Self {
         Graphic::Voxel(vox)
     }
 }
@@ -105,8 +105,8 @@ impl GraphicCache {
                             .pixels()
                             .map(|p| p.data)
                             .collect::<Vec<[u8; 4]>>(),
-                        Graphic::Voxel(vox) => {
-                            super::renderer::draw_vox(&vox, aabr.size().into())
+                        Graphic::Voxel(ref vox) => {
+                            super::renderer::draw_vox(&vox.as_ref().into(), aabr.size().into())
                         }
                         Graphic::Blank => return None,
                     };

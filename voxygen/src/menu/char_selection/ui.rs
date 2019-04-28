@@ -5,8 +5,18 @@ use crate::{
 };
 use common::{
     assets,
-    comp::character::{Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon},
-    figure::Segment,
+    comp::character::{
+        Character,
+        Race,
+        Gender,
+        Head,
+        Chest,
+        Belt,
+        Pants,
+        Hand,
+        Foot,
+        Weapon,
+    }
 };
 use conrod_core::{
     color,
@@ -235,14 +245,14 @@ impl Imgs {
         let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = assets::load::<image::DynamicImage>(fullpath.as_str())
-                .expect("Error loading file");
+                .unwrap();
             ui.new_graphic(image.into())
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let segment = assets::load::<common::figure::Segment>(fullpath.as_str())
-                .expect("Error loading file");
-            ui.new_graphic(segment.into())
+            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str())
+                .unwrao();
+            ui.new_graphic(dot_vox.into())
         };
         Imgs {
             v_logo: load_vox("element/v_logo.vox", ui),

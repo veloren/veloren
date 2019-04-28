@@ -1,18 +1,16 @@
 use crate::{
     render::Renderer,
     ui::{self, ScaleMode, Ui},
-    window::Window,
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
 use common::{
     assets,
-    figure::Segment,
 };
 use conrod_core::{
     color,
     color::TRANSPARENT,
     image::Id as ImgId,
-    position::{Dimension, Relative},
+    position::Relative,
     text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -70,14 +68,14 @@ impl Imgs {
         let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = assets::load::<image::DynamicImage>(fullpath.as_str())
-                .expect("Error loading file");
+                .unwrap();
             ui.new_graphic(image.into())
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let segment = assets::load::<common::figure::Segment>(fullpath.as_str())
-                .expect("Error loading file");
-            ui.new_graphic(segment.into())
+            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str())
+                .unwrap();
+            ui.new_graphic(dot_vox.into())
         };
         Imgs {
             bg: load_img("background/bg_main.png", ui),

@@ -18,8 +18,8 @@ use self::cell::Cell;
 /// Figures are used to represent things like characters, NPCs, mobs, etc.
 pub type Segment = Dyna<Cell, ()>;
 
-impl From<DotVoxData> for Segment {
-    fn from(dot_vox_data: DotVoxData) -> Self {
+impl From<&DotVoxData> for Segment {
+    fn from(dot_vox_data: &DotVoxData) -> Self {
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data
                 .palette

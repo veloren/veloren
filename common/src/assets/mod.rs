@@ -6,15 +6,13 @@ use std::{
     collections::HashMap,
     fs::File,
     io::Read,
-    sync::{Arc, PoisonError, RwLock},
+    sync::{Arc, RwLock},
 };
-use crate::figure::Segment;
 
 #[derive(Debug, Clone)]
 pub enum Error {
     InvalidType,
     NotFound,
-    Poison,
 }
 
 impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
@@ -26,12 +24,6 @@ impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
 impl From<std::io::Error> for Error {
     fn from(_err: std::io::Error) -> Self {
         Error::NotFound
-    }
-}
-
-impl<T> From<PoisonError<T>> for Error {
-    fn from(_err: PoisonError<T>) -> Self {
-        Error::Poison
     }
 }
 
@@ -50,7 +42,7 @@ lazy_static! {
 // TODO: consider assets that we only need in one place or that don't need to be kept in memory?
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     Ok(ASSETS
-        .write()?
+        .write().unwrap()
         .entry(specifier.to_string())
         .or_insert(Arc::new(A::load(specifier)?))
         .clone()
@@ -64,7 +56,9 @@ pub trait Asset: Send + Sync + Sized {
 
 impl Asset for DynamicImage {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(image::load_from_memory(load_from_path(specifier)?.as_slice()).unwrap())
+        Ok(image::load_from_memory(
+                load_from_path(specifier)?.as_slice()
+            ).unwrap())
     }
 }
 
@@ -74,22 +68,16 @@ impl Asset for DotVoxData {
     }
 }
 
-impl Asset for Segment {
-    fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(Segment::from(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap()))
-    }
-}
-
 // TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
 fn try_load_from_path(name: &str) -> Option<File> {
     let basepaths = [
+        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
         // if it's stupid and it works..,
         "assets".to_string(),
         "../../assets".to_string(),
         "../assets".to_string(), /* optimizations */
         [env!("CARGO_MANIFEST_DIR"), "/assets"].concat(),
         [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
-        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
         "../../../assets".to_string(),
         [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
     ];
@@ -97,11 +85,11 @@ fn try_load_from_path(name: &str) -> Option<File> {
         let filename = [bp, name].concat();
         match File::open(&filename) {
             Ok(f) => {
-                debug!("loading {} succedeed", filename);
+                debug!("Loading {} successful", filename);
                 return Some(f);
             },
             Err(e) => {
-                debug!("loading {} did not work with error: {}", filename, e);
+                debug!("Loading {} failed: {}", filename, e);
             }
         };
     };
@@ -112,14 +100,10 @@ pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
     match try_load_from_path(name) {
         Some(mut f) => {
             let mut content: Vec<u8> = vec!();
-            f.read_to_end(&mut content);
-            info!("loaded asset successful: {}", name);
+            f.read_to_end(&mut content)?;
             Ok(content)
         },
-        None => {
-            warn!("Loading asset failed, wanted to load {} but could not load it, check debug log!", name);
-            Err(Error::NotFound)
-        }
+        None => Err(Error::NotFound),
     }
 }
 

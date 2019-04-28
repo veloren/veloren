@@ -207,7 +207,7 @@ widget_ids! {
 }
 
 image_ids! {
-    pub(self) struct<common::figure::Segment> Voxs {
+    struct<dot_vox::DotVoxData> Voxs {
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
