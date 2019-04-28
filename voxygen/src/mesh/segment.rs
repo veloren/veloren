@@ -9,7 +9,7 @@ use common::{
 
 // Crate
 use crate::{
-    mesh::{ao, Meshable},
+    mesh::{vol, Meshable},
     render::{self, FigurePipeline, Mesh, Quad},
 };
 
@@ -30,7 +30,7 @@ impl Meshable for Segment {
             if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
                 let col = col.map(|e| e as f32 / 255.0);
 
-                ao::push_vox_verts_ao(
+                vol::push_vox_verts(
                     &mut mesh,
                     self,
                     pos,
