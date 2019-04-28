@@ -10,7 +10,7 @@ use crate::render::{
 /// Given a volume, a position and the cardinal directions, compute each vertex' AO value
 /// `dirs` should be a slice of length 5 so that the sliding window of size 2 over the slice
 /// yields each vertex' adjacent positions.
-fn get_quad_ao<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<f32> {
+fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<f32> {
     dirs.windows(2)
         .map(|offs| {
             let (s1, s2) = (
@@ -36,17 +36,15 @@ fn get_quad_ao<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<
         .collect::<Vec4<f32>>()
 }
 
-type VertexCons<P: Pipeline> = fn(Vec3<f32>, Vec3<f32>, Rgb<f32>) -> P::Vertex;
-
 // Utility function
-fn create_quad<P: Pipeline>(
+fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>) -> P::Vertex>(
     origin: Vec3<f32>,
     unit_x: Vec3<f32>,
     unit_y: Vec3<f32>,
     norm: Vec3<f32>,
     col: Rgb<f32>,
     ao: Vec4<f32>,
-    vcons: VertexCons<P>,
+    vcons: &F,
 ) -> Quad<P> {
     let ao_scale = 1.0;
     let dark = col * (1.0 - ao_scale);
@@ -68,13 +66,17 @@ fn create_quad<P: Pipeline>(
     }
 }
 
-pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
+pub fn push_vox_verts<
+    V: ReadVol,
+    P: Pipeline,
+    F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>) -> P::Vertex,
+>(
     mesh: &mut Mesh<P>,
     vol: &V,
     pos: Vec3<i32>,
     offs: Vec3<f32>,
     col: Rgb<f32>,
-    vcons: VertexCons<P>,
+    vcons: F,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
@@ -90,8 +92,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             -Vec3::unit_x(),
             col,
-            get_quad_ao(vol, pos - Vec3::unit_x(), &[-z, -y, z, y, -z]),
-            vcons,
+            get_ao_quad(vol, pos - Vec3::unit_x(), &[-z, -y, z, y, -z]),
+            &vcons,
         ));
     }
     // +x
@@ -106,8 +108,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             Vec3::unit_x(),
             col,
-            get_quad_ao(vol, pos + Vec3::unit_x(), &[-y, -z, y, z, -y]),
-            vcons,
+            get_ao_quad(vol, pos + Vec3::unit_x(), &[-y, -z, y, z, -y]),
+            &vcons,
         ));
     }
     // -y
@@ -122,8 +124,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             -Vec3::unit_y(),
             col,
-            get_quad_ao(vol, pos - Vec3::unit_y(), &[-x, -z, x, z, -x]),
-            vcons,
+            get_ao_quad(vol, pos - Vec3::unit_y(), &[-x, -z, x, z, -x]),
+            &vcons,
         ));
     }
     // +y
@@ -138,8 +140,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             Vec3::unit_y(),
             col,
-            get_quad_ao(vol, pos + Vec3::unit_y(), &[-z, -x, z, x, -z]),
-            vcons,
+            get_ao_quad(vol, pos + Vec3::unit_y(), &[-z, -x, z, x, -z]),
+            &vcons,
         ));
     }
     // -z
@@ -154,8 +156,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             -Vec3::unit_z(),
             col,
-            get_quad_ao(vol, pos - Vec3::unit_z(), &[-y, -x, y, x, -y]),
-            vcons,
+            get_ao_quad(vol, pos - Vec3::unit_z(), &[-y, -x, y, x, -y]),
+            &vcons,
         ));
     }
     // +z
@@ -170,8 +172,8 @@ pub fn push_vox_verts_ao<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             Vec3::unit_z(),
             col,
-            get_quad_ao(vol, pos + Vec3::unit_z(), &[-x, -y, x, y, -x]),
-            vcons,
+            get_ao_quad(vol, pos + Vec3::unit_z(), &[-x, -y, x, y, -x]),
+            &vcons,
         ));
     }
 }

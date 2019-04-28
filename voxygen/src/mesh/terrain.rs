@@ -10,7 +10,7 @@ use common::{
 
 // Crate
 use crate::{
-    mesh::{ao, Meshable},
+    mesh::{vol, Meshable},
     render::{self, Mesh, Quad, TerrainPipeline},
 };
 
@@ -36,7 +36,7 @@ impl<M> Meshable for Dyna<Block, M> {
             if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
                 let col = col.map(|e| e as f32 / 255.0);
 
-                ao::push_vox_verts_ao(&mut mesh, self, pos, offs, col, TerrainVertex::new);
+                vol::push_vox_verts(&mut mesh, self, pos, offs, col, TerrainVertex::new);
             }
         }
 
