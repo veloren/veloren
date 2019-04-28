@@ -673,31 +673,19 @@ impl Hud {
             Image::new(self.imgs.mmap_frame_closed)
                 .w_h(100.0 * 2.0, 11.0 * 2.0)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .set(self.ids.mmap_frame, ui_widgets);
-        };
-
-        if Button::image(if self.mmap_open {
-            self.imgs.mmap_open
-        } else {
-            self.imgs.mmap_closed
-        })
-        .w_h(100.0 * 0.2, 100.0 * 0.2)
-        .hover_image(if self.mmap_open {
-            self.imgs.mmap_open_hover
-        } else {
-            self.imgs.mmap_closed_hover
-        })
-        .press_image(if self.mmap_open {
-            self.imgs.mmap_open_press
-        } else {
-            self.imgs.mmap_closed_press
-        })
-        .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
-        .set(self.ids.mmap_button, ui_widgets)
-        .was_clicked()
-        {
-            self.mmap_open = !self.mmap_open;
-        };
+                .set(self.ids.mmap_frame, ui_widgets);                
+            };
+        
+        if Button::image(if self.mmap_open {self.imgs.mmap_open} else {self.imgs.mmap_closed})
+                .w_h(100.0 * 0.2, 100.0 * 0.2)
+                .hover_image(if self.mmap_open {self.imgs.mmap_open_hover} else {self.imgs.mmap_closed_hover})
+                .press_image(if self.mmap_open {self.imgs.mmap_open_press} else {self.imgs.mmap_closed_press})
+                .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
+                .set(self.ids.mmap_button, ui_widgets)
+                .was_clicked()
+            {
+                self.mmap_open = !self.mmap_open;
+            };
 
         // Title
         // Make it display the actual location
