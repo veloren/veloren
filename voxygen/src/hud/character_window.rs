@@ -6,7 +6,7 @@ use conrod_core::{
 };
 
 use super::{
-    imgs::{Imgs, Voxs},
+    imgs::Imgs,
     WindowStyle, XP_COLOR,
 };
 
@@ -35,7 +35,6 @@ widget_ids! {
 pub struct CharacterWindow<'a> {
     xp_percentage: f64,
     imgs: &'a Imgs,
-    voxs: &'a Voxs,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -43,11 +42,10 @@ pub struct CharacterWindow<'a> {
 }
 
 impl<'a> CharacterWindow<'a> {
-    pub fn new(imgs: &'a Imgs, voxs: &'a Voxs) -> Self {
+    pub fn new(imgs: &'a Imgs) -> Self {
         Self {
             xp_percentage: 0.4,
             imgs,
-            voxs,
             common: widget::CommonBuilder::default(),
             style: WindowStyle::default(),
         }
@@ -97,7 +95,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         let text_color = style.text_color(&ui.theme);
 
         // Frame
-        Image::new(self.voxs.window_frame)
+        Image::new(self.imgs.window_frame)
             .middle_of(id)
             .set(state.ids.charwindow_frame, ui);
 
@@ -119,10 +117,10 @@ impl<'a> Widget for CharacterWindow<'a> {
         //.set(state.ids.charwindow_icon, ui);
 
         // X-Button
-        let closed = Button::image(self.voxs.close_button)
+        let closed = Button::image(self.imgs.close_button)
             .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-            .hover_image(self.voxs.close_button_hover)
-            .press_image(self.voxs.close_button_press)
+            .hover_image(self.imgs.close_button_hover)
+            .press_image(self.imgs.close_button_press)
             .top_right_with_margins_on(state.ids.charwindow_frame, 4.0, 4.0)
             .set(state.ids.charwindow_close, ui)
             .was_clicked();

@@ -1,5 +1,6 @@
 image_ids! {
-    pub struct<dot_vox::DotVoxData> Voxs {
+    pub struct Imgs {
+        <dot_vox::DotVoxData>
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
@@ -43,9 +44,8 @@ image_ids! {
         window_frame: "/voxygen/element/frames/window2.vox",
         map_frame_l: "/voxygen/element/frames/map_l.vox",
         map_frame_r: "/voxygen/element/frames/map_r.vox",
-    }
 
-    pub struct<image::DynamicImage> Imgs {
+        <image::DynamicImage>
         // Bag
         bag: "/voxygen/element/buttons/bag/closed.png",
         bag_hover: "/voxygen/element/buttons/bag/closed_hover.png",

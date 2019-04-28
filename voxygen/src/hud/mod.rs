@@ -3,7 +3,7 @@ mod character_window;
 mod imgs;
 
 use character_window::CharacterWindow;
-use imgs::{Imgs, Voxs};
+use imgs::Imgs;
 
 use crate::{
     render::Renderer,
@@ -225,7 +225,6 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
-    voxs: Voxs,
     blank_img: conrod_core::image::Id,
     chat: chat::Chat,
     font_metamorph: FontId,
@@ -256,8 +255,6 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::load(&mut ui).unwrap();
-        // Load vox files
-        let voxs = Voxs::load(&mut ui).unwrap();
         // Blank graphic
         let blank_img = ui.new_graphic(Graphic::Blank);
         // Load fonts
@@ -279,7 +276,6 @@ impl Hud {
         Self {
             ui,
             imgs,
-            voxs,
             blank_img,
             ids,
             chat,
@@ -367,10 +363,10 @@ impl Hud {
                 .font_size(18)
                 .set(self.ids.help, ui_widgets);
             // X-button
-            if Button::image(self.voxs.close_button)
+            if Button::image(self.imgs.close_button)
                 .w_h(100.0 * 0.2, 100.0 * 0.2)
-                .hover_image(self.voxs.close_button_hover)
-                .press_image(self.voxs.close_button_press)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
                 .top_right_with_margins_on(self.ids.help_bg, 8.0, 3.0)
                 .set(self.ids.button_help2, ui_widgets)
                 .was_clicked()
@@ -431,7 +427,7 @@ impl Hud {
         // Buttons at Bag
 
         // 0 Settings
-        if Button::image(self.voxs.settings)
+        if Button::image(self.imgs.settings)
             .w_h(29.0, 25.0)
             .bottom_right_with_margins_on(ui_widgets.window, 5.0, 57.0)
             .hover_image(self.imgs.settings_hover)
@@ -454,7 +450,7 @@ impl Hud {
         };
 
         // 2 Map
-        if Button::image(self.voxs.map_button)
+        if Button::image(self.imgs.map_button)
             .w_h(22.0, 25.0)
             .left_from(self.ids.social_button, 10.0)
             .hover_image(self.imgs.map_hover)
@@ -475,19 +471,19 @@ impl Hud {
         // Other Windows can only be accessed, when Settings are closed.
         // Opening Settings will close all other Windows including the Bag.
         // Opening the Map won't close the windows displayed before.
-        Image::new(self.voxs.social_button)
+        Image::new(self.imgs.social_button)
             .w_h(25.0, 25.0)
             .left_from(self.ids.settings_button, 10.0)
             .set(self.ids.social_button_bg, ui_widgets);
-        Image::new(self.voxs.spellbook_button)
+        Image::new(self.imgs.spellbook_button)
             .w_h(28.0, 25.0)
             .left_from(self.ids.map_button, 10.0)
             .set(self.ids.spellbook_button_bg, ui_widgets);
-        Image::new(self.voxs.character_button)
+        Image::new(self.imgs.character_button)
             .w_h(27.0, 25.0)
             .left_from(self.ids.spellbook_button, 10.0)
             .set(self.ids.character_button_bg, ui_widgets);
-        Image::new(self.voxs.qlog_button)
+        Image::new(self.imgs.qlog_button)
             .w_h(23.0, 25.0)
             .left_from(self.ids.character_button, 10.0)
             .set(self.ids.qlog_button_bg, ui_widgets);
@@ -498,7 +494,7 @@ impl Hud {
         } && self.map_open == false
         {
             // 1 Social
-            if Button::image(self.voxs.social_button)
+            if Button::image(self.imgs.social_button)
                 .w_h(25.0, 25.0)
                 .left_from(self.ids.settings_button, 10.0)
                 .hover_image(self.imgs.social_hover)
@@ -524,7 +520,7 @@ impl Hud {
             }
 
             // 3 Spellbook
-            if Button::image(self.voxs.spellbook_button)
+            if Button::image(self.imgs.spellbook_button)
                 .w_h(28.0, 25.0)
                 .left_from(self.ids.map_button, 10.0)
                 .hover_image(self.imgs.spellbook_hover)
@@ -550,7 +546,7 @@ impl Hud {
             }
 
             // 4 Char-Window
-            if Button::image(self.voxs.character_button)
+            if Button::image(self.imgs.character_button)
                 .w_h(27.0, 25.0)
                 .left_from(self.ids.spellbook_button, 10.0)
                 .hover_image(self.imgs.character_hover)
@@ -1162,12 +1158,12 @@ impl Hud {
                 Small::Social => {
                     //Frame
                     if char_window_open {
-                        Image::new(self.voxs.window_frame)
+                        Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
                     } else {
-                        Image::new(self.voxs.window_frame)
+                        Image::new(self.imgs.window_frame)
                             .top_left_with_margins_on(ui_widgets.window, 200.0, 10.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.social_frame, ui_widgets);
@@ -1212,7 +1208,7 @@ impl Hud {
                 Small::Spellbook => {
                     // Frame
                     if char_window_open {
-                        Image::new(self.voxs.window_frame)
+                        Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.spellbook_frame, ui_widgets);
@@ -1261,7 +1257,7 @@ impl Hud {
                 Small::Questlog => {
                     // Frame
                     if char_window_open {
-                        Image::new(self.voxs.window_frame)
+                        Image::new(self.imgs.window_frame)
                             .right_from(self.ids.charwindow_frame, 20.0)
                             .w_h(107.0 * 4.0, 125.0 * 4.0)
                             .set(self.ids.questlog_frame, ui_widgets);
@@ -1310,7 +1306,7 @@ impl Hud {
         }
 
         if let Windows::CharacterAnd(small) = self.open_windows {
-            match CharacterWindow::new(&self.imgs, &self.voxs)
+            match CharacterWindow::new(&self.imgs)
                 .font_id(self.font_opensans)
                 .text_color(TEXT_COLOR)
                 .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
@@ -1334,7 +1330,7 @@ impl Hud {
                 .scroll_kids_vertically()
                 .set(self.ids.map_bg, ui_widgets);
             // Frame
-            Image::new(self.voxs.map_frame_l)
+            Image::new(self.imgs.map_frame_l)
                 .top_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_l, ui_widgets);
@@ -1384,7 +1380,7 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .set(self.ids.esc_bg, ui_widgets);
 
-            Image::new(self.voxs.fireplace)
+            Image::new(self.imgs.fireplace)
                 .w_h(180.0, 60.0)
                 .mid_top_with_margin_on(self.ids.esc_bg, 50.0)
                 .set(self.ids.fireplace, ui_widgets);
