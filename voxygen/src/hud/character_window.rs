@@ -1,12 +1,12 @@
 use conrod_core::{
     color,
-    image::Id as ImgId,
-    text::font::Id as FontId,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
-    WidgetStyle, WidgetCommon, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    text::font,
+    builder_methods,
+    widget::{self, Button, Image, Rectangle, Text},
+    WidgetCommon, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 
-use super::{WindowStyle, TEXT_COLOR, XP_COLOR};
+use super::{WindowStyle, XP_COLOR, imgs::{Imgs, Voxs}};
 
 widget_ids! {
     struct Ids {
@@ -30,8 +30,10 @@ widget_ids! {
 }
 
 #[derive(WidgetCommon)]
-pub struct CharacterWindow {
+pub struct CharacterWindow<'a> {
     xp_percentage: f64,
+    imgs: &'a Imgs,
+    voxs: &'a Voxs,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -39,26 +41,34 @@ pub struct CharacterWindow {
 
 }
 
-impl CharacterWindow {
-    pub fn new() -> Self {
+impl<'a> CharacterWindow<'a> {
+    pub fn new(imgs: &'a Imgs, voxs: &'a Voxs) -> Self {
         Self {
             xp_percentage: 0.4,
-
+            imgs,
+            voxs,
             common: widget::CommonBuilder::default(),
             style: WindowStyle::default(),
         }
     }
+    pub fn font_id(mut self, font_id: font::Id) -> Self {
+        self.style.font_id = Some(Some(font_id));
+        self
+    }
+    builder_methods! {
+        pub text_color { style.text_color = Some(Color) }
+    }
 }
 
-struct State {
+pub struct State {
     ids: Ids,
 }
 
-enum Event {
+pub enum Event {
     Close,
 }
 
-impl Widget for CharacterWindow {
+impl<'a> Widget for CharacterWindow<'a> {
     type State = State;
     type Style = WindowStyle;
     type Event = Option<Event>;
@@ -72,12 +82,14 @@ impl Widget for CharacterWindow {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, ui, style, .. } = args;
+        let widget::UpdateArgs { id, state, ui, style, .. } = args;
+
+        let font_id = style.font_id(&ui.theme).or(ui.fonts.ids().next());
+        let text_color = style.text_color(&ui.theme);
 
         // Frame
-        Image::new(self.imgs.window_frame)
-            .top_left_with_margins_on(ui.window, 200.0, 215.0)
-            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+        Image::new(self.voxs.window_frame)
+            .middle_of(id)
             .set(state.ids.charwindow_frame, ui);
 
         // BG
@@ -98,26 +110,18 @@ impl Widget for CharacterWindow {
         //.set(state.ids.charwindow_icon, ui);
 
         // X-Button
-        if Button::image(self.imgs.close_button)
+        let closed = Button::image(self.voxs.close_button)
             .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
+            .hover_image(self.voxs.close_button_hover)
+            .press_image(self.voxs.close_button_press)
             .top_right_with_margins_on(state.ids.charwindow_frame, 4.0, 4.0)
             .set(state.ids.charwindow_close, ui)
-            .was_clicked()
-        {
-            return Some(Event::Close);
-            // TODO: Handle
-            //self.open_windows = match small {
-            //    Some(small) => Windows::Small(small),
-            //    None => Windows::None,
-            //}
-        }
+            .was_clicked();
 
         // Title
         Text::new("Character Name") // Add in actual Character Name
             .mid_top_with_margin_on(state.ids.charwindow_frame, 7.0)
-            .color(TEXT_COLOR)
+            .color(text_color)
             .set(state.ids.charwindow_title, ui);
         // Tab BG
         Image::new(self.imgs.charwindow_tab_bg)
@@ -133,15 +137,15 @@ impl Widget for CharacterWindow {
             .w_h(65.0, 23.0)
             .top_left_with_margins_on(state.ids.charwindow_tab_bg, -18.0, 2.0)
             .label("Stats")
-            .label_color(TEXT_COLOR)
-            .label_font_id(self.font_opensans)
+            .label_color(text_color)
+            .and_then(font_id, Button::label_font_id)
             .label_font_size(14)
             .set(state.ids.charwindow_tab1, ui);
         Text::new("1") //Add in actual Character Level
             .mid_top_with_margin_on(state.ids.charwindow_rectangle, 10.0)
-            .font_id(self.font_opensans)
+            .and_then(font_id, Text::font_id)
             .font_size(30)
-            .color(TEXT_COLOR)
+            .color(text_color)
             .set(state.ids.charwindow_tab1_level, ui);
         // Exp-Bar Background
         Rectangle::fill_with([170.0, 10.0], color::BLACK)
@@ -159,9 +163,9 @@ impl Widget for CharacterWindow {
         // Exp-Text
         Text::new("120/170") // Shows the Exp / Exp to reach the next level
             .mid_top_with_margin_on(state.ids.charwindow_tab1_expbar, 10.0)
-            .font_id(self.font_opensans)
+            .and_then(font_id, Text::font_id)
             .font_size(15)
-            .color(TEXT_COLOR)
+            .color(text_color)
             .set(state.ids.charwindow_tab1_exp, ui);
 
         // Stats
@@ -175,9 +179,9 @@ impl Widget for CharacterWindow {
              Intelligence",
         )
             .top_left_with_margins_on(state.ids.charwindow_rectangle, 100.0, 20.0)
-            .font_id(self.font_opensans)
+            .and_then(font_id, Text::font_id)
             .font_size(16)
-            .color(TEXT_COLOR)
+            .color(text_color)
             .set(state.ids.charwindow_tab1_statnames, ui);
 
         Text::new(
@@ -190,11 +194,15 @@ impl Widget for CharacterWindow {
              124124",
         )
             .right_from(state.ids.charwindow_tab1_statnames, 10.0)
-            .font_id(self.font_opensans)
+            .and_then(font_id, Text::font_id)
             .font_size(16)
-            .color(TEXT_COLOR)
+            .color(text_color)
             .set(state.ids.charwindow_tab1_stats, ui);
 
-        None
+        if closed {
+            Some(Event::Close)
+        } else {
+            None
+        }
     }
 }

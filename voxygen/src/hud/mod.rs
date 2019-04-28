@@ -1,7 +1,9 @@
 mod chat;
 mod character_window;
+mod imgs;
 
-use self::character_window::CharacterWindow;
+use character_window::CharacterWindow;
+use imgs::{Imgs, Voxs};
 
 use crate::{
     render::Renderer,
@@ -13,7 +15,7 @@ use crate::{
 use conrod_core::{
     color,
     text::font::Id as FontId,
-    widget::{self,Style, Button, Image, Rectangle, Scrollbar, Text},
+    widget::{Button, Image, Rectangle, Scrollbar, Text},
     WidgetStyle, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use common::assets;
@@ -28,18 +30,18 @@ const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 /// Styling for windows
 #[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct WindowStyle {
-    /// Color of the button.
-    #[conrod(default = "theme.shape_color")]
-    pub color: Option<conrod_core::Color>,
-    /// Color of the button's label.
+    /// Color of the text in the window
     #[conrod(default = "theme.label_color")]
-    pub label_color: Option<conrod_core::Color>,
-    /// Font size of the button's label.
-    #[conrod(default = "theme.font_size_medium")]
-    pub label_font_size: Option<conrod_core::FontSize>,
-    /// Specify a unique font for the label.
+    pub text_color: Option<conrod_core::Color>,
+    /// Specify a unique font for text in the window
     #[conrod(default = "theme.font_id")]
-    pub label_font_id: Option<Option<conrod_core::text::font::Id>>,
+    pub font_id: Option<Option<FontId>>,
+    // Color of the button.
+    //#[conrod(default = "theme.shape_color")]
+    //pub color: Option<conrod_core::Color>,
+    // Font size of the button's label.
+    //#[conrod(default = "theme.font_size_medium")]
+    //pub label_font_size: Option<conrod_core::FontSize>,
 }
 
 widget_ids! {
@@ -178,24 +180,7 @@ widget_ids! {
         spellbook_title,
 
         // 4 Charwindow
-        charwindow_frame,
-        charwindow,
-        charwindow_bg,
-        charwindow_icon,
-        charwindow_close,
-        charwindow_title,
-        charwindow_tab_bg,
-        charwindow_tab1,
-        charwindow_tab1_title,
-        charwindow_tab1_level,
-        charwindow_tab1_exp,
-        charwindow_tab1_stats,
-        charwindow_tab1_statnames,
-        charwindow_tab1_stats_numbers,
-        charwindow_tab1_expbar,
-        charwindow_rectangle,
-        charwindow_exp_rectangle,
-        charwindow_exp_progress_rectangle,
+        character_window,
 
         // 5 Quest-Log
         questlog_frame,
@@ -203,138 +188,6 @@ widget_ids! {
         questlog_icon,
         questlog_close,
         questlog_title,
-    }
-}
-
-image_ids! {
-    struct<dot_vox::DotVoxData> Voxs {
-        // Bag
-        bag_contents: "/voxygen/element/frames/bag.vox",
-        inv_grid: "/voxygen/element/frames/inv_grid.vox",
-        inv_slot: "/voxygen/element/buttons/inv_slot.vox",
-
-        // Buttons
-        settings: "/voxygen/element/buttons/settings.vox",
-        settings_hover: "/voxygen/element/buttons/settings_hover.vox",
-        settings_press: "/voxygen/element/buttons/settings_press.vox",
-
-        social_button: "/voxygen/element/buttons/social.vox",
-        social_hover: "/voxygen/element/buttons/social_hover.vox",
-        social_press: "/voxygen/element/buttons/social_press.vox",
-
-        map_button: "/voxygen/element/buttons/map.vox",
-        map_hover: "/voxygen/element/buttons/map_hover.vox",
-        map_press: "/voxygen/element/buttons/map_press.vox",
-
-        spellbook_button: "/voxygen/element/buttons/spellbook.vox",
-        spellbook_hover: "/voxygen/element/buttons/spellbook_hover.vox",
-        spellbook_press: "/voxygen/element/buttons/spellbook_press.vox",
-
-        character_button: "/voxygen/element/buttons/character.vox",
-        character_hover: "/voxygen/element/buttons/character_hover.vox",
-        character_press: "/voxygen/element/buttons/character_press.vox",
-
-        qlog_button: "/voxygen/element/buttons/qlog.vox",
-        qlog_hover: "/voxygen/element/buttons/qlog_hover.vox",
-        qlog_press: "/voxygen/element/buttons/qlog_press.vox",
-
-        close_button: "/voxygen/element/buttons/x.vox",
-        close_button_hover: "/voxygen/element/buttons/x_hover.vox",
-        close_button_press: "/voxygen/element/buttons/x_press.vox",
-
-        //  Esc menu
-        fireplace: "/voxygen/element/misc_bg/fireplace.vox",
-        button_dark: "/voxygen/element/buttons/button_dark.vox",
-
-        // Minimap
-        mmap_frame: "/voxygen/element/frames/mmap.vox",
-        window_frame: "/voxygen/element/frames/window2.vox",
-        map_frame_l: "/voxygen/element/frames/map_l.vox",
-        map_frame_r: "/voxygen/element/frames/map_r.vox",
-    }
-
-    pub(self) struct<image::DynamicImage> Imgs {
-        // Bag
-        bag: "/voxygen/element/buttons/bag/closed.png",
-        bag_hover: "/voxygen/element/buttons/bag/closed_hover.png",
-        bag_press: "/voxygen/element/buttons/bag/closed_press.png",
-        bag_open: "/voxygen/element/buttons/bag/open.png",
-        bag_open_hover: "/voxygen/element/buttons/bag/open_hover.png",
-        bag_open_press: "/voxygen/element/buttons/bag/open_press.png",
-
-        // Buttons
-        mmap_button: "/voxygen/element/buttons/border.png",
-        mmap_button_hover: "/voxygen/element/buttons/border_mo.png",
-        mmap_button_press: "/voxygen/element/buttons/border_press.png",
-        mmap_button_open: "/voxygen/element/buttons/border_pressed.png",
-
-        // Esc-Menu
-        esc_bg: "/voxygen/element/frames/menu.png",
-        button_dark_hover: "/voxygen/element/buttons/button_dark_hover.png",
-        button_dark_press: "/voxygen/element/buttons/button_dark_press.png",
-
-        // MiniMap
-        mmap_frame_bg: "/voxygen/element/misc_bg/mmap_bg.png",
-
-        // Skillbar Module
-        sb_grid: "/voxygen/element/skill_bar/sbar_grid.png",
-        sb_grid_bg: "/voxygen/element/skill_bar/sbar_grid_bg.png",
-        l_click: "/voxygen/element/skill_bar/l.png",
-        r_click: "/voxygen/element/skill_bar/r.png",
-        mana_bar: "/voxygen/element/skill_bar/mana_bar.png",
-        health_bar: "/voxygen/element/skill_bar/health_bar.png",
-        xp_bar: "/voxygen/element/skill_bar/xp_bar.png",
-
-        // Missing: Buff Frame Animation (.gif ?!) (we could do animation in ui.maintain(), or in shader?)
-        window_frame_2: "/voxygen/element/frames/window_2.png",
-
-        // Settings Window
-        settings_bg: "/voxygen/element/frames/settings.png",
-        settings_icon: "/voxygen/element/icons/settings.png",
-        settings_button_mo: "/voxygen/element/buttons/blue_mo.png",
-        check: "/voxygen/element/buttons/check/no.png",
-        check_mo: "/voxygen/element/buttons/check/no_mo.png",
-        check_press: "/voxygen/element/buttons/check/press.png",
-        check_checked: "/voxygen/element/buttons/check/yes.png",
-        check_checked_mo: "/voxygen/element/buttons/check/yes_mo.png",
-        slider: "/voxygen/element/slider/track.png",
-        slider_indicator: "/voxygen/element/slider/indicator.png",
-        //button_blank:  ui.new_graphic(ui::Graphic::Blank),
-        button_blue_mo: "/voxygen/element/buttons/blue_mo.png",
-        button_blue_press: "/voxygen/element/buttons/blue_press.png",
-
-        // Window BG
-        window_bg: "/voxygen/element/misc_bg/window_bg.png",
-
-        // Social Window
-        social_bg: "/voxygen/element/misc_bg/small_bg.png",
-        social_icon: "/voxygen/element/icons/social.png",
-
-        // Map Window
-        map_bg: "/voxygen/element/misc_bg/small_bg.png",
-        map_icon: "/voxygen/element/icons/map.png",
-
-        // Spell Book Window
-        spellbook_bg: "/voxygen/element/misc_bg/small_bg.png",
-        spellbook_icon: "/voxygen/element/icons/spellbook.png",
-
-        // Char Window
-        charwindow: "/voxygen/element/misc_bg/charwindow.png",
-        charwindow_icon: "/voxygen/element/icons/charwindow.png",
-        charwindow_tab_bg: "/voxygen/element/frames/tab.png",
-        charwindow_tab: "/voxygen/element/buttons/tab.png",
-        charwindow_expbar: "/voxygen/element/misc_bg/small_bg.png",
-        progress_frame: "/voxygen/element/frames/progress_bar.png",
-        progress: "/voxygen/element/misc_bg/progress.png",
-
-        // Quest-Log Window
-        questlog_bg: "/voxygen/element/misc_bg/small_bg.png",
-        questlog_icon: "/voxygen/element/icons/questlog.png",
-
-        // Chat-Arrows
-        chat_arrow: "/voxygen/element/buttons/arrow/chat_arrow.png",
-        chat_arrow_mo: "/voxygen/element/buttons/arrow/chat_arrow_mo.png",
-        chat_arrow_press: "/voxygen/element/buttons/arrow/chat_arrow_press.png",
     }
 }
 
@@ -393,11 +246,6 @@ pub struct Hud {
     settings_tab: SettingsTab,
     settings: Settings,
 }
-
-//#[inline]
-//pub fn rgba_bytes(r: u8, g: u8, b: u8, a: f32) -> Color {
-//Color::Rgba(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, a)
-//}
 
 impl Hud {
     pub fn new(window: &mut Window, settings: Settings) -> Self {
@@ -459,11 +307,6 @@ impl Hud {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
-
-        const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-        const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
-        const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
-        const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 
         // Don't show anything if the ui is toggled off
         if !self.show_ui {
@@ -1467,7 +1310,19 @@ impl Hud {
         }
 
         if let Windows::CharacterAnd(small) = self.open_windows {
-            CharacterWindow::new();
+            match CharacterWindow::new(&self.imgs, &self.voxs)
+                .font_id(self.font_opensans)
+                .text_color(TEXT_COLOR)
+                .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
+                .w_h(103.0 * 4.0, 122.0 * 4.0) // TODO: replace this with default_width() / height() overrides 
+                .set(self.ids.character_window, ui_widgets) 
+            {
+                Some(character_window::Event::Close) => self.open_windows = match small {
+                    Some(small) => Windows::Small(small),
+                    None => Windows::None,
+                },
+                None => (),
+            }
         }
 
         // 2 Map

@@ -251,7 +251,7 @@ impl Imgs {
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str())
-                .unwrao();
+                .unwrap();
             ui.new_graphic(dot_vox.into())
         };
         Imgs {
