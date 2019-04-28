@@ -28,7 +28,7 @@ before_script:
       git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
     fi;
   - git submodule sync --recursive
-  - git submodule update  --remote --recursive
+  - git submodule update --init --recursive
   - git status
   - if [ -d target ]; then
       ls -la target;
