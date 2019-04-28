@@ -1,3 +1,35 @@
+use super::Graphic;
+use dot_vox::DotVoxData;
+use image::DynamicImage;
+use common::assets::{Error, load};
+
+pub struct BlankGraphic;
+pub struct ImageGraphic;
+pub struct VoxelGraphic;
+
+pub trait GraphicCreator<'a> {
+    type Specifier;
+    fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error>;
+}
+impl<'a> GraphicCreator<'a> for BlankGraphic {
+    type Specifier = ();
+    fn new_graphic(_: ()) -> Result<Graphic, Error> {
+        Ok(Graphic::Blank)
+    }
+}
+impl<'a> GraphicCreator<'a> for ImageGraphic {
+    type Specifier = &'a str;
+    fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
+       Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
+    }
+}
+impl<'a> GraphicCreator<'a> for VoxelGraphic {
+    type Specifier = &'a str;
+    fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
+       Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?))
+    }
+}
+
 /// This macro will automatically load all specified assets, get the corresponding ImgIds and
 /// create a struct with all of them
 ///
@@ -5,12 +37,15 @@
 /// ```
 /// image_ids! {
 ///     pub struct Imgs {
-///         <DotVoxData>
+///         <VoxelGraphic>
 ///         button1: "filename1.vox",
 ///         button2: "filename2.vox",
 ///
-///         <DynamicImage>
+///         <ImageGraphic>
 ///         background: "background.png",
+/// 
+///         <BlankGraphic>
+///         blank: (),
 ///     }
 /// }
 /// ```
@@ -25,8 +60,9 @@ macro_rules! image_ids {
 
             impl $Ids {
                 pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
+                    use crate::ui::GraphicCreator;
                     Ok(Self {
-                        $($( $name: ui.new_graphic(common::assets::load::<$T>($specifier)?.into()), )*)*
+                        $($( $name: ui.add_graphic(<$T>::new_graphic($specifier)?), )*)*
                     })
                 }
             }

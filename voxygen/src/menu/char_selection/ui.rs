@@ -1,7 +1,7 @@
 use crate::{
     render::Renderer,
-    ui::{self, ScaleMode, Ui},
-    window::Window,
+    ui::{self, Graphic, ScaleMode, Ui},
+    window::Window, 
 };
 use common::{
     assets,
@@ -246,13 +246,13 @@ impl Imgs {
             let fullpath: String = ["/voxygen/", filename].concat();
             let image = assets::load::<image::DynamicImage>(fullpath.as_str())
                 .unwrap();
-            ui.new_graphic(image.into())
+            ui.add_graphic(Graphic::Image(image))
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
             let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str())
                 .unwrap();
-            ui.new_graphic(dot_vox.into())
+            ui.add_graphic(Graphic::Voxel(dot_vox))
         };
         Imgs {
             v_logo: load_vox("element/v_logo.vox", ui),

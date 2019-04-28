@@ -225,7 +225,6 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
-    blank_img: conrod_core::image::Id,
     chat: chat::Chat,
     font_metamorph: FontId,
     font_opensans: FontId,
@@ -255,8 +254,6 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::load(&mut ui).unwrap();
-        // Blank graphic
-        let blank_img = ui.new_graphic(Graphic::Blank);
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
@@ -276,7 +273,6 @@ impl Hud {
         Self {
             ui,
             imgs,
-            blank_img,
             ids,
             chat,
             settings_tab: SettingsTab::Interface,
@@ -830,7 +826,7 @@ impl Hud {
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
-                self.imgs.settings_button
+                self.imgs.blank
             })
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Interface = self.settings_tab {
@@ -907,27 +903,20 @@ impl Hud {
 
             // 2 Gameplay////////////////
             if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
-                self.imgs.settings_button_pressed
-            } else {
-                self.imgs.settings_button
-            })
-            .w_h(31.0 * 4.0, 12.0 * 4.0)
-            .hover_image(if let SettingsTab::Gameplay = self.settings_tab {
-                self.imgs.settings_button_pressed
-            } else {
-                self.imgs.settings_button_hover
-            })
-            .press_image(if let SettingsTab::Gameplay = self.settings_tab {
-                self.imgs.settings_button_pressed
-            } else {
-                self.imgs.settings_button_press
-            })
-            .right_from(self.ids.interface, 0.0)
-            .label("Gameplay")
-            .label_font_size(14)
-            .label_color(TEXT_COLOR)
-            .set(self.ids.gameplay, ui_widgets)
-            .was_clicked()
+                    self.imgs.button_blue_mo
+                } else {
+                    self.imgs.blank
+                }
+            )
+                .w_h(304.0 / 2.5, 80.0 / 2.5)
+                .hover_image(self.imgs.button_blue_mo)
+                .press_image(self.imgs.button_blue_press)
+                .down_from(self.ids.interface, 1.0)
+                .label("Gameplay")
+                .label_font_size(14)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.gameplay, ui_widgets)
+                .was_clicked()
             {
                 self.settings_tab = SettingsTab::Gameplay;
             }
@@ -936,7 +925,7 @@ impl Hud {
             if Button::image(if let SettingsTab::Controls = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
-                self.imgs.settings_button
+                self.imgs.blank
             })
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Controls = self.settings_tab {
@@ -1095,7 +1084,7 @@ impl Hud {
             if Button::image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
-                self.imgs.settings_button
+                self.imgs.blank
             })
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Video = self.settings_tab {
@@ -1123,7 +1112,7 @@ impl Hud {
             if Button::image(if let SettingsTab::Sound = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
-                self.imgs.settings_button
+                self.imgs.blank
             })
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Sound = self.settings_tab {

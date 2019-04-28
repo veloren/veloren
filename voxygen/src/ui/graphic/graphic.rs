@@ -11,17 +11,6 @@ pub enum Graphic {
     Blank,
 }
 
-impl From<Arc<DynamicImage>> for Graphic {
-    fn from(image: Arc<DynamicImage>) -> Self {
-        Graphic::Image(image)
-    }
-}
-impl From<Arc<DotVoxData>> for Graphic {
-    fn from(vox: Arc<DotVoxData>) -> Self {
-        Graphic::Voxel(vox)
-    }
-}
-
 #[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Id(u32);
 
@@ -42,7 +31,7 @@ impl GraphicCache {
             next_id: 0,
         }
     }
-    pub fn new_graphic(&mut self, graphic: Graphic) -> Id {
+    pub fn add_graphic(&mut self, graphic: Graphic) -> Id {
         let id = self.next_id;
         self.next_id = id.wrapping_add(1);
 
