@@ -1059,9 +1059,11 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // Frame Alignment
+            // Alignment            
             Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
                 .middle_of(ui_widgets.window)
+                .scroll_kids()
+                .scroll_kids_vertically()
                 .set(self.ids.settings_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.settings_frame_l)
