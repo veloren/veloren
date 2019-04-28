@@ -1,11 +1,9 @@
+mod ao;
 pub mod segment;
 pub mod terrain;
 
 // Crate
-use crate::render::{
-    self,
-    Mesh,
-};
+use crate::render::{self, Mesh};
 
 pub trait Meshable {
     type Pipeline: render::Pipeline;
