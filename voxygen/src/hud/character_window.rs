@@ -1,12 +1,14 @@
 use conrod_core::{
-    color,
+    builder_methods, color,
     text::font,
-    builder_methods,
     widget::{self, Button, Image, Rectangle, Text},
-    WidgetCommon, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{WindowStyle, XP_COLOR, imgs::{Imgs, Voxs}};
+use super::{
+    imgs::{Imgs, Voxs},
+    WindowStyle, XP_COLOR,
+};
 
 widget_ids! {
     struct Ids {
@@ -38,7 +40,6 @@ pub struct CharacterWindow<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     style: WindowStyle,
-
 }
 
 impl<'a> CharacterWindow<'a> {
@@ -74,7 +75,9 @@ impl<'a> Widget for CharacterWindow<'a> {
     type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Self::Style {
@@ -82,7 +85,13 @@ impl<'a> Widget for CharacterWindow<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, ui, style, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            ui,
+            style,
+            ..
+        } = args;
 
         let font_id = style.font_id(&ui.theme).or(ui.fonts.ids().next());
         let text_color = style.text_color(&ui.theme);
@@ -178,11 +187,11 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              Intelligence",
         )
-            .top_left_with_margins_on(state.ids.charwindow_rectangle, 100.0, 20.0)
-            .and_then(font_id, Text::font_id)
-            .font_size(16)
-            .color(text_color)
-            .set(state.ids.charwindow_tab1_statnames, ui);
+        .top_left_with_margins_on(state.ids.charwindow_rectangle, 100.0, 20.0)
+        .and_then(font_id, Text::font_id)
+        .font_size(16)
+        .color(text_color)
+        .set(state.ids.charwindow_tab1_statnames, ui);
 
         Text::new(
             "1234\n\
@@ -193,11 +202,11 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              124124",
         )
-            .right_from(state.ids.charwindow_tab1_statnames, 10.0)
-            .and_then(font_id, Text::font_id)
-            .font_size(16)
-            .color(text_color)
-            .set(state.ids.charwindow_tab1_stats, ui);
+        .right_from(state.ids.charwindow_tab1_statnames, 10.0)
+        .and_then(font_id, Text::font_id)
+        .font_size(16)
+        .color(text_color)
+        .set(state.ids.charwindow_tab1_stats, ui);
 
         if closed {
             Some(Event::Close)

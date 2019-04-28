@@ -58,13 +58,19 @@ impl Asset for DynamicImage {
     fn load(specifier: &str) -> Result<Self, Error> {
         Ok(image::load_from_memory(
                 load_from_path(specifier)?.as_slice()
-            ).unwrap())
+            )
+            .unwrap()
+        )
     }
 }
 
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
+        Ok(dot_vox::load_bytes(
+                load_from_path(specifier)?.as_slice()
+            )
+            .unwrap()
+        )
     }
 }
 
