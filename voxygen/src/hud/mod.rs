@@ -54,6 +54,7 @@ widget_ids! {
         character_button_bg,
         qlog_button_bg,
         bag_text,
+        mmap_button,
         //help
         help,
         help_bg,
@@ -170,6 +171,14 @@ pub(self) struct Imgs {
     inv_slot: ImgId,
 
     // Buttons
+
+    mmap_closed: ImgId,
+    mmap_closed_hover: ImgId,
+    mmap_closed_press: ImgId,
+    mmap_open: ImgId,
+    mmap_open_hover: ImgId,
+    mmap_open_press: ImgId,
+
     settings: ImgId,
     settings_hover: ImgId,
     settings_press: ImgId,
@@ -207,8 +216,8 @@ pub(self) struct Imgs {
     button_dark_press: ImgId,
 
     // MiniMap
-    mmap_frame: ImgId,
-    mmap_frame_bg: ImgId,
+    mmap_frame: ImgId,    
+    mmap_frame_closed: ImgId,
 
     // SkillBar Module
     sb_grid: ImgId,
@@ -264,10 +273,10 @@ pub(self) struct Imgs {
     progress: ImgId,
 
     // Buttons
-    mmap_button: ImgId,
-    mmap_button_hover: ImgId,
-    mmap_button_press: ImgId,
-    mmap_button_open: ImgId,
+    grid_button: ImgId,
+    grid_button_hover: ImgId,
+    grid_button_press: ImgId,
+    grid_button_open: ImgId,
 
     // Quest-Log Window
     questlog_bg: ImgId,
@@ -313,6 +322,13 @@ impl Imgs {
             inv_slot: load_vox("element/buttons/inv_slot.vox", ui),
 
             // Buttons
+            mmap_closed: load_vox("element/buttons/button_mmap_closed.vox", ui),
+            mmap_closed_hover: load_vox("element/buttons/button_mmap_closed_hover.vox", ui),
+            mmap_closed_press: load_vox("element/buttons/button_mmap_closed_press.vox", ui),
+            mmap_open: load_vox("element/buttons/button_mmap_open.vox", ui),
+            mmap_open_hover: load_vox("element/buttons/button_mmap_open_hover.vox", ui),
+            mmap_open_press: load_vox("element/buttons/button_mmap_open_press.vox", ui),
+        
             settings: load_vox("element/buttons/settings.vox", ui),
             settings_hover: load_vox("element/buttons/settings_hover.vox", ui),
             settings_press: load_vox("element/buttons/settings_press.vox", ui),
@@ -337,10 +353,10 @@ impl Imgs {
             qlog_hover: load_vox("element/buttons/qlog_hover.vox", ui),
             qlog_press: load_vox("element/buttons/qlog_press.vox", ui),
 
-            mmap_button: load_img("element/buttons/border.png", ui),
-            mmap_button_hover: load_img("element/buttons/border_mo.png", ui),
-            mmap_button_press: load_img("element/buttons/border_press.png", ui),
-            mmap_button_open: load_img("element/buttons/border_pressed.png", ui),
+            grid_button: load_img("element/buttons/border.png", ui),
+            grid_button_hover: load_img("element/buttons/border_mo.png", ui),
+            grid_button_press: load_img("element/buttons/border_press.png", ui),
+            grid_button_open: load_img("element/buttons/border_pressed.png", ui),
 
             // Close button
             close_button: load_vox("element/buttons/x.vox", ui),
@@ -355,8 +371,8 @@ impl Imgs {
             button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
 
             // MiniMap
-            mmap_frame: load_vox("element/frames/mmap.vox", ui),
-            mmap_frame_bg: load_img("element/misc_bg/mmap_bg.png", ui),
+            mmap_frame: load_vox("element/frames/mmap.vox", ui),            
+            mmap_frame_closed: load_vox("element/frames/mmap_closed.vox", ui),
 
             // Skillbar Module
             sb_grid: load_img("element/skill_bar/sbar_grid.png", ui),
@@ -467,6 +483,7 @@ pub struct Hud {
     menu_open: bool,
     open_windows: Windows,
     map_open: bool,
+    mmap_open: bool,
     show_ui: bool,
     inventory_space: u32,
     xp_percentage: f64,
@@ -516,6 +533,7 @@ impl Hud {
             bag_open: false,
             menu_open: false,
             map_open: false,
+            mmap_open: true,
             show_ui: true,
             inventorytest_button: false,
             inventory_space: 0,
@@ -562,13 +580,13 @@ impl Hud {
 
         // Add Bag-Space Button
         if self.inventorytest_button {
-            if Button::image(self.imgs.mmap_button)
+            if Button::image(self.imgs.grid_button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
                 .label("1 Up!")
                 .label_font_size(20)
-                .hover_image(self.imgs.mmap_button_hover)
-                .press_image(self.imgs.mmap_button_press)
+                .hover_image(self.imgs.grid_button_hover)
+                .press_image(self.imgs.grid_button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
@@ -620,25 +638,40 @@ impl Hud {
             };
         }
 
-        // Minimap frame and bg
-        //Image::new(self.imgs.mmap_frame_bg)
-        //.w_h(1750.0 / 8.0, 1650.0 / 8.0)
-        //.top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-        //.set(self.ids.mmap_frame_bg, ui_widgets);
+        // Minimap 
 
-        Image::new(self.imgs.mmap_frame)
+        if self.mmap_open { 
+            Image::new(self.imgs.mmap_frame)
             .w_h(100.0 * 2.0, 100.0 * 2.0)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .set(self.ids.mmap_frame, ui_widgets);
 
         Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
             .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);
+            .set(self.ids.mmap_frame_bg, ui_widgets);        
+            }
+            else {
+                Image::new(self.imgs.mmap_frame_closed)
+                .w_h(100.0 * 2.0, 11.0 * 2.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .set(self.ids.mmap_frame, ui_widgets);                
+            };
+        
+        if Button::image(if self.mmap_open {self.imgs.mmap_open} else {self.imgs.mmap_closed})
+                .w_h(10.0 * 2.0, 10.0 * 2.0)
+                .hover_image(if self.mmap_open {self.imgs.mmap_open_hover} else {self.imgs.mmap_closed_hover})
+                .press_image(if self.mmap_open {self.imgs.mmap_open_press} else {self.imgs.mmap_closed_press})
+                .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
+                .set(self.ids.mmap_button, ui_widgets)
+                .was_clicked()
+            {
+                self.mmap_open = !self.mmap_open;
+            };
 
         // Title
         // Make it display the actual location
         Text::new("Uncanny Valley")
-            .mid_top_with_margin_on(self.ids.mmap_frame, 5.0)
+            .mid_top_with_margin_on(self.ids.mmap_frame, 3.0)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(self.ids.mmap_location, ui_widgets);
