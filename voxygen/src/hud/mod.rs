@@ -99,6 +99,8 @@ widget_ids! {
         settings_button_mo,
         settings_close,
         settings_title,
+        settings_r,
+        settings_l,
         //Contents
         button_help,
         button_help2,
@@ -123,6 +125,8 @@ widget_ids! {
         map_title,
         map_frame_l,
         map_frame_r,
+        map_frame_bl,
+        map_frame_br,
         //3 Spellbook
         spellbook_frame,
         spellbook_bg,
@@ -238,6 +242,12 @@ pub(self) struct Imgs {
     window_frame: ImgId,
     window_frame_2: ImgId,
     //Settings-Window
+    settings_frame_r: ImgId,
+    settings_frame_l: ImgId,
+    settings_button: ImgId,
+    settings_button_pressed: ImgId,
+    settings_button_hover: ImgId,
+    settings_button_press: ImgId,
     settings_bg: ImgId,
     settings_icon: ImgId,
     settings_button_mo: ImgId,
@@ -260,6 +270,8 @@ pub(self) struct Imgs {
     map_icon: ImgId,
     map_frame_l: ImgId,
     map_frame_r: ImgId,
+    map_frame_bl: ImgId,
+    map_frame_br: ImgId,
     // Spell Book Window
     spellbook_bg: ImgId,
     spellbook_icon: ImgId,
@@ -388,6 +400,12 @@ impl Imgs {
             window_frame_2: load_img("element/frames/window_2.png", ui),
 
             // Settings Window
+            settings_frame_r: load_vox("element/frames/settings_r.vox", ui),
+            settings_frame_l: load_vox("element/frames/settings_l.vox", ui),
+            settings_button: load_vox("element/buttons/settings_button.vox", ui),
+            settings_button_pressed: load_vox("element/buttons/settings_button_pressed.vox", ui),
+            settings_button_hover: load_vox("element/buttons/settings_button_hover.vox", ui),
+            settings_button_press: load_vox("element/buttons/settings_button_press.vox", ui),
             settings_bg: load_img("element/frames/settings.png", ui),
             settings_icon: load_img("element/icons/settings.png", ui),
             settings_button_mo: load_img("element/buttons/blue_mo.png", ui),
@@ -414,6 +432,8 @@ impl Imgs {
             map_icon: load_img("element/icons/map.png", ui),
             map_frame_l: load_vox("element/frames/map_l.vox", ui),
             map_frame_r: load_vox("element/frames/map_r.vox", ui),
+            map_frame_bl: load_vox("element/frames/map_bl.vox", ui),
+            map_frame_br: load_vox("element/frames/map_br.vox", ui),
 
             // Spell Book Window
             spellbook_bg: load_img("element/misc_bg/small_bg.png", ui),
@@ -658,7 +678,7 @@ impl Hud {
             };
         
         if Button::image(if self.mmap_open {self.imgs.mmap_open} else {self.imgs.mmap_closed})
-                .w_h(10.0 * 2.0, 10.0 * 2.0)
+                .w_h(100.0 * 0.2, 100.0 * 0.2)
                 .hover_image(if self.mmap_open {self.imgs.mmap_open_hover} else {self.imgs.mmap_closed_hover})
                 .press_image(if self.mmap_open {self.imgs.mmap_open_press} else {self.imgs.mmap_closed_press})
                 .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
@@ -950,11 +970,11 @@ impl Hud {
             // Contents
             Image::new(self.imgs.bag_contents)
                 .w_h(68.0 * 4.0, 123.0 * 4.0)
-                .bottom_right_with_margins_on(ui_widgets.window, 90.0, 5.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 60.0, 5.0)
                 .set(self.ids.bag_contents, ui_widgets);
 
             // Alignment for Grid
-            Rectangle::fill_with([(58.0 * 4.0) - 5.0, 100.0 * 4.0], color::TRANSPARENT)
+            Rectangle::fill_with([58.0 * 4.0 - 5.0, 100.0 * 4.0], color::TRANSPARENT)
                 .top_left_with_margins_on(self.ids.bag_contents, 11.0 * 4.0, 5.0 * 4.0)
                 .scroll_kids()
                 .scroll_kids_vertically()
@@ -1028,17 +1048,27 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // BG
-            Image::new(self.imgs.window_frame)
+            // Alignment            
+            Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
                 .middle_of(ui_widgets.window)
-                .w_h(1648.0 / 2.5, 1952.0 / 2.5)
+                .scroll_kids()
+                .scroll_kids_vertically()
                 .set(self.ids.settings_bg, ui_widgets);
+            // Frame
+            Image::new(self.imgs.settings_frame_l)
+                .top_left_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.settings_l, ui_widgets);
+             Image::new(self.imgs.settings_frame_r)
+                .top_right_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.settings_r, ui_widgets);
             // X-Button
             if Button::image(self.imgs.close_button)
-                .w_h(244.0 * 0.22 / 2.5, 244.0 * 0.22 / 2.5)
+                .w_h(28.0, 28.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.settings_bg, 4.0, 4.0)
+                .top_right_with_margins_on(self.ids.settings_r, 0.0, 0.0)
                 .set(self.ids.settings_close, ui_widgets)
                 .was_clicked()
             {
@@ -1048,15 +1078,15 @@ impl Hud {
 
             // Title
             Text::new("Settings")
-                .mid_top_with_margin_on(self.ids.settings_bg, 10.0)
-                .font_size(30)
+                .mid_top_with_margin_on(self.ids.settings_bg, 5.0)
+                .font_size(14)
                 .color(TEXT_COLOR)
                 .set(self.ids.settings_title, ui_widgets);
             // Icon
-            Image::new(self.imgs.settings_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
-                .set(self.ids.settings_icon, ui_widgets);
+            //Image::new(self.imgs.settings_icon)
+                //.w_h(224.0 / 3.0, 224.0 / 3.0)
+                //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
+                //.set(self.ids.settings_icon, ui_widgets);
             // TODO: Find out if we can remove this
             // Alignment Rectangle
             Rectangle::fill_with([1008.0 / 2.5, 1616.0 / 2.5], color::TRANSPARENT)
@@ -1247,10 +1277,10 @@ impl Hud {
 
                     // X-Button
                     if Button::image(self.imgs.close_button)
-                        .w_h(20.0, 20.0)
+                        .w_h(28.0, 28.0)
                         .hover_image(self.imgs.close_button_hover)
                         .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.social_frame, 17.0, 5.0)
+                        .top_right_with_margins_on(self.ids.social_frame, 12.0, 0.0)
                         .set(self.ids.social_close, ui_widgets)
                         .was_clicked()
                     {
@@ -1297,10 +1327,10 @@ impl Hud {
 
                     // X-Button
                     if Button::image(self.imgs.close_button)
-                        .w_h(20.0, 20.0)
+                        .w_h(14.0, 14.0)
                         .hover_image(self.imgs.close_button_hover)
                         .press_image(self.imgs.close_button_press)
-                        .top_right_with_margins_on(self.ids.spellbook_frame, 17.0, 5.0)
+                        .top_right_with_margins_on(self.ids.spellbook_frame, 12.0, 0.0)
                         .set(self.ids.spellbook_close, ui_widgets)
                         .was_clicked()
                     {
@@ -1492,10 +1522,11 @@ impl Hud {
 
         // 2 Map
         if self.map_open {
-            // BG
-            Image::new(self.imgs.map_bg)
-                .w_h(824.0, 488.0)
-                .mid_top_with_margin_on(ui_widgets.window, 200.0)
+            // BG         
+            Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(ui_widgets.window, 15.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
                 .set(self.ids.map_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.map_frame_l)
@@ -1504,8 +1535,17 @@ impl Hud {
                 .set(self.ids.map_frame_l, ui_widgets);
             Image::new(self.imgs.map_frame_r)
                 .top_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_r, ui_widgets);
+            Image::new(self.imgs.map_frame_br)
+                .bottom_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.map_frame_br, ui_widgets);
+            Image::new(self.imgs.map_frame_bl)
+                .bottom_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.map_frame_bl, ui_widgets);            
+
 
             // Icon
             Image::new(self.imgs.map_icon)
@@ -1515,21 +1555,21 @@ impl Hud {
 
             // X-Button
             if Button::image(self.imgs.close_button)
-                .w_h(20.0, 20.0)
+                .w_h(28.0, 28.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.map_frame_r, 17.0, 5.0)
+                .top_right_with_margins_on(self.ids.map_frame_r, 0.0, 0.0)
                 .set(self.ids.map_close, ui_widgets)
                 .was_clicked()
             {
                 self.map_open = false;
             }
             // Title
-            Text::new("Map")
-                .mid_top_with_margin_on(self.ids.map_bg, -7.0)
-                .font_size(14)
-                .color(TEXT_COLOR)
-                .set(self.ids.map_title, ui_widgets);
+            //Text::new("Map")
+                //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
+                //.font_size(14)
+                //.color(TEXT_COLOR)
+                //.set(self.ids.map_title, ui_widgets);
         }
 
         // ESC-MENU
