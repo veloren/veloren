@@ -1059,15 +1059,18 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // Frame Alignment            
+            // Alignment            
             Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-                .middle_of(ui_widgets.window)                
+                .middle_of(ui_widgets.window)
+                .scroll_kids()
+                .scroll_kids_vertically()
                 .set(self.ids.settings_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.settings_frame_l)
                 .top_left_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_l, ui_widgets);
+<<<<<<< HEAD
 <<<<<<< HEAD
             Image::new(self.imgs.settings_frame_r)
 =======
@@ -1083,6 +1086,12 @@ impl Hud {
                 .scroll_kids()
                 .scroll_kids_vertically()
                 .set(self.ids.settings_content, ui_widgets);
+=======
+             Image::new(self.imgs.settings_frame_r)
+                .top_right_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.settings_r, ui_widgets);
+>>>>>>> Map Window, Settings Window
             // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(28.0, 28.0)
@@ -1104,9 +1113,15 @@ impl Hud {
                 .set(self.ids.settings_title, ui_widgets);
             // Icon
             //Image::new(self.imgs.settings_icon)
+<<<<<<< HEAD
             //.w_h(224.0 / 3.0, 224.0 / 3.0)
             //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
             //.set(self.ids.settings_icon, ui_widgets);
+=======
+                //.w_h(224.0 / 3.0, 224.0 / 3.0)
+                //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
+                //.set(self.ids.settings_icon, ui_widgets);
+>>>>>>> Map Window, Settings Window
             // TODO: Find out if we can remove this
 
             // 1 Interface////////////////////////////
@@ -1580,7 +1595,11 @@ impl Hud {
 
         // 2 Map
         if self.map_open {
+<<<<<<< HEAD
             // BG
+=======
+            // BG         
+>>>>>>> Map Window, Settings Window
             Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
                 .mid_top_with_margin_on(ui_widgets.window, 15.0)
                 .scroll_kids()
@@ -1592,6 +1611,7 @@ impl Hud {
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_l, ui_widgets);
             Image::new(self.imgs.map_frame_r)
+<<<<<<< HEAD
                 .right_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_r, ui_widgets);
@@ -1603,6 +1623,20 @@ impl Hud {
                 .down_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_bl, ui_widgets);
+=======
+                .top_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.map_frame_r, ui_widgets);
+            Image::new(self.imgs.map_frame_br)
+                .bottom_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.map_frame_br, ui_widgets);
+            Image::new(self.imgs.map_frame_bl)
+                .bottom_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(self.ids.map_frame_bl, ui_widgets);            
+
+>>>>>>> Map Window, Settings Window
 
             // Icon
             Image::new(self.imgs.map_icon)
@@ -1623,10 +1657,17 @@ impl Hud {
             }
             // Title
             //Text::new("Map")
+<<<<<<< HEAD
             //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
             //.font_size(14)
             //.color(TEXT_COLOR)
             //.set(self.ids.map_title, ui_widgets);
+=======
+                //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
+                //.font_size(14)
+                //.color(TEXT_COLOR)
+                //.set(self.ids.map_title, ui_widgets);
+>>>>>>> Map Window, Settings Window
         }
 
         // ESC-MENU
