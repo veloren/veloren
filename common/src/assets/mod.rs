@@ -1,8 +1,8 @@
 use std::env;
 use std::fs;
+use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::fs::File;
 
 fn try_load(name: &str) -> Option<File> {
     let basepaths = [
@@ -22,25 +22,28 @@ fn try_load(name: &str) -> Option<File> {
             Ok(f) => {
                 debug!("loading {} succedeed", filename);
                 return Some(f);
-            },
+            }
             Err(e) => {
                 debug!("loading {} did not work with error: {}", filename, e);
             }
         };
-    };
+    }
     return None;
 }
 
-pub fn load(name: &str) -> Result<Vec<u8>,()> {
+pub fn load(name: &str) -> Result<Vec<u8>, ()> {
     return match try_load(name) {
         Some(mut f) => {
-            let mut content: Vec<u8> = vec!();
+            let mut content: Vec<u8> = vec![];
             f.read_to_end(&mut content);
             info!("loaded asset successful: {}", name);
             Ok(content)
-        },
+        }
         None => {
-            warn!("Loading asset failed, wanted to load {} but could not load it, check debug log!", name);
+            warn!(
+                "Loading asset failed, wanted to load {} but could not load it, check debug log!",
+                name
+            );
             Err(())
         }
     };

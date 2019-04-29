@@ -1,21 +1,15 @@
-pub mod block;
 pub mod biome;
+pub mod block;
 
 // Reexports
-pub use self::{
-    block::Block,
-    biome::BiomeKind,
-};
+pub use self::{biome::BiomeKind, block::Block};
 
-use vek::*;
-use serde_derive::{Serialize, Deserialize};
 use crate::{
     vol::VolSize,
-    volumes::{
-        vol_map::VolMap,
-        chunk::Chunk,
-    },
+    volumes::{chunk::Chunk, vol_map::VolMap},
 };
+use serde_derive::{Deserialize, Serialize};
+use vek::*;
 
 // TerrainChunkSize
 
@@ -23,7 +17,11 @@ use crate::{
 pub struct TerrainChunkSize;
 
 impl VolSize for TerrainChunkSize {
-    const SIZE: Vec3<u32> = Vec3 { x: 32, y: 32, z: 32 };
+    const SIZE: Vec3<u32> = Vec3 {
+        x: 32,
+        y: 32,
+        z: 32,
+    };
 }
 
 // TerrainChunkMeta

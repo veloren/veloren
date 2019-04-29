@@ -2,29 +2,25 @@
 use std::marker::PhantomData;
 
 // Library
-use gfx::{
-    self,
-    traits::Factory,
-};
-use image::{
-    DynamicImage,
-    GenericImageView,
-};
+use gfx::{self, traits::Factory};
+use image::{DynamicImage, GenericImageView};
 use vek::Vec2;
 
 // Local
-use super::{
-    RenderError,
-    Pipeline,
-    gfx_backend,
-};
+use super::{gfx_backend, Pipeline, RenderError};
 
 type ShaderFormat = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
 
 /// Represents an image that has been uploaded to the GPU.
 pub struct Texture<P: Pipeline> {
-    pub tex: gfx::handle::Texture<gfx_backend::Resources, <ShaderFormat as gfx::format::Formatted>::Surface>,
-    pub srv: gfx::handle::ShaderResourceView<gfx_backend::Resources, <ShaderFormat as gfx::format::Formatted>::View>,
+    pub tex: gfx::handle::Texture<
+        gfx_backend::Resources,
+        <ShaderFormat as gfx::format::Formatted>::Surface,
+    >,
+    pub srv: gfx::handle::ShaderResourceView<
+        gfx_backend::Resources,
+        <ShaderFormat as gfx::format::Formatted>::View,
+    >,
     pub sampler: gfx::handle::Sampler<gfx_backend::Resources>,
     _phantom: PhantomData<P>,
 }
@@ -34,15 +30,16 @@ impl<P: Pipeline> Texture<P> {
         factory: &mut gfx_backend::Factory,
         image: &DynamicImage,
     ) -> Result<Self, RenderError> {
-        let (tex, srv) = factory.create_texture_immutable_u8::<ShaderFormat>(
-            gfx::texture::Kind::D2(
-                image.width() as u16,
-                image.height() as u16,
-                gfx::texture::AaMode::Single,
-            ),
-            gfx::texture::Mipmap::Provided,
-            &[&image.to_rgba().into_raw()],
-        )
+        let (tex, srv) = factory
+            .create_texture_immutable_u8::<ShaderFormat>(
+                gfx::texture::Kind::D2(
+                    image.width() as u16,
+                    image.height() as u16,
+                    gfx::texture::AaMode::Single,
+                ),
+                gfx::texture::Mipmap::Provided,
+                &[&image.to_rgba().into_raw()],
+            )
             .map_err(|err| RenderError::CombinedError(err))?;
 
         Ok(Self {
@@ -73,8 +70,12 @@ impl<P: Pipeline> Texture<P> {
         )
             .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Texture(err)))?;
 
-        let srv =
-        factory.view_texture_as_shader_resource::<ShaderFormat>(&tex, (0, 0), gfx::format::Swizzle::new())
+        let srv = factory
+            .view_texture_as_shader_resource::<ShaderFormat>(
+                &tex,
+                (0, 0),
+                gfx::format::Swizzle::new(),
+            )
             .map_err(|err| RenderError::CombinedError(gfx::CombinedError::Resource(err)))?;
 
         Ok(Self {
@@ -107,8 +108,10 @@ impl<P: Pipeline> Texture<P> {
             mipmap: 0,
         };
         encoder
-        .update_texture::<<ShaderFormat as gfx::format::Formatted>::Surface, ShaderFormat>(&self.tex, None, info, data)
-        .map_err(|err| RenderError::TexUpdateError(err))
+            .update_texture::<<ShaderFormat as gfx::format::Formatted>::Surface, ShaderFormat>(
+                &self.tex, None, info, data,
+            )
+            .map_err(|err| RenderError::TexUpdateError(err))
     }
     /// Get dimensions of the represented image
     pub fn get_dimensions(&self) -> Vec2<u16> {

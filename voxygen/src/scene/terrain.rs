@@ -10,24 +10,12 @@ use vek::*;
 
 // Project
 use client::Client;
-use common::{
-    terrain::TerrainMap,
-    volumes::vol_map::VolMapErr,
-    vol::SampleVol,
-};
+use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map::VolMapErr};
 
 // Crate
 use crate::{
-    render::{
-        Consts,
-        Globals,
-        Mesh,
-        Model,
-        Renderer,
-        TerrainPipeline,
-        TerrainLocals,
-    },
     mesh::Meshable,
+    render::{Consts, Globals, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
 };
 
 struct TerrainChunk {
@@ -92,7 +80,11 @@ impl Terrain {
         let current_tick = client.get_tick();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed
-        for pos in client.state().changes().new_chunks.iter()
+        for pos in client
+            .state()
+            .changes()
+            .new_chunks
+            .iter()
             .chain(client.state().changes().changed_chunks.iter())
         {
             // TODO: ANOTHER PROBLEM HERE!
@@ -139,8 +131,12 @@ impl Terrain {
                 // ambient occlusion and edge elision, we also need to borders of the chunk's
                 // neighbours too (hence the `- 1` and `+ 1`).
                 let aabb = Aabb {
-                    min: todo.pos.map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
-                    max: todo.pos.map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+                    min: todo
+                        .pos
+                        .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
+                    max: todo
+                        .pos
+                        .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
                 };
 
                 // Copy out the chunk data we need to perform the meshing. We do this by taking a
@@ -173,27 +169,35 @@ impl Terrain {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course)
                 Some(todo) if response.started_tick == todo.started_tick => {
-                    self.chunks.insert(response.pos, TerrainChunk {
-                        model: renderer.create_model(&response.mesh).expect("Failed to upload chunk mesh to the GPU"),
-                        locals: renderer.create_consts(&[TerrainLocals {
-                            model_offs: response.pos.map2(TerrainMap::chunk_size(), |e, sz| e as f32 * sz as f32).into_array(),
-                        }]).expect("Failed to upload chunk locals to the GPU"),
-                    });
-                },
+                    self.chunks.insert(
+                        response.pos,
+                        TerrainChunk {
+                            model: renderer
+                                .create_model(&response.mesh)
+                                .expect("Failed to upload chunk mesh to the GPU"),
+                            locals: renderer
+                                .create_consts(&[TerrainLocals {
+                                    model_offs: response
+                                        .pos
+                                        .map2(TerrainMap::chunk_size(), |e, sz| {
+                                            e as f32 * sz as f32
+                                        })
+                                        .into_array(),
+                                }])
+                                .expect("Failed to upload chunk locals to the GPU"),
+                        },
+                    );
+                }
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed
-                _ => {},
+                _ => {}
             }
         }
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
         for (_, chunk) in &self.chunks {
-            renderer.render_terrain_chunk(
-                &chunk.model,
-                globals,
-                &chunk.locals,
-            );
+            renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
         }
     }
 }

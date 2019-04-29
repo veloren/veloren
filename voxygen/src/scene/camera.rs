@@ -38,12 +38,7 @@ impl Camera {
             * Mat4::rotation_3d(PI / 2.0, -Vec4::unit_x())
             * Mat4::translation_3d(-self.focus);
 
-        let proj_mat = Mat4::perspective_rh_no(
-            self.fov,
-            self.aspect,
-            NEAR_PLANE,
-            FAR_PLANE,
-        );
+        let proj_mat = Mat4::perspective_rh_no(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
 
         // TODO: Make this more efficient
         let cam_pos = Vec3::from(view_mat.inverted() * Vec4::unit_w());
@@ -56,9 +51,7 @@ impl Camera {
         // Wrap camera yaw
         self.ori.x = (self.ori.x + delta.x) % (2.0 * PI);
         // Clamp camera pitch to the vertical limits
-        self.ori.y = (self.ori.y + delta.y)
-            .min(PI / 2.0)
-            .max(-PI / 2.0);
+        self.ori.y = (self.ori.y + delta.y).min(PI / 2.0).max(-PI / 2.0);
         // Wrap camera roll
         self.ori.z = (self.ori.z + delta.z) % (2.0 * PI);
     }
@@ -70,15 +63,25 @@ impl Camera {
     }
 
     /// Get the focus position of the camera.
-    pub fn get_focus_pos(&self) -> Vec3<f32> { self.focus }
+    pub fn get_focus_pos(&self) -> Vec3<f32> {
+        self.focus
+    }
     /// Set the focus position of the camera.
-    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) { self.focus = focus; }
+    pub fn set_focus_pos(&mut self, focus: Vec3<f32>) {
+        self.focus = focus;
+    }
 
     /// Get the aspect ratio of the camera.
-    pub fn get_aspect_ratio(&self) -> f32 { self.aspect }
+    pub fn get_aspect_ratio(&self) -> f32 {
+        self.aspect
+    }
     /// Set the aspect ratio of the camera.
-    pub fn set_aspect_ratio(&mut self, aspect: f32) { self.aspect = aspect; }
+    pub fn set_aspect_ratio(&mut self, aspect: f32) {
+        self.aspect = aspect;
+    }
 
     /// Get the orientation of the camera
-    pub fn get_orientation(&self) -> Vec3<f32> { self.ori }
+    pub fn get_orientation(&self) -> Vec3<f32> {
+        self.ori
+    }
 }
