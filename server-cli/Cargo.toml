@@ -7,6 +7,7 @@ edition = "2018"
 [dependencies]
 server = { package = "veloren-server", path = "../server" }
 common = { package = "veloren-common", path = "../common" }
+worldsim = { package = "veloren-worldsim", path = "../worldsim" }
 
 heaptrack = "0.3.0"
 log = "0.4.8"
