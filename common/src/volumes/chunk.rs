@@ -2,18 +2,11 @@
 use std::marker::PhantomData;
 
 // Library
+use serde_derive::{Deserialize, Serialize};
 use vek::*;
-use serde_derive::{Serialize, Deserialize};
 
 // Local
-use crate::vol::{
-    Vox,
-    BaseVol,
-    SizedVol,
-    ReadVol,
-    WriteVol,
-    VolSize,
-};
+use crate::vol::{BaseVol, ReadVol, SizedVol, VolSize, Vox, WriteVol};
 
 #[derive(Debug)]
 pub enum ChunkErr {
@@ -36,15 +29,13 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     // array.
     #[inline(always)]
     fn idx_for(pos: Vec3<i32>) -> Option<usize> {
-        if
-            pos.map(|e| e >= 0).reduce_and() &&
-            pos.map2(S::SIZE, |e, lim| e < lim as i32).reduce_and()
+        if pos.map(|e| e >= 0).reduce_and()
+            && pos.map2(S::SIZE, |e, lim| e < lim as i32).reduce_and()
         {
-            Some((
-                pos.x * S::SIZE.y as i32 * S::SIZE.z as i32 +
-                pos.y * S::SIZE.z as i32 +
-                pos.z
-            ) as usize)
+            Some(
+                (pos.x * S::SIZE.y as i32 * S::SIZE.z as i32 + pos.y * S::SIZE.z as i32 + pos.z)
+                    as usize,
+            )
         } else {
             None
         }
@@ -58,7 +49,9 @@ impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> { S::SIZE }
+    fn get_size(&self) -> Vec3<u32> {
+        S::SIZE
+    }
 }
 
 impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {

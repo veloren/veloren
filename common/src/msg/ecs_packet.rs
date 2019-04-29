@@ -1,6 +1,6 @@
-use std::marker::PhantomData;
-use serde_derive::{Serialize, Deserialize};
 use crate::comp;
+use serde_derive::{Deserialize, Serialize};
+use std::marker::PhantomData;
 
 // Automatically derive From<T> for Packet for each variant Packet::T(T)
 sphynx::sum_type! {

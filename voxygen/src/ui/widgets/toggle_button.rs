@@ -1,13 +1,7 @@
 use conrod_core::{
-    widget::{self, button},
     image,
-    WidgetCommon,
-    Widget,
-    Sizeable,
-    Color,
-    Rect,
-    Positionable,
-    widget_ids,
+    widget::{self, button},
+    widget_ids, Color, Positionable, Rect, Sizeable, Widget, WidgetCommon,
 };
 
 #[derive(Clone, WidgetCommon)]
@@ -88,7 +82,9 @@ impl Widget for ToggleButton {
     type Event = bool;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State { ids: Ids::new(id_gen) }
+        State {
+            ids: Ids::new(id_gen),
+        }
     }
 
     fn style(&self) -> Self::Style {
@@ -96,8 +92,19 @@ impl Widget for ToggleButton {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs{ id, state, ui, rect, .. } = args;
-        let ToggleButton { mut value, f_image, t_image, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            ui,
+            rect,
+            ..
+        } = args;
+        let ToggleButton {
+            mut value,
+            f_image,
+            t_image,
+            ..
+        } = self;
         // Check if button was clicked
         // (can't use .set().was_clicked() because we are changing the image and this is after setting the widget which causes flickering as it takes a frame to change after the mouse button is lifted)
         if ui.widget_input(state.ids.button).clicks().left().count() % 2 == 1 {
