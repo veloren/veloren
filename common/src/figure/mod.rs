@@ -1,8 +1,8 @@
 pub mod cell;
 
 // Library
-use vek::*;
 use dot_vox::DotVoxData;
+use vek::*;
 
 // Crate
 use crate::{
@@ -28,11 +28,7 @@ impl From<DotVoxData> for Segment {
                 .collect::<Vec<_>>();
 
             let mut segment = Segment::filled(
-                Vec3::new(
-                    model.size.x,
-                    model.size.y,
-                    model.size.z,
-                ),
+                Vec3::new(model.size.x, model.size.y, model.size.z),
                 Cell::empty(),
                 (),
             );

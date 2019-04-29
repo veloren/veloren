@@ -1,20 +1,14 @@
+use super::super::{Pipeline, Quad, TgtColorFmt, TgtDepthFmt, Tri};
 use gfx::{
     self,
     // Macros
     gfx_defines,
-    gfx_vertex_struct_meta,
     gfx_impl_struct_meta,
     gfx_pipeline,
     gfx_pipeline_inner,
+    gfx_vertex_struct_meta,
 };
 use vek::*;
-use super::super::{
-        Pipeline,
-        TgtColorFmt,
-        TgtDepthFmt,
-        Quad,
-        Tri,
-};
 
 gfx_defines! {
     vertex Vertex {
@@ -65,20 +59,20 @@ impl Mode {
     }
 }
 
-pub fn create_quad(rect: Aabr<f32>, uv_rect: Aabr<f32>, color: Rgba<f32>, mode: Mode) -> Quad<UiPipeline> {
+pub fn create_quad(
+    rect: Aabr<f32>,
+    uv_rect: Aabr<f32>,
+    color: Rgba<f32>,
+    mode: Mode,
+) -> Quad<UiPipeline> {
     let mode_val = mode.value();
-    let v = |pos, uv| {
-        Vertex {
-            pos,
-            uv,
-            color: color.into_array(),
-            mode: mode_val,
-        }
+    let v = |pos, uv| Vertex {
+        pos,
+        uv,
+        color: color.into_array(),
+        mode: mode_val,
     };
-    let aabr_to_lbrt = |aabr: Aabr<f32>| (
-        aabr.min.x, aabr.min.y,
-        aabr.max.x, aabr.max.y,
-    );
+    let aabr_to_lbrt = |aabr: Aabr<f32>| (aabr.min.x, aabr.min.y, aabr.max.x, aabr.max.y);
 
     let (l, b, r, t) = aabr_to_lbrt(rect);
     let (uv_l, uv_b, uv_r, uv_t) = aabr_to_lbrt(uv_rect);
@@ -90,15 +84,18 @@ pub fn create_quad(rect: Aabr<f32>, uv_rect: Aabr<f32>, color: Rgba<f32>, mode: 
     )
 }
 
-pub fn create_tri(tri: [[f32; 2]; 3], uv_tri: [[f32; 2]; 3], color: Rgba<f32>, mode: Mode) -> Tri<UiPipeline> {
+pub fn create_tri(
+    tri: [[f32; 2]; 3],
+    uv_tri: [[f32; 2]; 3],
+    color: Rgba<f32>,
+    mode: Mode,
+) -> Tri<UiPipeline> {
     let mode_val = mode.value();
-    let v = |pos, uv| {
-        Vertex {
-            pos,
-            uv,
-            color: color.into_array(),
-            mode: mode_val,
-        }
+    let v = |pos, uv| Vertex {
+        pos,
+        uv,
+        color: color.into_array(),
+        mode: mode_val,
     };
     Tri::new(
         v([tri[0][0], tri[0][1]], [uv_tri[0][0], uv_tri[0][1]]),

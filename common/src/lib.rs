@@ -1,4 +1,9 @@
-#![feature(euclidean_division, duration_float, trait_alias, bind_by_move_pattern_guards)]
+#![feature(
+    euclidean_division,
+    duration_float,
+    trait_alias,
+    bind_by_move_pattern_guards
+)]
 
 #[macro_use]
 extern crate serde_derive;
@@ -10,13 +15,13 @@ pub mod clock;
 pub mod comp;
 pub mod figure;
 pub mod msg;
+pub mod ray;
 pub mod state;
 pub mod sys;
 pub mod terrain;
 pub mod util;
-pub mod volumes;
 pub mod vol;
-pub mod ray;
+pub mod volumes;
 
 // TODO: unignore the code here, for some reason it refuses to compile here while has no problems copy-pasted elsewhere
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client

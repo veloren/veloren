@@ -1,6 +1,6 @@
-use specs::{Component, VecStorage, FlaggedStorage};
-use vek::*;
 use rand::prelude::*;
+use specs::{Component, FlaggedStorage, VecStorage};
+use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Race {
@@ -60,14 +60,14 @@ pub enum Weapon {
     Staff,
 }
 
-use Race::*;
-use Gender::*;
-use Head::*;
-use Chest::*;
 use Belt::*;
-use Pants::*;
-use Hand::*;
+use Chest::*;
 use Foot::*;
+use Gender::*;
+use Hand::*;
+use Head::*;
+use Pants::*;
+use Race::*;
 use Weapon::*;
 
 const ALL_RACES: [Race; 6] = [Danari, Dwarf, Elf, Human, Orc, Undead];
