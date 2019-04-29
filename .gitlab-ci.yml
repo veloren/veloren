@@ -132,7 +132,7 @@ commit-linux-debug:
     - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
   artifacts:
     paths:
-      - bin/commit-linux-debug.tar.bz2
+      - commit-linux-debug.tar.bz2
     expire_in: 1 week
   except:
     - schedules
@@ -157,7 +157,7 @@ commit-windows-debug:
     - zip -r bin/commit-windows-debug.zip commit-build
   artifacts:
     paths:
-      - bin/commit-windows-debug.zip
+      - commit-windows-debug.zip
     expire_in: 1 week
   except:
     - schedules
@@ -186,7 +186,7 @@ nightly-linux-optimized:
     - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
   artifacts:
     paths:
-      - bin/nightly-linux-optimized.tar.bz2
+      - nightly-linux-optimized.tar.bz2
     expire_in: 2 days
   only:
     - schedules
@@ -208,7 +208,7 @@ nightly-windows-optimized:
     - zip -r bin/nightly-windows-optimized.zip nightly-build
   artifacts:
     paths:
-      - bin/nightly-windows-optimized.zip
+      - nightly-windows-optimized.zip
     expire_in: 2 days
   only:
     - schedules
