@@ -2,7 +2,7 @@ mod chat;
 
 use crate::{
     render::Renderer,
-    settings::{Settings, ControlSettings},
+    settings::{ControlSettings, Settings},
     ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
@@ -1025,11 +1025,7 @@ impl Hud {
                 .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag, ui_widgets);
-<<<<<<< HEAD
-                Text::new(&format!("{:?}", self.settings.controls.bag))
-=======
-            Text::new("B")
->>>>>>> 4be2d5d8f791addfbeaab680d1699c4684069825
+            Text::new(&format!("{:?}", self.settings.controls.bag))
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.font_metamorph)
@@ -1891,7 +1887,7 @@ impl Hud {
             WinEvent::SettingsChanged => {
                 self.settings = global_state.settings.clone();
                 true
-            },
+            }
             _ => false,
         }
     }
@@ -1929,6 +1925,7 @@ fn get_help_text(cs: &ControlSettings) -> String {
         format!("{:?} = Character window\n", cs.character_window),
         format!("{:?} = Social\n", cs.social),
         format!("{:?} = Spellbook\n", cs.spellbook),
-        format!("{:?} = Settings\n", cs.settings)
-    ].concat()
+        format!("{:?} = Settings\n", cs.settings),
+    ]
+    .concat()
 }
