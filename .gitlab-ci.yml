@@ -129,13 +129,13 @@ commit-linux-debug:
     - cp target/debug/veloren-voxygen commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
+    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
     - echo ""
     - ls
     - echo ""
     - ls bin/
     - echo ""
-    - ls $
-    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
+    - ls $CI_PROJECT_DIR
     - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
