@@ -89,7 +89,6 @@ clean-code:
     - veloren-docker
   script:
     - cargo fmt --all -- --check
-  allow_failure: true  
 
 # # Coverage needs to be disabled until an issue in the Rust compiler is fixed
 # # https://github.com/rust-lang/rust/issues/58375
