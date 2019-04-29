@@ -9,33 +9,19 @@ mod util;
 // Reexports
 pub use self::{
     consts::Consts,
-    mesh::{Mesh, Tri, Quad},
+    mesh::{Mesh, Quad, Tri},
     model::Model,
-    texture::Texture,
-    renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
     pipelines::{
-        Globals,
-        figure::{
-            FigurePipeline,
-            Locals as FigureLocals,
-            BoneData as FigureBoneData,
-        },
-        skybox::{
-            create_mesh as create_skybox_mesh,
-            SkyboxPipeline,
-            Locals as SkyboxLocals,
-        },
-        terrain::{
-            TerrainPipeline,
-            Locals as TerrainLocals,
-        },
+        figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
+        skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
+        terrain::{Locals as TerrainLocals, TerrainPipeline},
         ui::{
-            create_quad as create_ui_quad,
-            create_tri as create_ui_tri,
-            Mode as UiMode,
-            UiPipeline,
+            create_quad as create_ui_quad, create_tri as create_ui_tri, Mode as UiMode, UiPipeline,
         },
+        Globals,
     },
+    renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
+    texture::Texture,
 };
 
 #[cfg(feature = "gl")]
@@ -64,8 +50,5 @@ pub enum RenderError {
 /// - `SkyboxPipeline`
 /// - `FigurePipeline`
 pub trait Pipeline {
-    type Vertex:
-        Clone +
-        gfx::traits::Pod +
-        gfx::pso::buffer::Structure<gfx::format::Format>;
+    type Vertex: Clone + gfx::traits::Pod + gfx::pso::buffer::Structure<gfx::format::Format>;
 }

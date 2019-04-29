@@ -75,11 +75,7 @@ pub struct Tri<P: Pipeline> {
 }
 
 impl<P: Pipeline> Tri<P> {
-    pub fn new(
-        a: P::Vertex,
-        b: P::Vertex,
-        c: P::Vertex,
-    ) -> Self {
+    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex) -> Self {
         Self { a, b, c }
     }
 }
@@ -93,12 +89,7 @@ pub struct Quad<P: Pipeline> {
 }
 
 impl<P: Pipeline> Quad<P> {
-    pub fn new(
-        a: P::Vertex,
-        b: P::Vertex,
-        c: P::Vertex,
-        d: P::Vertex,
-    ) -> Self {
+    pub fn new(a: P::Vertex, b: P::Vertex, c: P::Vertex, d: P::Vertex) -> Self {
         Self { a, b, c, d }
     }
 }

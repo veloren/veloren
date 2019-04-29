@@ -1,15 +1,8 @@
 // Library
-use gfx::{
-    self,
-    traits::FactoryExt,
-};
+use gfx::{self, traits::FactoryExt};
 
 // Local
-use super::{
-    mesh::Mesh,
-    Pipeline,
-    gfx_backend,
-};
+use super::{gfx_backend, mesh::Mesh, Pipeline};
 
 /// Represents a mesh that has been sent to the GPU.
 pub struct Model<P: Pipeline> {
@@ -18,10 +11,7 @@ pub struct Model<P: Pipeline> {
 }
 
 impl<P: Pipeline> Model<P> {
-    pub fn new(
-        factory: &mut gfx_backend::Factory,
-        mesh: &Mesh<P>,
-    ) -> Self {
+    pub fn new(factory: &mut gfx_backend::Factory, mesh: &Mesh<P>) -> Self {
         Self {
             vbuf: factory.create_vertex_buffer(mesh.vertices()),
             slice: gfx::Slice {

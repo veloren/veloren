@@ -7,11 +7,7 @@ pub use post2 as post;
 // Reexports
 pub use self::{
     data::{ClientMsg, ServerMsg},
-    post::{
-        Error as PostError,
-        PostBox,
-        PostOffice,
-    },
+    post::{Error as PostError, PostBox, PostOffice},
 };
 
 pub trait PostSend = 'static + serde::Serialize + std::marker::Send + std::fmt::Debug;

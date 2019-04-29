@@ -1,9 +1,6 @@
+use super::{ClientState, EcsPacket};
+use crate::{comp, terrain::TerrainChunk};
 use vek::*;
-use crate::{
-    comp,
-    terrain::TerrainChunk,
-};
-use super::{EcsPacket, ClientState};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum RequestStateError {

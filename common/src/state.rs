@@ -1,34 +1,21 @@
 // Reexports
 pub use sphynx::Uid;
 
-use std::{
-    time::Duration,
-    collections::HashSet,
+use crate::{
+    comp,
+    msg::EcsPacket,
+    sys,
+    terrain::{TerrainChunk, TerrainMap},
 };
 use shred::{Fetch, FetchMut};
 use specs::{
-    Builder,
-    Component,
-    DispatcherBuilder,
-    EntityBuilder as EcsEntityBuilder,
-    Entity as EcsEntity,
-    storage::{
-        Storage as EcsStorage,
-        MaskedStorage as EcsMaskedStorage,
-    },
     saveload::{MarkedBuilder, MarkerAllocator},
+    storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
+    Builder, Component, DispatcherBuilder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
 };
 use sphynx;
+use std::{collections::HashSet, time::Duration};
 use vek::*;
-use crate::{
-    comp,
-    sys,
-    terrain::{
-        TerrainMap,
-        TerrainChunk,
-    },
-    msg::EcsPacket,
-};
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this
@@ -85,7 +72,11 @@ impl State {
     /// Create a new `State` from an ECS state package
     pub fn from_state_package(state_package: sphynx::StatePackage<EcsPacket>) -> Self {
         Self {
-            ecs: sphynx::World::from_state_package(specs::World::new(), Self::setup_sphynx_world, state_package),
+            ecs: sphynx::World::from_state_package(
+                specs::World::new(),
+                Self::setup_sphynx_world,
+                state_package,
+            ),
             changes: Changes::default(),
         }
     }
@@ -113,7 +104,8 @@ impl State {
 
     /// Register a component with the state's ECS
     pub fn with_component<T: Component>(mut self) -> Self
-        where <T as Component>::Storage: Default
+    where
+        <T as Component>::Storage: Default,
     {
         self.ecs.register::<T>();
         self
@@ -166,13 +158,13 @@ impl State {
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
-        self.ecs
-            .read_resource::<TerrainMap>()
+        self.ecs.read_resource::<TerrainMap>()
     }
 
     /// Insert the provided chunk into this state's terrain.
     pub fn insert_chunk(&mut self, key: Vec3<i32>, chunk: TerrainChunk) {
-        if self.ecs
+        if self
+            .ecs
             .write_resource::<TerrainMap>()
             .insert(key, chunk)
             .is_some()
@@ -185,7 +177,8 @@ impl State {
 
     /// Remove the chunk with the given key from this state's terrain, if it exists
     pub fn remove_chunk(&mut self, key: Vec3<i32>) {
-        if self.ecs
+        if self
+            .ecs
             .write_resource::<TerrainMap>()
             .remove(key)
             .is_some()

@@ -5,11 +5,7 @@ use std::f32::consts::PI;
 use vek::*;
 
 // Local
-use super::{
-    CharacterSkeleton,
-    super::Animation,
-    SCALE,
-};
+use super::{super::Animation, CharacterSkeleton, SCALE};
 
 pub struct IdleAnimation;
 
@@ -17,10 +13,7 @@ impl Animation for IdleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
-    fn update_skeleton(
-        skeleton: &Self::Skeleton,
-        time: f64,
-    ) -> Self::Skeleton {
+    fn update_skeleton(skeleton: &Self::Skeleton, time: f64) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
         let wave = (time as f32 * 12.0).sin();
@@ -47,11 +40,19 @@ impl Animation for IdleAnimation {
         next.shorts.ori = Quaternion::rotation_y(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(2.0 + waveultracos_slow * 0.3, 7.5, 12.5 + waveultra_slow * 1.1);
+        next.l_hand.offset = Vec3::new(
+            2.0 + waveultracos_slow * 0.3,
+            7.5,
+            12.5 + waveultra_slow * 1.1,
+        );
         next.l_hand.ori = Quaternion::rotation_y(0.0 + waveultra_slow * 0.06);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(2.0 + waveultracos_slow * 0.3 , - 7.5, 12.5 + waveultra_slow * 1.1);
+        next.r_hand.offset = Vec3::new(
+            2.0 + waveultracos_slow * 0.3,
+            -7.5,
+            12.5 + waveultra_slow * 1.1,
+        );
         next.r_hand.ori = Quaternion::rotation_y(0.0 + waveultra_slow * 0.06);
         next.r_hand.scale = Vec3::one();
 

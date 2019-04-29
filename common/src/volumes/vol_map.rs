@@ -6,15 +6,7 @@ use vek::*;
 
 // Crate
 use crate::{
-    vol::{
-        Vox,
-        BaseVol,
-        SizedVol,
-        ReadVol,
-        SampleVol,
-        WriteVol,
-        VolSize,
-    },
+    vol::{BaseVol, ReadVol, SampleVol, SizedVol, VolSize, Vox, WriteVol},
     volumes::{
         chunk::{Chunk, ChunkErr},
         dyna::{Dyna, DynaErr},
@@ -56,7 +48,8 @@ impl<V: Vox, S: VolSize, M> ReadVol for VolMap<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, VolMapErr> {
         let ck = Self::chunk_key(pos);
-        self.chunks.get(&ck)
+        self.chunks
+            .get(&ck)
             .ok_or(VolMapErr::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
@@ -87,14 +80,16 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
         }
         */
 
-        let mut sample = Dyna::filled(
-            range.size().map(|e| e as u32).into(),
-            V::empty(),
-            (),
-        );
+        let mut sample = Dyna::filled(range.size().map(|e| e as u32).into(), V::empty(), ());
 
         for pos in sample.iter_positions() {
-            sample.set(pos, self.get(range.min + pos).map(|v| v.clone()).unwrap_or(V::empty()))
+            sample
+                .set(
+                    pos,
+                    self.get(range.min + pos)
+                        .map(|v| v.clone())
+                        .unwrap_or(V::empty()),
+                )
                 .map_err(|err| VolMapErr::DynaErr(err))?;
         }
 
@@ -106,7 +101,8 @@ impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: V) -> Result<(), VolMapErr> {
         let ck = Self::chunk_key(pos);
-        self.chunks.get_mut(&ck)
+        self.chunks
+            .get_mut(&ck)
             .ok_or(VolMapErr::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
@@ -122,7 +118,9 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
         }
     }
 
-    pub fn chunk_size() -> Vec3<u32> { S::SIZE }
+    pub fn chunk_size() -> Vec3<u32> {
+        S::SIZE
+    }
 
     pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Chunk<V, S, M>> {
         self.chunks.insert(key, chunk)

@@ -1,22 +1,15 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
-use vek::*;
-use common::clock::Clock;
-use client::{
-    self,
-    Client,
-};
 use crate::{
-    Direction,
-    Error,
-    PlayState,
-    PlayStateResult,
-    GlobalState,
+    hud::{Event as HudEvent, Hud},
     key_state::KeyState,
-    window::{Event, Key, Window},
     render::Renderer,
     scene::Scene,
-    hud::{Hud, Event as HudEvent},
+    window::{Event, Key, Window},
+    Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
+use client::{self, Client};
+use common::clock::Clock;
+use std::{cell::RefCell, rc::Rc, time::Duration};
+use vek::*;
 
 const FPS: u64 = 60;
 
@@ -26,7 +19,6 @@ pub struct SessionState {
     key_state: KeyState,
     hud: Hud,
 }
-
 
 /// Represents an active game session (i.e: one that is being played)
 impl SessionState {
@@ -42,7 +34,6 @@ impl SessionState {
         }
     }
 }
-
 
 // The background colour
 const BG_COLOR: Rgba<f32> = Rgba {
@@ -64,7 +55,11 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        for event in self.client.borrow_mut().tick(client::Input { move_dir }, dt)? {
+        for event in self
+            .client
+            .borrow_mut()
+            .tick(client::Input { move_dir }, dt)?
+        {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -123,7 +118,6 @@ impl PlayState for SessionState {
         loop {
             // Handle window events
             for event in global_state.window.fetch_events() {
-
                 // Pass all events to the ui first
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
@@ -131,7 +125,7 @@ impl PlayState for SessionState {
                 let _handled = match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
-                    },
+                    }
                     // Toggle cursor grabbing
                     Event::KeyDown(Key::ToggleCursor) => {
                         global_state
@@ -161,18 +155,24 @@ impl PlayState for SessionState {
                 .expect("Failed to tick the scene");
 
             // Maintain the scene
-            self.scene.maintain(global_state.window.renderer_mut(), &mut self.client.borrow_mut());
+            self.scene.maintain(
+                global_state.window.renderer_mut(),
+                &mut self.client.borrow_mut(),
+            );
             // Maintain the UI
-            for event in self.hud.maintain(global_state.window.renderer_mut(), clock.get_tps()) {
+            for event in self
+                .hud
+                .maintain(global_state.window.renderer_mut(), clock.get_tps())
+            {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
                         self.client.borrow_mut().send_chat(msg);
-                    },
+                    }
                     HudEvent::Logout => return PlayStateResult::Pop,
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
-                    },
+                    }
                 }
             }
 
