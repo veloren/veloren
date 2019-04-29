@@ -18,7 +18,7 @@ pub mod singleplayer;
 // Reexports
 pub use crate::error::Error;
 
-use std::{mem, thread, panic, fs::File};
+use std::{mem, thread, panic, fs::File, str::FromStr};
 use log;
 use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config};
 use crate::{
@@ -87,8 +87,12 @@ fn main() {
     let window = Window::new(&settings).expect("Failed to create window");
 
     // Init logging
+    let term_log_level = std::env::var_os("VOXYGEN_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Warn);
     CombinedLogger::init(vec![
-        TermLogger::new(log::LevelFilter::Warn, Config::default()).unwrap(),
+        TermLogger::new(term_log_level, Config::default()).unwrap(),
         WriteLogger::new(log::LevelFilter::Info, Config::default(), File::create(&settings.log.file).unwrap()),
     ]).unwrap();
 
