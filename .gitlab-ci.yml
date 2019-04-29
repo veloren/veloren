@@ -11,13 +11,13 @@ variables:
 before_script:
   - mkdir -p /cache/veloren
   - rm -rf /cache/veloren/bin
-  - mkdir -p /cache/veloren/bin
   - cd /cache/veloren
   - if [ -d .git ]; then
        echo "is git dir";
     else
       git clone $CI_REPOSITORY_URL . ;
     fi;
+  - mkdir -p /cache/veloren/bin
   - rm -f .git/index.lock
   - rm -f .git/shallow.lock
   - rm -f .git/HEAD.lock
