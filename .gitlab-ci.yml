@@ -129,12 +129,10 @@ commit-linux-debug:
     - cp target/debug/veloren-voxygen commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
-    - rm -f commit-linux-debug.tar.bz2
     - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
-    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
-      - commit-linux-debug.tar.bz2
+      - bin/commit-linux-debug.tar.bz2
     expire_in: 1 week
   except:
     - schedules
@@ -156,12 +154,10 @@ commit-windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
-    - rm -f commit-windows-debug.zip
     - zip -r bin/commit-windows-debug.zip commit-build
-    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
     paths:
-      - commit-windows-debug.zip
+      - bin/commit-windows-debug.zip
     expire_in: 1 week
   except:
     - schedules
@@ -187,12 +183,10 @@ nightly-linux-optimized:
     - cp target/release/veloren-voxygen nightly-build
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
-    - rm -f nightly-linux-optimized.tar.bz2
     - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
-    - cp bin/nightly-linux-optimized.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
-      - nightly-linux-optimized.tar.bz2
+      - bin/nightly-linux-optimized.tar.bz2
     expire_in: 2 days
   only:
     - schedules
@@ -211,12 +205,10 @@ nightly-windows-optimized:
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly-build
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
-    - rm -f nightly-windows-optimized.zip
     - zip -r bin/nightly-windows-optimized.zip nightly-build
-    - cp bin/nightly-windows-optimized.zip $CI_PROJECT_DIR
   artifacts:
     paths:
-      - nightly-windows-optimized.zip
+      - bin/nightly-windows-optimized.zip
     expire_in: 2 days
   only:
     - schedules
