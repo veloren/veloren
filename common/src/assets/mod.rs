@@ -94,6 +94,7 @@ impl Asset for DotVoxData {
 
 // TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
 fn try_open_with_path(name: &str) -> Option<File> {
+    // TODO: don't do this?
     // if it's stupid and it works..,
     [
         "assets".to_string(),
