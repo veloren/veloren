@@ -2,7 +2,6 @@ mod client_init;
 mod start_singleplayer;
 mod ui;
 
-use start_singleplayer::StartSingleplayerState;
 use super::char_selection::CharSelectionState;
 use crate::{
     window::{Event, Window},
@@ -10,6 +9,7 @@ use crate::{
 };
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
+use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
@@ -86,10 +86,7 @@ impl PlayState for MainMenuState {
             }
 
             // Maintain the UI
-            for event in self
-                .main_menu_ui
-                .maintain(global_state)
-            {
+            for event in self.main_menu_ui.maintain(global_state) {
                 match event {
                     MainMenuEvent::LoginAttempt {
                         username,
@@ -104,15 +101,12 @@ impl PlayState for MainMenuState {
                         // Don't try to connect if there is already a connection in progress
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),
-                            (
-                                comp::Player::new(username.clone()),
-                                300,
-                            ),
+                            (comp::Player::new(username.clone()), 300),
                         )));
-                    },
+                    }
                     MainMenuEvent::StartSingleplayer => {
                         return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
-                    },
+                    }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
                 }
             }

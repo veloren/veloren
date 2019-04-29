@@ -1,14 +1,17 @@
+use serde::{de::DeserializeOwned, Serialize};
 use std::{
-    io::{self, Read, Write},
-    net::{TcpListener, TcpStream, SocketAddr, Shutdown},
-    time::{Instant, Duration},
-    marker::PhantomData,
-    sync::{mpsc, Arc, atomic::{AtomicBool, Ordering}},
-    thread,
     collections::VecDeque,
     convert::TryFrom,
+    io::{self, Read, Write},
+    marker::PhantomData,
+    net::{Shutdown, SocketAddr, TcpListener, TcpStream},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        mpsc, Arc,
+    },
+    thread,
+    time::{Duration, Instant},
 };
-use serde::{Serialize, de::DeserializeOwned};
 
 #[derive(Clone, Debug)]
 pub enum Error {
@@ -62,7 +65,7 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
         self.error.clone()
     }
 
-    pub fn new_postboxes(&mut self) -> impl ExactSizeIterator<Item=PostBox<S, R>> {
+    pub fn new_postboxes(&mut self) -> impl ExactSizeIterator<Item = PostBox<S, R>> {
         let mut new = Vec::new();
 
         if self.error.is_some() {
@@ -73,11 +76,11 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
             match self.listener.accept() {
                 Ok((stream, sock)) => new.push(PostBox::from_stream(stream).unwrap()),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
-                },
+                }
             }
         }
 
@@ -136,11 +139,11 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             Err(e) => {
                 self.error = Some(e);
                 None
-            },
+            }
         }
     }
 
-    pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item=R> {
+    pub fn new_messages(&mut self) -> impl ExactSizeIterator<Item = R> {
         let mut new = Vec::new();
 
         if self.error.is_some() {
@@ -154,18 +157,23 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
-                },
+                }
                 Ok(Err(e)) => {
                     self.error = Some(e);
                     break;
-                },
+                }
             }
         }
 
         new.into_iter()
     }
 
-    fn worker(mut stream: TcpStream, send_rx: mpsc::Receiver<S>, recv_tx: mpsc::Sender<Result<R, Error>>, running: Arc<AtomicBool>) {
+    fn worker(
+        mut stream: TcpStream,
+        send_rx: mpsc::Receiver<S>,
+        recv_tx: mpsc::Sender<Result<R, Error>>,
+        running: Arc<AtomicBool>,
+    ) {
         let mut outgoing_chunks = VecDeque::new();
         let mut incoming_buf = Vec::new();
 
@@ -176,8 +184,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                     Ok(Some(e)) | Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
                         break 'work;
-                    },
-                    Ok(None) => {},
+                    }
+                    Ok(None) => {}
                 }
 
                 // Try getting messages from the send channel
@@ -188,11 +196,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             let mut msg_bytes = bincode::serialize(&send_msg).unwrap();
 
                             // Assemble into packet
-                            let mut packet_bytes = msg_bytes
-                                .len()
-                                .to_le_bytes()
-                                .as_ref()
-                                .to_vec();
+                            let mut packet_bytes = msg_bytes.len().to_le_bytes().as_ref().to_vec();
                             packet_bytes.append(&mut msg_bytes);
 
                             // Split packet into chunks
@@ -200,13 +204,13 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                 .chunks(4096)
                                 .map(|chunk| chunk.to_vec())
                                 .for_each(|chunk| outgoing_chunks.push_back(chunk))
-                        },
+                        }
                         Err(mpsc::TryRecvError::Empty) => break,
                         // Worker error
                         Err(e) => {
                             let _ = recv_tx.send(Err(e.into()));
                             break 'work;
-                        },
+                        }
                     }
                 }
 
@@ -218,17 +222,17 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             Ok(n) => {
                                 outgoing_chunks.push_front(chunk.split_off(n));
                                 break;
-                            },
+                            }
                             Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                                 // Return chunk to the queue to try again later
                                 outgoing_chunks.push_front(chunk);
                                 break;
-                            },
+                            }
                             // Worker error
                             Err(e) => {
                                 recv_tx.send(Err(e.into())).unwrap();
                                 break 'work;
-                            },
+                            }
                         },
                         None => break,
                     }
@@ -241,12 +245,12 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                     match stream.read(&mut buf) {
                         Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
                         Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {},
+                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                         // Worker error
                         Err(e) => {
                             recv_tx.send(Err(e.into())).unwrap();
                             break 'work;
-                        },
+                        }
                     }
                 }
 
@@ -262,16 +266,14 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             } else if incoming_buf.len() >= len + 8 {
                                 match bincode::deserialize(&incoming_buf[8..len + 8]) {
                                     Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
-                                    Err(err) => {
-                                        recv_tx.send(Err(err.into())).unwrap()
-                                    },
+                                    Err(err) => recv_tx.send(Err(err.into())).unwrap(),
                                 }
 
                                 incoming_buf = incoming_buf.split_off(len + 8);
                             } else {
                                 break;
                             }
-                        },
+                        }
                         None => break,
                     }
                 }
@@ -295,7 +297,9 @@ impl<S: PostMsg, R: PostMsg> Drop for PostBox<S, R> {
 mod tests {
     use super::*;
 
-    fn create_postoffice<S: PostMsg, R: PostMsg>(id: u16) -> Result<(PostOffice<S, R>, SocketAddr), Error> {
+    fn create_postoffice<S: PostMsg, R: PostMsg>(
+        id: u16,
+    ) -> Result<(PostOffice<S, R>, SocketAddr), Error> {
         let sock = ([0; 4], 12345 + id).into();
         Ok((PostOffice::bind(sock)?, sock))
     }
@@ -353,9 +357,9 @@ mod tests {
         }
 
         let mut recv_msgs = Vec::new();
-        loop_for(Duration::from_millis(250), || server
-                .new_messages()
-                .for_each(|msg| recv_msgs.push(msg)));
+        loop_for(Duration::from_millis(250), || {
+            server.new_messages().for_each(|msg| recv_msgs.push(msg))
+        });
 
         assert_eq!(test_msgs, recv_msgs);
     }
@@ -363,7 +367,9 @@ mod tests {
     #[test]
     fn send_recv_huge() {
         let (mut postoffice, sock) = create_postoffice::<(), Vec<i32>>(3).unwrap();
-        let test_msgs: Vec<Vec<i32>> = (0..5).map(|i| (0..100000).map(|j| i * 2 + j).collect()).collect();
+        let test_msgs: Vec<Vec<i32>> = (0..5)
+            .map(|i| (0..100000).map(|j| i * 2 + j).collect())
+            .collect();
 
         let mut client = PostBox::<Vec<i32>, ()>::to(sock).unwrap();
         loop_for(Duration::from_millis(250), || ());
@@ -374,9 +380,9 @@ mod tests {
         }
 
         let mut recv_msgs = Vec::new();
-        loop_for(Duration::from_millis(3000), || server
-                .new_messages()
-                .for_each(|msg| recv_msgs.push(msg)));
+        loop_for(Duration::from_millis(3000), || {
+            server.new_messages().for_each(|msg| recv_msgs.push(msg))
+        });
 
         assert_eq!(test_msgs.len(), recv_msgs.len());
         assert!(test_msgs == recv_msgs);

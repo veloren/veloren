@@ -1,15 +1,12 @@
 mod ui;
 
 use crate::{
-    window::{Event, Window},
     session::SessionState,
+    window::{Event, Window},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{
-    clock::Clock,
-    msg::ClientMsg,
-};
+use common::{clock::Clock, msg::ClientMsg};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
 use vek::*;
@@ -50,7 +47,7 @@ impl PlayState for CharSelectionState {
                 match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
-                    },
+                    }
                     // Pass events to ui
                     Event::Ui(event) => {
                         self.char_selection_ui.handle_event(event);
@@ -63,23 +60,35 @@ impl PlayState for CharSelectionState {
             global_state.window.renderer_mut().clear(BG_COLOR);
 
             // Maintain the UI
-            for event in self.char_selection_ui.maintain(global_state.window.renderer_mut()) {
+            for event in self
+                .char_selection_ui
+                .maintain(global_state.window.renderer_mut())
+            {
                 match event {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
-                    },
+                    }
                     ui::Event::Play => {
-                        self.client.borrow_mut().postbox.send_message(ClientMsg::Character(self.char_selection_ui.character));
-                        return PlayStateResult::Switch( Box::new(SessionState::new(&mut global_state.window, self.client.clone())));
+                        self.client
+                            .borrow_mut()
+                            .postbox
+                            .send_message(ClientMsg::Character(self.char_selection_ui.character));
+                        return PlayStateResult::Switch(Box::new(SessionState::new(
+                            &mut global_state.window,
+                            self.client.clone(),
+                        )));
                     }
                 }
             }
 
             // Draw the UI to the screen
-            self.char_selection_ui.render(global_state.window.renderer_mut());
+            self.char_selection_ui
+                .render(global_state.window.renderer_mut());
 
             // Tick the client (currently only to keep the connection alive)
-            self.client.borrow_mut().tick(client::Input::default(), clock.get_last_delta())
+            self.client
+                .borrow_mut()
+                .tick(client::Input::default(), clock.get_last_delta())
                 .expect("Failed to tick the client");
             self.client.borrow_mut().cleanup();
 

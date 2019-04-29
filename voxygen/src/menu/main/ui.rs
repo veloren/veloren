@@ -172,7 +172,7 @@ impl MainMenuUi {
             .middle_of(ui_widgets.window)
             .set(self.ids.bg, ui_widgets);
         Image::new(self.imgs.v_logo)
-            .w_h(123.0*3.0, 35.0*3.0)
+            .w_h(123.0 * 3.0, 35.0 * 3.0)
             .top_left_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
         Text::new(version)
@@ -373,7 +373,7 @@ impl MainMenuUi {
                 .label_y(Relative::Scalar(5.0))
                 .set(self.ids.login_button, ui_widgets);
         } else {
-             if Button::image(self.imgs.button)
+            if Button::image(self.imgs.button)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .w_h(258.0, 68.0)

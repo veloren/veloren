@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage, FlaggedStorage};
+use specs::{Component, FlaggedStorage, VecStorage};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
@@ -7,9 +7,7 @@ pub struct Player {
 
 impl Player {
     pub fn new(alias: String) -> Self {
-        Self {
-            alias,
-        }
+        Self { alias }
     }
 }
 
