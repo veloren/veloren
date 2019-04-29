@@ -15,24 +15,28 @@ fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<
         .map(|offs| {
             let (s1, s2) = (
                 vol.get(pos + offs[0])
-                    .map(|v| v.is_empty() as i32)
-                    .unwrap_or(1),
+                    .map(|v| !v.is_empty())
+                    .unwrap_or(false),
                 vol.get(pos + offs[1])
-                    .map(|v| v.is_empty() as i32)
-                    .unwrap_or(1),
+                    .map(|v| !v.is_empty())
+                    .unwrap_or(false),
             );
 
-            if s1 == 0 && s2 == 0 {
-                0
+            if s1 && s2 {
+                0.0
             } else {
                 let corner = vol
                     .get(pos + offs[0] + offs[1])
-                    .map(|v| v.is_empty() as i32)
-                    .unwrap_or(1);
-                s1 + s2 + corner
+                    .map(|v| !v.is_empty())
+                    .unwrap_or(false);
+                // Map both 1 and 2 neighbors to 0.5 occlusion
+                if s1 || s2 || corner {
+                    0.5
+                } else {
+                    1.0
+                }
             }
         })
-        .map(|i| i as f32 / 3.0)
         .collect::<Vec4<f32>>()
 }
 
