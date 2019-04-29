@@ -129,7 +129,14 @@ commit-linux-debug:
     - cp target/debug/veloren-voxygen commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
+    - echo ""
+    - ls
+    - echo ""
+    - ls bin/
+    - echo ""
+    - ls $
     - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
+    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
       - commit-linux-debug.tar.bz2
@@ -139,6 +146,7 @@ commit-linux-debug:
   only:
     refs:
       - master
+      - fix-ci-artifact-upload
 
 commit-windows-debug:
   stage: executable
@@ -155,6 +163,7 @@ commit-windows-debug:
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
     - zip -r bin/commit-windows-debug.zip commit-build
+    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
     paths:
       - commit-windows-debug.zip
@@ -164,6 +173,7 @@ commit-windows-debug:
   only:
     refs:
       - master
+      - fix-ci-artifact-upload
 
 #############
 # NIGHTLY
@@ -184,6 +194,7 @@ nightly-linux-optimized:
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
     - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
+    - cp bin/nightly-linux-optimized.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
       - nightly-linux-optimized.tar.bz2
@@ -206,6 +217,7 @@ nightly-windows-optimized:
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
     - zip -r bin/nightly-windows-optimized.zip nightly-build
+    - cp bin/nightly-windows-optimized.zip $CI_PROJECT_DIR
   artifacts:
     paths:
       - nightly-windows-optimized.zip
