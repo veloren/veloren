@@ -1064,7 +1064,7 @@ impl Hud {
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_r, ui_widgets);
             // Content Alignment
-            Rectangle::fill_with([189.0*4.0, 97.0*4.0], color::TRANSPARENT)
+            Rectangle::fill_with([198.0*4.0, 97.0*4.0], color::TRANSPARENT)
                 .top_right_with_margins_on(self.ids.settings_r, 21.0*4.0, 4.0*4.0)
                 .scroll_kids()
                 .scroll_kids_vertically()
@@ -1093,11 +1093,7 @@ impl Hud {
                 //.w_h(224.0 / 3.0, 224.0 / 3.0)
                 //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
                 //.set(self.ids.settings_icon, ui_widgets);
-            // TODO: Find out if we can remove this
-            // Alignment Rectangle
-            Rectangle::fill_with([1008.0 / 2.5, 1616.0 / 2.5], color::TRANSPARENT)
-                .top_left_with_margins_on(self.ids.settings_bg, 77.0, 205.0)
-                .set(self.ids.rectangle, ui_widgets);
+            // TODO: Find out if we can remove this                   
 
             // 1 Interface////////////////////////////
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
@@ -1136,7 +1132,7 @@ impl Hud {
                         .set(self.ids.button_help, ui_widgets);
                 Text::new("Show Help")
                     .right_from(self.ids.button_help, 10.0)
-                    .font_size(12)
+                    .font_size(14)
                     .font_id(self.font_opensans)
                     .graphics_for(self.ids.button_help)
                     .color(TEXT_COLOR)
@@ -1148,14 +1144,14 @@ impl Hud {
                     self.imgs.check_checked,
                 )
                 .w_h(288.0 / 24.0, 288.0 / 24.0)
-                .top_left_with_margins_on(self.ids.rectangle, 40.0, 15.0)
+                .down_from(self.ids.button_help, 7.0)
                 .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(self.ids.inventorytest_button, ui_widgets);
 
                 Text::new("Show Inventory Test Button")
                     .right_from(self.ids.inventorytest_button, 10.0)
-                    .font_size(12)
+                    .font_size(14)
                     .font_id(self.font_opensans)
                     .graphics_for(self.ids.inventorytest_button)
                     .color(TEXT_COLOR)
@@ -1164,14 +1160,14 @@ impl Hud {
                 self.show_debug =
                     ToggleButton::new(self.show_debug, self.imgs.check, self.imgs.check_checked)
                         .w_h(288.0 / 24.0, 288.0 / 24.0)
-                        .top_left_with_margins_on(self.ids.rectangle, 65.0, 15.0)
+                        .down_from(self.ids.inventorytest_button, 7.0)
                         .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                         .press_images(self.imgs.check_press, self.imgs.check_press)
                         .set(self.ids.debug_button, ui_widgets);
 
                 Text::new("Show Debug Window")
                     .right_from(self.ids.debug_button, 10.0)
-                    .font_size(12)
+                    .font_size(14)
                     .font_id(self.font_opensans)
                     .graphics_for(self.ids.debug_button)
                     .color(TEXT_COLOR)
