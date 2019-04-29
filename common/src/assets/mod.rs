@@ -11,19 +11,21 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub enum Error {
+    /// An asset has already been loaded with this specifier but anot type
     InvalidType,
-    NotFound,
+    /// Asset does not exist
+    NotFound(String),
 }
 
 impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
-    fn from(_err: Arc<dyn Any + 'static + Sync + Send>) -> Self {
+    fn from(_: Arc<dyn Any + 'static + Sync + Send>) -> Self {
         Error::InvalidType
     }
 }
 
 impl From<std::io::Error> for Error {
-    fn from(_err: std::io::Error) -> Self {
-        Error::NotFound
+    fn from(err: std::io::Error) -> Self {
+        Error::NotFound(format!("{:?}", err))
     }
 }
 
@@ -33,13 +35,14 @@ lazy_static! {
 }
 
 /// Function used to load assets
+/// loaded assets are cached in a global singleton hashmap
 /// Example usage:
 /// ```
 /// use image::DynamicImage;
+/// use common::assets;
 /// 
-/// let my_image = common::asset::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
-// TODO: consider assets that we only need in one place or that don't need to be kept in memory?
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     Ok(ASSETS
         .write().unwrap()
@@ -47,6 +50,21 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
         .or_insert(Arc::new(A::load(specifier)?))
         .clone()
         .downcast()?)
+}
+
+/// Function used to load assets that will panic if the asset is not found
+/// Use this to load essential assets
+/// loaded assets are cached in a global singleton hashmap
+/// Example usage:
+/// ```
+/// use image::DynamicImage;
+/// use common::assets;
+/// 
+/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
+/// ```
+pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
+    load(specifier)
+        .expect(&format!("Failed loading essential asset: {}", specifier))
 }
 
 /// Asset Trait
@@ -75,41 +93,42 @@ impl Asset for DotVoxData {
 }
 
 // TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
-fn try_load_from_path(name: &str) -> Option<File> {
-    let basepaths = [
-        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
-        // if it's stupid and it works..,
+fn try_open_with_path(name: &str) -> Option<File> {
+    // if it's stupid and it works..,
+    [
         "assets".to_string(),
-        "../../assets".to_string(),
         "../assets".to_string(), /* optimizations */
+        "../../assets".to_string(),
+        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
         [env!("CARGO_MANIFEST_DIR"), "/assets"].concat(),
         [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
         "../../../assets".to_string(),
         [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
-    ];
-    for bp in &basepaths {
-        let filename = [bp, name].concat();
-        match File::open(&filename) {
-            Ok(f) => {
-                debug!("Loading {} successful", filename);
-                return Some(f);
-            },
-            Err(e) => {
-                debug!("Loading {} failed: {}", filename, e);
-            }
-        };
-    };
-    None
+    ]
+    .into_iter()
+    .map(|bp| [bp, name].concat())
+    .find_map(|ref filename| match File::open(filename) {
+        Ok(file) => {
+            debug!("Loading {} successful", filename);
+            Some(file)
+        }
+        Err(err) => {
+            error!("Loading {} failed: {}", filename, err);
+            None
+        }
+    })
 }
 
 pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
-    match try_load_from_path(name) {
+    match try_open_with_path(name) {
         Some(mut f) => {
-            let mut content: Vec<u8> = vec!();
+            let mut content = Vec::<u8>::new();
             f.read_to_end(&mut content)?;
             Ok(content)
         },
-        None => Err(Error::NotFound),
+        None => {
+            Err(Error::NotFound(name.to_owned()))
+        }
     }
 }
 

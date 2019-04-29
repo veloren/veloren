@@ -101,7 +101,7 @@ impl FigureCache {
     fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
         let fullpath: String = ["/voxygen/voxel/", filename].concat();
         Segment::from(
-            assets::load::<dot_vox::DotVoxData>(fullpath.as_str()).unwrap().as_ref()
+            assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref()
         )
             .generate_mesh(position)
     }
