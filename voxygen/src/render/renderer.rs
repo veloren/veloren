@@ -1,25 +1,18 @@
-use vek::*;
+use super::{
+    consts::Consts,
+    gfx_backend,
+    mesh::Mesh,
+    model::Model,
+    pipelines::{figure, skybox, terrain, ui, Globals},
+    texture::Texture,
+    Pipeline, RenderError,
+};
 use gfx::{
     self,
     traits::{Device, FactoryExt},
 };
 use image;
-use super::{
-    consts::Consts,
-    mesh::Mesh,
-    model::Model,
-    texture::Texture,
-    Pipeline,
-    RenderError,
-    gfx_backend,
-    pipelines::{
-        Globals,
-        figure,
-        skybox,
-        terrain,
-        ui,
-    },
-};
+use vek::*;
 
 /// Represents the format of the window's color target.
 pub type TgtColorFmt = gfx::format::Rgba8;
@@ -149,37 +142,30 @@ impl Renderer {
     pub fn update_consts<T: Copy + gfx::traits::Pod>(
         &mut self,
         consts: &mut Consts<T>,
-        vals: &[T]
+        vals: &[T],
     ) -> Result<(), RenderError> {
         consts.update(&mut self.encoder, vals)
     }
 
     /// Create a new model from the provided mesh.
     pub fn create_model<P: Pipeline>(&mut self, mesh: &Mesh<P>) -> Result<Model<P>, RenderError> {
-        Ok(Model::new(
-            &mut self.factory,
-            mesh,
-        ))
+        Ok(Model::new(&mut self.factory, mesh))
     }
 
     /// Create a new texture from the provided image.
-    pub fn create_texture<P: Pipeline>(&mut self, image: &image::DynamicImage) -> Result<Texture<P>, RenderError> {
-        Texture::new(
-            &mut self.factory,
-            image,
-        )
+    pub fn create_texture<P: Pipeline>(
+        &mut self,
+        image: &image::DynamicImage,
+    ) -> Result<Texture<P>, RenderError> {
+        Texture::new(&mut self.factory, image)
     }
 
     /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions
     pub fn create_dynamic_texture<P: Pipeline>(
         &mut self,
-        dims: Vec2<u16>
+        dims: Vec2<u16>,
     ) -> Result<Texture<P>, RenderError> {
-        Texture::new_dynamic(
-            &mut self.factory,
-            dims.x,
-            dims.y,
-        )
+        Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
     }
 
     /// Update a texture with the provided offset, size, and data
@@ -188,14 +174,9 @@ impl Renderer {
         texture: &Texture<P>,
         offset: [u16; 2],
         size: [u16; 2],
-        data: &[[u8; 4]]
+        data: &[[u8; 4]],
     ) -> Result<(), RenderError> {
-        texture.update(
-            &mut self.encoder,
-            offset,
-            size,
-            data,
-        )
+        texture.update(&mut self.encoder, offset, size, data)
     }
 
     /// Queue the rendering of the provided skybox model in the upcoming frame.
@@ -273,7 +254,12 @@ impl Renderer {
             &self.ui_pipeline.pso,
             &ui::pipe::Data {
                 vbuf: model.vbuf.clone(),
-                scissor: gfx::Rect { x: min.x, y: min.y, w: max.x - min.x, h: max.y - min.y },
+                scissor: gfx::Rect {
+                    x: min.x,
+                    y: min.y,
+                    w: max.x - min.x,
+                    h: max.y - min.y,
+                },
                 tex: (tex.srv.clone(), tex.sampler.clone()),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
@@ -298,7 +284,8 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
         .map_err(|err| RenderError::PipelineError(gfx::PipelineStateError::Program(err)))?;
 
     Ok(GfxPipeline {
-        pso: factory.create_pipeline_from_program(
+        pso: factory
+            .create_pipeline_from_program(
                 &program,
                 gfx::Primitive::TriangleList,
                 gfx::state::Rasterizer {
@@ -310,14 +297,17 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 },
                 pipe,
             )
-                // Do some funky things to work around an oddity in gfx's error ownership rules
-                .map_err(|err| RenderError::PipelineError(match err {
-                    gfx::PipelineStateError::Program(err) =>
-                        gfx::PipelineStateError::Program(err),
-                    gfx::PipelineStateError::DescriptorInit(err) =>
-                        gfx::PipelineStateError::DescriptorInit(err.into()),
-                    gfx::PipelineStateError::DeviceCreate(err) =>
-                        gfx::PipelineStateError::DeviceCreate(err),
-                }))?,
+            // Do some funky things to work around an oddity in gfx's error ownership rules
+            .map_err(|err| {
+                RenderError::PipelineError(match err {
+                    gfx::PipelineStateError::Program(err) => gfx::PipelineStateError::Program(err),
+                    gfx::PipelineStateError::DescriptorInit(err) => {
+                        gfx::PipelineStateError::DescriptorInit(err.into())
+                    }
+                    gfx::PipelineStateError::DeviceCreate(err) => {
+                        gfx::PipelineStateError::DeviceCreate(err)
+                    }
+                })
+            })?,
     })
 }

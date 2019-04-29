@@ -1,46 +1,30 @@
-mod widgets;
 mod graphic;
 mod util;
+mod widgets;
 
-pub use widgets::toggle_button::ToggleButton;
 pub use graphic::Graphic;
-pub(self) use util::{srgb_to_linear, linear_to_srgb};
+pub(self) use util::{linear_to_srgb, srgb_to_linear};
+pub use widgets::toggle_button::ToggleButton;
 
-use graphic::{
-    GraphicCache,
-    Id as GraphicId,
-};
-use conrod_core::{
-    Ui as CrUi,
-    UiBuilder,
-    UiCell,
-    text::{
-        Font,
-        GlyphCache,
-        font::Id as FontId,
-    },
-    image::{Map, Id as ImgId},
-    widget::{Id as WidgId, id::Generator},
-    render::Primitive,
-    event::Input,
-    input::{touch::Touch, Widget, Motion, Button},
-};
-use vek::*;
 use crate::{
-    Error,
     render::{
-        RenderError,
-        Renderer,
-        Model,
-        Mesh,
-        Texture,
+        create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, Texture, UiMode,
         UiPipeline,
-        UiMode,
-        create_ui_quad,
-        create_ui_tri,
     },
     window::Window,
+    Error,
 };
+use conrod_core::{
+    event::Input,
+    image::{Id as ImgId, Map},
+    input::{touch::Touch, Button, Motion, Widget},
+    render::Primitive,
+    text::{font::Id as FontId, Font, GlyphCache},
+    widget::{id::Generator, Id as WidgId},
+    Ui as CrUi, UiBuilder, UiCell,
+};
+use graphic::{GraphicCache, Id as GraphicId};
+use vek::*;
 
 #[derive(Debug)]
 pub enum UiError {
@@ -66,19 +50,23 @@ impl Event {
                 winit::Window::get_hidpi_factor(&self.0) as _
             }
         }
-        convert_event!(event, &WindowRef(window.window())).map(|input| {
-            Self(input)
-        })
+        convert_event!(event, &WindowRef(window.window())).map(|input| Self(input))
     }
     pub fn is_keyboard_or_mouse(&self) -> bool {
         match self.0 {
-            Input::Press(_) | Input::Release(_) | Input::Motion(_) | Input::Touch(_) | Input::Text(_) => true,
+            Input::Press(_)
+            | Input::Release(_)
+            | Input::Motion(_)
+            | Input::Touch(_)
+            | Input::Text(_) => true,
             _ => false,
         }
     }
     pub fn is_keyboard(&self) -> bool {
         match self.0 {
-            Input::Press(Button::Keyboard(_)) | Input::Release(Button::Keyboard(_)) | Input::Text(_) => true,
+            Input::Press(Button::Keyboard(_))
+            | Input::Release(Button::Keyboard(_))
+            | Input::Text(_) => true,
             _ => false,
         }
     }
@@ -113,11 +101,21 @@ impl Cache {
             graphic_cache_tex: renderer.create_dynamic_texture(graphic_cache_dims)?,
         })
     }
-    pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> { &self.glyph_cache_tex }
-    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) { (&mut self.glyph_cache, &self.glyph_cache_tex) }
-    pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> { &self.graphic_cache_tex }
-    pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) { (&mut self.graphic_cache, &self.graphic_cache_tex) }
-    pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId { self.graphic_cache.new_graphic(graphic) }
+    pub fn glyph_cache_tex(&self) -> &Texture<UiPipeline> {
+        &self.glyph_cache_tex
+    }
+    pub fn glyph_cache_mut_and_tex(&mut self) -> (&mut GlyphCache<'static>, &Texture<UiPipeline>) {
+        (&mut self.glyph_cache, &self.glyph_cache_tex)
+    }
+    pub fn graphic_cache_tex(&self) -> &Texture<UiPipeline> {
+        &self.graphic_cache_tex
+    }
+    pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) {
+        (&mut self.graphic_cache, &self.graphic_cache_tex)
+    }
+    pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId {
+        self.graphic_cache.new_graphic(graphic)
+    }
     pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
         self.graphic_cache.clear_cache(new_size);
         self.graphic_cache_tex = renderer.create_dynamic_texture(new_size).unwrap();
@@ -190,7 +188,9 @@ impl Scale {
         match self.mode {
             ScaleMode::Absolute(scale) => scale / self.dpi_factor,
             ScaleMode::DpiFactor => 1.0,
-            ScaleMode::RelativeToWindow(dims) => (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y),
+            ScaleMode::RelativeToWindow(dims) => {
+                (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y)
+            }
         }
     }
     // Calculate factor to transform between physical coordinates and our scaled coordinates
@@ -277,35 +277,36 @@ impl Ui {
 
     // Get whether a widget besides the window is capturing the mouse
     pub fn no_widget_capturing_mouse(&self) -> bool {
-        self.ui.global_input().current.widget_capturing_mouse.filter(|id| id != &self.ui.window ).is_none()
+        self.ui
+            .global_input()
+            .current
+            .widget_capturing_mouse
+            .filter(|id| id != &self.ui.window)
+            .is_none()
     }
 
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
             Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),
-            Input::Touch(touch) => self.ui.handle_event(
-                Input::Touch(Touch {
-                    xy: self.scale.scale_point(touch.xy.into()).into_array(),
-                    ..touch
-                })
-            ),
-            Input::Motion(motion) => self.ui.handle_event(
-                Input::Motion( match motion {
-                    Motion::MouseCursor { x, y } => {
-                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
-                        Motion::MouseCursor { x, y }
-                    }
-                    Motion::MouseRelative { x, y } => {
-                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
-                        Motion::MouseRelative { x, y }
-                    }
-                    Motion::Scroll { x, y } => {
-                        let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
-                        Motion::Scroll { x, y }
-                    }
-                    _ => motion,
-                })
-            ),
+            Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
+                xy: self.scale.scale_point(touch.xy.into()).into_array(),
+                ..touch
+            })),
+            Input::Motion(motion) => self.ui.handle_event(Input::Motion(match motion {
+                Motion::MouseCursor { x, y } => {
+                    let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                    Motion::MouseCursor { x, y }
+                }
+                Motion::MouseRelative { x, y } => {
+                    let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                    Motion::MouseRelative { x, y }
+                }
+                Motion::Scroll { x, y } => {
+                    let (x, y) = self.scale.scale_point(Vec2::new(x, y)).into_tuple();
+                    Motion::Scroll { x, y }
+                }
+                _ => motion,
+            })),
             _ => self.ui.handle_event(event.0),
         }
     }
@@ -338,7 +339,8 @@ impl Ui {
             macro_rules! switch_to_plain_state {
                 () => {
                     if let State::Image = current_state {
-                        self.draw_commands.push(DrawCommand::image(renderer.create_model(&mesh).unwrap()));
+                        self.draw_commands
+                            .push(DrawCommand::image(renderer.create_model(&mesh).unwrap()));
                         mesh.clear();
                         current_state = State::Plain;
                     }
@@ -348,7 +350,12 @@ impl Ui {
             let p_scale_factor = self.scale.scale_factor_physical();
 
             while let Some(prim) = primitives.next() {
-                let Primitive {kind, scizzor, id: _id, rect} = prim;
+                let Primitive {
+                    kind,
+                    scizzor,
+                    id: _id,
+                    rect,
+                } = prim;
 
                 // Check for a change in the scizzor
                 let new_scizzor = {
@@ -366,17 +373,15 @@ impl Ui {
                         max: Vec2 {
                             x: ((min_x + w) * p_scale_factor) as u16,
                             y: ((min_y + h) * p_scale_factor) as u16,
-                        }
+                        },
                     }
                     .intersection(window_scizzor)
                 };
                 if new_scizzor != current_scizzor {
                     // Finish the current command
                     self.draw_commands.push(match current_state {
-                        State::Plain =>
-                            DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
-                        State::Image =>
-                            DrawCommand::image(renderer.create_model(&mesh).unwrap()),
+                        State::Plain => DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
+                        State::Image => DrawCommand::image(renderer.create_model(&mesh).unwrap()),
                     });
                     mesh.clear();
 
@@ -398,8 +403,15 @@ impl Ui {
 
                 use conrod_core::render::PrimitiveKind;
                 match kind {
-                    PrimitiveKind::Image { image_id, color, source_rect } => {
-                        let graphic_id = self.image_map.get(&image_id).expect("Image does not exist in image map");
+                    PrimitiveKind::Image {
+                        image_id,
+                        color,
+                        source_rect,
+                    } => {
+                        let graphic_id = self
+                            .image_map
+                            .get(&image_id)
+                            .expect("Image does not exist in image map");
                         let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
 
                         match graphic_cache.get_graphic(*graphic_id) {
@@ -409,13 +421,15 @@ impl Ui {
 
                         // Switch to the `Image` state for this image if we're not in it already.
                         if let State::Plain = current_state {
-                            self.draw_commands.push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
+                            self.draw_commands
+                                .push(DrawCommand::plain(renderer.create_model(&mesh).unwrap()));
                             mesh.clear();
                             current_state = State::Image;
                         }
 
-                        let color = srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
-
+                        let color = srgb_to_linear(
+                            color.unwrap_or(conrod_core::color::WHITE).to_fsa().into(),
+                        );
 
                         let resolution = Vec2::new(
                             (rect.w() * p_scale_factor) as u16,
@@ -424,32 +438,44 @@ impl Ui {
                         // Transform the source rectangle into uv coordinate
                         // TODO: make sure this is right
                         let source_aabr = {
-                            let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0);/*match source_rect {
-                                Some(src_rect) => {
-                                    let (l, r, b, t) = src_rect.l_r_b_t();
-                                    ((l / image_w) as f32,
-                                    (r / image_w) as f32,
-                                    (b / image_h) as f32,
-                                    (t / image_h) as f32)
-                                }
-                                None => (0.0, 1.0, 0.0, 1.0),
-                            };*/
+                            let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0); /*match source_rect {
+                                                                                     Some(src_rect) => {
+                                                                                         let (l, r, b, t) = src_rect.l_r_b_t();
+                                                                                         ((l / image_w) as f32,
+                                                                                         (r / image_w) as f32,
+                                                                                         (b / image_h) as f32,
+                                                                                         (t / image_h) as f32)
+                                                                                     }
+                                                                                     None => (0.0, 1.0, 0.0, 1.0),
+                                                                                 };*/
                             Aabr {
                                 min: Vec2::new(uv_l, uv_b),
                                 max: Vec2::new(uv_r, uv_t),
                             }
                         };
-                        let (cache_w, cache_h) = cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
+                        let (cache_w, cache_h) =
+                            cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                         // Cache graphic at particular resolution
-                        let uv_aabr = match graphic_cache.cache_res(*graphic_id, resolution, source_aabr, |aabr, data| {
-                            let offset = aabr.min.into_array();
-                            let size = aabr.size().into_array();
-                            renderer.update_texture(cache_tex, offset, size, &data);
-                        }) {
+                        let uv_aabr = match graphic_cache.cache_res(
+                            *graphic_id,
+                            resolution,
+                            source_aabr,
+                            |aabr, data| {
+                                let offset = aabr.min.into_array();
+                                let size = aabr.size().into_array();
+                                renderer.update_texture(cache_tex, offset, size, &data);
+                            },
+                        ) {
                             Some(aabr) => Aabr {
-                                min: Vec2::new(aabr.min.x as f32 / cache_w, aabr.max.y as f32 / cache_h),
-                                max: Vec2::new(aabr.max.x as f32 / cache_w, aabr.min.y as f32 / cache_h),
+                                min: Vec2::new(
+                                    aabr.min.x as f32 / cache_w,
+                                    aabr.max.y as f32 / cache_h,
+                                ),
+                                max: Vec2::new(
+                                    aabr.max.x as f32 / cache_w,
+                                    aabr.min.y as f32 / cache_h,
+                                ),
                             },
                             None => continue,
                         };
@@ -460,12 +486,16 @@ impl Ui {
                             color,
                             UiMode::Image,
                         ));
-
                     }
-                    PrimitiveKind::Text { color, text, font_id } => {
+                    PrimitiveKind::Text {
+                        color,
+                        text,
+                        font_id,
+                    } => {
                         switch_to_plain_state!();
                         // Get screen width and height
-                        let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as f32).into_tuple();
+                        let (screen_w, screen_h) =
+                            renderer.get_resolution().map(|e| e as f32).into_tuple();
                         // Calculate dpi factor
                         let dpi_factor = screen_w / ui.win_w as f32;
 
@@ -476,39 +506,41 @@ impl Ui {
                             glyph_cache.queue_glyph(font_id.index(), glyph.clone());
                         }
 
-                        glyph_cache.cache_queued(|rect, data| {
-                            let offset = [rect.min.x as u16, rect.min.y as u16];
-                            let size = [rect.width() as u16, rect.height() as u16];
+                        glyph_cache
+                            .cache_queued(|rect, data| {
+                                let offset = [rect.min.x as u16, rect.min.y as u16];
+                                let size = [rect.width() as u16, rect.height() as u16];
 
-                            let new_data = data.iter().map(|x| [255, 255, 255, *x]).collect::<Vec<[u8; 4]>>();
+                                let new_data = data
+                                    .iter()
+                                    .map(|x| [255, 255, 255, *x])
+                                    .collect::<Vec<[u8; 4]>>();
 
-                            renderer.update_texture(cache_tex, offset, size, &new_data);
-                        }).unwrap();
+                                renderer.update_texture(cache_tex, offset, size, &new_data);
+                            })
+                            .unwrap();
 
                         let color = srgb_to_linear(color.to_fsa().into());
 
                         for g in positioned_glyphs {
-                            if let Ok(Some((uv_rect, screen_rect))) = glyph_cache.rect_for(font_id.index(), g) {
+                            if let Ok(Some((uv_rect, screen_rect))) =
+                                glyph_cache.rect_for(font_id.index(), g)
+                            {
                                 let uv = Aabr {
                                     min: Vec2::new(uv_rect.min.x, uv_rect.max.y),
                                     max: Vec2::new(uv_rect.max.x, uv_rect.min.y),
                                 };
                                 let rect = Aabr {
                                     min: Vec2::new(
-                                        (screen_rect.min.x as f32 / screen_w - 0.5) *  2.0,
+                                        (screen_rect.min.x as f32 / screen_w - 0.5) * 2.0,
                                         (screen_rect.max.y as f32 / screen_h - 0.5) * -2.0,
                                     ),
                                     max: Vec2::new(
-                                        (screen_rect.max.x as f32 / screen_w - 0.5) *  2.0,
+                                        (screen_rect.max.x as f32 / screen_w - 0.5) * 2.0,
                                         (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
                                     ),
                                 };
-                                mesh.push_quad(create_ui_quad(
-                                    rect,
-                                    uv,
-                                    color,
-                                    UiMode::Text,
-                                ));
+                                mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
                             }
                         }
                     }
@@ -545,16 +577,13 @@ impl Ui {
                             let p2 = Vec2::new(vx(tri[1][0]), vy(tri[1][1]));
                             let p3 = Vec2::new(vx(tri[2][0]), vy(tri[2][1]));
                             // If triangle is clockwise reverse it
-                            let (v1, v2): (Vec3<f32>, Vec3<f32>) = ((p2 - p1).into(), (p3 - p1).into());
-                            let triangle = if v1.cross(v2).z > 0.0 {[
-                                p1.into_array(),
-                                p2.into_array(),
-                                p3.into_array(),
-                            ]} else {[
-                                p2.into_array(),
-                                p1.into_array(),
-                                p3.into_array(),
-                            ]};
+                            let (v1, v2): (Vec3<f32>, Vec3<f32>) =
+                                ((p2 - p1).into(), (p3 - p1).into());
+                            let triangle = if v1.cross(v2).z > 0.0 {
+                                [p1.into_array(), p2.into_array(), p3.into_array()]
+                            } else {
+                                [p2.into_array(), p1.into_array(), p3.into_array()]
+                            };
                             mesh.push_tri(create_ui_tri(
                                 triangle,
                                 [[0.0; 2]; 3],
@@ -562,21 +591,17 @@ impl Ui {
                                 UiMode::Geometry,
                             ));
                         }
-
                     }
-                    _ => {}
-                    // TODO: Add this
-                    //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
-                    // Other uneeded for now
-                    //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
+                    _ => {} // TODO: Add this
+                            //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
+                            // Other uneeded for now
+                            //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
                 }
             }
             // Enter the final command
             self.draw_commands.push(match current_state {
-                State::Plain =>
-                    DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
-                State::Image =>
-                    DrawCommand::image(renderer.create_model(&mesh).unwrap()),
+                State::Plain => DrawCommand::plain(renderer.create_model(&mesh).unwrap()),
+                State::Image => DrawCommand::image(renderer.create_model(&mesh).unwrap()),
             });
 
             // Handle window resizing
@@ -584,7 +609,8 @@ impl Ui {
                 self.scale.window_resized(new_dims, renderer);
                 let (w, h) = self.scale.scaled_window_size().into_tuple();
                 self.ui.handle_event(Input::Resize(w, h));
-                self.cache.clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
+                self.cache
+                    .clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
                 // TODO: probably need to resize glyph cache, see conrod's gfx backend for reference
             }
         }
@@ -599,12 +625,8 @@ impl Ui {
                 }
                 DrawCommand::Draw { kind, model } => {
                     let tex = match kind {
-                        DrawKind::Image => {
-                            self.cache.graphic_cache_tex()
-                        }
-                        DrawKind::Plain => {
-                            self.cache.glyph_cache_tex()
-                        }
+                        DrawKind::Image => self.cache.graphic_cache_tex(),
+                        DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     renderer.render_ui_element(&model, &tex, scissor);
                 }
@@ -617,6 +639,9 @@ fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
     let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
-        max: Vec2 { x: screen_w, y: screen_h }
+        max: Vec2 {
+            x: screen_w,
+            y: screen_h,
+        },
     }
 }

@@ -1,6 +1,6 @@
-mod vol;
 pub mod segment;
 pub mod terrain;
+mod vol;
 
 // Crate
 use crate::render::{self, Mesh};

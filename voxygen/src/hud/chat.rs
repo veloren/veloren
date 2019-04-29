@@ -85,7 +85,11 @@ impl Chat {
 
         // Only show if it has the keyboard captured
         // Chat input with rectangle as background
-        let keyboard_captured = ui_widgets.global_input().current.widget_capturing_keyboard.map_or(false, |id| id == self.ids.input);
+        let keyboard_captured = ui_widgets
+            .global_input()
+            .current
+            .widget_capturing_keyboard
+            .map_or(false, |id| id == self.ids.input);
         if keyboard_captured {
             let text_edit = TextEdit::new(&self.input)
                 .w(460.0)
@@ -114,10 +118,12 @@ impl Chat {
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
-            .and(|r| if keyboard_captured {
-                r.up_from(self.ids.input_bg, 0.0)
-            } else {
-                r.bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+            .and(|r| {
+                if keyboard_captured {
+                    r.up_from(self.ids.input_bg, 0.0)
+                } else {
+                    r.bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                }
             })
             .set(self.ids.message_box_bg, ui_widgets);
         let (mut items, _) = List::flow_down(self.messages.len() + 1)

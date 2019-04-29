@@ -88,9 +88,14 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 .read_component_cloned::<comp::phys::Pos>(entity)
             {
                 Some(current_pos) => {
-                    server.state.write_component(entity, comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)));
-                    server.state.write_component(entity, comp::phys::ForceUpdate);
-                },
+                    server.state.write_component(
+                        entity,
+                        comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)),
+                    );
+                    server
+                        .state
+                        .write_component(entity, comp::phys::ForceUpdate);
+                }
                 None => server.clients.notify(
                     entity,
                     ServerMsg::Chat(String::from("Command 'jump' invalid in current state")),
@@ -107,9 +112,13 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
     match (opt_x, opt_y, opt_z) {
         (Some(x), Some(y), Some(z)) => {
-            server.state.write_component(entity, comp::phys::Pos(Vec3::new(x, y, z)));
-            server.state.write_component(entity, comp::phys::ForceUpdate);
-        },
+            server
+                .state
+                .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z)));
+            server
+                .state
+                .write_component(entity, comp::phys::ForceUpdate);
+        }
         _ => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
@@ -144,8 +153,10 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 {
                     Some(pos) => {
                         server.state.write_component(entity, pos);
-                        server.state.write_component(entity, comp::phys::ForceUpdate);
-                    },
+                        server
+                            .state
+                            .write_component(entity, comp::phys::ForceUpdate);
+                    }
                     None => server.clients.notify(
                         entity,
                         ServerMsg::Chat(format!("Unable to teleport to player '{}'", alias)),
