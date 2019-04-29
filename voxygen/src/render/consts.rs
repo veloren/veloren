@@ -1,14 +1,8 @@
 // Library
-use gfx::{
-    self,
-    traits::FactoryExt,
-};
+use gfx::{self, traits::FactoryExt};
 
 // Local
-use super::{
-    RenderError,
-    gfx_backend,
-};
+use super::{gfx_backend, RenderError};
 
 /// A handle to a series of constants sitting on the GPU. This is used to hold information used in
 /// the rendering process that does not change throughout a single render pass.
@@ -31,7 +25,8 @@ impl<T: Copy + gfx::traits::Pod> Consts<T> {
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
         vals: &[T],
     ) -> Result<(), RenderError> {
-        encoder.update_buffer(&self.buf, vals, 0)
+        encoder
+            .update_buffer(&self.buf, vals, 0)
             .map_err(|err| RenderError::UpdateError(err))
     }
 }

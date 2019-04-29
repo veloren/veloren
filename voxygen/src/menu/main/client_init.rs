@@ -20,10 +20,7 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(
-        connection_args: (String, u16, bool),
-        client_args: (comp::Player, u64),
-    ) -> Self {
+    pub fn new(connection_args: (String, u16, bool), client_args: (comp::Player, u64)) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
         let (player, view_distance) = client_args;
 

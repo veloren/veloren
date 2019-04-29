@@ -1,18 +1,15 @@
-pub mod run;
 pub mod idle;
+pub mod run;
 
 // Reexports
-pub use self::run::RunAnimation;
 pub use self::idle::IdleAnimation;
+pub use self::run::RunAnimation;
 
 // Crate
 use crate::render::FigureBoneData;
 
 // Local
-use super::{
-    Skeleton,
-    Bone,
-};
+use super::{Bone, Skeleton};
 
 const SCALE: f32 = 11.0;
 
@@ -47,7 +44,6 @@ impl CharacterSkeleton {
             torso: Bone::default(),
             l_shoulder: Bone::default(),
             r_shoulder: Bone::default(),
-
         }
     }
 }
@@ -75,7 +71,6 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-
         ]
     }
 
@@ -92,6 +87,5 @@ impl Skeleton for CharacterSkeleton {
         self.torso.interpolate(&target.torso);
         self.l_shoulder.interpolate(&target.l_shoulder);
         self.r_shoulder.interpolate(&target.r_shoulder);
-
     }
 }

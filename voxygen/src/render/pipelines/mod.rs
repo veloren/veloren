@@ -6,9 +6,9 @@ pub mod ui;
 // Library
 use gfx::{
     self,
+    gfx_constant_struct_meta,
     // Macros
     gfx_defines,
-    gfx_constant_struct_meta,
     gfx_impl_struct_meta,
 };
 use vek::*;

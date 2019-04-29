@@ -1,14 +1,9 @@
-use std::time::Duration;
-use log::info;
-use server::{Input, Event, Server};
 use common::clock::Clock;
-use std::{
-    thread,
-    thread::JoinHandle
-};
-use std::sync::mpsc::{
-    channel, Receiver, Sender, TryRecvError,
-};
+use log::info;
+use server::{Event, Input, Server};
+use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
+use std::time::Duration;
+use std::{thread, thread::JoinHandle};
 
 const TPS: u64 = 30;
 
@@ -49,11 +44,11 @@ fn run_server(rec: Receiver<Msg>) {
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::new()
-        .expect("Failed to create server instance");
+    let mut server = Server::new().expect("Failed to create server instance");
 
     loop {
-        let events = server.tick(Input::default(), clock.get_last_delta())
+        let events = server
+            .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server");
 
         for event in events {

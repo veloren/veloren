@@ -2,13 +2,7 @@
 use vek::*;
 
 // Local
-use crate::vol::{
-    Vox,
-    BaseVol,
-    SizedVol,
-    ReadVol,
-    WriteVol,
-};
+use crate::vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol};
 
 #[derive(Debug)]
 pub enum DynaErr {
@@ -30,15 +24,8 @@ impl<V: Vox, M> Dyna<V, M> {
     // array.
     #[inline(always)]
     fn idx_for(sz: Vec3<u32>, pos: Vec3<i32>) -> Option<usize> {
-        if
-            pos.map(|e| e >= 0).reduce_and() &&
-            pos.map2(sz, |e, lim| e < lim as i32).reduce_and()
-        {
-            Some((
-                pos.x * sz.y as i32 * sz.z as i32 +
-                pos.y * sz.z as i32 +
-                pos.z
-            ) as usize)
+        if pos.map(|e| e >= 0).reduce_and() && pos.map2(sz, |e, lim| e < lim as i32).reduce_and() {
+            Some((pos.x * sz.y as i32 * sz.z as i32 + pos.y * sz.z as i32 + pos.z) as usize)
         } else {
             None
         }
@@ -52,7 +39,9 @@ impl<V: Vox, M> BaseVol for Dyna<V, M> {
 
 impl<V: Vox, M> SizedVol for Dyna<V, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> { self.sz }
+    fn get_size(&self) -> Vec3<u32> {
+        self.sz
+    }
 }
 
 impl<V: Vox, M> ReadVol for Dyna<V, M> {
