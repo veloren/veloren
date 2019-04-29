@@ -5,19 +5,8 @@ use crate::{
 };
 use common::{
     assets,
+    comp::character::{Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon},
     figure::Segment,
-    comp::character::{
-        Character,
-        Race,
-        Gender,
-        Head,
-        Chest,
-        Belt,
-        Pants,
-        Hand,
-        Foot,
-        Weapon,
-    }
 };
 use conrod_core::{
     color,
@@ -381,10 +370,12 @@ impl CharSelectionUi {
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-             ui.new_font(conrod_core::text::Font::from_bytes(
-                 assets::load(fullpath.as_str())
-                .expect("Error loading file")
-            ).unwrap())
+            ui.new_font(
+                conrod_core::text::Font::from_bytes(
+                    assets::load(fullpath.as_str()).expect("Error loading file"),
+                )
+                .unwrap(),
+            )
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
@@ -471,7 +462,7 @@ impl CharSelectionUi {
 
             // Veloren Logo and Alpha Version
             Image::new(self.imgs.v_logo)
-                .w_h(123.0*3.0, 35.0*3.0)
+                .w_h(123.0 * 3.0, 35.0 * 3.0)
                 .top_left_with_margins(30.0, 30.0)
                 .set(self.ids.v_logo, ui_widgets);
             Text::new(version)

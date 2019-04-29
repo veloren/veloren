@@ -1,10 +1,7 @@
-use std::time::Duration;
+use client::{Client, Event, Input};
+use common::{clock::Clock, comp};
 use log::info;
-use client::{Input, Client, Event};
-use common::{
-    comp,
-    clock::Clock,
-};
+use std::time::Duration;
 
 const FPS: u64 = 60;
 
@@ -18,8 +15,8 @@ fn main() {
     let mut clock = Clock::new();
 
     // Create client
-    let mut client = Client::new(([127, 0, 0, 1], 59003), 300)
-        .expect("Failed to create client instance");
+    let mut client =
+        Client::new(([127, 0, 0, 1], 59003), 300).expect("Failed to create client instance");
 
     client.register(comp::Player::new("test".to_string()));
 
@@ -31,7 +28,7 @@ fn main() {
             Err(err) => {
                 println!("Error: {:?}", err);
                 break;
-            },
+            }
         };
 
         for event in events {

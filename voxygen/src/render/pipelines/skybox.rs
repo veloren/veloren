@@ -1,25 +1,19 @@
 // Library
 use gfx::{
     self,
+    gfx_constant_struct_meta,
     // Macros
     gfx_defines,
-    gfx_vertex_struct_meta,
-    gfx_constant_struct_meta,
     gfx_impl_struct_meta,
     gfx_pipeline,
     gfx_pipeline_inner,
+    gfx_vertex_struct_meta,
 };
 
 // Local
 use super::{
+    super::{Mesh, Pipeline, Quad, TgtColorFmt, TgtDepthFmt},
     Globals,
-    super::{
-        Pipeline,
-        TgtColorFmt,
-        TgtDepthFmt,
-        Mesh,
-        Quad,
-    },
 };
 
 gfx_defines! {

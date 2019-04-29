@@ -1,11 +1,11 @@
-use vek::*;
-use specs::{Join, Read, ReadStorage, System, WriteStorage, ReadExpect};
 use crate::{
     comp::phys::{Pos, Vel},
     state::DeltaTime,
     terrain::TerrainMap,
-    vol::{Vox, ReadVol},
+    vol::{ReadVol, Vox},
 };
+use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use vek::*;
 
 // Basic ECS physics system
 pub struct Sys;
@@ -33,8 +33,8 @@ impl<'a> System<'a> for Sys {
             while terrain
                 .get(pos.0.map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
-                .unwrap_or(false) &&
-                i < 80
+                .unwrap_or(false)
+                && i < 80
             {
                 pos.0.z += 0.005;
                 vel.0.z = 0.0;

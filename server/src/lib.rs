@@ -8,20 +8,10 @@ pub mod input;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use std::{
-    collections::HashSet,
-    net::SocketAddr,
-    sync::mpsc,
-    time::Duration,
-    i32,
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
-};
-use threadpool::ThreadPool;
-use vek::*;
-use world::World;
 use common::{
     comp,
     comp::character::Animation,
@@ -30,10 +20,14 @@ use common::{
     state::{State, Uid},
     terrain::TerrainChunk,
 };
-use crate::{
-    client::{Client, Clients},
-    cmd::CHAT_COMMANDS,
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
 };
+use std::{collections::HashSet, i32, net::SocketAddr, sync::mpsc, time::Duration};
+use threadpool::ThreadPool;
+use vek::*;
+use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -193,15 +187,20 @@ impl Server {
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
-            ).join() {
+            )
+                .join()
+            {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
 
                 if dist < 4 {
-                    self.clients.notify(entity, ServerMsg::TerrainChunkUpdate {
-                        key,
-                        chunk: Box::new(chunk.clone()),
-                    });
+                    self.clients.notify(
+                        entity,
+                        ServerMsg::TerrainChunkUpdate {
+                            key,
+                            chunk: Box::new(chunk.clone()),
+                        },
+                    );
                 }
             }
 
@@ -218,7 +217,9 @@ impl Server {
             for (_, pos) in (
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
-            ).join() {
+            )
+                .join()
+            {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
                 min_dist = min_dist.min(dist);
@@ -297,43 +298,68 @@ impl Server {
                             ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
                                 // Use ClientMsg::Register instead
-                                ClientState::Connected => client.error_state(RequestStateError::WrongMessage),
-                                ClientState::Registered => client.error_state(RequestStateError::Already),
-                                ClientState::Spectator | ClientState::Character
-                                    => client.allow_state(ClientState::Registered),
+                                ClientState::Connected => {
+                                    client.error_state(RequestStateError::WrongMessage)
+                                }
+                                ClientState::Registered => {
+                                    client.error_state(RequestStateError::Already)
+                                }
+                                ClientState::Spectator | ClientState::Character => {
+                                    client.allow_state(ClientState::Registered)
+                                }
                             },
                             ClientState::Spectator => match requested_state {
                                 // Become Registered first
-                                ClientState::Connected => client.error_state(RequestStateError::Impossible),
-                                ClientState::Spectator => client.error_state(RequestStateError::Already),
-                                ClientState::Registered | ClientState::Character
-                                    => client.allow_state(ClientState::Spectator),
+                                ClientState::Connected => {
+                                    client.error_state(RequestStateError::Impossible)
+                                }
+                                ClientState::Spectator => {
+                                    client.error_state(RequestStateError::Already)
+                                }
+                                ClientState::Registered | ClientState::Character => {
+                                    client.allow_state(ClientState::Spectator)
+                                }
                             },
                             // Use ClientMsg::Character instead
-                            ClientState::Character => client.error_state(RequestStateError::WrongMessage),
+                            ClientState::Character => {
+                                client.error_state(RequestStateError::WrongMessage)
+                            }
                         },
                         ClientMsg::Register { player } => match client.client_state {
-                            ClientState::Connected => Self::initialize_player(state, entity, client, player),
+                            ClientState::Connected => {
+                                Self::initialize_player(state, entity, client, player)
+                            }
                             // Use RequestState instead (No need to send `player` again)
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Character(character) => match client.client_state {
                             // Become Registered first
-                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
-                            ClientState::Registered | ClientState::Spectator =>
-                                Self::create_player_character(state, entity, client, character),
-                            ClientState::Character => client.error_state(RequestStateError::Already),
+                            ClientState::Connected => {
+                                client.error_state(RequestStateError::Impossible)
+                            }
+                            ClientState::Registered | ClientState::Spectator => {
+                                Self::create_player_character(state, entity, client, character)
+                            }
+                            ClientState::Character => {
+                                client.error_state(RequestStateError::Already)
+                            }
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
-                            ClientState::Connected => client.error_state(RequestStateError::Impossible),
+                            ClientState::Connected => {
+                                client.error_state(RequestStateError::Impossible)
+                            }
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-                        ClientMsg::PlayerAnimation(animation_history) => match client.client_state {
-                            ClientState::Character => state.write_component(entity, animation_history),
-                            // Only characters can send animations
-                            _ => client.error_state(RequestStateError::Impossible),
+                        ClientMsg::PlayerAnimation(animation_history) => {
+                            match client.client_state {
+                                ClientState::Character => {
+                                    state.write_component(entity, animation_history)
+                                }
+                                // Only characters can send animations
+                                _ => client.error_state(RequestStateError::Impossible),
+                            }
                         }
                         ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
                             ClientState::Character => {
@@ -350,10 +376,12 @@ impl Server {
                             }
                             ClientState::Spectator | ClientState::Character => {
                                 match state.terrain().get_key(key) {
-                                    Some(chunk) => client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
-                                        key,
-                                        chunk: Box::new(chunk.clone()),
-                                    }),
+                                    Some(chunk) => {
+                                        client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
+                                            key,
+                                            chunk: Box::new(chunk.clone()),
+                                        })
+                                    }
                                     None => requested_chunks.push(key),
                                 }
                             }
@@ -458,7 +486,10 @@ impl Server {
             &self.state.ecs().read_storage::<comp::phys::Pos>(),
             &self.state.ecs().read_storage::<comp::phys::Vel>(),
             &self.state.ecs().read_storage::<comp::phys::Dir>(),
-            self.state.ecs().read_storage::<comp::phys::ForceUpdate>().maybe(),
+            self.state
+                .ecs()
+                .read_storage::<comp::phys::ForceUpdate>()
+                .maybe(),
         )
             .join()
         {
@@ -508,7 +539,10 @@ impl Server {
         }
 
         // Remove all force flags
-        self.state.ecs_mut().write_storage::<comp::phys::ForceUpdate>().clear();
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::phys::ForceUpdate>()
+            .clear();
     }
 
     pub fn generate_chunk(&mut self, key: Vec3<i32>) {

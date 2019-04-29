@@ -1,15 +1,11 @@
 // Library
-use vek::*;
 use noise::{NoiseFn, Perlin};
+use vek::*;
 
 // Project
 use common::{
-    vol::{Vox, SizedVol, WriteVol},
-    terrain::{
-        Block,
-        TerrainChunk,
-        TerrainChunkMeta,
-    },
+    terrain::{Block, TerrainChunk, TerrainChunkMeta},
+    vol::{SizedVol, Vox, WriteVol},
 };
 
 #[derive(Debug)]
@@ -30,7 +26,7 @@ impl World {
         let mut chunk = TerrainChunk::filled(Block::empty(), TerrainChunkMeta::void());
 
         let air = Block::empty();
-        let stone = Block::new(1, Rgb::new(200, 220, 255));        
+        let stone = Block::new(1, Rgb::new(200, 220, 255));
         let grass = Block::new(2, Rgb::new(75, 150, 0));
         //let grass = Block::new(2, Rgb::new(50, 255, 0));
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
@@ -47,20 +43,24 @@ impl World {
             let small_freq = 1.0 / 32.0;
             let small_ampl = 6.0;
             let offs = 32.0;
-            let height =
-                perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl
+            let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl
                 + perlin_nz.get(Vec2::from(wposf * small_freq).into_array()) * small_ampl
                 + offs;
 
-            chunk.set(lpos, if wposf.z < height - 4.0 {
-                stone
-            } else if wposf.z < height - 1.0 {
-                dirt
-            } else if wposf.z < height {
-                grass
-            } else {
-                air
-            }).unwrap();
+            chunk
+                .set(
+                    lpos,
+                    if wposf.z < height - 4.0 {
+                        stone
+                    } else if wposf.z < height - 1.0 {
+                        dirt
+                    } else if wposf.z < height {
+                        grass
+                    } else {
+                        air
+                    },
+                )
+                .unwrap();
         }
 
         chunk

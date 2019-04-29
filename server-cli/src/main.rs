@@ -1,7 +1,7 @@
-use std::time::Duration;
-use log::info;
-use server::{Input, Event, Server};
 use common::clock::Clock;
+use log::info;
+use server::{Event, Input, Server};
+use std::time::Duration;
 
 const TPS: u64 = 30;
 
@@ -15,11 +15,11 @@ fn main() {
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::new()
-        .expect("Failed to create server instance");
+    let mut server = Server::new().expect("Failed to create server instance");
 
     loop {
-        let events = server.tick(Input::default(), clock.get_last_delta())
+        let events = server
+            .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server");
 
         for event in events {
