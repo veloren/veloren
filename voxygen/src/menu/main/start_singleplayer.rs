@@ -1,10 +1,9 @@
-use common::comp;
-use super::{DEFAULT_PORT, client_init::ClientInit};
+use super::{client_init::ClientInit, DEFAULT_PORT};
 use crate::{
-    menu::char_selection::CharSelectionState,
-    singleplayer::Singleplayer,
-    Direction, GlobalState, PlayState, PlayStateResult,
+    menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
+    PlayState, PlayStateResult,
 };
+use common::comp;
 
 pub struct StartSingleplayerState {
     singleplayer: Singleplayer,
@@ -28,10 +27,7 @@ impl PlayState for StartSingleplayerState {
 
                 let client_init = ClientInit::new(
                     (server_address.clone(), DEFAULT_PORT, false),
-                    (
-                        comp::Player::new(username.clone()),
-                        300,
-                    ),
+                    (comp::Player::new(username.clone()), 300),
                 );
 
                 // Client creation
@@ -39,8 +35,8 @@ impl PlayState for StartSingleplayerState {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
                         // Should always work
-                        Some(Err(err)) => unreachable!(), 
-                        _ => {},
+                        Some(Err(err)) => unreachable!(),
+                        _ => {}
                     }
                 };
 
@@ -55,7 +51,7 @@ impl PlayState for StartSingleplayerState {
                     &mut global_state.window,
                     std::rc::Rc::new(std::cell::RefCell::new(client)),
                 )))
-            },
+            }
             Direction::Backwards => PlayStateResult::Pop,
         }
     }
