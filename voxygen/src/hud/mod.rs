@@ -1059,11 +1059,9 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // Alignment            
+            // Frame Alignment            
             Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-                .middle_of(ui_widgets.window)
-                .scroll_kids()
-                .scroll_kids_vertically()
+                .middle_of(ui_widgets.window)                
                 .set(self.ids.settings_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.settings_frame_l)
@@ -1088,10 +1086,20 @@ impl Hud {
                 .set(self.ids.settings_content, ui_widgets);
 =======
              Image::new(self.imgs.settings_frame_r)
-                .top_right_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
+                .right_from(self.ids.settings_l, 0.0)
+                .parent(self.ids.settings_bg)
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_r, ui_widgets);
+<<<<<<< HEAD
 >>>>>>> Map Window, Settings Window
+=======
+            // Content Alignment
+            Rectangle::fill_with([189.0*4.0, 97.0*4.0], color::TRANSPARENT)
+                .top_right_with_margins_on(self.ids.settings_r, 21.0*4.0, 4.0*4.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.settings_content, ui_widgets);
+>>>>>>> settings window
             // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(28.0, 28.0)
@@ -1127,6 +1135,7 @@ impl Hud {
             // 1 Interface////////////////////////////
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
                 self.imgs.settings_button_pressed
+<<<<<<< HEAD
             } else {
                 self.imgs.settings_button
             })
@@ -1142,6 +1151,23 @@ impl Hud {
                 self.imgs.settings_button_press
             })
             .top_left_with_margins_on(self.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
+=======
+            } else {
+                self.imgs.settings_button
+            })
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Interface = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Interface = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .top_left_with_margins_on(self.ids.settings_l, 8.0*4.0, 2.0*4.0)
+>>>>>>> settings window
             .label("Interface")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1204,11 +1230,16 @@ impl Hud {
             }
 
             // 2 Gameplay////////////////
+<<<<<<< HEAD
             if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
+=======
+           if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
+>>>>>>> settings window
                 self.imgs.settings_button_pressed
             } else {
                 self.imgs.settings_button
             })
+<<<<<<< HEAD
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Gameplay = self.settings_tab {
                 self.imgs.settings_button_pressed
@@ -1220,6 +1251,19 @@ impl Hud {
             } else {
                 self.imgs.settings_button_press
             })
+=======
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+>>>>>>> settings window
             .right_from(self.ids.interface, 0.0)
             .label("Gameplay")
             .label_font_size(14)
@@ -1236,7 +1280,11 @@ impl Hud {
             } else {
                 self.imgs.settings_button
             })
+<<<<<<< HEAD
             .w_h(31.0 * 4.0, 12.0 * 4.0)
+=======
+            .w_h(31.0*4.0, 12.0*4.0)
+>>>>>>> settings window
             .hover_image(if let SettingsTab::Controls = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1258,11 +1306,16 @@ impl Hud {
             }
 
             // 4 Video////////////////////////////////
+<<<<<<< HEAD
             if Button::image(if let SettingsTab::Video = self.settings_tab {
+=======
+           if Button::image(if let SettingsTab::Video = self.settings_tab {
+>>>>>>> settings window
                 self.imgs.settings_button_pressed
             } else {
                 self.imgs.settings_button
             })
+<<<<<<< HEAD
             .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
@@ -1274,6 +1327,19 @@ impl Hud {
             } else {
                 self.imgs.settings_button_press
             })
+=======
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })            
+>>>>>>> settings window
             .right_from(self.ids.controls, 0.0)
             .label("Video")
             .parent(self.ids.settings_r)
@@ -1288,6 +1354,7 @@ impl Hud {
             // 5 Sound///////////////////////////////
             if Button::image(if let SettingsTab::Sound = self.settings_tab {
                 self.imgs.settings_button_pressed
+<<<<<<< HEAD
             } else {
                 self.imgs.settings_button
             })
@@ -1302,6 +1369,22 @@ impl Hud {
             } else {
                 self.imgs.settings_button_press
             })
+=======
+            } else {
+                self.imgs.settings_button
+            })
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Sound = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Sound = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+>>>>>>> settings window
             .right_from(self.ids.video, 0.0)
             .parent(self.ids.settings_r)
             .label("Sound")
@@ -1612,6 +1695,7 @@ impl Hud {
                 .set(self.ids.map_frame_l, ui_widgets);
             Image::new(self.imgs.map_frame_r)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 .right_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_r, ui_widgets);
@@ -1625,14 +1709,17 @@ impl Hud {
                 .set(self.ids.map_frame_bl, ui_widgets);
 =======
                 .top_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+=======
+                .right_from(self.ids.map_frame_l, 0.0)
+>>>>>>> settings window
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_r, ui_widgets);
             Image::new(self.imgs.map_frame_br)
-                .bottom_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .down_from(self.ids.map_frame_r, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_br, ui_widgets);
             Image::new(self.imgs.map_frame_bl)
-                .bottom_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .down_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_bl, ui_widgets);            
 
