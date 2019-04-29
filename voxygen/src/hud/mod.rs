@@ -1082,7 +1082,7 @@ impl Hud {
 >>>>>>> Map Window, Settings Window
 =======
             // Content Alignment
-            Rectangle::fill_with([189.0*4.0, 97.0*4.0], color::TRANSPARENT)
+            Rectangle::fill_with([198.0*4.0, 97.0*4.0], color::TRANSPARENT)
                 .top_right_with_margins_on(self.ids.settings_r, 21.0*4.0, 4.0*4.0)
                 .scroll_kids()
                 .scroll_kids_vertically()
@@ -1117,8 +1117,12 @@ impl Hud {
                 //.w_h(224.0 / 3.0, 224.0 / 3.0)
                 //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
                 //.set(self.ids.settings_icon, ui_widgets);
+<<<<<<< HEAD
 >>>>>>> Map Window, Settings Window
             // TODO: Find out if we can remove this
+=======
+            // TODO: Find out if we can remove this                   
+>>>>>>> settings window
 
             // 1 Interface////////////////////////////
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
