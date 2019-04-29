@@ -130,12 +130,6 @@ commit-linux-debug:
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
     - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
-    - echo ""
-    - ls
-    - echo ""
-    - ls bin/
-    - echo ""
-    - ls $CI_PROJECT_DIR
     - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
@@ -146,7 +140,6 @@ commit-linux-debug:
   only:
     refs:
       - master
-      - fix-ci-artifact-upload
 
 commit-windows-debug:
   stage: executable
@@ -173,7 +166,6 @@ commit-windows-debug:
   only:
     refs:
       - master
-      - fix-ci-artifact-upload
 
 #############
 # NIGHTLY
