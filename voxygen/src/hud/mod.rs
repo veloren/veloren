@@ -95,6 +95,7 @@ widget_ids! {
         window_frame_5,
         //0 Settings-Window
         settings_bg,
+        settings_content,
         settings_icon,
         settings_button_mo,
         settings_close,
@@ -1048,11 +1049,9 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // Alignment            
+            // Frame Alignment            
             Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-                .middle_of(ui_widgets.window)
-                .scroll_kids()
-                .scroll_kids_vertically()
+                .middle_of(ui_widgets.window)                
                 .set(self.ids.settings_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.settings_frame_l)
@@ -1060,9 +1059,16 @@ impl Hud {
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_l, ui_widgets);
              Image::new(self.imgs.settings_frame_r)
-                .top_right_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
+                .right_from(self.ids.settings_l, 0.0)
+                .parent(self.ids.settings_bg)
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_r, ui_widgets);
+            // Content Alignment
+            Rectangle::fill_with([189.0*4.0, 97.0*4.0], color::TRANSPARENT)
+                .top_right_with_margins_on(self.ids.settings_r, 21.0*4.0, 4.0*4.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.settings_content, ui_widgets);
             // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(28.0, 28.0)
@@ -1095,14 +1101,22 @@ impl Hud {
 
             // 1 Interface////////////////////////////
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
-                self.imgs.button_blue_mo
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.button_blank
+                self.imgs.settings_button
             })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .top_left_with_margins_on(self.ids.settings_bg, 78.0, 50.0)
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Interface = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Interface = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .top_left_with_margins_on(self.ids.settings_l, 8.0*4.0, 2.0*4.0)
             .label("Interface")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1116,7 +1130,7 @@ impl Hud {
                 self.show_help =
                     ToggleButton::new(self.show_help, self.imgs.check, self.imgs.check_checked)
                         .w_h(288.0 / 24.0, 288.0 / 24.0)
-                        .top_left_with_margins_on(self.ids.rectangle, 15.0, 15.0)
+                        .top_left_with_margins_on(self.ids.settings_content, 5.0, 5.0)
                         .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                         .press_images(self.imgs.check_press, self.imgs.check_press)
                         .set(self.ids.button_help, ui_widgets);
@@ -1165,15 +1179,23 @@ impl Hud {
             }
 
             // 2 Gameplay////////////////
-            if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
-                self.imgs.button_blue_mo
+           if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.button_blank
+                self.imgs.settings_button
             })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(self.ids.interface, 1.0)
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Gameplay = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(self.ids.interface, 0.0)
             .label("Gameplay")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1185,14 +1207,22 @@ impl Hud {
 
             // 3 Controls/////////////////////
             if Button::image(if let SettingsTab::Controls = self.settings_tab {
-                self.imgs.button_blue_mo
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.button_blank
+                self.imgs.settings_button
             })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(self.ids.gameplay, 1.0)
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Controls = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Controls = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(self.ids.gameplay, 0.0)
             .label("Controls")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1203,16 +1233,25 @@ impl Hud {
             }
 
             // 4 Video////////////////////////////////
-            if Button::image(if let SettingsTab::Video = self.settings_tab {
-                self.imgs.button_blue_mo
+           if Button::image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.button_blank
+                self.imgs.settings_button
             })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(self.ids.controls, 1.0)
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Video = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })            
+            .right_from(self.ids.controls, 0.0)
             .label("Video")
+            .parent(self.ids.settings_r)
             .label_font_size(14)
             .label_color(TEXT_COLOR)
             .set(self.ids.video, ui_widgets)
@@ -1223,14 +1262,23 @@ impl Hud {
 
             // 5 Sound///////////////////////////////
             if Button::image(if let SettingsTab::Sound = self.settings_tab {
-                self.imgs.button_blue_mo
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.button_blank
+                self.imgs.settings_button
             })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(self.ids.video, 1.0)
+            .w_h(31.0*4.0, 12.0*4.0)
+            .hover_image(if let SettingsTab::Sound = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Sound = self.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(self.ids.video, 0.0)
+            .parent(self.ids.settings_r)
             .label("Sound")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1534,15 +1582,15 @@ impl Hud {
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_l, ui_widgets);
             Image::new(self.imgs.map_frame_r)
-                .top_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .right_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_r, ui_widgets);
             Image::new(self.imgs.map_frame_br)
-                .bottom_right_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .down_from(self.ids.map_frame_r, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_br, ui_widgets);
             Image::new(self.imgs.map_frame_bl)
-                .bottom_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
+                .down_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.map_frame_bl, ui_widgets);            
 
