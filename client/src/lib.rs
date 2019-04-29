@@ -249,9 +249,18 @@ impl Client {
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {}
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
-                    ServerMsg::SetPlayerEntity(uid) => self.entity = self.state.ecs().entity_from_uid(uid).unwrap(), // TODO: Don't unwrap here!
-                    ServerMsg::EcsSync(sync_package) => self.state.ecs_mut().sync_with_package(sync_package),
-                    ServerMsg::EntityPhysics { entity, pos, vel, dir } => match self.state.ecs().entity_from_uid(entity) {
+                    ServerMsg::SetPlayerEntity(uid) => {
+                        self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
+                    } // TODO: Don't unwrap here!
+                    ServerMsg::EcsSync(sync_package) => {
+                        self.state.ecs_mut().sync_with_package(sync_package)
+                    }
+                    ServerMsg::EntityPhysics {
+                        entity,
+                        pos,
+                        vel,
+                        dir,
+                    } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
@@ -259,7 +268,10 @@ impl Client {
                         }
                         None => {}
                     },
-                    ServerMsg::EntityAnimation { entity, animation_history } => match self.state.ecs().entity_from_uid(entity) {
+                    ServerMsg::EntityAnimation {
+                        entity,
+                        animation_history,
+                    } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, animation_history);
                         }

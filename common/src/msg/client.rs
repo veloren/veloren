@@ -1,10 +1,12 @@
-use vek::*;
 use super::ClientState;
 use crate::comp;
+use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClientMsg {
-    Register { player: comp::Player },
+    Register {
+        player: comp::Player,
+    },
     Character(comp::Character),
     RequestState(ClientState),
     Ping,

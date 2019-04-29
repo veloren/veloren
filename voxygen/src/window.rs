@@ -1,6 +1,7 @@
 use crate::{
     render::{Renderer, TgtColorFmt, TgtDepthFmt},
-    ui, Error, settings::Settings,
+    settings::Settings,
+    ui, Error,
 };
 use std::collections::HashMap;
 use vek::*;

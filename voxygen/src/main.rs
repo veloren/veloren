@@ -1,5 +1,5 @@
 #![feature(drain_filter)]
-#![recursion_limit="2048"]
+#![recursion_limit = "2048"]
 
 pub mod anim;
 pub mod error;
@@ -10,22 +10,18 @@ pub mod mesh;
 pub mod render;
 pub mod scene;
 pub mod session;
-pub mod ui;
-pub mod window;
 pub mod settings;
 pub mod singleplayer;
+pub mod ui;
+pub mod window;
 
 // Reexports
 pub use crate::error::Error;
 
-use std::{mem, thread, panic, fs::File};
+use crate::{menu::main::MainMenuState, settings::Settings, window::Window};
 use log;
-use simplelog::{CombinedLogger, TermLogger, WriteLogger, Config};
-use crate::{
-    menu::main::MainMenuState,
-    window::Window,
-    settings::Settings,
-};
+use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
+use std::{fs::File, mem, panic, str::FromStr, thread};
 
 /// The URL of the default public server that Voxygen will connect to
 const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
@@ -82,15 +78,24 @@ fn main() {
             let settings = Settings::default();
             settings.save_to_file();
             settings
-        },
+        }
     };
     let window = Window::new(&settings).expect("Failed to create window");
 
     // Init logging
+    let term_log_level = std::env::var_os("VOXYGEN_LOG")
+        .and_then(|env| env.to_str().map(|s| s.to_owned()))
+        .and_then(|s| log::LevelFilter::from_str(&s).ok())
+        .unwrap_or(log::LevelFilter::Warn);
     CombinedLogger::init(vec![
-        TermLogger::new(log::LevelFilter::Warn, Config::default()).unwrap(),
-        WriteLogger::new(log::LevelFilter::Info, Config::default(), File::create(&settings.log.file).unwrap()),
-    ]).unwrap();
+        TermLogger::new(term_log_level, Config::default()).unwrap(),
+        WriteLogger::new(
+            log::LevelFilter::Info,
+            Config::default(),
+            File::create(&settings.log.file).unwrap(),
+        ),
+    ])
+    .unwrap();
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
@@ -123,18 +128,13 @@ The information below is intended for developers and testers.
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
     }));
 
-    let mut global_state = GlobalState {
-        settings,
-        window,
-    };
+    let mut global_state = GlobalState { settings, window };
 
     // Set up the initial play state
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(
-        &mut global_state,
-    ))];
-    states.last().map(|current_state| {
-        log::info!("Started game with state '{}'", current_state.name())
-    });
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
+    states
+        .last()
+        .map(|current_state| log::info!("Started game with state '{}'", current_state.name()));
 
     // What's going on here?
     // ---------------------
@@ -144,7 +144,10 @@ The information below is intended for developers and testers.
     // The code below manages the state transfer logic automatically so that we don't have to
     // re-engineer it for each menu we decide to add to the game.
     let mut direction = Direction::Forwards;
-    while let Some(state_result) = states.last_mut().map(|last| last.play(direction, &mut global_state)){
+    while let Some(state_result) = states
+        .last_mut()
+        .map(|last| last.play(direction, &mut global_state))
+    {
         // Implement state transfer logic
         match state_result {
             PlayStateResult::Shutdown => {
@@ -156,28 +159,32 @@ The information below is intended for developers and testers.
                         global_state.on_play_state_changed();
                     });
                 }
-            },
+            }
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
                     log::info!("Popped state '{}'", old_state.name());
                     global_state.on_play_state_changed();
                 });
-            },
+            }
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
                 log::info!("Pushed state '{}'", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
-            },
+            }
             PlayStateResult::Switch(mut new_state) => {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
-                    log::info!("Switching to state '{}' from state '{}'", new_state.name(), old_state.name());
+                    log::info!(
+                        "Switching to state '{}' from state '{}'",
+                        new_state.name(),
+                        old_state.name()
+                    );
                     mem::swap(old_state, &mut new_state);
                     global_state.on_play_state_changed();
                 });
-            },
+            }
         }
     }
 }

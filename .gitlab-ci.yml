@@ -10,12 +10,14 @@ variables:
   GIT_STRATEGY: none
 before_script:
   - mkdir -p /cache/veloren
+  - rm -rf /cache/veloren/bin
   - cd /cache/veloren
   - if [ -d .git ]; then
        echo "is git dir";
     else
       git clone $CI_REPOSITORY_URL . ;
     fi;
+  - mkdir -p /cache/veloren/bin
   - rm -f .git/index.lock
   - rm -f .git/shallow.lock
   - rm -f .git/HEAD.lock
@@ -28,7 +30,7 @@ before_script:
       git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
     fi;
   - git submodule sync --recursive
-  - git submodule update  --remote --recursive
+  - git submodule update --init --recursive --depth 20
   - git status
   - if [ -d target ]; then
       ls -la target;
@@ -42,7 +44,7 @@ build-voxygen:
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && cargo build)
 
@@ -50,7 +52,7 @@ build-server-cli:
   stage: build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd server-cli && cargo build)
 
@@ -62,7 +64,7 @@ unittests:
   stage: test
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo test
 
@@ -70,7 +72,7 @@ benchmarktests:
   stage: test
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo bench
   allow_failure: true
@@ -84,25 +86,27 @@ clean-code:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo fmt --all -- --check
   allow_failure: true  
 
-coverage:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - docker
-  script:
-    - cargo tarpaulin --skip-clean --all || echo "There is a problem in tarpaulin which sometimes fails"
-  allow_failure: true
+# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
+# # https://github.com/rust-lang/rust/issues/58375
+# coverage:
+#   stage: post-build
+#   image: registry.gitlab.com/veloren/veloren-docker-ci
+#   tags:
+#     - veloren-docker
+#   script:
+#     - cargo tarpaulin --all
+#   allow_failure: true
 
 clippy:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
   allow_failure: true
@@ -115,7 +119,7 @@ commit-linux-debug:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
@@ -125,9 +129,8 @@ commit-linux-debug:
     - cp target/debug/veloren-voxygen commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
-    - rm -f commit-linux-debug.tar.bz2
-    - tar -cvjSf commit-linux-debug.tar.bz2 commit-build
-    - cp commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
+    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
+    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
       - commit-linux-debug.tar.bz2
@@ -137,13 +140,12 @@ commit-linux-debug:
   only:
     refs:
       - master
-      - add-docker-gitlab-ci
 
 commit-windows-debug:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
@@ -153,9 +155,8 @@ commit-windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
     - cp -r assets commit-build/
     - cp -r voxygen/shaders commit-build/
-    - rm -f commit-windows-debug.zip
-    - zip -r commit-windows-debug.zip commit-build
-    - cp commit-windows-debug.zip $CI_PROJECT_DIR
+    - zip -r bin/commit-windows-debug.zip commit-build
+    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
     paths:
       - commit-windows-debug.zip
@@ -165,7 +166,6 @@ commit-windows-debug:
   only:
     refs:
       - master
-      - add-docker-gitlab-ci
 
 #############
 # NIGHTLY
@@ -175,7 +175,7 @@ nightly-linux-optimized:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
@@ -185,9 +185,8 @@ nightly-linux-optimized:
     - cp target/release/veloren-voxygen nightly-build
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
-    - rm -f nightly-linux-optimized.tar.bz2
-    - tar -cvjSf nightly-linux-optimized.tar.bz2 nightly-build
-    - cp nightly-linux-optimized.zip $CI_PROJECT_DIR
+    - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
+    - cp bin/nightly-linux-optimized.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
       - nightly-linux-optimized.tar.bz2
@@ -199,7 +198,7 @@ nightly-windows-optimized:
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
-    - docker
+    - veloren-docker
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
@@ -209,9 +208,8 @@ nightly-windows-optimized:
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly-build
     - cp -r assets nightly-build/
     - cp -r voxygen/shaders nightly-build/
-    - rm -f nightly-windows-optimized.zip
-    - zip -r nightly-windows-optimized.zip nightly-build
-    - cp nightly-windows-optimized.zip $CI_PROJECT_DIR
+    - zip -r bin/nightly-windows-optimized.zip nightly-build
+    - cp bin/nightly-windows-optimized.zip $CI_PROJECT_DIR
   artifacts:
     paths:
       - nightly-windows-optimized.zip
