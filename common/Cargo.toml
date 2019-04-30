@@ -9,6 +9,7 @@ sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"] 
 
 specs = { version = "0.14", features = ["serde", "nightly"] }
 vek = { version = "0.9", features = ["serde"] }
+conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 dot_vox = "4.0"
 image = "0.21"
 threadpool = "1.7"

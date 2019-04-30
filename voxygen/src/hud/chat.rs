@@ -1,4 +1,6 @@
 use crate::ui::Ui;
+use super::img_ids::Imgs;
+use super::font_ids::Fonts;
 use conrod_core::{
     color,
     input::Key,
@@ -74,8 +76,8 @@ impl Chat {
     pub(super) fn update_layout(
         &mut self,
         ui_widgets: &mut UiCell,
-        font: FontId,
-        imgs: &super::Imgs,
+        imgs: &Imgs,
+        fonts: &Fonts,
     ) -> Option<String> {
         // Maintain scrolling
         if self.new_messages {
@@ -96,7 +98,7 @@ impl Chat {
                 .restrict_to_height(false)
                 .line_spacing(2.0)
                 .font_size(15)
-                .font_id(font);
+                .font_id(fonts.opensans);
             let y = match text_edit.get_y_dimension(ui_widgets) {
                 Dimension::Absolute(y) => y + 6.0,
                 _ => 0.0,
@@ -136,7 +138,7 @@ impl Chat {
             let widget = if item.i < self.messages.len() {
                 let text = Text::new(&self.messages[item.i])
                     .font_size(15)
-                    .font_id(font)
+                    .font_id(fonts.opensans)
                     .w(470.0)
                     .rgba(1.0, 1.0, 1.0, 1.0)
                     .line_spacing(2.0);
@@ -149,7 +151,7 @@ impl Chat {
             } else {
                 // Spacer at bottom of the last message so that it is not cut off
                 // Needs to be larger than the space above
-                Text::new("").font_size(6).font_id(font).w(470.0)
+                Text::new("").font_size(6).font_id(fonts.opensans).w(470.0)
             };
             item.set(widget, ui_widgets);
         }

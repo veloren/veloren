@@ -1,5 +1,6 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
+use conrod_core::text::Font;
 use lazy_static::lazy_static;
 use std::{
     any::Any,
@@ -41,7 +42,7 @@ lazy_static! {
 /// use image::DynamicImage;
 /// use common::assets;
 /// 
-/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// let my_image = Assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     Ok(ASSETS
@@ -60,7 +61,7 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// use image::DynamicImage;
 /// use common::assets;
 /// 
-/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
+/// let my_image = Assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier)
@@ -75,8 +76,8 @@ pub trait Asset: Send + Sync + Sized {
 impl Asset for DynamicImage {
     fn load(specifier: &str) -> Result<Self, Error> {
         Ok(image::load_from_memory(
-                load_from_path(specifier)?.as_slice()
-            )
+            load_from_path(specifier)?.as_slice()
+        )
             .unwrap()
         )
     }
@@ -85,15 +86,24 @@ impl Asset for DynamicImage {
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
         Ok(dot_vox::load_bytes(
-                load_from_path(specifier)?.as_slice()
-            )
+            load_from_path(specifier)?.as_slice()
+        )
             .unwrap()
+        )
+    }
+}
+
+impl Asset for Font {
+    fn load(specifier: &str) -> Result<Self, Error> {
+        Ok(Font::from_bytes(
+            load_from_path(specifier)?).unwrap()
         )
     }
 }
 
 // TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
 fn try_open_with_path(name: &str) -> Option<File> {
+    debug!("Trying to access \"{}\"", name);
     // TODO: don't do this?
     // if it's stupid and it works..,
     [
