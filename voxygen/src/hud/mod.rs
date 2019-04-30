@@ -1,8 +1,10 @@
 mod chat;
 mod character_window;
+mod map;
 mod imgs;
 
 use character_window::CharacterWindow;
+use map::Map;
 use imgs::Imgs;
 
 use crate::{
@@ -161,17 +163,6 @@ widget_ids! {
         social_close,
         social_title,
 
-        // 2 Map
-        map_frame,
-        map_bg,
-        map_icon,
-        map_close,
-        map_title,
-        map_frame_l,
-        map_frame_r,
-        map_frame_bl,
-        map_frame_br,
-        
         // 3 Spellbook
         spellbook_frame,
         spellbook_bg,
@@ -179,15 +170,16 @@ widget_ids! {
         spellbook_close,
         spellbook_title,
 
-        // 4 Charwindow
-        character_window,
-
         // 5 Quest-Log
         questlog_frame,
         questlog_bg,
         questlog_icon,
         questlog_close,
         questlog_title,
+
+        // External
+        map,
+        character_window,
     }
 }
 
@@ -1306,59 +1298,20 @@ impl Hud {
                     Some(small) => Windows::Small(small),
                     None => Windows::None,
                 },
-                None => (),
+                None => {},
             }
         }
 
         // 2 Map
         if self.map_open {
-            // BG
-            Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(ui_widgets.window, 15.0)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(self.ids.map_bg, ui_widgets);
-            // Frame
-            Image::new(self.imgs.map_frame_l)
-                .top_left_with_margins_on(self.ids.map_bg, 0.0, 0.0)
-                .w_h(412.0, 488.0)
-                .set(self.ids.map_frame_l, ui_widgets);
-            Image::new(self.imgs.map_frame_r)
-                .right_from(self.ids.map_frame_l, 0.0)
-                .w_h(412.0, 488.0)
-                .set(self.ids.map_frame_r, ui_widgets);
-            Image::new(self.imgs.map_frame_br)
-                .down_from(self.ids.map_frame_r, 0.0)
-                .w_h(412.0, 488.0)
-                .set(self.ids.map_frame_br, ui_widgets);
-            Image::new(self.imgs.map_frame_bl)
-                .down_from(self.ids.map_frame_l, 0.0)
-                .w_h(412.0, 488.0)
-                .set(self.ids.map_frame_bl, ui_widgets);
-
-            // Icon
-            Image::new(self.imgs.map_icon)
-                .w_h(224.0 / 3.0, 224.0 / 3.0)
-                .top_left_with_margins_on(self.ids.map_frame, -10.0, -10.0)
-                .set(self.ids.map_icon, ui_widgets);
-
-            // X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(28.0, 28.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.map_frame_r, 0.0, 0.0)
-                .set(self.ids.map_close, ui_widgets)
-                .was_clicked()
+            match Map::new(&self.imgs)
+                .text_color(TEXT_COLOR)
+                .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
+                .set(self.ids.map, ui_widgets) 
             {
-                self.map_open = false;
+                Some(map::Event::Close) => self.map_open = false,
+                None => {},
             }
-            // Title
-            //Text::new("Map")
-            //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
-            //.font_size(14)
-            //.color(TEXT_COLOR)
-            //.set(self.ids.map_title, ui_widgets);
         }
 
         // ESC-MENU
