@@ -108,16 +108,7 @@ fn try_open_with_path(name: &str) -> Option<File> {
     ]
     .into_iter()
     .map(|bp| [bp, name].concat())
-    .find_map(|ref filename| match File::open(filename) {
-        Ok(file) => {
-            debug!("Loading {} successful", filename);
-            Some(file)
-        }
-        Err(err) => {
-            error!("Loading {} failed: {}", filename, err);
-            None
-        }
-    })
+    .find_map(|ref filename| File::open(filename).ok())
 }
 
 pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
