@@ -117,28 +117,33 @@ impl<'a> Widget for CharacterWindow<'a> {
         //.set(state.ids.charwindow_icon, ui);
 
         // X-Button
-        let closed = Button::image(self.imgs.close_button)
+        if Button::image(self.imgs.close_button)
             .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
             .top_right_with_margins_on(state.ids.charwindow_frame, 4.0, 4.0)
             .set(state.ids.charwindow_close, ui)
-            .was_clicked();
+            .was_clicked() {
+                return Some(Event::Close);
+        }
 
         // Title
         Text::new("Character Name") // Add in actual Character Name
             .mid_top_with_margin_on(state.ids.charwindow_frame, 7.0)
             .color(text_color)
             .set(state.ids.charwindow_title, ui);
+
         // Tab BG
         Image::new(self.imgs.charwindow_tab_bg)
             .w_h(205.0, 412.0)
             .mid_left_with_margin_on(state.ids.charwindow_frame, -205.0)
             .set(state.ids.charwindow_tab_bg, ui);
+
         // Tab Rectangle
         Rectangle::fill_with([192.0, 371.0], color::rgba(0.0, 0.0, 0.0, 0.8))
             .top_right_with_margins_on(state.ids.charwindow_tab_bg, 20.0, 0.0)
             .set(state.ids.charwindow_rectangle, ui);
+
         // Tab Button
         Button::image(self.imgs.charwindow_tab)
             .w_h(65.0, 23.0)
@@ -148,25 +153,30 @@ impl<'a> Widget for CharacterWindow<'a> {
             .and_then(font_id, Button::label_font_id)
             .label_font_size(14)
             .set(state.ids.charwindow_tab1, ui);
+
         Text::new("1") //Add in actual Character Level
             .mid_top_with_margin_on(state.ids.charwindow_rectangle, 10.0)
             .and_then(font_id, Text::font_id)
             .font_size(30)
             .color(text_color)
             .set(state.ids.charwindow_tab1_level, ui);
+
         // Exp-Bar Background
         Rectangle::fill_with([170.0, 10.0], color::BLACK)
             .mid_top_with_margin_on(state.ids.charwindow_rectangle, 50.0)
             .set(state.ids.charwindow_exp_rectangle, ui);
+
         // Exp-Bar Progress
         Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percantage
             .mid_left_with_margin_on(state.ids.charwindow_tab1_expbar, 1.0)
             .set(state.ids.charwindow_exp_progress_rectangle, ui);
+
         // Exp-Bar Foreground Frame
         Image::new(self.imgs.progress_frame)
             .w_h(170.0, 10.0)
             .middle_of(state.ids.charwindow_exp_rectangle)
             .set(state.ids.charwindow_tab1_expbar, ui);
+
         // Exp-Text
         Text::new("120/170") // Shows the Exp / Exp to reach the next level
             .mid_top_with_margin_on(state.ids.charwindow_tab1_expbar, 10.0)
@@ -185,11 +195,11 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              Intelligence",
         )
-        .top_left_with_margins_on(state.ids.charwindow_rectangle, 100.0, 20.0)
-        .and_then(font_id, Text::font_id)
-        .font_size(16)
-        .color(text_color)
-        .set(state.ids.charwindow_tab1_statnames, ui);
+            .top_left_with_margins_on(state.ids.charwindow_rectangle, 100.0, 20.0)
+            .and_then(font_id, Text::font_id)
+            .font_size(16)
+            .color(text_color)
+            .set(state.ids.charwindow_tab1_statnames, ui);
 
         Text::new(
             "1234\n\
@@ -200,16 +210,12 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              124124",
         )
-        .right_from(state.ids.charwindow_tab1_statnames, 10.0)
-        .and_then(font_id, Text::font_id)
-        .font_size(16)
-        .color(text_color)
-        .set(state.ids.charwindow_tab1_stats, ui);
+            .right_from(state.ids.charwindow_tab1_statnames, 10.0)
+            .and_then(font_id, Text::font_id)
+            .font_size(16)
+            .color(text_color)
+            .set(state.ids.charwindow_tab1_stats, ui);
 
-        if closed {
-            Some(Event::Close)
-        } else {
-            None
-        }
+        None
     }
 }
