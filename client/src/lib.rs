@@ -204,8 +204,8 @@ impl Client {
             }
 
             // Request chunks from the server
-            for i in chunk_pos.x - 1..chunk_pos.x + 2 {
-                for j in chunk_pos.y - 1..chunk_pos.y + 2 {
+            for i in chunk_pos.x - 0..chunk_pos.x + 1 {
+                for j in chunk_pos.y - 0..chunk_pos.y + 1 {
                     for k in 0..2 {
                         let key = Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
