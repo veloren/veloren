@@ -1,11 +1,13 @@
 mod chat;
 mod character_window;
 mod map;
-mod imgs;
+mod img_ids;
+mod font_ids;
 
 use character_window::CharacterWindow;
 use map::Map;
-use imgs::Imgs;
+use img_ids::Imgs;
+use font_ids::Fonts;
 
 use crate::{
     render::Renderer,
@@ -16,35 +18,16 @@ use crate::{
 };
 use conrod_core::{
     color,
-    text::font::Id as FontId,
+    text::{Font, font::Id as FontId},
     widget::{Button, Image, Rectangle, Scrollbar, Text},
     WidgetStyle, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use common::assets;
 
-// TODO: Use styles?
+const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
-const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
-
-
-/// Styling for windows
-#[derive(Copy, Clone, Debug, Default, PartialEq, WidgetStyle)]
-pub struct WindowStyle {
-    /// Color of the text in the window
-    #[conrod(default = "theme.label_color")]
-    pub text_color: Option<conrod_core::Color>,
-    /// Specify a unique font for text in the window
-    #[conrod(default = "theme.font_id")]
-    pub font_id: Option<Option<FontId>>,
-    // Color of the button.
-    //#[conrod(default = "theme.shape_color")]
-    //pub color: Option<conrod_core::Color>,
-    // Font size of the button's label.
-    //#[conrod(default = "theme.font_size_medium")]
-    //pub label_font_size: Option<conrod_core::FontSize>,
-}
 
 widget_ids! {
     struct Ids {
@@ -217,9 +200,8 @@ pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
+    fonts: Fonts,
     chat: chat::Chat,
-    font_metamorph: FontId,
-    font_opensans: FontId,
     show_help: bool,
     show_debug: bool,
     bag_open: bool,
@@ -245,26 +227,17 @@ impl Hud {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::load(&mut ui).unwrap();
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         // Load fonts
-        let load_font = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/font", filename].concat();
-            // TODO: use Asset trait to load font
-            ui.new_font(
-                conrod_core::text::Font::from_bytes(
-                    assets::load_from_path(fullpath.as_str()).expect("Error loading file")
-                )
-                .unwrap(),
-            )
-        };
-        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
-        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+        dbg!("Loading fonts...");
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
         // Chat box
         let chat = chat::Chat::new(&mut ui);
 
         Self {
             ui,
             imgs,
+            fonts,
             ids,
             chat,
             settings_tab: SettingsTab::Interface,
@@ -278,8 +251,6 @@ impl Hud {
             inventorytest_button: false,
             inventory_space: 0,
             open_windows: Windows::None,
-            font_metamorph,
-            font_opensans,
             xp_percentage: 0.4,
             hp_percentage: 1.0,
             mana_percentage: 1.0,
@@ -309,7 +280,7 @@ impl Hud {
             Text::new(&format!("FPS: {:.1}", tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
-                .font_id(self.font_opensans)
+                .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
         }
@@ -333,7 +304,7 @@ impl Hud {
         // Chat box
         if let Some(msg) = self
             .chat
-            .update_layout(ui_widgets, self.font_opensans, &self.imgs)
+            .update_layout(ui_widgets, &self.imgs, &self.fonts)
         {
             events.push(Event::SendMessage(msg));
         }
@@ -347,7 +318,7 @@ impl Hud {
             Text::new(get_help_text(&self.settings.controls).as_str())
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
-                .font_id(self.font_opensans)
+                .font_id(self.fonts.opensans)
                 .font_size(18)
                 .set(self.ids.help, ui_widgets);
             // X-button
@@ -852,7 +823,7 @@ impl Hud {
                 Text::new("Show Help")
                     .right_from(self.ids.button_help, 10.0)
                     .font_size(14)
-                    .font_id(self.font_opensans)
+                    .font_id(self.fonts.opensans)
                     .graphics_for(self.ids.button_help)
                     .color(TEXT_COLOR)
                     .set(self.ids.show_help_label, ui_widgets);
@@ -871,7 +842,7 @@ impl Hud {
                 Text::new("Show Inventory Test Button")
                     .right_from(self.ids.inventorytest_button, 10.0)
                     .font_size(14)
-                    .font_id(self.font_opensans)
+                    .font_id(self.fonts.opensans)
                     .graphics_for(self.ids.inventorytest_button)
                     .color(TEXT_COLOR)
                     .set(self.ids.inventorytest_button_label, ui_widgets);
@@ -887,7 +858,7 @@ impl Hud {
                 Text::new("Show Debug Window")
                     .right_from(self.ids.debug_button, 10.0)
                     .font_size(14)
-                    .font_id(self.font_opensans)
+                    .font_id(self.fonts.opensans)
                     .graphics_for(self.ids.debug_button)
                     .color(TEXT_COLOR)
                     .set(self.ids.debug_button_label, ui_widgets);
@@ -1181,7 +1152,7 @@ impl Hud {
                     // Title
                     Text::new("Social")
                         .mid_top_with_margin_on(self.ids.social_frame, 17.0)
-                        .font_id(self.font_metamorph)
+                        .font_id(self.fonts.metamorph)
                         .font_size(14)
                         .color(TEXT_COLOR)
                         .set(self.ids.social_title, ui_widgets);
@@ -1286,10 +1257,9 @@ impl Hud {
             }
         }
 
+        // Character Window
         if let Windows::CharacterAnd(small) = self.open_windows {
-            match CharacterWindow::new(&self.imgs)
-                .font_id(self.font_opensans)
-                .text_color(TEXT_COLOR)
+            match CharacterWindow::new(&self.imgs, &self.fonts)
                 .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
                 .w_h(103.0 * 4.0, 122.0 * 4.0) // TODO: replace this with default_width() / height() overrides 
                 .set(self.ids.character_window, ui_widgets) 
@@ -1302,10 +1272,9 @@ impl Hud {
             }
         }
 
-        // 2 Map
+        // Map
         if self.map_open {
-            match Map::new(&self.imgs)
-                .text_color(TEXT_COLOR)
+            match Map::new(&self.imgs, &self.fonts)
                 .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
                 .set(self.ids.map, ui_widgets) 
             {
@@ -1316,96 +1285,6 @@ impl Hud {
 
         // ESC-MENU
         // Background
-        if self.menu_open {
-            Image::new(self.imgs.esc_bg)
-                .w_h(228.0, 450.0)
-                .middle_of(ui_widgets.window)
-                .set(self.ids.esc_bg, ui_widgets);
-
-            Image::new(self.imgs.fireplace)
-                .w_h(180.0, 60.0)
-                .mid_top_with_margin_on(self.ids.esc_bg, 50.0)
-                .set(self.ids.fireplace, ui_widgets);
-
-            // Settings
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.esc_bg, 115.0)
-                .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label("Settings")
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(17)
-                .set(self.ids.menu_button_1, ui_widgets)
-                .was_clicked()
-            {
-                self.menu_open = false;
-                self.open_windows = Windows::Settings;
-            };
-            // Controls
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.esc_bg, 175.0)
-                .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label("Controls")
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(17)
-                .set(self.ids.menu_button_2, ui_widgets)
-                .was_clicked()
-            {
-                self.menu_open = false;
-                self.settings_tab = SettingsTab::Controls;
-                self.open_windows = Windows::Settings;
-            };
-            // Servers
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.esc_bg, 235.0)
-                .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label("Servers")
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(17)
-                .set(self.ids.menu_button_3, ui_widgets)
-                .was_clicked()
-            {
-                //self.menu_open = false;
-            };
-            // Logout
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.esc_bg, 295.0)
-                .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label("Logout")
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(17)
-                .set(self.ids.menu_button_4, ui_widgets)
-                .was_clicked()
-            {
-                events.push(Event::Logout);
-            };
-            // Quit
-            if Button::image(self.imgs.button)
-                .mid_top_with_margin_on(self.ids.esc_bg, 355.0)
-                .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label("Quit")
-                .label_y(conrod_core::position::Relative::Scalar(2.0))
-                .label_color(TEXT_COLOR)
-                .label_font_size(17)
-                .set(self.ids.menu_button_5, ui_widgets)
-                .was_clicked()
-            {
-                events.push(Event::Quit);
-            };
-        }
 
         events
     }

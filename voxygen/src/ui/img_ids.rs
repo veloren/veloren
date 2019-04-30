@@ -49,7 +49,6 @@ impl<'a> GraphicCreator<'a> for VoxelGraphic {
 ///     }
 /// }
 /// ```
-// TODO: will this work with shorter name paths? eg not rate::ui::Graphic::
 #[macro_export]
 macro_rules! image_ids {
     ($($v:vis struct $Ids:ident { $( <$T:ty> $( $name:ident: $specifier:expr ),* $(,)? )* })*) => {

@@ -4,10 +4,10 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 use super::{
-    imgs::Imgs,
-    WindowStyle, XP_COLOR,
+    img_ids::Imgs,
+    font_ids::Fonts,
+    TEXT_COLOR,
 };
 
 widget_ids! {
@@ -25,28 +25,21 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
     imgs: &'a Imgs,
+    fonts: &'a Fonts,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: WindowStyle,
+    style: (),
 }
 
 impl<'a> Map<'a> {
-    pub fn new(imgs: &'a Imgs) -> Self {
+    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             imgs,
+            fonts,
             common: widget::CommonBuilder::default(),
-            style: WindowStyle::default(),
+            style: (),
         }
-    }
-
-    pub fn font_id(mut self, font_id: font::Id) -> Self {
-        self.style.font_id = Some(Some(font_id));
-        self
-    }
-
-    builder_methods! {
-        pub text_color { style.text_color = Some(Color) }
     }
 }
 
@@ -60,7 +53,7 @@ pub enum Event {
 
 impl<'a> Widget for Map<'a> {
     type State = State;
-    type Style = WindowStyle;
+    type Style = ();
     type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
@@ -70,7 +63,7 @@ impl<'a> Widget for Map<'a> {
     }
 
     fn style(&self) -> Self::Style {
-        self.style.clone()
+        ()
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
@@ -81,9 +74,6 @@ impl<'a> Widget for Map<'a> {
             style,
             ..
         } = args;
-
-        let font_id = style.font_id(&ui.theme).or(ui.fonts.ids().next());
-        let text_color = style.text_color(&ui.theme);
 
         // BG
         Image::new(self.imgs.map_bg)
@@ -124,7 +114,7 @@ impl<'a> Widget for Map<'a> {
         Text::new("Map")
             .mid_top_with_margin_on(state.ids.map_bg, -7.0)
             .font_size(50)
-            .color(text_color)
+            .color(TEXT_COLOR)
             .set(state.ids.map_title, ui);
 
         None
