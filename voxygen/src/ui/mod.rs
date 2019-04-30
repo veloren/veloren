@@ -1,14 +1,14 @@
 mod graphic;
 mod util;
 mod widgets;
-#[macro_use]
-mod img_ids;
+#[macro_use] mod img_ids;
+#[macro_use] mod font_ids;
 
+use std::sync::Arc;
 pub use graphic::Graphic;
 pub use widgets::toggle_button::ToggleButton;
 pub use img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, GraphicCreator};
 pub(self) use util::{srgb_to_linear, linear_to_srgb};
-
 use crate::{
     render::{
         create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, Texture, UiMode,
@@ -254,8 +254,8 @@ impl Ui {
         self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
-    pub fn new_font(&mut self, font: Font) -> FontId {
-        self.ui.fonts.insert(font)
+    pub fn new_font(&mut self, mut font: Arc<Font>) -> FontId {
+        self.ui.fonts.insert(Arc::make_mut(&mut font).clone())
     }
 
     pub fn id_generator(&mut self) -> Generator {
