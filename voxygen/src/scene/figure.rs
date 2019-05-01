@@ -208,10 +208,15 @@ impl FigureCache {
             let target_skeleton = match animation_history.current {
                 comp::character::Animation::Idle => {
                     IdleAnimation::update_skeleton(&mut state.skeleton, time)
-                }
+                },
                 comp::character::Animation::Run => {
                     RunAnimation::update_skeleton(&mut state.skeleton, time)
-                }
+                },
+                comp::character::Animation::Jump => {
+                    // TODO
+                    // JumpAnimation::update_skeleton(&mut state.skeleton, time)
+                    state.skeleton.clone()
+                },
             };
 
             state.skeleton.interpolate(&target_skeleton);

@@ -10,7 +10,7 @@ use vek::*;
 // Basic ECS physics system
 pub struct Sys;
 
-const GRAVITY: f32 = 9.81 * 2.0;
+const GRAVITY: f32 = 9.81 * 4.0;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
