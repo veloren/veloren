@@ -193,7 +193,7 @@ impl Server {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = (Vec2::from(chunk_pos) - Vec2::from(key)).map(|e: i32| e.abs()).reduce_max();
 
-                if dist < 4 {
+                if dist < 5 {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -225,7 +225,7 @@ impl Server {
                 min_dist = min_dist.min(dist);
             }
 
-            if min_dist > 3 {
+            if min_dist > 6 {
                 chunks_to_remove.push(key);
             }
         });
