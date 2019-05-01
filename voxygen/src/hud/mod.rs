@@ -12,7 +12,7 @@ use common::{assets, figure::Segment};
 use conrod_core::{
     color,
     image::Id as ImgId,
-    text::font::Id as FontId,
+    text::{self, font::Id as FontId},
     widget::{Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -629,7 +629,7 @@ impl Hud {
         if self.show_help {
             Image::new(self.imgs.window_frame_2)
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(300.0, 450.0)
+                .w_h(300.0, 190.0)
                 .set(self.ids.help_bg, ui_widgets);
             Text::new(get_help_text(&self.settings.controls).as_str())
                 .color(TEXT_COLOR)
@@ -707,7 +707,7 @@ impl Hud {
             .bottom_right_with_margins_on(ui_widgets.window, 5.0, 57.0)
             .hover_image(self.imgs.settings_hover)
             .press_image(self.imgs.settings_press)
-            .label("N")
+            .label(&format!("{:?}", self.settings.controls.settings))
             .label_font_size(10)
             .label_font_id(self.font_metamorph)
             .color(TEXT_COLOR)
@@ -730,7 +730,7 @@ impl Hud {
             .left_from(self.ids.social_button, 10.0)
             .hover_image(self.imgs.map_hover)
             .press_image(self.imgs.map_press)
-            .label("M")
+            .label(&format!("{:?}", self.settings.controls.map))
             .label_font_size(10)
             .label_font_id(self.font_metamorph)
             .label_color(TEXT_COLOR)
@@ -774,7 +774,7 @@ impl Hud {
                 .left_from(self.ids.settings_button, 10.0)
                 .hover_image(self.imgs.social_hover)
                 .press_image(self.imgs.social_press)
-                .label("O")
+                .label(&format!("{:?}", self.settings.controls.social))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -800,7 +800,7 @@ impl Hud {
                 .left_from(self.ids.map_button, 10.0)
                 .hover_image(self.imgs.spellbook_hover)
                 .press_image(self.imgs.spellbook_press)
-                .label("P")
+                .label(&format!("{:?}", self.settings.controls.spellbook))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -826,7 +826,7 @@ impl Hud {
                 .left_from(self.ids.spellbook_button, 10.0)
                 .hover_image(self.imgs.character_hover)
                 .press_image(self.imgs.character_press)
-                .label("C")
+                .label(&format!("{:?}", self.settings.controls.character_window))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -852,7 +852,7 @@ impl Hud {
                 .left_from(self.ids.character_button, 10.0)
                 .hover_image(self.imgs.qlog_hover)
                 .press_image(self.imgs.qlog_press)
-                .label("L")
+                .label(&format!("{:?}", self.settings.controls.quest_log))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -1903,29 +1903,22 @@ impl Hud {
     }
 }
 
+//Get the text to show in the help window, along with the
+//length of the longest line in order to resize the window
 fn get_help_text(cs: &ControlSettings) -> String {
-    [
-        format!("{:?} = Free cursor\n", cs.toggle_cursor),
-        format!("{:?} = Open/close menus\n", cs.escape),
-        String::from("\n"),
-        format!("{:?} = Toggle this window\n", cs.help),
-        format!("{:?} = Toggle interface\n", cs.toggle_interface),
-        String::from("\n"),
-        format!("{:?} = Open chat\n", cs.enter),
-        String::from("Mouse Wheel = Scroll chat\n"),
-        String::from("\n"),
-        format!("{:?} = Move forward\n", cs.move_forward),
-        format!("{:?} = Move left\n", cs.move_left),
-        format!("{:?} = Move right\n", cs.move_right),
-        format!("{:?} = Move backwards\n", cs.move_back),
-        String::from("\n"),
-        format!("{:?} = Map\n", cs.map),
-        format!("{:?} = Bag\n", cs.bag),
-        format!("{:?} = Quest log\n", cs.quest_log),
-        format!("{:?} = Character window\n", cs.character_window),
-        format!("{:?} = Social\n", cs.social),
-        format!("{:?} = Spellbook\n", cs.spellbook),
-        format!("{:?} = Settings\n", cs.settings),
-    ]
-    .concat()
+    format!(
+        "{free_cursor:?} = Free cursor\n\
+         {escape:?} = Open/close menus\n\
+         \n\
+         {help:?} = Toggle this window\n\
+         {toggle_interface:?} = Toggle interface\n\
+         \n\
+         {chat:?} = Open chat\n\
+         Mouse Wheel = Scroll chat/zoom",
+        free_cursor = cs.toggle_cursor,
+        escape = cs.escape,
+        help = cs.help,
+        toggle_interface = cs.toggle_interface,
+        chat = cs.enter
+    )
 }
