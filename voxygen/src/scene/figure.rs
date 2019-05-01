@@ -116,7 +116,7 @@ impl FigureCache {
             match head {
                 Head::DefaultHead => "head.vox",
             },
-            Vec3::new(-5.5, -7.0, -6.0),
+            Vec3::new(-7.5, -8.0, 0.0),            
         )
     }
 
