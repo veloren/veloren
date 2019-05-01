@@ -25,8 +25,4 @@ impl KeyState {
             if self.up { 1.0 } else { 0.0 } + if self.down { -1.0 } else { 0.0 },
         )
     }
-
-    pub fn jump(&self) -> bool {
-        self.jump
-    }
 }

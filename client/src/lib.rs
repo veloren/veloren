@@ -4,7 +4,7 @@ pub mod error;
 pub mod input;
 
 // Reexports
-pub use crate::{error::Error, input::Input};
+pub use crate::{error::Error, input::{Input, InputEvent}};
 pub use specs::join::Join;
 pub use specs::Entity as EcsEntity;
 
@@ -152,6 +152,7 @@ impl Client {
             self.entity,
             comp::Control {
                 move_dir: input.move_dir,
+                jumping: input.jumping,
             },
         );
 

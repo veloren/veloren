@@ -119,6 +119,7 @@ pub struct AnimationHistory {
 pub enum Animation {
     Idle,
     Run,
+    Jump,
 }
 
 impl Component for Character {
