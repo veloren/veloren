@@ -196,6 +196,10 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             let msg_bytes = bincode::serialize(&send_msg).unwrap();
                             let mut msg_bytes = lz4_compress::compress(&msg_bytes);
 
+                            if msg_bytes.len() > 512 {
+                                println!("MSG SIZE: {}", msg_bytes.len());
+                            }
+
                             // Assemble into packet
                             let mut packet_bytes = msg_bytes
                                 .len()

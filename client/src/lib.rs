@@ -195,7 +195,7 @@ impl Client {
             // Remove chunks that are too far from the player
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
-                if (Vec2::from(chunk_pos) - Vec2::from(key)).map(|e: i32| e.abs()).reduce_max() > 3 {
+                if (Vec2::from(chunk_pos) - Vec2::from(key)).map(|e: i32| e.abs()).reduce_max() > 6 {
                     chunks_to_remove.push(key);
                 }
             });
@@ -204,8 +204,8 @@ impl Client {
             }
 
             // Request chunks from the server
-            for i in chunk_pos.x - 2..chunk_pos.x + 3 {
-                for j in chunk_pos.y - 2..chunk_pos.y + 3 {
+            for i in chunk_pos.x - 4..chunk_pos.x + 5 {
+                for j in chunk_pos.y - 4..chunk_pos.y + 5 {
                     for k in 0..2 {
                         let key = Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
