@@ -998,10 +998,10 @@ impl Hud {
 
             // X-button
             if Button::image(self.imgs.close_button)
-                .w_h(4.0 * 4.0, 4.0 * 4.0)
+                .w_h(28.0, 28.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 4.5, 4.5)
+                .top_right_with_margins_on(self.ids.bag_contents, 0.0, 0.0)
                 .set(self.ids.bag_close, ui_widgets)
                 .was_clicked()
             {
