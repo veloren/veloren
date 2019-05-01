@@ -102,6 +102,8 @@ widget_ids! {
         settings_title,
         settings_r,
         settings_l,
+        settings_scrollbar,
+        controls_text,
         //Contents
         button_help,
         button_help2,
@@ -1069,6 +1071,10 @@ impl Hud {
                 .scroll_kids()
                 .scroll_kids_vertically()
                 .set(self.ids.settings_content, ui_widgets);
+            Scrollbar::y_axis(self.ids.settings_content)
+                .thickness(5.0)
+                .rgba(0.33, 0.33, 0.33, 1.0)                
+                .set(self.ids.settings_scrollbar, ui_widgets);
             // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(28.0, 28.0)
@@ -1227,7 +1233,75 @@ impl Hud {
             {
                 self.settings_tab = SettingsTab::Controls;
             }
+            if let SettingsTab::Controls = self.settings_tab {
 
+            Text::new(
+            "Free Cursor: TAB \n\
+            Toggle Help Window: F1     \n\
+            Toggle Interface: F2  \n\
+            Toggle FPS and Debug Info: F3 \n\
+            \n\
+            \n\
+            Move Forward: W     \n\
+            Move Left : A       \n\
+            Move Right: S       \n\
+            Move Backwards: D   \n\
+            \n\
+            Jump: Space         \n\
+            \n\
+            Dodge: ??           \n\
+            \n\
+            Auto Walk: ??       \n\
+            \n\
+            Sheathe/Draw Weapons: Y \n\
+            \n\
+            Put on/Remove Helmet: ?? [Has a Cast time of 0,5s]  \n\
+            \n\
+            \n\
+            Basic Attack: L-Click       \n\
+            Secondary Attack/Block/Aim: R-Click \n\
+            \n\
+            \n\
+            Skillbar Slot 1: 1  \n\
+            Skillbar Slot 2: 2  \n\
+            Skillbar Slot 3: 3  \n\
+            Skillbar Slot 4: 4  \n\
+            Skillbar Slot 5: 5  \n\
+            Skillbar Slot 6: 6  \n\
+            Skillbar Slot 7: 7  \n\
+            Skillbar Slot 8: 8  \n\
+            Skillbar Slot 9: 9  \n\
+            Skillbar Slot 10: 0 \n\
+            \n\
+            \n\
+            Pause Menu: ESC \n\
+            Settings: N \n\
+            Social: O   \n\
+            Map: M  \n\
+            Spellbook: P    \n\
+            Character: C    \n\
+            Questlog  L \n\
+            Bag: B  \n\
+            \n\
+            \n\
+            \n\
+            Activate Chat & Input/Send Message: Enter \n\
+            Scroll Chat: Mousewheel on Chat-Window  \n\
+            \n\
+            \n\
+            Chat commands:  \n\
+            \n\
+            /alias [Name] - Change your Chat Name   \n\
+            /tp [Name] - Teleports you to another player
+            ")
+            .color(TEXT_COLOR)
+            .top_left_with_margins_on(self.ids.settings_content, 5.0, 5.0)
+            .font_id(self.font_opensans)
+            .font_size(18)
+            .set(self.ids.controls_text, ui_widgets);
+   
+
+            }
             // 4 Video////////////////////////////////
            if Button::image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
@@ -1658,7 +1732,9 @@ impl Hud {
                 .set(self.ids.menu_button_2, ui_widgets)
                 .was_clicked()
             {
-                //self.menu_open = false;
+                self.menu_open = false;
+                self.settings_tab = SettingsTab::Controls;
+                self.open_windows = Windows::Settings;
             };
             // Servers
             if Button::image(self.imgs.button_dark)
