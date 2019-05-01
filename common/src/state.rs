@@ -7,14 +7,15 @@ use crate::{
     sys,
     terrain::{TerrainChunk, TerrainMap},
 };
-use shred::{Fetch, FetchMut};
+use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
+    shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Builder, Component, DispatcherBuilder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
 };
 use sphynx;
-use std::{collections::HashSet, time::Duration};
+use std::{collections::HashSet, sync::Arc, time::Duration};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -57,6 +58,8 @@ impl Changes {
 /// things like entity components, terrain data, and global state like weather, time of day, etc.
 pub struct State {
     ecs: sphynx::World<EcsPacket>,
+    // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
+    thread_pool: Arc<ThreadPool>,
     changes: Changes,
 }
 
@@ -65,6 +68,7 @@ impl State {
     pub fn new() -> Self {
         Self {
             ecs: sphynx::World::new(specs::World::new(), Self::setup_sphynx_world),
+            thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
             changes: Changes::default(),
         }
     }
@@ -77,6 +81,7 @@ impl State {
                 Self::setup_sphynx_world,
                 state_package,
             ),
+            thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
             changes: Changes::default(),
         }
     }
@@ -197,7 +202,7 @@ impl State {
         self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f64();
 
         // Create and run dispatcher for ecs systems
-        let mut dispatch_builder = DispatcherBuilder::new();
+        let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
         sys::add_local_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel
         dispatch_builder.build().dispatch(&self.ecs.res);
