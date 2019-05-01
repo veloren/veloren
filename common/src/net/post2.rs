@@ -193,7 +193,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                     match send_rx.try_recv() {
                         Ok(send_msg) => {
                             // Serialize message
-                            let mut msg_bytes = bincode::serialize(&send_msg).unwrap();
+                            let msg_bytes = bincode::serialize(&send_msg).unwrap();
+                            let mut msg_bytes = lz4_compress::compress(&msg_bytes);
 
                             // Assemble into packet
                             let mut packet_bytes = msg_bytes
@@ -274,7 +275,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
                                 assert_eq!(checksum_found, checksum_expected, "Message checksum failed!");
 
-                                match bincode::deserialize(&incoming_buf[9..len + 9]) {
+                                let msg_bytes = lz4_compress::decompress(&incoming_buf[9..len + 9]).unwrap();
+
+                                match bincode::deserialize(&msg_bytes) {
                                     Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
                                     Err(err) => {
                                         println!("BINCODE ERROR: {:?}", err);
