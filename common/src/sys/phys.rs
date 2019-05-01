@@ -23,7 +23,7 @@ impl<'a> System<'a> for Sys {
     fn run(&mut self, (terrain, dt, mut positions, mut velocities): Self::SystemData) {
         for (pos, vel) in (&mut positions, &mut velocities).join() {
             // Gravity
-            vel.0.z -= GRAVITY * dt.0 as f32;
+            vel.0.z = (vel.0.z - GRAVITY * dt.0 as f32).max(-50.0);
 
             // Movement
             pos.0 += vel.0 * dt.0 as f32;
