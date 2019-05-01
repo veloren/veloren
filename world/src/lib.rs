@@ -1,5 +1,5 @@
 // Library
-use noise::{NoiseFn, Perlin};
+use noise::{NoiseFn, Perlin, Seedable};
 use vek::*;
 
 // Project
@@ -32,7 +32,10 @@ impl World {
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
         let sand = Block::new(4, Rgb::new(180, 150, 50));
 
-        let perlin_nz = Perlin::new();
+        let perlin_nz = Perlin::new()
+            .set_seed(1);
+        let temp_nz = Perlin::new()
+            .set_seed(2);
 
         for lpos in chunk.iter_positions() {
             let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
@@ -46,6 +49,7 @@ impl World {
             let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl
                 + perlin_nz.get(Vec2::from(wposf * small_freq).into_array()) * small_ampl
                 + offs;
+            let temp = (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
 
             chunk
                 .set(
@@ -55,7 +59,7 @@ impl World {
                     } else if wposf.z < height - 1.0 {
                         dirt
                     } else if wposf.z < height {
-                        grass
+                        Block::new(2, Rgb::new(10 + (150.0 * temp) as u8, 150, 0))
                     } else {
                         air
                     },
