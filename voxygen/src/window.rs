@@ -165,7 +165,7 @@ impl Window {
             .into();
         Vec2::new(w, h)
     }
-    
+
     pub fn send_supplement_event(&mut self, event: Event) {
         self.supplement_events.push(event)
     }
