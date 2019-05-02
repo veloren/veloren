@@ -9,7 +9,7 @@ stages:
 variables:
   GIT_STRATEGY: none
 before_script:
-  - apt-get install alsa -y --no-install-recommends
+  - apt-get install libasound2-dev -y --no-install-recommends
   - mkdir -p /cache/veloren
   - rm -rf /cache/veloren/bin
   - cd /cache/veloren
