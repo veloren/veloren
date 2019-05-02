@@ -104,6 +104,7 @@ widget_ids! {
         settings_l,
         settings_scrollbar,
         controls_text,
+        controls_controls,
         //Contents
         button_help,
         button_help2,
@@ -411,13 +412,13 @@ impl Imgs {
             settings_bg: load_img("element/frames/settings.png", ui),
             settings_icon: load_img("element/icons/settings.png", ui),
             settings_button_mo: load_img("element/buttons/blue_mo.png", ui),
-            check: load_img("element/buttons/check/no.png", ui),
-            check_mo: load_img("element/buttons/check/no_mo.png", ui),
-            check_press: load_img("element/buttons/check/press.png", ui),
-            check_checked: load_img("element/buttons/check/yes.png", ui),
-            check_checked_mo: load_img("element/buttons/check/yes_mo.png", ui),
-            slider: load_img("element/slider/track.png", ui),
-            slider_indicator: load_img("element/slider/indicator.png", ui),
+            check: load_vox("element/buttons/check/no.vox", ui),
+            check_mo: load_vox("element/buttons/check/no_mo.vox", ui),
+            check_press: load_vox("element/buttons/check/press.vox", ui),
+            check_checked: load_vox("element/buttons/check/yes.vox", ui),
+            check_checked_mo: load_vox("element/buttons/check/yes_mo.vox", ui),
+            slider: load_vox("element/slider/track.vox", ui),
+            slider_indicator: load_vox("element/slider/indicator.vox", ui),
             button_blank: ui.new_graphic(ui::Graphic::Blank),
             button_blue_mo: load_img("element/buttons/blue_mo.png", ui),
             button_blue_press: load_img("element/buttons/blue_press.png", ui),
@@ -455,9 +456,9 @@ impl Imgs {
             questlog_icon: load_img("element/icons/questlog.png", ui),
 
             // Chat-Arrows
-            chat_arrow: load_img("element/buttons/arrow/chat_arrow.png", ui),
-            chat_arrow_mo: load_img("element/buttons/arrow/chat_arrow_mo.png", ui),
-            chat_arrow_press: load_img("element/buttons/arrow/chat_arrow_press.png", ui),
+            chat_arrow: load_vox("element/buttons/arrow_down.vox", ui),
+            chat_arrow_mo: load_vox("element/buttons/arrow_down_hover.vox", ui),
+            chat_arrow_press: load_vox("element/buttons/arrow_down_press.vox", ui),
         }
     }
 }
@@ -1083,7 +1084,7 @@ impl Hud {
                 .set(self.ids.settings_content, ui_widgets);
             Scrollbar::y_axis(self.ids.settings_content)
                 .thickness(5.0)
-                .rgba(0.33, 0.33, 0.33, 1.0)                
+                .rgba(0.33, 0.33, 0.33, 1.0)
                 .set(self.ids.settings_scrollbar, ui_widgets);
             // X-Button
             if Button::image(self.imgs.close_button)
@@ -1244,73 +1245,137 @@ impl Hud {
                 self.settings_tab = SettingsTab::Controls;
             }
             if let SettingsTab::Controls = self.settings_tab {
-
-            Text::new(
-            "Free Cursor: TAB \n\
-            Toggle Help Window: F1     \n\
-            Toggle Interface: F2  \n\
-            Toggle FPS and Debug Info: F3 \n\
+                Text::new(
+                    "Free Cursor\n\
+            Toggle Help Window\n\
+            Toggle Interface\n\
+            Toggle FPS and Debug Info\n\
             \n\
             \n\
-            Move Forward: W     \n\
-            Move Left : A       \n\
-            Move Right: S       \n\
-            Move Backwards: D   \n\
+            Move Forward\n\
+            Move Left\n\
+            Move Right\n\
+            Move Backwards\n\
             \n\
-            Jump: Space         \n\
+            Jump\n\
             \n\
-            Dodge: ??           \n\
+            Dodge\n\
             \n\
-            Auto Walk: ??       \n\
+            Auto Walk\n\
             \n\
-            Sheathe/Draw Weapons: Y \n\
+            Sheathe/Draw Weapons\n\
             \n\
-            Put on/Remove Helmet: ?? [Has a Cast time of 0,5s]  \n\
-            \n\
-            \n\
-            Basic Attack: L-Click       \n\
-            Secondary Attack/Block/Aim: R-Click \n\
+            Put on/Remove Helmet\n\
             \n\
             \n\
-            Skillbar Slot 1: 1  \n\
-            Skillbar Slot 2: 2  \n\
-            Skillbar Slot 3: 3  \n\
-            Skillbar Slot 4: 4  \n\
-            Skillbar Slot 5: 5  \n\
-            Skillbar Slot 6: 6  \n\
-            Skillbar Slot 7: 7  \n\
-            Skillbar Slot 8: 8  \n\
-            Skillbar Slot 9: 9  \n\
-            Skillbar Slot 10: 0 \n\
+            Basic Attack\n\
+            Secondary Attack/Block/Aim\n\
             \n\
             \n\
-            Pause Menu: ESC \n\
-            Settings: N \n\
-            Social: O   \n\
-            Map: M  \n\
-            Spellbook: P    \n\
-            Character: C    \n\
-            Questlog  L \n\
-            Bag: B  \n\
+            Skillbar Slot 1\n\
+            Skillbar Slot 2\n\
+            Skillbar Slot 3\n\
+            Skillbar Slot 4\n\
+            Skillbar Slot 5\n\
+            Skillbar Slot 6\n\
+            Skillbar Slot 7\n\
+            Skillbar Slot 8\n\
+            Skillbar Slot 9\n\
+            Skillbar Slot 10\n\
+            \n\
+            \n\
+            Pause Menu\n\
+            Settings\n\
+            Social\n\
+            Map\n\
+            Spellbook\n\
+            Character\n\
+            Questlog\n\
+            Bag\n\
             \n\
             \n\
             \n\
-            Activate Chat & Input/Send Message: Enter \n\
-            Scroll Chat: Mousewheel on Chat-Window  \n\
+            Send Chat Message\n\
+            Scroll Chat\n\
             \n\
             \n\
             Chat commands:  \n\
             \n\
             /alias [Name] - Change your Chat Name   \n\
             /tp [Name] - Teleports you to another player
-            ")
-            .color(TEXT_COLOR)
-            .top_left_with_margins_on(self.ids.settings_content, 5.0, 5.0)
-            .font_id(self.font_opensans)
-            .font_size(18)
-            .set(self.ids.controls_text, ui_widgets);
-   
-
+            ",
+                )
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(self.ids.settings_content, 5.0, 5.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.controls_text, ui_widgets);
+                // TODO
+                Text::new(
+                    "TAB\n\
+                     F1\n\
+                     F2\n\
+                     F3\n\
+                     \n\
+                     \n\
+                     W\n\
+                     A\n\
+                     S\n\
+                     D\n\
+                     \n\
+                     SPACE\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     \n\
+                     L-Click\n\
+                     R-Click\n\
+                     \n\
+                     \n\
+                     1\n\
+                     2\n\
+                     3\n\
+                     4\n\
+                     5\n\
+                     6\n\
+                     7\n\
+                     8\n\
+                     9\n\
+                     0\n\
+                     \n\
+                     \n\
+                     ESC\n\
+                     N\n\
+                     O\n\
+                     M\n\
+                     P\n\
+                     C\n\
+                     L\n\
+                     B\n\
+                     \n\
+                     \n\
+                     \n\
+                     ENTER\n\
+                     Mousewheel\n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     ",
+                )
+                .color(TEXT_COLOR)
+                .right_from(self.ids.controls_text, 0.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.controls_controls, ui_widgets);
             }
             // 4 Video////////////////////////////////
             if Button::image(if let SettingsTab::Video = self.settings_tab {
