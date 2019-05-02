@@ -9,6 +9,7 @@ stages:
 variables:
   GIT_STRATEGY: none
 before_script:
+  - apt-get install alsa
   - mkdir -p /cache/veloren
   - rm -rf /cache/veloren/bin
   - cd /cache/veloren
