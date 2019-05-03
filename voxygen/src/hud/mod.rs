@@ -382,8 +382,8 @@ impl Imgs {
             esc_bg: load_img("element/frames/menu.png", ui),
             fireplace: load_vox("element/misc_bg/fireplace.vox", ui),
             button: load_vox("element/buttons/button.vox", ui),
-            button_hover: load_img("element/buttons/button_hover.png", ui),
-            button_press: load_img("element/buttons/button_press.png", ui),
+            button_hover: load_vox("element/buttons/button_hover.vox", ui),
+            button_press: load_vox("element/buttons/button_press.vox", ui),
 
             // MiniMap
             mmap_frame: load_vox("element/frames/mmap.vox", ui),
