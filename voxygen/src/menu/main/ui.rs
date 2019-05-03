@@ -205,7 +205,7 @@ impl MainMenuUi {
 
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Username       
-        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
+        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
             .middle_of(ui_widgets.window)
             .set(self.ids.usrnm_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
@@ -326,7 +326,7 @@ impl MainMenuUi {
             };
         }
         // Server address
-        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.98))
+        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
             .down_from(self.ids.usrnm_bg, 30.0)
             .set(self.ids.srvr_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
