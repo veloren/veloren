@@ -102,6 +102,9 @@ widget_ids! {
         settings_title,
         settings_r,
         settings_l,
+        settings_scrollbar,
+        controls_text,
+        controls_controls,
         //Contents
         button_help,
         button_help2,
@@ -215,9 +218,9 @@ pub(self) struct Imgs {
     // Menu
     esc_bg: ImgId,
     fireplace: ImgId,
-    button_dark: ImgId,
-    button_dark_hover: ImgId,
-    button_dark_press: ImgId,
+    button: ImgId,
+    button_hover: ImgId,
+    button_press: ImgId,
 
     // MiniMap
     mmap_frame: ImgId,
@@ -378,9 +381,9 @@ impl Imgs {
             // Esc-Menu
             esc_bg: load_img("element/frames/menu.png", ui),
             fireplace: load_vox("element/misc_bg/fireplace.vox", ui),
-            button_dark: load_vox("element/buttons/button_dark.vox", ui),
-            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
-            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
+            button: load_vox("element/buttons/button.vox", ui),
+            button_hover: load_img("element/buttons/button_hover.png", ui),
+            button_press: load_img("element/buttons/button_press.png", ui),
 
             // MiniMap
             mmap_frame: load_vox("element/frames/mmap.vox", ui),
@@ -409,13 +412,13 @@ impl Imgs {
             settings_bg: load_img("element/frames/settings.png", ui),
             settings_icon: load_img("element/icons/settings.png", ui),
             settings_button_mo: load_img("element/buttons/blue_mo.png", ui),
-            check: load_img("element/buttons/check/no.png", ui),
-            check_mo: load_img("element/buttons/check/no_mo.png", ui),
-            check_press: load_img("element/buttons/check/press.png", ui),
-            check_checked: load_img("element/buttons/check/yes.png", ui),
-            check_checked_mo: load_img("element/buttons/check/yes_mo.png", ui),
-            slider: load_img("element/slider/track.png", ui),
-            slider_indicator: load_img("element/slider/indicator.png", ui),
+            check: load_vox("element/buttons/check/no.vox", ui),
+            check_mo: load_vox("element/buttons/check/no_mo.vox", ui),
+            check_press: load_vox("element/buttons/check/press.vox", ui),
+            check_checked: load_vox("element/buttons/check/yes.vox", ui),
+            check_checked_mo: load_vox("element/buttons/check/yes_mo.vox", ui),
+            slider: load_vox("element/slider/track.vox", ui),
+            slider_indicator: load_vox("element/slider/indicator.vox", ui),
             button_blank: ui.new_graphic(ui::Graphic::Blank),
             button_blue_mo: load_img("element/buttons/blue_mo.png", ui),
             button_blue_press: load_img("element/buttons/blue_press.png", ui),
@@ -453,9 +456,9 @@ impl Imgs {
             questlog_icon: load_img("element/icons/questlog.png", ui),
 
             // Chat-Arrows
-            chat_arrow: load_img("element/buttons/arrow/chat_arrow.png", ui),
-            chat_arrow_mo: load_img("element/buttons/arrow/chat_arrow_mo.png", ui),
-            chat_arrow_press: load_img("element/buttons/arrow/chat_arrow_press.png", ui),
+            chat_arrow: load_vox("element/buttons/arrow_down.vox", ui),
+            chat_arrow_mo: load_vox("element/buttons/arrow_down_hover.vox", ui),
+            chat_arrow_press: load_vox("element/buttons/arrow_down_press.vox", ui),
         }
     }
 }
@@ -548,12 +551,12 @@ impl Hud {
             ids,
             chat,
             settings_tab: SettingsTab::Interface,
-            show_help: true,
-            show_debug: false,
+            show_help: false,
+            show_debug: true,
             bag_open: false,
             menu_open: false,
             map_open: false,
-            mmap_open: true,
+            mmap_open: false,
             show_ui: true,
             inventorytest_button: false,
             inventory_space: 0,
@@ -1006,10 +1009,10 @@ impl Hud {
 
             // X-button
             if Button::image(self.imgs.close_button)
-                .w_h(4.0 * 4.0, 4.0 * 4.0)
+                .w_h(28.0, 28.0)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.bag_contents, 4.5, 4.5)
+                .top_right_with_margins_on(self.ids.bag_contents, 0.0, 0.0)
                 .set(self.ids.bag_close, ui_widgets)
                 .was_clicked()
             {
@@ -1079,6 +1082,10 @@ impl Hud {
                 .scroll_kids()
                 .scroll_kids_vertically()
                 .set(self.ids.settings_content, ui_widgets);
+            Scrollbar::y_axis(self.ids.settings_content)
+                .thickness(5.0)
+                .rgba(0.33, 0.33, 0.33, 1.0)
+                .set(self.ids.settings_scrollbar, ui_widgets);
             // X-Button
             if Button::image(self.imgs.close_button)
                 .w_h(28.0, 28.0)
@@ -1237,7 +1244,139 @@ impl Hud {
             {
                 self.settings_tab = SettingsTab::Controls;
             }
-
+            if let SettingsTab::Controls = self.settings_tab {
+                Text::new(
+                    "Free Cursor\n\
+            Toggle Help Window\n\
+            Toggle Interface\n\
+            Toggle FPS and Debug Info\n\
+            \n\
+            \n\
+            Move Forward\n\
+            Move Left\n\
+            Move Right\n\
+            Move Backwards\n\
+            \n\
+            Jump\n\
+            \n\
+            Dodge\n\
+            \n\
+            Auto Walk\n\
+            \n\
+            Sheathe/Draw Weapons\n\
+            \n\
+            Put on/Remove Helmet\n\
+            \n\
+            \n\
+            Basic Attack\n\
+            Secondary Attack/Block/Aim\n\
+            \n\
+            \n\
+            Skillbar Slot 1\n\
+            Skillbar Slot 2\n\
+            Skillbar Slot 3\n\
+            Skillbar Slot 4\n\
+            Skillbar Slot 5\n\
+            Skillbar Slot 6\n\
+            Skillbar Slot 7\n\
+            Skillbar Slot 8\n\
+            Skillbar Slot 9\n\
+            Skillbar Slot 10\n\
+            \n\
+            \n\
+            Pause Menu\n\
+            Settings\n\
+            Social\n\
+            Map\n\
+            Spellbook\n\
+            Character\n\
+            Questlog\n\
+            Bag\n\
+            \n\
+            \n\
+            \n\
+            Send Chat Message\n\
+            Scroll Chat\n\
+            \n\
+            \n\
+            Chat commands:  \n\
+            \n\
+            /alias [Name] - Change your Chat Name   \n\
+            /tp [Name] - Teleports you to another player
+            ",
+                )
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(self.ids.settings_content, 5.0, 5.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.controls_text, ui_widgets);
+                // TODO: Replace with buttons that show the actual keybind and allow the user to change it.
+                Text::new(
+                    "TAB\n\
+                     F1\n\
+                     F2\n\
+                     F3\n\
+                     \n\
+                     \n\
+                     W\n\
+                     A\n\
+                     S\n\
+                     D\n\
+                     \n\
+                     SPACE\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     \n\
+                     L-Click\n\
+                     R-Click\n\
+                     \n\
+                     \n\
+                     1\n\
+                     2\n\
+                     3\n\
+                     4\n\
+                     5\n\
+                     6\n\
+                     7\n\
+                     8\n\
+                     9\n\
+                     0\n\
+                     \n\
+                     \n\
+                     ESC\n\
+                     N\n\
+                     O\n\
+                     M\n\
+                     P\n\
+                     C\n\
+                     L\n\
+                     B\n\
+                     \n\
+                     \n\
+                     \n\
+                     ENTER\n\
+                     Mousewheel\n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     ",
+                )
+                .color(TEXT_COLOR)
+                .right_from(self.ids.controls_text, 0.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.controls_controls, ui_widgets);
+            }
             // 4 Video////////////////////////////////
             if Button::image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
@@ -1639,11 +1778,11 @@ impl Hud {
                 .set(self.ids.fireplace, ui_widgets);
 
             // Settings
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 115.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Settings")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1655,11 +1794,11 @@ impl Hud {
                 self.open_windows = Windows::Settings;
             };
             // Controls
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 175.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Controls")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1667,14 +1806,16 @@ impl Hud {
                 .set(self.ids.menu_button_2, ui_widgets)
                 .was_clicked()
             {
-                //self.menu_open = false;
+                self.menu_open = false;
+                self.settings_tab = SettingsTab::Controls;
+                self.open_windows = Windows::Settings;
             };
             // Servers
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 235.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Servers")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1685,11 +1826,11 @@ impl Hud {
                 //self.menu_open = false;
             };
             // Logout
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 295.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Logout")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1700,11 +1841,11 @@ impl Hud {
                 events.push(Event::Logout);
             };
             // Quit
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 355.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Quit")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
