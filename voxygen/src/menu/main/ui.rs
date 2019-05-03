@@ -204,7 +204,7 @@ impl MainMenuUi {
         }
 
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-        // Username       
+        // Username
         Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
             .middle_of(ui_widgets.window)
             .set(self.ids.usrnm_bg, ui_widgets);
