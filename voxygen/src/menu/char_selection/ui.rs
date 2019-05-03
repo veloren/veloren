@@ -52,6 +52,7 @@ widget_ids! {
         undead_skin_bg,
         elf_skin_bg,
         danari_skin_bg,
+        name_input_bg,
 
 
         // Buttons
@@ -577,9 +578,12 @@ impl CharSelectionUi {
                 self.character_creation = false;
             }
             // Character Name Input
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
+            .mid_bottom_with_margin_on(self.ids.bg_creation, 20.0)
+            .set(self.ids.name_input_bg, ui_widgets);
             Button::image(self.imgs.name_input)
                 .w_h(337.0, 67.0)
-                .mid_bottom_with_margin_on(self.ids.bg_creation, 10.0)
+                .middle_of(self.ids.name_input_bg)
                 .set(self.ids.name_input, ui_widgets);
             for event in TextBox::new(&self.character_name)
                 .w_h(300.0, 60.0)
