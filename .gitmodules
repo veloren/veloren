@@ -1,4 +1,0 @@
-[submodule "assets/voxygen"]
-	path = assets/voxygen
-	url = ../../veloren/fresh-assets/voxygen.git
-	shallow = true
