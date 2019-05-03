@@ -4,6 +4,7 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
 use super::{
     img_ids::Imgs,
     font_ids::Fonts,

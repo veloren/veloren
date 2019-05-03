@@ -34,7 +34,6 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct CharacterWindow<'a> {
-    xp_percentage: f64,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
@@ -46,7 +45,6 @@ pub struct CharacterWindow<'a> {
 impl<'a> CharacterWindow<'a> {
     pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
-            xp_percentage: 0.4,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -80,6 +78,9 @@ impl<'a> Widget for CharacterWindow<'a> {
             style,
             ..
         } = args;
+
+        // TODO: Read from parameter / character struct
+        let xp_percentage = 0.4;
 
         // Frame
         Image::new(self.imgs.window_frame)
@@ -153,7 +154,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_exp_rectangle, ui);
 
         // Exp-Bar Progress
-        Rectangle::fill_with([170.0 * (self.xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percentage
+        Rectangle::fill_with([170.0 * (xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percentage
             .mid_left_with_margin_on(state.charwindow_tab1_expbar, 1.0)
             .set(state.charwindow_exp_progress_rectangle, ui);
 
