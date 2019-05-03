@@ -218,9 +218,9 @@ pub(self) struct Imgs {
     // Menu
     esc_bg: ImgId,
     fireplace: ImgId,
-    button_dark: ImgId,
-    button_dark_hover: ImgId,
-    button_dark_press: ImgId,
+    button: ImgId,
+    button_hover: ImgId,
+    button_press: ImgId,
 
     // MiniMap
     mmap_frame: ImgId,
@@ -381,9 +381,9 @@ impl Imgs {
             // Esc-Menu
             esc_bg: load_img("element/frames/menu.png", ui),
             fireplace: load_vox("element/misc_bg/fireplace.vox", ui),
-            button_dark: load_vox("element/buttons/button_dark.vox", ui),
-            button_dark_hover: load_img("element/buttons/button_dark_hover.png", ui),
-            button_dark_press: load_img("element/buttons/button_dark_press.png", ui),
+            button: load_vox("element/buttons/button.vox", ui),
+            button_hover: load_img("element/buttons/button_hover.png", ui),
+            button_press: load_img("element/buttons/button_press.png", ui),
 
             // MiniMap
             mmap_frame: load_vox("element/frames/mmap.vox", ui),
@@ -1310,7 +1310,7 @@ impl Hud {
                 .font_id(self.font_opensans)
                 .font_size(18)
                 .set(self.ids.controls_text, ui_widgets);
-                // TODO
+                // TODO: Replace with buttons that show the actual keybind and allow the user to change it.
                 Text::new(
                     "TAB\n\
                      F1\n\
@@ -1778,11 +1778,11 @@ impl Hud {
                 .set(self.ids.fireplace, ui_widgets);
 
             // Settings
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 115.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Settings")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1794,11 +1794,11 @@ impl Hud {
                 self.open_windows = Windows::Settings;
             };
             // Controls
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 175.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Controls")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1811,11 +1811,11 @@ impl Hud {
                 self.open_windows = Windows::Settings;
             };
             // Servers
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 235.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Servers")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1826,11 +1826,11 @@ impl Hud {
                 //self.menu_open = false;
             };
             // Logout
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 295.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Logout")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
@@ -1841,11 +1841,11 @@ impl Hud {
                 events.push(Event::Logout);
             };
             // Quit
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .mid_top_with_margin_on(self.ids.esc_bg, 355.0)
                 .w_h(170.0, 50.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label("Quit")
                 .label_y(conrod_core::position::Relative::Scalar(2.0))
                 .label_color(TEXT_COLOR)
