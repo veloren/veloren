@@ -114,11 +114,19 @@ clippy:
 # Commit build
 #############
 
-commit-linux-debug:
+.commit: &commit
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
+  except:
+    - schedules
+  only:
+    refs:
+      - master
+
+commit:linux-debug:
+  <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
@@ -134,17 +142,9 @@ commit-linux-debug:
     paths:
       - commit-linux-debug.tar.bz2
     expire_in: 1 week
-  except:
-    - schedules
-  only:
-    refs:
-      - master
 
-commit-windows-debug:
-  stage: executable
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
+commit:windows-debug:
+  <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
@@ -160,11 +160,6 @@ commit-windows-debug:
     paths:
       - commit-windows-debug.zip
     expire_in: 1 week
-  except:
-    - schedules
-  only:
-    refs:
-      - master
 
 #############
 # NIGHTLY
