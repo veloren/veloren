@@ -34,6 +34,8 @@ widget_ids! {
         username_field,
         singleplayer_button,
         singleplayer_text,
+        usrnm_bg,
+        srvr_bg,
         // Serverlist
         servers_button,
         servers_frame,
@@ -56,9 +58,6 @@ struct Imgs {
     input_bg: ImgId,
 
     error_frame: ImgId,
-    button_dark: ImgId,
-    button_dark_hover: ImgId,
-    button_dark_press: ImgId,
     button: ImgId,
     button_hover: ImgId,
     button_press: ImgId,
@@ -93,9 +92,6 @@ impl Imgs {
             input_bg: load_vox("element/misc_bg/textbox.vox", ui),
 
             error_frame: load_img("element/frames/window_2.png", ui),
-            button_dark: load_vox("element/buttons/button_dark.vox", ui),
-            button_dark_hover: load_vox("element/buttons/button_dark_hover.vox", ui),
-            button_dark_press: load_vox("element/buttons/button_dark_press.vox", ui),
             button: load_vox("element/buttons/button.vox", ui),
             button_hover: load_vox("element/buttons/button_hover.vox", ui),
             button_press: load_vox("element/buttons/button_press.vox", ui),
@@ -208,16 +204,18 @@ impl MainMenuUi {
         }
 
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-        // Username
-        // TODO: get a lower resolution and cleaner input_bg.png
+        // Username       
+        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
+            .middle_of(ui_widgets.window)
+            .set(self.ids.usrnm_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
             .w_h(337.0, 67.0)
-            .middle_of(ui_widgets.window)
+            .middle_of(self.ids.usrnm_bg)
             .set(self.ids.username_bg, ui_widgets);
         for event in TextBox::new(&self.username)
-            .w_h(580.0 / 2.0, 60.0 / 2.0)
+            .w_h(290.0, 30.0)
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
-            .font_size(20)
+            .font_size(22)
             .font_id(self.font_opensans)
             .text_color(TEXT_COLOR)
             // transparent background
@@ -252,11 +250,11 @@ impl MainMenuUi {
                 .set(self.ids.error_frame, ui_widgets);
             text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
                 .set(self.ids.login_error, ui_widgets);
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .w_h(100.0, 30.0)
                 .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
                 .label("Okay")
                 .label_font_size(10)
@@ -294,11 +292,11 @@ impl MainMenuUi {
 
                 if item
                     .set(
-                        Button::image(self.imgs.button_dark)
+                        Button::image(self.imgs.button)
                             .w_h(100.0, 53.0)
                             .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                            .hover_image(self.imgs.button_dark_hover)
-                            .press_image(self.imgs.button_dark_press)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
                             .label_y(Relative::Scalar(2.0))
                             .label(&text)
                             .label_font_size(20)
@@ -312,11 +310,11 @@ impl MainMenuUi {
                 }
             }
 
-            if Button::image(self.imgs.button_dark)
+            if Button::image(self.imgs.button)
                 .w_h(200.0, 53.0)
                 .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                .hover_image(self.imgs.button_dark_hover)
-                .press_image(self.imgs.button_dark_press)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
                 .label("Close")
                 .label_font_size(20)
@@ -328,14 +326,17 @@ impl MainMenuUi {
             };
         }
         // Server address
+        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.98))
+            .down_from(self.ids.usrnm_bg, 30.0)
+            .set(self.ids.srvr_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
             .w_h(337.0, 67.0)
-            .down_from(self.ids.username_bg, 10.0)
+            .middle_of(self.ids.srvr_bg)
             .set(self.ids.address_bg, ui_widgets);
         for event in TextBox::new(&self.server_address)
-            .w_h(580.0 / 2.0, 60.0 / 2.0)
+            .w_h(290.0, 30.0)
             .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
-            .font_size(20)
+            .font_size(22)
             .font_id(self.font_opensans)
             .text_color(TEXT_COLOR)
             // transparent background
@@ -356,7 +357,7 @@ impl MainMenuUi {
         // Change button text and remove hover/press images if a connection is in progress
         if let Some(start) = self.connecting {
             Button::image(self.imgs.button)
-                .w_h(258.0, 68.0)
+                .w_h(258.0, 55.0)
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
                 .label("Connecting...")
@@ -369,14 +370,14 @@ impl MainMenuUi {
                         pulse / 4.0 + 0.75,
                     )
                 })
-                .label_font_size(24)
+                .label_font_size(22)
                 .label_y(Relative::Scalar(5.0))
                 .set(self.ids.login_button, ui_widgets);
         } else {
             if Button::image(self.imgs.button)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
-                .w_h(258.0, 68.0)
+                .w_h(258.0, 55.0)
                 .down_from(self.ids.address_bg, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
                 .label("Login")
@@ -394,12 +395,12 @@ impl MainMenuUi {
         if Button::image(self.imgs.button)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .w_h(258.0, 68.0)
+            .w_h(258.0, 55.0)
             .down_from(self.ids.login_button, 20.0)
             .align_middle_x_of(self.ids.address_bg)
             .label("Singleplayer")
             .label_color(TEXT_COLOR)
-            .label_font_size(24)
+            .label_font_size(22)
             .label_y(Relative::Scalar(5.0))
             .label_x(Relative::Scalar(2.0))
             .set(self.ids.singleplayer_button, ui_widgets)
@@ -409,7 +410,7 @@ impl MainMenuUi {
         }
         // Quit
         if Button::image(self.imgs.button)
-            .w_h(203.0, 53.0)
+            .w_h(190.0, 40.0)
             .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
@@ -424,7 +425,7 @@ impl MainMenuUi {
         };
         // Settings
         if Button::image(self.imgs.button)
-            .w_h(203.0, 53.0)
+            .w_h(190.0, 40.0)
             .up_from(self.ids.quit_button, 8.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
@@ -437,7 +438,7 @@ impl MainMenuUi {
         {};
         // Servers
         if Button::image(self.imgs.button)
-            .w_h(203.0, 53.0)
+            .w_h(190.0, 40.0)
             .up_from(self.ids.settings_button, 8.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
