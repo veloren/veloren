@@ -157,10 +157,10 @@ impl Chat {
         // Chat Arrow
         if !self.scrolled_to_bottom(ui_widgets) {
             if Button::image(imgs.chat_arrow)
-                .w_h(22.0, 22.0)
+                .w_h(20.0, 20.0)
                 .hover_image(imgs.chat_arrow_mo)
                 .press_image(imgs.chat_arrow_press)
-                .bottom_right_with_margins_on(self.ids.message_box_bg, 2.0, 2.0)
+                .bottom_right_with_margins_on(self.ids.message_box_bg, 0.0, -22.0)
                 .set(self.ids.chat_arrow, ui_widgets)
                 .was_clicked()
             {
