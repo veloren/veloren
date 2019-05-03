@@ -179,7 +179,6 @@ pub(self) struct Imgs {
     inv_slot: ImgId,
 
     // Buttons
-
     mmap_closed: ImgId,
     mmap_closed_hover: ImgId,
     mmap_closed_press: ImgId,
@@ -224,7 +223,7 @@ pub(self) struct Imgs {
     button_press: ImgId,
 
     // MiniMap
-    mmap_frame: ImgId,    
+    mmap_frame: ImgId,
     mmap_frame_closed: ImgId,
 
     // SkillBar Module
@@ -344,7 +343,7 @@ impl Imgs {
             mmap_open: load_vox("element/buttons/button_mmap_open.vox", ui),
             mmap_open_hover: load_vox("element/buttons/button_mmap_open_hover.vox", ui),
             mmap_open_press: load_vox("element/buttons/button_mmap_open_press.vox", ui),
-        
+
             settings: load_vox("element/buttons/settings.vox", ui),
             settings_hover: load_vox("element/buttons/settings_hover.vox", ui),
             settings_press: load_vox("element/buttons/settings_press.vox", ui),
@@ -387,7 +386,7 @@ impl Imgs {
             button_press: load_img("element/buttons/button_press.png", ui),
 
             // MiniMap
-            mmap_frame: load_vox("element/frames/mmap.vox", ui),            
+            mmap_frame: load_vox("element/frames/mmap.vox", ui),
             mmap_frame_closed: load_vox("element/frames/mmap_closed.vox", ui),
 
             // Skillbar Module
@@ -662,35 +661,46 @@ impl Hud {
             };
         }
 
-        // Minimap 
+        // Minimap
 
-        if self.mmap_open { 
+        if self.mmap_open {
             Image::new(self.imgs.mmap_frame)
-            .w_h(100.0 * 2.0, 100.0 * 2.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .set(self.ids.mmap_frame, ui_widgets);
+                .w_h(100.0 * 2.0, 100.0 * 2.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .set(self.ids.mmap_frame, ui_widgets);
 
-        Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
-            .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);        
-            }
-            else {
-                Image::new(self.imgs.mmap_frame_closed)
+            Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
+                .set(self.ids.mmap_frame_bg, ui_widgets);
+        } else {
+            Image::new(self.imgs.mmap_frame_closed)
                 .w_h(100.0 * 2.0, 11.0 * 2.0)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .set(self.ids.mmap_frame, ui_widgets);                
-            };
-        
-        if Button::image(if self.mmap_open {self.imgs.mmap_open} else {self.imgs.mmap_closed})
-                .w_h(100.0 * 0.2, 100.0 * 0.2)
-                .hover_image(if self.mmap_open {self.imgs.mmap_open_hover} else {self.imgs.mmap_closed_hover})
-                .press_image(if self.mmap_open {self.imgs.mmap_open_press} else {self.imgs.mmap_closed_press})
-                .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
-                .set(self.ids.mmap_button, ui_widgets)
-                .was_clicked()
-            {
-                self.mmap_open = !self.mmap_open;
-            };
+                .set(self.ids.mmap_frame, ui_widgets);
+        };
+
+        if Button::image(if self.mmap_open {
+            self.imgs.mmap_open
+        } else {
+            self.imgs.mmap_closed
+        })
+        .w_h(100.0 * 0.2, 100.0 * 0.2)
+        .hover_image(if self.mmap_open {
+            self.imgs.mmap_open_hover
+        } else {
+            self.imgs.mmap_closed_hover
+        })
+        .press_image(if self.mmap_open {
+            self.imgs.mmap_open_press
+        } else {
+            self.imgs.mmap_closed_press
+        })
+        .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
+        .set(self.ids.mmap_button, ui_widgets)
+        .was_clicked()
+        {
+            self.mmap_open = !self.mmap_open;
+        };
 
         // Title
         // Make it display the actual location
@@ -1052,23 +1062,23 @@ impl Hud {
         // 0 Settings
 
         if let Windows::Settings = self.open_windows {
-            // Frame Alignment            
+            // Frame Alignment
             Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-                .middle_of(ui_widgets.window)                
+                .middle_of(ui_widgets.window)
                 .set(self.ids.settings_bg, ui_widgets);
             // Frame
             Image::new(self.imgs.settings_frame_l)
                 .top_left_with_margins_on(self.ids.settings_bg, 0.0, 0.0)
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_l, ui_widgets);
-             Image::new(self.imgs.settings_frame_r)
+            Image::new(self.imgs.settings_frame_r)
                 .right_from(self.ids.settings_l, 0.0)
                 .parent(self.ids.settings_bg)
                 .w_h(412.0, 488.0)
                 .set(self.ids.settings_r, ui_widgets);
             // Content Alignment
-            Rectangle::fill_with([198.0*4.0, 97.0*4.0], color::TRANSPARENT)
-                .top_right_with_margins_on(self.ids.settings_r, 21.0*4.0, 4.0*4.0)
+            Rectangle::fill_with([198.0 * 4.0, 97.0 * 4.0], color::TRANSPARENT)
+                .top_right_with_margins_on(self.ids.settings_r, 21.0 * 4.0, 4.0 * 4.0)
                 .scroll_kids()
                 .scroll_kids_vertically()
                 .set(self.ids.settings_content, ui_widgets);
@@ -1097,10 +1107,10 @@ impl Hud {
                 .set(self.ids.settings_title, ui_widgets);
             // Icon
             //Image::new(self.imgs.settings_icon)
-                //.w_h(224.0 / 3.0, 224.0 / 3.0)
-                //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
-                //.set(self.ids.settings_icon, ui_widgets);
-            // TODO: Find out if we can remove this                   
+            //.w_h(224.0 / 3.0, 224.0 / 3.0)
+            //.top_left_with_margins_on(self.ids.settings_bg, -10.0, -10.0)
+            //.set(self.ids.settings_icon, ui_widgets);
+            // TODO: Find out if we can remove this
 
             // 1 Interface////////////////////////////
             if Button::image(if let SettingsTab::Interface = self.settings_tab {
@@ -1108,7 +1118,7 @@ impl Hud {
             } else {
                 self.imgs.settings_button
             })
-            .w_h(31.0*4.0, 12.0*4.0)
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Interface = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1119,7 +1129,7 @@ impl Hud {
             } else {
                 self.imgs.settings_button_press
             })
-            .top_left_with_margins_on(self.ids.settings_l, 8.0*4.0, 2.0*4.0)
+            .top_left_with_margins_on(self.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
             .label("Interface")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -1182,12 +1192,12 @@ impl Hud {
             }
 
             // 2 Gameplay////////////////
-           if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
+            if Button::image(if let SettingsTab::Gameplay = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
                 self.imgs.settings_button
             })
-            .w_h(31.0*4.0, 12.0*4.0)
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Gameplay = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1214,7 +1224,7 @@ impl Hud {
             } else {
                 self.imgs.settings_button
             })
-            .w_h(31.0*4.0, 12.0*4.0)
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Controls = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1368,12 +1378,12 @@ impl Hud {
                 .set(self.ids.controls_controls, ui_widgets);
             }
             // 4 Video////////////////////////////////
-           if Button::image(if let SettingsTab::Video = self.settings_tab {
+            if Button::image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
                 self.imgs.settings_button
             })
-            .w_h(31.0*4.0, 12.0*4.0)
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Video = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1383,7 +1393,7 @@ impl Hud {
                 self.imgs.settings_button_pressed
             } else {
                 self.imgs.settings_button_press
-            })            
+            })
             .right_from(self.ids.controls, 0.0)
             .label("Video")
             .parent(self.ids.settings_r)
@@ -1401,7 +1411,7 @@ impl Hud {
             } else {
                 self.imgs.settings_button
             })
-            .w_h(31.0*4.0, 12.0*4.0)
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
             .hover_image(if let SettingsTab::Sound = self.settings_tab {
                 self.imgs.settings_button_pressed
             } else {
@@ -1705,7 +1715,7 @@ impl Hud {
 
         // 2 Map
         if self.map_open {
-            // BG         
+            // BG
             Rectangle::fill_with([824.0, 976.0], color::TRANSPARENT)
                 .mid_top_with_margin_on(ui_widgets.window, 15.0)
                 .scroll_kids()
@@ -1727,8 +1737,7 @@ impl Hud {
             Image::new(self.imgs.map_frame_bl)
                 .down_from(self.ids.map_frame_l, 0.0)
                 .w_h(412.0, 488.0)
-                .set(self.ids.map_frame_bl, ui_widgets);            
-
+                .set(self.ids.map_frame_bl, ui_widgets);
 
             // Icon
             Image::new(self.imgs.map_icon)
@@ -1749,10 +1758,10 @@ impl Hud {
             }
             // Title
             //Text::new("Map")
-                //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
-                //.font_size(14)
-                //.color(TEXT_COLOR)
-                //.set(self.ids.map_title, ui_widgets);
+            //.mid_top_with_margin_on(self.ids.map_bg, -7.0)
+            //.font_size(14)
+            //.color(TEXT_COLOR)
+            //.set(self.ids.map_title, ui_widgets);
         }
 
         // ESC-MENU

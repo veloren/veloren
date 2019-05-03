@@ -579,8 +579,8 @@ impl CharSelectionUi {
             }
             // Character Name Input
             Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
-            .mid_bottom_with_margin_on(self.ids.bg_creation, 20.0)
-            .set(self.ids.name_input_bg, ui_widgets);
+                .mid_bottom_with_margin_on(self.ids.bg_creation, 20.0)
+                .set(self.ids.name_input_bg, ui_widgets);
             Button::image(self.imgs.name_input)
                 .w_h(337.0, 67.0)
                 .middle_of(self.ids.name_input_bg)
