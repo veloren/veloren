@@ -81,6 +81,9 @@ pub struct State {
 }
 
 pub enum Event {
+    Help(bool),
+    Debug(bool),
+    InventoryTest(bool),
     Close,
 }
 
@@ -113,47 +116,47 @@ impl<'a> Widget for SettingsWindow<'a> {
         } = args;
 
         // Frame Alignment
-            Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
-                .middle_of(ui.window)
-                .set(state.ids.settings_bg, ui);
-            // Frame
-            Image::new(self.imgs.settings_frame_l)
-                .top_left_with_margins_on(state.ids.settings_bg, 0.0, 0.0)
-                .w_h(412.0, 488.0)
-                .set(state.ids.settings_l, ui);
-            Image::new(self.imgs.settings_frame_r)
-                .right_from(state.ids.settings_l, 0.0)
-                .parent(state.ids.settings_bg)
-                .w_h(412.0, 488.0)
-                .set(state.ids.settings_r, ui);
-            // Content Alignment
-            Rectangle::fill_with([198.0 * 4.0, 97.0 * 4.0], color::TRANSPARENT)
-                .top_right_with_margins_on(state.ids.settings_r, 21.0 * 4.0, 4.0 * 4.0)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(state.ids.settings_content, ui);
-            Scrollbar::y_axis(state.ids.settings_content)
-                .thickness(5.0)
-                .rgba(0.33, 0.33, 0.33, 1.0)
-                .set(state.ids.settings_scrollbar, ui);
-            // X-Button
-            if Button::image(self.imgs.close_button)
-                .w_h(28.0, 28.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(state.ids.settings_r, 0.0, 0.0)
-                .set(state.ids.settings_close, ui)
-                .was_clicked()
+        Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
+            .middle_of(ui.window)
+            .set(state.ids.settings_bg, ui);
+        // Frame
+        Image::new(self.imgs.settings_frame_l)
+            .top_left_with_margins_on(state.ids.settings_bg, 0.0, 0.0)
+            .w_h(412.0, 488.0)
+            .set(state.ids.settings_l, ui);
+        Image::new(self.imgs.settings_frame_r)
+            .right_from(state.ids.settings_l, 0.0)
+            .parent(state.ids.settings_bg)
+            .w_h(412.0, 488.0)
+            .set(state.ids.settings_r, ui);
+        // Content Alignment
+        Rectangle::fill_with([198.0 * 4.0, 97.0 * 4.0], color::TRANSPARENT)
+            .top_right_with_margins_on(state.ids.settings_r, 21.0 * 4.0, 4.0 * 4.0)
+            .scroll_kids()
+            .scroll_kids_vertically()
+            .set(state.ids.settings_content, ui);
+        Scrollbar::y_axis(state.ids.settings_content)
+            .thickness(5.0)
+            .rgba(0.33, 0.33, 0.33, 1.0)
+            .set(state.ids.settings_scrollbar, ui);
+        // X-Button
+        if Button::image(self.imgs.close_button)
+            .w_h(28.0, 28.0)
+            .hover_image(self.imgs.close_button_hover)
+            .press_image(self.imgs.close_button_press)
+            .top_right_with_margins_on(state.ids.settings_r, 0.0, 0.0)
+            .set(state.ids.settings_close, ui)
+            .was_clicked()
         {
             return Some(Event::Close);
         }
 
         // Title
-            Text::new("Settings")
-                .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
-                .font_size(14)
-                .color(TEXT_COLOR)
-            .set(state.ids.settings_title, ui);      
+        Text::new("Settings")
+            .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
+            .font_size(14)
+            .color(TEXT_COLOR)
+        .set(state.ids.settings_title, ui);      
         
         
 
@@ -184,9 +187,9 @@ impl<'a> Widget for SettingsWindow<'a> {
             state.update(|s| s.settings_tab = SettingsTab::Interface);
         }
 
-        // Toggle Help
         if let SettingsTab::Interface = state.settings_tab {
-            let show_debug =
+            // Help
+            let show_help =
                 ToggleButton::new(state.show_help, self.imgs.check, self.imgs.check_checked)
                     .w_h(288.0 / 24.0, 288.0 / 24.0)
                     .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
@@ -194,7 +197,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .press_images(self.imgs.check_press, self.imgs.check_press)
                     .set(state.ids.button_help, ui);
             
-            state.update(|s| s.show_debug = show_debug);
+            if state.show_help != show_help {
+                state.update(|s| s.show_help = show_help);
+                return Some(Event::Help(show_help));
+            }
 
             Text::new("Show Help")
                 .right_from(state.ids.button_help, 10.0)
@@ -204,7 +210,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.show_help_label, ui);
 
-            let show_debug = ToggleButton::new(
+            // Inventory test
+            let inventorytest_button = ToggleButton::new(
                 state.inventorytest_button,
                 self.imgs.check,
                 self.imgs.check_checked,
@@ -215,7 +222,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(state.ids.inventorytest_button, ui);
 
-            state.update(|s| s.show_debug = show_debug);
+            if state.inventorytest_button != inventorytest_button {
+                state.update(|s| s.inventorytest_button = inventorytest_button);
+                return Some(Event::InventoryTest(inventorytest_button));
+            }
 
             Text::new("Show Inventory Test Button")
                 .right_from(state.ids.inventorytest_button, 10.0)
@@ -225,6 +235,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.inventorytest_button_label, ui);
 
+            // Debug
             let show_debug = ToggleButton::new(
                 state.show_debug,
                 self.imgs.check,
@@ -236,7 +247,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(state.ids.debug_button, ui);
 
-            state.update(|s| s.show_debug = show_debug);
+            if state.show_debug != show_debug {
+                state.update(|s| s.show_debug = show_debug);
+                return Some(Event::Debug(show_debug));
+            }
 
             Text::new("Show Debug Window")
                 .right_from(state.ids.debug_button, 10.0)
