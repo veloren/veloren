@@ -62,6 +62,9 @@ widget_ids! {
         mmap_frame,
         mmap_frame_bg,
         mmap_location,
+        mmap_button,
+
+    
 
         // Window Frames
         window_frame_0,
@@ -118,6 +121,7 @@ pub struct Hud {
     mmap_open: bool,
     show_map: bool,
     show_ui: bool,
+    mmap_open: bool,
     inventory_space: u32,
     inventorytest_button: bool,
 }
@@ -140,13 +144,14 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            show_help: true,
-            show_debug: false,
+            show_help: false,
+            show_debug: true,
             show_bag: false,
             esc_menu_open: false,
             open_windows: Windows::None,
             show_map: false,
             show_ui: true,
+            mmap_open: false,
             inventorytest_button: false,
             inventory_space: 0,
         }
@@ -168,7 +173,7 @@ impl Hud {
             Text::new(version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
-                .font_id(self.font_opensans)
+                .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
             Text::new(&format!("FPS: {:.1}", tps))
@@ -178,7 +183,6 @@ impl Hud {
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
         }
-
         // Add Bag-Space Button
         if self.inventorytest_button {
             if Button::image(self.imgs.grid_button)
@@ -193,15 +197,7 @@ impl Hud {
             {
                 self.inventory_space += 1;
             };
-        }
-
-        // Alpha Version
-        Text::new(version)
-            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .font_size(14)
-            .color(TEXT_COLOR)
-            .set(self.ids.v_logo, ui_widgets);
-
+        }       
         // Help Text
         if self.show_help {
             Image::new(self.imgs.window_frame_2)
@@ -240,14 +236,48 @@ impl Hud {
         }
 
         // Minimap
-        Image::new(self.imgs.mmap_frame_bg)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .set(self.ids.mmap_frame_bg, ui_widgets);
-        Image::new(self.imgs.mmap_frame)
-            .w_h(1750.0 / 8.0, 1650.0 / 8.0)
-            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-            .set(self.ids.mmap_frame, ui_widgets);
+
+        if self.mmap_open {
+            Image::new(self.imgs.mmap_frame)
+                .w_h(100.0 * 2.0, 100.0 * 2.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .set(self.ids.mmap_frame, ui_widgets);
+
+            Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
+                .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
+                .set(self.ids.mmap_frame_bg, ui_widgets);
+        } else {
+            Image::new(self.imgs.mmap_frame_closed)
+                .w_h(100.0 * 2.0, 11.0 * 2.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .set(self.ids.mmap_frame, ui_widgets);
+        };
+
+        if Button::image(if self.mmap_open {
+            self.imgs.mmap_open
+        } else {
+            self.imgs.mmap_closed
+        })
+        .w_h(100.0 * 0.2, 100.0 * 0.2)
+        .hover_image(if self.mmap_open {
+            self.imgs.mmap_open_hover
+        } else {
+            self.imgs.mmap_closed_hover
+        })
+        .press_image(if self.mmap_open {
+            self.imgs.mmap_open_press
+        } else {
+            self.imgs.mmap_closed_press
+        })
+        .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
+        .set(self.ids.mmap_button, ui_widgets)
+        .was_clicked()
+        {
+            self.mmap_open = !self.mmap_open;
+        };
+
+        // Title
+        // Make it display the actual location
         Text::new("Uncanny Valley")
             .mid_top_with_margin_on(self.ids.mmap_frame, 3.0)
             .font_size(14)

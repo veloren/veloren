@@ -96,6 +96,7 @@ impl<'a> Widget for SmallWindow<'a> {
             Image::new(self.imgs.window_frame)
                 // TODO: Position
                 // .right_from(state.ids.character_window, 20.0)
+                .top_left_with_margins_on(ui.window, 200.0, 10.0)
                 .w_h(107.0*4.0, 125.0*4.0)
                 .set(state.ids.frame, ui);
         } else {
