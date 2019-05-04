@@ -1,7 +1,7 @@
 use conrod_core::{
     builder_methods, color,
     text::font,
-    widget::{self, Button, Image, Rectangle, Text},
+    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use super::{
@@ -13,20 +13,29 @@ use crate::ui::ToggleButton;
 
 widget_ids! {
     struct Ids {
+        
+        settings_content,
+        settings_icon,
+        settings_button_mo,
+        settings_close,
+        settings_title,
+        settings_r,
+        settings_l,
+        settings_scrollbar,
+        controls_text,
+        controls_controls,        
         button_help,
-        controls,
-        debug_button,
-        debug_button_label,
+        button_help2,
+        show_help_label,        
         gameplay,
+        controls,
+        rectangle,           
+        debug_button,
+        debug_button_label,        
         interface,
         inventorytest_button,
-        inventorytest_button_label,
-        rectangle,
-        settings_bg,
-        settings_close,
-        settings_icon,
-        settings_title,
-        show_help_label,
+        inventorytest_button_label,        
+        settings_bg,        
         sound,
         test,
         video,
@@ -103,53 +112,69 @@ impl<'a> Widget for SettingsWindow<'a> {
             ..
         } = args;
 
-        // BG
-        Image::new(self.imgs.settings_bg)
-            .middle_of(ui.window)
-            .w_h(1648.0 / 2.5, 1952.0 / 2.5)
-            .set(state.ids.settings_bg, ui);
-
-        // X-Button
-        if Button::image(self.imgs.close_button)
-            .w_h(244.0 * 0.22 / 2.5, 244.0 * 0.22 / 2.5)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.settings_bg, 4.0, 4.0)
-            .set(state.ids.settings_close, ui)
-            .was_clicked()
+        // Frame Alignment
+            Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
+                .middle_of(ui.window)
+                .set(state.ids.settings_bg, ui);
+            // Frame
+            Image::new(self.imgs.settings_frame_l)
+                .top_left_with_margins_on(state.ids.settings_bg, 0.0, 0.0)
+                .w_h(412.0, 488.0)
+                .set(state.ids.settings_l, ui);
+            Image::new(self.imgs.settings_frame_r)
+                .right_from(state.ids.settings_l, 0.0)
+                .parent(state.ids.settings_bg)
+                .w_h(412.0, 488.0)
+                .set(state.ids.settings_r, ui);
+            // Content Alignment
+            Rectangle::fill_with([198.0 * 4.0, 97.0 * 4.0], color::TRANSPARENT)
+                .top_right_with_margins_on(state.ids.settings_r, 21.0 * 4.0, 4.0 * 4.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(state.ids.settings_content, ui);
+            Scrollbar::y_axis(state.ids.settings_content)
+                .thickness(5.0)
+                .rgba(0.33, 0.33, 0.33, 1.0)
+                .set(state.ids.settings_scrollbar, ui);
+            // X-Button
+            if Button::image(self.imgs.close_button)
+                .w_h(28.0, 28.0)
+                .hover_image(self.imgs.close_button_hover)
+                .press_image(self.imgs.close_button_press)
+                .top_right_with_margins_on(state.ids.settings_r, 0.0, 0.0)
+                .set(state.ids.settings_close, ui)
+                .was_clicked()
         {
             return Some(Event::Close);
         }
 
         // Title
-        Text::new("Settings")
-            .mid_top_with_margin_on(state.ids.settings_bg, 10.0)
-            .font_size(30)
-            .color(TEXT_COLOR)
-            .set(state.ids.settings_title, ui);
-
-        // Icon
-        Image::new(self.imgs.settings_icon)
-            .w_h(224.0 / 3.0, 224.0 / 3.0)
-            .top_left_with_margins_on(state.ids.settings_bg, -10.0, -10.0)
-            .set(state.ids.settings_icon, ui);
-
-        // TODO: Find out if we can remove this
-        // Alignment Rectangle
-        Rectangle::fill_with([1008.0 / 2.5, 1616.0 / 2.5], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.settings_bg, 77.0, 205.0)
-            .set(state.ids.rectangle, ui);
+            Text::new("Settings")
+                .mid_top_with_margin_on(state.ids.settings_bg, 5.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+            .set(state.ids.settings_title, ui);      
+        
+        
 
         // Interface
-        if Button::image(if let SettingsTab::Interface = state.settings_tab {
-            self.imgs.button_blue_mo
-        } else {
-            self.imgs.blank
-        })
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .top_left_with_margins_on(state.ids.settings_bg, 78.0, 50.0)
+       if Button::image(if let SettingsTab::Interface = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button
+            })
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
+            .hover_image(if let SettingsTab::Interface = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Interface = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .top_left_with_margins_on(state.ids.settings_l, 8.0 * 4.0, 2.0 * 4.0)
             .label("Interface")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -164,7 +189,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let show_debug =
                 ToggleButton::new(state.show_help, self.imgs.check, self.imgs.check_checked)
                     .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .top_left_with_margins_on(state.ids.rectangle, 15.0, 15.0)
+                    .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
                     .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                     .press_images(self.imgs.check_press, self.imgs.check_press)
                     .set(state.ids.button_help, ui);
@@ -185,7 +210,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.check_checked,
             )
                 .w_h(288.0 / 24.0, 288.0 / 24.0)
-                .top_left_with_margins_on(state.ids.rectangle, 40.0, 15.0)
+                .down_from(state.ids.button_help, 7.0)
                 .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(state.ids.inventorytest_button, ui);
@@ -194,7 +219,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new("Show Inventory Test Button")
                 .right_from(state.ids.inventorytest_button, 10.0)
-                .font_size(12)
+                .font_size(14)
                 .font_id(self.fonts.opensans)
                 .graphics_for(state.ids.inventorytest_button)
                 .color(TEXT_COLOR)
@@ -206,7 +231,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.check_checked
             )
                 .w_h(288.0 / 24.0, 288.0 / 24.0)
-                .top_left_with_margins_on(state.ids.rectangle, 65.0, 15.0)
+                .down_from(state.ids.inventorytest_button, 7.0)
                 .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(state.ids.debug_button, ui);
@@ -215,7 +240,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new("Show Debug Window")
                 .right_from(state.ids.debug_button, 10.0)
-                .font_size(12)
+                .font_size(14)
                 .font_id(self.fonts.opensans)
                 .graphics_for(state.ids.debug_button)
                 .color(TEXT_COLOR)
@@ -224,16 +249,23 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
 
         // 2 Gameplay////////////////
-        if Button::image(if let SettingsTab::Gameplay = state.settings_tab {
-                self.imgs.button_blue_mo
+       if Button::image(if let SettingsTab::Gameplay = state.settings_tab {
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.blank
-            }
-        )
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(state.ids.interface, 1.0)
+                self.imgs.settings_button
+            })
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
+            .hover_image(if let SettingsTab::Gameplay = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Gameplay = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(state.ids.interface, 0.0)
             .label("Gameplay")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -245,15 +277,22 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // 3 Controls/////////////////////
         if Button::image(if let SettingsTab::Controls = state.settings_tab {
-                self.imgs.button_blue_mo
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.blank
-            }
-        )
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(state.ids.gameplay, 1.0)
+                self.imgs.settings_button
+            })
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
+            .hover_image(if let SettingsTab::Controls = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Controls = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(state.ids.gameplay, 0.0)
             .label("Controls")
             .label_font_size(14)
             .label_color(TEXT_COLOR)
@@ -262,19 +301,159 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             state.update(|s| s.settings_tab = SettingsTab::Controls);
         }
-
-        // 4 Video////////////////////////////////
-        if Button::image(if let SettingsTab::Video = state.settings_tab {
-                self.imgs.button_blue_mo
-            } else {
-                self.imgs.blank
+        if let SettingsTab::Controls = state.settings_tab {
+                Text::new(
+                    "Free Cursor\n\
+            Toggle Help Window\n\
+            Toggle Interface\n\
+            Toggle FPS and Debug Info\n\
+            \n\
+            \n\
+            Move Forward\n\
+            Move Left\n\
+            Move Right\n\
+            Move Backwards\n\
+            \n\
+            Jump\n\
+            \n\
+            Dodge\n\
+            \n\
+            Auto Walk\n\
+            \n\
+            Sheathe/Draw Weapons\n\
+            \n\
+            Put on/Remove Helmet\n\
+            \n\
+            \n\
+            Basic Attack\n\
+            Secondary Attack/Block/Aim\n\
+            \n\
+            \n\
+            Skillbar Slot 1\n\
+            Skillbar Slot 2\n\
+            Skillbar Slot 3\n\
+            Skillbar Slot 4\n\
+            Skillbar Slot 5\n\
+            Skillbar Slot 6\n\
+            Skillbar Slot 7\n\
+            Skillbar Slot 8\n\
+            Skillbar Slot 9\n\
+            Skillbar Slot 10\n\
+            \n\
+            \n\
+            Pause Menu\n\
+            Settings\n\
+            Social\n\
+            Map\n\
+            Spellbook\n\
+            Character\n\
+            Questlog\n\
+            Bag\n\
+            \n\
+            \n\
+            \n\
+            Send Chat Message\n\
+            Scroll Chat\n\
+            \n\
+            \n\
+            Chat commands:  \n\
+            \n\
+            /alias [Name] - Change your Chat Name   \n\
+            /tp [Name] - Teleports you to another player
+            ",
+                )
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
+                .font_id(self.fonts.opensans)
+                .font_size(18)
+                .set(state.ids.controls_text, ui);
+                // TODO: Replace with buttons that show the actual keybind and allow the user to change it.
+                Text::new(
+                    "TAB\n\
+                     F1\n\
+                     F2\n\
+                     F3\n\
+                     \n\
+                     \n\
+                     W\n\
+                     A\n\
+                     S\n\
+                     D\n\
+                     \n\
+                     SPACE\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     ??\n\
+                     \n\
+                     \n\
+                     L-Click\n\
+                     R-Click\n\
+                     \n\
+                     \n\
+                     1\n\
+                     2\n\
+                     3\n\
+                     4\n\
+                     5\n\
+                     6\n\
+                     7\n\
+                     8\n\
+                     9\n\
+                     0\n\
+                     \n\
+                     \n\
+                     ESC\n\
+                     N\n\
+                     O\n\
+                     M\n\
+                     P\n\
+                     C\n\
+                     L\n\
+                     B\n\
+                     \n\
+                     \n\
+                     \n\
+                     ENTER\n\
+                     Mousewheel\n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     \n\
+                     ",
+                )
+                .color(TEXT_COLOR)
+                .right_from(state.ids.controls_text, 0.0)
+                .font_id(self.fonts.opensans)
+                .font_size(18)
+                .set(state.ids.controls_controls, ui);
             }
-        )
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(state.ids.controls, 1.0)
+        // 4 Video////////////////////////////////
+         if Button::image(if let SettingsTab::Video = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button
+            })
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
+            .hover_image(if let SettingsTab::Video = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Video = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(state.ids.controls, 0.0)
             .label("Video")
+            .parent(state.ids.settings_r)
             .label_font_size(14)
             .label_color(TEXT_COLOR)
             .set(state.ids.video, ui)
@@ -285,15 +464,23 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // 5 Sound///////////////////////////////
         if Button::image(if let SettingsTab::Sound = state.settings_tab {
-                self.imgs.button_blue_mo
+                self.imgs.settings_button_pressed
             } else {
-                self.imgs.blank
-            }
-        )
-            .w_h(304.0 / 2.5, 80.0 / 2.5)
-            .hover_image(self.imgs.button_blue_mo)
-            .press_image(self.imgs.button_blue_press)
-            .down_from(state.ids.video, 1.0)
+                self.imgs.settings_button
+            })
+            .w_h(31.0 * 4.0, 12.0 * 4.0)
+            .hover_image(if let SettingsTab::Sound = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_hover
+            })
+            .press_image(if let SettingsTab::Sound = state.settings_tab {
+                self.imgs.settings_button_pressed
+            } else {
+                self.imgs.settings_button_press
+            })
+            .right_from(state.ids.video, 0.0)
+            .parent(state.ids.settings_r)
             .label("Sound")
             .label_font_size(14)
             .label_color(TEXT_COLOR)

@@ -91,11 +91,11 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.fireplace, ui);
 
         // Settings
-        if Button::image(self.imgs.button_dark)
+        if Button::image(self.imgs.button)
             .mid_top_with_margin_on(state.ids.esc_bg, 115.0)
             .w_h(170.0, 50.0)
-            .hover_image(self.imgs.button_dark_hover)
-            .press_image(self.imgs.button_dark_press)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .label("Settings")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
@@ -106,11 +106,11 @@ impl<'a> Widget for EscMenu<'a> {
             return Some(Event::OpenSettings);
         };
         // Controls
-        if Button::image(self.imgs.button_dark)
+        if Button::image(self.imgs.button)
             .mid_top_with_margin_on(state.ids.esc_bg, 175.0)
             .w_h(170.0, 50.0)
-            .hover_image(self.imgs.button_dark_hover)
-            .press_image(self.imgs.button_dark_press)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .label("Controls")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
@@ -121,11 +121,11 @@ impl<'a> Widget for EscMenu<'a> {
             //self.menu_open = false;
         };
         // Servers
-        if Button::image(self.imgs.button_dark)
+        if Button::image(self.imgs.button)
             .mid_top_with_margin_on(state.ids.esc_bg, 235.0)
             .w_h(170.0, 50.0)
-            .hover_image(self.imgs.button_dark_hover)
-            .press_image(self.imgs.button_dark_press)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .label("Servers")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
@@ -136,11 +136,11 @@ impl<'a> Widget for EscMenu<'a> {
             //self.menu_open = false;
         };
         // Logout
-        if Button::image(self.imgs.button_dark)
+        if Button::image(self.imgs.button)
             .mid_top_with_margin_on(state.ids.esc_bg, 295.0)
             .w_h(170.0, 50.0)
-            .hover_image(self.imgs.button_dark_hover)
-            .press_image(self.imgs.button_dark_press)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .label("Logout")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
@@ -151,11 +151,11 @@ impl<'a> Widget for EscMenu<'a> {
             return Some(Event::Logout);
         };
         // Quit
-        if Button::image(self.imgs.button_dark)
+        if Button::image(self.imgs.button)
             .mid_top_with_margin_on(state.ids.esc_bg, 355.0)
             .w_h(170.0, 50.0)
-            .hover_image(self.imgs.button_dark_hover)
-            .press_image(self.imgs.button_dark_press)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
             .label("Quit")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
