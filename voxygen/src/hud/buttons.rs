@@ -1,0 +1,253 @@
+use conrod_core::{
+    builder_methods, color,
+    text::font,
+    widget::{self, Button, Image, Rectangle, Text},
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+};
+
+use super::{
+    img_ids::Imgs,
+    font_ids::Fonts,
+    small_window::SmallWindowType,
+    Windows,
+    TEXT_COLOR,
+};
+use crate::ui::ToggleButton;
+
+widget_ids! {
+    struct Ids {
+        bag,
+        bag_text,
+        bag_show_map,
+        character_button,
+        character_button_bg,
+        map_button,
+        qlog_button,
+        qlog_button_bg,
+        settings_button,
+        social_button,
+        social_button_bg,
+        spellbook_button,
+        spellbook_button_bg,
+    }
+}
+
+#[derive(WidgetCommon)]
+pub struct Buttons<'a> {
+    open_windows: &'a Windows,
+    show_map: bool,
+    show_bag: bool,
+
+    imgs: &'a Imgs,
+    fonts: &'a Fonts,
+
+    #[conrod(common_builder)]
+    common: widget::CommonBuilder,
+    style: (),
+}
+
+impl<'a> Buttons<'a> {
+    pub fn new(open_windows: &'a Windows, show_map: bool, show_bag: bool, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+        Self {
+            open_windows,
+            show_map,
+            show_bag,
+            imgs,
+            fonts,
+            common: widget::CommonBuilder::default(),
+            style: (),
+        }
+    }
+}
+
+pub struct State {
+    ids: Ids,
+}
+
+pub enum Event {
+    ToggleBag,
+    ToggleSettings,
+    ToggleMap,
+    ToggleSmall(SmallWindowType),
+    ToggleCharacter,
+}
+
+impl<'a> Widget for Buttons<'a> {
+    type State = State;
+    type Style = ();
+    type Event = Option<Event>;
+
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        State {
+            ids: Ids::new(id_gen),
+        }
+    }
+
+    fn style(&self) -> Self::Style {
+        ()
+    }
+
+    fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
+        let widget::UpdateArgs {
+            id,
+            state,
+            ui,
+            style,
+            ..
+        } = args;
+
+        // Bag
+        if !self.show_map {
+            if self.show_bag != ToggleButton::new(self.show_bag, self.imgs.bag, self.imgs.bag_open)
+                .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
+                .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
+                .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
+                .w_h(420.0 / 10.0, 480.0 / 10.0)
+                .set(state.ids.bag, ui) {
+                    return Some(Event::ToggleBag);
+            }
+
+            Text::new("B")
+                .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
+                .font_size(10)
+                .color(TEXT_COLOR)
+                .set(state.ids.bag_text, ui);
+        } else {
+            Image::new(self.imgs.bag)
+                .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
+                .w_h(420.0 / 10.0, 480.0 / 10.0)
+                .set(state.ids.bag_show_map, ui);
+            Text::new("B")
+                .bottom_right_with_margins_on(state.ids.bag, 0.0, 0.0)
+                .font_size(10)
+                .color(TEXT_COLOR)
+                .set(state.ids.bag_text, ui);
+        }
+
+        // 0 Settings
+        if Button::image(self.imgs.settings)
+            .w_h(29.0, 25.0)
+            .bottom_right_with_margins_on(ui.window, 5.0, 57.0)
+            .hover_image(self.imgs.settings_hover)
+            .press_image(self.imgs.settings_press)
+            .label("N")
+            .label_font_size(10)
+            .label_color(TEXT_COLOR)
+            .label_y(conrod_core::position::Relative::Scalar(-7.0))
+            .label_x(conrod_core::position::Relative::Scalar(10.0))
+            .set(state.ids.settings_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleSettings);
+        };
+
+        // 2 Map
+        if Button::image(self.imgs.map_button)
+            .w_h(22.0, 25.0)
+            .left_from(state.ids.social_button, 10.0)
+            .hover_image(self.imgs.map_hover)
+            .press_image(self.imgs.map_press)
+            .label("M")
+            .label_font_size(10)
+            .label_color(TEXT_COLOR)
+            .label_y(conrod_core::position::Relative::Scalar(-7.0))
+            .label_x(conrod_core::position::Relative::Scalar(10.0))
+            .set(state.ids.map_button, ui)
+            .was_clicked()
+        {
+            return Some(Event::ToggleMap);
+        };
+
+        // Other Windows can only be accessed, when Settings are closed.
+        // Opening Settings will close all other Windows including the Bag.
+        // Opening the Map won't close the windows displayed before.
+        Image::new(self.imgs.social_button)
+            .w_h(25.0, 25.0)
+            .left_from(state.ids.settings_button, 10.0)
+            .set(state.ids.social_button_bg, ui);
+        Image::new(self.imgs.spellbook_button)
+            .w_h(28.0, 25.0)
+            .left_from(state.ids.map_button, 10.0)
+            .set(state.ids.spellbook_button_bg, ui);
+        Image::new(self.imgs.character_button)
+            .w_h(27.0, 25.0)
+            .left_from(state.ids.spellbook_button, 10.0)
+            .set(state.ids.character_button_bg, ui);
+        Image::new(self.imgs.qlog_button)
+            .w_h(23.0, 25.0)
+            .left_from(state.ids.character_button, 10.0)
+            .set(state.ids.qlog_button_bg, ui);
+
+        if !(*self.open_windows == Windows::Settings) && self.show_map == false {
+            // 1 Social
+            if Button::image(self.imgs.social_button)
+                .w_h(25.0, 25.0)
+                .left_from(state.ids.settings_button, 10.0)
+                .hover_image(self.imgs.social_hover)
+                .press_image(self.imgs.social_press)
+                .label("O")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(-7.0))
+                .label_x(conrod_core::position::Relative::Scalar(10.0))
+                .set(state.ids.social_button, ui)
+                .was_clicked()
+            {
+                return Some(Event::ToggleSmall(SmallWindowType::Social));
+            }
+
+            // 3 Spellbook
+            if Button::image(self.imgs.spellbook_button)
+                .w_h(28.0, 25.0)
+                .left_from(state.ids.map_button, 10.0)
+                .hover_image(self.imgs.spellbook_hover)
+                .press_image(self.imgs.spellbook_press)
+                .label("P")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(-7.0))
+                .label_x(conrod_core::position::Relative::Scalar(10.0))
+                .set(state.ids.spellbook_button, ui)
+                .was_clicked()
+            {
+                return Some(Event::ToggleSmall(SmallWindowType::Spellbook));
+            }
+
+            // 4 Char-Window
+            if Button::image(self.imgs.character_button)
+                .w_h(27.0, 25.0)
+                .left_from(state.ids.spellbook_button, 10.0)
+                .hover_image(self.imgs.character_hover)
+                .press_image(self.imgs.character_press)
+                .label("C")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(-7.0))
+                .label_x(conrod_core::position::Relative::Scalar(10.0))
+                .set(state.ids.character_button, ui)
+                .was_clicked()
+            {
+                return Some(Event::ToggleCharacter);
+            }
+
+            // 5 Quest-Log
+            if Button::image(self.imgs.qlog_button)
+                .w_h(23.0, 25.0)
+                .left_from(state.ids.character_button, 10.0)
+                .hover_image(self.imgs.qlog_hover)
+                .press_image(self.imgs.qlog_press)
+                .label("L")
+                .label_font_size(10)
+                .label_color(TEXT_COLOR)
+                .label_y(conrod_core::position::Relative::Scalar(-7.0))
+                .label_x(conrod_core::position::Relative::Scalar(10.0))
+                .set(state.ids.qlog_button, ui)
+                .was_clicked()
+            {
+                return Some(Event::ToggleSmall(SmallWindowType::QuestLog));
+            }
+        }
+
+        None
+    }
+}
