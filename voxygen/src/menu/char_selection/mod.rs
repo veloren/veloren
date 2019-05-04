@@ -76,6 +76,7 @@ impl PlayState for CharSelectionState {
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
                             self.client.clone(),
+                            global_state.settings.clone(),
                         )));
                     }
                 }

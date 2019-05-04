@@ -2,6 +2,7 @@ mod chat;
 
 use crate::{
     render::Renderer,
+    settings::{ControlSettings, Settings},
     ui::{self, ScaleMode, ToggleButton, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
@@ -11,7 +12,7 @@ use common::{assets, figure::Segment};
 use conrod_core::{
     color,
     image::Id as ImgId,
-    text::font::Id as FontId,
+    text::{self, font::Id as FontId},
     widget::{Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -514,6 +515,7 @@ pub struct Hud {
     mana_percentage: f64,
     inventorytest_button: bool,
     settings_tab: SettingsTab,
+    settings: Settings,
 }
 
 //#[inline]
@@ -522,7 +524,7 @@ pub struct Hud {
 //}
 
 impl Hud {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(window: &mut Window, settings: Settings) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -566,6 +568,7 @@ impl Hud {
             xp_percentage: 0.4,
             hp_percentage: 1.0,
             mana_percentage: 1.0,
+            settings: settings,
         }
     }
 
@@ -631,23 +634,12 @@ impl Hud {
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
                 .w_h(300.0, 190.0)
                 .set(self.ids.help_bg, ui_widgets);
-
-            Text::new(
-                "Tab = Free Cursor       \n\
-                 Esc = Open/Close Menus  \n\
-                 \n\
-                 F1 = Toggle this Window \n\
-                 F2 = Toggle Interface   \n\
-                 \n\
-                 Enter = Open Chat       \n\
-                 Mouse Wheel = Scroll Chat",
-            )
-            .color(TEXT_COLOR)
-            .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
-            .font_id(self.font_opensans)
-            .font_size(18)
-            .set(self.ids.help, ui_widgets);
-
+            Text::new(get_help_text(&self.settings.controls).as_str())
+                .color(TEXT_COLOR)
+                .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
+                .font_id(self.font_opensans)
+                .font_size(18)
+                .set(self.ids.help, ui_widgets);
             // X-button
             if Button::image(self.imgs.close_button)
                 .w_h(100.0 * 0.2, 100.0 * 0.2)
@@ -718,7 +710,7 @@ impl Hud {
             .bottom_right_with_margins_on(ui_widgets.window, 5.0, 57.0)
             .hover_image(self.imgs.settings_hover)
             .press_image(self.imgs.settings_press)
-            .label("N")
+            .label(&format!("{:?}", self.settings.controls.settings))
             .label_font_size(10)
             .label_font_id(self.font_metamorph)
             .color(TEXT_COLOR)
@@ -741,7 +733,7 @@ impl Hud {
             .left_from(self.ids.social_button, 10.0)
             .hover_image(self.imgs.map_hover)
             .press_image(self.imgs.map_press)
-            .label("M")
+            .label(&format!("{:?}", self.settings.controls.map))
             .label_font_size(10)
             .label_font_id(self.font_metamorph)
             .label_color(TEXT_COLOR)
@@ -785,7 +777,7 @@ impl Hud {
                 .left_from(self.ids.settings_button, 10.0)
                 .hover_image(self.imgs.social_hover)
                 .press_image(self.imgs.social_press)
-                .label("O")
+                .label(&format!("{:?}", self.settings.controls.social))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -811,7 +803,7 @@ impl Hud {
                 .left_from(self.ids.map_button, 10.0)
                 .hover_image(self.imgs.spellbook_hover)
                 .press_image(self.imgs.spellbook_press)
-                .label("P")
+                .label(&format!("{:?}", self.settings.controls.spellbook))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -837,7 +829,7 @@ impl Hud {
                 .left_from(self.ids.spellbook_button, 10.0)
                 .hover_image(self.imgs.character_hover)
                 .press_image(self.imgs.character_press)
-                .label("C")
+                .label(&format!("{:?}", self.settings.controls.character_window))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -863,7 +855,7 @@ impl Hud {
                 .left_from(self.ids.character_button, 10.0)
                 .hover_image(self.imgs.qlog_hover)
                 .press_image(self.imgs.qlog_press)
-                .label("L")
+                .label(&format!("{:?}", self.settings.controls.quest_log))
                 .label_font_size(10)
                 .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
@@ -1036,7 +1028,7 @@ impl Hud {
                 .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag, ui_widgets);
-            Text::new("B")
+            Text::new(&format!("{:?}", self.settings.controls.bag))
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.font_metamorph)
@@ -1047,7 +1039,7 @@ impl Hud {
                 .bottom_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .w_h(420.0 / 10.0, 480.0 / 10.0)
                 .set(self.ids.bag_map_open, ui_widgets);
-            Text::new("B")
+            Text::new(&format!("{:?}", self.settings.controls.bag))
                 .bottom_right_with_margins_on(self.ids.bag, 0.0, 0.0)
                 .font_size(10)
                 .font_id(self.font_metamorph)
@@ -2033,6 +2025,10 @@ impl Hud {
                 _ => self.typing(),
             },
             WinEvent::Char(_) => self.typing(),
+            WinEvent::SettingsChanged => {
+                self.settings = global_state.settings.clone();
+                true
+            }
             _ => false,
         }
     }
@@ -2046,4 +2042,24 @@ impl Hud {
     pub fn render(&self, renderer: &mut Renderer) {
         self.ui.render(renderer);
     }
+}
+
+//Get the text to show in the help window, along with the
+//length of the longest line in order to resize the window
+fn get_help_text(cs: &ControlSettings) -> String {
+    format!(
+        "{free_cursor:?} = Free cursor\n\
+         {escape:?} = Open/close menus\n\
+         \n\
+         {help:?} = Toggle this window\n\
+         {toggle_interface:?} = Toggle interface\n\
+         \n\
+         {chat:?} = Open chat\n\
+         Mouse Wheel = Scroll chat/zoom",
+        free_cursor = cs.toggle_cursor,
+        escape = cs.escape,
+        help = cs.help,
+        toggle_interface = cs.toggle_interface,
+        chat = cs.enter
+    )
 }
