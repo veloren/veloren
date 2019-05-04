@@ -21,11 +21,11 @@ widget_ids! {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum SmallWindowType {
     Spellbook,
     Social,
-    Questlog,
+    QuestLog,
 }
 
 #[derive(WidgetCommon)]
@@ -87,7 +87,7 @@ impl<'a> Widget for SmallWindow<'a> {
         let (title, icon) = match self.content {
             SmallWindowType::Social => ("Social", self.imgs.social_icon),
             SmallWindowType::Spellbook => ("Spellbook", self.imgs.spellbook_icon),
-            SmallWindowType::Questlog => ("Questlog", self.imgs.questlog_icon),
+            SmallWindowType::QuestLog => ("QuestLog", self.imgs.questlog_icon),
         };
 
         // Frame
@@ -140,7 +140,7 @@ impl<'a> Widget for SmallWindow<'a> {
         match self.content {
             SmallWindowType::Social => {}
             SmallWindowType::Spellbook => {}
-            SmallWindowType::Questlog => {}
+            SmallWindowType::QuestLog => {}
         }
 
         None
