@@ -13,6 +13,7 @@ pub struct Window {
     cursor_grabbed: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
+    supplement_events: Vec<Event>,
 }
 
 impl Window {
@@ -61,6 +62,7 @@ impl Window {
             cursor_grabbed: false,
             needs_refresh_resize: false,
             key_map,
+            supplement_events: vec![],
         });
         tmp
     }
@@ -74,6 +76,7 @@ impl Window {
 
     pub fn fetch_events(&mut self) -> Vec<Event> {
         let mut events = vec![];
+        events.append(&mut self.supplement_events);
         // Refresh ui size (used when changing playstates)
         if self.needs_refresh_resize {
             events.push(Event::Ui(ui::Event::new_resize(self.logical_size())));
@@ -162,6 +165,10 @@ impl Window {
             .into();
         Vec2::new(w, h)
     }
+
+    pub fn send_supplement_event(&mut self, event: Event) {
+        self.supplement_events.push(event)
+    }
 }
 
 /// Represents a key that the game recognises after keyboard mapping
@@ -204,4 +211,6 @@ pub enum Event {
     KeyUp(Key),
     /// Event that the ui uses
     Ui(ui::Event),
+    /// Game settings have changed
+    SettingsChanged,
 }
