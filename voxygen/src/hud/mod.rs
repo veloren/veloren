@@ -1,5 +1,6 @@
 mod chat;
 mod character_window;
+mod skillbar;
 mod map;
 mod esc_menu;
 mod small_window;
@@ -10,6 +11,7 @@ mod font_ids;
 use chat::Chat;
 use character_window::CharacterWindow;
 use map::Map;
+use skillbar::Skillbar;
 use esc_menu::EscMenu;
 use small_window::{SmallWindow, SmallWindowType};
 use settings_window::SettingsWindow;
@@ -159,6 +161,7 @@ widget_ids! {
         chat,
         map,
         character_window,
+        skillbar,
         esc_menu,
         small_window,
         settings_window,
@@ -513,9 +516,8 @@ impl Hud {
                 .left_from(self.ids.character_button, 10.0)
                 .hover_image(self.imgs.qlog_hover)
                 .press_image(self.imgs.qlog_press)
-                .label(&format!("{:?}", self.settings.controls.quest_log))
+                .label("L")
                 .label_font_size(10)
-                .label_font_id(self.font_metamorph)
                 .label_color(TEXT_COLOR)
                 .label_y(conrod_core::position::Relative::Scalar(-7.0))
                 .label_x(conrod_core::position::Relative::Scalar(10.0))
@@ -533,100 +535,6 @@ impl Hud {
                 };
             }
         }
-
-        // Skillbar Module
-        // Experience-Bar
-        Image::new(self.imgs.xp_bar)
-            .w_h(2688.0 / 6.0, 116.0 / 6.0)
-            .mid_bottom_of(ui_widgets.window)
-            .set(self.ids.xp_bar, ui_widgets);
-
-        Rectangle::fill_with([406.0 * (self.xp_percentage), 5.0], XP_COLOR) // "W=406*[Exp. %]"
-            .top_left_with_margins_on(self.ids.xp_bar, 5.0, 21.0)
-            .set(self.ids.xp_bar_progress, ui_widgets);
-
-        // Left Grid
-        Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
-            .up_from(self.ids.xp_bar, 0.0)
-            .align_left_of(self.ids.xp_bar)
-            .set(self.ids.sb_grid_l, ui_widgets);
-
-        Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
-            .middle_of(self.ids.sb_grid_l)
-            .set(self.ids.sb_grid_bg_l, ui_widgets);
-
-        // Right Grid
-        Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
-            .up_from(self.ids.xp_bar, 0.0)
-            .align_right_of(self.ids.xp_bar)
-            .set(self.ids.sb_grid_r, ui_widgets);
-
-        Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
-            .middle_of(self.ids.sb_grid_r)
-            .set(self.ids.sb_grid_bg_r, ui_widgets);
-
-        // Right and Left Click
-        Image::new(self.imgs.l_click)
-            .w_h(224.0 / 6.0, 320.0 / 6.0)
-            .right_from(self.ids.sb_grid_bg_l, 0.0)
-            .align_bottom_of(self.ids.sb_grid_bg_l)
-            .set(self.ids.l_click, ui_widgets);
-
-        Image::new(self.imgs.r_click)
-            .w_h(224.0 / 6.0, 320.0 / 6.0)
-            .left_from(self.ids.sb_grid_bg_r, 0.0)
-            .align_bottom_of(self.ids.sb_grid_bg_r)
-            .set(self.ids.r_click, ui_widgets);
-
-        // Health Bar
-        Image::new(self.imgs.health_bar)
-            .w_h(1120.0 / 6.0, 96.0 / 6.0)
-            .left_from(self.ids.l_click, 0.0)
-            .align_top_of(self.ids.l_click)
-            .set(self.ids.health_bar, ui_widgets);
-
-        // Filling
-        Rectangle::fill_with([182.0 * (self.hp_percentage), 6.0], HP_COLOR) // "W=182.0 * [Health. %]"
-            .top_right_with_margins_on(self.ids.health_bar, 5.0, 0.0)
-            .set(self.ids.health_bar_color, ui_widgets);
-
-        // Mana Bar
-        Image::new(self.imgs.mana_bar)
-            .w_h(1120.0 / 6.0, 96.0 / 6.0)
-            .right_from(self.ids.r_click, 0.0)
-            .align_top_of(self.ids.r_click)
-            .set(self.ids.mana_bar, ui_widgets);
-
-        // Filling
-        Rectangle::fill_with([182.0 * (self.mana_percentage), 6.0], MANA_COLOR) // "W=182.0 * [Mana. %]"
-            .top_left_with_margins_on(self.ids.mana_bar, 5.0, 0.0)
-            .set(self.ids.mana_bar_color, ui_widgets);
-
-        // Buffs/Debuffs
-
-        // Buffs
-
-        // Debuffs
-
-        // Level Display
-
-        // Insert actual Level here
-        Text::new("1")
-            .left_from(self.ids.xp_bar, -15.0)
-            .font_size(10)
-            .color(TEXT_COLOR)
-            .set(self.ids.level_text, ui_widgets);
-
-        // Insert next Level here
-        Text::new("2")
-            .right_from(self.ids.xp_bar, -15.0)
-            .font_size(10)
-            .color(TEXT_COLOR)
-            .set(self.ids.next_level_text, ui_widgets);
 
         // Bag contents
         if self.bag_open {
@@ -677,6 +585,7 @@ impl Hud {
             }
         }
 
+
         // Bag
         if !self.map_open && self.show_ui {
             self.bag_open = ToggleButton::new(self.bag_open, self.imgs.bag, self.imgs.bag_open)
@@ -702,6 +611,11 @@ impl Hud {
                 .font_id(self.font_metamorph)
                 .set(self.ids.bag_text, ui_widgets);
         }
+
+        Skillbar::new(&self.imgs, &self.fonts)
+            .top_left_with_margins_on(ui_widgets.window, 200.0, 215.0)
+            .w_h(103.0 * 4.0, 122.0 * 4.0) // TODO: replace this with default_width() / height() overrides 
+            .set(self.ids.skillbar, ui_widgets);
 
         // Chat box
         match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
