@@ -319,6 +319,9 @@ impl Hud {
             match SettingsWindow::new(&self.imgs, &self.fonts)
                 .set(self.ids.settings_window, ui_widgets) 
             {
+                Some(settings_window::Event::Help(b)) => self.show_help = b,
+                Some(settings_window::Event::Debug(b)) => self.show_debug = b,
+                Some(settings_window::Event::InventoryTest(b)) => self.inventorytest_button = b,
                 Some(settings_window::Event::Close) => {
                     self.open_windows = Windows::None;
                 }
