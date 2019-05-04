@@ -29,8 +29,6 @@ before_script:
       echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
       git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
     fi;
-  - git submodule sync --recursive
-  - git submodule update --init --recursive --depth 20
   - git status
   - if [ -d target ]; then
       ls -la target;
