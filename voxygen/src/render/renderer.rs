@@ -2,7 +2,7 @@ use super::{
     consts::Consts,
     gfx_backend,
     mesh::Mesh,
-    model::Model,
+    model::{DynamicModel, Model},
     pipelines::{figure, postprocess, skybox, terrain, ui, Globals},
     texture::Texture,
     Pipeline, RenderError,
@@ -12,7 +12,6 @@ use gfx::{
     handle::Sampler,
     traits::{Device, Factory, FactoryExt},
 };
-use image;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -244,6 +243,24 @@ impl Renderer {
     /// Create a new model from the provided mesh.
     pub fn create_model<P: Pipeline>(&mut self, mesh: &Mesh<P>) -> Result<Model<P>, RenderError> {
         Ok(Model::new(&mut self.factory, mesh))
+    }
+
+    /// Create a new dynamic model with the specified size
+    pub fn create_dynamic_model<P: Pipeline>(
+        &mut self,
+        size: usize,
+    ) -> Result<DynamicModel<P>, RenderError> {
+        DynamicModel::new(&mut self.factory, size)
+    }
+
+    /// Update a dynamic model with a mesh and a offset
+    pub fn update_model<P: Pipeline>(
+        &mut self,
+        model: &DynamicModel<P>,
+        mesh: &Mesh<P>,
+        offset: usize,
+    ) -> Result<(), RenderError> {
+        model.update(&mut self.encoder, mesh, offset)
     }
 
     /// Create a new texture from the provided image.
