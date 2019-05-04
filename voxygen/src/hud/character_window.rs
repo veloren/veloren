@@ -85,18 +85,9 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Frame
         Image::new(self.imgs.window_frame)
             .middle_of(id)
-            .set(state.charwindow_frame, ui);
-
-        // BG
-        Image::new(self.imgs.window_bg)
-            .w_h(348.0, 404.0)
-            .mid_top_with_margin_on(state.charwindow_frame, 48.0)
-            .set(state.charwindow_bg, ui);
-
-        // Overlay
-        Image::new(self.imgs.charwindow)
-            .middle_of(state.charwindow_bg)
-            .set(state.charwindow, ui);
+            .top_left_with_margins_on(ui.window, 200.0, 215.0)
+            .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+            .set(state.charwindow_frame, ui);     
 
         // Icon
         //Image::new(self.imgs.charwindow_icon)
@@ -106,10 +97,10 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // X-Button
         if Button::image(self.imgs.close_button)
-            .w_h(244.0 * 0.22 / 4.0, 244.0 * 0.22 / 4.0)
+            .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.charwindow_frame, 4.0, 4.0)
+            .top_right_with_margins_on(state.charwindow_frame, 12.0, 4.0)
             .set(state.charwindow_close, ui)
             .was_clicked() {
                 return Some(Event::Close);
