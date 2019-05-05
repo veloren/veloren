@@ -38,22 +38,28 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
 
         let mut dist = 0.0;
         let dir = (self.to - self.from).normalized();
+        let max = (self.to - self.from).magnitude();
 
         let mut pos = self.from;
-        let mut ipos = pos.map(|e| e as i32);
+        let mut ipos = pos.map(|e| e.floor() as i32);
 
         for _ in 0..self.max_iter {
             pos = self.from + dir * dist;
-            ipos = pos.map(|e| e as i32);
+            ipos = pos.map(|e| e.floor() as i32);
 
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Ok((_, false)) => {}
+                Ok((_, false)) => {},
                 Err(err) => return (dist, Err(err)),
             }
 
+            // Allow one iteration above max
+            if dist > max {
+                break;
+            }
+
             let deltas =
-                (dir.map(|e| if e < 0.0 { 0.0 } else { 1.0 }) - pos.map(|e| e.fract())) / dir;
+                (dir.map(|e| if e < 0.0 { 0.0 } else { 1.0 }) - pos.map(|e| e.abs().fract())) / dir;
 
             dist += deltas.reduce(f32::min).max(PLANCK);
         }
