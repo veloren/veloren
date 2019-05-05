@@ -58,9 +58,9 @@ impl Camera {
                 (d, Ok(Some(_))) => f32::min(d - 1.0, self.dist),
                 (_, Ok(None)) => self.dist,
                 (_, Err(_)) => self.dist,
-            }.max(0.0)
+            }
+            .max(0.0)
         };
-
 
         let view_mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(-Vec3::unit_z() * dist)
