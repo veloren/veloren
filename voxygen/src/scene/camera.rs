@@ -11,10 +11,9 @@ use vek::*;
 const NEAR_PLANE: f32 = 0.1;
 const FAR_PLANE: f32 = 10000.0;
 
-const INTERP_TIME: f32 = 0.2;
+const INTERP_TIME: f32 = 0.1;
 
 pub struct Camera {
-    tgt_focus: Vec3<f32>,
     focus: Vec3<f32>,
     ori: Vec3<f32>,
     tgt_dist: f32,
@@ -29,7 +28,6 @@ impl Camera {
     /// Create a new `Camera` with default parameters.
     pub fn new(aspect: f32) -> Self {
         Self {
-            tgt_focus: Vec3::unit_z() * 10.0,
             focus: Vec3::unit_z() * 10.0,
             ori: Vec3::zero(),
             tgt_dist: 10.0,
@@ -100,19 +98,15 @@ impl Camera {
         if (self.dist - self.tgt_dist).abs() > 0.01 {
             self.dist = f32::lerp(self.dist, self.tgt_dist, (delta as f32) / INTERP_TIME);
         }
-
-        if (self.focus - self.tgt_focus).magnitude() > 0.01 {
-            self.focus = Vec3::lerp(self.focus, self.tgt_focus, (delta as f32) / INTERP_TIME);
-        }
     }
 
     /// Get the focus position of the camera.
     pub fn get_focus_pos(&self) -> Vec3<f32> {
-        self.tgt_focus
+        self.focus
     }
     /// Set the focus position of the camera.
     pub fn set_focus_pos(&mut self, focus: Vec3<f32>) {
-        self.tgt_focus = focus;
+        self.focus = focus;
     }
 
     /// Get the aspect ratio of the camera.
