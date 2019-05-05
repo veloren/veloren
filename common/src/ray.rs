@@ -49,7 +49,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
 
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Ok((_, false)) => {},
+                Ok((_, false)) => {}
                 Err(err) => return (dist, Err(err)),
             }
 
