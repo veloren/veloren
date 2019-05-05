@@ -99,6 +99,7 @@ fn main() {
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
+    let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let msg = format!(" \
 A critical error has occured and Voxygen has been forced to terminate in an unusual manner. Details about the error can be found below.
@@ -126,6 +127,8 @@ The information below is intended for developers and testers.
         log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
 
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
+
+        default_hook(panic_info);
     }));
 
     let mut global_state = GlobalState { settings, window };
