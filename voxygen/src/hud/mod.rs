@@ -112,7 +112,7 @@ pub struct Show {
     open_windows: Windows,
     map: bool,
     inventory_test_button: bool,
-    mini_map: bool,
+    mini_map: bool,    
 }
 impl Show {
     fn toggle_bag(&mut self) {

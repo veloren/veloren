@@ -121,10 +121,10 @@ impl<'a> Widget for SmallWindow<'a> {
 
         // X-Button
         if Button::image(self.imgs.close_button)
-            .w_h(20.0, 20.0)
+            .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.frame, 17.0, 5.0)
+            .top_right_with_margins_on(state.ids.frame, 12.0, 0.0)
             .set(state.ids.close, ui)
             .was_clicked()
         {
