@@ -10,6 +10,7 @@ use crate::{
     },
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
+    state::DeltaTime,
 };
 
 // Basic ECS AI agent system
@@ -18,6 +19,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadExpect<'a, TerrainMap>,
+        Read<'a, DeltaTime>,
         Entities<'a>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -26,7 +28,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Control>,
     );
 
-    fn run(&mut self, (terrain, entities, pos, mut vels, mut dirs, mut anims, controls): Self::SystemData) {
+    fn run(&mut self, (terrain, dt, entities, pos, mut vels, mut dirs, mut anims, controls): Self::SystemData) {
         for (entity, pos, mut vel, mut dir, control) in
             (&entities, &pos, &mut vels, &mut dirs, &controls).join()
         {
@@ -60,13 +62,22 @@ impl<'a> System<'a> for Sys {
                 Animation::Jump
             };
 
-            let last_animation = anims.get_mut(entity).map(|h| h.current);
+            let last_history = anims.get_mut(entity).cloned();
+
+            let time = if let Some((true, time)) = last_history
+                .map(|last| (last.current == animation, last.time))
+            {
+                time + dt.0 as f64
+            } else {
+                0.0
+            };
 
             anims.insert(
                 entity,
                 AnimationHistory {
-                    last: last_animation,
+                    last: last_history.map(|last| last.current),
                     current: animation,
+                    time,
                 },
             );
         }

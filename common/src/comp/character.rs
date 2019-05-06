@@ -113,6 +113,7 @@ impl Character {
 pub struct AnimationHistory {
     pub last: Option<Animation>,
     pub current: Animation,
+    pub time: f64,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

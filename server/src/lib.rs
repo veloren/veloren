@@ -137,6 +137,7 @@ impl Server {
             comp::AnimationHistory {
                 last: None,
                 current: Animation::Idle,
+                time: 0.0,
             },
         );
 
