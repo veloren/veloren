@@ -10,8 +10,8 @@ use crate::{
     },
     mesh::Meshable,
     render::{
-        create_skybox_mesh, Consts, FigureLocals, Globals, Model, Renderer, SkyboxLocals,
-        SkyboxPipeline,
+        create_pp_mesh, create_skybox_mesh, Consts, FigureLocals, Globals, Model,
+        PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     window::Event,
 };
@@ -28,11 +28,17 @@ struct Skybox {
     locals: Consts<SkyboxLocals>,
 }
 
+struct PostProcess {
+    model: Model<PostProcessPipeline>,
+    locals: Consts<PostProcessLocals>,
+}
+
 pub struct Scene {
     globals: Consts<Globals>,
     camera: Camera,
 
     skybox: Skybox,
+    postprocess: PostProcess,
     terrain: Terrain,
 
     figure_cache: FigureCache,
@@ -50,6 +56,12 @@ impl Scene {
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
                 locals: renderer.create_consts(&[SkyboxLocals::default()]).unwrap(),
+            },
+            postprocess: PostProcess {
+                model: renderer.create_model(&create_pp_mesh()).unwrap(),
+                locals: renderer
+                    .create_consts(&[PostProcessLocals::default()])
+                    .unwrap(),
             },
             terrain: Terrain::new(),
             figure_cache: FigureCache::new(),
@@ -145,5 +157,11 @@ impl Scene {
         // Render terrain and figures
         self.terrain.render(renderer, &self.globals);
         self.figure_cache.render(renderer, client, &self.globals);
+
+        renderer.render_post_process(
+            &self.postprocess.model,
+            &self.globals,
+            &self.postprocess.locals,
+        );
     }
 }
