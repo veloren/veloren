@@ -13,15 +13,15 @@ impl Animation for IdleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
-    fn update_skeleton(skeleton: &Self::Skeleton, time: f64) -> Self::Skeleton {
+    fn update_skeleton(skeleton: &Self::Skeleton, global_time: f64, anim_time: f64) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (time as f32 * 12.0).sin();
-        let wavecos = (time as f32 * 12.0).cos();
-        let wave_slow = (time as f32 * 6.0 + PI).sin();
-        let wavecos_slow = (time as f32 * 6.0 + PI).cos();
-        let waveultra_slow = (time as f32 * 1.0 + PI).sin();
-        let waveultracos_slow = (time as f32 * 1.0 + PI).cos();
+        let wave = (anim_time as f32 * 12.0).sin();
+        let wavecos = (anim_time as f32 * 12.0).cos();
+        let wave_slow = (anim_time as f32 * 6.0 + PI).sin();
+        let wavecos_slow = (anim_time as f32 * 6.0 + PI).cos();
+        let waveultra_slow = (anim_time as f32 * 1.0 + PI).sin();
+        let waveultracos_slow = (anim_time as f32 * 1.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         next.head.offset = Vec3::new(5.5, 0.0, 12.0 + waveultra_slow * 0.4);
