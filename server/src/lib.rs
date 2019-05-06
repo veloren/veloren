@@ -181,7 +181,7 @@ impl Server {
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain
         // Also, send the chunk data to anybody that is close by
-        for (key, chunk) in self.chunk_rx.try_iter() {
+        if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
@@ -225,7 +225,7 @@ impl Server {
                 min_dist = min_dist.min(dist);
             }
 
-            if min_dist > 6 {
+            if min_dist > 5 {
                 chunks_to_remove.push(key);
             }
         });
