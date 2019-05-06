@@ -8,10 +8,19 @@ pub mod input;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use crate::{
-    client::{Client, Clients},
-    cmd::CHAT_COMMANDS,
+use std::{
+    collections::HashSet,
+    net::SocketAddr,
+    sync::mpsc,
+    time::Duration,
+    i32,
 };
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
+};
+use threadpool::ThreadPool;
+use vek::*;
 use common::{
     comp,
     comp::character::Animation,
@@ -20,14 +29,11 @@ use common::{
     state::{State, Uid},
     terrain::TerrainChunk,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
-};
-use std::{collections::HashSet, i32, net::SocketAddr, sync::mpsc, time::Duration};
-use threadpool::ThreadPool;
-use vek::*;
 use world::World;
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
+};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -51,9 +57,15 @@ pub struct Server {
 }
 
 impl Server {
-    /// Create a new `Server`.
+    /// Create a new `Server` bound to the default socket.
     #[allow(dead_code)]
     pub fn new() -> Result<Self, Error> {
+        Self::bind(SocketAddr::from(([0; 4], 59003)))
+    }
+
+    /// Create a new server bound to the given socket
+    #[allow(dead_code)]
+    pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
@@ -63,7 +75,7 @@ impl Server {
             state,
             world: World::new(),
 
-            postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
+            postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
 
             thread_pool: threadpool::Builder::new()

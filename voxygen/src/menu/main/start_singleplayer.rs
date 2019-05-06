@@ -1,19 +1,24 @@
-use super::{client_init::ClientInit, DEFAULT_PORT};
+use std::net::SocketAddr;
+use common::comp;
 use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
     PlayState, PlayStateResult,
 };
-use common::comp;
+use super::{client_init::ClientInit, DEFAULT_PORT};
 
 pub struct StartSingleplayerState {
     singleplayer: Singleplayer,
+    sock: SocketAddr,
 }
 
 impl StartSingleplayerState {
     /// Create a new `MainMenuState`
     pub fn new() -> Self {
+        let (singleplayer, sock) = Singleplayer::new();
+
         Self {
-            singleplayer: Singleplayer::new(),
+            singleplayer,
+            sock,
         }
     }
 }
@@ -23,11 +28,12 @@ impl PlayState for StartSingleplayerState {
         match direction {
             Direction::Forwards => {
                 let username = "singleplayer".to_owned();
-                let server_address = "localhost".to_owned();
+                let server_address = self.sock.ip().to_string();
 
                 let client_init = ClientInit::new(
-                    (server_address.clone(), DEFAULT_PORT, false),
+                    (server_address.clone(), self.sock.port(), false),
                     (comp::Player::new(username.clone()), 300),
+                    true,
                 );
 
                 // Client creation
