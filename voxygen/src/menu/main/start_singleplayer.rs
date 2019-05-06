@@ -35,7 +35,7 @@ impl PlayState for StartSingleplayerState {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
                         // Should always work
-                        Some(Err(err)) => unreachable!(),
+                        Some(Err(err)) => {},
                         _ => {}
                     }
                 };
