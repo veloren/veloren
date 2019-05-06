@@ -13,6 +13,9 @@ pub use self::{
     model::Model,
     pipelines::{
         figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
+        postprocess::{
+            create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
+        },
         skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
         terrain::{Locals as TerrainLocals, TerrainPipeline},
         ui::{
