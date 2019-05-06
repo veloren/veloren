@@ -12,7 +12,7 @@ use gfx::{
 
 // Local
 use super::{
-    super::{Mesh, Pipeline, TgtColorFmt, TgtDepthFmt, Tri},
+    super::{Mesh, Pipeline, WinColorFmt, WinDepthFmt, Tri},
     Globals,
 };
 
@@ -31,10 +31,10 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
 
-        src_sampler: gfx::TextureSampler<<TgtColorFmt as gfx::format::Formatted>::View> = "src_color",
+        src_sampler: gfx::TextureSampler<<WinColorFmt as gfx::format::Formatted>::View> = "src_color",
 
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
+        tgt_color: gfx::RenderTarget<WinColorFmt> = "tgt_color",
+        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::PASS_TEST,
     }
 }
 
