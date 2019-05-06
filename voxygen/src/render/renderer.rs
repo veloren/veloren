@@ -3,13 +3,14 @@ use super::{
     gfx_backend,
     mesh::Mesh,
     model::Model,
-    pipelines::{figure, skybox, terrain, ui, Globals},
+    pipelines::{figure, postprocess, skybox, terrain, ui, Globals},
     texture::Texture,
     Pipeline, RenderError,
 };
 use gfx::{
     self,
-    traits::{Device, FactoryExt},
+    handle::Sampler,
+    traits::{Device, Factory, FactoryExt},
 };
 use image;
 use vek::*;
@@ -24,6 +25,12 @@ pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, Tg
 /// A handle to a window depth target.
 pub type TgtDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, TgtDepthFmt>;
 
+/// A handle to a render color target as a resource.
+pub type TgtColorRes = gfx::handle::ShaderResourceView<
+    gfx_backend::Resources,
+    <TgtColorFmt as gfx::format::Formatted>::View,
+>;
+
 /// A type that encapsulates rendering state. `Renderer` is central to Voxygen's rendering
 /// subsystem and contains any state necessary to interact with the GPU, along with pipeline state
 /// objects (PSOs) needed to renderer different kinds of models to the screen.
@@ -32,13 +39,21 @@ pub struct Renderer {
     encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     factory: gfx_backend::Factory,
 
+    win_color_view: TgtColorView,
+    win_depth_view: TgtDepthView,
+
     tgt_color_view: TgtColorView,
     tgt_depth_view: TgtDepthView,
+
+    tgt_color_res: TgtColorRes,
+
+    sampler: Sampler<gfx_backend::Resources>,
 
     skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
+    postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 }
 
 impl Renderer {
@@ -47,8 +62,8 @@ impl Renderer {
     pub fn new(
         device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
-        tgt_color_view: TgtColorView,
-        tgt_depth_view: TgtDepthView,
+        win_color_view: TgtColorView,
+        win_depth_view: TgtDepthView,
     ) -> Result<Self, RenderError> {
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(
@@ -82,29 +97,86 @@ impl Renderer {
             include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.frag")),
         )?;
 
+        // Construct a pipeline for rendering our post-processing
+        let postprocess_pipeline = create_pipeline(
+            &mut factory,
+            postprocess::pipe::new(),
+            include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/shaders/postprocess.vert"
+            )),
+            include_bytes!(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/shaders/postprocess.frag"
+            )),
+        )?;
+
+        let dims = win_color_view.get_dimensions();
+        let d_dims = win_depth_view.get_dimensions();
+
+        let (_, tgt_color_res, tgt_color_view) = factory
+            .create_render_target::<TgtColorFmt>(dims.0, dims.1)
+            .map_err(RenderError::CombinedError)?;
+        let (_, _, tgt_depth_view) = factory
+            .create_depth_stencil(d_dims.0, d_dims.1)
+            .map_err(RenderError::CombinedError)?;
+
+        let sampler = factory.create_sampler_linear();
+
         Ok(Self {
             device,
             encoder: factory.create_command_buffer().into(),
             factory,
 
+            win_color_view,
+            win_depth_view,
+
             tgt_color_view,
             tgt_depth_view,
+
+            tgt_color_res,
+            sampler,
 
             skybox_pipeline,
             figure_pipeline,
             terrain_pipeline,
             ui_pipeline,
+            postprocess_pipeline,
         })
     }
 
     /// Get references to the internal render target views that get displayed directly by the window.
     pub fn target_views(&self) -> (&TgtColorView, &TgtDepthView) {
-        (&self.tgt_color_view, &self.tgt_depth_view)
+        (&self.win_color_view, &self.win_depth_view)
     }
 
     /// Get mutable references to the internal render target views that get displayed directly by the window.
     pub fn target_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
-        (&mut self.tgt_color_view, &mut self.tgt_depth_view)
+        (&mut self.win_color_view, &mut self.win_depth_view)
+    }
+
+    pub fn on_resize(&mut self) -> Result<(), RenderError> {
+        let dims = self.win_color_view.get_dimensions();
+        let d_dims = self.win_depth_view.get_dimensions();
+
+        if dims.0 > 0 && dims.1 > 0 {
+            let (_, tgt_color_res, tgt_color_view) = self
+                .factory
+                .create_render_target::<TgtColorFmt>(dims.0, dims.1)
+                .map_err(RenderError::CombinedError)?;
+            self.tgt_color_res = tgt_color_res;
+            self.tgt_color_view = tgt_color_view;
+        }
+
+        if d_dims.0 > 0 && d_dims.1 > 0 {
+            let (_, _, tgt_depth_view) = self
+                .factory
+                .create_depth_stencil(d_dims.0, d_dims.1)
+                .map_err(RenderError::CombinedError)?;
+            self.tgt_depth_view = tgt_depth_view;
+        }
+
+        Ok(())
     }
 
     /// Get the resolution of the render target.
@@ -120,6 +192,8 @@ impl Renderer {
     pub fn clear(&mut self, col: Rgba<f32>) {
         self.encoder.clear(&self.tgt_color_view, col.into_array());
         self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
+        self.encoder.clear(&self.win_color_view, col.into_array());
+        self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 
     /// Perform all queued draw calls for this frame and clean up discarded items.
@@ -261,10 +335,30 @@ impl Renderer {
                     h: max.y - min.y,
                 },
                 tex: (tex.srv.clone(), tex.sampler.clone()),
-                tgt_color: self.tgt_color_view.clone(),
-                tgt_depth: self.tgt_depth_view.clone(),
+                tgt_color: self.win_color_view.clone(),
+                tgt_depth: self.win_depth_view.clone(),
             },
         );
+    }
+
+    pub fn render_post_process(
+        &mut self,
+        model: &Model<postprocess::PostProcessPipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<postprocess::Locals>,
+    ) {
+        self.encoder.draw(
+            &model.slice,
+            &self.postprocess_pipeline.pso,
+            &postprocess::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                src_sampler: (self.tgt_color_res.clone(), self.sampler.clone()),
+                tgt_color: self.win_color_view.clone(),
+                tgt_depth: self.win_depth_view.clone(),
+            },
+        )
     }
 }
 
