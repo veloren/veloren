@@ -391,12 +391,9 @@ impl Hud {
         // Settings
 
         if let Windows::Settings = self.show.open_windows {
-            match SettingsWindow::new(&self.imgs, &self.fonts)
+            match SettingsWindow::new(&mut self.show, &self.imgs, &self.fonts)
                 .set(self.ids.settings_window, ui_widgets) 
             {
-                Some(settings_window::Event::Help(b)) => self.show.help = b,
-                Some(settings_window::Event::Debug(b)) => self.show.debug = b,
-                Some(settings_window::Event::InventoryTest(b)) => self.show.inventory_test_button = b,
                 Some(settings_window::Event::Close) => {
                     self.show.open_windows = Windows::None;
                 }
