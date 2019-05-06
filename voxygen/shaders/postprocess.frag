@@ -23,8 +23,7 @@ uniform u_globals {
 out vec4 tgt_color;
 
 void main() {
-	// Uncomment to invert colors
-	//tgt_color = vec4(vec3(1.0, 1.0, 1.0) - texture2D(src_color, (f_pos + 1.0) / 2.0).xyz, 1.0);
-	tgt_color = texture2D(src_color, (f_pos + 1.0) / 2.0);
-	
+	vec4 src_color = texture2D(src_color, (f_pos + 1.0) / 2.0);
+
+	tgt_color = 1.0 - 1.0 / (src_color + 1.0);
 }

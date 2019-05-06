@@ -1,5 +1,5 @@
 use crate::{
-    render::{Renderer, TgtColorFmt, TgtDepthFmt},
+    render::{Renderer, WinColorFmt, WinDepthFmt},
     settings::Settings,
     ui, Error,
 };
@@ -29,8 +29,8 @@ impl Window {
             .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
             .with_vsync(false);
 
-        let (window, device, factory, tgt_color_view, tgt_depth_view) =
-            gfx_window_glutin::init::<TgtColorFmt, TgtDepthFmt>(
+        let (window, device, factory, win_color_view, win_depth_view) =
+            gfx_window_glutin::init::<WinColorFmt, WinDepthFmt>(
                 win_builder,
                 ctx_builder,
                 &events_loop,
@@ -58,7 +58,7 @@ impl Window {
 
         let tmp = Ok(Self {
             events_loop,
-            renderer: Renderer::new(device, factory, tgt_color_view, tgt_depth_view)?,
+            renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
             window,
             cursor_grabbed: false,
             needs_refresh_resize: false,
@@ -101,7 +101,7 @@ impl Window {
                 glutin::Event::WindowEvent { event, .. } => match event {
                     glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                     glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
-                        let (mut color_view, mut depth_view) = renderer.target_views_mut();
+                        let (mut color_view, mut depth_view) = renderer.tgt_views_mut();
                         gfx_window_glutin::update_views(&window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));

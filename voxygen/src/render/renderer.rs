@@ -15,15 +15,25 @@ use gfx::{
 use image;
 use vek::*;
 
-/// Represents the format of the window's color target.
-pub type TgtColorFmt = gfx::format::Rgba8;
-/// Represents the format of the window's depth target.
+/// Represents the format of the pre-processed color target.
+pub type TgtColorFmt = gfx::format::Rgba16F;
+/// Represents the format of the pre-processed depth target.
 pub type TgtDepthFmt = gfx::format::DepthStencil;
 
-/// A handle to a window color target.
+/// Represents the format of the window's color target.
+pub type WinColorFmt = gfx::format::Rgba8;
+/// Represents the format of the window's depth target.
+pub type WinDepthFmt = gfx::format::DepthStencil;
+
+/// A handle to a pre-processed color target.
 pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, TgtColorFmt>;
-/// A handle to a window depth target.
+/// A handle to a pre-processed depth target.
 pub type TgtDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, TgtDepthFmt>;
+
+/// A handle to a window color target.
+pub type WinColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, WinColorFmt>;
+/// A handle to a window depth target.
+pub type WinDepthView = gfx::handle::DepthStencilView<gfx_backend::Resources, WinDepthFmt>;
 
 /// A handle to a render color target as a resource.
 pub type TgtColorRes = gfx::handle::ShaderResourceView<
@@ -39,8 +49,8 @@ pub struct Renderer {
     encoder: gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
     factory: gfx_backend::Factory,
 
-    win_color_view: TgtColorView,
-    win_depth_view: TgtDepthView,
+    win_color_view: WinColorView,
+    win_depth_view: WinDepthView,
 
     tgt_color_view: TgtColorView,
     tgt_depth_view: TgtDepthView,
@@ -62,8 +72,8 @@ impl Renderer {
     pub fn new(
         device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
-        win_color_view: TgtColorView,
-        win_depth_view: TgtDepthView,
+        win_color_view: WinColorView,
+        win_depth_view: WinDepthView,
     ) -> Result<Self, RenderError> {
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(
@@ -139,13 +149,27 @@ impl Renderer {
         })
     }
 
+    /// Get references to the internal render target views that get rendered to before post-processing.
+    #[allow(dead_code)]
+    pub fn tgt_views(&self) -> (&TgtColorView, &TgtDepthView) {
+        (&self.tgt_color_view, &self.tgt_depth_view)
+    }
+
     /// Get references to the internal render target views that get displayed directly by the window.
-    pub fn target_views(&self) -> (&TgtColorView, &TgtDepthView) {
+    #[allow(dead_code)]
+    pub fn win_views(&self) -> (&WinColorView, &WinDepthView) {
         (&self.win_color_view, &self.win_depth_view)
     }
 
+    /// Get mutable references to the internal render target views that get rendered to before post-processing.
+    #[allow(dead_code)]
+    pub fn tgt_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
+        (&mut self.tgt_color_view, &mut self.tgt_depth_view)
+    }
+
     /// Get mutable references to the internal render target views that get displayed directly by the window.
-    pub fn target_views_mut(&mut self) -> (&mut TgtColorView, &mut TgtDepthView) {
+    #[allow(dead_code)]
+    pub fn win_views_mut(&mut self) -> (&mut WinColorView, &mut WinDepthView) {
         (&mut self.win_color_view, &mut self.win_depth_view)
     }
 
