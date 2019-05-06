@@ -4,10 +4,11 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
+use crate::hud::Show;
 use super::{
     img_ids::Imgs,
     font_ids::Fonts,
+    Windows,
     TEXT_COLOR,
 };
 
@@ -31,6 +32,7 @@ pub enum SmallWindowType {
 #[derive(WidgetCommon)]
 pub struct SmallWindow<'a> {
     content: SmallWindowType,
+    show: &'a Show,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -41,9 +43,10 @@ pub struct SmallWindow<'a> {
 }
 
 impl<'a> SmallWindow<'a> {
-    pub fn new(content: SmallWindowType, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(content: SmallWindowType, show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             content,
+            show,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -92,7 +95,7 @@ impl<'a> Widget for SmallWindow<'a> {
 
         // Frame
         // TODO: Relative to Char Window?
-        if true { //char_window_open {
+        if let Windows::CharacterAnd(_) = self.show.open_windows {
             Image::new(self.imgs.window_frame)
                 // TODO: Position
                 // .right_from(state.ids.character_window, 20.0)
