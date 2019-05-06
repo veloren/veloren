@@ -30,7 +30,7 @@ use crate::{
     GlobalState,
 };
 use conrod_core::{
-    widget::{Button, Image, Text, Rectangle}, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, color
+    widget::{Button, Image, Text, Id as WidgId, Rectangle}, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, color
 };
 use std::collections::VecDeque;
 
@@ -190,6 +190,8 @@ pub struct Hud {
     new_messages: VecDeque<String>,
     inventory_space: u32,
     show: Show,
+    to_focus: Option<Option<WidgId>>,
+    typing: bool,
 }
 
 impl Hud {
@@ -221,7 +223,9 @@ impl Hud {
                 ui: true,
                 inventory_test_button: false,
                 mini_map: false,
-            }
+            },
+            to_focus: None,
+            typing: false,
         }
     }
 
@@ -365,11 +369,15 @@ impl Hud {
             .set(self.ids.skillbar, ui_widgets);
 
         // Chat box
-        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
-            .set(self.ids.chat, ui_widgets) 
-        {
+        let (typing, event) = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+            .set(self.ids.chat, ui_widgets);
+        self.typing = typing;
+        match event {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
+            }
+            Some(chat::Event::Focus(focus_id)) => {
+                self.to_focus = Some(Some(focus_id));
             }
             None => {}
         }
@@ -461,18 +469,11 @@ impl Hud {
         self.new_messages.push_back(msg);
     }
 
-    fn typing(&self) -> bool {
-        match self.ui.widget_capturing_keyboard() {
-            Some(id) if id == self.ids.chat => true,
-            _ => false,
-        }
-    }
-
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         match event {
             WinEvent::Ui(event) => {
-                if (self.typing() && event.is_keyboard() && self.show.ui)
+                if (self.typing && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
                 {
                     self.ui.handle_event(event);
@@ -486,19 +487,24 @@ impl Hud {
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
-                self.ui.focus_widget(Some(self.ids.chat));
+                self.ui.focus_widget(if self.typing {
+                    None
+                } else {
+                    Some(self.ids.chat)
+                });
                 true
             }
             WinEvent::KeyDown(Key::Escape) => {
-                if self.typing() {
+                if self.typing {
                     self.ui.focus_widget(None);
+                    self.typing = false;
                 } else {
                     // Close windows on esc
                     self.show.toggle_windows(global_state);
                 }
                 true
             }
-            WinEvent::KeyDown(key) if !self.typing() => match key {
+            WinEvent::KeyDown(key) if !self.typing => match key {
                 Key::Map => {
                     self.show.toggle_map();
                     true
@@ -535,9 +541,9 @@ impl Hud {
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
-                _ => self.typing(),
+                _ => self.typing,
             },
-            WinEvent::Char(_) => self.typing(),
+            WinEvent::Char(_) => self.typing,
             WinEvent::SettingsChanged => {
                 self.settings = global_state.settings.clone();
                 true
@@ -547,6 +553,9 @@ impl Hud {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
+        if let Some(maybe_id) = self.to_focus.take() {
+            self.ui.focus_widget(maybe_id);
+        }
         let events = self.update_layout(tps);
         self.ui.maintain(renderer);
         events

@@ -1,10 +1,8 @@
 use conrod_core::{
-    builder_methods, color,
     input::Key,
-    text::font,
     widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
     position::Dimension,
-    UiCell, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    UiCell, widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use super::{
     img_ids::Imgs,
@@ -69,12 +67,13 @@ pub struct State {
 
 pub enum Event {
     SendMessage(String),
+    Focus(Id),
 }
 
 impl<'a> Widget for Chat<'a> {
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
+    type Event = (bool, Option<Event>);
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -103,10 +102,12 @@ impl<'a> Widget for Chat<'a> {
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
+        let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
+        let input_focused = keyboard_capturer == Some(state.ids.input);
+
         // Only show if it has the keyboard captured
         // Chat input with rectangle as background
-        let keyboard_captured = ui.global_input().current.widget_capturing_keyboard == Some(id);
-        if keyboard_captured {
+        if input_focused {
             let text_edit = TextEdit::new(&state.input)
                 .w(460.0)
                 .restrict_to_height(false)
@@ -135,12 +136,10 @@ impl<'a> Widget for Chat<'a> {
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
-            .and(|r| {
-                if keyboard_captured {
-                    r.up_from(self.ids.input_bg, 0.0)
-                } else {
-                    r.bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
-                }
+            .and(|r| if input_focused {
+                r.up_from(state.ids.input_bg, 0.0)
+            } else {
+                r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
             })
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
@@ -186,8 +185,13 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
+        // If the chat widget is focused return a focus event to pass the focus to the input box
+        let self_focused = keyboard_capturer == Some(id);
+        let event = if self_focused {
+            Some(Event::Focus(state.ids.input))
+        }
         // If enter is pressed and the input box is not empty send the current message
-        if ui
+        else if ui 
             .widget_input(state.ids.input)
             .presses()
             .key()
@@ -198,9 +202,12 @@ impl<'a> Widget for Chat<'a> {
         {
             let msg = state.input.clone();
             state.update(|s| s.input.clear());
-            return Some(Event::SendMessage(msg))
-        }
+            Some(Event::SendMessage(msg))
+        } else {
+            None
+        };
 
-        None
+        // Return whether typing and any event that occured
+        (self_focused || input_focused, event)
     }
 }
