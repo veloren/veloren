@@ -1,4 +1,5 @@
 pub mod figure;
+pub mod postprocess;
 pub mod skybox;
 pub mod terrain;
 pub mod ui;
