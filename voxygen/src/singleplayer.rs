@@ -1,9 +1,13 @@
-use common::clock::Clock;
+use std::{
+    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
+    time::Duration,
+    thread::{self, JoinHandle},
+    net::SocketAddr,
+};
 use log::info;
+use portpicker::pick_unused_port;
+use common::clock::Clock;
 use server::{Event, Input, Server};
-use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
-use std::time::Duration;
-use std::{thread, thread::JoinHandle};
 
 const TPS: u64 = 30;
 
@@ -19,15 +23,21 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new() -> Self {
+    pub fn new() -> (Self, SocketAddr) {
         let (sender, reciever) = channel();
+
+        let sock = SocketAddr::from(([0; 4], pick_unused_port()
+            .expect("Failed to find unused port")));
+
+        let sock2 = sock.clone();
         let thread = thread::spawn(move || {
-            run_server(reciever);
+            run_server(sock2, reciever);
         });
-        Singleplayer {
+
+        (Singleplayer {
             server_thread: thread,
             sender,
-        }
+        }, sock)
     }
 }
 
@@ -37,14 +47,14 @@ impl Drop for Singleplayer {
     }
 }
 
-fn run_server(rec: Receiver<Msg>) {
+fn run_server(sock: SocketAddr, rec: Receiver<Msg>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::new().expect("Failed to create server instance");
+    let mut server = Server::bind(sock).expect("Failed to create server instance");
 
     loop {
         let events = server
