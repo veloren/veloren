@@ -9,7 +9,10 @@ use super::{
     font_ids::Fonts,
     TEXT_COLOR,
 };
-use crate::ui::ToggleButton;
+use crate::{
+    ui::ToggleButton,
+    hud::Show,
+};
 
 widget_ids! {
     struct Ids {
@@ -33,8 +36,8 @@ widget_ids! {
         debug_button,
         debug_button_label,        
         interface,
-        inventorytest_button,
-        inventorytest_button_label,        
+        inventory_test_button,
+        inventory_test_button_label,
         settings_bg,        
         sound,
         test,
@@ -52,6 +55,8 @@ enum SettingsTab {
 
 #[derive(WidgetCommon)]
 pub struct SettingsWindow<'a> {
+    show: &'a mut Show,
+
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
@@ -61,8 +66,9 @@ pub struct SettingsWindow<'a> {
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a mut Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
+            show,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -73,17 +79,11 @@ impl<'a> SettingsWindow<'a> {
 
 pub struct State {
     settings_tab: SettingsTab,
-    show_debug: bool,
-    show_help: bool,
-    inventorytest_button: bool,
 
     ids: Ids,
 }
 
 pub enum Event {
-    Help(bool),
-    Debug(bool),
-    InventoryTest(bool),
     Close,
 }
 
@@ -95,9 +95,6 @@ impl<'a> Widget for SettingsWindow<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             settings_tab: SettingsTab::Interface,
-            show_debug: false,
-            show_help: false,
-            inventorytest_button: false,
             ids: Ids::new(id_gen),
         }
     }
@@ -190,16 +187,15 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Interface = state.settings_tab {
             // Help
             let show_help =
-                ToggleButton::new(state.show_help, self.imgs.check, self.imgs.check_checked)
+                ToggleButton::new(self.show.help, self.imgs.check, self.imgs.check_checked)
                     .w_h(288.0 / 24.0, 288.0 / 24.0)
                     .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
                     .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                     .press_images(self.imgs.check_press, self.imgs.check_press)
                     .set(state.ids.button_help, ui);
             
-            if state.show_help != show_help {
-                state.update(|s| s.show_help = show_help);
-                return Some(Event::Help(show_help));
+            if self.show.help != show_help {
+                self.show.toggle_help();
             }
 
             Text::new("Show Help")
@@ -211,8 +207,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.show_help_label, ui);
 
             // Inventory test
-            let inventorytest_button = ToggleButton::new(
-                state.inventorytest_button,
+            let inventory_test_button = ToggleButton::new(
+                self.show.inventory_test_button,
                 self.imgs.check,
                 self.imgs.check_checked,
             )
@@ -220,36 +216,34 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .down_from(state.ids.button_help, 7.0)
                 .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                 .press_images(self.imgs.check_press, self.imgs.check_press)
-                .set(state.ids.inventorytest_button, ui);
+                .set(state.ids.inventory_test_button, ui);
 
-            if state.inventorytest_button != inventorytest_button {
-                state.update(|s| s.inventorytest_button = inventorytest_button);
-                return Some(Event::InventoryTest(inventorytest_button));
+            if self.show.inventory_test_button != inventory_test_button {
+                self.show.inventory_test_button = inventory_test_button;
             }
 
             Text::new("Show Inventory Test Button")
-                .right_from(state.ids.inventorytest_button, 10.0)
+                .right_from(state.ids.inventory_test_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
-                .graphics_for(state.ids.inventorytest_button)
+                .graphics_for(state.ids.inventory_test_button)
                 .color(TEXT_COLOR)
-                .set(state.ids.inventorytest_button_label, ui);
+                .set(state.ids.inventory_test_button_label, ui);
 
             // Debug
             let show_debug = ToggleButton::new(
-                state.show_debug,
+                self.show.debug,
                 self.imgs.check,
                 self.imgs.check_checked
             )
                 .w_h(288.0 / 24.0, 288.0 / 24.0)
-                .down_from(state.ids.inventorytest_button, 7.0)
+                .down_from(state.ids.inventory_test_button, 7.0)
                 .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                 .press_images(self.imgs.check_press, self.imgs.check_press)
                 .set(state.ids.debug_button, ui);
 
-            if state.show_debug != show_debug {
-                state.update(|s| s.show_debug = show_debug);
-                return Some(Event::Debug(show_debug));
+            if self.show.debug != show_debug {
+                self.show.debug = show_debug;
             }
 
             Text::new("Show Debug Window")
