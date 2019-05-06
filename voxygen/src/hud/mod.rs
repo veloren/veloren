@@ -407,7 +407,7 @@ impl Hud {
             Windows::CharacterAnd(Some(small)) => Some((small, true)),
             _ => None,
         } {
-            match SmallWindow::new(small, &self.imgs, &self.fonts)
+            match SmallWindow::new(small, &self.show, &self.imgs, &self.fonts)
                 .set(self.ids.small_window, ui_widgets) 
             {
                 Some(small_window::Event::Close) => self.show.open_windows = match self.show.open_windows {
