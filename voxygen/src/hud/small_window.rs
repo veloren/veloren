@@ -96,16 +96,14 @@ impl<'a> Widget for SmallWindow<'a> {
         // Frame
         // TODO: Relative to Char Window?
         if let Windows::CharacterAnd(_) = self.show.open_windows {
-            Image::new(self.imgs.window_frame)
-                // TODO: Position
-                // .right_from(state.ids.character_window, 20.0)
-                .top_left_with_margins_on(ui.window, 200.0, 10.0)
+            Image::new(self.imgs.window_frame)                
+                .top_left_with_margins_on(ui.window, 200.0, 658.0)
                 .w_h(107.0*4.0, 125.0*4.0)
                 .set(state.ids.frame, ui);
         } else {
             Image::new(self.imgs.window_frame)
                 .top_left_with_margins_on(ui.window, 200.0, 10.0)
-                .w_h(1648.0 / 4.0, 1952.0 / 4.0)
+                .w_h(107.0*4.0, 125.0*4.0)
                 .set(state.ids.frame, ui);
         }
 
