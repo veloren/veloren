@@ -36,18 +36,24 @@ impl World {
             .set_seed(1);
         let temp_nz = Perlin::new()
             .set_seed(2);
+        let chaos_nz = Perlin::new()
+            .set_seed(3);
 
         for lpos in chunk.iter_positions() {
             let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
             let wposf = wpos.map(|e| e as f64);
 
+            let chaos_freq = 1.0 / 100.0;
             let freq = 1.0 / 128.0;
             let ampl = 32.0;
             let small_freq = 1.0 / 32.0;
             let small_ampl = 6.0;
             let offs = 32.0;
-            let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl
-                + perlin_nz.get(Vec2::from(wposf * small_freq).into_array()) * small_ampl
+
+            let chaos = chaos_nz.get(Vec2::from(wposf * chaos_freq).into_array()).max(0.0) + 0.5;
+
+            let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
+                + perlin_nz.get(Vec2::from(wposf * small_freq).into_array()) * small_ampl * chaos
                 + offs;
             let temp = (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
 
