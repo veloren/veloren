@@ -3,6 +3,8 @@ use common::comp;
 use std::{
     sync::mpsc::{channel, Receiver, TryRecvError},
     thread::{self, JoinHandle},
+    net::ToSocketAddrs,
+    time::Duration,
 };
 
 #[derive(Debug)]
@@ -20,14 +22,17 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(connection_args: (String, u16, bool), client_args: (comp::Player, u64)) -> Self {
+    pub fn new(connection_args: (String, u16, bool), client_args: (comp::Player, u64), wait: bool) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
         let (player, view_distance) = client_args;
 
         let (tx, rx) = channel();
 
         let handle = Some(thread::spawn(move || {
-            use std::net::ToSocketAddrs;
+            // Sleep the thread to wait for the single-player server to start up
+            if wait {
+                thread::sleep(Duration::from_millis(250));
+            }
             // Parses ip address or resolves hostname
             // Note: if you use an ipv6 address the number after the last colon will be used as the port unless you use [] around the address
             match server_address
