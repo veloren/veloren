@@ -108,7 +108,9 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Title
         Text::new("Character Name") // Add in actual Character Name
-            .mid_top_with_margin_on(state.charwindow_frame, 7.0)
+            .mid_top_with_margin_on(state.charwindow_frame, 17.0)
+            .font_id(self.fonts.metamorph)
+            .font_size(14)
             .color(TEXT_COLOR)
             .set(state.charwindow_title, ui);
 
