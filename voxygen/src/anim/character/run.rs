@@ -13,15 +13,15 @@ impl Animation for RunAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
-    fn update_skeleton(skeleton: &Self::Skeleton, time: f64) -> Self::Skeleton {
+    fn update_skeleton(skeleton: &Self::Skeleton, global_time: f64, anim_time: f64) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (time as f32 * 14.0).sin();
+        let wave = (anim_time as f32 * 14.0).sin();
         let wavetest = (wave.cbrt());
-        let fuzzwave = (time as f32 * 12.0).sin();
-        let wavecos = (time as f32 * 14.0).cos();
-        let wave_slow = (time as f32 * 7.0 + PI).sin();
-        let wavecos_slow = (time as f32 * 8.0 + PI).cos();
+        let fuzzwave = (anim_time as f32 * 12.0).sin();
+        let wavecos = (anim_time as f32 * 14.0).cos();
+        let wave_slow = (anim_time as f32 * 7.0 + PI).sin();
+        let wavecos_slow = (anim_time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         next.head.offset = Vec3::new(6.0, 0.0, 12.0 + wavecos * 1.3);
