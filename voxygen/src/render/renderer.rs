@@ -112,14 +112,8 @@ impl Renderer {
         )?;
 
         let dims = win_color_view.get_dimensions();
-        let d_dims = win_depth_view.get_dimensions();
-
-        let (_, tgt_color_res, tgt_color_view) = factory
-            .create_render_target::<TgtColorFmt>(dims.0, dims.1)
-            .map_err(RenderError::CombinedError)?;
-        let (_, _, tgt_depth_view) = factory
-            .create_depth_stencil(d_dims.0, d_dims.1)
-            .map_err(RenderError::CombinedError)?;
+        let (tgt_color_view, tgt_depth_view, tgt_color_res) =
+            Self::create_rt_views(&mut factory, (dims.0, dims.1))?;
 
         let sampler = factory.create_sampler_linear();
 
@@ -155,28 +149,30 @@ impl Renderer {
         (&mut self.win_color_view, &mut self.win_depth_view)
     }
 
+    /// Resize internal render targets to match window render target dimensions
     pub fn on_resize(&mut self) -> Result<(), RenderError> {
         let dims = self.win_color_view.get_dimensions();
-        let d_dims = self.win_depth_view.get_dimensions();
 
-        if dims.0 > 0 && dims.1 > 0 {
-            let (_, tgt_color_res, tgt_color_view) = self
-                .factory
-                .create_render_target::<TgtColorFmt>(dims.0, dims.1)
-                .map_err(RenderError::CombinedError)?;
-            self.tgt_color_res = tgt_color_res;
-            self.tgt_color_view = tgt_color_view;
-        }
-
-        if d_dims.0 > 0 && d_dims.1 > 0 {
-            let (_, _, tgt_depth_view) = self
-                .factory
-                .create_depth_stencil(d_dims.0, d_dims.1)
-                .map_err(RenderError::CombinedError)?;
-            self.tgt_depth_view = tgt_depth_view;
-        }
+        let (tgt_color_view, tgt_depth_view, tgt_color_res) =
+            Self::create_rt_views(&mut self.factory, (dims.0, dims.1))?;
+        self.tgt_color_res = tgt_color_res;
+        self.tgt_color_view = tgt_color_view;
+        self.tgt_depth_view = tgt_depth_view;
 
         Ok(())
+    }
+
+    fn create_rt_views(
+        factory: &mut gfx_device_gl::Factory,
+        size: (u16, u16),
+    ) -> Result<(TgtColorView, TgtDepthView, TgtColorRes), RenderError> {
+        let (_, tgt_color_res, tgt_color_view) = factory
+            .create_render_target::<TgtColorFmt>(size.0, size.1)
+            .map_err(RenderError::CombinedError)?;;
+        let tgt_depth_view = factory
+            .create_depth_stencil_view_only::<TgtDepthFmt>(size.0, size.1)
+            .map_err(RenderError::CombinedError)?;;
+        Ok((tgt_color_view, tgt_depth_view, tgt_color_res))
     }
 
     /// Get the resolution of the render target.
