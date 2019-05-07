@@ -37,11 +37,11 @@ lazy_static! {
 /// Function used to load assets
 /// loaded assets are cached in a global singleton hashmap
 /// Example usage:
-/// ```
+/// ```no_run
 /// use image::DynamicImage;
-/// use common::assets;
+/// use veloren_common::assets;
 ///
-/// let my_image = Assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     Ok(ASSETS
@@ -57,11 +57,11 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// Use this to load essential assets
 /// loaded assets are cached in a global singleton hashmap
 /// Example usage:
-/// ```
+/// ```no_run
 /// use image::DynamicImage;
-/// use common::assets;
+/// use veloren_common::assets;
 ///
-/// let my_image = Assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
+/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).expect(&format!("Failed loading essential asset: {}", specifier))
