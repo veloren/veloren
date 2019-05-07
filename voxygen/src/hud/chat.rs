@@ -1,13 +1,9 @@
+use super::{font_ids::Fonts, img_ids::Imgs, TEXT_COLOR};
 use conrod_core::{
     input::Key,
-    widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
     position::Dimension,
-    UiCell, widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
-};
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    TEXT_COLOR,
+    widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
+    widget_ids, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use std::collections::VecDeque;
 
@@ -86,12 +82,7 @@ impl<'a> Widget for Chat<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            id,
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { id, state, ui, .. } = args;
 
         // Maintain scrolling
         if !self.new_messages.is_empty() {
@@ -134,10 +125,12 @@ impl<'a> Widget for Chat<'a> {
         // Message box
         Rectangle::fill([470.0, 174.0])
             .rgba(0.0, 0.0, 0.0, 0.4)
-            .and(|r| if input_focused {
-                r.up_from(state.ids.input_bg, 0.0)
-            } else {
-                r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
+            .and(|r| {
+                if input_focused {
+                    r.up_from(state.ids.input_bg, 0.0)
+                } else {
+                    r.bottom_left_with_margins_on(ui.window, 10.0, 10.0)
+                }
             })
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
@@ -165,7 +158,10 @@ impl<'a> Widget for Chat<'a> {
             } else {
                 // Spacer at bottom of the last message so that it is not cut off
                 // Needs to be larger than the space above
-                Text::new("").font_size(6).font_id(self.fonts.opensans).w(470.0)
+                Text::new("")
+                    .font_size(6)
+                    .font_id(self.fonts.opensans)
+                    .w(470.0)
             };
             item.set(widget, ui);
         }
@@ -190,7 +186,7 @@ impl<'a> Widget for Chat<'a> {
             Some(Event::Focus(state.ids.input))
         }
         // If enter is pressed and the input box is not empty send the current message
-        else if ui 
+        else if ui
             .widget_input(state.ids.input)
             .presses()
             .key()

@@ -3,11 +3,7 @@ use conrod_core::{
     widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    TEXT_COLOR,
-};
+use super::{font_ids::Fonts, img_ids::Imgs, TEXT_COLOR};
 
 widget_ids! {
     struct Ids {
@@ -23,7 +19,6 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct EscMenu<'a> {
-
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
@@ -68,11 +63,7 @@ impl<'a> Widget for EscMenu<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         Image::new(self.imgs.esc_bg)
             .w_h(228.0, 450.0)

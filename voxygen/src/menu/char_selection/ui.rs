@@ -1,23 +1,11 @@
-use std::sync::Arc;
 use crate::{
     render::Renderer,
     ui::{self, Graphic, ScaleMode, Ui},
-    window::Window, 
+    window::Window,
 };
 use common::{
     assets,
-    comp::character::{
-        Character,
-        Race,
-        Gender,
-        Head,
-        Chest,
-        Belt,
-        Pants,
-        Hand,
-        Foot,
-        Weapon,
-    }
+    comp::character::{Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon},
 };
 use conrod_core::{
     color,
@@ -27,6 +15,7 @@ use conrod_core::{
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use std::sync::Arc;
 
 widget_ids! {
     struct Ids {
@@ -245,14 +234,12 @@ impl Imgs {
     fn new(ui: &mut Ui) -> Imgs {
         let load_img = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let image = assets::load::<image::DynamicImage>(fullpath.as_str())
-                .unwrap();
+            let image = assets::load::<image::DynamicImage>(fullpath.as_str()).unwrap();
             ui.add_graphic(Graphic::Image(image))
         };
         let load_vox = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str())
-                .unwrap();
+            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str()).unwrap();
             ui.add_graphic(Graphic::Voxel(dot_vox))
         };
         Imgs {
@@ -374,10 +361,12 @@ impl CharSelectionUi {
         // Load fonts
         let load_font = |filename, ui: &mut Ui| {
             let fullpath: String = ["/voxygen/font", filename].concat();
-             ui.new_font(Arc::new(conrod_core::text::Font::from_bytes(
-                assets::load_from_path(fullpath.as_str())
-                .expect("Error loading file")
-            ).unwrap()))
+            ui.new_font(Arc::new(
+                conrod_core::text::Font::from_bytes(
+                    assets::load_from_path(fullpath.as_str()).expect("Error loading file"),
+                )
+                .unwrap(),
+            ))
         };
         let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
         let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);

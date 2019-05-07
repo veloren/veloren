@@ -1,11 +1,7 @@
+use super::{font_ids::Fonts, img_ids::Imgs, HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR};
 use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
-};
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    TEXT_COLOR, XP_COLOR, HP_COLOR, MANA_COLOR,
 };
 
 widget_ids! {
@@ -69,11 +65,7 @@ impl<'a> Widget for Skillbar<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         // TODO: Read from parameter / character struct
         let xp_percentage = 0.4;

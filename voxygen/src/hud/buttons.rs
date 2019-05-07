@@ -3,13 +3,7 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    small_window::SmallWindowType,
-    Windows,
-    TEXT_COLOR,
-};
+use super::{font_ids::Fonts, img_ids::Imgs, small_window::SmallWindowType, Windows, TEXT_COLOR};
 use crate::ui::ToggleButton;
 
 widget_ids! {
@@ -44,7 +38,13 @@ pub struct Buttons<'a> {
 }
 
 impl<'a> Buttons<'a> {
-    pub fn new(open_windows: &'a Windows, show_map: bool, show_bag: bool, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        open_windows: &'a Windows,
+        show_map: bool,
+        show_bag: bool,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             open_windows,
             show_map,
@@ -84,21 +84,19 @@ impl<'a> Widget for Buttons<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         // Bag
         if !self.show_map {
-            if self.show_bag != ToggleButton::new(self.show_bag, self.imgs.bag, self.imgs.bag_open)
-                .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
-                .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
-                .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
-                .w_h(420.0 / 10.0, 480.0 / 10.0)
-                .set(state.ids.bag, ui) {
-                    return Some(Event::ToggleBag);
+            if self.show_bag
+                != ToggleButton::new(self.show_bag, self.imgs.bag, self.imgs.bag_open)
+                    .bottom_right_with_margins_on(ui.window, 5.0, 5.0)
+                    .hover_images(self.imgs.bag_hover, self.imgs.bag_open_hover)
+                    .press_images(self.imgs.bag_press, self.imgs.bag_open_press)
+                    .w_h(420.0 / 10.0, 480.0 / 10.0)
+                    .set(state.ids.bag, ui)
+            {
+                return Some(Event::ToggleBag);
             }
 
             Text::new("B")

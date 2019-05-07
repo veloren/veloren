@@ -1,13 +1,8 @@
+use super::{font_ids::Fonts, img_ids::Imgs, TEXT_COLOR, XP_COLOR};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
-};
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    TEXT_COLOR,
-    XP_COLOR,
 };
 
 widget_ids! {
@@ -68,12 +63,7 @@ impl<'a> Widget for CharacterWindow<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            id,
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { id, state, ui, .. } = args;
 
         // TODO: Read from parameter / character struct
         let xp_percentage = 0.4;
@@ -82,8 +72,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.window_frame)
             .middle_of(id)
             .top_left_with_margins_on(ui.window, 200.0, 215.0)
-            .w_h(107.0*4.0, 125.0*4.0)
-            .set(state.charwindow_frame, ui);     
+            .w_h(107.0 * 4.0, 125.0 * 4.0)
+            .set(state.charwindow_frame, ui);
 
         // Icon
         //Image::new(self.imgs.charwindow_icon)
@@ -98,8 +88,9 @@ impl<'a> Widget for CharacterWindow<'a> {
             .press_image(self.imgs.close_button_press)
             .top_right_with_margins_on(state.charwindow_frame, 12.0, 0.0)
             .set(state.charwindow_close, ui)
-            .was_clicked() {
-                return Some(Event::Close);
+            .was_clicked()
+        {
+            return Some(Event::Close);
         }
 
         // Title
@@ -171,11 +162,11 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              Intelligence",
         )
-            .top_left_with_margins_on(state.charwindow_rectangle, 100.0, 20.0)
-            .font_id(self.fonts.opensans)
-            .font_size(16)
-            .color(TEXT_COLOR)
-            .set(state.charwindow_tab1_statnames, ui);
+        .top_left_with_margins_on(state.charwindow_rectangle, 100.0, 20.0)
+        .font_id(self.fonts.opensans)
+        .font_size(16)
+        .color(TEXT_COLOR)
+        .set(state.charwindow_tab1_statnames, ui);
 
         Text::new(
             "1234\n\
@@ -186,11 +177,11 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              124124",
         )
-            .right_from(state.charwindow_tab1_statnames, 10.0)
-            .font_id(self.fonts.opensans)
-            .font_size(16)
-            .color(TEXT_COLOR)
-            .set(state.charwindow_tab1_stats, ui);
+        .right_from(state.charwindow_tab1_statnames, 10.0)
+        .font_id(self.fonts.opensans)
+        .font_size(16)
+        .color(TEXT_COLOR)
+        .set(state.charwindow_tab1_stats, ui);
 
         None
     }

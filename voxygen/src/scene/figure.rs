@@ -19,9 +19,9 @@ use common::{
     figure::Segment,
     msg,
 };
+use dot_vox::DotVoxData;
 use specs::{Component, Entity as EcsEntity, Join, VecStorage};
 use std::{collections::HashMap, f32};
-use dot_vox::DotVoxData;
 use vek::*;
 
 pub struct FigureCache {
@@ -101,9 +101,7 @@ impl FigureCache {
 
     fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
         let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(
-            assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref()
-        )
+        Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
             .generate_mesh(position)
     }
 
