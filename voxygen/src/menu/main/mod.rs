@@ -78,6 +78,7 @@ impl PlayState for MainMenuState {
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
                             InitError::ConnectionFailed(_) => "Connection failed",
+                            InitError::ClientCrashed => "Client crashed",
                         }
                         .to_string(),
                     );

@@ -15,6 +15,7 @@ pub enum Error {
     NoAddress,
     // Parsing/host name resolution successful but could not connect
     ConnectionFailed(ClientError),
+    ClientCrashed,
 }
 
 // Used to asynchronusly parse the server address, resolve host names, and create the client (which involves establishing a connection to the server)
@@ -31,7 +32,7 @@ impl ClientInit {
         let handle = Some(thread::spawn(move || {
             // Sleep the thread to wait for the single-player server to start up
             if wait {
-                thread::sleep(Duration::from_millis(250));
+                thread::sleep(Duration::from_millis(500));
             }
             // Parses ip address or resolves hostname
             // Note: if you use an ipv6 address the number after the last colon will be used as the port unless you use [] around the address
@@ -85,7 +86,7 @@ impl ClientInit {
         match self.rx.try_recv() {
             Ok(result) => Some(result),
             Err(TryRecvError::Empty) => None,
-            Err(TryRecvError::Disconnected) => panic!("Thread panicked or already finished"),
+            Err(TryRecvError::Disconnected) => Some(Err(Error::ClientCrashed)),
         }
     }
 }
