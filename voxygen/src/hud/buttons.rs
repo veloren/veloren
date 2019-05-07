@@ -1,8 +1,6 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
-    widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image, Text},
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 use super::{
@@ -43,7 +41,6 @@ pub struct Buttons<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> Buttons<'a> {
@@ -55,7 +52,6 @@ impl<'a> Buttons<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -89,10 +85,8 @@ impl<'a> Widget for Buttons<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            id,
             state,
             ui,
-            style,
             ..
         } = args;
 

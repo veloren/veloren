@@ -289,6 +289,10 @@ impl Ui {
             .is_none()
     }
 
+    // Get the widget graph
+    pub fn widget_graph(&self) -> &Graph {
+        self.ui.widget_graph()
+    }
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
             Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),

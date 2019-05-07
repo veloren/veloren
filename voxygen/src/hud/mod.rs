@@ -30,7 +30,7 @@ use crate::{
     GlobalState,
 };
 use conrod_core::{
-    widget::{Button, Image, Text, Id as WidgId, Rectangle}, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, color
+    widget::{self, Button, Image, Text, Rectangle}, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, color, graph
 };
 use std::collections::VecDeque;
 
@@ -59,8 +59,6 @@ widget_ids! {
         mmap_frame_bg,
         mmap_location,
         mmap_button,
-
-    
 
         // Window Frames
         window_frame_0,
@@ -190,8 +188,7 @@ pub struct Hud {
     new_messages: VecDeque<String>,
     inventory_space: u32,
     show: Show,
-    to_focus: Option<Option<WidgId>>,
-    typing: bool,
+    to_focus: Option<Option<widget::Id>>,
 }
 
 impl Hud {
@@ -225,7 +222,6 @@ impl Hud {
                 mini_map: false,
             },
             to_focus: None,
-            typing: false,
         }
     }
 
@@ -369,10 +365,9 @@ impl Hud {
             .set(self.ids.skillbar, ui_widgets);
 
         // Chat box
-        let (typing, event) = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
-            .set(self.ids.chat, ui_widgets);
-        self.typing = typing;
-        match event {
+        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+            .set(self.ids.chat, ui_widgets)
+        {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             }
@@ -402,11 +397,7 @@ impl Hud {
         }
 
         // Small Window
-        if let Some((small, char_window_open)) = match self.show.open_windows {
-            Windows::Small(small) => Some((small, false)),
-            Windows::CharacterAnd(Some(small)) => Some((small, true)),
-            _ => None,
-        } {
+        if let Windows::Small(small) | Windows::CharacterAnd(Some(small)) = self.show.open_windows {
             match SmallWindow::new(small, &self.show, &self.imgs, &self.fonts)
                 .set(self.ids.small_window, ui_widgets) 
             {
@@ -442,7 +433,6 @@ impl Hud {
             }
         }
 
-
         // Esc-menu
         if self.show.esc_menu {
             match EscMenu::new(&self.imgs, &self.fonts)
@@ -466,11 +456,25 @@ impl Hud {
         self.new_messages.push_back(msg);
     }
 
+    // Checks if a TextEdit widget has the keyboard captured
+    fn typing(&self) -> bool {
+        if let Some(id) = self.ui.widget_capturing_keyboard() {
+            self.ui
+                .widget_graph()
+                .widget(id)
+                .and_then(graph::Container::unique_widget_state::<widget::TextEdit>)
+                .is_some()
+                
+        } else {
+            false
+        }
+    }
+
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         match event {
             WinEvent::Ui(event) => {
-                if (self.typing && event.is_keyboard() && self.show.ui)
+                if (self.typing() && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
                 {
                     self.ui.handle_event(event);
@@ -484,7 +488,7 @@ impl Hud {
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
-                self.ui.focus_widget(if self.typing {
+                self.ui.focus_widget(if self.typing() {
                     None
                 } else {
                     Some(self.ids.chat)
@@ -492,16 +496,15 @@ impl Hud {
                 true
             }
             WinEvent::KeyDown(Key::Escape) => {
-                if self.typing {
+                if self.typing() {
                     self.ui.focus_widget(None);
-                    self.typing = false;
                 } else {
                     // Close windows on esc
                     self.show.toggle_windows(global_state);
                 }
                 true
             }
-            WinEvent::KeyDown(key) if !self.typing => match key {
+            WinEvent::KeyDown(key) if !self.typing() => match key {
                 Key::Map => {
                     self.show.toggle_map();
                     true
@@ -538,9 +541,9 @@ impl Hud {
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
                 Key::ToggleCursor => false,
-                _ => self.typing,
+                _ => self.typing(),
             },
-            WinEvent::Char(_) => self.typing,
+            WinEvent::Char(_) => self.typing(),
             WinEvent::SettingsChanged => {
                 self.settings = global_state.settings.clone();
                 true

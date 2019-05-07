@@ -117,7 +117,7 @@ pub struct MainMenuUi {
 
 impl MainMenuUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
-        let mut window = &mut global_state.window;
+        let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
         let mut ui = Ui::new(window).unwrap();
         // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
