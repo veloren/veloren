@@ -202,8 +202,8 @@ impl Renderer {
     /// Get the resolution of the render target.
     pub fn get_resolution(&self) -> Vec2<u16> {
         Vec2::new(
-            self.tgt_color_view.get_dimensions().0,
-            self.tgt_color_view.get_dimensions().1,
+            self.win_color_view.get_dimensions().0,
+            self.win_color_view.get_dimensions().1,
         )
     }
 
