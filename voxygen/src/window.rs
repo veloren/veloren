@@ -101,7 +101,7 @@ impl Window {
                 glutin::Event::WindowEvent { event, .. } => match event {
                     glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                     glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
-                        let (mut color_view, mut depth_view) = renderer.tgt_views_mut();
+                        let (mut color_view, mut depth_view) = renderer.win_views_mut();
                         gfx_window_glutin::update_views(&window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
