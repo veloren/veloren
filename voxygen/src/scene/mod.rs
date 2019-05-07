@@ -135,6 +135,7 @@ impl Scene {
                     10.0,
                     client.state().get_time_of_day(),
                     client.state().get_time(),
+                    renderer.get_resolution(),
                 )],
             )
             .expect("Failed to update global constants");
