@@ -189,6 +189,7 @@ pub struct Hud {
     inventory_space: u32,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
+    settings: Settings,
 }
 
 impl Hud {
@@ -222,6 +223,7 @@ impl Hud {
                 mini_map: false,
             },
             to_focus: None,
+            settings,
         }
     }
 
