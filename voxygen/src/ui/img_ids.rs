@@ -1,7 +1,7 @@
 use super::Graphic;
+use common::assets::{load, Error};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
-use common::assets::{Error, load};
 
 pub struct BlankGraphic;
 pub struct ImageGraphic;
@@ -20,13 +20,13 @@ impl<'a> GraphicCreator<'a> for BlankGraphic {
 impl<'a> GraphicCreator<'a> for ImageGraphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-       Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
+        Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
     }
 }
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-       Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?))
+        Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?))
     }
 }
 
@@ -43,7 +43,7 @@ impl<'a> GraphicCreator<'a> for VoxelGraphic {
 ///
 ///         <ImageGraphic>
 ///         background: "background.png",
-/// 
+///
 ///         <BlankGraphic>
 ///         blank: (),
 ///     }

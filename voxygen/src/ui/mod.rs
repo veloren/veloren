@@ -1,14 +1,11 @@
 mod graphic;
 mod util;
 mod widgets;
-#[macro_use] mod img_ids;
-#[macro_use] mod font_ids;
+#[macro_use]
+mod img_ids;
+#[macro_use]
+mod font_ids;
 
-use std::sync::Arc;
-pub use graphic::Graphic;
-pub use widgets::toggle_button::ToggleButton;
-pub use img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, GraphicCreator};
-pub(self) use util::{srgb_to_linear, linear_to_srgb};
 use crate::{
     render::{
         create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, Texture, UiMode,
@@ -19,16 +16,21 @@ use crate::{
 };
 use conrod_core::{
     event::Input,
+    graph::Graph,
     image::{Id as ImgId, Map},
     input::{touch::Touch, Button, Motion, Widget},
-    graph::Graph,
     render::Primitive,
     text::{font::Id as FontId, Font, GlyphCache},
     widget::{id::Generator, Id as WidgId},
     Ui as CrUi, UiBuilder, UiCell,
 };
+pub use graphic::Graphic;
 use graphic::{GraphicCache, Id as GraphicId};
+pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
+use std::sync::Arc;
+pub(self) use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
+pub use widgets::toggle_button::ToggleButton;
 
 #[derive(Debug)]
 pub enum UiError {

@@ -1,26 +1,26 @@
-mod chat;
-mod character_window;
-mod skillbar;
-mod buttons;
-mod map;
 mod bag;
+mod buttons;
+mod character_window;
+mod chat;
 mod esc_menu;
-mod small_window;
-mod settings_window;
-mod img_ids;
 mod font_ids;
+mod img_ids;
+mod map;
+mod settings_window;
+mod skillbar;
+mod small_window;
 
-use chat::Chat;
-use character_window::CharacterWindow;
-use map::Map;
 use bag::Bag;
-use skillbar::Skillbar;
 use buttons::Buttons;
+use character_window::CharacterWindow;
+use chat::Chat;
 use esc_menu::EscMenu;
-use small_window::{SmallWindow, SmallWindowType};
-use settings_window::SettingsWindow;
-use img_ids::Imgs;
 use font_ids::Fonts;
+use img_ids::Imgs;
+use map::Map;
+use settings_window::SettingsWindow;
+use skillbar::Skillbar;
+use small_window::{SmallWindow, SmallWindowType};
 
 use crate::{
     render::Renderer,
@@ -30,7 +30,9 @@ use crate::{
     GlobalState,
 };
 use conrod_core::{
-    widget::{self, Button, Image, Text, Rectangle}, widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, color, graph
+    color, graph,
+    widget::{self, Button, Image, Rectangle, Text},
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use std::collections::VecDeque;
 
@@ -46,7 +48,7 @@ widget_ids! {
         // Debug
         debug_bg,
         fps_counter,
-        
+
         // Game Version
         version,
 
@@ -95,7 +97,7 @@ pub enum Event {
 // map not here because it currently is displayed over the top of other open windows
 #[derive(PartialEq)]
 pub enum Windows {
-    Settings,                    // display settings window
+    Settings,                              // display settings window
     CharacterAnd(Option<SmallWindowType>), // show character window + optionally another
     Small(SmallWindowType),
     None,
@@ -110,7 +112,7 @@ pub struct Show {
     open_windows: Windows,
     map: bool,
     inventory_test_button: bool,
-    mini_map: bool,    
+    mini_map: bool,
 }
 impl Show {
     fn toggle_bag(&mut self) {
@@ -267,7 +269,7 @@ impl Hud {
             {
                 self.inventory_space += 1;
             };
-        }       
+        }
         // Help Text
         if self.show.help {
             Image::new(self.imgs.window_frame_2)
@@ -293,8 +295,14 @@ impl Hud {
             };
         }
 
-        match Buttons::new(&self.show.open_windows, self.show.map, self.show.bag, &self.imgs, &self.fonts)
-            .set(self.ids.buttons, ui_widgets) 
+        match Buttons::new(
+            &self.show.open_windows,
+            self.show.map,
+            self.show.bag,
+            &self.imgs,
+            &self.fonts,
+        )
+        .set(self.ids.buttons, ui_widgets)
         {
             Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
             Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
@@ -356,15 +364,14 @@ impl Hud {
         // Bag contents
         if self.show.bag {
             match Bag::new(self.inventory_space, &self.imgs, &self.fonts)
-                .set(self.ids.bag, ui_widgets) 
+                .set(self.ids.bag, ui_widgets)
             {
                 Some(bag::Event::Close) => self.show.bag = false,
                 None => {}
             }
         }
 
-        Skillbar::new(&self.imgs, &self.fonts)
-            .set(self.ids.skillbar, ui_widgets);
+        Skillbar::new(&self.imgs, &self.fonts).set(self.ids.skillbar, ui_widgets);
 
         // Chat box
         match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
@@ -389,7 +396,7 @@ impl Hud {
 
         if let Windows::Settings = self.show.open_windows {
             match SettingsWindow::new(&mut self.show, &self.imgs, &self.fonts)
-                .set(self.ids.settings_window, ui_widgets) 
+                .set(self.ids.settings_window, ui_widgets)
             {
                 Some(settings_window::Event::Close) => {
                     self.show.open_windows = Windows::None;
@@ -401,13 +408,15 @@ impl Hud {
         // Small Window
         if let Windows::Small(small) | Windows::CharacterAnd(Some(small)) = self.show.open_windows {
             match SmallWindow::new(small, &self.show, &self.imgs, &self.fonts)
-                .set(self.ids.small_window, ui_widgets) 
+                .set(self.ids.small_window, ui_widgets)
             {
-                Some(small_window::Event::Close) => self.show.open_windows = match self.show.open_windows {
-                    Windows::Small(_) => Windows::None,
-                    Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
-                    _ => Windows::Settings,
-                },
+                Some(small_window::Event::Close) => {
+                    self.show.open_windows = match self.show.open_windows {
+                        Windows::Small(_) => Windows::None,
+                        Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
+                        _ => Windows::Settings,
+                    }
+                }
                 None => {}
             }
         }
@@ -415,21 +424,21 @@ impl Hud {
         // Character Window
         if let Windows::CharacterAnd(small) = self.show.open_windows {
             match CharacterWindow::new(&self.imgs, &self.fonts)
-                .set(self.ids.character_window, ui_widgets) 
+                .set(self.ids.character_window, ui_widgets)
             {
-                Some(character_window::Event::Close) => self.show.open_windows = match small {
-                    Some(small) => Windows::Small(small),
-                    None => Windows::None,
-                },
+                Some(character_window::Event::Close) => {
+                    self.show.open_windows = match small {
+                        Some(small) => Windows::Small(small),
+                        None => Windows::None,
+                    }
+                }
                 None => {}
             }
         }
 
         // Map
         if self.show.map {
-            match Map::new(&self.imgs, &self.fonts)
-                .set(self.ids.map, ui_widgets) 
-            {
+            match Map::new(&self.imgs, &self.fonts).set(self.ids.map, ui_widgets) {
                 Some(map::Event::Close) => self.show.map = false,
                 None => {}
             }
@@ -437,9 +446,7 @@ impl Hud {
 
         // Esc-menu
         if self.show.esc_menu {
-            match EscMenu::new(&self.imgs, &self.fonts)
-                .set(self.ids.esc_menu, ui_widgets) 
-            {
+            match EscMenu::new(&self.imgs, &self.fonts).set(self.ids.esc_menu, ui_widgets) {
                 Some(esc_menu::Event::OpenSettings) => {
                     self.show.esc_menu = false;
                     self.show.open_windows = Windows::Settings;
@@ -447,10 +454,10 @@ impl Hud {
                 Some(esc_menu::Event::Close) => self.show.esc_menu = false,
                 Some(esc_menu::Event::Logout) => events.push(Event::Logout),
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
-                None => {},
+                None => {}
             }
         }
-        
+
         events
     }
 
@@ -466,7 +473,6 @@ impl Hud {
                 .widget(id)
                 .and_then(graph::Container::unique_widget_state::<widget::TextEdit>)
                 .is_some()
-                
         } else {
             false
         }

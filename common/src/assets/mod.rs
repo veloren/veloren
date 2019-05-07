@@ -1,6 +1,6 @@
+use conrod_core::text::Font;
 use dot_vox::DotVoxData;
 use image::DynamicImage;
-use conrod_core::text::Font;
 use lazy_static::lazy_static;
 use std::{
     any::Any,
@@ -41,12 +41,13 @@ lazy_static! {
 /// ```
 /// use image::DynamicImage;
 /// use common::assets;
-/// 
+///
 /// let my_image = Assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     Ok(ASSETS
-        .write().unwrap()
+        .write()
+        .unwrap()
         .entry(specifier.to_string())
         .or_insert(Arc::new(A::load(specifier)?))
         .clone()
@@ -60,12 +61,11 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// ```
 /// use image::DynamicImage;
 /// use common::assets;
-/// 
+///
 /// let my_image = Assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
-    load(specifier)
-        .expect(&format!("Failed loading essential asset: {}", specifier))
+    load(specifier).expect(&format!("Failed loading essential asset: {}", specifier))
 }
 
 /// Asset Trait
@@ -75,29 +75,19 @@ pub trait Asset: Send + Sync + Sized {
 
 impl Asset for DynamicImage {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(image::load_from_memory(
-            load_from_path(specifier)?.as_slice()
-        )
-            .unwrap()
-        )
+        Ok(image::load_from_memory(load_from_path(specifier)?.as_slice()).unwrap())
     }
 }
 
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(dot_vox::load_bytes(
-            load_from_path(specifier)?.as_slice()
-        )
-            .unwrap()
-        )
+        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
     }
 }
 
 impl Asset for Font {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(Font::from_bytes(
-            load_from_path(specifier)?).unwrap()
-        )
+        Ok(Font::from_bytes(load_from_path(specifier)?).unwrap())
     }
 }
 
@@ -127,10 +117,8 @@ pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
             let mut content = Vec::<u8>::new();
             f.read_to_end(&mut content)?;
             Ok(content)
-        },
-        None => {
-            Err(Error::NotFound(name.to_owned()))
         }
+        None => Err(Error::NotFound(name.to_owned())),
     }
 }
 
