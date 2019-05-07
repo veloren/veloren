@@ -1,4 +1,5 @@
 use std::net::SocketAddr;
+use log::warn;
 use common::comp;
 use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
@@ -40,8 +41,11 @@ impl PlayState for StartSingleplayerState {
                 let client = loop {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
-                        // Should always work
-                        Some(Err(err)) => {},
+                        // An error occured!
+                        Some(Err(err)) => {
+                            warn!("Failed to start singleplayer server: {:?}", err);
+                            return PlayStateResult::Pop;
+                        },
                         _ => {}
                     }
                 };
