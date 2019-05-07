@@ -165,11 +165,16 @@ commit:windows-debug:
 # NIGHTLY
 #############
 
-nightly-linux-optimized:
+.nightly: &nightly
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
+  only:
+    - schedules
+
+nightly:linux-optimized:
+  <<: *nightly
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
@@ -185,14 +190,9 @@ nightly-linux-optimized:
     paths:
       - nightly-linux-optimized.tar.bz2
     expire_in: 2 days
-  only:
-    - schedules
 
-nightly-windows-optimized:
-  stage: executable
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
+nightly:windows-optimized:
+  <<: *nightly
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
@@ -208,5 +208,3 @@ nightly-windows-optimized:
     paths:
       - nightly-windows-optimized.zip
     expire_in: 2 days
-  only:
-    - schedules
