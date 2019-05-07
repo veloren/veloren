@@ -1,6 +1,7 @@
 mod bag;
 mod buttons;
 mod character_window;
+mod minimap;
 mod chat;
 mod esc_menu;
 mod font_ids;
@@ -13,6 +14,7 @@ mod small_window;
 use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
+use minimap::MiniMap;
 use chat::Chat;
 use esc_menu::EscMenu;
 use font_ids::Fonts;
@@ -56,12 +58,6 @@ widget_ids! {
         help,
         help_bg,
 
-        // Mini-Map
-        mmap_frame,
-        mmap_frame_bg,
-        mmap_location,
-        mmap_button,
-
         // Window Frames
         window_frame_0,
         window_frame_1,
@@ -77,6 +73,7 @@ widget_ids! {
         chat,
         map,
         character_window,
+        minimap,
         bag,
         skillbar,
         buttons,
@@ -118,13 +115,16 @@ impl Show {
     fn toggle_bag(&mut self) {
         self.bag = !self.bag
     }
+
     fn toggle_map(&mut self) {
         self.map = !self.map;
         self.bag = false;
     }
+
     fn toggle_mini_map(&mut self) {
         self.mini_map = !self.mini_map;
     }
+
     fn toggle_small(&mut self, target: SmallWindowType) {
         self.open_windows = match self.open_windows {
             Windows::Small(small) if small == target => Windows::None,
@@ -136,6 +136,7 @@ impl Show {
             Windows::Settings => Windows::Settings,
         };
     }
+
     fn toggle_charwindow(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::CharacterAnd(small) => match small {
@@ -147,6 +148,7 @@ impl Show {
             Windows::Settings => Windows::Settings,
         }
     }
+
     fn toggle_settings(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::Settings => Windows::None,
@@ -154,9 +156,11 @@ impl Show {
         };
         self.bag = false;
     }
+
     fn toggle_help(&mut self) {
         self.help = !self.help
     }
+
     fn toggle_ui(&mut self) {
         self.ui = !self.ui;
     }
@@ -255,6 +259,7 @@ impl Hud {
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
         }
+
         // Add Bag-Space Button
         if self.show.inventory_test_button {
             if Button::image(self.imgs.grid_button)
@@ -270,6 +275,7 @@ impl Hud {
                 self.inventory_space += 1;
             };
         }
+
         // Help Text
         if self.show.help {
             Image::new(self.imgs.window_frame_2)
@@ -295,6 +301,7 @@ impl Hud {
             };
         }
 
+        // Bag button and icons near it
         match Buttons::new(
             &self.show.open_windows,
             self.show.map,
@@ -312,54 +319,8 @@ impl Hud {
             None => {}
         }
 
-        // Minimap
-
-        if self.show.mini_map {
-            Image::new(self.imgs.mmap_frame)
-                .w_h(100.0 * 2.0, 100.0 * 2.0)
-                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .set(self.ids.mmap_frame, ui_widgets);
-
-            Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
-                .mid_top_with_margin_on(self.ids.mmap_frame, 13.0 * 2.0 + 2.0)
-                .set(self.ids.mmap_frame_bg, ui_widgets);
-        } else {
-            Image::new(self.imgs.mmap_frame_closed)
-                .w_h(100.0 * 2.0, 11.0 * 2.0)
-                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .set(self.ids.mmap_frame, ui_widgets);
-        }
-
-        if Button::image(if self.show.mini_map {
-            self.imgs.mmap_open
-        } else {
-            self.imgs.mmap_closed
-        })
-        .w_h(100.0 * 0.2, 100.0 * 0.2)
-        .hover_image(if self.show.mini_map {
-            self.imgs.mmap_open_hover
-        } else {
-            self.imgs.mmap_closed_hover
-        })
-        .press_image(if self.show.mini_map {
-            self.imgs.mmap_open_press
-        } else {
-            self.imgs.mmap_closed_press
-        })
-        .top_right_with_margins_on(self.ids.mmap_frame, 0.0, 0.0)
-        .set(self.ids.mmap_button, ui_widgets)
-        .was_clicked()
-        {
-            self.show.toggle_mini_map();
-        }
-
-        // Title
-        // Make it display the actual location
-        Text::new("Uncanny Valley")
-            .mid_top_with_margin_on(self.ids.mmap_frame, 3.0)
-            .font_size(14)
-            .color(TEXT_COLOR)
-            .set(self.ids.mmap_location, ui_widgets);
+        // MiniMap
+        MiniMap::new(&mut self.show, &self.imgs, &self.fonts).set(self.ids.minimap, ui_widgets);
 
         // Bag contents
         if self.show.bag {
@@ -371,6 +332,7 @@ impl Hud {
             }
         }
 
+        // Skillbar
         Skillbar::new(&self.imgs, &self.fonts).set(self.ids.skillbar, ui_widgets);
 
         // Chat box
@@ -393,7 +355,6 @@ impl Hud {
         //or when the Char Window is opened they will appear right from it.
 
         // Settings
-
         if let Windows::Settings = self.show.open_windows {
             match SettingsWindow::new(&mut self.show, &self.imgs, &self.fonts)
                 .set(self.ids.settings_window, ui_widgets)
