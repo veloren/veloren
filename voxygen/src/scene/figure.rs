@@ -21,6 +21,7 @@ use common::{
 };
 use specs::{Component, Entity as EcsEntity, Join, VecStorage};
 use std::{collections::HashMap, f32};
+use dot_vox::DotVoxData;
 use vek::*;
 
 pub struct FigureCache {
