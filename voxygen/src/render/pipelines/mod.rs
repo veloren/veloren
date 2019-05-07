@@ -27,6 +27,7 @@ gfx_defines! {
         view_distance: [f32; 4] = "view_distance",
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64
         tick: [f32; 4] = "tick",
+        screen_res: [f32; 4] = "screen_res",
     }
 }
 
@@ -41,6 +42,7 @@ impl Globals {
             view_distance: [0.0; 4],
             time_of_day: [0.0; 4],
             tick: [0.0; 4],
+            screen_res: [800.0, 500.0, 0.0, 0.0],
         }
     }
 
@@ -53,6 +55,7 @@ impl Globals {
         view_distance: f32,
         time_of_day: f64,
         tick: f64,
+        screen_res: Vec2<u16>,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -62,6 +65,7 @@ impl Globals {
             view_distance: [view_distance; 4],
             time_of_day: [time_of_day as f32; 4],
             tick: [tick as f32; 4],
+            screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
         }
     }
 }
