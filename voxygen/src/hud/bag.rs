@@ -1,13 +1,11 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
-    widget::{self, Button, Image, Rectangle, Text, Scrollbar},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    color,
+    widget::{self, Button, Image, Rectangle, Scrollbar},
+    widget_ids,  Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use super::{
     img_ids::Imgs,
     font_ids::Fonts,
-    TEXT_COLOR,
 };
 
 widget_ids! {
@@ -32,7 +30,6 @@ pub struct Bag<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> Bag<'a> {
@@ -42,7 +39,6 @@ impl<'a> Bag<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -72,10 +68,8 @@ impl<'a> Widget for Bag<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            id,
             state,
             ui,
-            style,
             ..
         } = args;
 
@@ -105,17 +99,6 @@ impl<'a> Widget for Bag<'a> {
                 .rgba(0.33, 0.33, 0.33, 1.0)
                 .set(state.ids.inv_scrollbar, ui);
 
-        // X-button
-        if Button::image(self.imgs.close_button)
-            .w_h(28.0, 28.0)
-            .hover_image(self.imgs.close_button_hover)
-            .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.ids.bag_contents, 0.0, 0.0)
-            .set(state.ids.bag_close, ui)
-            .was_clicked()
-        {
-            return Some(Event::Close);
-        }
 
         if self.inventory_space > 0 {
             // First Slot
@@ -125,6 +108,18 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.inv_slot_0, ui);
         }
 
-        None
+        // X-button
+        if Button::image(self.imgs.close_button)
+            .w_h(28.0, 28.0)
+            .hover_image(self.imgs.close_button_hover)
+            .press_image(self.imgs.close_button_press)
+            .top_right_with_margins_on(state.ids.bag_contents, 0.0, 0.0)
+            .set(state.ids.bag_close, ui)
+            .was_clicked()
+        {
+            Some(Event::Close)
+        } else {
+            None
+        }
     }
 }

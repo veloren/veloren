@@ -1,14 +1,12 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
-    widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    color,
+    widget::{self, Button, Image, Rectangle},
+    widget_ids, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 use super::{
     img_ids::Imgs,
     font_ids::Fonts,
-    TEXT_COLOR,
 };
 
 widget_ids! {
@@ -32,7 +30,6 @@ pub struct Map<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> Map<'a> {
@@ -41,7 +38,6 @@ impl<'a> Map<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -71,10 +67,8 @@ impl<'a> Widget for Map<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            id,
             state,
             ui,
-            style,
             ..
         } = args;
 

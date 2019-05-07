@@ -1,8 +1,7 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
+    color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use super::{
     img_ids::Imgs,
@@ -39,7 +38,6 @@ pub struct CharacterWindow<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> CharacterWindow<'a> {
@@ -48,7 +46,6 @@ impl<'a> CharacterWindow<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -75,7 +72,6 @@ impl<'a> Widget for CharacterWindow<'a> {
             id,
             state,
             ui,
-            style,
             ..
         } = args;
 

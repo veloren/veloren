@@ -1,8 +1,6 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
-    widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image},
+    widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 use super::{
@@ -31,7 +29,6 @@ pub struct EscMenu<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> EscMenu<'a> {
@@ -40,7 +37,6 @@ impl<'a> EscMenu<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -73,10 +69,8 @@ impl<'a> Widget for EscMenu<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            id,
             state,
             ui,
-            style,
             ..
         } = args;
 

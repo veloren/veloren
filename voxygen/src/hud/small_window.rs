@@ -1,8 +1,7 @@
 use conrod_core::{
-    builder_methods, color,
-    text::font,
+    color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use crate::hud::Show;
 use super::{
@@ -39,7 +38,6 @@ pub struct SmallWindow<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> SmallWindow<'a> {
@@ -50,7 +48,6 @@ impl<'a> SmallWindow<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 }
@@ -80,10 +77,8 @@ impl<'a> Widget for SmallWindow<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
-            id,
             state,
             ui,
-            style,
             ..
         } = args;
 
