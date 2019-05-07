@@ -1,10 +1,10 @@
 use conrod_core::{
     color,
-    widget::{self, Text, Button, Image, Rectangle},
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{TEXT_COLOR, Show, font_ids::Fonts, img_ids::Imgs};
+use super::{font_ids::Fonts, img_ids::Imgs, Show, TEXT_COLOR};
 
 widget_ids! {
     struct Ids {
@@ -17,7 +17,7 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct MiniMap<'a> {
-    show: &'a mut Show,
+    show: &'a Show,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -27,7 +27,7 @@ pub struct MiniMap<'a> {
 }
 
 impl<'a> MiniMap<'a> {
-    pub fn new(show: &'a mut Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             show,
             imgs,
@@ -42,7 +42,7 @@ pub struct State {
 }
 
 pub enum Event {
-    Close,
+    Toggle,
 }
 
 impl<'a> Widget for MiniMap<'a> {
@@ -99,7 +99,7 @@ impl<'a> Widget for MiniMap<'a> {
         .set(state.ids.mmap_button, ui)
         .was_clicked()
         {
-            self.show.toggle_mini_map();
+            return Some(Event::Toggle);
         }
 
         // Title
