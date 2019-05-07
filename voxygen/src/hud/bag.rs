@@ -1,11 +1,8 @@
+use super::{font_ids::Fonts, img_ids::Imgs};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar},
-    widget_ids,  Colorable, Positionable, Sizeable, Widget, WidgetCommon,
-};
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -67,11 +64,7 @@ impl<'a> Widget for Bag<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         // Contents
         Image::new(self.imgs.bag_contents)
@@ -81,24 +74,23 @@ impl<'a> Widget for Bag<'a> {
 
         // Alignment for Grid
         Rectangle::fill_with([58.0 * 4.0 - 5.0, 100.0 * 4.0], color::TRANSPARENT)
-                .top_left_with_margins_on(state.ids.bag_contents, 11.0 * 4.0, 5.0 * 4.0)
-                .scroll_kids()
-                .scroll_kids_vertically()
-                .set(state.ids.inv_alignment, ui);
+            .top_left_with_margins_on(state.ids.bag_contents, 11.0 * 4.0, 5.0 * 4.0)
+            .scroll_kids()
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment, ui);
         // Grid
         Image::new(self.imgs.inv_grid)
-                .w_h(58.0 * 4.0, 111.0 * 4.0)
-                .mid_top_with_margin_on(state.ids.inv_alignment, 0.0)
-                .set(state.ids.inv_grid_1, ui);
-            Image::new(self.imgs.inv_grid)
-                .w_h(58.0 * 4.0, 111.0 * 4.0)
-                .mid_top_with_margin_on(state.ids.inv_alignment, 110.0 * 4.0)
-                .set(state.ids.inv_grid_2, ui);
-            Scrollbar::y_axis(state.ids.inv_alignment)
-                .thickness(5.0)
-                .rgba(0.33, 0.33, 0.33, 1.0)
-                .set(state.ids.inv_scrollbar, ui);
-
+            .w_h(58.0 * 4.0, 111.0 * 4.0)
+            .mid_top_with_margin_on(state.ids.inv_alignment, 0.0)
+            .set(state.ids.inv_grid_1, ui);
+        Image::new(self.imgs.inv_grid)
+            .w_h(58.0 * 4.0, 111.0 * 4.0)
+            .mid_top_with_margin_on(state.ids.inv_alignment, 110.0 * 4.0)
+            .set(state.ids.inv_grid_2, ui);
+        Scrollbar::y_axis(state.ids.inv_alignment)
+            .thickness(5.0)
+            .rgba(0.33, 0.33, 0.33, 1.0)
+            .set(state.ids.inv_scrollbar, ui);
 
         if self.inventory_space > 0 {
             // First Slot

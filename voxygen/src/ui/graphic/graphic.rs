@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use dot_vox::DotVoxData;
 use fnv::FnvHashMap;
 use guillotiere::{size2, Allocation, AtlasAllocator};
 use image::DynamicImage;
-use dot_vox::DotVoxData;
+use std::sync::Arc;
 use vek::*;
 
 pub enum Graphic {

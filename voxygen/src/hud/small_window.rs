@@ -1,14 +1,9 @@
+use super::{font_ids::Fonts, img_ids::Imgs, Windows, TEXT_COLOR};
+use crate::hud::Show;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
-};
-use crate::hud::Show;
-use super::{
-    img_ids::Imgs,
-    font_ids::Fonts,
-    Windows,
-    TEXT_COLOR,
 };
 
 widget_ids! {
@@ -76,11 +71,7 @@ impl<'a> Widget for SmallWindow<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs {
-            state,
-            ui,
-            ..
-        } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         let (title, icon) = match self.content {
             SmallWindowType::Social => ("Social", self.imgs.social_icon),
@@ -91,14 +82,14 @@ impl<'a> Widget for SmallWindow<'a> {
         // Frame
         // TODO: Relative to Char Window?
         if let Windows::CharacterAnd(_) = self.show.open_windows {
-            Image::new(self.imgs.window_frame)                
+            Image::new(self.imgs.window_frame)
                 .top_left_with_margins_on(ui.window, 200.0, 658.0)
-                .w_h(107.0*4.0, 125.0*4.0)
+                .w_h(107.0 * 4.0, 125.0 * 4.0)
                 .set(state.ids.frame, ui);
         } else {
             Image::new(self.imgs.window_frame)
                 .top_left_with_margins_on(ui.window, 200.0, 10.0)
-                .w_h(107.0*4.0, 125.0*4.0)
+                .w_h(107.0 * 4.0, 125.0 * 4.0)
                 .set(state.ids.frame, ui);
         }
 
@@ -143,4 +134,3 @@ impl<'a> Widget for SmallWindow<'a> {
         None
     }
 }
-
