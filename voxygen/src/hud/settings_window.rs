@@ -47,7 +47,7 @@ enum SettingsTab {
 
 #[derive(WidgetCommon)]
 pub struct SettingsWindow<'a> {
-    show: &'a mut Show,
+    show: &'a Show,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -57,7 +57,7 @@ pub struct SettingsWindow<'a> {
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(show: &'a mut Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             show,
             imgs,
@@ -74,6 +74,9 @@ pub struct State {
 }
 
 pub enum Event {
+    ToggleHelp,
+    ToggleInventoryTestButton,
+    ToggleDebug,
     Close,
 }
 
@@ -177,7 +180,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.button_help, ui);
 
             if self.show.help != show_help {
-                self.show.toggle_help();
+                return Some(Event::ToggleHelp);
             }
 
             Text::new("Show Help")
@@ -201,7 +204,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.inventory_test_button, ui);
 
             if self.show.inventory_test_button != inventory_test_button {
-                self.show.inventory_test_button = inventory_test_button;
+                return Some(Event::ToggleInventoryTestButton);
             }
 
             Text::new("Show Inventory Test Button")
@@ -222,7 +225,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.debug_button, ui);
 
             if self.show.debug != show_debug {
-                self.show.debug = show_debug;
+                return Some(Event::ToggleDebug);
             }
 
             Text::new("Show Debug Window")

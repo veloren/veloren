@@ -1,12 +1,12 @@
 mod bag;
 mod buttons;
 mod character_window;
-mod minimap;
 mod chat;
 mod esc_menu;
 mod font_ids;
 mod img_ids;
 mod map;
+mod minimap;
 mod settings_window;
 mod skillbar;
 mod small_window;
@@ -14,12 +14,12 @@ mod small_window;
 use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
-use minimap::MiniMap;
 use chat::Chat;
 use esc_menu::EscMenu;
 use font_ids::Fonts;
 use img_ids::Imgs;
 use map::Map;
+use minimap::MiniMap;
 use settings_window::SettingsWindow;
 use skillbar::Skillbar;
 use small_window::{SmallWindow, SmallWindowType};
@@ -320,7 +320,10 @@ impl Hud {
         }
 
         // MiniMap
-        MiniMap::new(&mut self.show, &self.imgs, &self.fonts).set(self.ids.minimap, ui_widgets);
+        match MiniMap::new(&self.show, &self.imgs, &self.fonts).set(self.ids.minimap, ui_widgets) {
+            Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
+            None => {}
+        }
 
         // Bag contents
         if self.show.bag {
@@ -356,9 +359,14 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            match SettingsWindow::new(&mut self.show, &self.imgs, &self.fonts)
+            match SettingsWindow::new(&self.show, &self.imgs, &self.fonts)
                 .set(self.ids.settings_window, ui_widgets)
             {
+                Some(settings_window::Event::ToggleHelp) => self.show.toggle_help(),
+                Some(settings_window::Event::ToggleInventoryTestButton) => {
+                    self.show.inventory_test_button = !self.show.inventory_test_button
+                }
+                Some(settings_window::Event::ToggleDebug) => self.show.debug = !self.show.debug,
                 Some(settings_window::Event::Close) => {
                     self.show.open_windows = Windows::None;
                 }
