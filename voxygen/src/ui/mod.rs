@@ -21,6 +21,7 @@ use conrod_core::{
     event::Input,
     image::{Id as ImgId, Map},
     input::{touch::Touch, Button, Motion, Widget},
+    graph::Graph,
     render::Primitive,
     text::{font::Id as FontId, Font, GlyphCache},
     widget::{id::Generator, Id as WidgId},
@@ -117,7 +118,7 @@ impl Cache {
         (&mut self.graphic_cache, &self.graphic_cache_tex)
     }
     pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
-        self.graphic_cache.new_graphic(graphic)
+        self.graphic_cache.add_graphic(graphic)
     }
     pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
         self.graphic_cache.clear_cache(new_size);

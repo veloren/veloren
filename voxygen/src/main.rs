@@ -14,7 +14,6 @@ pub mod scene;
 pub mod session;
 pub mod settings;
 pub mod singleplayer;
-pub mod ui;
 pub mod window;
 
 // Reexports
