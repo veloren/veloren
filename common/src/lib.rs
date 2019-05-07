@@ -23,28 +23,27 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
-// TODO: unignore the code here, for some reason it refuses to compile here while has no problems copy-pasted elsewhere
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client
 /// # Examples
-/// ```ignore
+/// ```
 /// use std::net::SocketAddr;
 /// use veloren_common::net::{PostOffice, PostBox};
 ///
 /// let listen_addr = SocketAddr::from(([0, 0, 0, 0], 12345u16));
 /// let conn_addr = SocketAddr::from(([127, 0, 0, 1], 12345u16));
 ///
-/// let server: PostOffice<String, String> = PostOffice::new(&listen_addr).unwrap();
-/// let client: PostBox<String, String> = PostBox::to_server(&conn_addr).unwrap();
+/// let mut server: PostOffice<String, String> = PostOffice::bind(listen_addr).unwrap();
+/// let mut client: PostBox<String, String> = PostBox::to(conn_addr).unwrap();
 /// std::thread::sleep(std::time::Duration::from_millis(100));
 ///
-/// let scon = server.get_iter().unwrap().next().unwrap().unwrap();
+/// let mut scon = server.new_postboxes().next().unwrap();
 /// std::thread::sleep(std::time::Duration::from_millis(100));
 ///
-/// scon.send(String::from("foo"));
-/// client.send(String::from("bar"));
+/// scon.send_message(String::from("foo"));
+/// client.send_message(String::from("bar"));
 /// std::thread::sleep(std::time::Duration::from_millis(100));
 ///
-/// assert_eq!("foo", client.recv_iter().unwrap().next().unwrap().unwrap());
-/// assert_eq!("bar", scon.recv_iter().unwrap().next().unwrap().unwrap());
+/// assert_eq!("foo", client.next_message().unwrap());
+/// assert_eq!("bar", scon.next_message().unwrap());
 /// ```
 pub mod net;
