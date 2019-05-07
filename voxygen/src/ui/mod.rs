@@ -6,6 +6,11 @@ mod img_ids;
 #[macro_use]
 mod font_ids;
 
+pub use graphic::Graphic;
+pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
+pub(self) use util::{linear_to_srgb, srgb_to_linear};
+pub use widgets::toggle_button::ToggleButton;
+
 use crate::{
     render::{
         create_ui_quad, create_ui_tri, Mesh, Model, RenderError, Renderer, Texture, UiMode,
@@ -14,23 +19,20 @@ use crate::{
     window::Window,
     Error,
 };
+use common::assets;
 use conrod_core::{
     event::Input,
     graph::Graph,
     image::{Id as ImgId, Map},
     input::{touch::Touch, Button, Motion, Widget},
     render::Primitive,
-    text::{font::Id as FontId, Font, GlyphCache},
+    text::{self, GlyphCache},
     widget::{id::Generator, Id as WidgId},
     Ui as CrUi, UiBuilder, UiCell,
 };
-pub use graphic::Graphic;
 use graphic::{GraphicCache, Id as GraphicId};
-pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
 use std::sync::Arc;
-pub(self) use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
-pub use widgets::toggle_button::ToggleButton;
 
 #[derive(Debug)]
 pub enum UiError {
@@ -218,6 +220,15 @@ impl Scale {
     }
 }
 
+pub struct Font(text::Font);
+impl assets::Asset for Font {
+    fn load(specifier: &str) -> Result<Self, assets::Error> {
+        Ok(Font(
+            text::Font::from_bytes(assets::load_from_path(specifier)?).unwrap(),
+        ))
+    }
+}
+
 pub struct Ui {
     ui: CrUi,
     image_map: Map<GraphicId>,
@@ -257,8 +268,8 @@ impl Ui {
         self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
-    pub fn new_font(&mut self, mut font: Arc<Font>) -> FontId {
-        self.ui.fonts.insert(Arc::make_mut(&mut font).clone())
+    pub fn new_font(&mut self, mut font: Arc<Font>) -> text::font::Id {
+        self.ui.fonts.insert(font.as_ref().0.clone())
     }
 
     pub fn id_generator(&mut self) -> Generator {

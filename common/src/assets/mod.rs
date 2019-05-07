@@ -1,4 +1,3 @@
-use conrod_core::text::Font;
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -82,12 +81,6 @@ impl Asset for DynamicImage {
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
         Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
-    }
-}
-
-impl Asset for Font {
-    fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(Font::from_bytes(load_from_path(specifier)?).unwrap())
     }
 }
 
