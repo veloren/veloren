@@ -141,6 +141,7 @@ impl<'a> Widget for Chat<'a> {
             })
             .set(state.ids.message_box_bg, ui);
         let (mut items, _) = List::flow_down(state.messages.len() + 1)
+            .graphics_for(state.ids.input)
             .top_left_of(state.ids.message_box_bg)
             .w_h(470.0, 174.0)
             .scroll_kids_vertically()
@@ -149,6 +150,7 @@ impl<'a> Widget for Chat<'a> {
             // This would be easier if conrod used the v-metrics from rusttype
             let widget = if item.i < state.messages.len() {
                 let text = Text::new(&state.messages[item.i])
+                    .graphics_for(state.ids.input)
                     .font_size(15)
                     .font_id(self.fonts.opensans)
                     .w(470.0)
