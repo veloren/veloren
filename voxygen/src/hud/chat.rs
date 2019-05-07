@@ -30,7 +30,6 @@ pub struct Chat<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    style: (),
 }
 
 impl<'a> Chat<'a> {
@@ -40,7 +39,6 @@ impl<'a> Chat<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
-            style: (),
         }
     }
 
@@ -73,7 +71,7 @@ pub enum Event {
 impl<'a> Widget for Chat<'a> {
     type State = State;
     type Style = ();
-    type Event = (bool, Option<Event>);
+    type Event = Option<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -92,7 +90,6 @@ impl<'a> Widget for Chat<'a> {
             id,
             state,
             ui,
-            style,
             ..
         } = args;
 
@@ -111,6 +108,7 @@ impl<'a> Widget for Chat<'a> {
             let text_edit = TextEdit::new(&state.input)
                 .w(460.0)
                 .restrict_to_height(false)
+                .color(TEXT_COLOR)
                 .line_spacing(2.0)
                 .font_size(15)
                 .font_id(self.fonts.opensans);
@@ -154,7 +152,7 @@ impl<'a> Widget for Chat<'a> {
                     .font_size(15)
                     .font_id(self.fonts.opensans)
                     .w(470.0)
-                    .rgba(1.0, 1.0, 1.0, 1.0)
+                    .color(TEXT_COLOR)
                     .line_spacing(2.0);
                 // Add space between messages
                 let y = match text.get_y_dimension(ui) {
@@ -186,8 +184,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         // If the chat widget is focused return a focus event to pass the focus to the input box
-        let self_focused = keyboard_capturer == Some(id);
-        let event = if self_focused {
+        if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
         }
         // If enter is pressed and the input box is not empty send the current message
@@ -205,9 +202,6 @@ impl<'a> Widget for Chat<'a> {
             Some(Event::SendMessage(msg))
         } else {
             None
-        };
-
-        // Return whether typing and any event that occured
-        (self_focused || input_focused, event)
+        }
     }
 }
