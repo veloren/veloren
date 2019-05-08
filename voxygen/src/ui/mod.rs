@@ -1,8 +1,13 @@
 mod graphic;
 mod util;
 mod widgets;
+#[macro_use]
+mod img_ids;
+#[macro_use]
+mod font_ids;
 
 pub use graphic::Graphic;
+pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
 pub(self) use util::{linear_to_srgb, srgb_to_linear};
 pub use widgets::toggle_button::ToggleButton;
 
@@ -14,16 +19,19 @@ use crate::{
     window::Window,
     Error,
 };
+use common::assets;
 use conrod_core::{
     event::Input,
+    graph::Graph,
     image::{Id as ImgId, Map},
     input::{touch::Touch, Button, Motion, Widget},
     render::Primitive,
-    text::{font::Id as FontId, Font, GlyphCache},
+    text::{self, GlyphCache},
     widget::{id::Generator, Id as WidgId},
     Ui as CrUi, UiBuilder, UiCell,
 };
 use graphic::{GraphicCache, Id as GraphicId};
+use std::sync::Arc;
 use vek::*;
 
 #[derive(Debug)]
@@ -113,8 +121,8 @@ impl Cache {
     pub fn graphic_cache_mut_and_tex(&mut self) -> (&mut GraphicCache, &Texture<UiPipeline>) {
         (&mut self.graphic_cache, &self.graphic_cache_tex)
     }
-    pub fn new_graphic(&mut self, graphic: Graphic) -> GraphicId {
-        self.graphic_cache.new_graphic(graphic)
+    pub fn add_graphic(&mut self, graphic: Graphic) -> GraphicId {
+        self.graphic_cache.add_graphic(graphic)
     }
     pub fn clear_graphic_cache(&mut self, renderer: &mut Renderer, new_size: Vec2<u16>) {
         self.graphic_cache.clear_cache(new_size);
@@ -212,6 +220,15 @@ impl Scale {
     }
 }
 
+pub struct Font(text::Font);
+impl assets::Asset for Font {
+    fn load(specifier: &str) -> Result<Self, assets::Error> {
+        Ok(Font(
+            text::Font::from_bytes(assets::load_from_path(specifier)?).unwrap(),
+        ))
+    }
+}
+
 pub struct Ui {
     ui: CrUi,
     image_map: Map<GraphicId>,
@@ -228,6 +245,7 @@ impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0));
         let win_dims = scale.scaled_window_size().into_array();
+
         Ok(Self {
             ui: UiBuilder::new(win_dims).build(),
             image_map: Map::new(),
@@ -246,12 +264,12 @@ impl Ui {
         self.ui.handle_event(Input::Resize(w, h));
     }
 
-    pub fn new_graphic(&mut self, graphic: Graphic) -> ImgId {
-        self.image_map.insert(self.cache.new_graphic(graphic))
+    pub fn add_graphic(&mut self, graphic: Graphic) -> ImgId {
+        self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
-    pub fn new_font(&mut self, font: Font) -> FontId {
-        self.ui.fonts.insert(font)
+    pub fn new_font(&mut self, mut font: Arc<Font>) -> text::font::Id {
+        self.ui.fonts.insert(font.as_ref().0.clone())
     }
 
     pub fn id_generator(&mut self) -> Generator {
@@ -285,6 +303,10 @@ impl Ui {
             .is_none()
     }
 
+    // Get the widget graph
+    pub fn widget_graph(&self) -> &Graph {
+        self.ui.widget_graph()
+    }
     pub fn handle_event(&mut self, event: Event) {
         match event.0 {
             Input::Resize(w, h) => self.window_resized = Some(Vec2::new(w, h)),
