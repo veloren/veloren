@@ -112,11 +112,19 @@ clippy:
 # Commit build
 #############
 
-commit-linux-debug:
+.commit: &commit
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
+  except:
+    - schedules
+  only:
+    refs:
+      - master
+
+commit:linux-debug:
+  <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
@@ -132,17 +140,9 @@ commit-linux-debug:
     paths:
       - commit-linux-debug.tar.bz2
     expire_in: 1 week
-  except:
-    - schedules
-  only:
-    refs:
-      - master
 
-commit-windows-debug:
-  stage: executable
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
+commit:windows-debug:
+  <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
@@ -158,21 +158,21 @@ commit-windows-debug:
     paths:
       - commit-windows-debug.zip
     expire_in: 1 week
-  except:
-    - schedules
-  only:
-    refs:
-      - master
 
 #############
 # NIGHTLY
 #############
 
-nightly-linux-optimized:
+.nightly: &nightly
   stage: executable
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
+  only:
+    - schedules
+
+nightly:linux-optimized:
+  <<: *nightly
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
@@ -188,14 +188,9 @@ nightly-linux-optimized:
     paths:
       - nightly-linux-optimized.tar.bz2
     expire_in: 2 days
-  only:
-    - schedules
 
-nightly-windows-optimized:
-  stage: executable
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
+nightly:windows-optimized:
+  <<: *nightly
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
@@ -211,5 +206,3 @@ nightly-windows-optimized:
     paths:
       - nightly-windows-optimized.zip
     expire_in: 2 days
-  only:
-    - schedules
