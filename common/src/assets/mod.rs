@@ -1,50 +1,116 @@
-use std::env;
-use std::fs;
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
+use dot_vox::DotVoxData;
+use image::DynamicImage;
+use lazy_static::lazy_static;
+use std::{
+    any::Any,
+    collections::HashMap,
+    fs::File,
+    io::Read,
+    sync::{Arc, RwLock},
+};
 
-fn try_load(name: &str) -> Option<File> {
-    let basepaths = [
-        // if it's stupid and it works..,
-        "assets".to_string(),
-        "../../assets".to_string(),
-        "../assets".to_string(), /* optimizations */
-        [env!("CARGO_MANIFEST_DIR"), "/assets"].concat(),
-        [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
-        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
-        "../../../assets".to_string(),
-        [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
-    ];
-    for bp in &basepaths {
-        let filename = [bp, name].concat();
-        match File::open(&filename) {
-            Ok(f) => {
-                debug!("loading {} succedeed", filename);
-                return Some(f);
-            }
-            Err(e) => {
-                debug!("loading {} did not work with error: {}", filename, e);
-            }
-        };
-    }
-    return None;
+#[derive(Debug, Clone)]
+pub enum Error {
+    /// An asset of a different type has already been loaded with this specifier
+    InvalidType,
+    /// Asset does not exist
+    NotFound(String),
 }
 
-pub fn load(name: &str) -> Result<Vec<u8>, ()> {
-    return match try_load(name) {
+impl From<Arc<dyn Any + 'static + Sync + Send>> for Error {
+    fn from(_: Arc<dyn Any + 'static + Sync + Send>) -> Self {
+        Error::InvalidType
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Error::NotFound(format!("{:?}", err))
+    }
+}
+
+lazy_static! {
+    static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
+        RwLock::new(HashMap::new());
+}
+
+/// Function used to load assets
+/// loaded assets are cached in a global singleton hashmap
+/// Example usage:
+/// ```no_run
+/// use image::DynamicImage;
+/// use veloren_common::assets;
+///
+/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// ```
+pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
+    Ok(ASSETS
+        .write()
+        .unwrap()
+        .entry(specifier.to_string())
+        .or_insert(Arc::new(A::load(specifier)?))
+        .clone()
+        .downcast()?)
+}
+
+/// Function used to load assets that will panic if the asset is not found
+/// Use this to load essential assets
+/// loaded assets are cached in a global singleton hashmap
+/// Example usage:
+/// ```no_run
+/// use image::DynamicImage;
+/// use veloren_common::assets;
+///
+/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
+/// ```
+pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
+    load(specifier).expect(&format!("Failed loading essential asset: {}", specifier))
+}
+
+/// Asset Trait
+pub trait Asset: Send + Sync + Sized {
+    fn load(specifier: &str) -> Result<Self, Error>;
+}
+
+impl Asset for DynamicImage {
+    fn load(specifier: &str) -> Result<Self, Error> {
+        Ok(image::load_from_memory(load_from_path(specifier)?.as_slice()).unwrap())
+    }
+}
+
+impl Asset for DotVoxData {
+    fn load(specifier: &str) -> Result<Self, Error> {
+        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
+    }
+}
+
+// TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
+fn try_open_with_path(name: &str) -> Option<File> {
+    debug!("Trying to access \"{}\"", name);
+    // TODO: don't do this?
+    // if it's stupid and it works..,
+    [
+        "assets".to_string(),
+        "../assets".to_string(), /* optimizations */
+        "../../assets".to_string(),
+        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
+        [env!("CARGO_MANIFEST_DIR"), "/assets"].concat(),
+        [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
+        "../../../assets".to_string(),
+        [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
+    ]
+    .into_iter()
+    .map(|bp| [bp, name].concat())
+    .find_map(|ref filename| File::open(filename).ok())
+}
+
+pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
+    match try_open_with_path(name) {
         Some(mut f) => {
-            let mut content: Vec<u8> = vec![];
-            f.read_to_end(&mut content);
-            info!("loaded asset successful: {}", name);
+            let mut content = Vec::<u8>::new();
+            f.read_to_end(&mut content)?;
             Ok(content)
         }
-        None => {
-            warn!(
-                "Loading asset failed, wanted to load {} but could not load it, check debug log!",
-                name
-            );
-            Err(())
-        }
-    };
+        None => Err(Error::NotFound(name.to_owned())),
+    }
 }
