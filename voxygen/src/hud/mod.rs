@@ -534,11 +534,11 @@ impl Hud {
             _ => false,
         };
         // Handle cursor grab
-        if let Some(state) = self.show.want_grab {
+        if let Some(state) = self.show.want_grab.take() {
             global_state.window.grab_cursor(state);
-            self.show.want_grab = None;
         }
-        return handled;
+
+        handled
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
