@@ -11,10 +11,17 @@ pub enum RequestStateError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerInfo {
+    pub name: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
         ecs_state: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
         entity_uid: u64,
+        server_info: ServerInfo,
     },
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
     ForceState(ClientState),

@@ -9,7 +9,7 @@ pub use specs::Entity as EcsEntity;
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
 };
@@ -32,6 +32,7 @@ pub enum Event {
 pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
+    pub server_info: ServerInfo,
 
     postbox: PostBox<ClientMsg, ServerMsg>,
 
@@ -54,17 +55,18 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (mut state, entity) = match postbox.next_message() {
+        let (mut state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
+                server_info,
             }) => {
                 let mut state = State::from_state_package(ecs_state);
                 let entity = state
                     .ecs()
                     .entity_from_uid(entity_uid)
                     .ok_or(Error::ServerWentMad)?;
-                (state, entity)
+                (state, entity, server_info)
             }
             _ => return Err(Error::ServerWentMad),
         };
@@ -76,6 +78,7 @@ impl Client {
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
+            server_info,
 
             postbox,
 
@@ -91,7 +94,7 @@ impl Client {
         })
     }
 
-    /// Ask the server to transition the player into the `Registered` state
+    /// Request a state transition to `ClientState::Registered`.
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
         self.client_state = ClientState::Pending;
@@ -432,7 +435,6 @@ impl Client {
             .map(|(e, p)| (e, p.clone()))
             .collect()
     }
-
 }
 
 impl Drop for Client {
