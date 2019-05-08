@@ -1,4 +1,4 @@
-use super::{font_ids::Fonts, img_ids::Imgs, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
 use conrod_core::{
     input::Key,
     position::Dimension,

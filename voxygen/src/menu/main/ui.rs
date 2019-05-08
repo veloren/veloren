@@ -1,6 +1,6 @@
 use crate::{
     render::Renderer,
-    ui::{self, Graphic, ScaleMode, Ui, BlankGraphic, ImageGraphic, VoxelGraphic},
+    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
 use common::assets;

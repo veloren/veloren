@@ -1,4 +1,4 @@
-use super::{font_ids::Fonts, img_ids::Imgs, HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR};
+use super::{img_ids::Imgs, Fonts, HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR};
 use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,

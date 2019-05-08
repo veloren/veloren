@@ -1,4 +1,4 @@
-use super::{font_ids::Fonts, img_ids::Imgs, Windows, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, Windows, TEXT_COLOR};
 use crate::hud::Show;
 use conrod_core::{
     color,

@@ -3,7 +3,6 @@ mod buttons;
 mod character_window;
 mod chat;
 mod esc_menu;
-mod font_ids;
 mod img_ids;
 mod map;
 mod minimap;
@@ -16,7 +15,6 @@ use buttons::Buttons;
 use character_window::CharacterWindow;
 use chat::Chat;
 use esc_menu::EscMenu;
-use font_ids::Fonts;
 use img_ids::Imgs;
 use map::Map;
 use minimap::MiniMap;
@@ -80,6 +78,13 @@ widget_ids! {
         esc_menu,
         small_window,
         settings_window,
+    }
+}
+
+font_ids! {
+    pub struct Fonts {
+        opensans: "/voxygen/font/OpenSans-Regular.ttf",
+        metamorph: "/voxygen/font/Metamorphous-Regular.ttf",
     }
 }
 
