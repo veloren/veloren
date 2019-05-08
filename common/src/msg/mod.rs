@@ -5,7 +5,7 @@ pub mod server;
 // Reexports
 pub use self::client::ClientMsg;
 pub use self::ecs_packet::EcsPacket;
-pub use self::server::{RequestStateError, ServerMsg};
+pub use self::server::{RequestStateError, ServerInfo, ServerMsg};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ClientState {

@@ -1,6 +1,6 @@
 use client::{Client, Event, Input};
 use common::{clock::Clock, comp};
-use log::info;
+use log::{error, info};
 use std::time::Duration;
 
 const FPS: u64 = 60;
@@ -18,15 +18,21 @@ fn main() {
     let mut client =
         Client::new(([127, 0, 0, 1], 59003), 300).expect("Failed to create client instance");
 
-    client.register(comp::Player::new("test".to_string()));
+    println!("Server info: {:?}", client.server_info);
 
-    println!("Players online: {:?}",
-        client.get_players()
+    // TODO: Remove or move somewhere else, this doesn't work immediately after connecting
+    println!("Ping: {:?}", client.get_ping_time());
+
+    println!(
+        "Players online: {:?}",
+        client
+            .get_players()
             .into_iter()
             .map(|(e, p)| p)
             .collect::<Vec<comp::Player>>()
     );
 
+    client.register(comp::Player::new("test".to_string()));
     client.send_chat("Hello!".to_string());
 
     loop {

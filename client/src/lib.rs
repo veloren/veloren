@@ -10,7 +10,7 @@ pub use specs::Entity as EcsEntity;
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
     terrain::TerrainChunk,
@@ -30,11 +30,12 @@ pub enum Event {
 pub struct Client {
     client_state: Option<ClientState>,
     thread_pool: ThreadPool,
+    pub server_info: ServerInfo,
 
     last_ping: f64,
     ping_time: Option<f64>,
 
-    pub postbox: PostBox<ClientMsg, ServerMsg>,
+    postbox: PostBox<ClientMsg, ServerMsg>,
 
     tick: u64,
     state: State,
@@ -52,17 +53,18 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity) = match postbox.next_message() {
+        let (state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
+                server_info,
             }) => {
                 let mut state = State::from_state_package(ecs_state);
                 let entity = state
                     .ecs()
                     .entity_from_uid(entity_uid)
                     .ok_or(Error::ServerWentMad)?;
-                (state, entity)
+                (state, entity, server_info)
             }
             _ => return Err(Error::ServerWentMad),
         };
@@ -74,6 +76,7 @@ impl Client {
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
+            server_info,
 
             last_ping: state.get_time(),
             ping_time: None,
@@ -272,7 +275,9 @@ impl Client {
                         self.last_ping = self.state.get_time();
                         self.postbox.send_message(ClientMsg::Pong);
                     }
-                    ServerMsg::Pong => self.ping_time = Some((self.state.get_time() - self.last_ping) / 2.0),
+                    ServerMsg::Pong => {
+                        self.ping_time = Some((self.state.get_time() - self.last_ping) / 2.0)
+                    }
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
