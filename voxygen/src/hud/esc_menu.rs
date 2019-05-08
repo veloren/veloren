@@ -103,7 +103,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_2, ui)
             .was_clicked()
         {
-            //self.menu_open = false;
+            // TODO: Show controls window
         };
         // Servers
         if Button::image(self.imgs.button)
@@ -118,7 +118,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
         {
-            //self.menu_open = false;
+            // TODO: Show servers window (is needed in-game?)
         };
         // Logout
         if Button::image(self.imgs.button)

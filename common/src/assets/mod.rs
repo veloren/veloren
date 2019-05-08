@@ -11,7 +11,7 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub enum Error {
-    /// An asset has already been loaded with this specifier but anot type
+    /// An asset of a different type has already been loaded with this specifier
     InvalidType,
     /// Asset does not exist
     NotFound(String),
@@ -114,25 +114,3 @@ pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
         None => Err(Error::NotFound(name.to_owned())),
     }
 }
-
-/*
-/// Translation Asset
-pub struct Translations {
-    pub translations: Value
-}
-impl Translations {
-    pub fn get_lang(&self, lang: &str) -> &str {
-        self.translations[lang].as_str().unwrap()
-    }
-}
-impl Asset for Translations {
-    type T=Self;
-    fn load(path: &str) -> Result<Self, ()>{
-        let file_out = read_from_path(path).unwrap();
-        let content = from_utf8(file_out.as_slice()).unwrap();
-        let value = content.parse::<Value>().unwrap();
-
-        Ok(Translations{translations: value})
-    }
-}
-*/

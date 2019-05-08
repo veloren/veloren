@@ -76,10 +76,10 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_frame, ui);
 
         // Icon
-        //Image::new(self.imgs.charwindow_icon)
-        //.w_h(224.0 / 3.0, 224.0 / 3.0)
-        //.top_left_with_margins_on(state.charwindow_frame, -10.0, -10.0)
-        //.set(state.charwindow_icon, ui);
+        Image::new(self.imgs.charwindow_icon)
+            .w_h(40.0, 40.0)
+            .top_left_with_margins_on(state.charwindow_frame, 4.0, 4.0)
+            .set(state.charwindow_icon, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
