@@ -10,6 +10,7 @@ sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"] 
 specs = { version = "0.14", features = ["serde", "nightly"] }
 vek = { version = "0.9", features = ["serde"] }
 dot_vox = "4.0"
+image = "0.21"
 threadpool = "1.7"
 mio = "0.6"
 mio-extras = "2.0"
@@ -19,3 +20,4 @@ bincode = "1.0"
 log = "0.4"
 rand = "0.5"
 rayon = "1.0"
+lazy_static = "1.3"

@@ -1,6 +1,8 @@
 #![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
+#[macro_use]
+pub mod ui;
 pub mod anim;
 pub mod error;
 pub mod hud;
@@ -12,7 +14,6 @@ pub mod scene;
 pub mod session;
 pub mod settings;
 pub mod singleplayer;
-pub mod ui;
 pub mod window;
 
 // Reexports
