@@ -3,7 +3,7 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{font_ids::Fonts, img_ids::Imgs, small_window::SmallWindowType, Windows, TEXT_COLOR};
+use super::{img_ids::Imgs, small_window::SmallWindowType, Fonts, Windows, TEXT_COLOR};
 use crate::ui::ToggleButton;
 
 widget_ids! {

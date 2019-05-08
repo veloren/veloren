@@ -3,7 +3,7 @@ use conrod_core::{
     widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{font_ids::Fonts, img_ids::Imgs, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
 
 widget_ids! {
     struct Ids {
