@@ -111,18 +111,18 @@ pub struct Show {
     inventory_test_button: bool,
     mini_map: bool,
 
-    want_grab: Option<bool>,
+    want_grab: bool,
 }
 impl Show {
     fn toggle_bag(&mut self) {
         self.bag = !self.bag;
-        self.want_grab = Some(!self.bag);
+        self.want_grab = !self.bag;
     }
 
     fn toggle_map(&mut self) {
         self.map = !self.map;
         self.bag = false;
-        self.want_grab = Some(!self.map);
+        self.want_grab = !self.map;
     }
 
     fn toggle_mini_map(&mut self) {
@@ -159,7 +159,7 @@ impl Show {
             _ => Windows::Settings,
         };
         self.bag = false;
-        self.want_grab = Some(self.open_windows != Windows::Settings);
+        self.want_grab = self.open_windows != Windows::Settings;
     }
 
     fn toggle_help(&mut self) {
@@ -183,10 +183,10 @@ impl Show {
             self.esc_menu = false;
             self.map = false;
             self.open_windows = Windows::None;
-            self.want_grab = Some(true);
+            self.want_grab = true;
         } else {
             self.esc_menu = true;
-            self.want_grab = Some(false);
+            self.want_grab = false;
         }
     }
 }
@@ -233,7 +233,7 @@ impl Hud {
                 ui: true,
                 inventory_test_button: false,
                 mini_map: false,
-                want_grab: None,
+                want_grab: true,
             },
             to_focus: None,
             settings,
@@ -544,8 +544,8 @@ impl Hud {
         };
         // Handle cursor grab
         if !self.force_ungrab {
-            if let Some(state) = self.show.want_grab.take() {
-                global_state.window.grab_cursor(state);
+            if cursor_grabbed != self.show.want_grab {
+                global_state.window.grab_cursor(self.show.want_grab);
             }
         }
 
