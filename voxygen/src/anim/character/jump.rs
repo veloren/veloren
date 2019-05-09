@@ -16,12 +16,12 @@ impl Animation for JumpAnimation {
 
     fn update_skeleton(skeleton: &Self::Skeleton, global_time: f64, anim_time: f64) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let wave = (anim_time as f32 * 14.0).sin();        
+        let wave = (anim_time as f32 * 14.0).sin();
         let arcwave = (1.0f32.ln_1p() - 1.0).abs();
         let wavetest = (wave.cbrt());
         let fuzzwave = (anim_time as f32 * 12.0).sin();
         let wavecos = (anim_time as f32 * 14.0).cos();
-        let wave_slow = (anim_time as f32 * 5.0 + PI).sin();
+        let wave_slow = (anim_time as f32 * 5.0 + PI).min(PI / 2.0).sin();
         let wave_slowtest = (anim_time as f32).min(PI/2.0).sin();
         let wavecos_slow = (anim_time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();

@@ -191,9 +191,10 @@ impl FigureCache {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
         let ecs = client.state_mut().ecs_mut();
-        for (entity, pos, dir, character, animation_history) in (
+        for (entity, pos, vel, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
+            &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Character>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
@@ -210,13 +211,11 @@ impl FigureCache {
                     IdleAnimation::update_skeleton(&mut state.skeleton, time, animation_history.time)
                 },
                 comp::character::Animation::Run => {
-                    RunAnimation::update_skeleton(&mut state.skeleton, time, animation_history.time)
+                    RunAnimation::update_skeleton(&mut state.skeleton, (vel.0.magnitude(), time), animation_history.time)
                 },
                 comp::character::Animation::Jump => {
                     JumpAnimation::update_skeleton(&mut state.skeleton, time,  animation_history.time)
                 },
-                    // TODO
-                    // JumpAnimation::update_skeleton(&mut state.skeleton, time)
             };
 
             state.skeleton.interpolate(&target_skeleton);
