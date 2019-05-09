@@ -1,8 +1,5 @@
 // Standard
-use std::{
-    f32::consts::PI,
-    ops::Mul,
-};
+use std::{f32::consts::PI, ops::Mul};
 
 // Library
 use vek::*;
@@ -16,7 +13,11 @@ impl Animation for IdleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
-    fn update_skeleton(skeleton: &Self::Skeleton, global_time: f64, anim_time: f64) -> Self::Skeleton {
+    fn update_skeleton(
+        skeleton: &Self::Skeleton,
+        global_time: f64,
+        anim_time: f64,
+    ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 12.0).sin();
@@ -48,16 +49,16 @@ impl Animation for IdleAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -7.5, -2.0 + waveultracos_slow * 0.3,
-
+            -7.5,
+            -2.0 + waveultracos_slow * 0.3,
             12.0 + waveultra_slow * 1.1,
         );
         next.l_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
-            7.5, -2.0 + waveultracos_slow * 0.3,
-
+            7.5,
+            -2.0 + waveultracos_slow * 0.3,
             12.0 + waveultra_slow * 1.1,
         );
         next.r_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);

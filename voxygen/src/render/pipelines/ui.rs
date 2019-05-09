@@ -1,4 +1,4 @@
-use super::super::{Pipeline, Quad, WinColorFmt, WinDepthFmt, Tri};
+use super::super::{Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
 use gfx::{
     self,
     // Macros

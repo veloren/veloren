@@ -12,7 +12,7 @@ use gfx::{
 
 // Local
 use super::{
-    super::{Mesh, Pipeline, WinColorFmt, WinDepthFmt, Tri},
+    super::{Mesh, Pipeline, Tri, WinColorFmt, WinDepthFmt},
     Globals,
 };
 

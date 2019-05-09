@@ -1,6 +1,6 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation, RunAnimation, JumpAnimation},
+        character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -207,15 +207,21 @@ impl FigureCache {
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
             let target_skeleton = match animation_history.current {
-                comp::character::Animation::Idle => {
-                    IdleAnimation::update_skeleton(&mut state.skeleton, time, animation_history.time)
-                },
-                comp::character::Animation::Run => {
-                    RunAnimation::update_skeleton(&mut state.skeleton, (vel.0.magnitude(), time), animation_history.time)
-                },
-                comp::character::Animation::Jump => {
-                    JumpAnimation::update_skeleton(&mut state.skeleton, time,  animation_history.time)
-                },
+                comp::character::Animation::Idle => IdleAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    time,
+                    animation_history.time,
+                ),
+                comp::character::Animation::Run => RunAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    (vel.0.magnitude(), time),
+                    animation_history.time,
+                ),
+                comp::character::Animation::Jump => JumpAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    time,
+                    animation_history.time,
+                ),
             };
 
             state.skeleton.interpolate(&target_skeleton);
@@ -266,7 +272,7 @@ impl<S: Skeleton> FigureState<S> {
     fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
-            * Mat4::rotation_z(-dir.x.atan2(dir.y));// + f32::consts::PI / 2.0);
+            * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
 
         let locals = FigureLocals::new(mat);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();

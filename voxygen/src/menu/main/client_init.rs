@@ -1,9 +1,9 @@
 use client::{error::Error as ClientError, Client};
 use common::comp;
 use std::{
+    net::ToSocketAddrs,
     sync::mpsc::{channel, Receiver, TryRecvError},
     thread::{self, JoinHandle},
-    net::ToSocketAddrs,
     time::Duration,
 };
 
@@ -23,7 +23,11 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(connection_args: (String, u16, bool), client_args: (comp::Player, u64), wait: bool) -> Self {
+    pub fn new(
+        connection_args: (String, u16, bool),
+        client_args: (comp::Player, u64),
+        wait: bool,
+    ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
         let (player, view_distance) = client_args;
 

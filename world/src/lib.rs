@@ -32,12 +32,9 @@ impl World {
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
         let sand = Block::new(4, Rgb::new(180, 150, 50));
 
-        let perlin_nz = Perlin::new()
-            .set_seed(1);
-        let temp_nz = Perlin::new()
-            .set_seed(2);
-        let chaos_nz = Perlin::new()
-            .set_seed(3);
+        let perlin_nz = Perlin::new().set_seed(1);
+        let temp_nz = Perlin::new().set_seed(2);
+        let chaos_nz = Perlin::new().set_seed(3);
 
         for lpos in chunk.iter_positions() {
             let wpos = lpos + chunk_pos * chunk.get_size().map(|e| e as i32);
@@ -50,10 +47,16 @@ impl World {
             let small_ampl = 6.0;
             let offs = 32.0;
 
-            let chaos = chaos_nz.get(Vec2::from(wposf * chaos_freq).into_array()).max(0.0) + 0.5;
+            let chaos = chaos_nz
+                .get(Vec2::from(wposf * chaos_freq).into_array())
+                .max(0.0)
+                + 0.5;
 
             let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
-                + perlin_nz.get((wposf * small_freq).into_array()) * small_ampl * 2.0 * chaos.powf(2.0)
+                + perlin_nz.get((wposf * small_freq).into_array())
+                    * small_ampl
+                    * 2.0
+                    * chaos.powf(2.0)
                 + offs;
             let temp = (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
 
