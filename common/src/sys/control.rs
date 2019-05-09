@@ -40,7 +40,7 @@ impl<'a> System<'a> for Sys {
             if on_ground {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 2.0 - vel.0.map(|e| e * e.abs() + e) * 0.03;
+                vel.0 += control.move_dir * 4.0 - vel.0.map(|e| e * e.abs() + e) * 0.05;
 
                 if control.jumping {
                     vel.0.z += 16.0;
@@ -48,7 +48,7 @@ impl<'a> System<'a> for Sys {
             } else {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 0.2;
+                vel.0 += control.move_dir * 0.2 - vel.0.map(|e| e * e.abs() + e) * 0.002;
             }
 
             let animation = if on_ground {
