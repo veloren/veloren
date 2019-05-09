@@ -26,7 +26,7 @@ impl Singleplayer {
     pub fn new() -> (Self, SocketAddr) {
         let (sender, reciever) = channel();
 
-        let sock = SocketAddr::from(([0; 4], pick_unused_port()
+        let sock = SocketAddr::from(([127,0,0,1], pick_unused_port()
             .expect("Failed to find unused port")));
 
         let sock2 = sock.clone();
