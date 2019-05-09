@@ -4,7 +4,10 @@ pub mod error;
 pub mod input;
 
 // Reexports
-pub use crate::{error::Error, input::{Input, InputEvent}};
+pub use crate::{
+    error::Error,
+    input::{Input, InputEvent},
+};
 pub use specs::join::Join;
 pub use specs::Entity as EcsEntity;
 
@@ -196,7 +199,11 @@ impl Client {
             // Remove chunks that are too far from the player
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
-                if (Vec2::from(chunk_pos) - Vec2::from(key)).map(|e: i32| e.abs()).reduce_max() > 6 {
+                if (Vec2::from(chunk_pos) - Vec2::from(key))
+                    .map(|e: i32| e.abs())
+                    .reduce_max()
+                    > 6
+                {
                     chunks_to_remove.push(key);
                 }
             });

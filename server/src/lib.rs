@@ -8,19 +8,10 @@ pub mod input;
 // Reexports
 pub use crate::{error::Error, input::Input};
 
-use std::{
-    collections::HashSet,
-    net::SocketAddr,
-    sync::mpsc,
-    time::Duration,
-    i32,
+use crate::{
+    client::{Client, Clients},
+    cmd::CHAT_COMMANDS,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
-};
-use threadpool::ThreadPool;
-use vek::*;
 use common::{
     comp,
     comp::character::Animation,
@@ -29,11 +20,14 @@ use common::{
     state::{State, Uid},
     terrain::TerrainChunk,
 };
-use world::World;
-use crate::{
-    client::{Client, Clients},
-    cmd::CHAT_COMMANDS,
+use specs::{
+    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
+    Entity as EcsEntity,
 };
+use std::{collections::HashSet, i32, net::SocketAddr, sync::mpsc, time::Duration};
+use threadpool::ThreadPool;
+use vek::*;
+use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -204,7 +198,9 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (Vec2::from(chunk_pos) - Vec2::from(key)).map(|e: i32| e.abs()).reduce_max();
+                let dist = (Vec2::from(chunk_pos) - Vec2::from(key))
+                    .map(|e: i32| e.abs())
+                    .reduce_max();
 
                 if dist < 5 {
                     self.clients.notify(

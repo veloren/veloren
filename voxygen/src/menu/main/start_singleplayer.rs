@@ -1,11 +1,11 @@
-use std::net::SocketAddr;
-use log::warn;
-use common::comp;
+use super::{client_init::ClientInit, DEFAULT_PORT};
 use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
     PlayState, PlayStateResult,
 };
-use super::{client_init::ClientInit, DEFAULT_PORT};
+use common::comp;
+use log::warn;
+use std::net::SocketAddr;
 
 pub struct StartSingleplayerState {
     singleplayer: Singleplayer,
@@ -17,10 +17,7 @@ impl StartSingleplayerState {
     pub fn new() -> Self {
         let (singleplayer, sock) = Singleplayer::new();
 
-        Self {
-            singleplayer,
-            sock,
-        }
+        Self { singleplayer, sock }
     }
 }
 
@@ -45,7 +42,7 @@ impl PlayState for StartSingleplayerState {
                         Some(Err(err)) => {
                             warn!("Failed to start singleplayer server: {:?}", err);
                             return PlayStateResult::Pop;
-                        },
+                        }
                         _ => {}
                     }
                 };

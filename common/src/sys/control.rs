@@ -1,5 +1,5 @@
 // Library
-use specs::{Entities, Join, Read, ReadStorage, ReadExpect, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
 // Crate
@@ -8,9 +8,9 @@ use crate::{
         phys::{Dir, Pos, Vel},
         Animation, AnimationHistory, Control,
     },
+    state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
-    state::DeltaTime,
 };
 
 // Basic ECS AI agent system
@@ -28,14 +28,18 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Control>,
     );
 
-    fn run(&mut self, (terrain, dt, entities, pos, mut vels, mut dirs, mut anims, controls): Self::SystemData) {
+    fn run(
+        &mut self,
+        (terrain, dt, entities, pos, mut vels, mut dirs, mut anims, controls): Self::SystemData,
+    ) {
         for (entity, pos, mut vel, mut dir, control) in
             (&entities, &pos, &mut vels, &mut dirs, &controls).join()
         {
             let on_ground = terrain
                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
-                .unwrap_or(false) && vel.0.z <= 0.0;
+                .unwrap_or(false)
+                && vel.0.z <= 0.0;
 
             if on_ground {
                 // TODO: Don't hard-code this
@@ -64,8 +68,8 @@ impl<'a> System<'a> for Sys {
 
             let last_history = anims.get_mut(entity).cloned();
 
-            let time = if let Some((true, time)) = last_history
-                .map(|last| (last.current == animation, last.time))
+            let time = if let Some((true, time)) =
+                last_history.map(|last| (last.current == animation, last.time))
             {
                 time + dt.0 as f64
             } else {
