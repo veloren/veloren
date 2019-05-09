@@ -71,7 +71,7 @@ impl<'a> System<'a> for Sys {
             let time = if let Some((true, time)) =
                 last_history.map(|last| (last.current == animation, last.time))
             {
-                time + dt.0 as f64
+                time
             } else {
                 0.0
             };
