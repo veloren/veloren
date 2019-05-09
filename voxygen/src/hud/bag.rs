@@ -1,4 +1,4 @@
-use super::{font_ids::Fonts, img_ids::Imgs};
+use super::{img_ids::Imgs, Fonts};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar},

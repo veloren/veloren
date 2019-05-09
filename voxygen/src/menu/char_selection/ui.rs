@@ -1,6 +1,6 @@
 use crate::{
     render::Renderer,
-    ui::{self, Graphic, ScaleMode, Ui},
+    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
     window::Window,
 };
 use common::{
@@ -85,8 +85,6 @@ widget_ids! {
         test_char_l_big,
         help_text_bg,
         help_text,
-        //test_char_m_button,
-        //test_char_r_button,
 
         // Char Creation
         // Race Icons
@@ -160,158 +158,84 @@ widget_ids! {
     }
 }
 
-struct Imgs {
-    v_logo: ImgId,
-    bg_selection: ImgId,
-    bg_creation: ImgId,
-    button: ImgId,
-    button_hover: ImgId,
-    button_press: ImgId,
-    button_red: ImgId,
-    button_red_hover: ImgId,
-    button_red_press: ImgId,
-    selection_window: ImgId,
-    test_char_l_button: ImgId,
-    test_char_l_big: ImgId,
-    name_input: ImgId,
-    creation_window: ImgId,
-    creation_window_body: ImgId,
-    frame_closed: ImgId,
-    frame_closed_mo: ImgId,
-    frame_closed_press: ImgId,
-    frame_open: ImgId,
-    frame_open_mo: ImgId,
-    frame_open_press: ImgId,
-    skin_eyes_window: ImgId,
-    hair_window: ImgId,
-    accessories_window: ImgId,
-    color_picker_bg: ImgId,
-    slider_range: ImgId,
-    slider_indicator: ImgId,
-    window_frame_2: ImgId,
+image_ids! {
+    struct Imgs {
+        <VoxelGraphic>
+        v_logo: "/voxygen/element/v_logo.vox",
+        button: "/voxygen/element/buttons/button.vox",
+        button_hover: "/voxygen/element/buttons/button_hover.vox",
+        button_press: "/voxygen/element/buttons/button_press.vox",
+        button_red: "/voxygen/element/buttons/button_red.vox",
+        button_red_hover: "/voxygen/element/buttons/button_red_hover.vox",
+        button_red_press: "/voxygen/element/buttons/button_red_press.vox",
+        name_input: "/voxygen/element/misc_bg/textbox.vox",
 
-    //test_char_m_button: ImgId,
-    //test_char_r_button: ImgId,
-    // Race Icons
-    male: ImgId,
-    female: ImgId,
-    human_m: ImgId,
-    human_f: ImgId,
-    orc_m: ImgId,
-    orc_f: ImgId,
-    dwarf_m: ImgId,
-    dwarf_f: ImgId,
-    undead_m: ImgId,
-    undead_f: ImgId,
-    elf_m: ImgId,
-    elf_f: ImgId,
-    danari_m: ImgId,
-    danari_f: ImgId,
-    // Weapon Icons
-    daggers: ImgId,
-    sword_shield: ImgId,
-    sword: ImgId,
-    axe: ImgId,
-    hammer: ImgId,
-    bow: ImgId,
-    staff: ImgId,
-    // Arrows
-    arrow_left: ImgId,
-    arrow_left_mo: ImgId,
-    arrow_left_press: ImgId,
-    arrow_left_grey: ImgId,
-    arrow_right: ImgId,
-    arrow_right_mo: ImgId,
-    arrow_right_press: ImgId,
-    arrow_right_grey: ImgId,
-    // Icon Borders
-    icon_border: ImgId,
-    icon_border_mo: ImgId,
-    icon_border_press: ImgId,
-    icon_border_pressed: ImgId,
+        <ImageGraphic>
+        bg_selection: "/voxygen/background/bg_selection.png",
+        bg_creation: "/voxygen/background/bg_creation.png",
+        selection_window: "/voxygen/element/frames/selection.png",
+        test_char_l_button: "/voxygen/element/misc_bg/test_char_l.png",
+        test_char_l_big: "/voxygen/element/misc_bg/test_char_l_big.png",
+        creation_window: "/voxygen/element/frames/char_creation.png",
+        creation_window_body: "/voxygen/element/frames/body_creation.png",
+        frame_closed: "/voxygen/element/buttons/frame/closed.png",
+        frame_closed_mo: "/voxygen/element/buttons/frame/closed_mo.png",
+        frame_closed_press: "/voxygen/element/buttons/frame/closed_press.png",
+        frame_open: "/voxygen/element/buttons/frame/open.png",
+        frame_open_mo: "/voxygen/element/buttons/frame/open_mo.png",
+        frame_open_press: "/voxygen/element/buttons/frame/open_press.png",
+        skin_eyes_window: "/voxygen/element/frames/skin_eyes.png",
+        hair_window: "/voxygen/element/frames/skin_eyes.png",
+        accessories_window: "/voxygen/element/frames/skin_eyes.png",
+        color_picker_bg: "/voxygen/element/misc_bg/color_picker_blank.png",
+        slider_range: "/voxygen/element/slider/track.png",
+        slider_indicator: "/voxygen/element/slider/indicator.png",
+        window_frame_2: "/voxygen/element/frames/window_2.png",
+
+        // Weapon Icons
+        daggers: "/voxygen/element/icons/daggers.png",
+        sword_shield: "/voxygen/element/icons/swordshield.png",
+        sword: "/voxygen/element/icons/sword.png",
+        axe: "/voxygen/element/icons/axe.png",
+        hammer: "/voxygen/element/icons/hammer.png",
+        bow: "/voxygen/element/icons/bow.png",
+        staff: "/voxygen/element/icons/staff.png",
+        // Race Icons
+        male: "/voxygen/element/icons/male.png",
+        female: "/voxygen/element/icons/female.png",
+        human_m: "/voxygen/element/icons/human_m.png",
+        human_f: "/voxygen/element/icons/human_f.png",
+        orc_m: "/voxygen/element/icons/orc_m.png",
+        orc_f: "/voxygen/element/icons/orc_f.png",
+        dwarf_m: "/voxygen/element/icons/dwarf_m.png",
+        dwarf_f: "/voxygen/element/icons/dwarf_f.png",
+        undead_m: "/voxygen/element/icons/ud_m.png",
+        undead_f: "/voxygen/element/icons/ud_f.png",
+        elf_m: "/voxygen/element/icons/elf_m.png",
+        elf_f: "/voxygen/element/icons/elf_f.png",
+        danari_m: "/voxygen/element/icons/danari_m.png",
+        danari_f: "/voxygen/element/icons/danari_f.png",
+        // Arrows
+        arrow_left: "/voxygen/element/buttons/arrow/left.png",
+        arrow_left_mo: "/voxygen/element/buttons/arrow/left_mo.png",
+        arrow_left_press: "/voxygen/element/buttons/arrow/left_press.png",
+        arrow_left_grey: "/voxygen/element/buttons/arrow/left_inactive.png",
+        arrow_right: "/voxygen/element/buttons/arrow/right.png",
+        arrow_right_mo: "/voxygen/element/buttons/arrow/right_mo.png",
+        arrow_right_press: "/voxygen/element/buttons/arrow/right_press.png",
+        arrow_right_grey: "/voxygen/element/buttons/arrow/right_inactive.png",
+        // Icon Borders
+        icon_border: "/voxygen/element/buttons/border.png",
+        icon_border_mo: "/voxygen/element/buttons/border_mo.png",
+        icon_border_press: "/voxygen/element/buttons/border_press.png",
+        icon_border_pressed: "/voxygen/element/buttons/border_pressed.png",
+    }
 }
-impl Imgs {
-    fn new(ui: &mut Ui) -> Imgs {
-        let load_img = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let image = assets::load::<image::DynamicImage>(fullpath.as_str()).unwrap();
-            ui.add_graphic(Graphic::Image(image))
-        };
-        let load_vox = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str()).unwrap();
-            ui.add_graphic(Graphic::Voxel(dot_vox))
-        };
-        Imgs {
-            v_logo: load_vox("element/v_logo.vox", ui),
-            bg_selection: load_img("background/bg_selection.png", ui),
-            bg_creation: load_img("background/bg_creation.png", ui),
-            selection_window: load_img("element/frames/selection.png", ui),
-            button: load_vox("element/buttons/button.vox", ui),
-            button_hover: load_vox("element/buttons/button_hover.vox", ui),
-            button_press: load_vox("element/buttons/button_press.vox", ui),
-            button_red: load_vox("element/buttons/button_red.vox", ui),
-            button_red_hover: load_vox("element/buttons/button_red_hover.vox", ui),
-            button_red_press: load_vox("element/buttons/button_red_press.vox", ui),
-            test_char_l_button: load_img("element/misc_bg/test_char_l.png", ui),
-            test_char_l_big: load_img("element/misc_bg/test_char_l_big.png", ui),
-            name_input: load_vox("element/misc_bg/textbox.vox", ui),
-            creation_window: load_img("element/frames/char_creation.png", ui),
-            creation_window_body: load_img("element/frames/body_creation.png", ui),
-            frame_closed: load_img("element/buttons/frame/closed.png", ui),
-            frame_closed_mo: load_img("element/buttons/frame/closed_mo.png", ui),
-            frame_closed_press: load_img("element/buttons/frame/closed_press.png", ui),
-            frame_open: load_img("element/buttons/frame/open.png", ui),
-            frame_open_mo: load_img("element/buttons/frame/open_mo.png", ui),
-            frame_open_press: load_img("element/buttons/frame/open_press.png", ui),
-            skin_eyes_window: load_img("element/frames/skin_eyes.png", ui),
-            hair_window: load_img("element/frames/skin_eyes.png", ui),
-            accessories_window: load_img("element/frames/skin_eyes.png", ui),
-            color_picker_bg: load_img("element/misc_bg/color_picker_blank.png", ui),
-            slider_range: load_img("element/slider/track.png", ui),
-            slider_indicator: load_img("element/slider/indicator.png", ui),
-            window_frame_2: load_img("element/frames/window_2.png", ui),
 
-            // Weapon Icons
-            daggers: load_img("element/icons/daggers.png", ui),
-            sword_shield: load_img("element/icons/swordshield.png", ui),
-            sword: load_img("element/icons/sword.png", ui),
-            axe: load_img("element/icons/axe.png", ui),
-            hammer: load_img("element/icons/hammer.png", ui),
-            bow: load_img("element/icons/bow.png", ui),
-            staff: load_img("element/icons/staff.png", ui),
-            //test_char_m_button: load_img("test_char_m_button"),
-            //test_char_r_button: load_img("test_char_r_button"),
-            // Race Icons
-            male: load_img("element/icons/male.png", ui),
-            female: load_img("element/icons/female.png", ui),
-            human_m: load_img("element/icons/human_m.png", ui),
-            human_f: load_img("element/icons/human_f.png", ui),
-            orc_m: load_img("element/icons/orc_m.png", ui),
-            orc_f: load_img("element/icons/orc_f.png", ui),
-            dwarf_m: load_img("element/icons/dwarf_m.png", ui),
-            dwarf_f: load_img("element/icons/dwarf_f.png", ui),
-            undead_m: load_img("element/icons/ud_m.png", ui),
-            undead_f: load_img("element/icons/ud_f.png", ui),
-            elf_m: load_img("element/icons/elf_m.png", ui),
-            elf_f: load_img("element/icons/elf_f.png", ui),
-            danari_m: load_img("element/icons/danari_m.png", ui),
-            danari_f: load_img("element/icons/danari_f.png", ui),
-            // Arrows
-            arrow_left: load_img("element/buttons/arrow/left.png", ui),
-            arrow_left_mo: load_img("element/buttons/arrow/left_mo.png", ui),
-            arrow_left_press: load_img("element/buttons/arrow/left_press.png", ui),
-            arrow_left_grey: load_img("element/buttons/arrow/left_inactive.png", ui),
-            arrow_right: load_img("element/buttons/arrow/right.png", ui),
-            arrow_right_mo: load_img("element/buttons/arrow/right_mo.png", ui),
-            arrow_right_press: load_img("element/buttons/arrow/right_press.png", ui),
-            arrow_right_grey: load_img("element/buttons/arrow/right_inactive.png", ui),
-            // Icon Borders
-            icon_border: load_img("element/buttons/border.png", ui),
-            icon_border_mo: load_img("element/buttons/border_mo.png", ui),
-            icon_border_press: load_img("element/buttons/border_press.png", ui),
-            icon_border_pressed: load_img("element/buttons/border_pressed.png", ui),
-        }
+font_ids! {
+    pub struct Fonts {
+        opensans: "/voxygen/font/OpenSans-Regular.ttf",
+        metamorph: "/voxygen/font/Metamorphous-Regular.ttf",
     }
 }
 
@@ -340,8 +264,7 @@ pub struct CharSelectionUi {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
-    font_metamorph: FontId,
-    font_opensans: FontId,
+    fonts: Fonts,
     character_creation: bool,
     selected_char_no: Option<i32>,
     character_name: String,
@@ -357,22 +280,16 @@ impl CharSelectionUi {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::new(&mut ui);
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         // Load fonts
-        let load_font = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/font", filename].concat();
-            ui.new_font(assets::load(fullpath.as_str()).expect("Error loading file"))
-        };
-        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
-        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
 
         // TODO: Randomize initial values
         Self {
             ui,
-            imgs,
             ids,
-            font_metamorph,
-            font_opensans,
+            imgs,
+            fonts,
             character_creation: false,
             selected_char_no: None,
             character_name: "Character Name".to_string(),
@@ -574,7 +491,7 @@ impl CharSelectionUi {
                 .w_h(300.0, 60.0)
                 .mid_top_with_margin_on(self.ids.name_input, 2.0)
                 .font_size(26)
-                .font_id(self.font_metamorph)
+                .font_id(self.fonts.metamorph)
                 .center_justify()
                 .text_color(TEXT_COLOR)
                 .color(TRANSPARENT)
@@ -931,7 +848,7 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
-                    .font_id(self.font_opensans)
+                    .font_id(self.fonts.opensans)
                     .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
@@ -1105,7 +1022,7 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 410.0)
                     .w(500.0)
                     .font_size(20)
-                    .font_id(self.font_opensans)
+                    .font_id(self.fonts.opensans)
                     .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);

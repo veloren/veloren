@@ -1,6 +1,6 @@
 use crate::{
     render::Renderer,
-    ui::{self, Graphic, ScaleMode, Ui},
+    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
 use common::assets;
@@ -51,41 +51,25 @@ widget_ids! {
     }
 }
 
-struct Imgs {
-    bg: ImgId,
-    v_logo: ImgId,
+image_ids! {
+    struct Imgs {
+        <VoxelGraphic>
+        v_logo: "/voxygen/element/v_logo.vox",
+        input_bg: "/voxygen/element/misc_bg/textbox.vox",
+        button: "/voxygen/element/buttons/button.vox",
+        button_hover: "/voxygen/element/buttons/button_hover.vox",
+        button_press: "/voxygen/element/buttons/button_press.vox",
 
-    input_bg: ImgId,
-
-    error_frame: ImgId,
-    button: ImgId,
-    button_hover: ImgId,
-    button_press: ImgId,
+        <ImageGraphic>
+        bg: "/voxygen/background/bg_main.png",
+        error_frame: "/voxygen/element/frames/window_2.png",
+    }
 }
-impl Imgs {
-    fn new(ui: &mut Ui) -> Imgs {
-        let load_img = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let image = assets::load::<image::DynamicImage>(fullpath.as_str()).unwrap();
-            ui.add_graphic(Graphic::Image(image))
-        };
-        let load_vox = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/", filename].concat();
-            let dot_vox = assets::load::<dot_vox::DotVoxData>(fullpath.as_str()).unwrap();
-            ui.add_graphic(Graphic::Voxel(dot_vox))
-        };
-        Imgs {
-            bg: load_img("background/bg_main.png", ui),
-            v_logo: load_vox("element/v_logo.vox", ui),
 
-            // Input fields
-            input_bg: load_vox("element/misc_bg/textbox.vox", ui),
-
-            error_frame: load_img("element/frames/window_2.png", ui),
-            button: load_vox("element/buttons/button.vox", ui),
-            button_hover: load_vox("element/buttons/button_hover.vox", ui),
-            button_press: load_vox("element/buttons/button_press.vox", ui),
-        }
+font_ids! {
+    pub struct Fonts {
+        opensans: "/voxygen/font/OpenSans-Regular.ttf",
+        metamorph: "/voxygen/font/Metamorphous-Regular.ttf",
     }
 }
 
@@ -102,8 +86,7 @@ pub struct MainMenuUi {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
-    font_metamorph: FontId,
-    font_opensans: FontId,
+    fonts: Fonts,
     username: String,
     server_address: String,
     login_error: Option<String>,
@@ -121,21 +104,15 @@ impl MainMenuUi {
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::new(&mut ui);
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
         // Load fonts
-        let load_font = |filename, ui: &mut Ui| {
-            let fullpath: String = ["/voxygen/font", filename].concat();
-            ui.new_font(assets::load(fullpath.as_str()).expect("Error loading file"))
-        };
-        let font_opensans = load_font("/OpenSans-Regular.ttf", &mut ui);
-        let font_metamorph = load_font("/Metamorphous-Regular.ttf", &mut ui);
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
 
         Self {
             ui,
-            imgs,
             ids,
-            font_metamorph,
-            font_opensans,
+            imgs,
+            fonts,
             username: networking.username.clone(),
             server_address: networking.servers[networking.default_server].clone(),
             login_error: None,
@@ -162,6 +139,7 @@ impl MainMenuUi {
             .color(TEXT_COLOR)
             .set(self.ids.version, ui_widgets);
 
+        // TODO: Don't use macros for this?
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field
         macro_rules! login {
@@ -175,8 +153,8 @@ impl MainMenuUi {
             };
         }
 
-        //Singleplayer
-        //Used when the singleplayer button is pressed
+        // Singleplayer
+        // Used when the singleplayer button is pressed
         macro_rules! singleplayer {
             () => {
                 self.login_error = None;
@@ -201,7 +179,7 @@ impl MainMenuUi {
             .w_h(290.0, 30.0)
             .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
             .font_size(22)
-            .font_id(self.font_opensans)
+            .font_id(self.fonts.opensans)
             .text_color(TEXT_COLOR)
             // transparent background
             .color(TRANSPARENT)
@@ -223,7 +201,7 @@ impl MainMenuUi {
             let text = Text::new(&msg)
                 .rgba(1.0, 1.0, 1.0, 1.0)
                 .font_size(30)
-                .font_id(self.font_opensans);
+                .font_id(self.fonts.opensans);
             Rectangle::fill_with([400.0, 100.0], color::TRANSPARENT)
                 .rgba(0.1, 0.1, 0.1, 1.0)
                 .parent(ui_widgets.window)
@@ -322,7 +300,7 @@ impl MainMenuUi {
             .w_h(290.0, 30.0)
             .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
             .font_size(22)
-            .font_id(self.font_opensans)
+            .font_id(self.fonts.opensans)
             .text_color(TEXT_COLOR)
             // transparent background
             .color(TRANSPARENT)
