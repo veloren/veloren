@@ -5,13 +5,12 @@ mod scale;
 mod util;
 mod widgets;
 #[macro_use]
-mod img_ids;
+pub mod img_ids;
 #[macro_use]
 mod font_ids;
 
 pub use event::Event;
 pub use graphic::Graphic;
-pub use img_ids::{BlankGraphic, GraphicCreator, ImageGraphic, VoxelGraphic};
 pub use scale::ScaleMode;
 pub use widgets::toggle_button::ToggleButton;
 
@@ -315,8 +314,8 @@ impl Ui {
                         srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
                     let resolution = Vec2::new(
-                        (rect.w() * p_scale_factor) as u16,
-                        (rect.h() * p_scale_factor) as u16,
+                        (rect.w() * p_scale_factor).round() as u16,
+                        (rect.h() * p_scale_factor).round() as u16,
                     );
                     // Transform the source rectangle into uv coordinate
                     // TODO: make sure this is right
