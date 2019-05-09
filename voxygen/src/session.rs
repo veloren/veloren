@@ -127,12 +127,6 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    // Toggle cursor grabbing
-                    Event::KeyDown(Key::ToggleCursor) => {
-                        global_state
-                            .window
-                            .grab_cursor(!global_state.window.is_cursor_grabbed());
-                    }
                     // Movement Key Pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
