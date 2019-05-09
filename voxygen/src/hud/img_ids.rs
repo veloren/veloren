@@ -40,6 +40,16 @@ image_ids! {
         qlog_hover: "/voxygen/element/buttons/qlog_hover.vox",
         qlog_press: "/voxygen/element/buttons/qlog_press.vox",
 
+        // Window Parts
+        window_3: "/voxygen/element/frames/window_3.vox",
+        tab_bg: "/voxygen/element/frames/tab_bg.vox",
+        tab_small_open: "/voxygen/element/frames/tab_small_open.vox",
+        tab_small_closed: "/voxygen/element/frames/tab_small_closed.vox",
+
+        // Charwindow
+        xp_charwindow: "/voxygen/element/frames/xp_charwindow.vox",
+        divider: "/voxygen/element/frames/divider_charwindow.vox",
+
 
         // Close button
         close_button: "/voxygen/element/buttons/x.vox",
