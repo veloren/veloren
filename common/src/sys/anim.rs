@@ -12,10 +12,7 @@ use crate::{
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        Read<'a, DeltaTime>,
-        WriteStorage<'a, AnimationHistory>,
-    );
+    type SystemData = (Read<'a, DeltaTime>, WriteStorage<'a, AnimationHistory>);
 
     fn run(&mut self, (dt, mut anim_history): Self::SystemData) {
         for (mut anim_history) in (&mut anim_history).join() {
