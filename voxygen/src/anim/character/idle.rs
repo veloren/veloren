@@ -29,8 +29,8 @@ impl Animation for IdleAnimation {
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         let head_look = Vec2::new(
-            (global_time as f32 / 5.0).floor().mul(7331.0).sin() * 0.5,
-            (global_time as f32 / 5.0).floor().mul(1337.0).sin() * 0.25,
+            ((global_time + anim_time) as f32 / 5.0).floor().mul(7331.0).sin() * 0.5,
+            ((global_time + anim_time) as f32 / 5.0).floor().mul(1337.0).sin() * 0.25,
         );
         next.head.offset = Vec3::new(5.5, 2.0, 11.5 + waveultra_slow * 0.4);
         next.head.ori = Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
