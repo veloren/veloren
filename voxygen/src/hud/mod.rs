@@ -115,15 +115,19 @@ pub struct Show {
     map: bool,
     inventory_test_button: bool,
     mini_map: bool,
+
+    want_grab: bool,
 }
 impl Show {
     fn toggle_bag(&mut self) {
-        self.bag = !self.bag
+        self.bag = !self.bag;
+        self.want_grab = !self.bag;
     }
 
     fn toggle_map(&mut self) {
         self.map = !self.map;
         self.bag = false;
+        self.want_grab = !self.map;
     }
 
     fn toggle_mini_map(&mut self) {
@@ -160,6 +164,7 @@ impl Show {
             _ => Windows::Settings,
         };
         self.bag = false;
+        self.want_grab = self.open_windows != Windows::Settings;
     }
 
     fn toggle_help(&mut self) {
@@ -170,7 +175,7 @@ impl Show {
         self.ui = !self.ui;
     }
 
-    fn toggle_windows(&mut self, global_state: &mut GlobalState) {
+    fn toggle_windows(&mut self) {
         if self.bag
             || self.esc_menu
             || self.map
@@ -183,10 +188,10 @@ impl Show {
             self.esc_menu = false;
             self.map = false;
             self.open_windows = Windows::None;
-            global_state.window.grab_cursor(true);
+            self.want_grab = true;
         } else {
             self.esc_menu = true;
-            global_state.window.grab_cursor(false);
+            self.want_grab = false;
         }
     }
 }
@@ -201,6 +206,7 @@ pub struct Hud {
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
+    force_ungrab: bool,
 }
 
 impl Hud {
@@ -232,9 +238,11 @@ impl Hud {
                 ui: true,
                 inventory_test_button: false,
                 mini_map: false,
+                want_grab: true,
             },
             to_focus: None,
             settings,
+            force_ungrab: false,
         }
     }
 
@@ -454,7 +462,7 @@ impl Hud {
 
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
-        match event {
+        let handled = match event {
             WinEvent::Ui(event) => {
                 if (self.typing() && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
@@ -482,7 +490,7 @@ impl Hud {
                     self.ui.focus_widget(None);
                 } else {
                     // Close windows on esc
-                    self.show.toggle_windows(global_state);
+                    self.show.toggle_windows();
                 }
                 true
             }
@@ -519,6 +527,13 @@ impl Hud {
                     self.show.toggle_help();
                     true
                 }
+                Key::ToggleCursor => {
+                    self.force_ungrab = !self.force_ungrab;
+                    if self.force_ungrab {
+                        global_state.window.grab_cursor(false);
+                    }
+                    true
+                }
                 _ => false,
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
@@ -531,7 +546,15 @@ impl Hud {
                 true
             }
             _ => false,
+        };
+        // Handle cursor grab
+        if !self.force_ungrab {
+            if cursor_grabbed != self.show.want_grab {
+                global_state.window.grab_cursor(self.show.want_grab);
+            }
         }
+
+        handled
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
