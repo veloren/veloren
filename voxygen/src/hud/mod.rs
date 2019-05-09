@@ -201,6 +201,7 @@ pub struct Hud {
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
+    force_ungrab: bool,
 }
 
 impl Hud {
@@ -236,6 +237,7 @@ impl Hud {
             },
             to_focus: None,
             settings,
+            force_ungrab: false,
         }
     }
 
@@ -520,6 +522,13 @@ impl Hud {
                     self.show.toggle_help();
                     true
                 }
+                Key::ToggleCursor => {
+                    self.force_ungrab = !self.force_ungrab;
+                    if self.force_ungrab {
+                        global_state.window.grab_cursor(false);
+                    }
+                    true
+                }
                 _ => false,
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
@@ -534,8 +543,10 @@ impl Hud {
             _ => false,
         };
         // Handle cursor grab
-        if let Some(state) = self.show.want_grab.take() {
-            global_state.window.grab_cursor(state);
+        if !self.force_ungrab {
+            if let Some(state) = self.show.want_grab.take() {
+                global_state.window.grab_cursor(state);
+            }
         }
 
         handled
