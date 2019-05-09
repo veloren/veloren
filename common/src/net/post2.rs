@@ -203,11 +203,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             */
 
                             // Assemble into packet
-                            let mut packet_bytes = msg_bytes
-                                .len()
-                                .to_le_bytes()
-                                .as_ref()
-                                .to_vec();
+                            let mut packet_bytes = msg_bytes.len().to_le_bytes().as_ref().to_vec();
                             packet_bytes.push(msg_bytes.iter().fold(0, |a, x| a ^ *x));
                             packet_bytes.append(&mut msg_bytes);
 
@@ -270,25 +266,32 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 for _ in 0..100 {
                     match incoming_buf.get(0..9) {
                         Some(len_bytes) => {
-                            let len = usize::from_le_bytes(<[u8; 8]>::try_from(&len_bytes[0..8]).unwrap()); // Can't fail
+                            let len = usize::from_le_bytes(
+                                <[u8; 8]>::try_from(&len_bytes[0..8]).unwrap(),
+                            ); // Can't fail
 
                             if len > MAX_MSG_SIZE {
                                 recv_tx.send(Err(Error::InvalidMessage)).unwrap();
                                 break 'work;
                             } else if incoming_buf.len() >= len + 9 {
-                                let checksum_found = incoming_buf[9..len + 9].iter().fold(0, |a, x| a ^ *x);
+                                let checksum_found =
+                                    incoming_buf[9..len + 9].iter().fold(0, |a, x| a ^ *x);
                                 let checksum_expected = len_bytes[8];
 
-                                assert_eq!(checksum_found, checksum_expected, "Message checksum failed!");
+                                assert_eq!(
+                                    checksum_found, checksum_expected,
+                                    "Message checksum failed!"
+                                );
 
-                                let msg_bytes = lz4_compress::decompress(&incoming_buf[9..len + 9]).unwrap();
+                                let msg_bytes =
+                                    lz4_compress::decompress(&incoming_buf[9..len + 9]).unwrap();
 
                                 match bincode::deserialize(&msg_bytes) {
                                     Ok(msg) => recv_tx.send(Ok(msg)).unwrap(),
                                     Err(err) => {
                                         println!("BINCODE ERROR: {:?}", err);
                                         recv_tx.send(Err(err.into())).unwrap()
-                                    },
+                                    }
                                 }
 
                                 incoming_buf = incoming_buf.split_off(len + 9);

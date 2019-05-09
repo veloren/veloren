@@ -1,13 +1,13 @@
-use std::{
-    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
-    time::Duration,
-    thread::{self, JoinHandle},
-    net::SocketAddr,
-};
+use common::clock::Clock;
 use log::info;
 use portpicker::pick_unused_port;
-use common::clock::Clock;
 use server::{Event, Input, Server};
+use std::{
+    net::SocketAddr,
+    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
+    thread::{self, JoinHandle},
+    time::Duration,
+};
 
 const TPS: u64 = 30;
 
@@ -26,18 +26,23 @@ impl Singleplayer {
     pub fn new() -> (Self, SocketAddr) {
         let (sender, reciever) = channel();
 
-        let sock = SocketAddr::from(([127,0,0,1], pick_unused_port()
-            .expect("Failed to find unused port")));
+        let sock = SocketAddr::from((
+            [127, 0, 0, 1],
+            pick_unused_port().expect("Failed to find unused port"),
+        ));
 
         let sock2 = sock.clone();
         let thread = thread::spawn(move || {
             run_server(sock2, reciever);
         });
 
-        (Singleplayer {
-            server_thread: thread,
-            sender,
-        }, sock)
+        (
+            Singleplayer {
+                server_thread: thread,
+                sender,
+            },
+            sock,
+        )
     }
 }
 
