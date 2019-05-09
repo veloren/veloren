@@ -30,7 +30,13 @@ struct Time(f64);
 
 /// A resource used to store the time since the last tick
 #[derive(Default)]
-pub struct DeltaTime(pub f64);
+pub struct DeltaTime(pub f32);
+
+/// At what point should we stop speeding up physics to compensate for lag? If we speed physics up
+/// too fast, we'd skip important physics events like collisions. This constant determines what
+/// the upper limit is. If delta time exceeds this value, the game's physics will begin to produce
+/// time lag. Ideally, we'd avoid such a situation.
+const MAX_DELTA_TIME: f32 = 0.2;
 
 pub struct Changes {
     pub new_chunks: HashSet<Vec3<i32>>,
@@ -198,9 +204,11 @@ impl State {
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
 
-        // Run systems to update the world
-        self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f64();
+        // Update delta time
+        // Above a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events
+        self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
 
+        // Run systems to update the world
         // Create and run dispatcher for ecs systems
         let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
         sys::add_local_systems(&mut dispatch_builder);

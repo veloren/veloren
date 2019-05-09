@@ -1,6 +1,6 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation, RunAnimation},
+        character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -110,7 +110,7 @@ impl FigureCache {
             match head {
                 Head::DefaultHead => "head.vox",
             },
-            Vec3::new(-7.5, -8.0, 0.0),
+            Vec3::new(-7.0, -5.5, -6.0),
         )
     }
 
@@ -119,7 +119,7 @@ impl FigureCache {
             match chest {
                 Chest::DefaultChest => "chest.vox",
             },
-            Vec3::new(-2.5, -6.0, 0.0),
+            Vec3::new(-6.0, -3.5, 0.0),
         )
     }
 
@@ -128,7 +128,7 @@ impl FigureCache {
             match belt {
                 Belt::DefaultBelt => "belt.vox",
             },
-            Vec3::new(-2.5, -5.0, 0.0),
+            Vec3::new(-5.0, -3.5, 0.0),
         )
     }
 
@@ -137,7 +137,7 @@ impl FigureCache {
             match pants {
                 Pants::DefaultPants => "pants.vox",
             },
-            Vec3::new(-2.5, -5.0, 0.0),
+            Vec3::new(-5.0, -3.5, 0.0),
         )
     }
 
@@ -146,7 +146,7 @@ impl FigureCache {
             match hand {
                 Hand::DefaultHand => "hand.vox",
             },
-            Vec3::new(0.0, -2.0, -7.0),
+            Vec3::new(3.5, 0.0, -7.0),
         )
     }
 
@@ -155,7 +155,7 @@ impl FigureCache {
             match hand {
                 Hand::DefaultHand => "hand.vox",
             },
-            Vec3::new(0.0, -2.0, -7.0),
+            Vec3::new(3.5, 0.0, -7.0),
         )
     }
 
@@ -164,7 +164,7 @@ impl FigureCache {
             match foot {
                 Foot::DefaultFoot => "foot.vox",
             },
-            Vec3::new(-3.5, -2.5, -8.0),
+            Vec3::new(2.5, -3.5, -9.0),
         )
     }
 
@@ -173,7 +173,7 @@ impl FigureCache {
             match foot {
                 Foot::DefaultFoot => "foot.vox",
             },
-            Vec3::new(-3.5, -2.5, -8.0),
+            Vec3::new(2.5, -3.5, -9.0),
         )
     }
 
@@ -191,9 +191,10 @@ impl FigureCache {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();
         let ecs = client.state_mut().ecs_mut();
-        for (entity, pos, dir, character, animation_history) in (
+        for (entity, pos, vel, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
+            &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Character>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
@@ -206,12 +207,21 @@ impl FigureCache {
                 .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
 
             let target_skeleton = match animation_history.current {
-                comp::character::Animation::Idle => {
-                    IdleAnimation::update_skeleton(&mut state.skeleton, time)
-                }
-                comp::character::Animation::Run => {
-                    RunAnimation::update_skeleton(&mut state.skeleton, time)
-                }
+                comp::character::Animation::Idle => IdleAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    time,
+                    animation_history.time,
+                ),
+                comp::character::Animation::Run => RunAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    (vel.0.magnitude(), time),
+                    animation_history.time,
+                ),
+                comp::character::Animation::Jump => JumpAnimation::update_skeleton(
+                    &mut state.skeleton,
+                    time,
+                    animation_history.time,
+                ),
             };
 
             state.skeleton.interpolate(&target_skeleton);
@@ -262,7 +272,7 @@ impl<S: Skeleton> FigureState<S> {
     fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
-            * Mat4::rotation_z(-dir.x.atan2(dir.y) + f32::consts::PI / 2.0);
+            * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
 
         let locals = FigureLocals::new(mat);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();

@@ -78,6 +78,7 @@ impl PlayState for MainMenuState {
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
                             InitError::ConnectionFailed(_) => "Connection failed",
+                            InitError::ClientCrashed => "Client crashed",
                         }
                         .to_string(),
                     );
@@ -102,6 +103,7 @@ impl PlayState for MainMenuState {
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),
                             (comp::Player::new(username.clone()), 300),
+                            false,
                         )));
                     }
                     MainMenuEvent::StartSingleplayer => {

@@ -115,7 +115,7 @@ impl Scene {
             .unwrap_or(Vec3::zero());
 
         // Alter camera position to match player
-        self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 3.5);
+        self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 2.1);
 
         // Tick camera for interpolation
         self.camera.update(client.state().get_time());
@@ -135,6 +135,7 @@ impl Scene {
                     10.0,
                     client.state().get_time_of_day(),
                     client.state().get_time(),
+                    renderer.get_resolution(),
                 )],
             )
             .expect("Failed to update global constants");

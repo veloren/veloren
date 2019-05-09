@@ -51,9 +51,15 @@ pub struct Server {
 }
 
 impl Server {
-    /// Create a new `Server`.
+    /// Create a new `Server` bound to the default socket.
     #[allow(dead_code)]
     pub fn new() -> Result<Self, Error> {
+        Self::bind(SocketAddr::from(([0; 4], 59003)))
+    }
+
+    /// Create a new server bound to the given socket
+    #[allow(dead_code)]
+    pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
@@ -63,7 +69,7 @@ impl Server {
             state,
             world: World::new(),
 
-            postoffice: PostOffice::bind(SocketAddr::from(([0; 4], 59003)))?,
+            postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
 
             thread_pool: threadpool::Builder::new()
@@ -137,6 +143,7 @@ impl Server {
             comp::AnimationHistory {
                 last: None,
                 current: Animation::Idle,
+                time: 0.0,
             },
         );
 
@@ -181,7 +188,7 @@ impl Server {
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain
         // Also, send the chunk data to anybody that is close by
-        for (key, chunk) in self.chunk_rx.try_iter() {
+        if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
@@ -191,9 +198,11 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
+                let dist = (Vec2::from(chunk_pos) - Vec2::from(key))
+                    .map(|e: i32| e.abs())
+                    .reduce_max();
 
-                if dist < 4 {
+                if dist < 5 {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -225,7 +234,7 @@ impl Server {
                 min_dist = min_dist.min(dist);
             }
 
-            if min_dist > 3 {
+            if min_dist > 5 {
                 chunks_to_remove.push(key);
             }
         });
