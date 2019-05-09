@@ -104,14 +104,14 @@ fn main() {
         let panic_info_payload = panic_info.payload();
         let payload_string = panic_info_payload.downcast_ref::<String>();
         let reason = match payload_string {
-                Some(s) => &s,
-                None => {
-                    let payload_str = panic_info_payload.downcast_ref::<&str>();
-                    match payload_str {
-                        Some(st) => st,
-                        None => "Payload is not a string",
-                    }
+            Some(s) => &s,
+            None => {
+                let payload_str = panic_info_payload.downcast_ref::<&str>();
+                match payload_str {
+                    Some(st) => st,
+                    None => "Payload is not a string",
                 }
+            }
         };
         let msg = format!(" \
 A critical error has occured and Voxygen has been forced to terminate in an unusual manner. Details about the error can be found below.
