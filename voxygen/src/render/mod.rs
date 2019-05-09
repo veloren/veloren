@@ -23,7 +23,7 @@ pub use self::{
         },
         Globals,
     },
-    renderer::{Renderer, TgtColorFmt, TgtDepthFmt},
+    renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
     texture::Texture,
 };
 
