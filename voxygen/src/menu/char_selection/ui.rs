@@ -85,8 +85,6 @@ widget_ids! {
         test_char_l_big,
         help_text_bg,
         help_text,
-        //test_char_m_button,
-        //test_char_r_button,
 
         // Char Creation
         // Race Icons
@@ -202,8 +200,6 @@ image_ids! {
         hammer: "/voxygen/element/icons/hammer.png",
         bow: "/voxygen/element/icons/bow.png",
         staff: "/voxygen/element/icons/staff.png",
-        //test_char_m_button: "/voxygen/test_char_m_button"),
-        //test_char_r_button: "/voxygen/test_char_r_button"),
         // Race Icons
         male: "/voxygen/element/icons/male.png",
         female: "/voxygen/element/icons/female.png",
