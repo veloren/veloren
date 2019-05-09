@@ -34,9 +34,9 @@ impl<'a> System<'a> for Sys {
                 .get(pos.0.map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false)
-                && i < 80
+                && i < 100
             {
-                pos.0.z += 0.005;
+                pos.0.z += 0.0025;
                 vel.0.z = 0.0;
                 i += 1;
             }

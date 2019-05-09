@@ -11,9 +11,9 @@ pub struct RunAnimation;
 
 impl Animation for RunAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = f64;
+    type Dependency = (f32, f64);
 
-    fn update_skeleton(skeleton: &Self::Skeleton, global_time: f64, anim_time: f64) -> Self::Skeleton {
+    fn update_skeleton(skeleton: &Self::Skeleton, (velocity, global_time): Self::Dependency, anim_time: f64) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
@@ -60,8 +60,8 @@ impl Animation for RunAnimation {
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
-        next.torso.offset = Vec3::new(-0.5, 0.0, 0.2);
-        next.torso.ori = Quaternion::rotation_x(-0.25 - wavecos * 0.1);
+        next.torso.offset = Vec3::new(-0.5, -0.2, 0.2);
+        next.torso.ori = Quaternion::rotation_x( - velocity * 0.05 - wavecos * 0.1);
         next.torso.scale = Vec3::one() / 11.0;
 
         next.l_shoulder.offset = Vec3::new(3.0, 6.0, 18.0);

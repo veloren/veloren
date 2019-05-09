@@ -42,7 +42,7 @@ impl Animation for IdleAnimation {
 
         next.l_hand.offset = Vec3::new(
             -7.5, -2.0 + waveultracos_slow * 0.3,
-            
+
             12.0 + waveultra_slow * 1.1,
         );
         next.l_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);
@@ -50,7 +50,7 @@ impl Animation for IdleAnimation {
 
         next.r_hand.offset = Vec3::new(
             7.5, -2.0 + waveultracos_slow * 0.3,
-            
+
             12.0 + waveultra_slow * 1.1,
         );
         next.r_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);
@@ -68,7 +68,7 @@ impl Animation for IdleAnimation {
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
-        next.torso.offset = Vec3::new(-0.5, 0.0, 0.1);
+        next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
 
