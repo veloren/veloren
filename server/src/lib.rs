@@ -202,7 +202,7 @@ impl Server {
                     .map(|e: i32| e.abs())
                     .reduce_max();
 
-                if dist < 5 {
+                if dist < 7 {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -234,7 +234,7 @@ impl Server {
                 min_dist = min_dist.min(dist);
             }
 
-            if min_dist > 5 {
+            if min_dist > 7 {
                 chunks_to_remove.push(key);
             }
         });

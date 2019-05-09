@@ -212,12 +212,13 @@ impl Client {
             }
 
             // Request chunks from the server
-            for i in chunk_pos.x - 3..chunk_pos.x + 4 {
-                for j in chunk_pos.y - 3..chunk_pos.y + 4 {
+            for i in chunk_pos.x - 4..chunk_pos.x + 5 {
+                for j in chunk_pos.y - 4..chunk_pos.y + 5 {
                     for k in 0..2 {
                         let key = Vec3::new(i, j, k);
                         if self.state.terrain().get_key(key).is_none()
                             && !self.pending_chunks.contains(&key)
+                            && self.pending_chunks.len() < 4
                         {
                             self.postbox
                                 .send_message(ClientMsg::TerrainChunkRequest { key });
