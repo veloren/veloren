@@ -23,6 +23,13 @@ widget_ids! {
         charwindow_tab1_stats,
         charwindow_tab_bg,
         charwindow_title,
+        window_3,
+        tab_bg,
+        tab_small_open,
+        tab_small_closed,
+        xp_charwindow,
+        divider,
+
     }
 }
 
