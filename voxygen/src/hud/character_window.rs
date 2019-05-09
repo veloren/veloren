@@ -29,7 +29,7 @@ widget_ids! {
         tab_small_open,
         tab_small_closed,
         xp_charwindow,
-        divider_1,
+        divider,
         head_bg,
         shoulders_bg,
         hands_bg,
@@ -319,7 +319,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.divider)
             .w_h(38.0 * 4.0, 5.0 * 4.0)
             .mid_top_with_margin_on(state.charwindow_tab1_exp, 30.0)
-            .set(state.divider_1, ui);
+            .set(state.divider, ui);
 
         // Stats
         Text::new(
