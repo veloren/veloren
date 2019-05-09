@@ -1,7 +1,7 @@
 pub mod agent;
+pub mod anim;
 pub mod control;
 pub mod phys;
-pub mod anim;
 
 // External
 use specs::DispatcherBuilder;
