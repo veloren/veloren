@@ -7,9 +7,9 @@ use crate::{
     window::{Event, Key, Window},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client};
+use client::{self, Client, Input, InputEvent};
 use common::clock::Clock;
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
 
 const FPS: u64 = 60;
@@ -18,6 +18,7 @@ pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
     key_state: KeyState,
+    input_events: Vec<InputEvent>,
     hud: Hud,
 }
 
@@ -32,6 +33,7 @@ impl SessionState {
             client,
             key_state: KeyState::new(),
             hud: Hud::new(window, settings),
+            input_events: Vec::new(),
         }
     }
 }
@@ -56,11 +58,18 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        for event in self
-            .client
-            .borrow_mut()
-            .tick(client::Input { move_dir }, dt)?
-        {
+        // Take the input events
+        let mut input_events = Vec::new();
+        mem::swap(&mut self.input_events, &mut input_events);
+
+        for event in self.client.borrow_mut().tick(
+            Input {
+                move_dir,
+                jumping: self.key_state.jump,
+                events: input_events,
+            },
+            dt,
+        )? {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -132,11 +141,16 @@ impl PlayState for SessionState {
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
                     Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
                     Event::KeyDown(Key::MoveRight) => self.key_state.right = true,
+                    Event::KeyDown(Key::Jump) => {
+                        self.input_events.push(InputEvent::Jump);
+                        self.key_state.jump = true;
+                    }
                     // Movement Key Released
                     Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
                     Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
+                    Event::KeyUp(Key::Jump) => self.key_state.jump = false,
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);

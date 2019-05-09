@@ -4,17 +4,20 @@ use crate::{
     PlayState, PlayStateResult,
 };
 use common::comp;
+use log::warn;
+use std::net::SocketAddr;
 
 pub struct StartSingleplayerState {
     singleplayer: Singleplayer,
+    sock: SocketAddr,
 }
 
 impl StartSingleplayerState {
     /// Create a new `MainMenuState`
     pub fn new() -> Self {
-        Self {
-            singleplayer: Singleplayer::new(),
-        }
+        let (singleplayer, sock) = Singleplayer::new();
+
+        Self { singleplayer, sock }
     }
 }
 
@@ -23,19 +26,23 @@ impl PlayState for StartSingleplayerState {
         match direction {
             Direction::Forwards => {
                 let username = "singleplayer".to_owned();
-                let server_address = "localhost".to_owned();
+                let server_address = self.sock.ip().to_string();
 
                 let client_init = ClientInit::new(
-                    (server_address.clone(), DEFAULT_PORT, false),
+                    (server_address.clone(), self.sock.port(), false),
                     (comp::Player::new(username.clone()), 300),
+                    true,
                 );
 
                 // Client creation
                 let client = loop {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
-                        // Should always work
-                        Some(Err(err)) => unreachable!(),
+                        // An error occured!
+                        Some(Err(err)) => {
+                            warn!("Failed to start singleplayer server: {:?}", err);
+                            return PlayStateResult::Pop;
+                        }
                         _ => {}
                     }
                 };

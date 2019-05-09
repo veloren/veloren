@@ -1,4 +1,4 @@
-use super::super::{Pipeline, Quad, TgtColorFmt, TgtDepthFmt, Tri};
+use super::super::{Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
 use gfx::{
     self,
     // Macros
@@ -25,8 +25,8 @@ gfx_defines! {
 
         scissor: gfx::Scissor = (),
 
-        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::PASS_TEST,
+        tgt_color: gfx::BlendTarget<WinColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
+        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::PASS_TEST,
     }
 }
 

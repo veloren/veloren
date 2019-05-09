@@ -13,12 +13,14 @@ impl Component for Agent {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Control {
     pub move_dir: Vec2<f32>,
+    pub jumping: bool,
 }
 
 impl Default for Control {
     fn default() -> Self {
         Self {
             move_dir: Vec2::zero(),
+            jumping: false,
         }
     }
 }

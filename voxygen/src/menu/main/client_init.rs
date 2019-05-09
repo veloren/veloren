@@ -1,8 +1,10 @@
 use client::{error::Error as ClientError, Client};
 use common::comp;
 use std::{
+    net::ToSocketAddrs,
     sync::mpsc::{channel, Receiver, TryRecvError},
     thread::{self, JoinHandle},
+    time::Duration,
 };
 
 #[derive(Debug)]
@@ -13,6 +15,7 @@ pub enum Error {
     NoAddress,
     // Parsing/host name resolution successful but could not connect
     ConnectionFailed(ClientError),
+    ClientCrashed,
 }
 
 // Used to asynchronusly parse the server address, resolve host names, and create the client (which involves establishing a connection to the server)
@@ -20,14 +23,21 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(connection_args: (String, u16, bool), client_args: (comp::Player, u64)) -> Self {
+    pub fn new(
+        connection_args: (String, u16, bool),
+        client_args: (comp::Player, u64),
+        wait: bool,
+    ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
         let (player, view_distance) = client_args;
 
         let (tx, rx) = channel();
 
         let handle = Some(thread::spawn(move || {
-            use std::net::ToSocketAddrs;
+            // Sleep the thread to wait for the single-player server to start up
+            if wait {
+                thread::sleep(Duration::from_millis(500));
+            }
             // Parses ip address or resolves hostname
             // Note: if you use an ipv6 address the number after the last colon will be used as the port unless you use [] around the address
             match server_address
@@ -80,7 +90,7 @@ impl ClientInit {
         match self.rx.try_recv() {
             Ok(result) => Some(result),
             Err(TryRecvError::Empty) => None,
-            Err(TryRecvError::Disconnected) => panic!("Thread panicked or already finished"),
+            Err(TryRecvError::Disconnected) => Some(Err(Error::ClientCrashed)),
         }
     }
 }
