@@ -1,5 +1,8 @@
 // Standard
-use std::f32::consts::PI;
+use std::{
+    f32::consts::PI,
+    ops::Mul,
+};
 
 // Library
 use vek::*;
@@ -24,8 +27,12 @@ impl Animation for IdleAnimation {
         let waveultracos_slow = (anim_time as f32 * 1.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
+        let head_look = Vec2::new(
+            (global_time as f32 / 5.0).floor().mul(7331.0).sin() * 0.5,
+            (global_time as f32 / 5.0).floor().mul(1337.0).sin() * 0.25,
+        );
         next.head.offset = Vec3::new(5.5, 2.0, 11.5 + waveultra_slow * 0.4);
-        next.head.ori = Quaternion::rotation_x(waveultra_slow * 0.05);
+        next.head.ori = Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
         next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(5.5, 0.0, 7.5 + waveultra_slow * 0.4);
@@ -57,11 +64,11 @@ impl Animation for IdleAnimation {
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 0.0, 8.0);
-        next.l_foot.ori = Quaternion::rotation_x(-0.04 - waveultra_slow * 0.04);
+        next.l_foot.ori = Quaternion::identity();
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, 0.0, 8.0);
-        next.r_foot.ori = Quaternion::rotation_x(-0.04 - waveultra_slow * 0.04);
+        next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(-5.0, -6.0, 18.5);
