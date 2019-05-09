@@ -102,6 +102,18 @@ fn main() {
     let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
+        let panic_info_payload = panic_info.payload();
+        let payload_string = panic_info_payload.downcast_ref::<String>();
+        let reason = match payload_string {
+            Some(s) => &s,
+            None => {
+                let payload_str = panic_info_payload.downcast_ref::<&str>();
+                match payload_str {
+                    Some(st) => st,
+                    None => "Payload is not a string",
+                }
+            }
+        };
         let msg = format!(" \
 A critical error has occured and Voxygen has been forced to terminate in an unusual manner. Details about the error can be found below.
 
@@ -123,7 +135,8 @@ Voxygen has logged information about the problem (including this message) to the
 
 The information below is intended for developers and testers.
 
-{:?}", settings_clone.log.file, panic_info);
+Panic Payload: {:?}
+PanicInfo: {:?}", settings_clone.log.file, reason, panic_info);
 
         log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
 
