@@ -156,7 +156,16 @@ vec4 fxaa_apply(sampler2D tex, vec2 fragCoord, vec2 resolution) {
 
 void main() {
 	vec2 uv = (f_pos + 1.0) * 0.5;
+
+	/*
+	float px_size = 8.0;
+	vec2 px_count = screen_res.xy / px_size;
+	vec2 uv2 = floor(uv * px_count) / px_count;
+	*/
+
 	vec4 color = fxaa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 
 	tgt_color = 1.0 - 1.0 / (color + 1.0);
+
+	//tgt_color = ceil(tgt_color * 10.0) / 10.0;
 }
