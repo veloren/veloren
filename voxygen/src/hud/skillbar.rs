@@ -69,8 +69,8 @@ impl<'a> Widget for Skillbar<'a> {
 
         // TODO: Read from parameter / character struct
         let xp_percentage = 0.4;
-        let hp_percentage = 0.4;
-        let mana_percentage = 0.4;
+        let hp_percentage = 1.0;
+        let mana_percentage = 1.0;
 
         // Experience-Bar
         Image::new(self.imgs.xp_bar)
