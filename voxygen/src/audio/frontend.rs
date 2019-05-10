@@ -1,21 +1,21 @@
-use common::audio::{audio_gen::AudioGen, Buffer, Stream};
+use audio;
+use common::assets;
 use rodio::{Decoder, Device, Source, SpatialSink};
 use std::{
     collections::HashMap,
     fs::File,
     io::BufReader,
-    sync::mpsc::{channel, Reciever, Sender, TryRecvError},
+    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
     thread::sleep,
     time::Duration,
 };
 use std::{thread, thread::JoinHandle};
 use vek::*;
-use assets;
 
 enum Msg {
     Position(Vec3<f32>, Mat4(f32)),
     Play(&str),
-    Stop
+    Stop,
 }
 
 pub struct AudioFrontend {
@@ -59,7 +59,7 @@ impl AudioFrontend {
         self.sender.send(Position(pos, vel, ori));
     }
 
-    pub fn play(&self, data: &str>) {
+    pub fn play(&self, data: &str) {
         self.sender.send(Play(data));
     }
 }
@@ -103,6 +103,7 @@ impl AudioThread {
         for (id, int) in self.streams.iter_mut() {
             self.adjust(&int.settings, &mut int.sink);
         }
+    }
 
     fn adjust(&self, stream: &Stream, sink: &mut SpatialSink) {
         const FALLOFF: f32 = 0.13;
