@@ -8,6 +8,27 @@ image_ids! {
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
         inv_slot: "/voxygen/element/buttons/inv_slot.vox",
 
+        // Grid
+        grid: "/voxygen/element/buttons/grid.vox",
+        grid_hover: "/voxygen/element/buttons/grid.vox",
+        grid_press: "/voxygen/element/buttons/grid.vox",
+
+        // Char Window BG
+
+        head_bg: "/voxygen/element/icons/head.vox",
+        shoulders_bg: "/voxygen/element/icons/head.vox",
+        hands_bg: "/voxygen/element/icons/head.vox",
+        belt_bg: "/voxygen/element/icons/head.vox",
+        legs_bg: "/voxygen/element/icons/head.vox",
+        feet_bg: "/voxygen/element/icons/head.vox",
+        ring_r_bg: "/voxygen/element/icons/head.vox",
+        ring_l_bg: "/voxygen/element/icons/head.vox",
+        tabard_bg: "/voxygen/element/icons/head.vox",
+        chest_bg: "/voxygen/element/icons/head.vox",
+        back_bg: "/voxygen/element/icons/head.vox",
+        gem_bg: "/voxygen/element/icons/head.vox",
+        necklace_bg: "/voxygen/element/icons/head.vox",
+
         <VoxelMs9Graphic>
 
         // Buttons

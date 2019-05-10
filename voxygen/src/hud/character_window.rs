@@ -13,6 +13,7 @@ widget_ids! {
         charwindow_exp_progress_rectangle,
         charwindow_exp_rectangle,
         charwindow_frame,
+        content_align,
         // charwindow_icon,
         charwindow_rectangle,
         charwindow_tab1,
@@ -29,6 +30,33 @@ widget_ids! {
         tab_small_closed,
         xp_charwindow,
         divider_1,
+        head_bg,
+        shoulders_bg,
+        hands_bg,
+        belt_bg,
+        legs_bg,
+        feet_bg,
+        ring_r_bg,
+        ring_l_bg,
+        tabard_bg,
+        chest_bg,
+        back_bg,
+        gem_bg,
+        necklace_bg,
+        head_grid,
+        shoulders_grid,
+        hands_grid,
+        belt_grid,
+        legs_grid,
+        feet_grid,
+        ring_r_grid,
+        ring_l_grid,
+        tabard_grid,
+        chest_grid,
+        back_grid,
+        gem_grid,
+        necklace_grid,
+
 
     }
 }
@@ -84,9 +112,9 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Icon
         //Image::new(self.imgs.charwindow_icon)
-            //.w_h(40.0, 40.0)
-            //.top_left_with_margins_on(state.charwindow_frame, 4.0, 4.0)
-            //.set(state.charwindow_icon, ui);
+        //.w_h(40.0, 40.0)
+        //.top_left_with_margins_on(state.charwindow_frame, 4.0, 4.0)
+        //.set(state.charwindow_icon, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
@@ -108,25 +136,41 @@ impl<'a> Widget for CharacterWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.charwindow_title, ui);
 
+        // Content Alignment
+        Rectangle::fill_with([95.0 * 4.0, 108.0 * 4.0], color::TRANSPARENT)
+            .mid_top_with_margin_on(state.charwindow_frame, 40.0)
+            .set(state.content_align, ui);
+
+        // Contents
+
+        //Head BG and Grid
+
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 4.0, 28.0 * 4.0)
+            .mid_top_with_margin_on(state.content_align, 5.0)
+            .set(state.head_bg, ui);
+
+        // Stats Tab
+
         // Tab BG
         Image::new(self.imgs.tab_bg)
-            .w_h(50.0*4.0, 115.0*4.0)
-            .top_left_with_margins_on(state.charwindow_frame,28.0, -200.0)
+            .w_h(50.0 * 4.0, 115.0 * 4.0)
+            .top_left_with_margins_on(state.charwindow_frame, 28.0, -200.0)
             .set(state.charwindow_tab_bg, ui);
 
         // Tab Rectangle
-        Rectangle::fill_with([45.0*4.0, 104.0*4.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.charwindow_tab_bg, 7.0*4.0, 4.0*4.0)
+        Rectangle::fill_with([45.0 * 4.0, 104.0 * 4.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.charwindow_tab_bg, 7.0 * 4.0, 4.0 * 4.0)
             .set(state.charwindow_rectangle, ui);
 
-        // Tab Button
-        Button::image(self.imgs.charwindow_tab)
-            .w_h(65.0, 23.0)
-            .top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 2.0)
-            .label("Stats")
-            .label_color(TEXT_COLOR)
-            .label_font_size(14)
-            .set(state.charwindow_tab1, ui);
+        // Tab Button -> Add that back in when we have multiple tabs
+        // Button::image(self.imgs.charwindow_tab)
+        //.w_h(65.0, 23.0)
+        //.top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 2.0)
+        //.label("Stats")
+        //.label_color(TEXT_COLOR)
+        //.label_font_size(14)
+        //.set(state.charwindow_tab1, ui);
 
         Text::new("1") //Add in actual Character Level
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)
@@ -159,6 +203,13 @@ impl<'a> Widget for CharacterWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.charwindow_tab1_exp, ui);
 
+        // Divider
+
+        Image::new(self.imgs.divider)
+            .w_h(38.0 * 4.0, 5.0 * 4.0)
+            .mid_top_with_margin_on(state.charwindow_tab1_exp, 30.0)
+            .set(state.divider_1, ui);
+
         // Stats
         Text::new(
             "Stamina\n\
@@ -169,7 +220,7 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              Intelligence",
         )
-        .top_left_with_margins_on(state.charwindow_rectangle, 100.0, 20.0)
+        .top_left_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
         .font_id(self.fonts.opensans)
         .font_size(16)
         .color(TEXT_COLOR)
@@ -184,7 +235,7 @@ impl<'a> Widget for CharacterWindow<'a> {
              \n\
              124124",
         )
-        .right_from(state.charwindow_tab1_statnames, 10.0)
+        .top_right_with_margins_on(state.charwindow_rectangle, 140.0, 5.0)
         .font_id(self.fonts.opensans)
         .font_size(16)
         .color(TEXT_COLOR)
