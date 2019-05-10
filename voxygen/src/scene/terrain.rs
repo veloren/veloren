@@ -1,9 +1,5 @@
 // Standard
-use std::{
-    collections::{HashMap, LinkedList},
-    sync::mpsc,
-    time::Duration,
-};
+use std::{collections::HashMap, sync::mpsc, time::Duration};
 
 // Library
 use vek::*;
@@ -57,7 +53,7 @@ pub struct Terrain {
     // We keep the sender component for no reason othe than to clone it and send it to new workers.
     mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
     mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
-    mesh_todo: LinkedList<ChunkMeshState>,
+    mesh_todo: HashMap<Vec3<i32>, ChunkMeshState>,
 }
 
 impl Terrain {
@@ -71,13 +67,15 @@ impl Terrain {
 
             mesh_send_tmp: send,
             mesh_recv: recv,
-            mesh_todo: LinkedList::new(),
+            mesh_todo: HashMap::new(),
         }
     }
 
     /// Maintain terrain data. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let current_tick = client.get_tick();
+
+        let mut remesh_weights = HashMap::new();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed
         for pos in client
@@ -97,15 +95,21 @@ impl Terrain {
                         let pos = pos + Vec3::new(i, j, k);
 
                         if client.state().terrain().get_key(pos).is_some() {
-                            match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
-                                //Some(todo) => todo.started_tick = current_tick,
-                                // The chunk it's queued yet, add it to the queue
-                                _ /* None */ => self.mesh_todo.push_back(ChunkMeshState {
-                                    pos,
-                                    started_tick: current_tick,
-                                    active_worker: false,
-                                }),
-                            }
+                            // match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
+                            //     //Some(todo) => todo.started_tick = current_tick,
+                            //     // The chunk it's queued yet, add it to the queue
+                            //     _ /* None */ => self.mesh_todo.push_back(ChunkMeshState {
+                            //         pos,
+                            //         started_tick: current_tick,
+                            //         active_worker: false,
+                            //     }),
+                            // }
+                            let weight = if (i, j, k) == (0, 0, 0) { 10 } else { 1 };
+
+                            remesh_weights
+                                .entry(pos)
+                                .and_modify(|e| *e += weight)
+                                .or_insert(weight);
                         }
                     }
                 }
@@ -115,15 +119,35 @@ impl Terrain {
         // Remove any models for chunks that have been recently removed
         for pos in &client.state().changes().removed_chunks {
             self.chunks.remove(pos);
-            self.mesh_todo.drain_filter(|todo| todo.pos == *pos);
+            remesh_weights.remove(pos);
         }
 
+        for (pos, _weight) in remesh_weights.iter().filter(|(_pos, weight)| **weight > 1) {
+            // match self.mesh_todo.get_mut(pos) {
+            //     Some(mesh_state) => mesh_state.started_tick = current_tick,
+            //     None => {
+            //         self.mesh_todo.insert(
+            //             *pos,
+            //             ChunkMeshState {
+            //                 pos: *pos,
+            //                 started_tick: current_tick,
+            //                 active_worker: false,
+            //             },
+            //         );
+            //     }
+            // }
+            self.mesh_todo.entry(*pos).or_insert(ChunkMeshState {
+                pos: *pos,
+                started_tick: current_tick,
+                active_worker: false,
+            });
+        }
         // Clone the sender to the thread can send us the chunk data back
         // TODO: It's a bit hacky cloning it here and then cloning it again below. Fix this.
         let send = self.mesh_send_tmp.clone();
 
         self.mesh_todo
-            .iter_mut()
+            .values_mut()
             // Only spawn workers for meshing jobs without an active worker already
             .filter(|todo| !todo.active_worker)
             .for_each(|todo| {
@@ -165,7 +189,7 @@ impl Terrain {
         // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
         // to the GPU upload. That still gives us a 60 chunks / second budget to play with.
         if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
-            match self.mesh_todo.iter().find(|todo| todo.pos == response.pos) {
+            match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course)
                 Some(todo) if response.started_tick == todo.started_tick => {
