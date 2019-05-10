@@ -152,15 +152,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .w_h(28.0 * 2.0, 28.0 * 2.0)
             .middle_of(state.head_bg)
             .set(state.head_grid, ui);        
-        // Shoulders
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .top_right_with_margins_on(state.content_align, 65.0, 40.0)
-            .set(state.shoulders_bg, ui);
-        Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .middle_of(state.shoulders_bg)
-            .set(state.shoulders_grid, ui);
+        
         // Ring R
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
@@ -205,7 +197,16 @@ impl<'a> Widget for CharacterWindow<'a> {
         Button::image(self.imgs.grid)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
             .middle_of(state.hands_bg)
-            .set(state.hands_grid, ui);            
+            .set(state.hands_grid, ui);
+        // Shoulders
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .up_from(state.hands_bg, 10.0)
+            .set(state.shoulders_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .middle_of(state.shoulders_bg)
+            .set(state.shoulders_grid, ui);          
         // Ring L
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
@@ -254,7 +255,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         //Necklace
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .top_left_with_margins_on(state.content_align, 65.0, 40.0)
+            .up_from(state.gem_bg, 10.0)
             .set(state.necklace_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
