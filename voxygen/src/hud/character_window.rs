@@ -13,7 +13,7 @@ widget_ids! {
         charwindow_exp_progress_rectangle,
         charwindow_exp_rectangle,
         charwindow_frame,
-        charwindow_icon,
+        // charwindow_icon,
         charwindow_rectangle,
         charwindow_tab1,
         charwindow_tab1_exp,
@@ -28,7 +28,7 @@ widget_ids! {
         tab_small_open,
         tab_small_closed,
         xp_charwindow,
-        divider,
+        divider_1,
 
     }
 }
@@ -76,24 +76,24 @@ impl<'a> Widget for CharacterWindow<'a> {
         let xp_percentage = 0.4;
 
         // Frame
-        Image::new(self.imgs.window_frame)
+        Image::new(self.imgs.window_3)
             .middle_of(id)
-            .top_left_with_margins_on(ui.window, 200.0, 215.0)
-            .w_h(107.0 * 4.0, 125.0 * 4.0)
+            .top_left_with_margins_on(ui.window, 212.0, 215.0)
+            .w_h(103.0 * 4.0, 122.0 * 4.0)
             .set(state.charwindow_frame, ui);
 
         // Icon
-        Image::new(self.imgs.charwindow_icon)
-            .w_h(40.0, 40.0)
-            .top_left_with_margins_on(state.charwindow_frame, 4.0, 4.0)
-            .set(state.charwindow_icon, ui);
+        //Image::new(self.imgs.charwindow_icon)
+            //.w_h(40.0, 40.0)
+            //.top_left_with_margins_on(state.charwindow_frame, 4.0, 4.0)
+            //.set(state.charwindow_icon, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
             .press_image(self.imgs.close_button_press)
-            .top_right_with_margins_on(state.charwindow_frame, 12.0, 0.0)
+            .top_right_with_margins_on(state.charwindow_frame, 0.0, 0.0)
             .set(state.charwindow_close, ui)
             .was_clicked()
         {
@@ -102,21 +102,21 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Title
         Text::new("Character Name") // Add in actual Character Name
-            .mid_top_with_margin_on(state.charwindow_frame, 17.0)
+            .mid_top_with_margin_on(state.charwindow_frame, 4.0)
             .font_id(self.fonts.metamorph)
             .font_size(14)
             .color(TEXT_COLOR)
             .set(state.charwindow_title, ui);
 
         // Tab BG
-        Image::new(self.imgs.charwindow_tab_bg)
-            .w_h(205.0, 412.0)
-            .mid_left_with_margin_on(state.charwindow_frame, -205.0)
+        Image::new(self.imgs.tab_bg)
+            .w_h(50.0*4.0, 115.0*4.0)
+            .top_left_with_margins_on(state.charwindow_frame,28.0, -200.0)
             .set(state.charwindow_tab_bg, ui);
 
         // Tab Rectangle
-        Rectangle::fill_with([192.0, 371.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-            .top_right_with_margins_on(state.charwindow_tab_bg, 20.0, 0.0)
+        Rectangle::fill_with([45.0*4.0, 104.0*4.0], color::TRANSPARENT)
+            .top_left_with_margins_on(state.charwindow_tab_bg, 7.0*4.0, 4.0*4.0)
             .set(state.charwindow_rectangle, ui);
 
         // Tab Button
