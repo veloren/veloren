@@ -93,7 +93,6 @@ impl Terrain {
                         let pos = pos + Vec3::new(i, j, k);
 
                         if client.state().terrain().get_key(pos).is_some() {
-
                             // re-mesh loaded chunks that border new/changed chunks
                             if self.chunks.contains_key(&pos) || (i, j, k) == (0, 0, 0) {
                                 self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
@@ -113,48 +112,45 @@ impl Terrain {
             self.mesh_todo.remove(pos);
         }
 
-        // Clone the sender to the thread can send us the chunk data back
-        // TODO: It's a bit hacky cloning it here and then cloning it again below. Fix this.
-        let send = self.mesh_send_tmp.clone();
-
-        self.mesh_todo
+        for todo in self
+            .mesh_todo
             .values_mut()
             // Only spawn workers for meshing jobs without an active worker already
             .filter(|todo| !todo.active_worker)
-            .for_each(|todo| {
-                // Find the area of the terrain we want. Because meshing needs to compute things like
-                // ambient occlusion and edge elision, we also need to borders of the chunk's
-                // neighbours too (hence the `- 1` and `+ 1`).
-                let aabb = Aabb {
-                    min: todo
-                        .pos
-                        .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
-                    max: todo
-                        .pos
-                        .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
-                };
+        {
+            // Find the area of the terrain we want. Because meshing needs to compute things like
+            // ambient occlusion and edge elision, we also need to borders of the chunk's
+            // neighbours too (hence the `- 1` and `+ 1`).
+            let aabb = Aabb {
+                min: todo
+                    .pos
+                    .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
+                max: todo
+                    .pos
+                    .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+            };
 
-                // Copy out the chunk data we need to perform the meshing. We do this by taking a
-                // sample of the terrain that includes both the chunk we want and
-                let volume = match client.state().terrain().sample(aabb) {
-                    Ok(sample) => sample,
-                    // If either this chunk or its neighbours doesn't yet exist, so we keep it in the
-                    // todo queue to be processed at a later date when we have its neighbours.
-                    Err(VolMapErr::NoSuchChunk) => return,
-                    _ => panic!("Unhandled edge case"),
-                };
+            // Copy out the chunk data we need to perform the meshing. We do this by taking a
+            // sample of the terrain that includes both the chunk we want and
+            let volume = match client.state().terrain().sample(aabb) {
+                Ok(sample) => sample,
+                // If either this chunk or its neighbours doesn't yet exist, so we keep it in the
+                // todo queue to be processed at a later date when we have its neighbours.
+                Err(VolMapErr::NoSuchChunk) => return,
+                _ => panic!("Unhandled edge case"),
+            };
 
-                // Clone various things to that they can be moved into the thread
-                let send = send.clone();
-                let pos = todo.pos;
+            // Clone various things to that they can be moved into the thread
+            let send = self.mesh_send_tmp.clone();
+            let pos = todo.pos;
 
-                // Queue the worker thread
-                client.thread_pool().execute(move || {
-                    send.send(mesh_worker(pos, current_tick, volume))
-                        .expect("Failed to send chunk mesh to main thread");
-                });
-                todo.active_worker = true;
+            // Queue the worker thread
+            client.thread_pool().execute(move || {
+                send.send(mesh_worker(pos, current_tick, volume))
+                    .expect("Failed to send chunk mesh to main thread");
             });
+            todo.active_worker = true;
+        }
 
         // Receive a chunk mesh from a worker thread, upload it to the GPU and then store it
         // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
