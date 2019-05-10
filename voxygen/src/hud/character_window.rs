@@ -161,42 +161,6 @@ impl<'a> Widget for CharacterWindow<'a> {
             .w_h(28.0 * 2.0, 28.0 * 2.0)
             .middle_of(state.shoulders_bg)
             .set(state.shoulders_grid, ui);
-        // Hands
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .up_from(state.belt_bg, 10.0)
-            .set(state.hands_bg, ui);
-        Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .middle_of(state.hands_bg)
-            .set(state.hands_grid, ui);
-        // Belt
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .up_from(state.legs_bg, 10.0)
-            .set(state.belt_bg, ui);
-        Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .middle_of(state.belt_bg)
-            .set(state.belt_grid, ui);
-        // Legs
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .up_from(state.feet_bg, 10.0)
-            .set(state.legs_bg, ui);
-        Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .middle_of(state.legs_bg)
-            .set(state.legs_grid, ui);
-        // Feet
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .up_from(state.ring_r_bg, 10.0)
-            .set(state.feet_bg, ui);
-        Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
-            .middle_of(state.feet_bg)
-            .set(state.feet_grid, ui);
         // Ring R
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
@@ -206,6 +170,42 @@ impl<'a> Widget for CharacterWindow<'a> {
             .w_h(28.0 * 2.0, 28.0 * 2.0)
             .middle_of(state.ring_r_bg)
             .set(state.ring_r_grid, ui);
+         // Feet
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .up_from(state.ring_r_bg, 10.0)
+            .set(state.feet_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .middle_of(state.feet_bg)
+            .set(state.feet_grid, ui);
+        // Legs
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .up_from(state.feet_bg, 10.0)
+            .set(state.legs_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .middle_of(state.legs_bg)
+            .set(state.legs_grid, ui);
+        // Belt
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .up_from(state.legs_bg, 10.0)
+            .set(state.belt_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .middle_of(state.belt_bg)
+            .set(state.belt_grid, ui);
+        // Hands
+        Image::new(self.imgs.head_bg)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .up_from(state.belt_bg, 10.0)
+            .set(state.hands_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .middle_of(state.hands_bg)
+            .set(state.hands_grid, ui);            
         // Ring L
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 2.0, 28.0 * 2.0)
