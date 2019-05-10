@@ -75,8 +75,6 @@ impl Terrain {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let current_tick = client.get_tick();
 
-        let mut remesh_weights = HashMap::new();
-
         // Add any recently created or changed chunks to the list of chunks to be meshed
         for pos in client
             .state()
@@ -95,53 +93,26 @@ impl Terrain {
                         let pos = pos + Vec3::new(i, j, k);
 
                         if client.state().terrain().get_key(pos).is_some() {
-                            // match self.mesh_todo.iter_mut().find(|todo| todo.pos == pos) {
-                            //     //Some(todo) => todo.started_tick = current_tick,
-                            //     // The chunk it's queued yet, add it to the queue
-                            //     _ /* None */ => self.mesh_todo.push_back(ChunkMeshState {
-                            //         pos,
-                            //         started_tick: current_tick,
-                            //         active_worker: false,
-                            //     }),
-                            // }
-                            let weight = if (i, j, k) == (0, 0, 0) { 10 } else { 1 };
 
-                            remesh_weights
-                                .entry(pos)
-                                .and_modify(|e| *e += weight)
-                                .or_insert(weight);
+                            // re-mesh loaded chunks that border new/changed chunks
+                            if self.chunks.contains_key(&pos) || (i, j, k) == (0, 0, 0) {
+                                self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: false,
+                                });
+                            }
                         }
                     }
                 }
             }
         }
-
         // Remove any models for chunks that have been recently removed
         for pos in &client.state().changes().removed_chunks {
             self.chunks.remove(pos);
-            remesh_weights.remove(pos);
+            self.mesh_todo.remove(pos);
         }
 
-        for (pos, _weight) in remesh_weights.iter().filter(|(_pos, weight)| **weight > 1) {
-            // match self.mesh_todo.get_mut(pos) {
-            //     Some(mesh_state) => mesh_state.started_tick = current_tick,
-            //     None => {
-            //         self.mesh_todo.insert(
-            //             *pos,
-            //             ChunkMeshState {
-            //                 pos: *pos,
-            //                 started_tick: current_tick,
-            //                 active_worker: false,
-            //             },
-            //         );
-            //     }
-            // }
-            self.mesh_todo.entry(*pos).or_insert(ChunkMeshState {
-                pos: *pos,
-                started_tick: current_tick,
-                active_worker: false,
-            });
-        }
         // Clone the sender to the thread can send us the chunk data back
         // TODO: It's a bit hacky cloning it here and then cloning it again below. Fix this.
         let send = self.mesh_send_tmp.clone();
