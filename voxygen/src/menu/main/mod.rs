@@ -49,7 +49,7 @@ impl PlayState for MainMenuState {
 
         global_state
             .audio
-            .play("audio/soundtrack/veloren_title_tune-3.ogg");
+            .play_music("audio/soundtrack/veloren_title_tune-3.ogg");
 
         loop {
             // Handle window events
