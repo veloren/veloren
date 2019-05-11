@@ -2,7 +2,7 @@ use super::{img_ids::Imgs, Fonts, TEXT_COLOR, XP_COLOR};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -157,6 +157,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .mid_top_with_margin_on(state.content_align, 5.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.head_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -167,6 +168,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.ring_r_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .bottom_right_with_margins_on(state.content_align, 20.0, 20.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.ring_r_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -176,6 +178,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.feet_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.ring_r_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.feet_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -185,6 +188,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.legs_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.feet_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.legs_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -194,6 +198,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.belt_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.legs_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.belt_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -203,6 +208,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.hands_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.belt_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))       
             .set(state.hands_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -210,8 +217,9 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.hands_grid, ui);
         // Shoulders
         Image::new(self.imgs.shoulders_bg)
-            .w_h(28.0 * 1.8, 28.0 * 1.8)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)            
             .up_from(state.hands_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.shoulders_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -221,6 +229,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.ring_l_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .bottom_left_with_margins_on(state.content_align, 20.0, 20.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.ring_l_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -230,6 +239,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.tabard_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.ring_l_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.tabard_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -239,6 +249,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.chest_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.tabard_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.chest_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -248,6 +259,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.back_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.chest_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.back_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -257,6 +269,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.gem_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.back_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.gem_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -266,6 +279,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.necklace_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.gem_bg, 10.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.necklace_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -276,6 +290,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.mainhand_bg)
             .w_h(28.0 * 2.2, 28.0 * 2.2)
             .bottom_right_with_margins_on(state.ring_l_bg, 0.0, -115.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.mainhand_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -285,6 +300,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Image::new(self.imgs.offhand_bg)
             .w_h(28.0 * 2.2, 28.0 * 2.2)
             .bottom_left_with_margins_on(state.ring_r_bg, 0.0, -115.0)
+            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.offhand_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
