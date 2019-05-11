@@ -87,7 +87,7 @@ macro_rules! image_ids {
                 pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
                     use crate::ui::img_ids::GraphicCreator;
                     Ok(Self {
-                        $($( $name: ui.add_graphic(<$T>::new_graphic($specifier)?), )*)*
+                        $($( $name: ui.add_graphic(<$T as GraphicCreator>::new_graphic($specifier)?), )*)*
                     })
                 }
             }
