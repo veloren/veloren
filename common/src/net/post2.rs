@@ -226,7 +226,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 for _ in 0..100 {
                     match outgoing_chunks.pop_front() {
                         Some(mut chunk) => match stream.write(&chunk) {
-                            Ok(n) => if n == chunk.len() {},
+                            Ok(n) if n == chunk.len() => {}
                             Ok(n) => {
                                 outgoing_chunks.push_front(chunk.split_off(n));
                                 break;
