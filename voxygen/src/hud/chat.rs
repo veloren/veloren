@@ -20,6 +20,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<String>,
+    input: &'a String,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -29,9 +30,15 @@ pub struct Chat<'a> {
 }
 
 impl<'a> Chat<'a> {
-    pub fn new(new_messages: &'a mut VecDeque<String>, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        new_messages: &'a mut VecDeque<String>,
+        input: &'a String,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             new_messages,
+            input,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -54,12 +61,12 @@ impl<'a> Chat<'a> {
 
 pub struct State {
     messages: VecDeque<String>,
-    input: String,
 
     ids: Ids,
 }
 
 pub enum Event {
+    Input(String),
     SendMessage(String),
     Focus(Id),
 }
@@ -72,7 +79,6 @@ impl<'a> Widget for Chat<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             messages: VecDeque::new(),
-            input: "".to_owned(),
             ids: Ids::new(id_gen),
         }
     }
@@ -92,35 +98,6 @@ impl<'a> Widget for Chat<'a> {
 
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
         let input_focused = keyboard_capturer == Some(state.ids.input);
-
-        // Only show if it has the keyboard captured
-        // Chat input with rectangle as background
-        if input_focused {
-            let text_edit = TextEdit::new(&state.input)
-                .w(460.0)
-                .restrict_to_height(false)
-                .color(TEXT_COLOR)
-                .line_spacing(2.0)
-                .font_size(15)
-                .font_id(self.fonts.opensans);
-            let y = match text_edit.get_y_dimension(ui) {
-                Dimension::Absolute(y) => y + 6.0,
-                _ => 0.0,
-            };
-            Rectangle::fill([470.0, y])
-                .rgba(0.0, 0.0, 0.0, 0.8)
-                .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
-                .w(470.0)
-                .set(state.ids.input_bg, ui);
-            if let Some(str) = text_edit
-                .top_left_with_margins_on(state.ids.input_bg, 1.0, 1.0)
-                .set(state.ids.input, ui)
-            {
-                let mut input = str.to_owned();
-                input.retain(|c| c != '\n');
-                state.update(|s| s.input = input);
-            }
-        }
 
         // Message box
         Rectangle::fill([470.0, 174.0])
@@ -179,6 +156,35 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
+        // Only show if it has the keyboard captured
+        // Chat input with rectangle as background
+        if input_focused {
+            let text_edit = TextEdit::new(self.input)
+                .w(460.0)
+                .restrict_to_height(false)
+                .color(TEXT_COLOR)
+                .line_spacing(2.0)
+                .font_size(15)
+                .font_id(self.fonts.opensans);
+            let y = match text_edit.get_y_dimension(ui) {
+                Dimension::Absolute(y) => y + 6.0,
+                _ => 0.0,
+            };
+            Rectangle::fill([470.0, y])
+                .rgba(0.0, 0.0, 0.0, 0.8)
+                .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
+                .w(470.0)
+                .set(state.ids.input_bg, ui);
+            if let Some(str) = text_edit
+                .top_left_with_margins_on(state.ids.input_bg, 1.0, 1.0)
+                .set(state.ids.input, ui)
+            {
+                let mut input = str.to_owned();
+                input.retain(|c| c != '\n');
+                return Some(Event::Input(input));
+            }
+        }
+
         // If the chat widget is focused return a focus event to pass the focus to the input box
         if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
@@ -189,12 +195,11 @@ impl<'a> Widget for Chat<'a> {
             .presses()
             .key()
             .any(|key_press| match key_press.key {
-                Key::Return if !state.input.is_empty() => true,
+                Key::Return if !self.input.is_empty() => true,
                 _ => false,
             })
         {
-            let msg = state.input.clone();
-            state.update(|s| s.input.clear());
+            let msg = self.input.clone();
             Some(Event::SendMessage(msg))
         } else {
             None

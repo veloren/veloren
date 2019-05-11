@@ -41,6 +41,7 @@ impl Window {
         key_map.insert(settings.controls.toggle_cursor, Key::ToggleCursor);
         key_map.insert(settings.controls.escape, Key::Escape);
         key_map.insert(settings.controls.enter, Key::Enter);
+        key_map.insert(settings.controls.command, Key::Command);
         key_map.insert(settings.controls.move_forward, Key::MoveForward);
         key_map.insert(settings.controls.move_left, Key::MoveLeft);
         key_map.insert(settings.controls.move_back, Key::MoveBack);
@@ -184,6 +185,7 @@ pub enum Key {
     Jump,
     Enter,
     Escape,
+    Command,
     Map,
     Bag,
     QuestLog,

@@ -207,6 +207,7 @@ pub struct Hud {
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
     force_ungrab: bool,
+    input: String,
 }
 
 impl Hud {
@@ -243,6 +244,7 @@ impl Hud {
             to_focus: None,
             settings,
             force_ungrab: false,
+            input: "".to_owned(),
         }
     }
 
@@ -352,11 +354,15 @@ impl Hud {
         Skillbar::new(&self.imgs, &self.fonts).set(self.ids.skillbar, ui_widgets);
 
         // Chat box
-        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+        match Chat::new(&mut self.new_messages, &self.input, &self.imgs, &self.fonts)
             .set(self.ids.chat, ui_widgets)
         {
+            Some(chat::Event::Input(input)) => {
+                self.input = input;
+            }
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
+                self.input.clear()
             }
             Some(chat::Event::Focus(focus_id)) => {
                 self.to_focus = Some(Some(focus_id));
@@ -490,6 +496,11 @@ impl Hud {
                 } else {
                     Some(self.ids.chat)
                 });
+                true
+            }
+            WinEvent::KeyDown(Key::Command) => {
+                self.input = "/".to_owned();
+                self.ui.focus_widget(Some(self.ids.chat));
                 true
             }
             WinEvent::KeyDown(Key::Escape) => {
