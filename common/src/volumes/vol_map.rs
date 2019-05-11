@@ -82,13 +82,29 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
 
         let mut sample = Dyna::filled(range.size().map(|e| e as u32).into(), V::empty(), ());
 
+        let mut last_chunk_pos = self.pos_key(range.min);
+        let mut last_chunk = self.get_key(last_chunk_pos);
+
         for pos in sample.iter_positions() {
+            let new_chunk_pos = self.pos_key(range.min + pos);
+            if last_chunk_pos != new_chunk_pos {
+                last_chunk = self.get_key(new_chunk_pos);
+                last_chunk_pos = new_chunk_pos;
+            }
             sample
                 .set(
                     pos,
-                    self.get(range.min + pos)
-                        .map(|v| v.clone())
-                        .unwrap_or(V::empty()),
+                    if let Some(chunk) = last_chunk {
+                        chunk
+                            .get(Self::chunk_offs(range.min + pos))
+                            .map(|v| v.clone())
+                            .unwrap_or(V::empty())
+                    // Fallback in case the chunk doesn't exist
+                    } else {
+                        self.get(range.min + pos)
+                            .map(|v| v.clone())
+                            .unwrap_or(V::empty())
+                    },
                 )
                 .map_err(|err| VolMapErr::DynaErr(err))?;
         }
