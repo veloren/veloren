@@ -8,13 +8,12 @@ use conrod_core::{
 widget_ids! {
     pub struct Ids {
         charwindow,
-        charwindow_bg,
+        charwindow_gradient,
         charwindow_close,
         charwindow_exp_progress_rectangle,
         charwindow_exp_rectangle,
         charwindow_frame,
         content_align,
-        // charwindow_icon,
         charwindow_rectangle,
         charwindow_tab1,
         charwindow_tab1_exp,
@@ -43,6 +42,9 @@ widget_ids! {
         back_bg,
         gem_bg,
         necklace_bg,
+        mainhand_bg,
+        offhand_bg,
+        charwindow_bg,
         head_grid,
         shoulders_grid,
         hands_grid,
@@ -56,6 +58,8 @@ widget_ids! {
         back_grid,
         gem_grid,
         necklace_grid,
+        mainhand_grid,
+        offhand_grid,
 
 
     }
@@ -141,131 +145,157 @@ impl<'a> Widget for CharacterWindow<'a> {
             .mid_top_with_margin_on(state.charwindow_frame, 40.0)
             .set(state.content_align, ui);
 
+        // Gradient BG
+        Image::new(self.imgs.charwindow_gradient)
+            .w_h(95.0 * 4.0, 108.0 * 4.0)
+            .middle_of(state.content_align)
+            .set(state.charwindow_gradient, ui);
+
         // Contents
 
         //Head
         Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .mid_top_with_margin_on(state.content_align, 5.0)
             .set(state.head_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.head_bg)
-            .set(state.head_grid, ui);        
-        
+            .set(state.head_grid, ui);
+
         // Ring R
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.ring_r_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .bottom_right_with_margins_on(state.content_align, 20.0, 20.0)
             .set(state.ring_r_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.ring_r_bg)
             .set(state.ring_r_grid, ui);
-         // Feet
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        // Feet
+        Image::new(self.imgs.feet_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.ring_r_bg, 10.0)
             .set(state.feet_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.feet_bg)
             .set(state.feet_grid, ui);
         // Legs
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.legs_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.feet_bg, 10.0)
             .set(state.legs_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.legs_bg)
             .set(state.legs_grid, ui);
         // Belt
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.belt_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.legs_bg, 10.0)
             .set(state.belt_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.belt_bg)
             .set(state.belt_grid, ui);
         // Hands
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.hands_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.belt_bg, 10.0)
             .set(state.hands_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.hands_bg)
             .set(state.hands_grid, ui);
         // Shoulders
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.shoulders_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.hands_bg, 10.0)
             .set(state.shoulders_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.shoulders_bg)
-            .set(state.shoulders_grid, ui);          
+            .set(state.shoulders_grid, ui);
         // Ring L
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.ring_l_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .bottom_left_with_margins_on(state.content_align, 20.0, 20.0)
             .set(state.ring_l_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.ring_l_bg)
             .set(state.ring_l_grid, ui);
         // Tabard
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.tabard_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.ring_l_bg, 10.0)
             .set(state.tabard_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.tabard_bg)
             .set(state.tabard_grid, ui);
         // Chest
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.chest_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.tabard_bg, 10.0)
             .set(state.chest_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.chest_bg)
             .set(state.chest_grid, ui);
         // Back
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.back_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.chest_bg, 10.0)
             .set(state.back_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.back_bg)
             .set(state.back_grid, ui);
         // Gem
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        Image::new(self.imgs.gem_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.back_bg, 10.0)
             .set(state.gem_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.gem_bg)
             .set(state.gem_grid, ui);
-        //Necklace
-        Image::new(self.imgs.head_bg)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+        // Necklace
+        Image::new(self.imgs.necklace_bg)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.gem_bg, 10.0)
             .set(state.necklace_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 2.0, 28.0 * 2.0)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .middle_of(state.necklace_bg)
             .set(state.necklace_grid, ui);
+
+        // Weapon Main Hand
+        Image::new(self.imgs.mainhand_bg)
+            .w_h(28.0 * 2.2, 28.0 * 2.2)
+            .bottom_right_with_margins_on(state.ring_l_bg, 0.0, -115.0)
+            .set(state.mainhand_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
+            .middle_of(state.gem_bg)
+            .set(state.mainhand_grid, ui);
+        // Weapon Off-Hand
+        Image::new(self.imgs.offhand_bg)
+            .w_h(28.0 * 2.2, 28.0 * 2.2)
+            .bottom_left_with_margins_on(state.ring_r_bg, 0.0, -115.0)
+            .set(state.offhand_bg, ui);
+        Button::image(self.imgs.grid)
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
+            .middle_of(state.gem_bg)
+            .set(state.offhand_grid, ui);
+
         // Stats Tab
 
         // Tab BG
         Image::new(self.imgs.tab_bg)
-            .w_h(50.0 * 4.0, 115.0 * 4.0)
+            .w_h(51.0 * 4.0, 115.0 * 4.0)
             .top_left_with_margins_on(state.charwindow_frame, 28.0, -200.0)
             .set(state.charwindow_tab_bg, ui);
 
@@ -277,7 +307,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Tab Button -> Add that back in when we have multiple tabs
         // Button::image(self.imgs.charwindow_tab)
         //.w_h(65.0, 23.0)
-        //.top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 2.0)
+        //.top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 1.8)
         //.label("Stats")
         //.label_color(TEXT_COLOR)
         //.label_font_size(14)
