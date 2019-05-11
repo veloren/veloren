@@ -1,4 +1,4 @@
-use crate::ui::{BlankGraphic, ImageGraphic, VoxelGraphic};
+use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic};
 
 image_ids! {
     pub struct Imgs {
@@ -7,6 +7,8 @@ image_ids! {
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
         inv_slot: "/voxygen/element/buttons/inv_slot.vox",
+
+        <VoxelMs9Graphic>
 
         // Buttons
         mmap_closed: "/voxygen/element/buttons/button_mmap_closed.vox",
@@ -51,6 +53,8 @@ image_ids! {
         button: "/voxygen/element/buttons/button.vox",
         button_hover: "/voxygen/element/buttons/button_hover.vox",
         button_press: "/voxygen/element/buttons/button_press.vox",
+
+        <VoxelGraphic>
 
         // MiniMap
         mmap_frame: "/voxygen/element/frames/mmap.vox",
