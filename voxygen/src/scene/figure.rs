@@ -245,9 +245,10 @@ impl FigureCache {
 
         for (entity, &character) in (&ecs.entities(), &ecs.read_storage::<comp::Character>()).join()
         {
-            let model = Self::get_or_create_model(models, renderer, tick, character);
-            let state = self.states.get(&entity).unwrap();
-            renderer.render_figure(&model.0, globals, &state.locals, &state.bone_consts);
+            if let Some(state) = self.states.get(&entity) {
+                let model = Self::get_or_create_model(models, renderer, tick, character);
+                renderer.render_figure(&model.0, globals, &state.locals, &state.bone_consts);
+            }
         }
     }
 }
