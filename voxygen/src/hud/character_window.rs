@@ -65,6 +65,7 @@ widget_ids! {
     }
 }
 
+
 #[derive(WidgetCommon)]
 pub struct CharacterWindow<'a> {
     imgs: &'a Imgs,
@@ -385,3 +386,4 @@ impl<'a> Widget for CharacterWindow<'a> {
         None
     }
 }
+

@@ -40,9 +40,7 @@ image_ids! {
         chat_arrow: "/voxygen/element/buttons/arrow_down.vox",
         chat_arrow_mo: "/voxygen/element/buttons/arrow_down_hover.vox",
         chat_arrow_press: "/voxygen/element/buttons/arrow_down_press.vox",
-
-        // Crosshair
-        crosshair: "/voxygen/element/misc_bg/crosshair.vox",
+        
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
@@ -90,21 +88,21 @@ image_ids! {
         // Charwindow
         xp_charwindow: "/voxygen/element/frames/xp_charwindow.vox",
         divider: "/voxygen/element/frames/divider_charwindow.vox",
-        head_bg: "/voxygen/element/icon/head.vox",
-        shoulders_bg: "/voxygen/element/icon/shoulders.vox",
-        hands_bg: "/voxygen/element/icon/hands.vox",
-        belt_bg: "/voxygen/element/icon/belt.vox",
-        legs_bg: "/voxygen/element/icon/legs.vox",
-        feet_bg: "/voxygen/element/icon/feet.vox",
-        ring_r_bg: "/voxygen/element/icon/ring.vox",
-        ring_l_bg: "/voxygen/element/icon/ring.vox",
-        tabard_bg: "/voxygen/element/icon/tabard.vox",
-        chest_bg: "/voxygen/element/icon/chest.vox",
-        back_bg: "/voxygen/element/icon/back.vox",
-        gem_bg: "/voxygen/element/icon/gem.vox",
-        necklace_bg: "/voxygen/element/icon/necklace.vox",
-        mainhand_bg: "/voxygen/element/icon/mainhand.vox",
-        offhand_bg: "/voxygen/element/icon/offhand.vox",
+        head_bg: "/voxygen/element/icons/head.vox",
+        shoulders_bg: "/voxygen/element/icons/shoulders.vox",
+        hands_bg: "/voxygen/element/icons/hands.vox",
+        belt_bg: "/voxygen/element/icons/belt.vox",
+        legs_bg: "/voxygen/element/icons/legs.vox",
+        feet_bg: "/voxygen/element/icons/feet.vox",
+        ring_r_bg: "/voxygen/element/icons/ring.vox",
+        ring_l_bg: "/voxygen/element/icons/ring.vox",
+        tabard_bg: "/voxygen/element/icons/tabard.vox",
+        chest_bg: "/voxygen/element/icons/chest.vox",
+        back_bg: "/voxygen/element/icons/back.vox",
+        gem_bg: "/voxygen/element/icons/gem.vox",
+        necklace_bg: "/voxygen/element/icons/necklace.vox",
+        mainhand_bg: "/voxygen/element/icons/mainhand.vox",
+        offhand_bg: "/voxygen/element/icons/offhand.vox",
 
         // Close button
         close_button: "/voxygen/element/buttons/x.vox",

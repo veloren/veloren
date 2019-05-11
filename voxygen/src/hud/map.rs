@@ -93,13 +93,7 @@ impl<'a> Widget for Map<'a> {
         Image::new(self.imgs.map_icon)
             .w_h(224.0 / 3.0, 224.0 / 3.0)
             .top_left_with_margins_on(state.ids.map_frame, -10.0, -10.0)
-            .set(state.ids.map_icon, ui);
-
-        // Icon
-        Image::new(self.imgs.map_icon)
-            .w_h(224.0 / 3.0, 224.0 / 3.0)
-            .top_left_with_margins_on(state.ids.map_frame, -10.0, -10.0)
-            .set(state.ids.map_icon, ui);
+            .set(state.ids.map_icon, ui);        
 
         // X-Button
         if Button::image(self.imgs.close_button)

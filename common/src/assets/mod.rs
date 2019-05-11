@@ -80,7 +80,7 @@ impl Asset for DynamicImage {
 
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
+        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).expect(&[specifier, " is not a dotvox file"].concat()))
     }
 }
 
