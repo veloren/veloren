@@ -28,6 +28,12 @@ impl<'a> System<'a> for Sys {
             // Movement
             pos.0 += vel.0 * dt.0;
 
+            // Don't fall into the void
+            if pos.0.z < 0.0 {
+                pos.0.z = 0.0;
+                vel.0.z = 0.0;
+            }
+
             // Basic collision with terrain
             let mut i = 0;
             while terrain
