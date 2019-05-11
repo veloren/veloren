@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
             pos.0 += vel.0 * dt.0;
 
             // Don't fall into the void
+            // TODO: This shouldn't be needed when we have proper physics and chunk loading
             if pos.0.z < 0.0 {
                 pos.0.z = 0.0;
                 vel.0.z = 0.0;
