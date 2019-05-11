@@ -1,17 +1,18 @@
 use crate::{
     render::Renderer,
-    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
+    ui::{
+        self,
+        img_ids::{ImageGraphic, VoxelGraphic},
+        ScaleMode, Ui,
+    },
     window::Window,
 };
-use common::{
-    assets,
-    comp::character::{Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon},
+use common::comp::character::{
+    Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon,
 };
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    image::Id as ImgId,
-    text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
