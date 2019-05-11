@@ -21,6 +21,7 @@ widget_ids! {
         test,
         xp_bar,
         xp_bar_progress,
+        crosshair,
     }
 }
 
@@ -71,6 +72,12 @@ impl<'a> Widget for Skillbar<'a> {
         let xp_percentage = 0.4;
         let hp_percentage = 1.0;
         let mana_percentage = 1.0;
+
+        // Crosshair TODO: Only show while aiming with a bow or when casting a spell
+        // Image::new(self.imgs.crosshair)
+        // .w_h(101.0 * 0.5, 101.0 * 0.5)
+        // .mid_top_with_margin_on(ui.window, 500.0)
+        // .set(state.ids.crosshair, ui);
 
         // Experience-Bar
         Image::new(self.imgs.xp_bar)
