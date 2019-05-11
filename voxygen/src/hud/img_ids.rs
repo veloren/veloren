@@ -16,18 +16,20 @@ image_ids! {
         // Char Window BG
 
         head_bg: "/voxygen/element/icons/head.vox",
-        shoulders_bg: "/voxygen/element/icons/head.vox",
-        hands_bg: "/voxygen/element/icons/head.vox",
-        belt_bg: "/voxygen/element/icons/head.vox",
-        legs_bg: "/voxygen/element/icons/head.vox",
-        feet_bg: "/voxygen/element/icons/head.vox",
-        ring_r_bg: "/voxygen/element/icons/head.vox",
-        ring_l_bg: "/voxygen/element/icons/head.vox",
-        tabard_bg: "/voxygen/element/icons/head.vox",
-        chest_bg: "/voxygen/element/icons/head.vox",
-        back_bg: "/voxygen/element/icons/head.vox",
-        gem_bg: "/voxygen/element/icons/head.vox",
-        necklace_bg: "/voxygen/element/icons/head.vox",
+        shoulders_bg: "/voxygen/element/icons/shoulders.vox",
+        hands_bg: "/voxygen/element/icons/hands.vox",
+        belt_bg: "/voxygen/element/icons/belt.vox",
+        legs_bg: "/voxygen/element/icons/legs.vox",
+        feet_bg: "/voxygen/element/icons/feet.vox",
+        ring_r_bg: "/voxygen/element/icons/ring.vox",
+        ring_l_bg: "/voxygen/element/icons/ring.vox",
+        tabard_bg: "/voxygen/element/icons/tabard.vox",
+        chest_bg: "/voxygen/element/icons/chest.vox",
+        back_bg: "/voxygen/element/icons/back.vox",
+        gem_bg: "/voxygen/element/icons/gem.vox",
+        necklace_bg: "/voxygen/element/icons/necklace.vox",
+        mainhand_bg: "/voxygen/element/icons/mainhand.vox",
+        offhand_bg: "/voxygen/element/icons/offhand.vox",
 
         // Buttons
         mmap_closed: "/voxygen/element/buttons/button_mmap_closed.vox",
@@ -119,7 +121,14 @@ image_ids! {
         chat_arrow_mo: "/voxygen/element/buttons/arrow_down_hover.vox",
         chat_arrow_press: "/voxygen/element/buttons/arrow_down_press.vox",
 
+        // Crosshair
+        crosshair: "/voxygen/element/misc_bg/crosshair.vox",
+
+
         <ImageGraphic>
+
+        charwindow_gradient:"/voxygen/element/misc_bg/charwindow.png",
+
 
          // Spell Book Window
         spellbook_bg: "/voxygen/element/misc_bg/small_bg.png",
