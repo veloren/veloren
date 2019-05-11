@@ -102,7 +102,14 @@ image_ids! {
         chat_arrow_mo: "/voxygen/element/buttons/arrow_down_hover.vox",
         chat_arrow_press: "/voxygen/element/buttons/arrow_down_press.vox",
 
+        // Crosshair
+        crosshair: "/voxygen/element/misc_bg/crosshair.vox",
+
+
         <ImageGraphic>
+
+        charwindow_gradient:"/voxygen/element/misc_bg/charwindow.png",
+
 
          // Spell Book Window
         spellbook_bg: "/voxygen/element/misc_bg/small_bg.png",
