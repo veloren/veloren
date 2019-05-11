@@ -7,7 +7,7 @@ use vek::*;
 
 pub enum Graphic {
     Image(Arc<DynamicImage>),
-    Voxel(Arc<DotVoxData>),
+    Voxel(Arc<DotVoxData>, Option<u8>),
     Blank,
 }
 
@@ -94,9 +94,8 @@ impl GraphicCache {
                             .pixels()
                             .map(|p| p.data)
                             .collect::<Vec<[u8; 4]>>(),
-                        Graphic::Voxel(ref vox) => {
-                            super::renderer::draw_vox(&vox.as_ref().into(), aabr.size().into())
-                        }
+                        Graphic::Voxel(ref vox, min_samples) =>
+                            super::renderer::draw_vox(&vox.as_ref().into(), aabr.size().into(), *min_samples),
                         Graphic::Blank => return None,
                     };
 

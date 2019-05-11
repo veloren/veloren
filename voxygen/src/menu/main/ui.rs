@@ -1,15 +1,16 @@
 use crate::{
     render::Renderer,
-    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
+    ui::{
+        self,
+        img_ids::{ImageGraphic, VoxelGraphic},
+        ScaleMode, Ui,
+    },
     GlobalState, DEFAULT_PUBLIC_SERVER,
 };
-use common::assets;
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    image::Id as ImgId,
     position::Relative,
-    text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
