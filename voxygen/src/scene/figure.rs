@@ -14,9 +14,8 @@ use common::{
     assets,
     comp::{
         self,
-        Body,
-        HumanoidBody,
         actor::{Belt, Chest, Foot, Hand, Head, Pants, Weapon},
+        Body, HumanoidBody,
     },
     figure::Segment,
     msg,
@@ -252,10 +251,9 @@ impl FigureMgr {
             match actor {
                 comp::Actor::Character { body, .. } => match body {
                     Body::Humanoid(body) => {
-                        let state = self
-                            .states
-                            .entry(entity)
-                            .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
+                        let state = self.states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, CharacterSkeleton::new())
+                        });
 
                         let target_skeleton = match animation_history.current {
                             comp::Animation::Idle => IdleAnimation::update_skeleton(
@@ -278,7 +276,7 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0);
-                    },
+                    }
                     // TODO: Non-humanoid bodies
                 },
                 // TODO: Non-character actors
@@ -298,14 +296,20 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join()
-        {
+        for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
             match actor {
                 comp::Actor::Character { body, .. } => match body {
-                    Body::Humanoid(body) => if let Some(state) = self.states.get(&entity) {
-                        let model = self.model_cache.get_or_create_model(renderer, *body, tick);
-                        renderer.render_figure(model, globals, &state.locals(), state.bone_consts());
-                    },
+                    Body::Humanoid(body) => {
+                        if let Some(state) = self.states.get(&entity) {
+                            let model = self.model_cache.get_or_create_model(renderer, *body, tick);
+                            renderer.render_figure(
+                                model,
+                                globals,
+                                &state.locals(),
+                                state.bone_consts(),
+                            );
+                        }
+                    }
                     // TODO: Non-humanoid bodies
                 },
                 // TODO: Non-character actors

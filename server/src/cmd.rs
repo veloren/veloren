@@ -191,14 +191,25 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         .read_component_cloned::<comp::phys::Pos>(entity)
     {
         Some(pos) => {
-            server.create_npc("Bungo".to_owned(), comp::Body::Humanoid(comp::HumanoidBody::random()))
+            server
+                .create_npc(
+                    "Bungo".to_owned(),
+                    comp::Body::Humanoid(comp::HumanoidBody::random()),
+                )
                 .with(comp::Control::default())
-                .with(comp::Agent::Pet{ target: entity, offset: Vec2::zero() })
+                .with(comp::Agent::Pet {
+                    target: entity,
+                    offset: Vec2::zero(),
+                })
                 .with(pos)
                 .build();
-            server.clients.notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
-        },
-        None => server.clients.notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+            server
+                .clients
+                .notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
 

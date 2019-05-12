@@ -8,10 +8,8 @@ use crate::{
     window::Window,
 };
 use common::comp::{
+    actor::{Belt, BodyType, Chest, Foot, Hand, Head, Pants, Race, Weapon},
     HumanoidBody,
-    actor::{
-        Belt, Chest, Foot, BodyType, Hand, Head, Pants, Race, Weapon,
-    },
 };
 use conrod_core::{
     color,
