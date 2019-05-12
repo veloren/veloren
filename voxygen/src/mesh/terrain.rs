@@ -55,9 +55,9 @@ impl<S: VolSize + Clone, M: Clone> Meshable for VolMap<Block, S, M> {
         let mut last_chunk = self.get_key(last_chunk_pos);
 
         let size = range.max - range.min;
-        for x in 1..(size.x - 1) {
-            for y in 1..(size.y - 1) {
-                for z in 1..(size.z - 1) {
+        for x in 0..size.x {
+            for y in 0..size.y {
+                for z in 0..size.z {
                     let pos = Vec3::new(x, y, z);
 
                     let new_chunk_pos = self.pos_key(range.min + pos);
@@ -66,15 +66,42 @@ impl<S: VolSize + Clone, M: Clone> Meshable for VolMap<Block, S, M> {
                         last_chunk_pos = new_chunk_pos;
                     }
                     let offs = pos.map(|e| e as f32 - 1.0);
-                    if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                        let col = col.map(|e| e as f32 / 255.0);
+                    if let Some(chunk) = last_chunk {
+                        let chunk_pos = Self::chunk_offs(range.min + pos);
+                        if let Some(col) = chunk.get(chunk_pos).ok().and_then(|vox| vox.get_color())
+                        {
+                            let col = col.map(|e| e as f32 / 255.0);
 
-                        vol::push_vox_verts(&mut mesh, self, pos, offs, col, TerrainVertex::new);
+                            vol::push_vox_verts(
+                                &mut mesh,
+                                self,
+                                pos,
+                                offs,
+                                col,
+                                TerrainVertex::new,
+                            );
+                        }
+                    } else {
+                        if let Some(col) = self
+                            .get(range.min + pos)
+                            .ok()
+                            .and_then(|vox| vox.get_color())
+                        {
+                            let col = col.map(|e| e as f32 / 255.0);
+
+                            vol::push_vox_verts(
+                                &mut mesh,
+                                self,
+                                pos,
+                                offs,
+                                col,
+                                TerrainVertex::new,
+                            );
+                        }
                     }
                 }
             }
         }
-
         mesh
     }
 }
