@@ -177,7 +177,7 @@ impl State {
         if self
             .ecs
             .write_resource::<TerrainMap>()
-            .insert(key, chunk)
+            .insert(key, Arc::new(chunk))
             .is_some()
         {
             self.changes.changed_chunks.insert(key);
