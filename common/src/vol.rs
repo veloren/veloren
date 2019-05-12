@@ -63,9 +63,9 @@ pub trait SizedVol: BaseVol {
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
+    fn get(&self, pos: Vec3<i32>) -> Result<Self::Vox, Self::Err>;
 
-    fn ray(&self, from: Vec3<f32>, to: Vec3<f32>) -> Ray<Self, fn(&Self::Vox) -> bool>
+    fn ray(&mut self, from: Vec3<f32>, to: Vec3<f32>) -> Ray<Self, fn(&Self::Vox) -> bool>
     where
         Self: Sized,
     {

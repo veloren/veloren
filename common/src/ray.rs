@@ -4,7 +4,7 @@ use vek::*;
 pub trait RayUntil<V: Vox> = FnMut(&V) -> bool;
 
 pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>> {
-    vol: &'a V,
+    vol: &'a mut V,
     from: Vec3<f32>,
     to: Vec3<f32>,
     until: F,
@@ -12,7 +12,7 @@ pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>> {
 }
 
 impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
-    pub fn new(vol: &'a V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
+    pub fn new(vol: &'a mut V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
         Self {
             vol,
             from,
@@ -31,7 +31,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         self
     }
 
-    pub fn cast(mut self) -> (f32, Result<Option<&'a V::Vox>, V::Err>) {
+    pub fn cast(mut self) -> (f32, Result<Option<V::Vox>, V::Err>) {
         // TODO: Fully test this!
 
         const PLANCK: f32 = 0.001;
@@ -47,9 +47,10 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             pos = self.from + dir * dist;
             ipos = pos.map(|e| e.floor() as i32);
 
-            match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
-                Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Ok((_, false)) => {}
+            let vox_result = self.vol.get(ipos);
+            match vox_result.map(|vox| ((self.until)(&vox), vox)) {
+                Ok((true, vox)) => return (dist, Ok(Some(vox))),
+                Ok((false, _)) => {}
                 Err(err) => return (dist, Err(err)),
             }
 

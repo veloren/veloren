@@ -3,9 +3,8 @@ use vek::*;
 
 // Project
 use common::{
-    terrain::Block,
+    terrain::TerrainChunk,
     vol::{ReadVol, SizedVol, Vox},
-    volumes::dyna::Dyna,
 };
 
 // Crate
@@ -16,7 +15,7 @@ use crate::{
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
-impl<M> Meshable for Dyna<Block, M> {
+impl Meshable for TerrainChunk {
     type Pipeline = TerrainPipeline;
     type Supplement = ();
 

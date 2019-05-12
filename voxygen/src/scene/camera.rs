@@ -42,7 +42,7 @@ impl Camera {
 
     /// Compute the transformation matrices (view matrix and projection matrix) and position of the
     /// camera.
-    pub fn compute_dependents(&self, client: &Client) -> (Mat4<f32>, Mat4<f32>, Vec3<f32>) {
+    pub fn compute_dependents(&mut self, client: &Client) -> (Mat4<f32>, Mat4<f32>, Vec3<f32>) {
         let dist = {
             let (start, end) = (
                 self.focus,
@@ -54,12 +54,13 @@ impl Camera {
                     ) * self.dist),
             );
 
-            match client.state().terrain().ray(start, end).cast() {
-                (d, Ok(Some(_))) => f32::min(d - 1.0, self.dist),
-                (_, Ok(None)) => self.dist,
-                (_, Err(_)) => self.dist,
-            }
-            .max(0.0)
+            //match client.state().terrain().ray(start, end).cast() {
+            //    (d, Ok(Some(_))) => f32::min(d - 1.0, self.dist),
+            //    (_, Ok(None)) => self.dist,
+            //    (_, Err(_)) => self.dist,
+            //}
+            //.max(0.0)
+            10.0
         };
 
         let view_mat = Mat4::<f32>::identity()

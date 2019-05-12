@@ -6,7 +6,7 @@ use vek::*;
 
 // Project
 use client::Client;
-use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map::VolMapErr};
+use common::{terrain::{TerrainMap, TerrainMapData}, vol::ReadVol, volumes::vol_map::VolMapErr};
 
 // Crate
 use crate::{
@@ -37,11 +37,20 @@ struct MeshWorkerResponse {
 fn mesh_worker(
     pos: Vec3<i32>,
     started_tick: u64,
-    volume: <TerrainMap as SampleVol>::Sample,
+    terrain: TerrainMap,
 ) -> MeshWorkerResponse {
+    let aabb = Aabb {
+        min: pos
+            .map2(TerrainMapData::chunk_size(), |e, sz| e * sz as i32 - 1),
+        max: pos
+            .map2(TerrainMapData::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+    };
+
+    let volume = terrain.read().expect("Lock was poisoned");
+
     MeshWorkerResponse {
         pos,
-        mesh: volume.generate_mesh(()),
+        mesh: volume.get_key(pos).expect("Chunk not found").read().expect("Lock was poisoned").generate_mesh(()),
         started_tick,
     }
 }
@@ -92,7 +101,7 @@ impl Terrain {
                     for k in -1..2 {
                         let pos = pos + Vec3::new(i, j, k);
 
-                        if client.state().terrain().get_key(pos).is_some() {
+                        if client.state().terrain().read().expect("Lock was poisoned").get_key(pos).is_some() {
                             // re-mesh loaded chunks that border new/changed chunks
                             if self.chunks.contains_key(&pos) || (i, j, k) == (0, 0, 0) {
                                 self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
@@ -121,32 +130,19 @@ impl Terrain {
             // Find the area of the terrain we want. Because meshing needs to compute things like
             // ambient occlusion and edge elision, we also need to borders of the chunk's
             // neighbours too (hence the `- 1` and `+ 1`).
-            let aabb = Aabb {
-                min: todo
-                    .pos
-                    .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
-                max: todo
-                    .pos
-                    .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
-            };
 
             // Copy out the chunk data we need to perform the meshing. We do this by taking a
             // sample of the terrain that includes both the chunk we want and
-            let volume = match client.state().terrain().sample(aabb) {
-                Ok(sample) => sample,
-                // If either this chunk or its neighbours doesn't yet exist, so we keep it in the
-                // todo queue to be processed at a later date when we have its neighbours.
-                Err(VolMapErr::NoSuchChunk) => return,
-                _ => panic!("Unhandled edge case"),
-            };
 
             // Clone various things to that they can be moved into the thread
             let send = self.mesh_send_tmp.clone();
             let pos = todo.pos;
 
+            let terrain = client.state().terrain().clone();
+
             // Queue the worker thread
             client.thread_pool().execute(move || {
-                send.send(mesh_worker(pos, current_tick, volume))
+                send.send(mesh_worker(pos, current_tick, terrain))
                     .expect("Failed to send chunk mesh to main thread");
             });
             todo.active_worker = true;
@@ -170,7 +166,7 @@ impl Terrain {
                                 .create_consts(&[TerrainLocals {
                                     model_offs: response
                                         .pos
-                                        .map2(TerrainMap::chunk_size(), |e, sz| {
+                                        .map2(TerrainMapData::chunk_size(), |e, sz| {
                                             e as f32 * sz as f32
                                         })
                                         .into_array(),

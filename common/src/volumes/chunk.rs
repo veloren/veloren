@@ -54,12 +54,13 @@ impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
+impl<V: Vox + Clone, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, ChunkErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<V, ChunkErr> {
         Self::idx_for(pos)
             .and_then(|idx| self.vox.get(idx))
             .ok_or(ChunkErr::OutOfBounds)
+            .map(|v| v.clone())
     }
 }
 

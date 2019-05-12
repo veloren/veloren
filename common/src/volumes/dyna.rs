@@ -44,12 +44,13 @@ impl<V: Vox, M> SizedVol for Dyna<V, M> {
     }
 }
 
-impl<V: Vox, M> ReadVol for Dyna<V, M> {
+impl<V: Vox + Clone, M> ReadVol for Dyna<V, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<V, DynaErr> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get(idx))
             .ok_or(DynaErr::OutOfBounds)
+            .map(|v| v.clone())
     }
 }
 

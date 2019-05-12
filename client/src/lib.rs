@@ -194,11 +194,11 @@ impl Client {
             .get(self.entity)
             .cloned();
         if let Some(pos) = pos {
-            let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+            let chunk_pos = self.state.terrain().read().expect("Lock was poisoned").pos_key(pos.0.map(|e| e as i32));
 
             // Remove chunks that are too far from the player
             let mut chunks_to_remove = Vec::new();
-            self.state.terrain().iter().for_each(|(key, _)| {
+            self.state.terrain().read().expect("Lock was poisoned").iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
                     .reduce_max()
@@ -216,7 +216,7 @@ impl Client {
                 for j in chunk_pos.y - 4..chunk_pos.y + 5 {
                     for k in 0..2 {
                         let key = Vec3::new(i, j, k);
-                        if self.state.terrain().get_key(key).is_none()
+                        if self.state.terrain().read().expect("Lock was poisoned").get_key(key).is_none()
                             && !self.pending_chunks.contains(&key)
                             && self.pending_chunks.len() < 4
                         {

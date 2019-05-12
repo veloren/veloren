@@ -8,6 +8,7 @@ use crate::{
     vol::VolSize,
     volumes::{chunk::Chunk, vol_map::VolMap},
 };
+use std::sync::{Arc, RwLock};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
@@ -18,9 +19,9 @@ pub struct TerrainChunkSize;
 
 impl VolSize for TerrainChunkSize {
     const SIZE: Vec3<u32> = Vec3 {
-        x: 32,
-        y: 32,
-        z: 32,
+        x: 32*4,
+        y: 32*4,
+        z: 32*4,
     };
 }
 
@@ -42,4 +43,5 @@ impl TerrainChunkMeta {
 // Terrain type aliases
 
 pub type TerrainChunk = Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
-pub type TerrainMap = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainMapData = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainMap = Arc<RwLock<TerrainMapData>>;

@@ -1,5 +1,6 @@
 // Standard
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock, RwLockReadGuard};
 
 // Library
 use vek::*;
@@ -24,7 +25,7 @@ pub enum VolMapErr {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 pub struct VolMap<V: Vox, S: VolSize, M> {
-    chunks: HashMap<Vec3<i32>, Chunk<V, S, M>>,
+    chunks: HashMap<Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
 }
 
 impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
@@ -44,20 +45,6 @@ impl<V: Vox, S: VolSize, M> BaseVol for VolMap<V, S, M> {
     type Err = VolMapErr;
 }
 
-impl<V: Vox, S: VolSize, M> ReadVol for VolMap<V, S, M> {
-    #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, VolMapErr> {
-        let ck = Self::chunk_key(pos);
-        self.chunks
-            .get(&ck)
-            .ok_or(VolMapErr::NoSuchChunk)
-            .and_then(|chunk| {
-                let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(|err| VolMapErr::ChunkErr(err))
-            })
-    }
-}
-
 impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
     type Sample = Dyna<V, ()>;
 
@@ -65,6 +52,8 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
     ///
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
     fn sample(&self, range: Aabb<i32>) -> Result<Self::Sample, VolMapErr> {
+        unimplemented!()
+    }
         // Return early if we don't have all the needed chunks that we need!
         /*
         let min_chunk = Self::chunk_key(range.min);
@@ -78,7 +67,6 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
                 }
             }
         }
-        */
 
         let mut sample = Dyna::filled(range.size().map(|e| e as u32).into(), V::empty(), ());
 
@@ -97,7 +85,6 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
                     if let Some(chunk) = last_chunk {
                         chunk
                             .get(Self::chunk_offs(range.min + pos))
-                            .map(|v| v.clone())
                             .unwrap_or(V::empty())
                     // Fallback in case the chunk doesn't exist
                     } else {
@@ -110,6 +97,25 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
         }
 
         Ok(sample)
+    }*/
+}
+
+impl<'a, V: Vox + Clone, S: VolSize, M> ReadVol for VolMap<V, S, M> {
+    #[inline(always)]
+    fn get(&self, pos: Vec3<i32>) -> Result<V, VolMapErr> {
+        let ck = Self::chunk_key(pos);
+        let guard: RwLockReadGuard<Chunk<_, _, _>> = self.chunks
+            .get(&ck)
+            .ok_or(VolMapErr::NoSuchChunk)?
+            .try_read()
+            .map_err(|_| VolMapErr::NoSuchChunk)?; // TODO: error type
+
+        let ref chunk: Chunk<_, _, _> = *guard;
+
+        chunk
+            .get(Self::chunk_offs(pos))
+            .map(|v| v.clone())
+            .map_err(|err| VolMapErr::ChunkErr(err))
     }
 }
 
@@ -119,11 +125,13 @@ impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)
-            .ok_or(VolMapErr::NoSuchChunk)
-            .and_then(|chunk| {
-                let co = Self::chunk_offs(pos);
-                chunk.set(co, vox).map_err(|err| VolMapErr::ChunkErr(err))
-            })
+            .ok_or(VolMapErr::NoSuchChunk)?
+            .try_write()
+            .map_err(|_| VolMapErr::NoSuchChunk)? // TODO: error type
+            .set(Self::chunk_offs(pos), vox)
+            .map_err(|err| VolMapErr::ChunkErr(err));
+
+        Ok(())
     }
 }
 
@@ -138,15 +146,15 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
         S::SIZE
     }
 
-    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Chunk<V, S, M>> {
-        self.chunks.insert(key, chunk)
+    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
+        self.chunks.insert(key, Arc::new(RwLock::new(chunk)))
     }
 
-    pub fn get_key(&self, key: Vec3<i32>) -> Option<&Chunk<V, S, M>> {
-        self.chunks.get(&key)
+    pub fn get_key(&self, key: Vec3<i32>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
+        self.chunks.get(&key).map(|a| a.clone())
     }
 
-    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Chunk<V, S, M>> {
+    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
         self.chunks.remove(&key)
     }
 
@@ -166,11 +174,11 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
 }
 
 pub struct ChunkIter<'a, V: Vox, S: VolSize, M> {
-    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Chunk<V, S, M>>,
+    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
 }
 
 impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkIter<'a, V, S, M> {
-    type Item = (Vec3<i32>, &'a Chunk<V, S, M>);
+    type Item = (Vec3<i32>, &'a Arc<RwLock<Chunk<V, S, M>>>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|(k, c)| (*k, c))
