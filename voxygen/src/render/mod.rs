@@ -41,6 +41,7 @@ pub enum RenderError {
     TexUpdateError(gfx::UpdateError<[u16; 3]>),
     CombinedError(gfx::CombinedError),
     BufferCreationError(gfx::buffer::CreationError),
+    IncludeError(glsl_include::Error),
 }
 
 /// Used to represent a specific rendering configuration.

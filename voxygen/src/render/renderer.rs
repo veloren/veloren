@@ -12,6 +12,7 @@ use gfx::{
     handle::Sampler,
     traits::{Device, Factory, FactoryExt},
 };
+use glsl_include::Context as IncludeContext;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -74,50 +75,63 @@ impl Renderer {
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
     ) -> Result<Self, RenderError> {
+        let globals = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/shaders/include/globals.glsl"
+        ));
+
+        let mut include_ctx = IncludeContext::new();
+        include_ctx.include("globals.glsl", globals);
+
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(
             &mut factory,
             skybox::pipe::new(),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.vert")),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.frag")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.vert")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.frag")),
+            &include_ctx,
         )?;
 
         // Construct a pipeline for rendering figures
         let figure_pipeline = create_pipeline(
             &mut factory,
             figure::pipe::new(),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.vert")),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.frag")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.vert")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.frag")),
+            &include_ctx,
         )?;
 
         // Construct a pipeline for rendering terrain
         let terrain_pipeline = create_pipeline(
             &mut factory,
             terrain::pipe::new(),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.vert")),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.frag")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.vert")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.frag")),
+            &include_ctx,
         )?;
 
         // Construct a pipeline for rendering UI elements
         let ui_pipeline = create_pipeline(
             &mut factory,
             ui::pipe::new(),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.vert")),
-            include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.frag")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.vert")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.frag")),
+            &include_ctx,
         )?;
 
         // Construct a pipeline for rendering our post-processing
         let postprocess_pipeline = create_pipeline(
             &mut factory,
             postprocess::pipe::new(),
-            include_bytes!(concat!(
+            include_str!(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/shaders/postprocess.vert"
             )),
-            include_bytes!(concat!(
+            include_str!(concat!(
                 env!("CARGO_MANIFEST_DIR"),
                 "/shaders/postprocess.frag"
             )),
+            &include_ctx,
         )?;
 
         let dims = win_color_view.get_dimensions();
@@ -407,11 +421,15 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     factory: &mut gfx_backend::Factory,
     pipe: P,
-    vs: &[u8],
-    fs: &[u8],
+    vs: &str,
+    fs: &str,
+    ctx: &IncludeContext,
 ) -> Result<GfxPipeline<P>, RenderError> {
+    let vs = ctx.expand(vs).map_err(RenderError::IncludeError)?;
+    let fs = ctx.expand(fs).map_err(RenderError::IncludeError)?;
+
     let program = factory
-        .link_program(vs, fs)
+        .link_program(vs.as_bytes(), fs.as_bytes())
         .map_err(|err| RenderError::PipelineError(gfx::PipelineStateError::Program(err)))?;
 
     Ok(GfxPipeline {
