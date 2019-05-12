@@ -137,10 +137,7 @@ pub enum Body {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Actor {
-    Character {
-        name: String,
-        body: Body,
-    },
+    Character { name: String, body: Body },
 }
 
 impl Component for Actor {

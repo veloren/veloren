@@ -80,10 +80,13 @@ impl Server {
         };
 
         for i in 0..4 {
-            this.create_npc("Tobermory".to_owned(), comp::Body::Humanoid(comp::HumanoidBody::random()))
-                .with(comp::Control::default())
-                .with(comp::Agent::Wanderer(Vec2::zero()))
-                .build();
+            this.create_npc(
+                "Tobermory".to_owned(),
+                comp::Body::Humanoid(comp::HumanoidBody::random()),
+            )
+            .with(comp::Control::default())
+            .with(comp::Agent::Wanderer(Vec2::zero()))
+            .build();
         }
 
         Ok(this)
@@ -121,10 +124,7 @@ impl Server {
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(comp::AnimationHistory::new(comp::Animation::Idle))
-            .with(comp::Actor::Character {
-                name,
-                body,
-            })
+            .with(comp::Actor::Character { name, body })
     }
 
     pub fn create_player_character(
@@ -134,10 +134,13 @@ impl Server {
         name: String,
         body: comp::HumanoidBody,
     ) {
-        state.write_component(entity, comp::Actor::Character {
-            name,
-            body: comp::Body::Humanoid(body),
-        });
+        state.write_component(
+            entity,
+            comp::Actor::Character {
+                name,
+                body: comp::Body::Humanoid(body),
+            },
+        );
         state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
@@ -145,10 +148,7 @@ impl Server {
         state.write_component(entity, comp::phys::ForceUpdate);
 
         // Set initial animation
-        state.write_component(
-            entity,
-            comp::AnimationHistory::new(comp::Animation::Idle),
-        );
+        state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
 
         // Tell the client his request was successful
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
