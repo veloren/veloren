@@ -76,7 +76,10 @@ impl PlayState for CharSelectionState {
                         self.client
                             .borrow_mut()
                             .postbox
-                            .send_message(ClientMsg::Character(self.char_selection_ui.character));
+                            .send_message(ClientMsg::Character {
+                                name: self.char_selection_ui.character_name.clone(),
+                                body: self.char_selection_ui.character_body,
+                            });
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
                             self.client.clone(),
