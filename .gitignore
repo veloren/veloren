@@ -19,3 +19,4 @@ voxygen/keybinds.toml
 settings.toml
 *.rar
 *.log
+run.sh
