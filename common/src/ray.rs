@@ -54,15 +54,15 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             pos = self.from + dir * dist;
             ipos = pos.map(|e| e.floor() as i32);
 
+            // Allow one iteration above max
+            if dist > max {
+                break;
+            }
+
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
                 Err(err) if !self.ignore_error => return (dist, Err(err)),
                 _ => {}
-            }
-
-            // Allow one iteration above max
-            if dist > max {
-                break;
             }
 
             let deltas =
