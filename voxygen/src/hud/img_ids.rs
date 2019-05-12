@@ -3,10 +3,54 @@ use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graph
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
+
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
         inv_slot: "/voxygen/element/buttons/inv_slot.vox",
+
+        // Window Parts
+        window_3: "/voxygen/element/frames/window_3.vox",
+        tab_bg: "/voxygen/element/frames/tab_bg.vox",
+        tab_small_open: "/voxygen/element/frames/tab_small_open.vox",
+        tab_small_closed: "/voxygen/element/frames/tab_small_closed.vox",
+
+        // MiniMap
+        mmap_frame: "/voxygen/element/frames/mmap.vox",
+        mmap_frame_closed: "/voxygen/element/frames/mmap_closed.vox",
+
+        // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
+        window_frame: "/voxygen/element/frames/window2.vox",
+
+        // Settings Window
+        settings_frame_r: "/voxygen/element/frames/settings_r.vox",
+        settings_frame_l: "/voxygen/element/frames/settings_l.vox",
+        settings_button: "/voxygen/element/buttons/settings_button.vox",
+        settings_button_pressed: "/voxygen/element/buttons/settings_button_pressed.vox",
+        settings_button_hover: "/voxygen/element/buttons/settings_button_hover.vox",
+        settings_button_press: "/voxygen/element/buttons/settings_button_press.vox",
+        check: "/voxygen/element/buttons/check/no.vox",
+        check_mo: "/voxygen/element/buttons/check/no_mo.vox",
+        check_press: "/voxygen/element/buttons/check/press.vox",
+        check_checked: "/voxygen/element/buttons/check/yes.vox",
+        check_checked_mo: "/voxygen/element/buttons/check/yes_mo.vox",
+        slider: "/voxygen/element/slider/track.vox",
+        slider_indicator: "/voxygen/element/slider/indicator.vox",
+
+        // Map Window
+        map_frame_l: "/voxygen/element/frames/map_l.vox",
+        map_frame_r: "/voxygen/element/frames/map_r.vox",
+        map_frame_bl: "/voxygen/element/frames/map_bl.vox",
+        map_frame_br: "/voxygen/element/frames/map_br.vox",
+
+        // Chat-Arrows
+        chat_arrow: "/voxygen/element/buttons/arrow_down.vox",
+        chat_arrow_mo: "/voxygen/element/buttons/arrow_down_hover.vox",
+        chat_arrow_press: "/voxygen/element/buttons/arrow_down_press.vox",
+
+        // Crosshair
+        crosshair: "/voxygen/element/misc_bg/crosshair.vox",
+
 
         <VoxelMs9Graphic>
 
@@ -17,6 +61,11 @@ image_ids! {
         mmap_open: "/voxygen/element/buttons/button_mmap_open.vox",
         mmap_open_hover: "/voxygen/element/buttons/button_mmap_open_hover.vox",
         mmap_open_press: "/voxygen/element/buttons/button_mmap_open_press.vox",
+
+        // Grid
+        grid: "/voxygen/element/buttons/grid.vox",
+        grid_hover: "/voxygen/element/buttons/grid.vox",
+        grid_press: "/voxygen/element/buttons/grid.vox",
 
         settings: "/voxygen/element/buttons/settings.vox",
         settings_hover: "/voxygen/element/buttons/settings_hover.vox",
@@ -42,6 +91,24 @@ image_ids! {
         qlog_hover: "/voxygen/element/buttons/qlog_hover.vox",
         qlog_press: "/voxygen/element/buttons/qlog_press.vox",
 
+        // Charwindow
+        xp_charwindow: "/voxygen/element/frames/xp_charwindow.vox",
+        divider: "/voxygen/element/frames/divider_charwindow.vox",
+        head_bg: "/voxygen/element/icons/head.vox",
+        shoulders_bg: "/voxygen/element/icons/shoulders.vox",
+        hands_bg: "/voxygen/element/icons/hands.vox",
+        belt_bg: "/voxygen/element/icons/belt.vox",
+        legs_bg: "/voxygen/element/icons/legs.vox",
+        feet_bg: "/voxygen/element/icons/feet.vox",
+        ring_r_bg: "/voxygen/element/icons/ring.vox",
+        ring_l_bg: "/voxygen/element/icons/ring.vox",
+        tabard_bg: "/voxygen/element/icons/tabard.vox",
+        chest_bg: "/voxygen/element/icons/chest.vox",
+        back_bg: "/voxygen/element/icons/back.vox",
+        gem_bg: "/voxygen/element/icons/gem.vox",
+        necklace_bg: "/voxygen/element/icons/necklace.vox",
+        mainhand_bg: "/voxygen/element/icons/mainhand.vox",
+        offhand_bg: "/voxygen/element/icons/offhand.vox",
 
         // Close button
         close_button: "/voxygen/element/buttons/x.vox",
@@ -54,47 +121,12 @@ image_ids! {
         button_hover: "/voxygen/element/buttons/button_hover.vox",
         button_press: "/voxygen/element/buttons/button_press.vox",
 
-        <VoxelGraphic>
-
-        // MiniMap
-        mmap_frame: "/voxygen/element/frames/mmap.vox",
-        mmap_frame_closed: "/voxygen/element/frames/mmap_closed.vox",
-
-
-        // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
-        window_frame: "/voxygen/element/frames/window2.vox",
-
-        // Settings Window
-        settings_frame_r: "/voxygen/element/frames/settings_r.vox",
-        settings_frame_l: "/voxygen/element/frames/settings_l.vox",
-        settings_button: "/voxygen/element/buttons/settings_button.vox",
-        settings_button_pressed: "/voxygen/element/buttons/settings_button_pressed.vox",
-        settings_button_hover: "/voxygen/element/buttons/settings_button_hover.vox",
-        settings_button_press: "/voxygen/element/buttons/settings_button_press.vox",
-        check: "/voxygen/element/buttons/check/no.vox",
-        check_mo: "/voxygen/element/buttons/check/no_mo.vox",
-        check_press: "/voxygen/element/buttons/check/press.vox",
-        check_checked: "/voxygen/element/buttons/check/yes.vox",
-        check_checked_mo: "/voxygen/element/buttons/check/yes_mo.vox",
-        slider: "/voxygen/element/slider/track.vox",
-        slider_indicator: "/voxygen/element/slider/indicator.vox",
-
-
-        // Map Window
-        map_frame_l: "/voxygen/element/frames/map_l.vox",
-        map_frame_r: "/voxygen/element/frames/map_r.vox",
-        map_frame_bl: "/voxygen/element/frames/map_bl.vox",
-        map_frame_br: "/voxygen/element/frames/map_br.vox",
-
-
-        // Chat-Arrows
-        chat_arrow: "/voxygen/element/buttons/arrow_down.vox",
-        chat_arrow_mo: "/voxygen/element/buttons/arrow_down_hover.vox",
-        chat_arrow_press: "/voxygen/element/buttons/arrow_down_press.vox",
 
         <ImageGraphic>
 
-         // Spell Book Window
+        charwindow_gradient:"/voxygen/element/misc_bg/charwindow.png",
+
+        // Spell Book Window
         spellbook_bg: "/voxygen/element/misc_bg/small_bg.png",
         spellbook_icon: "/voxygen/element/icons/spellbook.png",
 
