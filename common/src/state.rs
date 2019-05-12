@@ -5,7 +5,7 @@ use crate::{
     comp,
     msg::EcsPacket,
     sys,
-    terrain::{TerrainChunk, TerrainMap, TerrainMapData},
+    terrain::{TerrainChunk, TerrainMap},
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use specs::{
@@ -15,7 +15,7 @@ use specs::{
     Builder, Component, DispatcherBuilder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
 };
 use sphynx;
-use std::{collections::HashSet, sync::{Arc, RwLock}, time::Duration};
+use std::{collections::HashSet, sync::Arc, time::Duration};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -110,7 +110,7 @@ impl State {
         ecs.add_resource(TimeOfDay(0.0));
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainMap::new(RwLock::new(TerrainMapData::new())));
+        ecs.add_resource(TerrainMap::new());
     }
 
     /// Register a component with the state's ECS
@@ -177,8 +177,6 @@ impl State {
         if self
             .ecs
             .write_resource::<TerrainMap>()
-            .write()
-            .expect("Lock was poisoned")
             .insert(key, chunk)
             .is_some()
         {
@@ -193,8 +191,6 @@ impl State {
         if self
             .ecs
             .write_resource::<TerrainMap>()
-            .write()
-            .unwrap()
             .remove(key)
             .is_some()
         {

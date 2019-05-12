@@ -38,8 +38,6 @@ impl<'a> System<'a> for Sys {
             // Basic collision with terrain
             let mut i = 0;
             while terrain
-                .read()
-                .expect("Lock was poisoned")
                 .get(pos.0.map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false)

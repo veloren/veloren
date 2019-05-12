@@ -6,7 +6,7 @@ use vek::*;
 
 // Project
 use client::Client;
-use common::{terrain::{TerrainMap, TerrainMapData}, vol::ReadVol, volumes::vol_map::VolMapErr};
+use common::{terrain::{Block, TerrainMap, TerrainChunkSize, TerrainChunkMeta}, vol::ReadVol, volumes::vol_map::VolMapErr};
 
 // Crate
 use crate::{
@@ -37,17 +37,8 @@ struct MeshWorkerResponse {
 fn mesh_worker(
     pos: Vec3<i32>,
     started_tick: u64,
-    terrain: TerrainMap,
+    volume: Combi<Block, TerrainChunkSize, TerrainChunkMeta>,
 ) -> MeshWorkerResponse {
-    let aabb = Aabb {
-        min: pos
-            .map2(TerrainMapData::chunk_size(), |e, sz| e * sz as i32 - 1),
-        max: pos
-            .map2(TerrainMapData::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
-    };
-
-    let volume = Combi::from_terrain(aabb, &terrain).expect(".");
-
     MeshWorkerResponse {
         pos,
         mesh: volume.generate_mesh(()),
@@ -101,7 +92,7 @@ impl Terrain {
                     for k in -1..2 {
                         let pos = pos + Vec3::new(i, j, k);
 
-                        if client.state().terrain().read().expect("Lock was poisoned").get_key(pos).is_some() {
+                        if client.state().terrain().get_key(pos).is_some() {
                             // re-mesh loaded chunks that border new/changed chunks
                             if self.chunks.contains_key(&pos) || (i, j, k) == (0, 0, 0) {
                                 self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
@@ -137,12 +128,36 @@ impl Terrain {
             // Clone various things to that they can be moved into the thread
             let send = self.mesh_send_tmp.clone();
             let pos = todo.pos;
+            let terrain: &TerrainMap = &client.state().terrain();
 
-            let terrain = client.state().terrain().clone();
+            let aabb = Aabb {
+                min: pos
+                    .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
+                max: pos
+                    .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+            };
+
+            let mut chunks = HashMap::new();
+
+            let min_chunk = TerrainMap::chunk_key(aabb.min);
+            let max_chunk = TerrainMap::chunk_key(aabb.max - Vec3::one());
+
+            for x in min_chunk.x-1..=max_chunk.x+1 {
+                for y in min_chunk.y-1..=max_chunk.y+1 {
+                    for z in min_chunk.z-1..=max_chunk.z+1 {
+                        let pos = Vec3::new(x, y, z);
+                        if let Some(chunk) = terrain.get_key(pos) {
+                            chunks.insert(pos, chunk.clone());
+                        }
+                    }
+                }
+            }
+
+            let volume = Combi::from_chunks(aabb, chunks);
 
             // Queue the worker thread
             client.thread_pool().execute(move || {
-                send.send(mesh_worker(pos, current_tick, terrain))
+                send.send(mesh_worker(pos, current_tick, volume))
                     .expect("Failed to send chunk mesh to main thread");
             });
             todo.active_worker = true;
@@ -166,7 +181,7 @@ impl Terrain {
                                 .create_consts(&[TerrainLocals {
                                     model_offs: response
                                         .pos
-                                        .map2(TerrainMapData::chunk_size(), |e, sz| {
+                                        .map2(TerrainMap::chunk_size(), |e, sz| {
                                             e as f32 * sz as f32
                                         })
                                         .into_array(),

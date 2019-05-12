@@ -1,6 +1,6 @@
 // Standard
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock, RwLockReadGuard};
+use std::sync::Arc;
 
 // Library
 use vek::*;
@@ -25,7 +25,7 @@ pub enum VolMapErr {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 pub struct VolMap<V: Vox, S: VolSize, M> {
-    pub chunks: HashMap<Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
+    pub chunks: HashMap<Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
 impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
@@ -99,34 +99,26 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
     }
 }
 
-impl<'a, V: Vox + Clone, S: VolSize, M> ReadVol for VolMap<V, S, M> {
+impl<'a, V: Vox + Clone, S: VolSize + Clone, M: Clone> ReadVol for VolMap<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<V, VolMapErr> {
         let ck = Self::chunk_key(pos);
-        let guard: RwLockReadGuard<Chunk<_, _, _>> = self.chunks
+        self.chunks
             .get(&ck)
             .ok_or(VolMapErr::NoSuchChunk)?
-            .try_read()
-            .map_err(|_| VolMapErr::NoSuchChunk)?; // TODO: error type
-
-        let ref chunk: Chunk<_, _, _> = *guard;
-
-        chunk
             .get(Self::chunk_offs(pos))
             .map(|v| v.clone())
             .map_err(|err| VolMapErr::ChunkErr(err))
     }
 }
 
-impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> WriteVol for VolMap<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: V) -> Result<(), VolMapErr> {
         let ck = Self::chunk_key(pos);
-        self.chunks
-            .get_mut(&ck)
-            .ok_or(VolMapErr::NoSuchChunk)?
-            .try_write()
-            .map_err(|_| VolMapErr::NoSuchChunk)? // TODO: error type
+        Arc::make_mut(self.chunks.get_mut(&ck)
+                .ok_or(VolMapErr::NoSuchChunk)?
+            )
             .set(Self::chunk_offs(pos), vox)
             .map_err(|err| VolMapErr::ChunkErr(err));
 
@@ -134,7 +126,7 @@ impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     pub fn new() -> Self {
         Self {
             chunks: HashMap::new(),
@@ -145,15 +137,15 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
         S::SIZE
     }
 
-    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
-        self.chunks.insert(key, Arc::new(RwLock::new(chunk)))
+    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Arc<Chunk<V, S, M>>> {
+        self.chunks.insert(key, Arc::new(chunk))
     }
 
-    pub fn get_key(&self, key: Vec3<i32>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
+    pub fn get_key(&self, key: Vec3<i32>) -> Option<Arc<Chunk<V, S, M>>> {
         self.chunks.get(&key).map(|a| a.clone())
     }
 
-    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<RwLock<Chunk<V, S, M>>>> {
+    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<Chunk<V, S, M>>> {
         self.chunks.remove(&key)
     }
 
@@ -173,11 +165,11 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
 }
 
 pub struct ChunkIter<'a, V: Vox, S: VolSize, M> {
-    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
+    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
 impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkIter<'a, V, S, M> {
-    type Item = (Vec3<i32>, &'a Arc<RwLock<Chunk<V, S, M>>>);
+    type Item = (Vec3<i32>, &'a Arc<Chunk<V, S, M>>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|(k, c)| (*k, c))

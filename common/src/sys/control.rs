@@ -36,8 +36,6 @@ impl<'a> System<'a> for Sys {
             (&entities, &pos, &mut vels, &mut dirs, &controls).join()
         {
             let on_ground = terrain
-                .read()
-                .expect("Lock was poisoned")
                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false)

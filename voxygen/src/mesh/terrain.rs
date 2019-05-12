@@ -3,12 +3,12 @@ use vek::*;
 
 // Project
 use common::{
-    terrain::{Block, TerrainMapData, TerrainMap, TerrainChunkSize, TerrainChunkMeta},
+    terrain::{Block, TerrainMap, TerrainChunkSize, TerrainChunkMeta},
     vol::{BaseVol, ReadVol, WriteVol, SizedVol, VolSize, Vox},
     volumes::chunk::Chunk,
 };
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 
 // Crate
 use crate::{
@@ -26,31 +26,15 @@ pub enum CombiErr {
 // Here S stands for the size of the individual chunks
 pub struct Combi<V: Vox, S: VolSize, M> {
     aabb: Aabb<i32>,
-    chunks: HashMap<Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
+    chunks: HashMap<Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
 impl Combi<Block, TerrainChunkSize, TerrainChunkMeta> {
-    pub fn from_terrain(aabb: Aabb<i32>, terrain: &TerrainMap) -> Result<Self, CombiErr> {
-        let mut chunks = HashMap::new();
-
-        let min_chunk = TerrainMapData::chunk_key(aabb.min);
-        let max_chunk = TerrainMapData::chunk_key(aabb.max - Vec3::one());
-
-        for x in min_chunk.x-5..=max_chunk.x+5 { // TODO: Don't use 5
-            for y in min_chunk.y-5..=max_chunk.y+5 {
-                for z in min_chunk.z-5..=max_chunk.z+5 {
-                    let pos = Vec3::new(x, y, z);
-                    if let Some(chunk) = terrain.read().expect("Lock was poisoned").get_key(pos) {
-                        chunks.insert(pos, chunk.clone());
-                    }
-                }
-            }
-        }
-
-        Ok(Self {
+    pub fn from_chunks(aabb: Aabb<i32>, chunks: HashMap<Vec3<i32>, Arc<Chunk<Block, TerrainChunkSize, TerrainChunkMeta>>>) -> Self {
+        Self {
             aabb,
             chunks: chunks,
-        })
+        }
     }
 }
 
@@ -69,16 +53,8 @@ impl<V: Vox, S: VolSize, M> SizedVol for Combi<V, S, M> {
 impl<V: Vox + Clone, S: VolSize, M> ReadVol for Combi<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<V, CombiErr> {
-        let chunk = &self.chunks.get(&TerrainMapData::chunk_key(pos)).ok_or(CombiErr::NoSuchChunk)?;
-        Ok(chunk.read().expect("Lock was poisoned").get(TerrainMapData::chunk_offs(pos)).map_err(|_| CombiErr::NoSuchChunk)?)
-    }
-}
-
-impl<V: Vox, S: VolSize, M> WriteVol for Combi<V, S, M> {
-    #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), CombiErr> {
-        let chunk = self.chunks.get(&TerrainMapData::chunk_key(pos)).unwrap();
-        chunk.write().expect("Lock was poisoned").set(pos, vox).map_err(|_| CombiErr::NoSuchChunk) //TODO
+        let chunk = &self.chunks.get(&TerrainMap::chunk_key(pos)).ok_or(CombiErr::NoSuchChunk)?;
+        Ok(chunk.get(TerrainMap::chunk_offs(pos)).map_err(|_| CombiErr::NoSuchChunk)?)
     }
 }
 

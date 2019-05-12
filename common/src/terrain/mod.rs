@@ -42,5 +42,4 @@ impl TerrainChunkMeta {
 
 // Terrain type aliases
 pub type TerrainChunk = Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
-pub type TerrainMapData = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;
-pub type TerrainMap = Arc<RwLock<TerrainMapData>>;
+pub type TerrainMap = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;
