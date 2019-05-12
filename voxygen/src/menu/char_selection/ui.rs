@@ -428,7 +428,7 @@ impl CharSelectionUi {
                 self.selected_char_no = None;
             }
 
-            // Alpha Version
+            // Veloren Logo and Alpha Version
             Text::new(version)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
