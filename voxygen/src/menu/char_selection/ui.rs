@@ -14,7 +14,7 @@ use common::comp::{
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use std::sync::Arc;
@@ -22,8 +22,12 @@ use std::sync::Arc;
 widget_ids! {
     struct Ids {
         // Background and logo
-        bg_selection,
-        bg_creation,
+        charlist_bg,
+        charlist_frame,
+        charlist_alignment,
+        selection_scrollbar,
+        server_name_text,
+        change_server,
         v_logo,
         version,
 
@@ -170,10 +174,9 @@ image_ids! {
         button_red_hover: "/voxygen/element/buttons/button_red_hover.vox",
         button_red_press: "/voxygen/element/buttons/button_red_press.vox",
         name_input: "/voxygen/element/misc_bg/textbox.vox",
+        charlist_frame: "/voxygen/element/frames/window_4.vox",
 
         <ImageGraphic>
-        bg_selection: "/voxygen/background/bg_selection.png",
-        bg_creation: "/voxygen/background/bg_creation.png",
         selection_window: "/voxygen/element/frames/selection.png",
         test_char_l_button: "/voxygen/element/misc_bg/test_char_l.png",
         test_char_l_big: "/voxygen/element/misc_bg/test_char_l_big.png",
@@ -192,6 +195,7 @@ image_ids! {
         slider_range: "/voxygen/element/slider/track.png",
         slider_indicator: "/voxygen/element/slider/indicator.png",
         window_frame_2: "/voxygen/element/frames/window_2.png",
+
 
         // Weapon Icons
         daggers: "/voxygen/element/icons/daggers.png",
@@ -259,7 +263,6 @@ pub enum Event {
 }
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
-const TEXT_BG: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -305,20 +308,63 @@ impl CharSelectionUi {
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
 
-        // Character Selection
-        // Supposed functionality:
-        // 3d rendered characters have to be clicked for selection.
-        // Selected characters will appear in the selection window.
-        // The selection window is only active when there are >0 characters on the server.
-        // After logging into the server the character that was played last will be selected automatically.
-        // If >1 characters are on the server but none of them was logged in last the one that was created last will be selected.
-        // If the no. of characters = character_limit the "Create Character" button won't be clickable anymore.
-
-        // Background Image
+        // Character Selection /////////////////
         if !self.character_creation {
-            //Image::new(self.imgs.bg_selection)
-            //    .middle_of(ui_widgets.window)
-            //    .set(self.ids.bg_selection, ui_widgets);
+            // Background for Char List
+            Rectangle::fill_with([386.0, 888.0], color::rgba(0.0, 0.0, 0.0, 0.6))
+                .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
+                .set(self.ids.charlist_bg, ui_widgets);
+            Image::new(self.imgs.charlist_frame)
+                .w_h(400.0, 900.0)
+                .middle_of(self.ids.charlist_bg)
+                .set(self.ids.charlist_frame, ui_widgets);
+            Rectangle::fill_with([388.0, 798.0], color::TRANSPARENT)
+                .mid_bottom_with_margin_on(self.ids.charlist_bg, 10.0)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.charlist_alignment, ui_widgets);
+            Scrollbar::y_axis(self.ids.charlist_alignment)
+                .thickness(10.0)
+                .rgba(0.33, 0.33, 0.33, 1.0)
+                .set(self.ids.selection_scrollbar, ui_widgets);
+            // Server Name
+            Text::new("Server Name")
+                .mid_top_with_margin_on(self.ids.charlist_bg, 5.0)
+                .font_size(24)
+                .font_id(self.fonts.metamorph)
+                .color(TEXT_COLOR)
+                .set(self.ids.server_name_text, ui_widgets);
+            //Change Server
+            if Button::image(self.imgs.button)
+                .mid_bottom_with_margin_on(self.ids.server_name_text, -50.0)
+                .w_h(200.0, 40.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Change Server")
+                .label_color(TEXT_COLOR)
+                .label_font_size(18)
+                .label_y(conrod_core::position::Relative::Scalar(3.0))
+                .set(self.ids.change_server, ui_widgets)
+                .was_clicked()
+            {
+                events.push(Event::Logout);
+            }
+
+            // Enter World Button
+            if Button::image(self.imgs.button)
+                .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                .w_h(250.0, 60.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Enter World")
+                .label_color(TEXT_COLOR)
+                .label_font_size(22)
+                .label_y(conrod_core::position::Relative::Scalar(3.0))
+                .set(self.ids.enter_world_button, ui_widgets)
+                .was_clicked()
+            {
+                events.push(Event::Play);
+            }
 
             // Logout_Button
             if Button::image(self.imgs.button)
@@ -338,7 +384,7 @@ impl CharSelectionUi {
 
             // Create Character Button.
             if Button::image(self.imgs.button)
-                .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
+                .mid_bottom_with_margin_on(self.ids.charlist_bg, -60.0)
                 .w_h(270.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -352,38 +398,14 @@ impl CharSelectionUi {
                 self.character_creation = true;
                 self.selected_char_no = None;
             }
-            // Test Characters
-            if Button::image(self.imgs.test_char_l_button)
-                .bottom_left_with_margins_on(ui_widgets.window, 395.0, 716.0)
-                .w_h(95.0, 130.0)
-                .hover_image(self.imgs.test_char_l_button)
-                .press_image(self.imgs.test_char_l_button)
-                .set(self.ids.test_char_l_button, ui_widgets)
-                .was_clicked()
-            {
-                self.selected_char_no = Some(1);
-            }
 
             // Veloren Logo and Alpha Version
-            Image::new(self.imgs.v_logo)
-                .w_h(123.0 * 3.0, 35.0 * 3.0)
-                .top_left_with_margins(30.0, 30.0)
-                .set(self.ids.v_logo, ui_widgets);
             Text::new(version)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
+                .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
-            // Click Character to Login TODO: <-- Temporary!
-            Image::new(self.imgs.window_frame_2)
-                .mid_top_with_margin_on(ui_widgets.window, 60.0)
-                .w_h(700.0, 70.0)
-                .set(self.ids.help_text_bg, ui_widgets);
-            Text::new("Click character to select it")
-                .middle_of(self.ids.help_text_bg)
-                .font_size(40)
-                .color(TEXT_COLOR)
-                .set(self.ids.help_text, ui_widgets);
 
             if let Some(no) = self.selected_char_no {
                 // Selection_Window
@@ -411,23 +433,6 @@ impl CharSelectionUi {
                         .set(self.ids.test_char_l_big, ui_widgets);
                 }
 
-                // Enter World Button
-                if Button::image(self.imgs.button)
-                    .mid_bottom_with_margin_on(self.ids.selection_window, 65.0)
-                    .w_h(210.0, 55.0)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .label("Enter World")
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(22)
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .set(self.ids.enter_world_button, ui_widgets)
-                    .was_clicked()
-                {
-                    // Enter World
-                    events.push(Event::Play);
-                }
-
                 // Delete Button
                 if Button::image(self.imgs.button_red)
                     .bottom_right_with_margins_on(self.ids.selection_window, -25.0, 0.0)
@@ -445,11 +450,6 @@ impl CharSelectionUi {
         }
         // Character_Creation
         else {
-            // Background
-            //Image::new(self.imgs.bg_creation)
-            //    .middle_of(ui_widgets.window)
-            //    .set(self.ids.bg_creation, ui_widgets);
-
             // Back Button
             if Button::image(self.imgs.button)
                 .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
