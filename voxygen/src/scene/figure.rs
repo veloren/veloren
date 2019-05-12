@@ -246,7 +246,8 @@ impl FigureMgr {
             state.update(renderer, pos.0, dir.0);
         }
 
-        self.states.retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
     pub fn render(
@@ -261,7 +262,9 @@ impl FigureMgr {
         for (entity, &character) in (&ecs.entities(), &ecs.read_storage::<comp::Character>()).join()
         {
             if let Some(state) = self.states.get(&entity) {
-                let model = self.model_cache.get_or_create_model(renderer, character, tick);
+                let model = self
+                    .model_cache
+                    .get_or_create_model(renderer, character, tick);
                 renderer.render_figure(model, globals, &state.locals(), state.bone_consts());
             }
         }

@@ -139,10 +139,7 @@ impl Server {
         state.write_component(entity, comp::phys::ForceUpdate);
 
         // Set initial animation
-        state.write_component(
-            entity,
-            comp::AnimationHistory::new(Animation::Idle),
-        );
+        state.write_component(entity, comp::AnimationHistory::new(Animation::Idle));
 
         // Tell the client his request was successful
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
@@ -227,7 +224,9 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = Vec2::from(chunk_pos - key).map(|e: i32| e.abs()).reduce_max();
+                let dist = Vec2::from(chunk_pos - key)
+                    .map(|e: i32| e.abs())
+                    .reduce_max();
                 min_dist = min_dist.min(dist);
             }
 
