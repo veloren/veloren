@@ -19,17 +19,15 @@ impl<'a> System<'a> for Sys {
         for (mut agent, pos, mut control) in (&mut agents, &positions, &mut controls).join() {
             match agent {
                 Agent::Wanderer(bearing) => {
-                    *bearing += Vec2::new(
-                        rand::random::<f32>() - 0.5,
-                        rand::random::<f32>() - 0.5,
-                    ) * 0.1
+                    *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
+                        * 0.1
                         - *bearing * 0.01
                         - pos.0 * 0.0002;
 
                     if bearing.magnitude_squared() != 0.0 {
                         control.move_dir = bearing.normalized();
                     }
-                },
+                }
                 Agent::Pet { target, offset } => {
                     // Run towards target
                     match positions.get(*target) {
@@ -48,18 +46,17 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 Vec2::zero()
                             };
-                        },
+                        }
                         _ => control.move_dir = Vec2::zero(),
                     }
 
                     // Change offset occasionally
                     if rand::random::<f32>() < 0.003 {
-                        *offset = Vec2::new(
-                            rand::random::<f32>() - 0.5,
-                            rand::random::<f32>() - 0.5,
-                        ) * 10.0;
+                        *offset =
+                            Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
+                                * 10.0;
                     }
-                },
+                }
             }
         }
     }

@@ -1,36 +1,20 @@
-use vek::*;
-use client::Client;
-use common::{
-    comp::Character,
-    figure::Segment,
-};
 use crate::{
+    anim::{
+        character::{CharacterSkeleton, IdleAnimation},
+        Animation, Skeleton,
+    },
     render::{
-        Renderer,
-        Consts,
-        Globals,
-        Model,
-        SkyboxLocals,
-        SkyboxPipeline,
-        create_skybox_mesh,
-        PostProcessLocals,
-        PostProcessPipeline,
-        create_pp_mesh,
-        FigurePipeline,
+        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Model,
+        PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
         camera::Camera,
         figure::{FigureModelCache, FigureState},
     },
-    anim::{
-        Skeleton,
-        Animation,
-        character::{
-            CharacterSkeleton,
-            IdleAnimation,
-        },
-    },
 };
+use client::Client;
+use common::{comp::Character, figure::Segment};
+use vek::*;
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
@@ -76,7 +60,9 @@ impl Scene {
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
-            backdrop_model: renderer.create_model(&FigureModelCache::load_mesh("knight.vox", Vec3::zero())).unwrap(),
+            backdrop_model: renderer
+                .create_model(&FigureModelCache::load_mesh("knight.vox", Vec3::zero()))
+                .unwrap(),
             backdrop_state: FigureState::new(renderer, CharacterSkeleton::new()),
         }
     }
@@ -85,11 +71,8 @@ impl Scene {
         self.camera.set_focus_pos(Vec3::unit_z() * 1.75);
         self.camera.update(client.state().get_time());
         self.camera.set_distance(4.0);
-        self.camera.set_orientation(Vec3::new(
-            client.state().get_time() as f32 * 0.2,
-            0.3,
-            0.0,
-        ));
+        self.camera
+            .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.2, 0.3, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
@@ -116,7 +99,8 @@ impl Scene {
         );
         self.figure_state.skeleton_mut().interpolate(&tgt_skeleton);
 
-        self.figure_state.update(renderer, Vec3::zero(), -Vec3::unit_y());
+        self.figure_state
+            .update(renderer, Vec3::zero(), -Vec3::unit_y());
     }
 
     pub fn render(&mut self, renderer: &mut Renderer, client: &Client) {
