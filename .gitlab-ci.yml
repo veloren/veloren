@@ -28,6 +28,9 @@ before_script:
   - if [ ! -z "${SOURCE_PROJECT}" -a "${SOURCE_PROJECT}" != " " ]; then
       echo "THIS SEEMS TO BE A MERGE PIPELINE FROM ${SOURCE_PROJECT}/${SOURCE_BRANCH}";
       git pull "https://gitlab.com/${SOURCE_PROJECT}/veloren.git" "${SOURCE_BRANCH}";
+      git lfs install;
+      git lfs fetch;
+      git lfs checkout;
     fi;
   - git status
   - if [ -d target ]; then
