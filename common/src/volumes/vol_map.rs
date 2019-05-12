@@ -1,11 +1,12 @@
 // Standard
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 // Library
 use vek::*;
 
 // Crate
 use crate::{
+    terrain::TerrainChunkMeta,
     vol::{BaseVol, ReadVol, SampleVol, SizedVol, VolSize, Vox, WriteVol},
     volumes::{
         chunk::{Chunk, ChunkErr},
@@ -23,11 +24,12 @@ pub enum VolMapErr {
 // V = Voxel
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
-pub struct VolMap<V: Vox, S: VolSize, M> {
-    chunks: HashMap<Vec3<i32>, Chunk<V, S, M>>,
+#[derive(Clone)]
+pub struct VolMap<V: Vox + Clone, S: VolSize + Clone, M: Clone> {
+    chunks: HashMap<Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
-impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     #[inline(always)]
     fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| e.div_euclid(sz as i32))
@@ -39,12 +41,12 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M> BaseVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> BaseVol for VolMap<V, S, M> {
     type Vox = V;
     type Err = VolMapErr;
 }
 
-impl<V: Vox, S: VolSize, M> ReadVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> ReadVol for VolMap<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, VolMapErr> {
         let ck = Self::chunk_key(pos);
@@ -58,8 +60,8 @@ impl<V: Vox, S: VolSize, M> ReadVol for VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
-    type Sample = Dyna<V, ()>;
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> SampleVol for VolMap<V, S, M> {
+    type Sample = VolMap<V, S, M>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
     ///
@@ -80,40 +82,60 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
         }
         */
 
-        let mut sample = Dyna::filled(range.size().map(|e| e as u32).into(), V::empty(), ());
+        // let mut sample = Dyna::filled(range.size().map(|e| e as u32).into(), V::empty(), ());
 
-        let mut last_chunk_pos = self.pos_key(range.min);
-        let mut last_chunk = self.get_key(last_chunk_pos);
+        // let mut last_chunk_pos = self.pos_key(range.min);
+        // let mut last_chunk = self.get_key(last_chunk_pos);
 
-        for pos in sample.iter_positions() {
-            let new_chunk_pos = self.pos_key(range.min + pos);
-            if last_chunk_pos != new_chunk_pos {
-                last_chunk = self.get_key(new_chunk_pos);
-                last_chunk_pos = new_chunk_pos;
+        // for pos in sample.iter_positions() {
+        //     let new_chunk_pos = self.pos_key(range.min + pos);
+        //     if last_chunk_pos != new_chunk_pos {
+        //         last_chunk = self.get_key(new_chunk_pos);
+        //         last_chunk_pos = new_chunk_pos;
+        //     }
+        //     sample
+        //         .set(
+        //             pos,
+        //             if let Some(chunk) = last_chunk {
+        //                 chunk
+        //                     .get(Self::chunk_offs(range.min + pos))
+        //                     .map(|v| v.clone())
+        //                     .unwrap_or(V::empty())
+        //             // Fallback in case the chunk doesn't exist
+        //             } else {
+        //                 self.get(range.min + pos)
+        //                     .map(|v| v.clone())
+        //                     .unwrap_or(V::empty())
+        //             },
+        //         )
+        //         .map_err(|err| VolMapErr::DynaErr(err))?;
+        // }
+
+        // Ok(sample)
+
+        let mut sample = VolMap::new();
+        let chunk_min = Self::chunk_key(range.min);
+        let chunk_max = Self::chunk_key(range.max);
+        for x in chunk_min.x..=chunk_max.x {
+            for y in chunk_min.y..=chunk_max.y {
+                for z in chunk_min.z..=chunk_max.z {
+                    let chunk_key = Vec3::new(x, y, z);
+
+                    let chunk = self
+                        .get_key(chunk_key)
+                        .map(|v| v.clone())
+                        .ok_or(VolMapErr::NoSuchChunk)?;
+
+                    sample.insert(chunk_key, Arc::new(chunk));
+                }
             }
-            sample
-                .set(
-                    pos,
-                    if let Some(chunk) = last_chunk {
-                        chunk
-                            .get(Self::chunk_offs(range.min + pos))
-                            .map(|v| v.clone())
-                            .unwrap_or(V::empty())
-                    // Fallback in case the chunk doesn't exist
-                    } else {
-                        self.get(range.min + pos)
-                            .map(|v| v.clone())
-                            .unwrap_or(V::empty())
-                    },
-                )
-                .map_err(|err| VolMapErr::DynaErr(err))?;
         }
 
         Ok(sample)
     }
 }
 
-impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> WriteVol for VolMap<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: V) -> Result<(), VolMapErr> {
         let ck = Self::chunk_key(pos);
@@ -122,12 +144,14 @@ impl<V: Vox, S: VolSize, M> WriteVol for VolMap<V, S, M> {
             .ok_or(VolMapErr::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.set(co, vox).map_err(|err| VolMapErr::ChunkErr(err))
+                Arc::make_mut(chunk)
+                    .set(co, vox)
+                    .map_err(|err| VolMapErr::ChunkErr(err))
             })
     }
 }
 
-impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     pub fn new() -> Self {
         Self {
             chunks: HashMap::new(),
@@ -138,15 +162,22 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
         S::SIZE
     }
 
-    pub fn insert(&mut self, key: Vec3<i32>, chunk: Chunk<V, S, M>) -> Option<Chunk<V, S, M>> {
+    pub fn insert(
+        &mut self,
+        key: Vec3<i32>,
+        chunk: Arc<Chunk<V, S, M>>,
+    ) -> Option<Arc<Chunk<V, S, M>>> {
         self.chunks.insert(key, chunk)
     }
 
     pub fn get_key(&self, key: Vec3<i32>) -> Option<&Chunk<V, S, M>> {
-        self.chunks.get(&key)
+        match self.chunks.get(&key) {
+            Some(arc_chunk) => Some(arc_chunk.as_ref()),
+            None => None,
+        }
     }
 
-    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Chunk<V, S, M>> {
+    pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<Chunk<V, S, M>>> {
         self.chunks.remove(&key)
     }
 
@@ -165,12 +196,12 @@ impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     }
 }
 
-pub struct ChunkIter<'a, V: Vox, S: VolSize, M> {
-    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Chunk<V, S, M>>,
+pub struct ChunkIter<'a, V: Vox + Clone, S: VolSize + Clone, M: Clone> {
+    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
-impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkIter<'a, V, S, M> {
-    type Item = (Vec3<i32>, &'a Chunk<V, S, M>);
+impl<'a, V: Vox + Clone, S: VolSize + Clone, M: Clone> Iterator for ChunkIter<'a, V, S, M> {
+    type Item = (Vec3<i32>, &'a Arc<Chunk<V, S, M>>);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().map(|(k, c)| (*k, c))
