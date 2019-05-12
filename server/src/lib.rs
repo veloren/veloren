@@ -227,7 +227,7 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
+                let dist = Vec2::from(chunk_pos - key).map(|e: i32| e.abs()).reduce_max();
                 min_dist = min_dist.min(dist);
             }
 
