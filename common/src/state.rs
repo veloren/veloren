@@ -95,7 +95,7 @@ impl State {
     // Create a new Sphynx ECS world
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsPacket>) {
         // Register synced components
-        ecs.register_synced::<comp::Character>();
+        ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
 
         // Register unsynched (or synced by other means) components

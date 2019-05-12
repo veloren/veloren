@@ -9,7 +9,7 @@ sphynx::sum_type! {
         Pos(comp::phys::Pos),
         Vel(comp::phys::Vel),
         Dir(comp::phys::Dir),
-        Character(comp::Character),
+        Actor(comp::Actor),
         Player(comp::Player),
     }
 }
@@ -20,7 +20,7 @@ sphynx::sum_type! {
         Pos(PhantomData<comp::phys::Pos>),
         Vel(PhantomData<comp::phys::Vel>),
         Dir(PhantomData<comp::phys::Dir>),
-        Character(PhantomData<comp::Character>),
+        Actor(PhantomData<comp::Actor>),
         Player(PhantomData<comp::Player>),
     }
 }

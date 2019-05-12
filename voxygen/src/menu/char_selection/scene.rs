@@ -1,3 +1,9 @@
+use vek::*;
+use client::Client;
+use common::{
+    comp::HumanoidBody,
+    figure::Segment,
+};
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation},
@@ -12,9 +18,6 @@ use crate::{
         figure::{FigureModelCache, FigureState},
     },
 };
-use client::Client;
-use common::{comp::Character, figure::Segment};
-use vek::*;
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
@@ -108,7 +111,7 @@ impl Scene {
 
         let model = self.figure_model_cache.get_or_create_model(
             renderer,
-            Character::random(),
+            HumanoidBody::random(),
             client.get_tick(),
         );
         renderer.render_figure(
