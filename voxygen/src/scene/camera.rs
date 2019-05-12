@@ -95,10 +95,25 @@ impl Camera {
         self.ori.z = (self.ori.z + delta.z) % (2.0 * PI);
     }
 
+    /// Set the orientation of the camera about its focus
+    pub fn set_orientation(&mut self, orientation: Vec3<f32>) {
+        // Wrap camera yaw
+        self.ori.x = orientation.x % (2.0 * PI);
+        // Clamp camera pitch to the vertical limits
+        self.ori.y = orientation.y.min(PI / 2.0).max(-PI / 2.0);
+        // Wrap camera roll
+        self.ori.z = orientation.z % (2.0 * PI);
+    }
+
     /// Zoom the camera by the given delta, limiting the input accordingly.
     pub fn zoom_by(&mut self, delta: f32) {
         // Clamp camera dist to the 0 <= x <= infinity range
         self.tgt_dist = (self.tgt_dist + delta).max(0.0);
+    }
+
+    /// Set the distance of the camera from the target (i.e: zoom)
+    pub fn set_distance(&mut self, dist: f32) {
+        self.tgt_dist = dist;
     }
 
     pub fn update(&mut self, time: f64) {

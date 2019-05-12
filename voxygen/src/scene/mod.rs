@@ -2,7 +2,10 @@ pub mod camera;
 pub mod figure;
 pub mod terrain;
 
-use self::{camera::Camera, figure::FigureCache, terrain::Terrain};
+use dot_vox;
+use vek::*;
+use common::{comp, figure::Segment};
+use client::Client;
 use crate::{
     anim::{
         character::{CharacterSkeleton, RunAnimation},
@@ -15,10 +18,7 @@ use crate::{
     },
     window::Event,
 };
-use client::Client;
-use common::{comp, figure::Segment};
-use dot_vox;
-use vek::*;
+use self::{camera::Camera, figure::FigureMgr, terrain::Terrain};
 
 // TODO: Don't hard-code this
 const CURSOR_PAN_SCALE: f32 = 0.005;
@@ -41,7 +41,7 @@ pub struct Scene {
     postprocess: PostProcess,
     terrain: Terrain,
 
-    figure_cache: FigureCache,
+    figure_mgr: FigureMgr,
 }
 
 impl Scene {
@@ -64,7 +64,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(),
-            figure_cache: FigureCache::new(),
+            figure_mgr: FigureMgr::new(),
         }
     }
 
@@ -104,7 +104,7 @@ impl Scene {
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         // Get player position
         let player_pos = client
             .state()
@@ -144,10 +144,10 @@ impl Scene {
         self.terrain.maintain(renderer, client);
 
         // Maintain the figures
-        self.figure_cache.maintain(renderer, client);
+        self.figure_mgr.maintain(renderer, client);
 
         // Remove unused figures
-        self.figure_cache.clean(client.get_tick());
+        self.figure_mgr.clean(client.get_tick());
     }
 
     /// Render the scene using the provided `Renderer`
@@ -157,7 +157,7 @@ impl Scene {
 
         // Render terrain and figures
         self.terrain.render(renderer, &self.globals);
-        self.figure_cache.render(renderer, client, &self.globals);
+        self.figure_mgr.render(renderer, client, &self.globals);
 
         renderer.render_post_process(
             &self.postprocess.model,
