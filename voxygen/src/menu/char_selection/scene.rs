@@ -1,9 +1,3 @@
-use vek::*;
-use client::Client;
-use common::{
-    comp::HumanoidBody,
-    figure::Segment,
-};
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation},
@@ -18,6 +12,9 @@ use crate::{
         figure::{FigureModelCache, FigureState},
     },
 };
+use client::Client;
+use common::{comp::HumanoidBody, figure::Segment};
+use vek::*;
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
