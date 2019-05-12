@@ -36,7 +36,7 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     }
 
     #[inline(always)]
-    fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
+    pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| e.rem_euclid(sz as i32))
     }
 }
@@ -121,12 +121,11 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> SampleVol for VolMap<V, S, M>
                 for z in chunk_min.z..=chunk_max.z {
                     let chunk_key = Vec3::new(x, y, z);
 
-                    let chunk = self
-                        .get_key(chunk_key)
-                        .map(|v| v.clone())
-                        .ok_or(VolMapErr::NoSuchChunk)?;
+                    let chunk = self.get_key_arc(chunk_key).map(|v| v.clone());
 
-                    sample.insert(chunk_key, Arc::new(chunk));
+                    if let Some(chunk) = chunk {
+                        sample.insert(chunk_key, chunk);
+                    }
                 }
             }
         }
@@ -175,6 +174,10 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
             Some(arc_chunk) => Some(arc_chunk.as_ref()),
             None => None,
         }
+    }
+
+    pub fn get_key_arc(&self, key: Vec3<i32>) -> Option<&Arc<Chunk<V, S, M>>> {
+        self.chunks.get(&key)
     }
 
     pub fn remove(&mut self, key: Vec3<i32>) -> Option<Arc<Chunk<V, S, M>>> {
