@@ -75,7 +75,7 @@ impl<S: VolSize + Clone, M: Clone> Meshable for VolMap<Block, S, M> {
                             vol::push_vox_verts(
                                 &mut mesh,
                                 self,
-                                pos,
+                                range.min + pos,
                                 offs,
                                 col,
                                 TerrainVertex::new,
@@ -92,7 +92,7 @@ impl<S: VolSize + Clone, M: Clone> Meshable for VolMap<Block, S, M> {
                             vol::push_vox_verts(
                                 &mut mesh,
                                 self,
-                                pos,
+                                range.min + pos,
                                 offs,
                                 col,
                                 TerrainVertex::new,
