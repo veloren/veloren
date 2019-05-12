@@ -1,4 +1,4 @@
-use specs::{Component, VecStorage, Entity as EcsEntity};
+use specs::{Component, Entity as EcsEntity, VecStorage};
 use vek::*;
 
 #[derive(Copy, Clone, Debug)]

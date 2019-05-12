@@ -4,11 +4,7 @@
 
 use crate::Server;
 use common::{comp, msg::ServerMsg};
-use specs::{
-    Join,
-    Entity as EcsEntity,
-    Builder,
-};
+use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
 use lazy_static::lazy_static;
@@ -198,15 +194,23 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             let mut current = entity;
 
             for _ in 0..1 {
-                current = server.create_npc(comp::Character::random())
+                current = server
+                    .create_npc(comp::Character::random())
                     .with(comp::Control::default())
-                    .with(comp::Agent::Pet{ target: current, offset: Vec2::zero() })
+                    .with(comp::Agent::Pet {
+                        target: current,
+                        offset: Vec2::zero(),
+                    })
                     .with(pos)
                     .build();
             }
-            server.clients.notify(entity, ServerMsg::Chat("Pet spawned!".to_owned()));
-        },
-        None => server.clients.notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+            server
+                .clients
+                .notify(entity, ServerMsg::Chat("Pet spawned!".to_owned()));
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
 
