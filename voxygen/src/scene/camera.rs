@@ -54,7 +54,14 @@ impl Camera {
                     ) * self.dist),
             );
 
-            match client.state().terrain().ray(start, end).cast() {
+            match client
+                .state()
+                .terrain()
+                .ray(start, end)
+                .ignore_error()
+                .max_iter(500)
+                .cast()
+            {
                 (d, Ok(Some(_))) => f32::min(d - 1.0, self.dist),
                 (_, Ok(None)) => self.dist,
                 (_, Err(_)) => self.dist,

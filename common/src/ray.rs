@@ -9,6 +9,7 @@ pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>> {
     to: Vec3<f32>,
     until: F,
     max_iter: usize,
+    ignore_error: bool,
 }
 
 impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
@@ -19,6 +20,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             to,
             until,
             max_iter: 100,
+            ignore_error: false,
         }
     }
 
@@ -28,6 +30,11 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
 
     pub fn max_iter(mut self, max_iter: usize) -> Self {
         self.max_iter = max_iter;
+        self
+    }
+
+    pub fn ignore_error(mut self) -> Self {
+        self.ignore_error = true;
         self
     }
 
@@ -49,8 +56,8 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
 
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
                 Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Ok((_, false)) => {}
-                Err(err) => return (dist, Err(err)),
+                Err(err) if !self.ignore_error => return (dist, Err(err)),
+                _ => {}
             }
 
             // Allow one iteration above max
