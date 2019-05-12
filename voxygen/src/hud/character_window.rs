@@ -2,7 +2,7 @@ use super::{img_ids::Imgs, Fonts, TEXT_COLOR, XP_COLOR};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -209,7 +209,6 @@ impl<'a> Widget for CharacterWindow<'a> {
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.belt_bg, 10.0)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))       
             .set(state.hands_bg, ui);
         Button::image(self.imgs.grid)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
@@ -217,7 +216,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.hands_grid, ui);
         // Shoulders
         Image::new(self.imgs.shoulders_bg)
-            .w_h(28.0 * 1.8, 28.0 * 1.8)            
+            .w_h(28.0 * 1.8, 28.0 * 1.8)
             .up_from(state.hands_bg, 10.0)
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.shoulders_bg, ui);

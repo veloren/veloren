@@ -71,7 +71,7 @@ impl<'a> Widget for Map<'a> {
             .scroll_kids()
             .scroll_kids_vertically()
             .set(state.ids.map_bg, ui);
-            
+
         // Frame
         Image::new(self.imgs.map_frame_l)
             .top_left_with_margins_on(state.ids.map_bg, 0.0, 0.0)
