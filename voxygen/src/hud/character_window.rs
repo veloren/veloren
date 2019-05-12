@@ -292,8 +292,8 @@ impl<'a> Widget for CharacterWindow<'a> {
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.mainhand_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 1.8, 28.0 * 1.8)
-            .middle_of(state.gem_bg)
+            .w_h(28.0 * 2.2, 28.0 * 2.2)
+            .middle_of(state.mainhand_bg)
             .set(state.mainhand_grid, ui);
         // Weapon Off-Hand
         Image::new(self.imgs.offhand_bg)
@@ -302,8 +302,8 @@ impl<'a> Widget for CharacterWindow<'a> {
             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
             .set(state.offhand_bg, ui);
         Button::image(self.imgs.grid)
-            .w_h(28.0 * 1.8, 28.0 * 1.8)
-            .middle_of(state.gem_bg)
+            .w_h(28.0 * 2.2, 28.0 * 2.2)
+            .middle_of(state.offhand_bg)
             .set(state.offhand_grid, ui);
 
         // Stats Tab
