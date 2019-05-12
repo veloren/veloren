@@ -3,7 +3,7 @@ use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graph
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>
-        
+
         // Bag
         bag_contents: "/voxygen/element/frames/bag.vox",
         inv_grid: "/voxygen/element/frames/inv_grid.vox",
