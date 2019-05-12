@@ -24,31 +24,29 @@ use specs::{Component, Entity as EcsEntity, Join, VecStorage};
 use std::{collections::HashMap, f32};
 use vek::*;
 
-pub struct FigureCache {
+pub struct FigureModelCache {
     models: HashMap<Character, (Model<FigurePipeline>, u64)>,
-    states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
 }
 
-impl FigureCache {
+impl FigureModelCache {
     pub fn new() -> Self {
         Self {
             models: HashMap::new(),
-            states: HashMap::new(),
         }
     }
 
-    pub fn get_or_create_model<'a>(
-        models: &'a mut HashMap<Character, (Model<FigurePipeline>, u64)>,
+    pub fn get_or_create_model(
+        &mut self,
         renderer: &mut Renderer,
-        tick: u64,
         character: Character,
-    ) -> &'a (Model<FigurePipeline>, u64) {
-        match models.get_mut(&character) {
+        tick: u64,
+    ) -> &Model<FigurePipeline> {
+        match self.models.get_mut(&character) {
             Some((model, last_used)) => {
                 *last_used = tick;
             }
             None => {
-                models.insert(
+                self.models.insert(
                     character,
                     (
                         {
@@ -90,7 +88,7 @@ impl FigureCache {
             }
         }
 
-        &models[&character]
+        &self.models[&character].0
     }
 
     pub fn clean(&mut self, tick: u64) {
@@ -99,7 +97,8 @@ impl FigureCache {
             .retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
-    fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
+    // TODO: Don't make this public
+    pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
         let fullpath: String = ["/voxygen/voxel/", filename].concat();
         Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
             .generate_mesh(position)
@@ -187,10 +186,28 @@ impl FigureCache {
             Vec3::new(0.0, 0.0, -4.0),
         )
     }
+}
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
+pub struct FigureMgr {
+    model_cache: FigureModelCache,
+    states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+}
+
+impl FigureMgr {
+    pub fn new() -> Self {
+        Self {
+            model_cache: FigureModelCache::new(),
+            states: HashMap::new(),
+        }
+    }
+
+    pub fn clean(&mut self, tick: u64) {
+        self.model_cache.clean(tick);
+    }
+
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
-        let ecs = client.state_mut().ecs_mut();
+        let ecs = client.state().ecs();
         for (entity, pos, vel, dir, character, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
@@ -208,17 +225,17 @@ impl FigureCache {
 
             let target_skeleton = match animation_history.current {
                 comp::character::Animation::Idle => IdleAnimation::update_skeleton(
-                    &mut state.skeleton,
+                    state.skeleton_mut(),
                     time,
                     animation_history.time,
                 ),
                 comp::character::Animation::Run => RunAnimation::update_skeleton(
-                    &mut state.skeleton,
+                    state.skeleton_mut(),
                     (vel.0.magnitude(), time),
                     animation_history.time,
                 ),
                 comp::character::Animation::Jump => JumpAnimation::update_skeleton(
-                    &mut state.skeleton,
+                    state.skeleton_mut(),
                     time,
                     animation_history.time,
                 ),
@@ -241,13 +258,15 @@ impl FigureCache {
     ) {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
-        let models = &mut self.models;
 
         for (entity, &character) in (&ecs.entities(), &ecs.read_storage::<comp::Character>()).join()
         {
-            let model = Self::get_or_create_model(models, renderer, tick, character);
-            let state = self.states.get(&entity).unwrap();
-            renderer.render_figure(&model.0, globals, &state.locals, &state.bone_consts);
+            if let Some(state) = self.states.get(&entity) {
+                let model = self
+                    .model_cache
+                    .get_or_create_model(renderer, character, tick);
+                renderer.render_figure(model, globals, &state.locals(), state.bone_consts());
+            }
         }
     }
 }
@@ -269,7 +288,7 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
+    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
             * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
@@ -280,5 +299,17 @@ impl<S: Skeleton> FigureState<S> {
         renderer
             .update_consts(&mut self.bone_consts, &self.skeleton.compute_matrices())
             .unwrap();
+    }
+
+    pub fn locals(&self) -> &Consts<FigureLocals> {
+        &self.locals
+    }
+
+    pub fn bone_consts(&self) -> &Consts<FigureBoneData> {
+        &self.bone_consts
+    }
+
+    pub fn skeleton_mut(&mut self) -> &mut S {
+        &mut self.skeleton
     }
 }
