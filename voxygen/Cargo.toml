@@ -31,7 +31,7 @@ specs = "0.14"
 vek = "0.9"
 
 # Utility
-glsl-include = "0.2"
+glsl-include = "0.3"
 failure = "0.1"
 lazy_static = "1.1"
 log = "0.4"
