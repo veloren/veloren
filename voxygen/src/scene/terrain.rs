@@ -38,10 +38,11 @@ fn mesh_worker(
     pos: Vec3<i32>,
     started_tick: u64,
     volume: <TerrainMap as SampleVol>::Sample,
+    supplement: Aabb<i32>,
 ) -> MeshWorkerResponse {
     MeshWorkerResponse {
         pos,
-        mesh: volume.generate_mesh(()),
+        mesh: volume.generate_mesh(supplement),
         started_tick,
     }
 }
@@ -146,7 +147,7 @@ impl Terrain {
 
             // Queue the worker thread
             client.thread_pool().execute(move || {
-                send.send(mesh_worker(pos, current_tick, volume))
+                send.send(mesh_worker(pos, current_tick, volume, aabb))
                     .expect("Failed to send chunk mesh to main thread");
             });
             todo.active_worker = true;
