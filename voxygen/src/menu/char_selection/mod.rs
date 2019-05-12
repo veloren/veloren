@@ -1,4 +1,5 @@
 mod ui;
+mod scene;
 
 use crate::{
     session::SessionState,
@@ -9,6 +10,7 @@ use client::{self, Client};
 use common::{clock::Clock, msg::ClientMsg};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
+use scene::Scene;
 use vek::*;
 
 const FPS: u64 = 60;
@@ -16,6 +18,7 @@ const FPS: u64 = 60;
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
+    scene: Scene,
 }
 
 impl CharSelectionState {
@@ -24,6 +27,7 @@ impl CharSelectionState {
         Self {
             char_selection_ui: CharSelectionUi::new(window),
             client,
+            scene: Scene::new(window.renderer_mut()),
         }
     }
 }
@@ -81,6 +85,12 @@ impl PlayState for CharSelectionState {
                     }
                 }
             }
+
+            // Maintain the scene
+            self.scene.maintain(global_state.window.renderer_mut(), &self.client.borrow());
+
+            // Render the scene
+            self.scene.render(global_state.window.renderer_mut(), &self.client.borrow());
 
             // Draw the UI to the screen
             self.char_selection_ui

@@ -82,8 +82,8 @@ impl Server {
 
         for i in 0..4 {
             this.create_npc(comp::Character::random())
-                .with(comp::Agent::Wanderer(Vec2::zero()))
                 .with(comp::Control::default())
+                .with(comp::Agent::Wanderer(Vec2::zero()))
                 .build();
         }
 
@@ -121,6 +121,7 @@ impl Server {
             .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
+            .with(comp::AnimationHistory::new(Animation::Idle))
             .with(character)
     }
 
@@ -140,11 +141,7 @@ impl Server {
         // Set initial animation
         state.write_component(
             entity,
-            comp::AnimationHistory {
-                last: None,
-                current: Animation::Idle,
-                time: 0.0,
-            },
+            comp::AnimationHistory::new(Animation::Idle),
         );
 
         // Tell the client his request was successful
@@ -230,7 +227,7 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (chunk_pos - key).map(|e| e.abs()).reduce_max();
+                let dist = Vec2::from(chunk_pos - key).map(|e: i32| e.abs()).reduce_max();
                 min_dist = min_dist.min(dist);
             }
 
@@ -272,7 +269,7 @@ impl Server {
             // (All components Sphynx tracks)
             client.notify(ServerMsg::InitialSync {
                 ecs_state: self.state.ecs().gen_state_package(),
-                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(),
+                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail
             });
 
             self.clients.add(entity, client);
