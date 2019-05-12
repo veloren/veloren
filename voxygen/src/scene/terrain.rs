@@ -10,7 +10,7 @@ use common::{terrain::{TerrainMap, TerrainMapData}, vol::ReadVol, volumes::vol_m
 
 // Crate
 use crate::{
-    mesh::Meshable,
+    mesh::{Meshable, terrain::Combi},
     render::{Consts, Globals, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
 };
 
@@ -46,11 +46,11 @@ fn mesh_worker(
             .map2(TerrainMapData::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
     };
 
-    let volume = terrain.read().expect("Lock was poisoned");
+    let volume = Combi::from_terrain(aabb, &terrain).expect(".");
 
     MeshWorkerResponse {
         pos,
-        mesh: volume.get_key(pos).expect("Chunk not found").read().expect("Lock was poisoned").generate_mesh(()),
+        mesh: volume.generate_mesh(()),
         started_tick,
     }
 }

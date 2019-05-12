@@ -25,17 +25,17 @@ pub enum VolMapErr {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 pub struct VolMap<V: Vox, S: VolSize, M> {
-    chunks: HashMap<Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
+    pub chunks: HashMap<Vec3<i32>, Arc<RwLock<Chunk<V, S, M>>>>,
 }
 
 impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     #[inline(always)]
-    fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
+    pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| e.div_euclid(sz as i32))
     }
 
     #[inline(always)]
-    fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
+    pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| e.rem_euclid(sz as i32))
     }
 }
@@ -53,7 +53,6 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
     fn sample(&self, range: Aabb<i32>) -> Result<Self::Sample, VolMapErr> {
         unimplemented!()
-    }
         // Return early if we don't have all the needed chunks that we need!
         /*
         let min_chunk = Self::chunk_key(range.min);
@@ -96,8 +95,8 @@ impl<V: Vox + Clone, S: VolSize, M> SampleVol for VolMap<V, S, M> {
                 .map_err(|err| VolMapErr::DynaErr(err))?;
         }
 
-        Ok(sample)
-    }*/
+        Ok(sample)*/
+    }
 }
 
 impl<'a, V: Vox + Clone, S: VolSize, M> ReadVol for VolMap<V, S, M> {

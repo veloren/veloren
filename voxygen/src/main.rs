@@ -101,7 +101,7 @@ fn main() {
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
-    panic::set_hook(Box::new(move |panic_info| {
+    /*panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
         let payload_string = panic_info_payload.downcast_ref::<String>();
         let reason = match payload_string {
@@ -143,7 +143,7 @@ PanicInfo: {:?}", settings_clone.log.file, reason, panic_info);
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
 
         default_hook(panic_info);
-    }));
+    }));*/
 
     let mut global_state = GlobalState { settings, window };
 
