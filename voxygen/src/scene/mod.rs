@@ -2,10 +2,7 @@ pub mod camera;
 pub mod figure;
 pub mod terrain;
 
-use dot_vox;
-use vek::*;
-use common::{comp, figure::Segment};
-use client::Client;
+use self::{camera::Camera, figure::FigureMgr, terrain::Terrain};
 use crate::{
     anim::{
         character::{CharacterSkeleton, RunAnimation},
@@ -18,7 +15,10 @@ use crate::{
     },
     window::Event,
 };
-use self::{camera::Camera, figure::FigureMgr, terrain::Terrain};
+use client::Client;
+use common::{comp, figure::Segment};
+use dot_vox;
+use vek::*;
 
 // TODO: Don't hard-code this
 const CURSOR_PAN_SCALE: f32 = 0.005;
