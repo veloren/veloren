@@ -10,6 +10,7 @@ flat in uint f_bone_idx;
 layout (std140)
 uniform u_locals {
 	mat4 model_mat;
+	vec4 model_col;
 };
 
 struct BoneData {
@@ -36,5 +37,5 @@ void main() {
 
 	float sun_diffuse = dot(sun_dir, world_norm) * 0.5;
 
-	tgt_color = vec4(f_col * (ambient + sun_diffuse), 1.0);
+	tgt_color = model_col * vec4(f_col * (ambient + sun_diffuse), 1.0);
 }
