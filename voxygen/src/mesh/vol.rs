@@ -81,6 +81,7 @@ pub fn push_vox_verts<
     offs: Vec3<f32>,
     col: Rgb<f32>,
     vcons: F,
+    error_makes_face: bool,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
@@ -88,7 +89,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos - Vec3::unit_x())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs,
@@ -104,7 +105,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos + Vec3::unit_x())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_x(),
@@ -120,7 +121,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos - Vec3::unit_y())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs,
@@ -136,7 +137,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos + Vec3::unit_y())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_y(),
@@ -152,7 +153,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos - Vec3::unit_z())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs,
@@ -168,7 +169,7 @@ pub fn push_vox_verts<
     if vol
         .get(pos + Vec3::unit_z())
         .map(|v| v.is_empty())
-        .unwrap_or(true)
+        .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
             offs + Vec3::unit_z(),
