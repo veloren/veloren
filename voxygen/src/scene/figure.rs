@@ -14,7 +14,7 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Weapon, Shoulder},
+        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon},
         Body, HumanoidBody,
     },
     figure::Segment,
@@ -276,8 +276,7 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0);
-                    }
-                    // TODO: Non-humanoid bodies
+                    } // TODO: Non-humanoid bodies
                 },
                 // TODO: Non-character actors
             }
@@ -309,8 +308,7 @@ impl FigureMgr {
                                 state.bone_consts(),
                             );
                         }
-                    }
-                    // TODO: Non-humanoid bodies
+                    } // TODO: Non-humanoid bodies
                 },
                 // TODO: Non-character actors
             }
