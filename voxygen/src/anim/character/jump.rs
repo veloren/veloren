@@ -48,11 +48,11 @@ impl Animation for JumpAnimation {
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-7.5, 0.0, 12.0);
+        next.l_hand.offset = Vec3::new(-6.0, 0.0, 12.0);
         next.l_hand.ori = Quaternion::rotation_x(wave_stopalt * 1.2 - waveslow * 0.15);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(7.5, 0.0, 12.0);
+        next.r_hand.offset = Vec3::new(9.0, 0.0, 12.0);
         next.r_hand.ori = Quaternion::rotation_x(wave_stopalt * -1.2 + waveslow * 0.15);
         next.r_hand.scale = Vec3::one();
 
@@ -67,7 +67,7 @@ impl Animation for JumpAnimation {
         next.weapon.offset = Vec3::new(-5.0, -6.0, 19.0);
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
-        
+
         next.l_shoulder.offset = Vec3::new(-10.0, -3.0, 2.5);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
         next.l_shoulder.scale = Vec3::one();
