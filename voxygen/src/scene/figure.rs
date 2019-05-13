@@ -14,7 +14,7 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Weapon},
+        actor::{Belt, Chest, Foot, Hand, Head, Pants, Weapon, Shoulder},
         Body, HumanoidBody,
     },
     figure::Segment,
@@ -191,7 +191,7 @@ impl FigureModelCache {
     fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::DefaultShoulder => "shoulder_l.vox",
+                Shoulder::Default => "shoulder_l.vox",
             },
             Vec3::new(2.5, 0.0, 0.0),
         )
@@ -200,7 +200,7 @@ impl FigureModelCache {
     fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::DefaultShoulder => "shoulder_r.vox",
+                Shoulder::Default => "shoulder_r.vox",
             },
             Vec3::new(2.5, 0.0, 0.0),
         )
