@@ -14,7 +14,7 @@ use common::{
     assets,
     comp::{
         self,
-        character::{Belt, Character, Chest, Foot, Hand, Head, Pants, Weapon, Shoulder, Draw},
+        character::{Belt, Character, Chest, Draw, Foot, Hand, Head, Pants, Shoulder, Weapon},
     },
     figure::Segment,
     msg,
@@ -205,18 +205,17 @@ impl FigureModelCache {
             Vec3::new(2.5, 0.0, 0.0),
         )
     }
-//    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
-//        Self::load_mesh(
-//            match draw {
-//                //Draw::DefaultDraw => "sword.vox", 
-//
-//            },
-//            Vec3::new(0.0, 0.0, -2.0)
-//
-//
-//        )
-//    }
-
+    //    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
+    //        Self::load_mesh(
+    //            match draw {
+    //                //Draw::DefaultDraw => "sword.vox",
+    //
+    //            },
+    //            Vec3::new(0.0, 0.0, -2.0)
+    //
+    //
+    //        )
+    //    }
 }
 
 pub struct FigureMgr {
