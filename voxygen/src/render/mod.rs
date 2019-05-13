@@ -10,7 +10,7 @@ mod util;
 pub use self::{
     consts::Consts,
     mesh::{Mesh, Quad, Tri},
-    model::Model,
+    model::{DynamicModel, Model},
     pipelines::{
         figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
         postprocess::{
@@ -40,6 +40,7 @@ pub enum RenderError {
     UpdateError(gfx::UpdateError<usize>),
     TexUpdateError(gfx::UpdateError<[u16; 3]>),
     CombinedError(gfx::CombinedError),
+    BufferCreationError(gfx::buffer::CreationError),
 }
 
 /// Used to represent a specific rendering configuration.

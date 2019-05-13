@@ -136,7 +136,7 @@ Voxygen has logged information about the problem (including this message) to the
 The information below is intended for developers and testers.
 
 Panic Payload: {:?}
-PanicInfo: {:?}", settings_clone.log.file, reason, panic_info);
+PanicInfo: {}", settings_clone.log.file, reason, panic_info);
 
         log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
 

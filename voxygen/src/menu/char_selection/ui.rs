@@ -1,17 +1,18 @@
 use crate::{
     render::Renderer,
-    ui::{self, BlankGraphic, Graphic, ImageGraphic, ScaleMode, Ui, VoxelGraphic},
+    ui::{
+        self,
+        img_ids::{ImageGraphic, VoxelGraphic},
+        ScaleMode, Ui,
+    },
     window::Window,
 };
-use common::{
-    assets,
-    comp::character::{Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon},
+use common::comp::character::{
+    Belt, Character, Chest, Foot, Gender, Hand, Head, Pants, Race, Weapon,
 };
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    image::Id as ImgId,
-    text::font::Id as FontId,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -154,7 +155,6 @@ widget_ids! {
         warpaint_slider_indicator,
         warpaint_slider_range,
         warpaint_slider_text,
-
     }
 }
 
@@ -315,13 +315,13 @@ impl CharSelectionUi {
 
         // Background Image
         if !self.character_creation {
-            Image::new(self.imgs.bg_selection)
-                .middle_of(ui_widgets.window)
-                .set(self.ids.bg_selection, ui_widgets);
+            //Image::new(self.imgs.bg_selection)
+            //    .middle_of(ui_widgets.window)
+            //    .set(self.ids.bg_selection, ui_widgets);
 
             // Logout_Button
             if Button::image(self.imgs.button)
-                .bottom_left_with_margins_on(self.ids.bg_selection, 10.0, 10.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -337,7 +337,7 @@ impl CharSelectionUi {
 
             // Create Character Button
             if Button::image(self.imgs.button)
-                .mid_bottom_with_margin_on(self.ids.bg_selection, 10.0)
+                .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
                 .w_h(270.0, 50.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -353,7 +353,7 @@ impl CharSelectionUi {
             }
             // Test Characters
             if Button::image(self.imgs.test_char_l_button)
-                .bottom_left_with_margins_on(self.ids.bg_selection, 395.0, 716.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 395.0, 716.0)
                 .w_h(95.0, 130.0)
                 .hover_image(self.imgs.test_char_l_button)
                 .press_image(self.imgs.test_char_l_button)
@@ -375,7 +375,7 @@ impl CharSelectionUi {
                 .set(self.ids.version, ui_widgets);
             // Click Character to Login <-- Temporary!
             Image::new(self.imgs.window_frame_2)
-                .mid_top_with_margin_on(self.ids.bg_selection, 60.0)
+                .mid_top_with_margin_on(ui_widgets.window, 60.0)
                 .w_h(700.0, 70.0)
                 .set(self.ids.help_text_bg, ui_widgets);
             Text::new("Click character to select it")
@@ -445,12 +445,13 @@ impl CharSelectionUi {
         // Character_Creation //////////////
         else {
             // Background
-            Image::new(self.imgs.bg_creation)
-                .middle_of(ui_widgets.window)
-                .set(self.ids.bg_creation, ui_widgets);
+            //Image::new(self.imgs.bg_creation)
+            //    .middle_of(ui_widgets.window)
+            //    .set(self.ids.bg_creation, ui_widgets);
+
             // Back Button
             if Button::image(self.imgs.button)
-                .bottom_left_with_margins_on(self.ids.bg_creation, 10.0, 10.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -465,7 +466,7 @@ impl CharSelectionUi {
             }
             // Create Button
             if Button::image(self.imgs.button)
-                .bottom_right_with_margins_on(self.ids.bg_creation, 10.0, 10.0)
+                .bottom_right_with_margins_on(ui_widgets.window, 10.0, 10.0)
                 .w_h(150.0, 40.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
@@ -481,7 +482,7 @@ impl CharSelectionUi {
             }
             // Character Name Input
             Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
-                .mid_bottom_with_margin_on(self.ids.bg_creation, 20.0)
+                .mid_bottom_with_margin_on(ui_widgets.window, 20.0)
                 .set(self.ids.name_input_bg, ui_widgets);
             Button::image(self.imgs.name_input)
                 .w_h(337.0, 67.0)
@@ -513,7 +514,7 @@ impl CharSelectionUi {
                 self.imgs.creation_window
             })
             .w_h(628.0, 814.0)
-            .top_left_with_margins_on(self.ids.bg_creation, 60.0, 30.0)
+            .top_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
             .set(self.ids.creation_window, ui_widgets);
 
             // Arrows

@@ -71,6 +71,7 @@ impl<'a> Widget for Map<'a> {
             .scroll_kids()
             .scroll_kids_vertically()
             .set(state.ids.map_bg, ui);
+
         // Frame
         Image::new(self.imgs.map_frame_l)
             .top_left_with_margins_on(state.ids.map_bg, 0.0, 0.0)
@@ -88,12 +89,6 @@ impl<'a> Widget for Map<'a> {
             .down_from(state.ids.map_frame_l, 0.0)
             .w_h(412.0, 488.0)
             .set(state.ids.map_frame_bl, ui);
-
-        // Icon
-        Image::new(self.imgs.map_icon)
-            .w_h(224.0 / 3.0, 224.0 / 3.0)
-            .top_left_with_margins_on(state.ids.map_frame, -10.0, -10.0)
-            .set(state.ids.map_icon, ui);
 
         // Icon
         Image::new(self.imgs.map_icon)
