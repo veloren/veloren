@@ -41,27 +41,39 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(false)
                 && vel.0.z <= 0.0;
 
-            if on_ground {
+            let friction = if on_ground {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 4.0 - vel.0.map(|e| e * vel.0.magnitude() + e) * 0.05;
+                vel.0 += control.move_dir * 4.0;
 
                 if control.jumping {
                     vel.0.z += 16.0;
                 }
+
+                0.15
             } else {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
                 vel.0 += control.move_dir * 0.2 - vel.0.map(|e| e * e.abs() + e) * 0.002;
 
                 if control.gliding && vel.0.z < 0.0 {
-                    vel.0.z += 9.81 * 3.95 * dt.0;
+                    // TODO: Don't hard-code this
+                    let anti_grav = 9.81 * 3.95;
+                    vel.0.z += anti_grav * dt.0 * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
                 }
+
+                0.006
+            };
+
+            // Friction
+            vel.0 -= vel.0.map(|e| (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5)).min(e.abs()).copysign(e)) * Vec3::new(1.0, 1.0, 0.0);
+
+            if vel.0.magnitude_squared() != 0.0 {
+                dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
             }
 
             let animation = if on_ground {
                 if control.move_dir.magnitude() > 0.01 {
-                    dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
                     Animation::Run
                 } else {
                     Animation::Idle
