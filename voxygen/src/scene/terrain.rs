@@ -93,9 +93,19 @@ impl Terrain {
                     for k in -1..2 {
                         let pos = pos + Vec3::new(i, j, k);
 
-                        if client.state().terrain().get_key(pos).is_some() {
-                            // re-mesh loaded chunks that border new/changed chunks
-                            if self.chunks.contains_key(&pos) || (i, j, k) == (0, 0, 0) {
+                        if !self.chunks.contains_key(&pos) {
+                            let mut neighbours = true;
+                            for i in -1..2 {
+                                for j in -1..2 {
+                                    neighbours &= client
+                                        .state()
+                                        .terrain()
+                                        .get_key(pos + Vec2::new(i, j))
+                                        .is_some();
+                                }
+                            }
+
+                            if neighbours {
                                 self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
                                     pos,
                                     started_tick: current_tick,
