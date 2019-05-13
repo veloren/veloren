@@ -308,9 +308,7 @@ impl FigureMgr {
                                 state.bone_consts(),
                             );
                         }
-                    Body::Quadruped(body) => {..};
                     } // TODO: Non-humanoid bodies
-
                 },
                 // TODO: Non-character actors
             }

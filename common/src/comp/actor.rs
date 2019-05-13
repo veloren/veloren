@@ -129,10 +129,47 @@ impl HumanoidBody {
         }
     }
 }
+const ALL_QRACES: [Race; 6] = [
+    Race::Danari,
+    Race::Dwarf,
+    Race::Elf,
+    Race::Human,
+    Race::Orc,
+    Race::Undead,];
+const ALL_QBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+const ALL_QHEADS: [Head; 1] = [Head::Default];
+const ALL_QCHESTS: [Chest; 1] = [Chest::Default];
+const ALL_QHANDS: [Hand; 1] = [Hand::Default];
+const ALL_QFEET: [Foot; 1] = [Foot::Default];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct QuadrupedBody {
+    pub race: Race,
+    pub body_type: BodyType,
+    pub head: Head,
+    pub chest: Chest,
+    pub hand: Hand,
+    pub foot: Foot,
+
+}
+
+impl QuadrupedBody {
+    pub fn random() -> Self {
+        Self {
+            race: *thread_rng().choose(&ALL_QRACES).unwrap(),
+            body_type: *thread_rng().choose(&ALL_QBODY_TYPES).unwrap(),
+            head: *thread_rng().choose(&ALL_QHEADS).unwrap(),
+            chest: *thread_rng().choose(&ALL_QCHESTS).unwrap(),
+            hand: *thread_rng().choose(&ALL_QHANDS).unwrap(),
+            foot: *thread_rng().choose(&ALL_QFEET).unwrap(),
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Body {
     Humanoid(HumanoidBody),
+    Quadruped(QuadrupedBody),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
