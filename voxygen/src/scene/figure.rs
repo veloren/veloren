@@ -316,13 +316,14 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, actor, animation_history) in (
+        for (entity, pos, vel, dir, actor, animation_history, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
+            ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
         {
@@ -353,7 +354,7 @@ impl FigureMgr {
 
                         state.skeleton.interpolate(&target_skeleton);
 
-                        state.update(renderer, pos.0, dir.0);
+                        state.update(renderer, pos.0, dir.0, Rgba::white());
                     },
                     Body::Quadruped(body) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
@@ -382,7 +383,15 @@ impl FigureMgr {
 
                         state.skeleton.interpolate(&target_skeleton);
 
-                        state.update(renderer, pos.0, dir.0);
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| {
+                                Rgba::new(1.0, 0.7, 0.7, 1.0)
+                            })
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        state.update(renderer, pos.0, dir.0, col);
                     },
                 },
                 // TODO: Non-character actors
@@ -442,12 +451,12 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
+    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>, col: Rgba<f32>) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
             * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
 
-        let locals = FigureLocals::new(mat);
+        let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
         renderer
