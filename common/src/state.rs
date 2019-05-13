@@ -95,7 +95,7 @@ impl State {
     // Create a new Sphynx ECS world
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsPacket>) {
         // Register synced components
-        ecs.register_synced::<comp::Character>();
+        ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
 
         // Register unsynched (or synced by other means) components
@@ -110,7 +110,7 @@ impl State {
         ecs.add_resource(TimeOfDay(0.0));
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainMap::new());
+        ecs.add_resource(TerrainMap::new().unwrap());
     }
 
     /// Register a component with the state's ECS
@@ -177,7 +177,7 @@ impl State {
         if self
             .ecs
             .write_resource::<TerrainMap>()
-            .insert(key, chunk)
+            .insert(key, Arc::new(chunk))
             .is_some()
         {
             self.changes.changed_chunks.insert(key);

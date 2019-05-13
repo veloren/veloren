@@ -7,12 +7,15 @@ pub enum ClientMsg {
     Register {
         player: comp::Player,
     },
-    Character(comp::Character),
+    Character {
+        name: String,
+        body: comp::HumanoidBody,
+    },
     RequestState(ClientState),
     Ping,
     Pong,
     Chat(String),
-    PlayerAnimation(comp::character::AnimationHistory),
+    PlayerAnimation(comp::AnimationHistory),
     PlayerPhysics {
         pos: comp::phys::Pos,
         vel: comp::phys::Vel,

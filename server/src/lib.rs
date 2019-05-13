@@ -14,7 +14,6 @@ use crate::{
 };
 use common::{
     comp,
-    comp::character::Animation,
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
@@ -81,10 +80,13 @@ impl Server {
         };
 
         for i in 0..4 {
-            this.create_npc(comp::Character::random())
-                .with(comp::Control::default())
-                .with(comp::Agent::Wanderer(Vec2::zero()))
-                .build();
+            this.create_npc(
+                "Tobermory".to_owned(),
+                comp::Body::Humanoid(comp::HumanoidBody::random()),
+            )
+            .with(comp::Control::default())
+            .with(comp::Agent::Wanderer(Vec2::zero()))
+            .build();
         }
 
         Ok(this)
@@ -114,24 +116,31 @@ impl Server {
 
     /// Build a non-player character
     #[allow(dead_code)]
-    pub fn create_npc(&mut self, character: comp::Character) -> EcsEntityBuilder {
+    pub fn create_npc(&mut self, name: String, body: comp::Body) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
             .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::AnimationHistory::new(Animation::Idle))
-            .with(character)
+            .with(comp::AnimationHistory::new(comp::Animation::Idle))
+            .with(comp::Actor::Character { name, body })
     }
 
     pub fn create_player_character(
         state: &mut State,
         entity: EcsEntity,
         client: &mut Client,
-        character: comp::Character,
+        name: String,
+        body: comp::HumanoidBody,
     ) {
-        state.write_component(entity, character);
+        state.write_component(
+            entity,
+            comp::Actor::Character {
+                name,
+                body: comp::Body::Humanoid(body),
+            },
+        );
         state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
@@ -139,7 +148,7 @@ impl Server {
         state.write_component(entity, comp::phys::ForceUpdate);
 
         // Set initial animation
-        state.write_component(entity, comp::AnimationHistory::new(Animation::Idle));
+        state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
 
         // Tell the client his request was successful
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
@@ -337,13 +346,13 @@ impl Server {
                             // Use RequestState instead (No need to send `player` again)
                             _ => client.error_state(RequestStateError::Impossible),
                         },
-                        ClientMsg::Character(character) => match client.client_state {
+                        ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
                             ClientState::Registered | ClientState::Spectator => {
-                                Self::create_player_character(state, entity, client, character)
+                                Self::create_player_character(state, entity, client, name, body)
                             }
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
