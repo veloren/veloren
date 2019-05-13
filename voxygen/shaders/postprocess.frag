@@ -1,5 +1,7 @@
 #version 330 core
 
+#include <globals.glsl>
+
 uniform sampler2D src_color;
 
 in vec2 f_pos;
@@ -7,18 +9,6 @@ in vec2 f_pos;
 layout (std140)
 uniform u_locals {
 	vec4 nul;
-};
-
-layout (std140)
-uniform u_globals {
-	mat4 view_mat;
-	mat4 proj_mat;
-	vec4 cam_pos;
-	vec4 focus_pos;
-	vec4 view_distance;
-	vec4 time_of_day;
-	vec4 tick;
-	vec4 screen_res;
 };
 
 out vec4 tgt_color;
