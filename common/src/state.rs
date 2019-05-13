@@ -97,6 +97,7 @@ impl State {
         // Register synced components
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
+        ecs.register_synced::<comp::Stats>();
 
         // Register unsynched (or synced by other means) components
         ecs.register::<comp::phys::Pos>();

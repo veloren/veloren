@@ -125,6 +125,7 @@ impl Server {
             .with(comp::phys::Dir(Vec3::unit_y()))
             .with(comp::AnimationHistory::new(comp::Animation::Idle))
             .with(comp::Actor::Character { name, body })
+            .with(comp::Stats::default())
     }
 
     pub fn create_player_character(
@@ -141,6 +142,7 @@ impl Server {
                 body: comp::Body::Humanoid(body),
             },
         );
+        state.write_component(entity, comp::Stats::default());
         state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
