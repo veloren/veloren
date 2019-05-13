@@ -27,7 +27,12 @@ pub enum Head {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
-    Default,
+    Default, 
+    Blue, 
+    Brown, 
+    Dark, 
+    Green, 
+    Orange,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -100,7 +105,14 @@ const ALL_RACES: [Race; 6] = [
 ];
 const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
 const ALL_HEADS: [Head; 1] = [Head::Default];
-const ALL_CHESTS: [Chest; 1] = [Chest::Default];
+const ALL_CHESTS: [Chest; 6] = [
+    Chest::Default, 
+    Chest::Blue, 
+    Chest::Brown, 
+    Chest::Dark, 
+    Chest::Green, 
+    Chest::Orange
+];
 const ALL_BELTS: [Belt; 1] = [Belt::Default];
 const ALL_PANTS: [Pants; 1] = [Pants::Default];
 const ALL_HANDS: [Hand; 1] = [Hand::Default];
