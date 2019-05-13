@@ -46,6 +46,7 @@ impl Window {
         key_map.insert(settings.controls.move_back, Key::MoveBack);
         key_map.insert(settings.controls.move_right, Key::MoveRight);
         key_map.insert(settings.controls.jump, Key::Jump);
+        key_map.insert(settings.controls.glide, Key::Glide);
         key_map.insert(settings.controls.map, Key::Map);
         key_map.insert(settings.controls.bag, Key::Bag);
         key_map.insert(settings.controls.quest_log, Key::QuestLog);
@@ -182,6 +183,7 @@ pub enum Key {
     MoveLeft,
     MoveRight,
     Jump,
+    Glide,
     Enter,
     Escape,
     Map,
