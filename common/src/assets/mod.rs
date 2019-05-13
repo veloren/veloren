@@ -5,6 +5,7 @@ use std::{
     any::Any,
     collections::HashMap,
     fs::File,
+    io::BufReader,
     io::Read,
     sync::{Arc, RwLock},
 };
@@ -74,13 +75,17 @@ pub trait Asset: Send + Sync + Sized {
 
 impl Asset for DynamicImage {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(image::load_from_memory(load_from_path(specifier)?.as_slice()).unwrap())
+        let mut buf = Vec::new();
+        load_from_path(specifier)?.read_to_end(&mut buf)?;
+        Ok(image::load_from_memory(&buf).unwrap())
     }
 }
 
 impl Asset for DotVoxData {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(dot_vox::load_bytes(load_from_path(specifier)?.as_slice()).unwrap())
+        let mut buf = Vec::new();
+        load_from_path(specifier)?.read_to_end(&mut buf)?;
+        Ok(dot_vox::load_bytes(&buf).unwrap())
     }
 }
 
@@ -104,13 +109,9 @@ fn try_open_with_path(name: &str) -> Option<File> {
     .find_map(|ref filename| File::open(filename).ok())
 }
 
-pub fn load_from_path(name: &str) -> Result<Vec<u8>, Error> {
+pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
     match try_open_with_path(name) {
-        Some(mut f) => {
-            let mut content = Vec::<u8>::new();
-            f.read_to_end(&mut content)?;
-            Ok(content)
-        }
+        Some(mut f) => Ok(BufReader::new(f)),
         None => Err(Error::NotFound(name.to_owned())),
     }
 }
