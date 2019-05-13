@@ -71,6 +71,7 @@ impl Animation for RunAnimation {
         next.r_shoulder.offset = Vec3::new(0.0, -3.0, 2.5);
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one();
+
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.4);
         next.torso.ori = Quaternion::rotation_x(-velocity * 0.05 - wavecos * 0.1);
         next.torso.scale = Vec3::one() / 11.0;
