@@ -26,11 +26,11 @@ pub enum VolMapErr {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 #[derive(Clone)]
-pub struct VolMap<V: Vox + Clone, S: VolSize + Clone, M: Clone> {
+pub struct VolMap<V: Vox, S: VolSize, M> {
     chunks: HashMap<Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
+impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| {
@@ -49,12 +49,12 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> BaseVol for VolMap<V, S, M> {
+impl<V: Vox, S: VolSize, M> BaseVol for VolMap<V, S, M> {
     type Vox = V;
     type Err = VolMapErr;
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> ReadVol for VolMap<V, S, M> {
+impl<V: Vox, S: VolSize, M> ReadVol for VolMap<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, VolMapErr> {
         let ck = Self::chunk_key(pos);
@@ -68,7 +68,7 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> ReadVol for VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> SampleVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize, M: Clone> SampleVol for VolMap<V, S, M> {
     type Sample = VolMap<V, S, M>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
@@ -121,7 +121,7 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> SampleVol for VolMap<V, S, M>
 
         // Ok(sample)
 
-        let mut sample = VolMap::new();
+        let mut sample = VolMap::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -158,7 +158,7 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> WriteVol for VolMap<V, S, M> 
     }
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M + Clone> VolMap<V, S, M> {
+impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     pub fn new() -> Result<Self, VolMapErr> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
@@ -214,11 +214,11 @@ impl<V: Vox + Clone, S: VolSize + Clone, M + Clone> VolMap<V, S, M> {
     }
 }
 
-pub struct ChunkIter<'a, V: Vox + Clone, S: VolSize + Clone, M: Clone> {
+pub struct ChunkIter<'a, V: Vox, S: VolSize, M> {
     iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
-impl<'a, V: Vox + Clone, S: VolSize + Clone, M: Clone> Iterator for ChunkIter<'a, V, S, M> {
+impl<'a, V: Vox, S: VolSize, M> Iterator for ChunkIter<'a, V, S, M> {
     type Item = (Vec3<i32>, &'a Arc<Chunk<V, S, M>>);
 
     fn next(&mut self) -> Option<Self::Item> {
