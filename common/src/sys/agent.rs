@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
                             let dist = tgt_pos.distance(pos.0);
                             control.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
-                            } else if dist < 1.5 && pos.0 != tgt_pos {
+                            } else if dist < 1.5 && dist > 0.0 {
                                 Vec2::from(pos.0 - tgt_pos).normalized()
                             } else {
                                 Vec2::zero()

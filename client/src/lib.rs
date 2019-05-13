@@ -201,8 +201,7 @@ impl Client {
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
-                    .reduce_max()
-                    > 6
+                    .reduce_max() > 10
                 {
                     chunks_to_remove.push(key);
                 }
@@ -213,7 +212,7 @@ impl Client {
 
             // Request chunks from the server
             // TODO: This is really not very efficient
-            'outer: for dist in 0..9 {
+            'outer: for dist in 0..10 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
                         for k in 0..3 {
