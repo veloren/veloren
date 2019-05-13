@@ -37,6 +37,7 @@ impl Meshable for Segment {
                     offs + pos.map(|e| e as f32),
                     col,
                     create_vertex,
+                    true,
                 );
             }
         }
