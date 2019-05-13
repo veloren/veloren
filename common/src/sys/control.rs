@@ -54,15 +54,17 @@ impl<'a> System<'a> for Sys {
             } else {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 0.2 - vel.0.map(|e| e * e.abs() + e) * 0.002;
+                vel.0 += control.move_dir * 0.2;
 
                 if control.gliding && vel.0.z < 0.0 {
                     // TODO: Don't hard-code this
                     let anti_grav = 9.81 * 3.95;
                     vel.0.z += anti_grav * dt.0 * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
-                }
 
-                0.006
+                    0.008
+                } else {
+                    0.015
+                }
             };
 
             // Friction
