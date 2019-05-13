@@ -110,7 +110,7 @@ impl State {
         ecs.add_resource(TimeOfDay(0.0));
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainMap::new());
+        ecs.add_resource(TerrainMap::new().unwrap());
     }
 
     /// Register a component with the state's ECS
