@@ -217,7 +217,7 @@ impl FigureModelCache {
             match shoulder {
                 Shoulder::Default => "shoulder_l.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(2.5, -0.5, 0.0),
         )
     }
 
@@ -226,7 +226,7 @@ impl FigureModelCache {
             match shoulder {
                 Shoulder::Default => "shoulder_r.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(2.5, -0.5, 0.0),
         )
     }
     fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
