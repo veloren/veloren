@@ -53,6 +53,10 @@ impl<'a> System<'a> for Sys {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
                 vel.0 += control.move_dir * 0.2 - vel.0.map(|e| e * e.abs() + e) * 0.002;
+
+                if control.gliding && vel.0.z < 0.0 {
+                    vel.0.z += 9.81 * 3.95 * dt.0;
+                }
             }
 
             let animation = if on_ground {

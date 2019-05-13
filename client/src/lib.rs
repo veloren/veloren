@@ -156,6 +156,7 @@ impl Client {
             comp::Control {
                 move_dir: input.move_dir,
                 jumping: input.jumping,
+                gliding: input.gliding,
             },
         );
 

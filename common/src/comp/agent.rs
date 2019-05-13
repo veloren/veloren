@@ -18,6 +18,7 @@ impl Component for Agent {
 pub struct Control {
     pub move_dir: Vec2<f32>,
     pub jumping: bool,
+    pub gliding: bool,
 }
 
 impl Default for Control {
@@ -25,6 +26,7 @@ impl Default for Control {
         Self {
             move_dir: Vec2::zero(),
             jumping: false,
+            gliding: false,
         }
     }
 }
