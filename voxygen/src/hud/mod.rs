@@ -306,7 +306,7 @@ impl Hud {
                 .w_h(100.0 * 0.2, 100.0 * 0.2)
                 .hover_image(self.imgs.close_button_hover)
                 .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.help_bg, 8.0, 3.0)
+                .top_right_with_margins_on(self.ids.help_bg, 4.0, 4.0)
                 .set(self.ids.button_help2, ui_widgets)
                 .was_clicked()
             {
@@ -475,6 +475,13 @@ impl Hud {
                 self.show.toggle_ui();
                 true
             }
+            WinEvent::KeyDown(Key::ToggleCursor) => {
+                self.force_ungrab = !self.force_ungrab;
+                if self.force_ungrab {
+                    global_state.window.grab_cursor(false);
+                }
+                true
+            }
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
             WinEvent::KeyDown(Key::Enter) => {
@@ -525,13 +532,6 @@ impl Hud {
                 }
                 Key::Help => {
                     self.show.toggle_help();
-                    true
-                }
-                Key::ToggleCursor => {
-                    self.force_ungrab = !self.force_ungrab;
-                    if self.force_ungrab {
-                        global_state.window.grab_cursor(false);
-                    }
                     true
                 }
                 _ => false,

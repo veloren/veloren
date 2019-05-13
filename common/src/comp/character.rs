@@ -140,6 +140,16 @@ pub struct AnimationHistory {
     pub time: f64,
 }
 
+impl AnimationHistory {
+    pub fn new(animation: Animation) -> Self {
+        Self {
+            last: None,
+            current: animation,
+            time: 0.0,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Animation {
     Idle,

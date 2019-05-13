@@ -32,12 +32,12 @@ impl Animation for IdleAnimation {
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         let head_look = Vec2::new(
-            ((global_time + anim_time) as f32 / 5.0)
+            ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(7331.0)
                 .sin()
                 * 0.5,
-            ((global_time + anim_time) as f32 / 5.0)
+            ((global_time + anim_time) as f32 / 8.0)
                 .floor()
                 .mul(1337.0)
                 .sin()
