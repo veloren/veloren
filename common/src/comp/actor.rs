@@ -13,7 +13,7 @@ pub enum Race {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Gender {
+pub enum BodyType {
     Female,
     Male,
     Unspecified,
@@ -21,32 +21,32 @@ pub enum Gender {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Head {
-    DefaultHead,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
-    DefaultChest,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Belt {
-    DefaultBelt,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Pants {
-    DefaultPants,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hand {
-    DefaultHand,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Foot {
-    DefaultFoot,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -62,42 +62,45 @@ pub enum Weapon {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Shoulder {
-    DefaultShoulder,
+    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Draw {
-    DefaultDraw,
+    Default,
 }
 
-use Belt::*;
-use Chest::*;
-use Draw::*;
-use Foot::*;
-use Gender::*;
-use Hand::*;
-use Head::*;
-use Pants::*;
-use Race::*;
-use Shoulder::*;
-use Weapon::*;
-
-const ALL_RACES: [Race; 6] = [Danari, Dwarf, Elf, Human, Orc, Undead];
-const ALL_GENDERS: [Gender; 3] = [Female, Male, Unspecified];
-const ALL_HEADS: [Head; 1] = [DefaultHead];
-const ALL_CHESTS: [Chest; 1] = [DefaultChest];
-const ALL_BELTS: [Belt; 1] = [DefaultBelt];
-const ALL_PANTS: [Pants; 1] = [DefaultPants];
-const ALL_HANDS: [Hand; 1] = [DefaultHand];
-const ALL_FEET: [Foot; 1] = [DefaultFoot];
-const ALL_WEAPONS: [Weapon; 7] = [Daggers, SwordShield, Sword, Axe, Hammer, Bow, Staff];
-const ALL_SHOULDERS: [Shoulder; 1] = [DefaultShoulder];
-const ALL_DRAW: [Draw; 1] = [DefaultDraw];
+const ALL_RACES: [Race; 6] = [
+    Race::Danari,
+    Race::Dwarf,
+    Race::Elf,
+    Race::Human,
+    Race::Orc,
+    Race::Undead,
+];
+const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+const ALL_HEADS: [Head; 1] = [Head::Default];
+const ALL_CHESTS: [Chest; 1] = [Chest::Default];
+const ALL_BELTS: [Belt; 1] = [Belt::Default];
+const ALL_PANTS: [Pants; 1] = [Pants::Default];
+const ALL_HANDS: [Hand; 1] = [Hand::Default];
+const ALL_FEET: [Foot; 1] = [Foot::Default];
+const ALL_WEAPONS: [Weapon; 7] = [
+    Weapon::Daggers,
+    Weapon::SwordShield,
+    Weapon::Sword,
+    Weapon::Axe,
+    Weapon::Hammer,
+    Weapon::Bow,
+    Weapon::Staff,
+];
+const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
+const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Character {
+pub struct HumanoidBody {
     pub race: Race,
-    pub gender: Gender,
+    pub body_type: BodyType,
     pub head: Head,
     pub chest: Chest,
     pub belt: Belt,
@@ -109,11 +112,11 @@ pub struct Character {
     pub draw: Draw,
 }
 
-impl Character {
+impl HumanoidBody {
     pub fn random() -> Self {
         Self {
             race: *thread_rng().choose(&ALL_RACES).unwrap(),
-            gender: *thread_rng().choose(&ALL_GENDERS).unwrap(),
+            body_type: *thread_rng().choose(&ALL_BODY_TYPES).unwrap(),
             head: *thread_rng().choose(&ALL_HEADS).unwrap(),
             chest: *thread_rng().choose(&ALL_CHESTS).unwrap(),
             belt: *thread_rng().choose(&ALL_BELTS).unwrap(),
@@ -125,6 +128,20 @@ impl Character {
             draw: *thread_rng().choose(&ALL_DRAW).unwrap(),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Body {
+    Humanoid(HumanoidBody),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Actor {
+    Character { name: String, body: Body },
+}
+
+impl Component for Actor {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -149,10 +166,6 @@ pub enum Animation {
     Idle,
     Run,
     Jump,
-}
-
-impl Component for Character {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
 impl Component for AnimationHistory {
