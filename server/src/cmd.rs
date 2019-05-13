@@ -4,7 +4,7 @@
 
 use crate::Server;
 use common::{comp, msg::ServerMsg};
-use specs::{join::Join, Entity as EcsEntity};
+use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
 use lazy_static::lazy_static;
@@ -72,8 +72,14 @@ lazy_static! {
         ChatCommand::new(
             "tp",
             "{}",
-            "/tp <alias>: Teleport to another player",
+            "/tp <alias> : Teleport to another player",
             handle_tp
+        ),
+        ChatCommand::new(
+            "pet",
+            "{}",
+            "/pet : Spawn a test pet NPC",
+            handle_pet
         ),
         ChatCommand::new("help", "", "/help: Display this message", handle_help)
     ];
@@ -176,6 +182,35 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
         None => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    match server
+        .state
+        .read_component_cloned::<comp::phys::Pos>(entity)
+    {
+        Some(pos) => {
+            let mut current = entity;
+
+            for _ in 0..1 {
+                current = server
+                    .create_npc(comp::Character::random())
+                    .with(comp::Control::default())
+                    .with(comp::Agent::Pet {
+                        target: current,
+                        offset: Vec2::zero(),
+                    })
+                    .with(pos)
+                    .build();
+            }
+            server
+                .clients
+                .notify(entity, ServerMsg::Chat("Pet spawned!".to_owned()));
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
 
