@@ -29,7 +29,6 @@ pub struct CharacterSkeleton {
     r_shoulder: Bone,
     torso: Bone,
     draw: Bone,
-
 }
 
 impl CharacterSkeleton {
@@ -48,7 +47,6 @@ impl CharacterSkeleton {
             r_shoulder: Bone::default(),
             torso: Bone::default(),
             draw: Bone::default(),
-
         }
     }
 }
@@ -90,10 +88,7 @@ impl Skeleton for CharacterSkeleton {
         self.weapon.interpolate(&target.weapon);
         self.l_shoulder.interpolate(&target.l_shoulder);
         self.r_shoulder.interpolate(&target.r_shoulder);
-        self.torso.interpolate(&target.torso);        
+        self.torso.interpolate(&target.torso);
         self.draw.interpolate(&target.draw);
-
-
-
     }
 }

@@ -79,9 +79,6 @@ impl Animation for RunAnimation {
         next.draw.ori = Quaternion::rotation_y(-0.2);
         next.draw.scale = Vec3::one();
 
-
-
-
         next
     }
 }
