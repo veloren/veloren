@@ -30,7 +30,7 @@ pub struct VolMap<V: Vox, S: VolSize, M> {
     chunks: HashMap<Vec3<i32>, Arc<Chunk<V, S, M>>>,
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
+impl<V: Vox, S: VolSize, M> VolMap<V, S, M> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| {
@@ -49,12 +49,12 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     }
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> BaseVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize, M: Clone> BaseVol for VolMap<V, S, M> {
     type Vox = V;
     type Err = VolMapErr;
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> ReadVol for VolMap<V, S, M> {
+impl<V: Vox + Clone, S: VolSize, M: Clone> ReadVol for VolMap<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, VolMapErr> {
         let ck = Self::chunk_key(pos);
