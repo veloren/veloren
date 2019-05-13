@@ -14,7 +14,8 @@ use common::{
     assets,
     comp::{
         self,
-        character::{Belt, Character, Chest, Draw, Foot, Hand, Head, Pants, Shoulder, Weapon},
+        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon},
+        Body, HumanoidBody,
     },
     figure::Segment,
     msg,
@@ -25,7 +26,7 @@ use std::{collections::HashMap, f32};
 use vek::*;
 
 pub struct FigureModelCache {
-    models: HashMap<Character, (Model<FigurePipeline>, u64)>,
+    models: HashMap<HumanoidBody, (Model<FigurePipeline>, u64)>,
 }
 
 impl FigureModelCache {
@@ -38,31 +39,30 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
-        character: Character,
+        body: HumanoidBody,
         tick: u64,
     ) -> &Model<FigurePipeline> {
-        match self.models.get_mut(&character) {
+        match self.models.get_mut(&body) {
             Some((model, last_used)) => {
                 *last_used = tick;
             }
             None => {
                 self.models.insert(
-                    character,
+                    body,
                     (
                         {
                             let bone_meshes = [
-                                Some(Self::load_head(character.head)),
-                                Some(Self::load_chest(character.chest)),
-                                Some(Self::load_belt(character.belt)),
-                                Some(Self::load_pants(character.pants)),
-                                Some(Self::load_left_hand(character.hand)),
-                                Some(Self::load_right_hand(character.hand)),
-                                Some(Self::load_left_foot(character.foot)),
-                                Some(Self::load_right_foot(character.foot)),
-                                Some(Self::load_weapon(character.weapon)),
-                                Some(Self::load_left_shoulder(character.shoulder)),
-                                Some(Self::load_right_shoulder(character.shoulder)),
-                                //Some(Self::load_draw(character.draw)),
+                                Some(Self::load_head(body.head)),
+                                Some(Self::load_chest(body.chest)),
+                                Some(Self::load_belt(body.belt)),
+                                Some(Self::load_pants(body.pants)),
+                                Some(Self::load_left_hand(body.hand)),
+                                Some(Self::load_right_hand(body.hand)),
+                                Some(Self::load_left_foot(body.foot)),
+                                Some(Self::load_right_foot(body.foot)),
+                                Some(Self::load_weapon(body.weapon)),
+                                Some(Self::load_left_shoulder(body.shoulder)),
+                                Some(Self::load_right_shoulder(body.shoulder)),
                                 None,
                                 None,
                                 None,
@@ -89,7 +89,7 @@ impl FigureModelCache {
             }
         }
 
-        &self.models[&character].0
+        &self.models[&body].0
     }
 
     pub fn clean(&mut self, tick: u64) {
@@ -108,7 +108,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::DefaultHead => "head.vox",
+                Head::Default => "head.vox",
             },
             Vec3::new(-7.0, -5.5, -6.0),
         )
@@ -117,7 +117,7 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::DefaultChest => "chest.vox",
+                Chest::Default => "chest.vox",
             },
             Vec3::new(-6.0, -3.5, 0.0),
         )
@@ -126,7 +126,7 @@ impl FigureModelCache {
     fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::DefaultBelt => "belt.vox",
+                Belt::Default => "belt.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -135,7 +135,7 @@ impl FigureModelCache {
     fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::DefaultPants => "pants.vox",
+                Pants::Default => "pants.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -144,7 +144,7 @@ impl FigureModelCache {
     fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::DefaultHand => "hand.vox",
+                Hand::Default => "hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
@@ -153,7 +153,7 @@ impl FigureModelCache {
     fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::DefaultHand => "hand.vox",
+                Hand::Default => "hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
@@ -162,7 +162,7 @@ impl FigureModelCache {
     fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::DefaultFoot => "foot.vox",
+                Foot::Default => "foot.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
@@ -171,7 +171,7 @@ impl FigureModelCache {
     fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::DefaultFoot => "foot.vox",
+                Foot::Default => "foot.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
@@ -191,7 +191,7 @@ impl FigureModelCache {
     fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::DefaultShoulder => "shoulder_l.vox",
+                Shoulder::Default => "shoulder_l.vox",
             },
             Vec3::new(2.5, 0.0, 0.0),
         )
@@ -200,7 +200,7 @@ impl FigureModelCache {
     fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::DefaultShoulder => "shoulder_r.vox",
+                Shoulder::Default => "shoulder_r.vox",
             },
             Vec3::new(2.5, 0.0, 0.0),
         )
@@ -238,42 +238,48 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, character, animation_history) in (
+        for (entity, pos, vel, dir, actor, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
-            &ecs.read_storage::<comp::Character>(),
+            &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
         )
             .join()
         {
-            let state = self
-                .states
-                .entry(entity)
-                .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
+            match actor {
+                comp::Actor::Character { body, .. } => match body {
+                    Body::Humanoid(body) => {
+                        let state = self.states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, CharacterSkeleton::new())
+                        });
 
-            let target_skeleton = match animation_history.current {
-                comp::character::Animation::Idle => IdleAnimation::update_skeleton(
-                    state.skeleton_mut(),
-                    time,
-                    animation_history.time,
-                ),
-                comp::character::Animation::Run => RunAnimation::update_skeleton(
-                    state.skeleton_mut(),
-                    (vel.0.magnitude(), time),
-                    animation_history.time,
-                ),
-                comp::character::Animation::Jump => JumpAnimation::update_skeleton(
-                    state.skeleton_mut(),
-                    time,
-                    animation_history.time,
-                ),
-            };
+                        let target_skeleton = match animation_history.current {
+                            comp::Animation::Idle => IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
+                            comp::Animation::Run => RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                            comp::Animation::Jump => JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
+                        };
 
-            state.skeleton.interpolate(&target_skeleton);
+                        state.skeleton.interpolate(&target_skeleton);
 
-            state.update(renderer, pos.0, dir.0);
+                        state.update(renderer, pos.0, dir.0);
+                    } // TODO: Non-humanoid bodies
+                },
+                // TODO: Non-character actors
+            }
         }
 
         self.states
@@ -289,13 +295,22 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, &character) in (&ecs.entities(), &ecs.read_storage::<comp::Character>()).join()
-        {
-            if let Some(state) = self.states.get(&entity) {
-                let model = self
-                    .model_cache
-                    .get_or_create_model(renderer, character, tick);
-                renderer.render_figure(model, globals, &state.locals(), state.bone_consts());
+        for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
+            match actor {
+                comp::Actor::Character { body, .. } => match body {
+                    Body::Humanoid(body) => {
+                        if let Some(state) = self.states.get(&entity) {
+                            let model = self.model_cache.get_or_create_model(renderer, *body, tick);
+                            renderer.render_figure(
+                                model,
+                                globals,
+                                &state.locals(),
+                                state.bone_consts(),
+                            );
+                        }
+                    } // TODO: Non-humanoid bodies
+                },
+                // TODO: Non-character actors
             }
         }
     }
