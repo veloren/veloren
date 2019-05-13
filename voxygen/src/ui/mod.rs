@@ -12,7 +12,7 @@ mod font_ids;
 pub use event::Event;
 pub use graphic::Graphic;
 pub use scale::ScaleMode;
-pub use widgets::toggle_button::ToggleButton;
+pub use widgets::{image_slider::ImageSlider, toggle_button::ToggleButton};
 
 use crate::{
     render::{
