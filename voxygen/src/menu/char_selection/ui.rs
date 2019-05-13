@@ -251,7 +251,6 @@ image_ids! {
         icon_border_press: "/voxygen/element/buttons/border_press.png",
         icon_border_pressed: "/voxygen/element/buttons/border_pressed.png",
         nothing: "/voxygen/element/nothing.png",
-
     }
 }
 
@@ -428,7 +427,7 @@ impl CharSelectionUi {
                 self.selected_char_no = None;
             }
 
-            // Veloren Logo and Alpha Version
+            // Alpha Version
             Text::new(version)
                 .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
