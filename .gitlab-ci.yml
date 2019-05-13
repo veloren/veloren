@@ -125,7 +125,6 @@ clippy:
   only:
     refs:
       - master
-      - fix-lfs-assets
 
 commit:linux-debug:
   <<: *commit
