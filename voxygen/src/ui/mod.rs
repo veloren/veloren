@@ -36,6 +36,7 @@ use conrod_core::{
 };
 use graphic::Id as GraphicId;
 use scale::Scale;
+use std::io::Read;
 use std::ops::Range;
 use std::sync::Arc;
 use util::{linear_to_srgb, srgb_to_linear};
@@ -73,9 +74,9 @@ impl DrawCommand {
 pub struct Font(text::Font);
 impl assets::Asset for Font {
     fn load(specifier: &str) -> Result<Self, assets::Error> {
-        Ok(Font(
-            text::Font::from_bytes(assets::load_from_path(specifier)?).unwrap(),
-        ))
+        let mut buf = Vec::new();
+        assets::load_from_path(specifier)?.read_to_end(&mut buf)?;
+        Ok(Font(text::Font::from_bytes(buf.clone()).unwrap()))
     }
 }
 
