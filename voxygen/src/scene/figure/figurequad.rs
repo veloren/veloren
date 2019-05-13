@@ -1,6 +1,6 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
+        quadruped::{QuadrupedSkeleton, RunAnimation},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -14,8 +14,8 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon},
-        Body, HumanoidBody,
+        actor::{Head, Chest, l_leg, r_leg},
+        Body, QuadrupedBody,
     },
     figure::Segment,
     msg,
@@ -26,7 +26,7 @@ use std::{collections::HashMap, f32};
 use vek::*;
 
 pub struct FigureModelCache {
-    models: HashMap<HumanoidBody, (Model<FigurePipeline>, u64)>,
+    models: HashMap<QuadrupedBody, (Model<FigurePipeline>, u64)>,
 }
 
 impl FigureModelCache {
@@ -39,7 +39,7 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
-        body: HumanoidBody,
+        body: QuadrupedBody,
         tick: u64,
     ) -> &Model<FigurePipeline> {
         match self.models.get_mut(&body) {
@@ -54,15 +54,15 @@ impl FigureModelCache {
                             let bone_meshes = [
                                 Some(Self::load_head(body.head)),
                                 Some(Self::load_chest(body.chest)),
-                                Some(Self::load_belt(body.belt)),
-                                Some(Self::load_pants(body.pants)),
-                                Some(Self::load_left_hand(body.hand)),
-                                Some(Self::load_right_hand(body.hand)),
-                                Some(Self::load_left_foot(body.foot)),
-                                Some(Self::load_right_foot(body.foot)),
-                                Some(Self::load_weapon(body.weapon)),
-                                Some(Self::load_left_shoulder(body.shoulder)),
-                                Some(Self::load_right_shoulder(body.shoulder)),
+                                Some(Self::load_lf_leg(body.leg_l)),
+                                Some(Self::load_rf_leg(body.leg_r)),
+                                Some(Self::load_lb_leg(body.leg_l)),
+                                Some(Self::load_rb_leg(body.leg_r)),
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
                                 None,
                                 None,
                                 None,
@@ -108,119 +108,61 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "head.vox",
+                Head::Default => "pighead.vox",
             },
-            Vec3::new(-7.0, -5.5, -6.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "chest.vox",
+                Chest::Default => "pigchest.vox",
             },
-            Vec3::new(-6.0, -3.5, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
+    fn load_lf_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "belt.vox",
+                Belt::Default => "pigleg_l.vox",
             },
-            Vec3::new(-5.0, -3.5, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
+    fn load_rf_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pants.vox",
+                Pants::Default => "pigleg_r.vox",
             },
-            Vec3::new(-5.0, -3.5, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
+    fn load_lb_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "hand.vox",
+                Hand::Default => "pigleg_l.vox",
             },
-            Vec3::new(2.0, 0.0, -7.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
+    fn load_rb_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "hand.vox",
+                Hand::Default => "pigleg_r.vox",
             },
-            Vec3::new(2.0, 0.0, -7.0),
+            Vec3::new(0.0, 0.0, 0.0),
         )
     }
-
-    fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match foot {
-                Foot::Default => "foot.vox",
-            },
-            Vec3::new(2.5, -3.5, -9.0),
-        )
-    }
-
-    fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match foot {
-                Foot::Default => "foot.vox",
-            },
-            Vec3::new(2.5, -3.5, -9.0),
-        )
-    }
-
-    fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match weapon {
-                Weapon::Sword => "sword.vox",
-                // TODO actually match against other weapons and set the right model
-                _ => "sword.vox",
-            },
-            Vec3::new(0.0, 0.0, -4.0),
-        )
-    }
-
-    fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match shoulder {
-                Shoulder::Default => "shoulder_l.vox",
-            },
-            Vec3::new(2.5, 0.0, 0.0),
-        )
-    }
-
-    fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match shoulder {
-                Shoulder::Default => "shoulder_r.vox",
-            },
-            Vec3::new(2.5, 0.0, 0.0),
-        )
-    }
-    //    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
-    //        Self::load_mesh(
-    //            match draw {
-    //                //Draw::DefaultDraw => "sword.vox",
-    //
-    //            },
-    //            Vec3::new(0.0, 0.0, -2.0)
-    //
-    //
-    //        )
-    //    }
 }
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
-    states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+    states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
 }
 
 impl FigureMgr {
@@ -249,26 +191,14 @@ impl FigureMgr {
             .join()
         {
             match actor {
-                comp::Actor::Character { body, .. } => match body {
+                comp::Actor::Quadruped { body, .. } => match body {
                     Body::Humanoid(body) => {
                         let state = self.states.entry(entity).or_insert_with(|| {
-                            FigureState::new(renderer, CharacterSkeleton::new())
+                            FigureState::new(renderer, QuadrupedSkeleton::new())
                         });
-
-                        let target_skeleton = match animation_history.current {
-                            comp::Animation::Idle => IdleAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_history.time,
-                            ),
                             comp::Animation::Run => RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
-                            ),
-                            comp::Animation::Jump => JumpAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
                                 animation_history.time,
                             ),
                         };
@@ -297,7 +227,7 @@ impl FigureMgr {
 
         for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
             match actor {
-                comp::Actor::Character { body, .. } => match body {
+                comp::Actor::Quadruped { body, .. } => match body {
                     Body::Humanoid(body) => {
                         if let Some(state) = self.states.get(&entity) {
                             let model = self.model_cache.get_or_create_model(renderer, *body, tick);
@@ -308,9 +238,7 @@ impl FigureMgr {
                                 state.bone_consts(),
                             );
                         }
-                    Body::Quadruped(body) => {..};
                     } // TODO: Non-humanoid bodies
-
                 },
                 // TODO: Non-character actors
             }
