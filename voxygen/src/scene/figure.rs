@@ -14,7 +14,7 @@ use common::{
     assets,
     comp::{
         self,
-        character::{Belt, Character, Chest, Foot, Hand, Head, Pants, Weapon},
+        character::{Belt, Character, Chest, Foot, Hand, Head, Pants, Weapon, Shoulder, Draw},
     },
     figure::Segment,
     msg,
@@ -62,8 +62,9 @@ impl FigureCache {
                                 Some(Self::load_left_foot(character.foot)),
                                 Some(Self::load_right_foot(character.foot)),
                                 Some(Self::load_weapon(character.weapon)),
-                                None,
-                                None,
+                                Some(Self::load_left_shoulder(character.shoulder)),
+                                Some(Self::load_right_shoulder(character.shoulder)),
+                                //Some(Self::load_draw(character.draw)),
                                 None,
                                 None,
                                 None,
@@ -146,7 +147,7 @@ impl FigureCache {
             match hand {
                 Hand::DefaultHand => "hand.vox",
             },
-            Vec3::new(3.5, 0.0, -7.0),
+            Vec3::new(2.0, 0.0, -7.0),
         )
     }
 
@@ -155,7 +156,7 @@ impl FigureCache {
             match hand {
                 Hand::DefaultHand => "hand.vox",
             },
-            Vec3::new(3.5, 0.0, -7.0),
+            Vec3::new(2.0, 0.0, -7.0),
         )
     }
 
@@ -187,6 +188,35 @@ impl FigureCache {
             Vec3::new(0.0, 0.0, -4.0),
         )
     }
+
+    fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match shoulder {
+                Shoulder::DefaultShoulder => "shoulder_l.vox",
+            },
+            Vec3::new(2.5, 0.0, 0.0),
+        )
+    }
+
+    fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match shoulder {
+                Shoulder::DefaultShoulder => "shoulder_r.vox",
+            },
+            Vec3::new(2.5, 0.0, 0.0),
+        )
+    }
+//    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
+//        Self::load_mesh(
+//            match draw {
+//                //Draw::DefaultDraw => "sword.vox", 
+//
+//            },
+//            Vec3::new(0.0, 0.0, -2.0)
+//
+//
+//        )
+//    }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &mut Client) {
         let time = client.state().get_time();

@@ -60,6 +60,17 @@ pub enum Weapon {
     Staff,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Shoulder {
+    DefaultShoulder
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Draw {
+    DefaultDraw
+}
+
+
 use Belt::*;
 use Chest::*;
 use Foot::*;
@@ -69,6 +80,9 @@ use Head::*;
 use Pants::*;
 use Race::*;
 use Weapon::*;
+use Shoulder::*;
+use Draw::*;
+
 
 const ALL_RACES: [Race; 6] = [Danari, Dwarf, Elf, Human, Orc, Undead];
 const ALL_GENDERS: [Gender; 3] = [Female, Male, Unspecified];
@@ -79,6 +93,10 @@ const ALL_PANTS: [Pants; 1] = [DefaultPants];
 const ALL_HANDS: [Hand; 1] = [DefaultHand];
 const ALL_FEET: [Foot; 1] = [DefaultFoot];
 const ALL_WEAPONS: [Weapon; 7] = [Daggers, SwordShield, Sword, Axe, Hammer, Bow, Staff];
+const ALL_SHOULDERS: [Shoulder; 1] = [DefaultShoulder];
+const ALL_DRAW: [Draw; 1] = [DefaultDraw];
+
+
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Character {
@@ -91,6 +109,9 @@ pub struct Character {
     pub hand: Hand,
     pub foot: Foot,
     pub weapon: Weapon,
+    pub shoulder: Shoulder,
+    pub draw: Draw,
+
 }
 
 impl Character {
@@ -105,6 +126,9 @@ impl Character {
             hand: *thread_rng().choose(&ALL_HANDS).unwrap(),
             foot: *thread_rng().choose(&ALL_FEET).unwrap(),
             weapon: *thread_rng().choose(&ALL_WEAPONS).unwrap(),
+            shoulder: *thread_rng().choose(&ALL_SHOULDERS).unwrap(),
+            draw: *thread_rng().choose(&ALL_DRAW).unwrap(),
+
         }
     }
 }
