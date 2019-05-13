@@ -157,8 +157,7 @@ impl Terrain {
 
             // Queue the worker thread
             client.thread_pool().execute(move || {
-                send.send(mesh_worker(pos, current_tick, volume, aabb))
-                    .expect("Failed to send chunk mesh to main thread");
+                let _ = send.send(mesh_worker(pos, current_tick, volume, aabb));
             });
             todo.active_worker = true;
         }
