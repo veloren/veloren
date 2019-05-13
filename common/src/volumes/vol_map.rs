@@ -19,6 +19,7 @@ pub enum VolMapErr {
     NoSuchChunk,
     ChunkErr(ChunkErr),
     DynaErr(DynaErr),
+    InvalidChunkSize,
 }
 
 // V = Voxel
@@ -31,13 +32,20 @@ pub struct VolMap<V: Vox + Clone, S: VolSize + Clone, M: Clone> {
 
 impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
     #[inline(always)]
-    fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(S::SIZE, |e, sz| e.div_euclid(sz as i32))
+    pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
+        pos.map2(S::SIZE, |e, sz| {
+            // Horrid, but it's faster than a cheetah with a red bull blood transfusion
+            let log2 = (sz - 1).count_ones();
+            ((((e as i64 + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
+        })
     }
 
     #[inline(always)]
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(S::SIZE, |e, sz| e.rem_euclid(sz as i32))
+        pos.map2(S::SIZE, |e, sz| {
+            // Horrid, but it's even faster than the aforementioned cheetah
+            (((e as i64 + (1 << 32)) as u64) & (sz - 1) as u64) as i32
+        })
     }
 }
 
@@ -150,10 +158,17 @@ impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> WriteVol for VolMap<V, S, M> 
     }
 }
 
-impl<V: Vox + Clone, S: VolSize + Clone, M: Clone> VolMap<V, S, M> {
-    pub fn new() -> Self {
-        Self {
-            chunks: HashMap::new(),
+impl<V: Vox + Clone, S: VolSize + Clone, M + Clone> VolMap<V, S, M> {
+    pub fn new() -> Result<Self, VolMapErr> {
+        if Self::chunk_size()
+            .map(|e| e.is_power_of_two() && e > 0)
+            .reduce_and()
+        {
+            Ok(Self {
+                chunks: HashMap::new(),
+            })
+        } else {
+            Err(VolMapErr::InvalidChunkSize)
         }
     }
 
