@@ -26,8 +26,8 @@ impl Animation for JumpAnimation {
         let wavetest = (wave.cbrt());
         let fuzzwave = (anim_time as f32 * 12.0).sin();
         let wavecos = (anim_time as f32 * 14.0).cos();
-        let wave_stop = (anim_time as f32 *  4.5).min(PI / 2.0).sin();
-        let wave_stopalt = (anim_time as f32 *  5.0).min(PI / 2.0).sin();
+        let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
+        let wave_stopalt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
         let wave_slowtest = (anim_time as f32).min(PI / 2.0).sin();
         let wavecos_slow = (anim_time as f32 * 8.0 + PI).cos();
