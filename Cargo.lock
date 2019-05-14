@@ -2350,6 +2350,7 @@ dependencies = [
 name = "veloren-voxygen"
 version = "0.2.0"
 dependencies = [
+ "backtrace 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "config 0.9.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "conrod_core 0.63.0 (git+https://gitlab.com/veloren/conrod.git)",
  "conrod_winit 0.63.0 (git+https://gitlab.com/veloren/conrod.git)",
