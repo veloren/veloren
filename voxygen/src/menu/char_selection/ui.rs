@@ -1,5 +1,5 @@
 use crate::{
-    render::Renderer,
+    render::{Consts, Globals, Renderer},
     ui::{
         self,
         img_ids::{ImageGraphic, VoxelGraphic},
@@ -1085,7 +1085,7 @@ impl CharSelectionUi {
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer);
+    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+        self.ui.render(renderer, Some(globals));
     }
 }

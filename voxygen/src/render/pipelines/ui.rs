@@ -1,6 +1,7 @@
-use super::super::{Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
+use super::super::{Globals, Pipeline, Quad, Tri, WinColorFmt, WinDepthFmt};
 use gfx::{
     self,
+    gfx_constant_struct_meta,
     // Macros
     gfx_defines,
     gfx_impl_struct_meta,
@@ -18,15 +19,21 @@ gfx_defines! {
         mode: u32 = "v_mode",
     }
 
+    constant Locals {
+        pos: [f32; 4] = "w_pos",
+    }
+
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
 
+        locals: gfx::ConstantBuffer<Locals> = "u_locals",
+        globals: gfx::ConstantBuffer<Globals> = "u_globals",
         tex: gfx::TextureSampler<[f32; 4]> = "u_tex",
 
         scissor: gfx::Scissor = (),
 
         tgt_color: gfx::BlendTarget<WinColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::PASS_TEST,
+        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
 
@@ -34,6 +41,20 @@ pub struct UiPipeline;
 
 impl Pipeline for UiPipeline {
     type Vertex = Vertex;
+}
+
+impl From<Vec3<f32>> for Locals {
+    fn from(pos: Vec3<f32>) -> Self {
+        Self {
+            pos: [pos[0], pos[1], pos[2], 1.0],
+        }
+    }
+}
+
+impl Default for Locals {
+    fn default() -> Self {
+        Self { pos: [0.0; 4] }
+    }
 }
 
 /// Draw text from the text cache texture `tex` in the fragment shader.
