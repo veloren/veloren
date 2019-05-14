@@ -1,6 +1,7 @@
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation},
+        fixture::FixtureSkeleton,
         Animation, Skeleton,
     },
     render::{
@@ -33,7 +34,9 @@ pub struct Scene {
     skybox: Skybox,
     postprocess: PostProcess,
     backdrop_model: Model<FigurePipeline>,
-    backdrop_state: FigureState<CharacterSkeleton>,
+    backdrop_state: FigureState<FixtureSkeleton>,
+
+    body: HumanoidBody,
 
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
@@ -57,22 +60,26 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
+            body: HumanoidBody::random(),
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
             backdrop_model: renderer
-                .create_model(&FigureModelCache::load_mesh("knight.vox", Vec3::zero()))
+                .create_model(&FigureModelCache::load_mesh(
+                    "fixture/selection_bg.vox",
+                    Vec3::new(-50.0, -50.0, -1.0),
+                ))
                 .unwrap(),
-            backdrop_state: FigureState::new(renderer, CharacterSkeleton::new()),
+            backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
         }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
-        self.camera.set_focus_pos(Vec3::unit_z() * 1.75);
+        self.camera.set_focus_pos(Vec3::unit_z() * 1.8);
         self.camera.update(client.state().get_time());
         self.camera.set_distance(4.0);
         self.camera
-            .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.2, 0.3, 0.0));
+            .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
@@ -112,9 +119,10 @@ impl Scene {
 
         let model = self.figure_model_cache.get_or_create_model(
             renderer,
-            comp::Body::Humanoid(comp::HumanoidBody::random()),
+            self.body.clone(),
             client.get_tick(),
         );
+
         renderer.render_figure(
             model,
             &self.globals,
