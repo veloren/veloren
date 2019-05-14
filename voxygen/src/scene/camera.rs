@@ -34,7 +34,7 @@ impl Camera {
             ori: Vec3::zero(),
             tgt_dist: 10.0,
             dist: 10.0,
-            fov: 1.3,
+            fov: 1.1,
             aspect,
             last_time: None,
         }

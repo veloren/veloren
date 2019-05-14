@@ -251,7 +251,7 @@ image_ids! {
         icon_border_press: "/voxygen/element/buttons/border_press.png",
         icon_border_pressed: "/voxygen/element/buttons/border_pressed.png",
         nothing: "/voxygen/element/nothing.png",
-       
+
     }
 }
 
@@ -329,9 +329,8 @@ impl CharSelectionUi {
         // Character Selection /////////////////
 
         if !self.character_creation {
-
             // Background for Server Frame
-            Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.6))
+            Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                 .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
                 .set(self.ids.server_frame_bg, ui_widgets);
             Image::new(self.imgs.server_frame)
@@ -340,9 +339,9 @@ impl CharSelectionUi {
                 .set(self.ids.server_frame, ui_widgets);
 
             // Background for Char List
-            Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.6))
+            Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                 .down_from(self.ids.server_frame_bg, 10.0)
-                .set(self.ids.charlist_bg, ui_widgets);            
+                .set(self.ids.charlist_bg, ui_widgets);
             Image::new(self.imgs.charlist_frame)
                 .w_h(400.0, 800.0)
                 .middle_of(self.ids.charlist_bg)
@@ -438,72 +437,71 @@ impl CharSelectionUi {
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
 
-            // 1st Character in Selection List            
+            // 1st Character in Selection List
             if Button::image(self.imgs.selection_frame)
                 .top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
                 .w_h(386.0, 80.0)
                 .hover_image(self.imgs.charlist_frame)
-                .press_image(self.imgs.charlist_frame)                
+                .press_image(self.imgs.charlist_frame)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_1, ui_widgets)
                 .was_clicked()
             {
-               events.push(Event::Play); 
+                events.push(Event::Play);
             }
             Text::new("Human Default")
-                    .top_left_with_margins_on(self.ids.character_box_1, 5.0, 5.0)
-                    .font_size(20)
-                    .font_id(self.fonts.metamorph)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_name_1, ui_widgets);
+                .top_left_with_margins_on(self.ids.character_box_1, 5.0, 5.0)
+                .font_size(20)
+                .font_id(self.fonts.metamorph)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_name_1, ui_widgets);
 
             Text::new("Level 1")
-                    .down_from(self.ids.character_name_1, 5.0)
-                    .font_size(18)
-                    .font_id(self.fonts.opensans)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_level_1, ui_widgets);
+                .down_from(self.ids.character_name_1, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_level_1, ui_widgets);
 
             Text::new("Uncanny Valley")
-                    .down_from(self.ids.character_level_1, 5.0)
-                    .font_size(18)
-                    .font_id(self.fonts.opensans)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_location_1, ui_widgets);
+                .down_from(self.ids.character_level_1, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_location_1, ui_widgets);
 
             // 2nd Character in List
             if Button::image(self.imgs.nothing)
-                .down_from(self.ids.character_box_1, 5.0,)
+                .down_from(self.ids.character_box_1, 5.0)
                 .w_h(386.0, 80.0)
                 .hover_image(self.imgs.charlist_frame)
-                .press_image(self.imgs.charlist_frame)                
+                .press_image(self.imgs.charlist_frame)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_2, ui_widgets)
                 .was_clicked()
             {
-               events.push(Event::Play); 
+                events.push(Event::Play);
             }
             Text::new("Example 2nd Char")
-                    .top_left_with_margins_on(self.ids.character_box_2, 5.0, 5.0)
-                    .font_size(20)
-                    .font_id(self.fonts.metamorph)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_name_2, ui_widgets);
+                .top_left_with_margins_on(self.ids.character_box_2, 5.0, 5.0)
+                .font_size(20)
+                .font_id(self.fonts.metamorph)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_name_2, ui_widgets);
 
             Text::new("Level ??")
-                    .down_from(self.ids.character_name_2, 5.0)
-                    .font_size(18)
-                    .font_id(self.fonts.opensans)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_level_2, ui_widgets);
+                .down_from(self.ids.character_name_2, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_level_2, ui_widgets);
 
             Text::new("Plains of Uncertainty")
-                    .down_from(self.ids.character_level_2, 5.0)
-                    .font_size(18)
-                    .font_id(self.fonts.opensans)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.character_location_2, ui_widgets);
-            
+                .down_from(self.ids.character_level_2, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(self.ids.character_location_2, ui_widgets);
 
             if let Some(no) = self.selected_char_no {
                 // Selection_Window
