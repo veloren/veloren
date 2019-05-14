@@ -13,24 +13,24 @@ const SCALE: f32 = 11.0;
 
 #[derive(Clone)]
 pub struct QuadrupedSkeleton {
-    head: Bone,
-    chest: Bone,
-    lf_leg: Bone,
-    rf_leg: Bone,
-    lb_leg: Bone,
-    rb_leg: Bone,
+    pighead: Bone,
+    pigchest: Bone,
+    piglf_leg: Bone,
+    pigrf_leg: Bone,
+    piglb_leg: Bone,
+    pigrb_leg: Bone,
 
 }
 
 impl QuadrupedSkeleton {
     pub fn new() -> Self {
         Self {
-            head: Bone::default(),
-            chest: Bone::default(),
-            lf_leg: Bone::default(),
-            rf_leg: Bone::default(),
-            lb_leg: Bone::default(),
-            rb_leg: Bone::default(),
+            pighead: Bone::default(),
+            pigchest: Bone::default(),
+            piglf_leg: Bone::default(),
+            pigrf_leg: Bone::default(),
+            piglb_leg: Bone::default(),
+            pigrb_leg: Bone::default(),
         }
     }
 }
@@ -38,12 +38,12 @@ impl QuadrupedSkeleton {
 impl Skeleton for QuadrupedSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         [
-            FigureBoneData::new(self.head.compute_base_matrix()),
-            FigureBoneData::new(self.chest.compute_base_matrix()),
-            FigureBoneData::new(self.lf_leg.compute_base_matrix()),
-            FigureBoneData::new(self.rf_leg.compute_base_matrix()),
-            FigureBoneData::new(self.lb_leg.compute_base_matrix()),
-            FigureBoneData::new(self.rb_leg.compute_base_matrix()),
+            FigureBoneData::new(self.pighead.compute_base_matrix()),
+            FigureBoneData::new(self.pigchest.compute_base_matrix()),
+            FigureBoneData::new(self.piglf_leg.compute_base_matrix()),
+            FigureBoneData::new(self.pigrf_leg.compute_base_matrix()),
+            FigureBoneData::new(self.piglb_leg.compute_base_matrix()),
+            FigureBoneData::new(self.pigrb_leg.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -58,11 +58,11 @@ impl Skeleton for QuadrupedSkeleton {
     }
 
     fn interpolate(&mut self, target: &Self) {
-        self.head.interpolate(&target.head);
-        self.chest.interpolate(&target.chest);
-        self.lf_leg.interpolate(&target.lf_leg);
-        self.rf_leg.interpolate(&target.rf_leg);
-        self.lb_leg.interpolate(&target.lb_leg);
-        self.rb_leg.interpolate(&target.rb_leg);
+        self.pighead.interpolate(&target.pighead);
+        self.pigchest.interpolate(&target.pigchest);
+        self.piglf_leg.interpolate(&target.piglf_leg);
+        self.pigrf_leg.interpolate(&target.pigrf_leg);
+        self.piglb_leg.interpolate(&target.piglb_leg);
+        self.pigrb_leg.interpolate(&target.pigrb_leg);
     }
 }
