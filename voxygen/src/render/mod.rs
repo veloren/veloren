@@ -19,7 +19,8 @@ pub use self::{
         skybox::{create_mesh as create_skybox_mesh, Locals as SkyboxLocals, SkyboxPipeline},
         terrain::{Locals as TerrainLocals, TerrainPipeline},
         ui::{
-            create_quad as create_ui_quad, create_tri as create_ui_tri, Mode as UiMode, UiPipeline,
+            create_quad as create_ui_quad, create_tri as create_ui_tri, Locals as UiLocals,
+            Mode as UiMode, UiPipeline,
         },
         Globals,
     },
