@@ -138,7 +138,11 @@ The information below is intended for developers and testers.
 Panic Payload: {:?}
 PanicInfo: {}", settings_clone.log.file, reason, panic_info);
 
-        log::error!("VOXYGEN HAS PANICKED\n\n{}", msg);
+        log::error!(
+            "VOXYGEN HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
+            msg,
+            backtrace::Backtrace::new()
+        );
 
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
 
