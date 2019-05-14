@@ -423,6 +423,8 @@ impl Renderer {
         model: &Model<ui::UiPipeline>,
         tex: &Texture<ui::UiPipeline>,
         scissor: Aabr<u16>,
+        globals: &Consts<Globals>,
+        locals: &Consts<ui::Locals>,
     ) {
         let Aabr { min, max } = scissor;
         self.encoder.draw(
@@ -437,6 +439,8 @@ impl Renderer {
                     h: max.y - min.y,
                 },
                 tex: (tex.srv.clone(), tex.sampler.clone()),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
                 tgt_color: self.win_color_view.clone(),
                 tgt_depth: self.win_depth_view.clone(),
             },

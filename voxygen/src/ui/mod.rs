@@ -12,12 +12,12 @@ mod font_ids;
 pub use event::Event;
 pub use graphic::Graphic;
 pub use scale::ScaleMode;
-pub use widgets::{image_slider::ImageSlider, toggle_button::ToggleButton};
+pub use widgets::{image_slider::ImageSlider, ingame::Ingame, toggle_button::ToggleButton};
 
 use crate::{
     render::{
-        create_ui_quad, create_ui_tri, DynamicModel, Mesh, RenderError, Renderer, UiMode,
-        UiPipeline,
+        create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
+        UiLocals, UiMode, UiPipeline,
     },
     window::Window,
     Error,
@@ -27,11 +27,11 @@ use common::assets;
 use conrod_core::{
     event::Input,
     graph::Graph,
-    image::{Id as ImgId, Map},
+    image::{self, Map},
     input::{touch::Touch, Motion, Widget},
-    render::Primitive,
+    render::{Primitive, PrimitiveKind},
     text::{self, font},
-    widget::{id::Generator, Id as WidgId},
+    widget::{self, id::Generator},
     Ui as CrUi, UiBuilder, UiCell,
 };
 use graphic::Id as GraphicId;
@@ -55,6 +55,7 @@ enum DrawKind {
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<usize> },
     Scissor(Aabr<u16>),
+    WorldPos(Option<Consts<UiLocals>>),
 }
 impl DrawCommand {
     fn image(verts: Range<usize>) -> DrawCommand {
@@ -88,6 +89,9 @@ pub struct Ui {
     draw_commands: Vec<DrawCommand>,
     // Model for drawing the ui
     model: DynamicModel<UiPipeline>,
+    // Consts for default ui drawing position (ie the interface)
+    interface_locals: Consts<UiLocals>,
+    default_globals: Consts<Globals>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
     // Scaling of the ui
@@ -99,12 +103,16 @@ impl Ui {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0));
         let win_dims = scale.scaled_window_size().into_array();
 
+        let mut renderer = window.renderer_mut();
+
         Ok(Self {
             ui: UiBuilder::new(win_dims).build(),
             image_map: Map::new(),
-            cache: Cache::new(window.renderer_mut())?,
+            cache: Cache::new(renderer)?,
             draw_commands: vec![],
-            model: window.renderer_mut().create_dynamic_model(100)?,
+            model: renderer.create_dynamic_model(100)?,
+            interface_locals: renderer.create_consts(&[UiLocals::default()])?,
+            default_globals: renderer.create_consts(&[Globals::default()])?,
             window_resized: None,
             scale,
         })
@@ -118,7 +126,7 @@ impl Ui {
         self.ui.handle_event(Input::Resize(w, h));
     }
 
-    pub fn add_graphic(&mut self, graphic: Graphic) -> ImgId {
+    pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
         self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
@@ -135,7 +143,7 @@ impl Ui {
     }
 
     // Accepts Option so widget can be unfocused.
-    pub fn focus_widget(&mut self, id: Option<WidgId>) {
+    pub fn focus_widget(&mut self, id: Option<widget::Id>) {
         self.ui.keyboard_capture(match id {
             Some(id) => id,
             None => self.ui.window,
@@ -143,7 +151,7 @@ impl Ui {
     }
 
     // Get id of current widget capturing keyboard.
-    pub fn widget_capturing_keyboard(&self) -> Option<WidgId> {
+    pub fn widget_capturing_keyboard(&self) -> Option<widget::Id> {
         self.ui.global_input().current.widget_capturing_keyboard
     }
 
@@ -189,7 +197,7 @@ impl Ui {
         }
     }
 
-    pub fn widget_input(&self, id: WidgId) -> Widget {
+    pub fn widget_input(&self, id: widget::Id) -> Widget {
         self.ui.widget_input(id)
     }
 
@@ -216,6 +224,9 @@ impl Ui {
         let window_scissor = default_scissor(renderer);
         let mut current_scissor = window_scissor;
 
+        let mut in_world = None;
+        let mut p_scale_factor = self.scale.scale_factor_physical();
+
         // Switches to the `Plain` state and completes the previous `Command` if not already in the
         // `Plain` state.
         macro_rules! switch_to_plain_state {
@@ -223,13 +234,11 @@ impl Ui {
                 if let State::Image = current_state {
                     self.draw_commands
                         .push(DrawCommand::image(start..mesh.vertices().len()));
-                    current_state = State::Plain;
                     start = mesh.vertices().len();
+                    current_state = State::Plain;
                 }
             };
         }
-
-        let p_scale_factor = self.scale.scale_factor_physical();
 
         while let Some(prim) = primitives.next() {
             let Primitive {
@@ -272,9 +281,29 @@ impl Ui {
                 self.draw_commands.push(DrawCommand::Scissor(new_scissor));
             }
 
+            match in_world {
+                Some(0) => {
+                    in_world = None;
+                    p_scale_factor = self.scale.scale_factor_physical();
+                    // Finish current state
+                    self.draw_commands.push(match current_state {
+                        State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
+                        State::Image => DrawCommand::image(start..mesh.vertices().len()),
+                    });
+                    start = mesh.vertices().len();
+                    // Push new position command
+                    self.draw_commands.push(DrawCommand::WorldPos(None));
+                }
+                Some(n) => in_world = Some(n - 1),
+                None => (),
+            }
+
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let ui_win_w = self.ui.win_w;
-            let ui_win_h = self.ui.win_h;
+            let (ui_win_w, ui_win_h) = if in_world.is_some() {
+                (2.0, 2.0)
+            } else {
+                (self.ui.win_w, self.ui.win_h)
+            };
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
             let gl_aabr = |rect: conrod_core::Rect| {
@@ -285,7 +314,6 @@ impl Ui {
                 }
             };
 
-            use conrod_core::render::PrimitiveKind;
             match kind {
                 PrimitiveKind::Image {
                     image_id,
@@ -321,16 +349,17 @@ impl Ui {
                     // Transform the source rectangle into uv coordinate.
                     // TODO: Make sure this is right.
                     let source_aabr = {
-                        let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0); /*match source_rect {
-                                                                                 Some(src_rect) => {
-                                                                                     let (l, r, b, t) = src_rect.l_r_b_t();
-                                                                                     ((l / image_w) as f32,
-                                                                                     (r / image_w) as f32,
-                                                                                     (b / image_h) as f32,
-                                                                                     (t / image_h) as f32)
-                                                                                 }
-                                                                                 None => (0.0, 1.0, 0.0, 1.0),
-                                                                             };*/
+                        let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0);
+                        /*match source_rect {
+                            Some(src_rect) => {
+                                let (l, r, b, t) = src_rect.l_r_b_t();
+                                ((l / image_w) as f32,
+                                (r / image_w) as f32,
+                                (b / image_h) as f32,
+                                (t / image_h) as f32)
+                            }
+                            None => (0.0, 1.0, 0.0, 1.0),
+                        };*/
                         Aabr {
                             min: Vec2::new(uv_l, uv_b),
                             max: Vec2::new(uv_r, uv_t),
@@ -371,13 +400,8 @@ impl Ui {
                     font_id,
                 } => {
                     switch_to_plain_state!();
-                    // Get screen width and height.
-                    let (screen_w, screen_h) =
-                        renderer.get_resolution().map(|e| e as f32).into_tuple();
-                    // Calculate dpi factor.
-                    let dpi_factor = screen_w / ui_win_w as f32;
 
-                    let positioned_glyphs = text.positioned_glyphs(dpi_factor);
+                    let positioned_glyphs = text.positioned_glyphs(p_scale_factor as f32);
                     let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
                     // Queue the glyphs to be cached.
                     for glyph in positioned_glyphs {
@@ -410,12 +434,12 @@ impl Ui {
                             };
                             let rect = Aabr {
                                 min: Vec2::new(
-                                    (screen_rect.min.x as f32 / screen_w - 0.5) * 2.0,
-                                    (screen_rect.max.y as f32 / screen_h - 0.5) * -2.0,
+                                    vx(screen_rect.min.x as f64 / p_scale_factor) - 1.0,
+                                    1.0 - vy(screen_rect.max.y as f64 / p_scale_factor),
                                 ),
                                 max: Vec2::new(
-                                    (screen_rect.max.x as f32 / screen_w - 0.5) * 2.0,
-                                    (screen_rect.min.y as f32 / screen_h - 0.5) * -2.0,
+                                    vx(screen_rect.max.x as f64 / p_scale_factor) - 1.0,
+                                    1.0 - vy(screen_rect.min.y as f64 / p_scale_factor),
                                 ),
                             };
                             mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
@@ -469,10 +493,32 @@ impl Ui {
                         ));
                     }
                 }
+                PrimitiveKind::Other(container) => {
+                    if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
+                        // Retrieve world position
+                        let pos = container
+                            .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
+                            .unwrap()
+                            .state
+                            .pos;
+                        // Finish current state
+                        self.draw_commands.push(match current_state {
+                            State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
+                            State::Image => DrawCommand::image(start..mesh.vertices().len()),
+                        });
+                        start = mesh.vertices().len();
+                        // Push new position command
+                        self.draw_commands.push(DrawCommand::WorldPos(Some(
+                            renderer.create_consts(&[pos.into()]).unwrap(),
+                        )));
+
+                        in_world = Some(1);
+                        p_scale_factor = self.scale.dpi_factor();
+                    }
+                }
                 _ => {} // TODO: Add this.
                         //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
                         // Other unneeded for now.
-                        //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
             }
         }
         // Enter the final command.
@@ -506,12 +552,17 @@ impl Ui {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        let mut scissor_to_render = default_scissor(renderer);
+    pub fn render(&self, renderer: &mut Renderer, maybe_globals: Option<&Consts<Globals>>) {
+        let mut scissor = default_scissor(renderer);
+        let globals = maybe_globals.unwrap_or(&self.default_globals);
+        let mut locals = &self.interface_locals;
         for draw_command in self.draw_commands.iter() {
             match draw_command {
-                DrawCommand::Scissor(scissor) => {
-                    scissor_to_render = *scissor;
+                DrawCommand::Scissor(new_scissor) => {
+                    scissor = *new_scissor;
+                }
+                DrawCommand::WorldPos(ref pos) => {
+                    locals = pos.as_ref().unwrap_or(&self.interface_locals);
                 }
                 DrawCommand::Draw { kind, verts } => {
                     let tex = match kind {
@@ -519,7 +570,7 @@ impl Ui {
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(&model, &tex, scissor_to_render);
+                    renderer.render_ui_element(&model, &tex, scissor, globals, locals);
                 }
             }
         }

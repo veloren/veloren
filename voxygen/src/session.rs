@@ -100,7 +100,7 @@ impl SessionState {
         // Render the screen using the global renderer
         self.scene.render(renderer, &mut self.client.borrow_mut());
         // Draw the UI to the screen
-        self.hud.render(renderer);
+        self.hud.render(renderer, self.scene.globals());
 
         // Finish the frame
         renderer.flush();
@@ -178,6 +178,7 @@ impl PlayState for SessionState {
 
             // extract HUD events ensuring the client borrow gets dropped
             let hud_events = self.hud.maintain(
+                &self.client.borrow(),
                 global_state,
                 DebugInfo {
                     tps: clock.get_tps(),

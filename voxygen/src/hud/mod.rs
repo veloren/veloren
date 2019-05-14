@@ -23,17 +23,20 @@ use skillbar::Skillbar;
 use small_window::{SmallWindow, SmallWindowType};
 
 use crate::{
-    render::Renderer,
+    render::{Consts, Globals, Renderer},
     settings::{ControlSettings, Settings},
-    ui::{ScaleMode, Ui},
+    ui::{Ingame, ScaleMode, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
+use client::Client;
+use common::comp;
 use conrod_core::{
     color, graph,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use specs::Join;
 use std::collections::VecDeque;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -43,7 +46,11 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 
 widget_ids! {
     struct Ids {
+        // Character Names
+        name_tags[],
+
         // Test
+        temp,
         bag_space_add,
         // Debug
         debug_bg,
@@ -253,7 +260,7 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self, global_state: &GlobalState, debug_info: DebugInfo) -> Vec<Event> {
+    fn update_layout(&mut self, client: &Client, global_state: &GlobalState, debug_info: DebugInfo) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -262,6 +269,34 @@ impl Hud {
         if !self.show.ui {
             return events;
         }
+
+        // Nametags
+        let ecs = client.state().ecs();
+        /* {
+            let actor_read_storage = ecs.read_storage::<comp::Actor>();
+            let pos_read_storage = ecs.read_storage::<comp::phys::Pos>();
+            let num = (&actor_read_storage, &pos_read_storage).join().count();
+            self.ids
+                .name_tags
+                .resize(num, &mut ui_widgets.widget_id_generator());
+            for (i, (name, pos)) in (&actor_read_storage, &pos_read_storage)
+                .join()
+                .map(|(actor, pos)| match actor {
+                    comp::Actor::Character { name, .. } => (name, pos.0),
+                })
+                .enumerate()
+            {
+                Ingame::from_primitive(pos, Text::new(&name))
+                    .set(self.ids.name_tags[i], ui_widgets);
+            }
+        }*/
+        // test
+        Ingame::from_primitive(
+            [0.0, 25.0, 25.0].into(),
+            Rectangle::fill_with([1.0, 1.0], Color::Rgba(0.2, 0.0, 0.4, 1.0)),
+        )
+        .x_y(0.0, 0.0)
+        .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
         if self.show.debug {
@@ -474,7 +509,9 @@ impl Hud {
             self.ui
                 .widget_graph()
                 .widget(id)
-                .and_then(graph::Container::unique_widget_state::<widget::TextEdit>)
+                .filter(|c| {
+                    c.type_id == std::any::TypeId::of::<<widget::TextEdit as Widget>::State>()
+                })
                 .is_some()
         } else {
             false
@@ -580,19 +617,20 @@ impl Hud {
 
     pub fn maintain(
         &mut self,
+        client: &Client,
         global_state: &mut GlobalState,
         debug_info: DebugInfo,
     ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(&global_state, debug_info);
+        let events = self.update_layout(client, global_state, debug_info);
         self.ui.maintain(&mut global_state.window.renderer_mut());
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer);
+    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+        self.ui.render(renderer, Some(globals));
     }
 }
 
