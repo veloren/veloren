@@ -106,7 +106,7 @@ impl PlayState for CharSelectionState {
 
             // Draw the UI to the screen.
             self.char_selection_ui
-                .render(global_state.window.renderer_mut());
+                .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
             self.client

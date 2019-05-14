@@ -100,7 +100,7 @@ impl SessionState {
         // Render the screen using the global renderer
         self.scene.render(renderer, &mut self.client.borrow_mut());
         // Draw the UI to the screen
-        self.hud.render(renderer);
+        self.hud.render(renderer, self.scene.globals());
 
         // Finish the frame
         renderer.flush();
@@ -173,7 +173,8 @@ impl PlayState for SessionState {
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
-                &mut self.client.borrow_mut(),
+                clock.get_tps(),
+                &self.client.borrow(),
             );
 
             // Maintain the UI.

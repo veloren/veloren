@@ -441,6 +441,6 @@ impl MainMenuUi {
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer);
+        self.ui.render(renderer, None);
     }
 }
