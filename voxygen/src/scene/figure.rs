@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
-        quadruped::{QuadrupedSkeleton},
+        quadruped::{QuadrupedSkeleton,},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -15,8 +15,8 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon},
-        Body, HumanoidBody,
+        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon, Pighead, Pigchest, Pigleg_l, Pigleg_r},
+        Body, HumanoidBody, QuadrupedBody
     },
     figure::Segment,
     msg,
@@ -71,13 +71,13 @@ impl FigureModelCache {
                                     None,
                                     None,
                                 ],
-                                Body::Quadruped(body) => [ // TODO
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
+                                Body::Quadruped(body) => [
+                                    Some(Self::load_pighead(body.pighead)),
+                                    Some(Self::load_pigchest(body.pigchest)),
+                                    Some(Self::load_piglf_leg(body.pigleg_l)),
+                                    Some(Self::load_pigrf_leg(body.pigleg_r)),
+                                    Some(Self::load_piglb_leg(body.pigleg_l)),
+                                    Some(Self::load_pigrb_leg(body.pigleg_r)),
                                     None,
                                     None,
                                     None,
@@ -237,7 +237,62 @@ impl FigureModelCache {
     //
     //        )
     //    }
+
+    fn load_pighead(pighead: Pighead) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pighead {
+                Pighead::Default => "pighead.vox",
+            },
+            Vec3::new(0.0, 5.0, 0.0),
+        )
+    }
+
+    fn load_pigchest(pigchest: Pigchest) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigchest {
+                Pigchest::Default => "pigchest.vox",
+            },
+            Vec3::new(0.0, 0.0, 0.0),
+        )
+    }
+
+    fn load_piglf_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_l {
+                Pigleg_l::Default => "pigleg_l.vox",
+            },
+            Vec3::new(0.0, 0.0, 0.0),
+        )
+    }
+
+    fn load_pigrf_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_r {
+                Pigleg_r::Default => "pigleg_r.vox",
+            },
+            Vec3::new(0.0, 0.0, 0.0),
+        )
+    }
+
+    fn load_piglb_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_l {
+                Pigleg_l::Default => "pigleg_l.vox",
+            },
+            Vec3::new(0.0, 0.0, 0.0),
+        )
+    }
+
+    fn load_pigrb_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_r {
+                Pigleg_r::Default => "pigleg_r.vox",
+            },
+            Vec3::new(0.0, 0.0, 0.0),
+        )
+    }
 }
+
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
@@ -305,7 +360,13 @@ impl FigureMgr {
                             FigureState::new(renderer, QuadrupedSkeleton::new())
                         });
 
-                        // TODO! Animations here, like above!
+                        let target_skeleton = match animation_history.current {
+                            comp::Animation::Run => RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                        };
 
                         state.update(renderer, pos.0, dir.0);
                     },
