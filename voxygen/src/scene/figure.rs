@@ -1,6 +1,7 @@
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
+        quadruped::{QuadrupedSkeleton},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -26,7 +27,7 @@ use std::{collections::HashMap, f32};
 use vek::*;
 
 pub struct FigureModelCache {
-    models: HashMap<HumanoidBody, (Model<FigurePipeline>, u64)>,
+    models: HashMap<Body, (Model<FigurePipeline>, u64)>,
 }
 
 impl FigureModelCache {
@@ -39,7 +40,7 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
-        body: HumanoidBody,
+        body: Body,
         tick: u64,
     ) -> &Model<FigurePipeline> {
         match self.models.get_mut(&body) {
@@ -51,24 +52,44 @@ impl FigureModelCache {
                     body,
                     (
                         {
-                            let bone_meshes = [
-                                Some(Self::load_head(body.head)),
-                                Some(Self::load_chest(body.chest)),
-                                Some(Self::load_belt(body.belt)),
-                                Some(Self::load_pants(body.pants)),
-                                Some(Self::load_left_hand(body.hand)),
-                                Some(Self::load_right_hand(body.hand)),
-                                Some(Self::load_left_foot(body.foot)),
-                                Some(Self::load_right_foot(body.foot)),
-                                Some(Self::load_weapon(body.weapon)),
-                                Some(Self::load_left_shoulder(body.shoulder)),
-                                Some(Self::load_right_shoulder(body.shoulder)),
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
-                            ];
+                            let bone_meshes = match body {
+                                Body::Humanoid(body) => [
+                                    Some(Self::load_head(body.head)),
+                                    Some(Self::load_chest(body.chest)),
+                                    Some(Self::load_belt(body.belt)),
+                                    Some(Self::load_pants(body.pants)),
+                                    Some(Self::load_left_hand(body.hand)),
+                                    Some(Self::load_right_hand(body.hand)),
+                                    Some(Self::load_left_foot(body.foot)),
+                                    Some(Self::load_right_foot(body.foot)),
+                                    Some(Self::load_weapon(body.weapon)),
+                                    Some(Self::load_left_shoulder(body.shoulder)),
+                                    Some(Self::load_right_shoulder(body.shoulder)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::Quadruped(body) => [ // TODO
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                            };
 
                             let mut mesh = Mesh::new();
                             bone_meshes
@@ -220,14 +241,16 @@ impl FigureModelCache {
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
-    states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+    character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+    quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
 }
 
 impl FigureMgr {
     pub fn new() -> Self {
         Self {
             model_cache: FigureModelCache::new(),
-            states: HashMap::new(),
+            character_states: HashMap::new(),
+            quadruped_states: HashMap::new(),
         }
     }
 
@@ -251,7 +274,7 @@ impl FigureMgr {
             match actor {
                 comp::Actor::Character { body, .. } => match body {
                     Body::Humanoid(body) => {
-                        let state = self.states.entry(entity).or_insert_with(|| {
+                        let state = self.character_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, CharacterSkeleton::new())
                         });
 
@@ -276,14 +299,24 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0);
-                    } // TODO: Non-humanoid bodies
+                    },
+                    Body::Quadruped(body) => {
+                        let state = self.quadruped_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, QuadrupedSkeleton::new())
+                        });
+
+                        // TODO! Animations here, like above!
+
+                        state.update(renderer, pos.0, dir.0);
+                    },
                 },
                 // TODO: Non-character actors
             }
         }
 
-        self.states
-            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        // Clear states that have dead entities
+        self.character_states.retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.quadruped_states.retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
     pub fn render(
@@ -297,22 +330,21 @@ impl FigureMgr {
 
         for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
             match actor {
-                comp::Actor::Character { body, .. } => match body {
-                    Body::Humanoid(body) => {
-                        if let Some(state) = self.states.get(&entity) {
-                            let model = self.model_cache.get_or_create_model(renderer, *body, tick);
-                            renderer.render_figure(
-                                model,
-                                globals,
-                                &state.locals(),
-                                state.bone_consts(),
-                            );
-                        }
-                    Body::Quadruped(body) => {..};
-                    } // TODO: Non-humanoid bodies
+                comp::Actor::Character { body, .. } => {
+                    if let Some((locals, bone_consts)) = match body {
+                        Body::Humanoid(_) => self.character_states.get(&entity).map(|state| (state.locals(), state.bone_consts())),
+                        Body::Quadruped(_) => self.quadruped_states.get(&entity).map(|state| (state.locals(), state.bone_consts())),
+                    } {
+                        let model = self.model_cache.get_or_create_model(renderer, *body, tick);
 
+                        renderer.render_figure(
+                            model,
+                            globals,
+                            locals,
+                            bone_consts,
+                        );
+                    }
                 },
-                // TODO: Non-character actors
             }
         }
     }
