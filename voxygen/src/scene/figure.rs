@@ -1,7 +1,7 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
-        quadruped::{QuadrupedSkeleton,},
+        character::{self, CharacterSkeleton},
+        quadruped::{self, QuadrupedSkeleton},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -334,17 +334,17 @@ impl FigureMgr {
                         });
 
                         let target_skeleton = match animation_history.current {
-                            comp::Animation::Idle => IdleAnimation::update_skeleton(
+                            comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_history.time,
                             ),
-                            comp::Animation::Run => RunAnimation::update_skeleton(
+                            comp::Animation::Run => character::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_history.time,
                             ),
-                            comp::Animation::Jump => JumpAnimation::update_skeleton(
+                            comp::Animation::Jump => character::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_history.time,
@@ -361,12 +361,16 @@ impl FigureMgr {
                         });
 
                         let target_skeleton = match animation_history.current {
-                            comp::Animation::Run => RunAnimation::update_skeleton(
+                            comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_history.time,
                             ),
+                            // TODO!
+                            _ => state.skeleton_mut().clone(),
                         };
+
+                        state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0);
                     },
