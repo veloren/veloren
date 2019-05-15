@@ -141,7 +141,7 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "armor/chest/chest_dark.vox",
+                Chest::Default => "figure/body/chest_male.vox",
                 Chest::Blue => "armor/chest/chest_blue.vox",
                 Chest::Brown => "armor/chest/chest_brown.vox",
                 Chest::Dark => "armor/chest/chest_dark.vox",
@@ -155,7 +155,8 @@ impl FigureModelCache {
     fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "armor/belt/belt_dark.vox",
+                //Belt::Default => "figure/body/belt_male.vox",
+                Belt::Dark => "armor/belt/belt_dark.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -164,7 +165,12 @@ impl FigureModelCache {
     fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "armor/pants/pants_dark.vox",
+                Pants::Default => "figure/body/pants_male.vox",
+                Pants::Blue => "armor/pants/pants_blue.vox",
+                Pants::Brown => "armor/pants/pants_brown.vox",
+                Pants::Dark => "armor/pants/pants_dark.vox",
+                Pants::Green => "armor/pants/pants_green.vox",
+                Pants::Orange => "armor/pants/pants_orange.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -191,7 +197,8 @@ impl FigureModelCache {
     fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::Default => "armor/foot/foot_dark.vox",
+                Foot::Default => "figure/body/foot.vox",
+                Foot::Dark => "armor/foot/foot_dark.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
@@ -200,7 +207,8 @@ impl FigureModelCache {
     fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::Default => "armor/foot/foot_dark.vox",
+                Foot::Default => "figure/body/foot.vox",
+                Foot::Dark => "armor/foot/foot_dark.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
