@@ -93,9 +93,12 @@ impl PlayState for CharSelectionState {
             self.scene
                 .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
-            // Render the scene.
-            self.scene
-                .render(global_state.window.renderer_mut(), &self.client.borrow());
+            // Render the scene
+            self.scene.render(
+                global_state.window.renderer_mut(),
+                &self.client.borrow(),
+                self.char_selection_ui.character_body,
+            );
 
             // Draw the UI to the screen.
             self.char_selection_ui

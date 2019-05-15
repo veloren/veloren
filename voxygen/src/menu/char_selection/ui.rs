@@ -3,12 +3,12 @@ use crate::{
     ui::{
         self,
         img_ids::{ImageGraphic, VoxelGraphic},
-        ScaleMode, Ui,
+        ImageSlider, ScaleMode, Ui,
     },
     window::Window,
 };
 use common::comp::{
-    actor::{Belt, BodyType, Chest, Foot, Hand, Head, Pants, Race, Weapon},
+    actor::{Belt, BodyType, Chest, Foot, Hand, Head, Pants, Race, Weapon, ALL_CHESTS},
     HumanoidBody,
 };
 use conrod_core::{
@@ -61,9 +61,11 @@ widget_ids! {
         skin_eyes_window,
         hair_window,
         accessories_window,
+        chest_window,
         skin_eyes_button,
         hair_button,
         accessories_button,
+        chest_button,
         skin_rect,
         eyes_rect,
         human_skin_bg,
@@ -92,13 +94,7 @@ widget_ids! {
         race_6,
         body_type_1,
         body_type_2,
-        weapon_1,
-        weapon_2,
-        weapon_3,
-        weapon_4,
-        weapon_5,
-        weapon_6,
-        weapon_7,
+        weapon_buttons[],
 
         //test_chars
         test_char_l_button,
@@ -118,13 +114,7 @@ widget_ids! {
         danari,
         // Weapon Icons
         weapon_bg,
-        daggers,
-        sword_shield,
-        sword,
-        axe,
-        hammer,
-        bow,
-        staff,
+        weapon_icons[],
         // Arrows
         arrow_left,
         arrow_right,
@@ -148,9 +138,8 @@ widget_ids! {
         eye_color_slider_text,
         skin_color_slider_range,
         skin_color_slider_indicator,
-        eye_color_slider_range,
-        eye_color_slider_indicator,
         hair_color_slider_text,
+        chest_slider,
         // Creation Hair Contents
         hair_style_text,
         hair_style_arrow_l,
@@ -272,6 +261,7 @@ enum BodyPart {
     SkinEyes,
     Hair,
     Accessories,
+    Chest,
 }
 
 pub enum Event {
@@ -291,6 +281,8 @@ pub struct CharSelectionUi {
     pub character_name: String,
     pub character_body: HumanoidBody,
     creation_state: CreationState,
+    // TODO: remove this
+    eye_color_brightness: f32,
 }
 
 impl CharSelectionUi {
@@ -316,6 +308,7 @@ impl CharSelectionUi {
             character_name: "Character Name".to_string(),
             character_body: HumanoidBody::random(),
             creation_state: CreationState::Race,
+            eye_color_brightness: 0.5,
         }
     }
 
@@ -961,133 +954,50 @@ impl CharSelectionUi {
                     .mid_top_with_margin_on(self.ids.creation_window, 180.0)
                     .set(self.ids.weapon_bg, ui_widgets);
                 // Weapons Icons
-                // Sword and Shield
-                Image::new(self.imgs.sword_shield)
-                    .w_h(60.0, 60.0)
-                    .mid_left_of(self.ids.weapon_bg)
-                    .set(self.ids.sword_shield, ui_widgets);
-                if Button::image(if let Weapon::SwordShield = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.sword_shield)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_1, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::SwordShield;
-                }
+                // Currently same as ALL_WEAPONS but this may change
+                const STARTER_WEAPONS: [Weapon; 7] = [
+                    Weapon::SwordShield,
+                    Weapon::Daggers,
+                    Weapon::Sword,
+                    Weapon::Axe,
+                    Weapon::Hammer,
+                    Weapon::Bow,
+                    Weapon::Staff,
+                ];
+                self.ids
+                    .weapon_icons
+                    .resize(STARTER_WEAPONS.len(), &mut ui_widgets.widget_id_generator());
+                self.ids
+                    .weapon_buttons
+                    .resize(STARTER_WEAPONS.len(), &mut ui_widgets.widget_id_generator());
 
-                // Daggers
-                Image::new(self.imgs.daggers)
+                for i in 0..STARTER_WEAPONS.len() {
+                    Image::new(match STARTER_WEAPONS[i] {
+                        Weapon::SwordShield => self.imgs.sword_shield,
+                        Weapon::Daggers => self.imgs.daggers,
+                        Weapon::Sword => self.imgs.sword,
+                        Weapon::Axe => self.imgs.axe,
+                        Weapon::Hammer => self.imgs.hammer,
+                        Weapon::Bow => self.imgs.bow,
+                        Weapon::Staff => self.imgs.staff,
+                    })
                     .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0)
-                    .set(self.ids.daggers, ui_widgets);
-                if Button::image(if let Weapon::Daggers = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.daggers)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_2, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Daggers;
-                }
+                    .mid_left_with_margin_on(self.ids.weapon_bg, (60.0 + 8.0) * i as f64)
+                    .set(self.ids.weapon_icons[i], ui_widgets);
 
-                // Sword
-                Image::new(self.imgs.sword)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0 * 2.0 + 60.0 * 1.0)
-                    .set(self.ids.sword, ui_widgets);
-                if Button::image(if let Weapon::Sword = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.sword)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_3, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Sword;
-                }
-                // Axe
-                Image::new(self.imgs.axe)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0 * 3.0 + 60.0 * 2.0)
-                    .set(self.ids.axe, ui_widgets);
-                if Button::image(if let Weapon::Axe = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.axe)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_4, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Axe;
-                }
-                // Hammer
-                Image::new(self.imgs.hammer)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0 * 4.0 + 60.0 * 3.0)
-                    .set(self.ids.hammer, ui_widgets);
-                if Button::image(if let Weapon::Hammer = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.hammer)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_5, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Hammer;
-                }
-                // Bow
-                Image::new(self.imgs.bow)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0 * 5.0 + 60.0 * 4.0)
-                    .set(self.ids.bow, ui_widgets);
-                if Button::image(if let Weapon::Bow = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.bow)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_6, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Bow;
-                }
-                // Staff
-                Image::new(self.imgs.staff)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword_shield, 8.0 * 6.0 + 60.0 * 5.0)
-                    .set(self.ids.staff, ui_widgets);
-                if Button::image(if let Weapon::Staff = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.staff)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.weapon_7, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Staff;
+                    if Button::image(if STARTER_WEAPONS[i] == self.character_body.weapon {
+                        self.imgs.icon_border_pressed
+                    } else {
+                        self.imgs.icon_border
+                    })
+                    .middle_of(self.ids.weapon_icons[i])
+                    .hover_image(self.imgs.icon_border_mo)
+                    .press_image(self.imgs.icon_border_press)
+                    .set(self.ids.weapon_buttons[i], ui_widgets)
+                    .was_clicked()
+                    {
+                        self.character_body.weapon = STARTER_WEAPONS[i];
+                    }
                 }
 
                 // TODO: Load these from files (or from the server???).
@@ -1135,159 +1045,122 @@ impl CharSelectionUi {
                     .color(TEXT_COLOR)
                     .set(self.ids.select_window_title, ui_widgets);
 
-                match state {
-                    // Skin Eyes Open
+                let open_section_button = Button::image(self.imgs.frame_open_mo)
+                    .w_h(511.0, 37.0)
+                    .label_color(TEXT_COLOR)
+                    .label_y(conrod_core::position::Relative::Scalar(4.0))
+                    .label_font_size(16);
+                let closed_section_button = Button::image(self.imgs.frame_closed)
+                    .down_from(self.ids.skin_eyes_window, 5.0)
+                    .w_h(511.0, 31.0)
+                    .hover_image(self.imgs.frame_closed_mo)
+                    .press_image(self.imgs.frame_closed_press)
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(16);
+
+                // Skin and eyes
+                if match state {
+                    // Open Window: Skin & Eyes
                     BodyPart::SkinEyes => {
                         Image::new(self.imgs.skin_eyes_window)
+                            .down_from(self.ids.select_window_title, 30.0)
+                            .align_middle_x()
                             .w_h(511.0, 333.0)
-                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
                             .set(self.ids.skin_eyes_window, ui_widgets);
-                        // Open Window: Skin & Eyes
-                        if Button::image(self.imgs.frame_open_mo)
-                            .mid_top_with_margin_on(self.ids.skin_eyes_window, 0.0)
-                            .w_h(511.0, 37.0)
-                            //.hover_image(self.imgs.frame_open_mo)
-                            //.press_image(self.imgs.frame_open_press)
-                            .label("Skin & Eyes")
-                            .label_color(TEXT_COLOR)
-                            .label_y(conrod_core::position::Relative::Scalar(4.0))
-                            .label_font_size(16)
-                            .set(self.ids.skin_eyes_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
-                        }
-                        // Closed: Hair
-                        if Button::image(self.imgs.frame_closed)
-                            .down_from(self.ids.skin_eyes_window, 5.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Hair")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.hair_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Hair);
-                        }
-                        // Closed: Accessories
-                        if Button::image(self.imgs.frame_closed)
-                            .down_from(self.ids.hair_button, 5.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Accessories")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.accessories_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Accessories);
-                        }
+                        open_section_button
+                            .clone()
+                            .mid_top_of(self.ids.skin_eyes_window)
                     }
+                    // Closed Window: Skin & Eyes
+                    _ => closed_section_button
+                        .clone()
+                        .down_from(self.ids.select_window_title, 30.0)
+                        .align_middle_x(),
+                }
+                .label("Skin & Eyes")
+                .set(self.ids.skin_eyes_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                }
 
-                    // Hair Open
+                // Hair
+                if match state {
+                    // Open Window: Hair
                     BodyPart::Hair => {
                         Image::new(self.imgs.hair_window)
                             .w_h(511.0, 400.0) //333.0
                             .down_from(self.ids.skin_eyes_button, 5.0)
                             .set(self.ids.hair_window, ui_widgets);
-                        // Closed Window: Skin & Eyes
-                        if Button::image(self.imgs.frame_closed)
-                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Skin & Eyes")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.skin_eyes_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
-                        }
-                        // Open Window: Hair
-                        if Button::image(self.imgs.frame_open_mo)
-                            .mid_top_with_margin_on(self.ids.hair_window, 0.0)
-                            .w_h(511.0, 37.0)
-                            //.hover_image(self.imgs.frame_closed_mo)
-                            //.press_image(self.imgs.frame_closed_press)
-                            .label("Hair")
-                            .label_color(TEXT_COLOR)
-                            .label_y(conrod_core::position::Relative::Scalar(4.0))
-                            .label_font_size(16)
-                            .set(self.ids.hair_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Hair);
-                        }
-                        // Closed: Accessories
-                        if Button::image(self.imgs.frame_closed)
-                            .down_from(self.ids.hair_window, 5.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Accessories")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.accessories_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Accessories);
-                        }
+                        open_section_button.clone().mid_top_of(self.ids.hair_window)
                     }
+                    // Closed Window: Hair
+                    BodyPart::SkinEyes => closed_section_button
+                        .clone()
+                        .down_from(self.ids.skin_eyes_window, 5.0),
+                    _ => closed_section_button
+                        .clone()
+                        .down_from(self.ids.skin_eyes_button, 5.0),
+                }
+                .label("Hair")
+                .set(self.ids.hair_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.creation_state = CreationState::Body(BodyPart::Hair);
+                }
 
-                    // Open: Accessories
+                // Accessories
+                if match state {
+                    // Open Window: Accessories
                     BodyPart::Accessories => {
                         Image::new(self.imgs.hair_window)
                             .w_h(511.0, 333.0)
                             .down_from(self.ids.hair_button, 5.0)
                             .set(self.ids.accessories_window, ui_widgets);
-                        // Closed Window: Skin & Eyes
-                        if Button::image(self.imgs.frame_closed)
-                            .mid_top_with_margin_on(self.ids.select_window_title, 60.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Skin & Eyes")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.skin_eyes_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::SkinEyes);
-                        }
-                        // Closed: Hair
-                        if Button::image(self.imgs.frame_closed)
-                            .down_from(self.ids.skin_eyes_button, 5.0)
-                            .w_h(511.0, 31.0)
-                            .hover_image(self.imgs.frame_closed_mo)
-                            .press_image(self.imgs.frame_closed_press)
-                            .label("Hair")
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.hair_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Hair);
-                        }
-                        // Open: Accessories
-                        if Button::image(self.imgs.frame_open_mo)
-                            .down_from(self.ids.hair_button, 5.0)
-                            .w_h(511.0, 37.0)
-                            //.hover_image(self.imgs.frame_closed_mo)
-                            //.press_image(self.imgs.frame_closed_press)
-                            .label("Accessories")
-                            .label_y(conrod_core::position::Relative::Scalar(4.0))
-                            .label_color(TEXT_COLOR)
-                            .label_font_size(16)
-                            .set(self.ids.accessories_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.creation_state = CreationState::Body(BodyPart::Accessories);
-                        }
+                        open_section_button
+                            .clone()
+                            .mid_top_of(self.ids.accessories_window)
                     }
+                    // Closed Window: Accessories
+                    BodyPart::Hair => closed_section_button
+                        .clone()
+                        .down_from(self.ids.hair_window, 5.0),
+                    _ => closed_section_button
+                        .clone()
+                        .down_from(self.ids.hair_button, 5.0),
+                }
+                .label("Accessories")
+                .set(self.ids.accessories_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.creation_state = CreationState::Body(BodyPart::Accessories);
+                }
+
+                // Chest
+                if match state {
+                    // Open Window: Chest
+                    BodyPart::Chest => {
+                        Image::new(self.imgs.hair_window)
+                            .w_h(511.0, 111.0)
+                            .down_from(self.ids.accessories_button, 5.0)
+                            .set(self.ids.chest_window, ui_widgets);
+                        open_section_button
+                            .clone()
+                            .mid_top_of(self.ids.chest_window)
+                    }
+                    // Closed Window: Accessories
+                    BodyPart::Accessories => closed_section_button
+                        .clone()
+                        .down_from(self.ids.accessories_window, 5.0),
+                    _ => closed_section_button
+                        .clone()
+                        .down_from(self.ids.accessories_button, 5.0),
+                }
+                .label("Chests")
+                .set(self.ids.chest_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.creation_state = CreationState::Body(BodyPart::Chest);
                 }
 
                 // Body Customization Window Contents
@@ -1333,29 +1206,43 @@ impl CharSelectionUi {
                             .font_size(25)
                             .color(TEXT_COLOR)
                             .set(self.ids.eye_color_text, ui_widgets);
-                        // TODO: Align 16 Buttons here.
-                        // Users set a variable to a value from 0-14.
-                        // Depending on the race another color will be chosen.
+                        // TODO: Align 16 Buttons here
+                        //
+                        // Then set a variable to a value from 0-14
+                        // Depending on the race another color will be chosen
                         // Only the BG image (190x114 -> 2px border!) changes depending on the race.
-                        Rectangle::fill_with([192.0, 116.0], color::WHITE)
-                            .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
-                            .color(TEXT_COLOR)
-                            .set(self.ids.eyes_rect, ui_widgets);
+                        Rectangle::fill_with(
+                            [192.0, 116.0],
+                            Color::Rgba(
+                                self.eye_color_brightness,
+                                0.01 * self.eye_color_brightness,
+                                self.eye_color_brightness,
+                                1.0,
+                            ),
+                        )
+                        .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.eyes_rect, ui_widgets);
 
-                        // TODO: Slider
-
-                        Image::new(self.imgs.slider_range)
-                            .w_h(208.0, 12.0)
-                            .bottom_left_with_margins_on(self.ids.eyes_rect, 10.0, -255.0)
-                            .set(self.ids.eye_color_slider_range, ui_widgets);
-
-                        Image::new(self.imgs.slider_indicator)
-                            .w_h(10.0, 22.0)
-                            .middle_of(self.ids.eye_color_slider_range)
-                            .set(self.ids.eye_color_slider_indicator, ui_widgets);
+                        if let Some(new_val) = ImageSlider::continuous(
+                            self.eye_color_brightness,
+                            0.0,
+                            1.0,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                        )
+                        .bottom_left_with_margins_on(self.ids.eyes_rect, 10.0, -255.0)
+                        .w_h(208.0, 22.0)
+                        .track_breadth(12.0)
+                        .slider_length(10.0)
+                        .set(self.ids.eye_color_slider, ui_widgets)
+                        {
+                            // TODO use a differnt variable that is not just a field on the chracter selection struct
+                            self.eye_color_brightness = new_val;
+                        }
 
                         Text::new("Brightness")
-                            .top_left_with_margins_on(self.ids.eye_color_slider_range, -27.0, 0.0)
+                            .top_left_with_margins_on(self.ids.eye_color_slider, -27.0, 0.0)
                             .color(TEXT_COLOR)
                             .font_size(14)
                             .set(self.ids.eye_color_slider_text, ui_widgets);
@@ -1873,10 +1760,33 @@ impl CharSelectionUi {
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
                             }
                         } // match Race fin
+                    } // Accessories fin
+                    BodyPart::Chest => {
+                        // borrow checker complains if we use self in a closure
+                        let current_chest = self.character_body.chest;
+                        if let Some(new_val) = ImageSlider::discrete(
+                            ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                        )
+                        .middle_of(self.ids.chest_window)
+                        .w_h(208.0, 22.0)
+                        .track_breadth(12.0)
+                        .slider_length(10.0)
+                        .set(self.ids.chest_slider, ui_widgets)
+                        {
+                            // TODO use a differnt variable that is not just a field on the chracter selection struct
+                            self.character_body.chest = ALL_CHESTS[new_val];
+                        }
                     }
-                }
-            }
-        }
+                } // Body Customization Fin
+            } // CreationState::Body Fin
+        } // Char Creation fin
 
         events
     }

@@ -27,11 +27,11 @@ pub enum Head {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
-    Default, 
-    Blue, 
-    Brown, 
-    Dark, 
-    Green, 
+    Default,
+    Blue,
+    Brown,
+    Dark,
+    Green,
     Orange,
 }
 
@@ -95,7 +95,7 @@ pub enum PigLegR {
     Default,
 }
 
-const ALL_RACES: [Race; 6] = [
+pub const ALL_RACES: [Race; 6] = [
     Race::Danari,
     Race::Dwarf,
     Race::Elf,
@@ -103,21 +103,21 @@ const ALL_RACES: [Race; 6] = [
     Race::Orc,
     Race::Undead,
 ];
-const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-const ALL_HEADS: [Head; 1] = [Head::Default];
-const ALL_CHESTS: [Chest; 6] = [
-    Chest::Default, 
-    Chest::Blue, 
-    Chest::Brown, 
-    Chest::Dark, 
-    Chest::Green, 
-    Chest::Orange
+pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+pub const ALL_HEADS: [Head; 1] = [Head::Default];
+pub const ALL_CHESTS: [Chest; 6] = [
+    Chest::Default,
+    Chest::Blue,
+    Chest::Brown,
+    Chest::Dark,
+    Chest::Green,
+    Chest::Orange,
 ];
-const ALL_BELTS: [Belt; 1] = [Belt::Default];
-const ALL_PANTS: [Pants; 1] = [Pants::Default];
-const ALL_HANDS: [Hand; 1] = [Hand::Default];
-const ALL_FEET: [Foot; 1] = [Foot::Default];
-const ALL_WEAPONS: [Weapon; 7] = [
+pub const ALL_BELTS: [Belt; 1] = [Belt::Default];
+pub const ALL_PANTS: [Pants; 1] = [Pants::Default];
+pub const ALL_HANDS: [Hand; 1] = [Hand::Default];
+pub const ALL_FEET: [Foot; 1] = [Foot::Default];
+pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Daggers,
     Weapon::SwordShield,
     Weapon::Sword,
@@ -126,8 +126,8 @@ const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Bow,
     Weapon::Staff,
 ];
-const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
-const ALL_DRAW: [Draw; 1] = [Draw::Default];
+pub const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
+pub const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HumanoidBody {
