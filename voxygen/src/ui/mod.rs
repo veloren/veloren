@@ -32,7 +32,7 @@ use conrod_core::{
     render::{Primitive, PrimitiveKind},
     text::{self, font},
     widget::{self, id::Generator},
-    Ui as CrUi, UiBuilder, UiCell,
+    Rect, UiBuilder, UiCell,
 };
 use graphic::Id as GraphicId;
 use scale::Scale;
@@ -82,7 +82,7 @@ impl assets::Asset for Font {
 }
 
 pub struct Ui {
-    ui: CrUi,
+    ui: conrod_core::Ui,
     image_map: Map<GraphicId>,
     cache: Cache,
     // Draw commands for the next render
@@ -282,7 +282,7 @@ impl Ui {
             }
 
             match in_world {
-                Some(0) => {
+                Some((0, _)) => {
                     in_world = None;
                     p_scale_factor = self.scale.scale_factor_physical();
                     // Finish current state
@@ -293,20 +293,20 @@ impl Ui {
                     start = mesh.vertices().len();
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
-                },
-                Some(n) => in_world = Some(n-1),
+                }
+                Some((n, res)) => in_world = Some((n - 1, res)),
                 None => (),
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let (ui_win_w, ui_win_h) = if in_world.is_some() {
-                (2.0, 2.0)
+            let (ui_win_w, ui_win_h) = if let Some((_, res)) = in_world {
+                (res as f64, res as f64)
             } else {
                 (self.ui.win_w, self.ui.win_h)
             };
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
-            let gl_aabr = |rect: conrod_core::Rect| {
+            let gl_aabr = |rect: Rect| {
                 let (l, r, b, t) = rect.l_r_b_t();
                 Aabr {
                     min: Vec2::new(vx(l), vy(b)),
@@ -434,12 +434,16 @@ impl Ui {
                             };
                             let rect = Aabr {
                                 min: Vec2::new(
-                                    vx(screen_rect.min.x as f64 / p_scale_factor) - 1.0,
-                                    1.0 - vy(screen_rect.max.y as f64 / p_scale_factor),
+                                    vx(screen_rect.min.x as f64 / p_scale_factor
+                                        - self.ui.win_w / 2.0),
+                                    vy(self.ui.win_h / 2.0
+                                        - screen_rect.max.y as f64 / p_scale_factor),
                                 ),
                                 max: Vec2::new(
-                                    vx(screen_rect.max.x as f64 / p_scale_factor) - 1.0,
-                                    1.0 - vy(screen_rect.min.y as f64 / p_scale_factor),
+                                    vx(screen_rect.max.x as f64 / p_scale_factor
+                                        - self.ui.win_w / 2.0),
+                                    vy(self.ui.win_h / 2.0
+                                        - screen_rect.min.y as f64 / p_scale_factor),
                                 ),
                             };
                             mesh.push_quad(create_ui_quad(rect, uv, color, UiMode::Text));
@@ -496,11 +500,11 @@ impl Ui {
                 PrimitiveKind::Other(container) => {
                     if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
                         // Retrieve world position
-                        let pos = container
+                        let (pos, res) = container
                             .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
                             .unwrap()
                             .state
-                            .pos;
+                            .pos_res();
                         // Finish current state
                         self.draw_commands.push(match current_state {
                             State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
@@ -512,8 +516,8 @@ impl Ui {
                             renderer.create_consts(&[pos.into()]).unwrap(),
                         )));
 
-                        in_world = Some(1);
-                        p_scale_factor = self.scale.dpi_factor();
+                        in_world = Some((1, res));
+                        p_scale_factor = 1.0;
                     }
                 }
                 _ => {} // TODO: Add this.

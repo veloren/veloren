@@ -38,6 +38,7 @@ use conrod_core::{
 };
 use specs::Join;
 use std::collections::VecDeque;
+use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -269,7 +270,7 @@ impl Hud {
 
         // Nametags
         let ecs = client.state().ecs();
-       /* {
+        {
             let actor_read_storage = ecs.read_storage::<comp::Actor>();
             let pos_read_storage = ecs.read_storage::<comp::phys::Pos>();
             let num = (&actor_read_storage, &pos_read_storage).join().count();
@@ -283,16 +284,26 @@ impl Hud {
                 })
                 .enumerate()
             {
-                Ingame::from_primitive(pos, Text::new(&name))
-                    .set(self.ids.name_tags[i], ui_widgets);
+                Ingame::from_primitive(
+                    pos + Vec3::new(0.0, 0.0, 3.0),
+                    Text::new(&name)
+                        .font_size(15)
+                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0)),
+                )
+                .resolution(50.0)
+                .set(self.ids.name_tags[i], ui_widgets);
             }
-        }*/
+        }
         // test
         Ingame::from_primitive(
             [0.0, 25.0, 25.0].into(),
-            Rectangle::fill_with([1.0, 1.0], Color::Rgba(0.2, 0.0, 0.4, 1.0)),
+            //Rectangle::fill_with([1.0, 1.0], Color::Rgba(0.2, 0.0, 0.4, 1.0)),
+            Text::new("Squarefection")
+                .font_size(20)
+                .color(TEXT_COLOR)
+                .font_id(self.fonts.opensans),
         )
-        .x_y(0.0, 0.0)
+        .resolution(40.0)
         .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
