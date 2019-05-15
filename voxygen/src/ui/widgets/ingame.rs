@@ -1,5 +1,5 @@
 use conrod_core::{
-    image,
+    builder_methods, image,
     position::Dimension,
     widget::{self, button},
     widget_ids, Color, Position, Positionable, Rect, Sizeable, Ui, Widget, WidgetCommon,
@@ -15,6 +15,10 @@ where
     common: widget::CommonBuilder,
     widget: W,
     pos: Vec3<f32>,
+    // Number of pixels per 1 unit in world coordinates (ie a voxel)
+    // Used for widgets that are rasterized before being sent to the gpu (text & images)
+    // Potentially make this autmatic based on distance to camera?
+    res: f32,
 }
 
 // TODO: add convenience function to this trait
@@ -37,7 +41,14 @@ widget_ids! {
 
 pub struct State {
     ids: Ids,
-    pub pos: Vec3<f32>,
+    pos: Vec3<f32>,
+    res: f32,
+}
+impl State {
+    // retrieve the postion and resolution as a tuple
+    pub fn pos_res(&self) -> (Vec3<f32>, f32) {
+        (self.pos, self.res)
+    }
 }
 
 pub type Style = ();
@@ -48,7 +59,11 @@ impl<W: Widget + Primitive> Ingame<W> {
             common: widget::CommonBuilder::default(),
             pos,
             widget,
+            res: 1.0,
         }
+    }
+    builder_methods! {
+        pub resolution { res = f32 }
     }
 }
 
@@ -61,6 +76,7 @@ impl<W: Widget> Widget for Ingame<W> {
         State {
             ids: Ids::new(id_gen),
             pos: Vec3::default(),
+            res: 1.0,
         }
     }
 
@@ -70,15 +86,21 @@ impl<W: Widget> Widget for Ingame<W> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
-        let Ingame { widget, pos, .. } = self;
+        let Ingame {
+            widget, pos, res, ..
+        } = self;
 
         // Update pos if it has changed
-        if state.pos != pos {
-            state.update(|s| s.pos = pos);
+        if state.pos != pos || state.res != res {
+            state.update(|s| {
+                s.pos = pos;
+                s.res = res;
+            });
         }
 
         widget
             .graphics_for(ui.window)
+            .x_y(0.0, 0.0)
             .parent(id) // is this needed
             .set(state.ids.prim, ui);
     }

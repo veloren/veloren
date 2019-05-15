@@ -33,7 +33,7 @@ gfx_defines! {
         scissor: gfx::Scissor = (),
 
         tgt_color: gfx::BlendTarget<WinColorFmt> = ("tgt_color", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        tgt_depth: gfx::DepthTarget<WinDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
     }
 }
 
