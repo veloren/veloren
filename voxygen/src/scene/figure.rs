@@ -217,9 +217,9 @@ impl FigureModelCache {
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
+                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
                 // TODO actually match against other weapons and set the right model
-                _ => "weapon/sword/sword_wood_2h.vox",
+                _ => "weapon/sword/sword_rusty_2h.vox",               
             },
             Vec3::new(0.0, 0.0, -4.0),
         )
