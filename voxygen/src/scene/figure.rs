@@ -141,13 +141,12 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "armor/chest/chest_dark.vox",                
+                Chest::Default => "armor/chest/chest_dark.vox",
                 Chest::Blue => "armor/chest/chest_blue.vox",
                 Chest::Brown => "armor/chest/chest_brown.vox",
                 Chest::Dark => "armor/chest/chest_dark.vox",
                 Chest::Green => "armor/chest/chest_green.vox",
                 Chest::Orange => "armor/chest/chest_orange.vox",
-                
             },
             Vec3::new(-6.0, -3.5, 0.0),
         )

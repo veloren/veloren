@@ -36,8 +36,6 @@ pub struct Scene {
     backdrop_model: Model<FigurePipeline>,
     backdrop_state: FigureState<FixtureSkeleton>,
 
-    body: HumanoidBody,
-
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
 }
@@ -60,7 +58,6 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            body: HumanoidBody::random(),
             figure_model_cache: FigureModelCache::new(),
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
@@ -114,14 +111,12 @@ impl Scene {
         );
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: HumanoidBody) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
-        let model = self.figure_model_cache.get_or_create_model(
-            renderer,
-            self.body.clone(),
-            client.get_tick(),
-        );
+        let model = self
+            .figure_model_cache
+            .get_or_create_model(renderer, body, client.get_tick());
 
         renderer.render_figure(
             model,
