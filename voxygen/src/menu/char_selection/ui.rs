@@ -12,10 +12,10 @@ use common::comp::{
     HumanoidBody,
 };
 use conrod_core::{
-    color,
+    color,graph,
     color::TRANSPARENT,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
-    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use std::sync::Arc;
 
@@ -180,6 +180,7 @@ image_ids! {
         charlist_frame: "/voxygen/element/frames/window_4.vox",
         selection_frame: "/voxygen/element/frames/selection_frame.vox",
         server_frame: "/voxygen/element/frames/server_frame.vox",
+        selection: "/voxygen/element/frames/selection.vox",
 
         <ImageGraphic>
         selection_window: "/voxygen/element/frames/selection.png",
@@ -332,7 +333,7 @@ impl CharSelectionUi {
 
             // Background for Char List
             Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .down_from(self.ids.server_frame_bg, 10.0)
+                .down_from(self.ids.server_frame_bg, 20.0)
                 .set(self.ids.charlist_bg, ui_widgets);
             Image::new(self.imgs.charlist_frame)
                 .w_h(400.0, 800.0)
@@ -429,12 +430,13 @@ impl CharSelectionUi {
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
 
-            // 1st Character in Selection List
-            if Button::image(self.imgs.selection_frame)
+            // 1st Character in Selection List           
+            if Button::image(self.imgs.selection)
                 .top_left_with_margins_on(self.ids.charlist_alignment, 0.0, 2.0)
                 .w_h(386.0, 80.0)
-                .hover_image(self.imgs.charlist_frame)
-                .press_image(self.imgs.charlist_frame)
+                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
+                .hover_image(self.imgs.selection)
+                .press_image(self.imgs.selection)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_1, ui_widgets)
                 .was_clicked()
@@ -442,22 +444,22 @@ impl CharSelectionUi {
                 events.push(Event::Play);
             }
             Text::new("Human Default")
-                .top_left_with_margins_on(self.ids.character_box_1, 5.0, 5.0)
-                .font_size(20)
+                .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
+                .font_size(19)
                 .font_id(self.fonts.metamorph)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_1, ui_widgets);
 
             Text::new("Level 1")
-                .down_from(self.ids.character_name_1, 5.0)
-                .font_size(18)
+                .down_from(self.ids.character_name_1, 4.0)
+                .font_size(17)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_1, ui_widgets);
 
             Text::new("Uncanny Valley")
-                .down_from(self.ids.character_level_1, 5.0)
-                .font_size(18)
+                .down_from(self.ids.character_level_1, 4.0)
+                .font_size(17)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_1, ui_widgets);
@@ -466,8 +468,9 @@ impl CharSelectionUi {
             if Button::image(self.imgs.nothing)
                 .down_from(self.ids.character_box_1, 5.0)
                 .w_h(386.0, 80.0)
-                .hover_image(self.imgs.charlist_frame)
-                .press_image(self.imgs.charlist_frame)
+                .hover_image(self.imgs.selection)
+                .press_image(self.imgs.selection)
+                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_2, ui_widgets)
                 .was_clicked()
@@ -475,66 +478,28 @@ impl CharSelectionUi {
                 events.push(Event::Play);
             }
             Text::new("Example 2nd Char")
-                .top_left_with_margins_on(self.ids.character_box_2, 5.0, 5.0)
-                .font_size(20)
+                .top_left_with_margins_on(self.ids.character_box_2, 6.0, 9.0)
+                .font_size(19)
                 .font_id(self.fonts.metamorph)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_name_2, ui_widgets);
 
             Text::new("Level ??")
-                .down_from(self.ids.character_name_2, 5.0)
-                .font_size(18)
+                .down_from(self.ids.character_name_2, 4.0)
+                .font_size(17)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_level_2, ui_widgets);
 
             Text::new("Plains of Uncertainty")
-                .down_from(self.ids.character_level_2, 5.0)
-                .font_size(18)
+                .down_from(self.ids.character_level_2, 4.0)
+                .font_size(17)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.character_location_2, ui_widgets);
 
-            if let Some(no) = self.selected_char_no {
-                // Selection_Window
-                Image::new(self.imgs.selection_window)
-                    .w_h(522.0, 722.0)
-                    .mid_right_with_margin_on(ui_widgets.window, 10.0)
-                    .set(self.ids.selection_window, ui_widgets);
-                // Character Name & Level
-                Text::new("Character Name")
-                    .mid_top_with_margin_on(self.ids.selection_window, 80.0)
-                    .font_size(30)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.char_name, ui_widgets);
-                Text::new("1")
-                    .mid_top_with_margin_on(self.ids.char_name, 40.0)
-                    .font_size(30)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.char_level, ui_widgets);
-
-                // Selected Character
-                if no == 1 {
-                    Image::new(self.imgs.test_char_l_big)
-                        .w_h(522.0, 722.0)
-                        .middle_of(self.ids.selection_window)
-                        .set(self.ids.test_char_l_big, ui_widgets);
-                }
-
-                // Delete Button
-                if Button::image(self.imgs.button_red)
-                    .bottom_right_with_margins_on(self.ids.selection_window, -25.0, 0.0)
-                    .w_h(100.0, 20.0)
-                    .hover_image(self.imgs.button_red_hover)
-                    .press_image(self.imgs.button_red_press)
-                    .label("Delete")
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(12)
-                    .label_y(conrod_core::position::Relative::Scalar(3.0))
-                    .set(self.ids.delete_button, ui_widgets)
-                    .was_clicked()
-                {}
-            }
+            
+            
         }
         // Character_Creation //////////////
         else {
@@ -570,10 +535,11 @@ impl CharSelectionUi {
                 self.character_creation = false;
             }
             // Character Name Input
-            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.99))
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
                 .mid_bottom_with_margin_on(ui_widgets.window, 20.0)
                 .set(self.ids.name_input_bg, ui_widgets);
             Button::image(self.imgs.name_input)
+                .image_color(Color::Rgba(1.0, 1.0, 1.0, 0.9))
                 .w_h(337.0, 67.0)
                 .middle_of(self.ids.name_input_bg)
                 .set(self.ids.name_input, ui_widgets);
@@ -960,7 +926,7 @@ impl CharSelectionUi {
                 const STARTER_WEAPONS: [Weapon; 7] = [
                     Weapon::SwordShield,
                     Weapon::Daggers,
-                    Weapon::Sword,
+                    Weapon::Sword,                    
                     Weapon::Axe,
                     Weapon::Hammer,
                     Weapon::Bow,
@@ -976,7 +942,7 @@ impl CharSelectionUi {
                 for i in 0..STARTER_WEAPONS.len() {
                     Image::new(match STARTER_WEAPONS[i] {
                         Weapon::SwordShield => self.imgs.sword_shield,
-                        Weapon::Daggers => self.imgs.daggers,
+                        Weapon::Daggers => self.imgs.daggers,                        
                         Weapon::Sword => self.imgs.sword,
                         Weapon::Axe => self.imgs.axe,
                         Weapon::Hammer => self.imgs.hammer,
@@ -1144,7 +1110,7 @@ impl CharSelectionUi {
                     // Open Window: Chest
                     BodyPart::Chest => {
                         Image::new(self.imgs.hair_window)
-                            .w_h(511.0, 111.0)
+                            .w_h(511.0, 222.0)
                             .down_from(self.ids.accessories_button, 5.0)
                             .set(self.ids.chest_window, ui_widgets);
                         open_section_button

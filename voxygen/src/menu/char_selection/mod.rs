@@ -2,6 +2,7 @@ mod scene;
 mod ui;
 
 use crate::{
+    render::Renderer,
     session::SessionState,
     window::{Event, Window},
     Direction, GlobalState, PlayState, PlayStateResult,
