@@ -42,7 +42,7 @@ impl World {
 
             let chaos_freq = 1.0 / 100.0;
             let freq = 1.0 / 128.0;
-            let ampl = 32.0;
+            let ampl = 75.0;
             let small_freq = 1.0 / 32.0;
             let small_ampl = 6.0;
             let offs = 32.0;
@@ -55,7 +55,7 @@ impl World {
             let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
                 + perlin_nz.get((wposf * small_freq).into_array())
                     * small_ampl
-                    * 2.0
+                    * 3.0
                     * chaos.powf(2.0)
                 + offs;
             let temp = (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
