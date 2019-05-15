@@ -7,7 +7,11 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
+<<<<<<< HEAD
 use common::{clock::Clock, comp, msg::ClientMsg};
+=======
+use common::{clock::Clock, msg::ClientMsg, comp};
+>>>>>>> Allowed sending full body to server on connection, fixed asset dirs
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
@@ -78,7 +82,7 @@ impl PlayState for CharSelectionState {
                             .postbox
                             .send_message(ClientMsg::Character {
                                 name: self.char_selection_ui.character_name.clone(),
-                                body: comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
+                                body: comp::Body::Humanoid(self.char_selection_ui.character_body),
                             });
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
