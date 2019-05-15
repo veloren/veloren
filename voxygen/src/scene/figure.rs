@@ -132,7 +132,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "figure/head_test1.vox",
+                Head::Default => "figure/head.vox",
             },
             Vec3::new(-7.0, -5.5, -6.0),
         )
