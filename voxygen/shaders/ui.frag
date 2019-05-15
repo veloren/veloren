@@ -11,7 +11,7 @@ out vec4 tgt_color;
 void main() {
     // Text
     if (f_mode == uint(0)) {
-        tgt_color = f_color * vec4(1.0, 1.0, 1.0, texture(u_tex, f_uv).a);
+        tgt_color = f_color * vec4(texture(u_tex, f_uv));
     // Image
     } else if (f_mode == uint(1)) {
         tgt_color = f_color * texture(u_tex, f_uv);
