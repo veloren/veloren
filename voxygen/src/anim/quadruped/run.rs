@@ -21,6 +21,8 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
+        let wavequick = (anim_time as f32 * 20.0).sin();
+        let wavequickcos = (anim_time as f32 * 20.0).cos();
         let wavetest = (wave.cbrt());
         let fuzzwave = (anim_time as f32 * 12.0).sin();
         let wavecos = (anim_time as f32 * 14.0).cos();
@@ -28,29 +30,29 @@ impl Animation for RunAnimation {
         let wavecos_slow = (anim_time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
-        next.pighead.offset = Vec3::new(5.5, 2.0, 11.0 + wavecos * 1.3);
-        next.pighead.ori = Quaternion::rotation_x(0.15);
-        next.pighead.scale = Vec3::one();
+        next.pighead.offset = Vec3::new(0.0, 9.0, -1.5 + wave * 1.5) / 11.0;
+        next.pighead.ori = Quaternion::rotation_x(0.2 + wave * 0.05) * Quaternion::rotation_y(wavecos * 0.03);
+        next.pighead.scale = Vec3::one() / 10.5;
 
-        next.pigchest.offset = Vec3::new(5.5, 0.0, 7.0 + wavecos * 1.1);
-        next.pigchest.ori = Quaternion::rotation_z(wave * 0.1);
-        next.pigchest.scale = Vec3::one();
+        next.pigchest.offset = Vec3::new(0.0, 0.0, 1.5 + wavecos * 1.2) / 11.0;
+        next.pigchest.ori = Quaternion::rotation_x(wave * 0.1);
+        next.pigchest.scale = Vec3::one() / 11.0;
 
-        next.piglf_leg.offset = Vec3::new(5.5, 0.0, 5.0 + wavecos * 1.1);
-        next.piglf_leg.ori = Quaternion::rotation_z(wave * 0.25);
-        next.piglf_leg.scale = Vec3::one();
+        next.piglf_leg.offset = Vec3::new(-4.5, 11.0 + wavequick * 0.8, 2.5 + wavequickcos * 1.5) / 11.0;
+        next.piglf_leg.ori = Quaternion::rotation_x(wavequick *  0.3);
+        next.piglf_leg.scale = Vec3::one() / 11.0;
 
-        next.pigrf_leg.offset = Vec3::new(5.5, 0.0, 2.0 + wavecos * 1.1);
-        next.pigrf_leg.ori = Quaternion::rotation_z(wave * 0.6);
-        next.pigrf_leg.scale = Vec3::one();
+        next.pigrf_leg.offset = Vec3::new(2.5, 11.0 - wavequickcos * 0.8, 2.5 + wavequick * 1.5) / 11.0;
+        next.pigrf_leg.ori = Quaternion::rotation_x(wavequickcos * -0.3);
+        next.pigrf_leg.scale = Vec3::one() / 11.0;
 
-        next.piglb_leg.offset = Vec3::new(-6.0, 0.0 + wavecos * 2.5, 11.0 - wave * 1.5);
-        next.piglb_leg.ori = Quaternion::rotation_x(wavecos * 0.9);
-        next.piglb_leg.scale = Vec3::one();
+        next.piglb_leg.offset = Vec3::new(-4.5, 6.0 - wavequickcos * 0.8, 2.5 + wavequick * 1.5) / 11.0;
+        next.piglb_leg.ori = Quaternion::rotation_x(wavequickcos * -0.3);
+        next.piglb_leg.scale = Vec3::one() / 11.0;
 
-        next.pigrb_leg.offset = Vec3::new(9.0, 0.0 - wavecos * 2.5, 11.0 + wave * 1.5);
-        next.pigrb_leg.ori = Quaternion::rotation_x(wavecos * -0.9);
-        next.pigrb_leg.scale = Vec3::one();
+        next.pigrb_leg.offset = Vec3::new(2.5, 6.0 + wavequick * 0.8, 2.5 + wavequickcos * 1.5) / 11.0;
+        next.pigrb_leg.ori = Quaternion::rotation_x(wavequick *  0.3);
+        next.pigrb_leg.scale = Vec3::one() / 11.0;
 
         next
     }
