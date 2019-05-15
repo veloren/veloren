@@ -67,7 +67,7 @@ impl Scene {
             backdrop_model: renderer
                 .create_model(&FigureModelCache::load_mesh(
                     "fixture/selection_bg.vox",
-                    Vec3::new(-50.0, -50.0, -1.0),
+                    Vec3::new(-55.0, -50.0, -1.0),
                 ))
                 .unwrap(),
             backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
@@ -75,9 +75,9 @@ impl Scene {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
-        self.camera.set_focus_pos(Vec3::unit_z() * 1.8);
+        self.camera.set_focus_pos(Vec3::unit_z() * 2.0);
         self.camera.update(client.state().get_time());
-        self.camera.set_distance(4.0);
+        self.camera.set_distance(4.2);
         self.camera
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
