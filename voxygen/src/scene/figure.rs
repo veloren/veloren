@@ -173,7 +173,7 @@ impl FigureModelCache {
     fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "figure/hand.vox",
+                Hand::Default => "figure/body/hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
@@ -182,7 +182,7 @@ impl FigureModelCache {
     fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "figure/hand.vox",
+                Hand::Default => "figure/body/hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
