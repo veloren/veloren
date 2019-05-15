@@ -243,7 +243,7 @@ impl FigureModelCache {
             match pighead {
                 Pighead::Default => "pighead.vox",
             },
-            Vec3::new(0.0, 5.0, 0.0),
+            Vec3::new(-6.0, 4.5, 3.0),
         )
     }
 
@@ -252,7 +252,7 @@ impl FigureModelCache {
             match pigchest {
                 Pigchest::Default => "pigchest.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(-5.0, 4.5, 0.0),
         )
     }
 
@@ -261,7 +261,7 @@ impl FigureModelCache {
             match pigleg_l {
                 Pigleg_l::Default => "pigleg_l.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, -1.0, -1.5),
         )
     }
 
@@ -270,7 +270,7 @@ impl FigureModelCache {
             match pigleg_r {
                 Pigleg_r::Default => "pigleg_r.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, -1.0, -1.5),
         )
     }
 
@@ -279,7 +279,7 @@ impl FigureModelCache {
             match pigleg_l {
                 Pigleg_l::Default => "pigleg_l.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, -1.0, -1.5),
         )
     }
 
@@ -288,7 +288,7 @@ impl FigureModelCache {
             match pigleg_r {
                 Pigleg_r::Default => "pigleg_r.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(0.0, -1.0, -1.5),
         )
     }
 }
@@ -362,6 +362,16 @@ impl FigureMgr {
 
                         let target_skeleton = match animation_history.current {
                             comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                            comp::Animation::Idle => quadruped::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
+                            comp::Animation::Jump => quadruped::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_history.time,

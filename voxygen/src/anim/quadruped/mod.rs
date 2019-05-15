@@ -1,8 +1,14 @@
 
 pub mod run;
+pub mod idle;
+pub mod jump;
+
 
 // Reexports
 pub use self::run::RunAnimation;
+pub use self::idle::IdleAnimation;
+pub use self::jump::JumpAnimation;
+
 // Crate
 use crate::render::FigureBoneData;
 
