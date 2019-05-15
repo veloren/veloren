@@ -30,27 +30,27 @@ impl Animation for JumpAnimation {
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
 
 
-        next.pighead.offset = Vec3::new(0.0, 9.0, -1.5 ) / 11.0;
+        next.pighead.offset = Vec3::new(0.0, 0.0, -1.5 ) / 11.0;
         next.pighead.ori = Quaternion::rotation_x(wave_stop * 0.4);
         next.pighead.scale = Vec3::one() / 10.5;
 
-        next.pigchest.offset = Vec3::new(0.0, 0.0, 1.5) / 11.0;
+        next.pigchest.offset = Vec3::new(0.0, -9.0, 1.5) / 11.0;
         next.pigchest.ori = Quaternion::rotation_x(0.0);
         next.pigchest.scale = Vec3::one() / 11.0;
 
-        next.piglf_leg.offset = Vec3::new(-4.5, 12.0, 1.5) / 11.0;
+        next.piglf_leg.offset = Vec3::new(-4.5, 3.0, 1.5) / 11.0;
         next.piglf_leg.ori = Quaternion::rotation_x(wave_stop * 0.6);
         next.piglf_leg.scale = Vec3::one() / 11.0;
 
-        next.pigrf_leg.offset = Vec3::new(2.5, 12.0, 1.5) / 11.0;
+        next.pigrf_leg.offset = Vec3::new(2.5, 3.0, 1.5) / 11.0;
         next.pigrf_leg.ori = Quaternion::rotation_x(wave_stop * 0.6 - wave_slow * 0.3);
         next.pigrf_leg.scale = Vec3::one() / 11.0;
 
-        next.piglb_leg.offset = Vec3::new(-4.5, 5.0, 2.0) / 11.0;
+        next.piglb_leg.offset = Vec3::new(-4.5, -4.0, 2.0) / 11.0;
         next.piglb_leg.ori = Quaternion::rotation_x(wave_stop * -0.6 + wave_slow * 0.3);
         next.piglb_leg.scale = Vec3::one() / 11.0;
 
-        next.pigrb_leg.offset = Vec3::new(2.5, 5.0, 2.0) / 11.0;
+        next.pigrb_leg.offset = Vec3::new(2.5, -4.0, 2.0) / 11.0;
         next.pigrb_leg.ori = Quaternion::rotation_x(wave_stop * -0.6 + wave_slow * 0.3);
         next.pigrb_leg.scale = Vec3::one() / 11.0;
 
