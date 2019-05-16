@@ -23,7 +23,7 @@ use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
     Entity as EcsEntity,
 };
-use std::{collections::HashSet, i32, net::SocketAddr, sync::mpsc, time::Duration};
+use std::{collections::HashSet, i32, net::SocketAddr, sync::{Arc, mpsc}, time::Duration};
 use threadpool::ThreadPool;
 use vek::*;
 use world::World;
@@ -40,7 +40,7 @@ pub enum Event {
 
 pub struct Server {
     state: State,
-    world: World,
+    world: Arc<World>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
     clients: Clients,
@@ -68,7 +68,7 @@ impl Server {
 
         let mut this = Self {
             state,
-            world: World::generate(DEFAULT_WORLD_SEED),
+            world: Arc::new(World::generate(DEFAULT_WORLD_SEED)),
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -109,11 +109,6 @@ impl Server {
     #[allow(dead_code)]
     pub fn world(&self) -> &World {
         &self.world
-    }
-    /// Get a mutable reference to the server's world.
-    #[allow(dead_code)]
-    pub fn world_mut(&mut self) -> &mut World {
-        &mut self.world
     }
 
     /// Build a non-player character.
@@ -574,8 +569,9 @@ impl Server {
     pub fn generate_chunk(&mut self, key: Vec2<i32>) {
         if self.pending_chunks.insert(key) {
             let chunk_tx = self.chunk_tx.clone();
+            let world = self.world.clone();
             self.thread_pool.execute(move || {
-                let _ = chunk_tx.send((key, World::generate_chunk(key)));
+                let _ = chunk_tx.send((key, world.generate_chunk(key))).unwrap()
             });
         }
     }

@@ -24,11 +24,11 @@ impl World {
         Self { sim: sim::WorldSim::generate(seed) }
     }
 
-    pub fn tick(&mut self, dt: Duration) {
+    pub fn tick(&self, dt: Duration) {
         // TODO
     }
 
-    pub fn generate_chunk(chunk_pos: Vec2<i32>) -> TerrainChunk {
+    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> TerrainChunk {
         // TODO: This is all test code, remove/improve this later.
 
         let air = Block::empty();
@@ -47,7 +47,11 @@ impl World {
             * 1000.0)
         };
 
-        let offset_z = get_offset(chunk_pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32));
+        let offset_z = self.sim.get(chunk_pos.map(|e| e as u32))
+            .map(|chunk| chunk.alt as i32)
+            .unwrap_or(0);
+
+        //get_offset(chunk_pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32));
 
         let mut chunk = TerrainChunk::new(offset_z as i32, stone, air, TerrainChunkMeta::void());
 

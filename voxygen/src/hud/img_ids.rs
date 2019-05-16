@@ -51,7 +51,7 @@ image_ids! {
         // Crosshair
         crosshair: "voxygen/element/misc_bg/crosshair.vox",
 
-
+////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
         // Buttons
@@ -121,7 +121,7 @@ image_ids! {
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
 
         charwindow_gradient:"voxygen/element/misc_bg/charwindow.png",

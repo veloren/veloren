@@ -73,7 +73,7 @@ impl<'a> System<'a> for Sys {
                 * 50.0
                 * vel.0.map(|e| {
                     (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5))
-                        .min(e.abs())
+                        .min(e.abs() * dt.0 * 50.0)
                         .copysign(e)
                 })
                 * Vec3::new(1.0, 1.0, 0.0);
