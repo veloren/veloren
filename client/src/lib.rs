@@ -241,7 +241,8 @@ impl Client {
 
             // If chunks are taking too long, assume they're no longer pending
             let now = Instant::now();
-            self.pending_chunks.retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
+            self.pending_chunks
+                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
         // Finish the tick, pass control back to the frontend (step 6)
