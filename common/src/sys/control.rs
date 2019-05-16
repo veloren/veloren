@@ -44,7 +44,7 @@ impl<'a> System<'a> for Sys {
             let (gliding, friction) = if on_ground {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 4.0;
+                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 200.0;
 
                 if control.jumping {
                     vel.0.z += 16.0;
@@ -54,12 +54,12 @@ impl<'a> System<'a> for Sys {
             } else {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
-                vel.0 += control.move_dir * 0.2;
+                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 10.0;
 
                 if control.gliding && vel.0.z < 0.0 {
                     // TODO: Don't hard-code this
-                    let anti_grav = 9.81 * 3.95;
-                    vel.0.z += anti_grav * dt.0 * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
+                    let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
+                    vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
 
                     (true, 0.008)
                 } else {
@@ -68,7 +68,7 @@ impl<'a> System<'a> for Sys {
             };
 
             // Friction
-            vel.0 -= vel.0.map(|e| (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5)).min(e.abs()).copysign(e)) * Vec3::new(1.0, 1.0, 0.0);
+            vel.0 -= Vec2::broadcast(dt.0) * 50.0 * vel.0.map(|e| (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5)).min(e.abs()).copysign(e)) * Vec3::new(1.0, 1.0, 0.0);
 
             if vel.0.magnitude_squared() != 0.0 {
                 dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
