@@ -100,7 +100,7 @@ impl Animation for IdleAnimation {
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
 
-        next.draw.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
         next
