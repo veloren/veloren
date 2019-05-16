@@ -82,7 +82,7 @@ impl PlayState for CharSelectionState {
                             .postbox
                             .send_message(ClientMsg::Character {
                                 name: self.char_selection_ui.character_name.clone(),
-                                body: comp::Body::Quadruped(comp::QuadrupedBody::random()), // comp::Body::Humanoid(self.char_selection_ui.character_body),
+                                body: comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
                             });
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,

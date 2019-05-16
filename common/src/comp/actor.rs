@@ -223,6 +223,7 @@ pub enum Animation {
     Idle,
     Run,
     Jump,
+    Gliding,
 }
 
 impl Component for AnimationHistory {

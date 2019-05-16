@@ -39,7 +39,7 @@ impl Animation for JumpAnimation {
         next.pigchest.scale = Vec3::one() / 11.0;
 
         next.piglf_leg.offset = Vec3::new(-4.5, 3.0, 1.5) / 11.0;
-        next.piglf_leg.ori = Quaternion::rotation_x(wave_stop * 0.6);
+        next.piglf_leg.ori = Quaternion::rotation_x(wave_stop * 0.6 - wave_slow * 0.3);
         next.piglf_leg.scale = Vec3::one() / 11.0;
 
         next.pigrf_leg.offset = Vec3::new(2.5, 3.0, 1.5) / 11.0;

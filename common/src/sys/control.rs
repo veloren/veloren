@@ -81,7 +81,7 @@ impl<'a> System<'a> for Sys {
                     Animation::Idle
                 }
             } else {
-                Animation::Jump
+                Animation::Gliding
             };
 
             let last_history = anims.get_mut(entity).cloned();
