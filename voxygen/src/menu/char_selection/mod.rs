@@ -7,11 +7,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{
-    comp,
-    clock::Clock,
-    msg::ClientMsg,
-};
+use common::{clock::Clock, comp, msg::ClientMsg};
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;

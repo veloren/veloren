@@ -155,7 +155,8 @@ const ALL_QRACES: [Race; 6] = [
     Race::Elf,
     Race::Human,
     Race::Orc,
-    Race::Undead,];
+    Race::Undead,
+];
 const ALL_QBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
 const ALL_QHEADS: [Pighead; 1] = [Pighead::Default];
 const ALL_QCHESTS: [Pigchest; 1] = [Pigchest::Default];
@@ -170,7 +171,6 @@ pub struct QuadrupedBody {
     pub pigchest: Pigchest,
     pub pigleg_l: Pigleg_l,
     pub pigleg_r: Pigleg_r,
-
 }
 
 impl QuadrupedBody {

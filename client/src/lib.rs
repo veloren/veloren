@@ -202,7 +202,8 @@ impl Client {
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
-                    .reduce_max() > 10
+                    .reduce_max()
+                    > 10
                 {
                     chunks_to_remove.push(key);
                 }
