@@ -19,7 +19,11 @@ use common::{
     terrain::TerrainChunk,
 };
 use specs::Builder;
-use std::{collections::HashSet, net::SocketAddr, time::Duration};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    time::{Duration, Instant},
+};
 use threadpool::ThreadPool;
 use vek::*;
 
@@ -42,7 +46,7 @@ pub struct Client {
     entity: EcsEntity,
     view_distance: u64,
 
-    pending_chunks: HashSet<Vec3<i32>>,
+    pending_chunks: HashMap<Vec3<i32>, Instant>,
 }
 
 impl Client {
@@ -82,7 +86,7 @@ impl Client {
             entity,
             view_distance,
 
-            pending_chunks: HashSet::new(),
+            pending_chunks: HashMap::new(),
         })
     }
 
@@ -220,12 +224,12 @@ impl Client {
                         for k in 0..6 {
                             let key = Vec3::new(i, j, k);
                             if self.state.terrain().get_key(key).is_none()
-                                && !self.pending_chunks.contains(&key)
+                                && !self.pending_chunks.contains_key(&key)
                             {
                                 if self.pending_chunks.len() < 4 {
                                     self.postbox
                                         .send_message(ClientMsg::TerrainChunkRequest { key });
-                                    self.pending_chunks.insert(key);
+                                    self.pending_chunks.insert(key, Instant::now());
                                 } else {
                                     break 'outer;
                                 }
@@ -234,6 +238,10 @@ impl Client {
                     }
                 }
             }
+
+            // If chunks are taking too long, assume they're no longer pending
+            let now = Instant::now();
+            self.pending_chunks.retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
         // Finish the tick, pass control back to the frontend (step 6)
