@@ -194,7 +194,7 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             server
                 .create_npc(
                     "Bungo".to_owned(),
-                    comp::Body::Humanoid(comp::HumanoidBody::random()),
+                    comp::Body::Quadruped(comp::QuadrupedBody::random()),
                 )
                 .with(comp::Control::default())
                 .with(comp::Agent::Pet {

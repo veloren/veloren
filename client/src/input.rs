@@ -7,6 +7,7 @@ pub enum InputEvent {
 pub struct Input {
     pub move_dir: Vec2<f32>,
     pub jumping: bool,
+    pub gliding: bool,
     pub events: Vec<InputEvent>,
 }
 
@@ -15,6 +16,7 @@ impl Default for Input {
         Input {
             move_dir: Vec2::zero(),
             jumping: false,
+            gliding: false,
             events: Vec::new(),
         }
     }

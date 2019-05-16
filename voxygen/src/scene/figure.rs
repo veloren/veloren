@@ -1,6 +1,7 @@
 use crate::{
     anim::{
-        character::{CharacterSkeleton, IdleAnimation, JumpAnimation, RunAnimation},
+        character::{self, CharacterSkeleton},
+        quadruped::{self, QuadrupedSkeleton},
         Animation, Skeleton,
     },
     mesh::Meshable,
@@ -14,8 +15,11 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon},
-        Body, HumanoidBody,
+        actor::{
+            Belt, Chest, Draw, Foot, Hand, Head, Pants, Pigchest, Pighead, Pigleg_l, Pigleg_r,
+            Shoulder, Weapon,
+        },
+        Body, HumanoidBody, QuadrupedBody,
     },
     figure::Segment,
     msg,
@@ -26,7 +30,7 @@ use std::{collections::HashMap, f32};
 use vek::*;
 
 pub struct FigureModelCache {
-    models: HashMap<HumanoidBody, (Model<FigurePipeline>, u64)>,
+    models: HashMap<Body, (Model<FigurePipeline>, u64)>,
 }
 
 impl FigureModelCache {
@@ -39,7 +43,7 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
-        body: HumanoidBody,
+        body: Body,
         tick: u64,
     ) -> &Model<FigurePipeline> {
         match self.models.get_mut(&body) {
@@ -51,24 +55,44 @@ impl FigureModelCache {
                     body,
                     (
                         {
-                            let bone_meshes = [
-                                Some(Self::load_head(body.head)),
-                                Some(Self::load_chest(body.chest)),
-                                Some(Self::load_belt(body.belt)),
-                                Some(Self::load_pants(body.pants)),
-                                Some(Self::load_left_hand(body.hand)),
-                                Some(Self::load_right_hand(body.hand)),
-                                Some(Self::load_left_foot(body.foot)),
-                                Some(Self::load_right_foot(body.foot)),
-                                Some(Self::load_weapon(body.weapon)),
-                                Some(Self::load_left_shoulder(body.shoulder)),
-                                Some(Self::load_right_shoulder(body.shoulder)),
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
-                            ];
+                            let bone_meshes = match body {
+                                Body::Humanoid(body) => [
+                                    Some(Self::load_head(body.head)),
+                                    Some(Self::load_chest(body.chest)),
+                                    Some(Self::load_belt(body.belt)),
+                                    Some(Self::load_pants(body.pants)),
+                                    Some(Self::load_left_hand(body.hand)),
+                                    Some(Self::load_right_hand(body.hand)),
+                                    Some(Self::load_left_foot(body.foot)),
+                                    Some(Self::load_right_foot(body.foot)),
+                                    Some(Self::load_weapon(body.weapon)),
+                                    Some(Self::load_left_shoulder(body.shoulder)),
+                                    Some(Self::load_right_shoulder(body.shoulder)),
+                                    Some(Self::load_draw(body.draw)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::Quadruped(body) => [
+                                    Some(Self::load_pighead(body.pighead)),
+                                    Some(Self::load_pigchest(body.pigchest)),
+                                    Some(Self::load_piglf_leg(body.pigleg_l)),
+                                    Some(Self::load_pigrf_leg(body.pigleg_r)),
+                                    Some(Self::load_piglb_leg(body.pigleg_l)),
+                                    Some(Self::load_pigrb_leg(body.pigleg_r)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                            };
 
                             let mut mesh = Mesh::new();
                             bone_meshes
@@ -205,29 +229,82 @@ impl FigureModelCache {
             Vec3::new(2.5, 0.0, 0.0),
         )
     }
-    //    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
-    //        Self::load_mesh(
-    //            match draw {
-    //                //Draw::DefaultDraw => "sword.vox",
-    //
-    //            },
-    //            Vec3::new(0.0, 0.0, -2.0)
-    //
-    //
-    //        )
-    //    }
+    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match draw {
+                Draw::Default => "glider.vox",
+            },
+            Vec3::new(-26.0, -26.0, -5.0),
+        )
+    }
+
+    fn load_pighead(pighead: Pighead) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pighead {
+                Pighead::Default => "pighead.vox",
+            },
+            Vec3::new(-6.0, 4.5, 3.0),
+        )
+    }
+
+    fn load_pigchest(pigchest: Pigchest) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigchest {
+                Pigchest::Default => "pigchest.vox",
+            },
+            Vec3::new(-5.0, 4.5, 0.0),
+        )
+    }
+
+    fn load_piglf_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_l {
+                Pigleg_l::Default => "pigleg_l.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
+
+    fn load_pigrf_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_r {
+                Pigleg_r::Default => "pigleg_r.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
+
+    fn load_piglb_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_l {
+                Pigleg_l::Default => "pigleg_l.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
+
+    fn load_pigrb_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pigleg_r {
+                Pigleg_r::Default => "pigleg_r.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
 }
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
-    states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+    character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
+    quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
 }
 
 impl FigureMgr {
     pub fn new() -> Self {
         Self {
             model_cache: FigureModelCache::new(),
-            states: HashMap::new(),
+            character_states: HashMap::new(),
+            quadruped_states: HashMap::new(),
         }
     }
 
@@ -238,51 +315,98 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, actor, animation_history) in (
+        for (entity, pos, vel, dir, actor, animation_history, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
+            ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
         {
             match actor {
                 comp::Actor::Character { body, .. } => match body {
                     Body::Humanoid(body) => {
-                        let state = self.states.entry(entity).or_insert_with(|| {
+                        let state = self.character_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, CharacterSkeleton::new())
                         });
 
                         let target_skeleton = match animation_history.current {
-                            comp::Animation::Idle => IdleAnimation::update_skeleton(
+                            comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_history.time,
                             ),
-                            comp::Animation::Run => RunAnimation::update_skeleton(
+                            comp::Animation::Run => character::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_history.time,
                             ),
-                            comp::Animation::Jump => JumpAnimation::update_skeleton(
+                            comp::Animation::Jump => character::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_history.time,
                             ),
+                            comp::Animation::Gliding => {
+                                character::GlidingAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    time,
+                                    animation_history.time,
+                                )
+                            }
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
 
-                        state.update(renderer, pos.0, dir.0);
-                    } // TODO: Non-humanoid bodies
+                        state.update(renderer, pos.0, dir.0, Rgba::white());
+                    }
+                    Body::Quadruped(body) => {
+                        let state = self.quadruped_states.entry(entity).or_insert_with(|| {
+                            FigureState::new(renderer, QuadrupedSkeleton::new())
+                        });
+
+                        let target_skeleton = match animation_history.current {
+                            comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                            comp::Animation::Idle => quadruped::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
+                            comp::Animation::Jump => quadruped::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+
+                            // TODO!
+                            _ => state.skeleton_mut().clone(),
+                        };
+
+                        state.skeleton.interpolate(&target_skeleton);
+
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        state.update(renderer, pos.0, dir.0, col);
+                    }
                 },
                 // TODO: Non-character actors
             }
         }
 
-        self.states
+        // Clear states that have dead entities
+        self.character_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.quadruped_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
@@ -297,20 +421,22 @@ impl FigureMgr {
 
         for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
             match actor {
-                comp::Actor::Character { body, .. } => match body {
-                    Body::Humanoid(body) => {
-                        if let Some(state) = self.states.get(&entity) {
-                            let model = self.model_cache.get_or_create_model(renderer, *body, tick);
-                            renderer.render_figure(
-                                model,
-                                globals,
-                                &state.locals(),
-                                state.bone_consts(),
-                            );
-                        }
-                    } // TODO: Non-humanoid bodies
-                },
-                // TODO: Non-character actors
+                comp::Actor::Character { body, .. } => {
+                    if let Some((locals, bone_consts)) = match body {
+                        Body::Humanoid(_) => self
+                            .character_states
+                            .get(&entity)
+                            .map(|state| (state.locals(), state.bone_consts())),
+                        Body::Quadruped(_) => self
+                            .quadruped_states
+                            .get(&entity)
+                            .map(|state| (state.locals(), state.bone_consts())),
+                    } {
+                        let model = self.model_cache.get_or_create_model(renderer, *body, tick);
+
+                        renderer.render_figure(model, globals, locals, bone_consts);
+                    }
+                }
             }
         }
     }
@@ -333,12 +459,18 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
+    pub fn update(
+        &mut self,
+        renderer: &mut Renderer,
+        pos: Vec3<f32>,
+        dir: Vec3<f32>,
+        col: Rgba<f32>,
+    ) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
             * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
 
-        let locals = FigureLocals::new(mat);
+        let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 
         renderer

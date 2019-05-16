@@ -13,7 +13,7 @@ use crate::{
     },
 };
 use client::Client;
-use common::{comp::HumanoidBody, figure::Segment};
+use common::{comp, figure::Segment};
 use vek::*;
 
 struct Skybox {
@@ -99,8 +99,12 @@ impl Scene {
         );
         self.figure_state.skeleton_mut().interpolate(&tgt_skeleton);
 
-        self.figure_state
-            .update(renderer, Vec3::zero(), -Vec3::unit_y());
+        self.figure_state.update(
+            renderer,
+            Vec3::zero(),
+            -Vec3::unit_y(),
+            Rgba::broadcast(1.0),
+        );
     }
 
     pub fn render(&mut self, renderer: &mut Renderer, client: &Client) {
@@ -108,7 +112,7 @@ impl Scene {
 
         let model = self.figure_model_cache.get_or_create_model(
             renderer,
-            HumanoidBody::random(),
+            comp::Body::Humanoid(comp::HumanoidBody::random()),
             client.get_tick(),
         );
         renderer.render_figure(
