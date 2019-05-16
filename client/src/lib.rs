@@ -19,7 +19,11 @@ use common::{
     terrain::TerrainChunk,
 };
 use specs::Builder;
-use std::{collections::HashSet, net::SocketAddr, time::Duration};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    time::{Duration, Instant},
+};
 use threadpool::ThreadPool;
 use vek::*;
 
@@ -42,7 +46,7 @@ pub struct Client {
     entity: EcsEntity,
     view_distance: u64,
 
-    pending_chunks: HashSet<Vec3<i32>>,
+    pending_chunks: HashMap<Vec3<i32>, Instant>,
 }
 
 impl Client {
@@ -82,7 +86,7 @@ impl Client {
             entity,
             view_distance,
 
-            pending_chunks: HashSet::new(),
+            pending_chunks: HashMap::new(),
         })
     }
 
@@ -156,6 +160,7 @@ impl Client {
             comp::Control {
                 move_dir: input.move_dir,
                 jumping: input.jumping,
+                gliding: input.gliding,
             },
         );
 
@@ -202,7 +207,7 @@ impl Client {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
                     .reduce_max()
-                    > 6
+                    > 10
                 {
                     chunks_to_remove.push(key);
                 }
@@ -213,18 +218,18 @@ impl Client {
 
             // Request chunks from the server
             // TODO: This is really not very efficient
-            'outer: for dist in 0..9 {
+            'outer: for dist in 0..10 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
-                        for k in 0..3 {
+                        for k in 0..6 {
                             let key = Vec3::new(i, j, k);
                             if self.state.terrain().get_key(key).is_none()
-                                && !self.pending_chunks.contains(&key)
+                                && !self.pending_chunks.contains_key(&key)
                             {
                                 if self.pending_chunks.len() < 4 {
                                     self.postbox
                                         .send_message(ClientMsg::TerrainChunkRequest { key });
-                                    self.pending_chunks.insert(key);
+                                    self.pending_chunks.insert(key, Instant::now());
                                 } else {
                                     break 'outer;
                                 }
@@ -233,6 +238,11 @@ impl Client {
                     }
                 }
             }
+
+            // If chunks are taking too long, assume they're no longer pending
+            let now = Instant::now();
+            self.pending_chunks
+                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
         // Finish the tick, pass control back to the frontend (step 6)

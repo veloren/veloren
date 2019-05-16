@@ -9,7 +9,7 @@ pub enum ClientMsg {
     },
     Character {
         name: String,
-        body: comp::HumanoidBody,
+        body: comp::Body,
     },
     RequestState(ClientState),
     Ping,

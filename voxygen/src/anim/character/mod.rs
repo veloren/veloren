@@ -1,8 +1,10 @@
+pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
+pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::run::RunAnimation;
@@ -27,8 +29,8 @@ pub struct CharacterSkeleton {
     weapon: Bone,
     l_shoulder: Bone,
     r_shoulder: Bone,
-    torso: Bone,
     draw: Bone,
+    torso: Bone,
 }
 
 impl CharacterSkeleton {
@@ -45,8 +47,8 @@ impl CharacterSkeleton {
             weapon: Bone::default(),
             l_shoulder: Bone::default(),
             r_shoulder: Bone::default(),
-            torso: Bone::default(),
             draw: Bone::default(),
+            torso: Bone::default(),
         }
     }
 }
@@ -68,8 +70,8 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * chest_mat * self.weapon.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
-            FigureBoneData::new(torso_mat),
             FigureBoneData::new(torso_mat * l_hand_mat * self.draw.compute_base_matrix()),
+            FigureBoneData::new(torso_mat),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -88,7 +90,7 @@ impl Skeleton for CharacterSkeleton {
         self.weapon.interpolate(&target.weapon);
         self.l_shoulder.interpolate(&target.l_shoulder);
         self.r_shoulder.interpolate(&target.r_shoulder);
-        self.torso.interpolate(&target.torso);
         self.draw.interpolate(&target.draw);
+        self.torso.interpolate(&target.torso);
     }
 }
