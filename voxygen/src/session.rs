@@ -66,6 +66,7 @@ impl SessionState {
             Input {
                 move_dir,
                 jumping: self.key_state.jump,
+                gliding: self.key_state.glide,
                 events: input_events,
             },
             dt,
@@ -145,12 +146,14 @@ impl PlayState for SessionState {
                         self.input_events.push(InputEvent::Jump);
                         self.key_state.jump = true;
                     }
+                    Event::KeyDown(Key::Glide) => self.key_state.glide = true,
                     // Movement Key Released
                     Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
                     Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
                     Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
                     Event::KeyUp(Key::Jump) => self.key_state.jump = false,
+                    Event::KeyUp(Key::Glide) => self.key_state.glide = false,
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);

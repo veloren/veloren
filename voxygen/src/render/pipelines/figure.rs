@@ -27,6 +27,7 @@ gfx_defines! {
 
     constant Locals {
         model_mat: [[f32; 4]; 4] = "model_mat",
+        model_col: [f32; 4] = "model_col",
     }
 
     constant BoneData {
@@ -62,13 +63,17 @@ impl Vertex {
 }
 
 impl Locals {
-    pub fn new(model_mat: Mat4<f32>) -> Self {
+    pub fn new(model_mat: Mat4<f32>, col: Rgba<f32>) -> Self {
         Self {
             model_mat: arr_to_mat(model_mat.into_col_array()),
+            model_col: col.into_array(),
         }
     }
-    pub fn default() -> Self {
-        Self::new(Mat4::identity())
+}
+
+impl Default for Locals {
+    fn default() -> Self {
+        Self::new(Mat4::identity(), Rgba::broadcast(1.0))
     }
 }
 

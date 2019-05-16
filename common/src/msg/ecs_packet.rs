@@ -11,6 +11,7 @@ sphynx::sum_type! {
         Dir(comp::phys::Dir),
         Actor(comp::Actor),
         Player(comp::Player),
+        Stats(comp::Stats),
     }
 }
 // Automatically derive From<T> for Phantom for each variant Phantom::T(PhantomData<T>)
@@ -22,6 +23,7 @@ sphynx::sum_type! {
         Dir(PhantomData<comp::phys::Dir>),
         Actor(PhantomData<comp::Actor>),
         Player(PhantomData<comp::Player>),
+        Stats(PhantomData<comp::Stats>),
     }
 }
 impl sphynx::Packet for EcsPacket {

@@ -7,7 +7,7 @@ use vek::*;
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = VecStorage<Self>;
 }
 
 // Vel
@@ -16,7 +16,7 @@ impl Component for Pos {
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = VecStorage<Self>;
 }
 
 // Dir
@@ -25,7 +25,7 @@ impl Component for Vel {
 pub struct Dir(pub Vec3<f32>);
 
 impl Component for Dir {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = VecStorage<Self>;
 }
 
 // Dir

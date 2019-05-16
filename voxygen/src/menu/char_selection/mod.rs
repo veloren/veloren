@@ -7,7 +7,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, msg::ClientMsg};
+use common::{clock::Clock, comp, msg::ClientMsg};
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
@@ -78,7 +78,7 @@ impl PlayState for CharSelectionState {
                             .postbox
                             .send_message(ClientMsg::Character {
                                 name: self.char_selection_ui.character_name.clone(),
-                                body: self.char_selection_ui.character_body,
+                                body: comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
                             });
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
