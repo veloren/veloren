@@ -15,8 +15,11 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon, Draw, Pighead, Pigchest, Pigleg_l, Pigleg_r},
-        Body, HumanoidBody, QuadrupedBody
+        actor::{
+            Belt, Chest, Draw, Foot, Hand, Head, Pants, Pigchest, Pighead, Pigleg_l, Pigleg_r,
+            Shoulder, Weapon,
+        },
+        Body, HumanoidBody, QuadrupedBody,
     },
     figure::Segment,
     msg,
@@ -230,11 +233,8 @@ impl FigureModelCache {
         Self::load_mesh(
             match draw {
                 Draw::Default => "glider.vox",
-
             },
-            Vec3::new(-26.0, -26.0, -5.0)
-
-
+            Vec3::new(-26.0, -26.0, -5.0),
         )
     }
 
@@ -293,7 +293,6 @@ impl FigureModelCache {
     }
 }
 
-
 pub struct FigureMgr {
     model_cache: FigureModelCache,
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
@@ -350,17 +349,19 @@ impl FigureMgr {
                                 time,
                                 animation_history.time,
                             ),
-                            comp::Animation::Gliding => character::GlidingAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_history.time,
-                            ),
+                            comp::Animation::Gliding => {
+                                character::GlidingAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    time,
+                                    animation_history.time,
+                                )
+                            }
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0, Rgba::white());
-                    },
+                    }
                     Body::Quadruped(body) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, QuadrupedSkeleton::new())
@@ -392,21 +393,21 @@ impl FigureMgr {
                         // Change in health as color!
                         let col = stats
                             .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| {
-                                Rgba::new(1.0, 0.7, 0.7, 1.0)
-                            })
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
                             .unwrap_or(Rgba::broadcast(1.0));
 
                         state.update(renderer, pos.0, dir.0, col);
-                    },
+                    }
                 },
                 // TODO: Non-character actors
             }
         }
 
         // Clear states that have dead entities
-        self.character_states.retain(|entity, _| ecs.entities().is_alive(*entity));
-        self.quadruped_states.retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.character_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.quadruped_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
     pub fn render(
@@ -422,19 +423,20 @@ impl FigureMgr {
             match actor {
                 comp::Actor::Character { body, .. } => {
                     if let Some((locals, bone_consts)) = match body {
-                        Body::Humanoid(_) => self.character_states.get(&entity).map(|state| (state.locals(), state.bone_consts())),
-                        Body::Quadruped(_) => self.quadruped_states.get(&entity).map(|state| (state.locals(), state.bone_consts())),
+                        Body::Humanoid(_) => self
+                            .character_states
+                            .get(&entity)
+                            .map(|state| (state.locals(), state.bone_consts())),
+                        Body::Quadruped(_) => self
+                            .quadruped_states
+                            .get(&entity)
+                            .map(|state| (state.locals(), state.bone_consts())),
                     } {
                         let model = self.model_cache.get_or_create_model(renderer, *body, tick);
 
-                        renderer.render_figure(
-                            model,
-                            globals,
-                            locals,
-                            bone_consts,
-                        );
+                        renderer.render_figure(model, globals, locals, bone_consts);
                     }
-                },
+                }
             }
         }
     }
@@ -457,7 +459,13 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>, col: Rgba<f32>) {
+    pub fn update(
+        &mut self,
+        renderer: &mut Renderer,
+        pos: Vec3<f32>,
+        dir: Vec3<f32>,
+        col: Rgba<f32>,
+    ) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
             * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);

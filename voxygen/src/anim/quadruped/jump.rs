@@ -29,8 +29,7 @@ impl Animation for JumpAnimation {
         let wave_dip = (wave_slow.abs() - 0.5).abs();
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
 
-
-        next.pighead.offset = Vec3::new(0.0, 0.0, -1.5 ) / 11.0;
+        next.pighead.offset = Vec3::new(0.0, 0.0, -1.5) / 11.0;
         next.pighead.ori = Quaternion::rotation_x(wave_stop * 0.4);
         next.pighead.scale = Vec3::one() / 10.5;
 

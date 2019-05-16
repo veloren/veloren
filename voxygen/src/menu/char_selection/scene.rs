@@ -99,8 +99,12 @@ impl Scene {
         );
         self.figure_state.skeleton_mut().interpolate(&tgt_skeleton);
 
-        self.figure_state
-            .update(renderer, Vec3::zero(), -Vec3::unit_y(), Rgba::broadcast(1.0));
+        self.figure_state.update(
+            renderer,
+            Vec3::zero(),
+            -Vec3::unit_y(),
+            Rgba::broadcast(1.0),
+        );
     }
 
     pub fn render(&mut self, renderer: &mut Renderer, client: &Client) {

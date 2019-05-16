@@ -44,7 +44,8 @@ impl Animation for IdleAnimation {
         );
 
         next.pighead.offset = Vec3::new(0.0, -2.0, -1.5 + wave * 0.2) / 11.0;
-        next.pighead.ori = Quaternion::rotation_z(pighead_look.x) * Quaternion::rotation_x(pighead_look.y + wavecos_slow * 0.03);
+        next.pighead.ori = Quaternion::rotation_z(pighead_look.x)
+            * Quaternion::rotation_x(pighead_look.y + wavecos_slow * 0.03);
         next.pighead.scale = Vec3::one() / 10.5;
 
         next.pigchest.offset = Vec3::new(wave_slow * 0.05, -9.0, 1.5 + wavecos_slow * 0.4) / 11.0;
@@ -66,9 +67,6 @@ impl Animation for IdleAnimation {
         next.pigrb_leg.offset = Vec3::new(2.5, -3.0, 1.5) / 11.0;
         next.pigrb_leg.ori = Quaternion::rotation_x(wave_slow * 0.08);
         next.pigrb_leg.scale = Vec3::one() / 11.0;
-
-
-
 
         next
     }
