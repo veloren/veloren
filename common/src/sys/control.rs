@@ -59,7 +59,8 @@ impl<'a> System<'a> for Sys {
                 if control.gliding && vel.0.z < 0.0 {
                     // TODO: Don't hard-code this
                     let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
-                    vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
+                    vel.0.z +=
+                        dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
 
                     (true, 0.008)
                 } else {
@@ -68,7 +69,14 @@ impl<'a> System<'a> for Sys {
             };
 
             // Friction
-            vel.0 -= Vec2::broadcast(dt.0) * 50.0 * vel.0.map(|e| (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5)).min(e.abs()).copysign(e)) * Vec3::new(1.0, 1.0, 0.0);
+            vel.0 -= Vec2::broadcast(dt.0)
+                * 50.0
+                * vel.0.map(|e| {
+                    (e.abs() * friction * (vel.0.magnitude() * 0.1 + 0.5))
+                        .min(e.abs())
+                        .copysign(e)
+                })
+                * Vec3::new(1.0, 1.0, 0.0);
 
             if vel.0.magnitude_squared() != 0.0 {
                 dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);

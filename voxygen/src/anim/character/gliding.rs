@@ -33,7 +33,6 @@ impl Animation for GlidingAnimation {
         let waveveryslowalt = (anim_time as f32 * 2.5).sin();
         let waveveryslowcos = (anim_time as f32 * 3.0).cos();
 
-
         let wave_slowtest = (anim_time as f32).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
@@ -49,7 +48,8 @@ impl Animation for GlidingAnimation {
                 * 0.25,
         );
         next.head.offset = Vec3::new(5.5, 2.0, 12.0);
-        next.head.ori = Quaternion::rotation_x(0.35 - waveveryslow * 0.10 + head_look.y) * Quaternion::rotation_z(head_look.x + waveveryslowcos * 0.15);
+        next.head.ori = Quaternion::rotation_x(0.35 - waveveryslow * 0.10 + head_look.y)
+            * Quaternion::rotation_z(head_look.x + waveveryslowcos * 0.15);
         next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(5.5, 0.0, 8.0);
@@ -73,11 +73,13 @@ impl Animation for GlidingAnimation {
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 8.0);
-        next.l_foot.ori = Quaternion::rotation_x(wave_stop * -0.7 - wavecos_slow * -0.21 + waveveryslow * 0.19);
+        next.l_foot.ori =
+            Quaternion::rotation_x(wave_stop * -0.7 - wavecos_slow * -0.21 + waveveryslow * 0.19);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, 1.0, 8.0);
-        next.r_foot.ori = Quaternion::rotation_x(wave_stop * -0.8  + waveslow * -0.25 + waveveryslowalt * 0.13);
+        next.r_foot.ori =
+            Quaternion::rotation_x(wave_stop * -0.8 + waveslow * -0.25 + waveveryslowalt * 0.13);
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(-5.0, -6.0, 19.0);
