@@ -3,11 +3,12 @@ pub use sphynx::Uid;
 
 use crate::{
     comp,
-    msg::EcsPacket,
+    msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{TerrainChunk, TerrainMap},
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
+use serde_derive::{Deserialize, Serialize};
 use specs::{
     saveload::{MarkedBuilder, MarkerAllocator},
     shred::{Fetch, FetchMut},
@@ -23,10 +24,12 @@ use vek::*;
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 60.0;
 
 /// A resource to store the time of day
-struct TimeOfDay(f64);
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct TimeOfDay(f64);
 
 /// A resource to store the tick (i.e: physics) time
-struct Time(f64);
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Time(f64);
 
 /// A resource used to store the time since the last tick
 #[derive(Default)]
@@ -63,7 +66,7 @@ impl Changes {
 /// A type used to represent game state stored on both the client and the server. This includes
 /// things like entity components, terrain data, and global state like weather, time of day, etc.
 pub struct State {
-    ecs: sphynx::World<EcsPacket>,
+    ecs: sphynx::World<EcsCompPacket, EcsResPacket>,
     // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
     thread_pool: Arc<ThreadPool>,
     changes: Changes,
@@ -80,7 +83,9 @@ impl State {
     }
 
     /// Create a new `State` from an ECS state package
-    pub fn from_state_package(state_package: sphynx::StatePackage<EcsPacket>) -> Self {
+    pub fn from_state_package(
+        state_package: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
+    ) -> Self {
         Self {
             ecs: sphynx::World::from_state_package(
                 specs::World::new(),
@@ -93,7 +98,7 @@ impl State {
     }
 
     // Create a new Sphynx ECS world
-    fn setup_sphynx_world(ecs: &mut sphynx::World<EcsPacket>) {
+    fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
         // Register synced components
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
@@ -107,9 +112,11 @@ impl State {
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Control>();
 
-        // Register resources used by the ECS
-        ecs.add_resource(TimeOfDay(0.0));
-        ecs.add_resource(Time(0.0));
+        // Register synced resources used by the ECS
+        ecs.add_resource_synced(TimeOfDay(0.0));
+        ecs.add_resource_synced(Time(0.0));
+
+        // Register unsynced resources used by the ECS
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
     }
@@ -139,12 +146,12 @@ impl State {
     }
 
     /// Get a reference to the internal ECS world
-    pub fn ecs(&self) -> &sphynx::World<EcsPacket> {
+    pub fn ecs(&self) -> &sphynx::World<EcsCompPacket, EcsResPacket> {
         &self.ecs
     }
 
     /// Get a mutable reference to the internal ECS world
-    pub fn ecs_mut(&mut self) -> &mut sphynx::World<EcsPacket> {
+    pub fn ecs_mut(&mut self) -> &mut sphynx::World<EcsCompPacket, EcsResPacket> {
         &mut self.ecs
     }
 
