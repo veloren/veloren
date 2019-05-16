@@ -111,12 +111,12 @@ impl Scene {
         );
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: HumanoidBody) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: comp::HumanoidBody) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         let model = self
             .figure_model_cache
-            .get_or_create_model(renderer, body, client.get_tick());
+            .get_or_create_model(renderer, comp::Body::Humanoid(body), client.get_tick());
 
         renderer.render_figure(
             model,
