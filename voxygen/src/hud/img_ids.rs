@@ -51,7 +51,7 @@ image_ids! {
         // Crosshair
         crosshair: "/voxygen/element/misc_bg/crosshair.vox",
 
-
+////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
         // Buttons
@@ -121,7 +121,7 @@ image_ids! {
         button_hover: "/voxygen/element/buttons/button_hover.vox",
         button_press: "/voxygen/element/buttons/button_press.vox",
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
 
         charwindow_gradient:"/voxygen/element/misc_bg/charwindow.png",
@@ -158,32 +158,21 @@ image_ids! {
         esc_bg: "/voxygen/element/frames/menu.png",
 
         window_frame_2: "/voxygen/element/frames/window_2.png",
-
-        settings_bg: "/voxygen/element/frames/settings.png",
-        settings_icon: "/voxygen/element/icons/settings.png",
-        settings_button_mo: "/voxygen/element/buttons/blue_mo.png",
-
+        
         // Char Window
         charwindow: "/voxygen/element/misc_bg/charwindow.png",
-        charwindow_icon: "/voxygen/element/icons/charwindow.png",
-        charwindow_tab_bg: "/voxygen/element/frames/tab.png",
-        charwindow_tab: "/voxygen/element/buttons/tab.png",
+        charwindow_icon: "/voxygen/element/icons/charwindow.png",       
         charwindow_expbar: "/voxygen/element/misc_bg/small_bg.png",
         progress_frame: "/voxygen/element/frames/progress_bar.png",
         progress: "/voxygen/element/misc_bg/progress.png",
 
-        // Quest-Log Window
-        questlog_bg: "/voxygen/element/misc_bg/small_bg.png",
-        questlog_icon: "/voxygen/element/icons/questlog.png",
-
-        button_blue_mo: "/voxygen/element/buttons/blue_mo.png",
-        button_blue_press: "/voxygen/element/buttons/blue_press.png",
+        // Quest-Log Window       
+        questlog_icon: "/voxygen/element/icons/questlog.png",        
 
         // Window BG
         window_bg: "/voxygen/element/misc_bg/window_bg.png",
 
-        // Social Window
-        social_bg: "/voxygen/element/misc_bg/small_bg.png",
+        // Social Window        
         social_icon: "/voxygen/element/icons/social.png",
 
 

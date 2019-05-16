@@ -183,7 +183,7 @@ image_ids! {
         selection: "/voxygen/element/frames/selection.vox",
 
         <ImageGraphic>
-        selection_window: "/voxygen/element/frames/selection.png",
+        // selection_window: "/voxygen/element/frames/selection.png",
         test_char_l_button: "/voxygen/element/misc_bg/test_char_l.png",
         test_char_l_big: "/voxygen/element/misc_bg/test_char_l_big.png",
         creation_window: "/voxygen/element/frames/char_creation.png",
