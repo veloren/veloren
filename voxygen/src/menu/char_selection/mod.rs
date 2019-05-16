@@ -8,11 +8,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-<<<<<<< HEAD
-use common::{clock::Clock, comp, msg::ClientMsg};
-=======
 use common::{clock::Clock, msg::ClientMsg, comp};
->>>>>>> Allowed sending full body to server on connection, fixed asset dirs
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;

@@ -26,6 +26,9 @@ widget_ids! {
         charlist_frame,
         charlist_alignment,
         selection_scrollbar,
+        creation_bg,
+        creation_frame,
+        creation_alignment,
         server_name_text,
         change_server,
         server_frame_bg,
@@ -182,6 +185,10 @@ image_ids! {
         server_frame: "/voxygen/element/frames/server_frame.vox",
         selection: "/voxygen/element/frames/selection.vox",
 
+        arrow_left:"/voxygen/element/buttons/button_red_press.vox",
+        arrow_left_mo:"/voxygen/element/buttons/button_red_press.vox",
+        arrow_left_press:"/voxygen/element/buttons/button_red_press.vox",
+
         <ImageGraphic>
         selection_window: "/voxygen/element/frames/selection.png",
         test_char_l_button: "/voxygen/element/misc_bg/test_char_l.png",
@@ -252,18 +259,10 @@ font_ids! {
 }
 
 enum CreationState {
-    Race,
-    Weapon,
-    Body(BodyPart),
+    RaceWeapon,    
+    Body,
 }
 
-#[derive(Clone, Copy)]
-enum BodyPart {
-    SkinEyes,
-    Hair,
-    Accessories,
-    Chest,
-}
 
 pub enum Event {
     Logout,
@@ -308,7 +307,7 @@ impl CharSelectionUi {
             selected_char_no: None,
             character_name: "Character Name".to_string(),
             character_body: HumanoidBody::random(),
-            creation_state: CreationState::Race,
+            creation_state: CreationState::RaceWeapon,
             eye_color_brightness: 0.5,
         }
     }
@@ -561,15 +560,25 @@ impl CharSelectionUi {
                 }
             }
 
-            // Window(s)
-            Image::new(if let CreationState::Body(_) = self.creation_state {
-                self.imgs.creation_window_body
-            } else {
-                self.imgs.creation_window
-            })
-            .w_h(628.0, 814.0)
-            .top_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
-            .set(self.ids.creation_window, ui_widgets);
+            // Window       
+
+            Rectangle::fill_with([386.0, 788.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
+                .set(self.ids.creation_bg, ui_widgets);
+            Image::new(self.imgs.charlist_frame)
+                .w_h(400.0, 800.0)
+                .middle_of(self.ids.creation_bg)
+                .set(self.ids.charlist_frame, ui_widgets);
+            Rectangle::fill_with([386.0, 783.0], color::TRANSPARENT)
+                .middle_of(self.ids.creation_bg)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.creation_alignment, ui_widgets);
+            Scrollbar::y_axis(self.ids.creation_alignment)
+                .thickness(5.0)
+                .auto_hide(true)
+                .rgba(0.33, 0.33, 0.33, 1.0)
+                .set(self.ids.selection_scrollbar, ui_widgets);
 
             // Arrows
             // TODO: Lower the resolution of the arrow images & use non decimal sizes below.
@@ -639,18 +648,13 @@ impl CharSelectionUi {
 
             // Body
 
-            // Race Selection
-            if let CreationState::Race = self.creation_state {
-                Text::new("Choose your Race")
-                    .mid_top_with_margin_on(self.ids.creation_window, 74.0)
-                    .font_size(28)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.select_window_title, ui_widgets);
+            //Race Selection
+            if let CreationState::Race = self.creation_state {                
 
                 // Male/Female/Race Icons
                 // Alignment
                 Rectangle::fill_with([151.0, 68.0], color::TRANSPARENT)
-                    .mid_top_with_margin_on(self.ids.creation_window, 210.0)
+                    .mid_top_with_margin_on(self.ids.creation_window, 100.0)
                     .set(self.ids.body_type_bg, ui_widgets);
 
                 // Male
@@ -689,9 +693,9 @@ impl CharSelectionUi {
                 {
                     self.character_body.body_type = BodyType::Female;
                 }
-                // Alignment
-                Rectangle::fill_with([458.0, 68.0], color::TRANSPARENT)
-                    .mid_top_with_margin_on(self.ids.creation_window, 120.0)
+                // for alignment
+                Rectangle::fill_with([68.0, 458.0], color::TRANSPARENT)
+                    .bottom_left_with_margins_on(self.ids.body_type_bg, 78.0)
                     .set(self.ids.races_bg, ui_widgets);
                 // TODO: If races were in some sort of array format, we could do this in a loop.
                 // Human
@@ -701,7 +705,7 @@ impl CharSelectionUi {
                     self.imgs.human_f
                 })
                 .w_h(68.0, 68.0)
-                .mid_left_of(self.ids.races_bg)
+                .mid_top_of(self.ids.races_bg)
                 .set(self.ids.human, ui_widgets);
                 if Button::image(if let Race::Human = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -1004,7 +1008,7 @@ impl CharSelectionUi {
             // The BG Frame can be stretched to the needed size.
 
             // Window BG
-            if let CreationState::Body(state) = self.creation_state {
+            if let CreationState::Body = self.creation_state {
                 Text::new("Body Customization")
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
                     .font_size(28)
@@ -1024,10 +1028,8 @@ impl CharSelectionUi {
                     .label_color(TEXT_COLOR)
                     .label_font_size(16);
 
-                // Skin and eyes
-                if match state {
-                    // Open Window: Skin & Eyes
-                    BodyPart::SkinEyes => {
+                // Skin and eyes               
+                    // Open Window: Skin & Eyes                    
                         Image::new(self.imgs.skin_eyes_window)
                             .down_from(self.ids.select_window_title, 30.0)
                             .align_middle_x()
@@ -1047,13 +1049,13 @@ impl CharSelectionUi {
                 .set(self.ids.skin_eyes_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.creation_state = CreationState::Body(BodyPart::SkinEyes);
+                   
                 }
 
                 // Hair
-                if match state {
+               
                     // Open Window: Hair
-                    BodyPart::Hair => {
+                    
                         Image::new(self.imgs.hair_window)
                             .w_h(511.0, 400.0) //333.0
                             .down_from(self.ids.skin_eyes_button, 5.0)
@@ -1061,7 +1063,7 @@ impl CharSelectionUi {
                         open_section_button.clone().mid_top_of(self.ids.hair_window)
                     }
                     // Closed Window: Hair
-                    BodyPart::SkinEyes => closed_section_button
+                    
                         .clone()
                         .down_from(self.ids.skin_eyes_window, 5.0),
                     _ => closed_section_button
@@ -1072,13 +1074,13 @@ impl CharSelectionUi {
                 .set(self.ids.hair_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.creation_state = CreationState::Body(BodyPart::Hair);
+                    
                 }
 
                 // Accessories
-                if match state {
+               
                     // Open Window: Accessories
-                    BodyPart::Accessories => {
+                    
                         Image::new(self.imgs.hair_window)
                             .w_h(511.0, 333.0)
                             .down_from(self.ids.hair_button, 5.0)
@@ -1088,7 +1090,7 @@ impl CharSelectionUi {
                             .mid_top_of(self.ids.accessories_window)
                     }
                     // Closed Window: Accessories
-                    BodyPart::Hair => closed_section_button
+                    
                         .clone()
                         .down_from(self.ids.hair_window, 5.0),
                     _ => closed_section_button
@@ -1099,13 +1101,10 @@ impl CharSelectionUi {
                 .set(self.ids.accessories_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.creation_state = CreationState::Body(BodyPart::Accessories);
+                    
                 }
 
-                // Chest
-                if match state {
-                    // Open Window: Chest
-                    BodyPart::Chest => {
+               
                         Image::new(self.imgs.hair_window)
                             .w_h(511.0, 222.0)
                             .down_from(self.ids.accessories_button, 5.0)
@@ -1115,7 +1114,7 @@ impl CharSelectionUi {
                             .mid_top_of(self.ids.chest_window)
                     }
                     // Closed Window: Accessories
-                    BodyPart::Accessories => closed_section_button
+                   
                         .clone()
                         .down_from(self.ids.accessories_window, 5.0),
                     _ => closed_section_button
@@ -1126,12 +1125,12 @@ impl CharSelectionUi {
                 .set(self.ids.chest_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.creation_state = CreationState::Body(BodyPart::Chest);
+                   
                 }
 
-                // Body Customization Window Contents
-                match state {
-                    BodyPart::SkinEyes => {
+                // Body Customization Window Contents ////////////////////////
+               
+                    
                         // Skin Color: Text, Brightness Slider, Picker
                         Text::new("Skin Color")
                             .top_left_with_margins_on(self.ids.skin_rect, 0.0, -250.0)
@@ -1220,7 +1219,7 @@ impl CharSelectionUi {
                     // Hair Color -> Picker
                     // Eye Brow Style -> Arrow
                     // Facial Hair -> Picker (Only active for males!)
-                    BodyPart::Hair => {
+                   
                         // Hair
                         Text::new("Hair Style")
                             .mid_top_with_margin_on(self.ids.hair_window, 60.0)
@@ -1326,8 +1325,7 @@ impl CharSelectionUi {
 
                     // Accessory Picker -> Arrows (Name changes with race!)
                     // Color -> Picker
-                    // Brightness -> Slider
-                    BodyPart::Accessories => {
+                    // Brightness -> Slider                   
                         match self.character_body.race {
                             Race::Human => {
                                 Text::new("Head Band")
@@ -1727,8 +1725,7 @@ impl CharSelectionUi {
                             }
                         } // match Race fin
                     } // Accessories fin
-                    BodyPart::Chest => {
-                        // borrow checker complains if we use self in a closure
+                                           // borrow checker complains if we use self in a closure
                         let current_chest = self.character_body.chest;
                         if let Some(new_val) = ImageSlider::discrete(
                             ALL_CHESTS
@@ -1749,7 +1746,7 @@ impl CharSelectionUi {
                             // TODO use a differnt variable that is not just a field on the chracter selection struct
                             self.character_body.chest = ALL_CHESTS[new_val];
                         }
-                    }
+                    
                 } // Body Customization Fin
             } // CreationState::Body Fin
         } // Char Creation fin
