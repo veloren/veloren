@@ -114,9 +114,9 @@ impl State {
 
         // Register synced resources used by the ECS
         ecs.add_resource_synced(TimeOfDay(0.0));
-        ecs.add_resource_synced(Time(0.0));
 
         // Register unsynced resources used by the ECS
+        ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
     }
