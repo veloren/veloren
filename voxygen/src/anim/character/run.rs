@@ -76,9 +76,9 @@ impl Animation for RunAnimation {
         next.torso.ori = Quaternion::rotation_x(-velocity * 0.05 - wavecos * 0.1);
         next.torso.scale = Vec3::one() / 11.0;
 
-        next.draw.offset = Vec3::new(0.0, 1.0, -8.0);
-        next.draw.ori = Quaternion::rotation_y(-0.2);
-        next.draw.scale = Vec3::one();
+        next.draw.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.draw.ori = Quaternion::rotation_y(0.0);
+        next.draw.scale = Vec3::one() * 0.0;
 
         next
     }

@@ -15,7 +15,7 @@ use common::{
     assets,
     comp::{
         self,
-        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon, Pighead, Pigchest, Pigleg_l, Pigleg_r},
+        actor::{Belt, Chest, Foot, Hand, Head, Pants, Shoulder, Weapon, Draw, Pighead, Pigchest, Pigleg_l, Pigleg_r},
         Body, HumanoidBody, QuadrupedBody
     },
     figure::Segment,
@@ -65,7 +65,7 @@ impl FigureModelCache {
                                     Some(Self::load_weapon(body.weapon)),
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
-                                    None,
+                                    Some(Self::load_draw(body.draw)),
                                     None,
                                     None,
                                     None,
@@ -226,17 +226,17 @@ impl FigureModelCache {
             Vec3::new(2.5, 0.0, 0.0),
         )
     }
-    //    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
-    //        Self::load_mesh(
-    //            match draw {
-    //                //Draw::DefaultDraw => "sword.vox",
-    //
-    //            },
-    //            Vec3::new(0.0, 0.0, -2.0)
-    //
-    //
-    //        )
-    //    }
+    fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match draw {
+                Draw::Default => "glider.vox",
+
+            },
+            Vec3::new(-26.0, -26.0, -5.0)
+
+
+        )
+    }
 
     fn load_pighead(pighead: Pighead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
@@ -350,6 +350,11 @@ impl FigureMgr {
                                 time,
                                 animation_history.time,
                             ),
+                            comp::Animation::Gliding => character::GlidingAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
@@ -377,6 +382,7 @@ impl FigureMgr {
                                 (vel.0.magnitude(), time),
                                 animation_history.time,
                             ),
+
                             // TODO!
                             _ => state.skeleton_mut().clone(),
                         };
