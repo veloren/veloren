@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(false)
                 && vel.0.z <= 0.0;
 
-            let friction = if on_ground {
+            let (gliding, friction) = if on_ground {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
                 vel.0 += control.move_dir * 4.0;
@@ -50,7 +50,7 @@ impl<'a> System<'a> for Sys {
                     vel.0.z += 16.0;
                 }
 
-                0.15
+                (false, 0.15)
             } else {
                 // TODO: Don't hard-code this
                 // Apply physics to the player: acceleration and non-linear decceleration
@@ -61,9 +61,9 @@ impl<'a> System<'a> for Sys {
                     let anti_grav = 9.81 * 3.95;
                     vel.0.z += anti_grav * dt.0 * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
 
-                    0.008
+                    (true, 0.008)
                 } else {
-                    0.015
+                    (false, 0.015)
                 }
             };
 
@@ -80,8 +80,10 @@ impl<'a> System<'a> for Sys {
                 } else {
                     Animation::Idle
                 }
-            } else {
+            } else if gliding {
                 Animation::Gliding
+            } else {
+                Animation::Jump
             };
 
             let last_history = anims.get_mut(entity).cloned();
