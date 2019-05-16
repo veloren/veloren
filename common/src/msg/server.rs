@@ -1,4 +1,4 @@
-use super::{ClientState, EcsPacket};
+use super::{ClientState, EcsCompPacket, EcsResPacket};
 use crate::{comp, terrain::TerrainChunk};
 use vek::*;
 
@@ -13,7 +13,7 @@ pub enum RequestStateError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerMsg {
     InitialSync {
-        ecs_state: sphynx::StatePackage<EcsPacket>,
+        ecs_state: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
         entity_uid: u64,
     },
     StateAnswer(Result<ClientState, (RequestStateError, ClientState)>),
@@ -22,7 +22,7 @@ pub enum ServerMsg {
     Pong,
     Chat(String),
     SetPlayerEntity(u64),
-    EcsSync(sphynx::SyncPackage<EcsPacket>),
+    EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
     EntityPhysics {
         entity: u64,
         pos: comp::phys::Pos,
