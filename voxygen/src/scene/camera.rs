@@ -143,7 +143,7 @@ impl Camera {
     }
     /// Set the aspect ratio of the camera.
     pub fn set_aspect_ratio(&mut self, aspect: f32) {
-        self.aspect = aspect;
+        self.aspect = if aspect.is_normal() { aspect } else { 1.0 };
     }
 
     /// Get the orientation of the camera
