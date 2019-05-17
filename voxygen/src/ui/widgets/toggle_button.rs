@@ -105,8 +105,10 @@ impl Widget for ToggleButton {
             t_image,
             ..
         } = self;
-        // Check if button was clicked
-        // (can't use .set().was_clicked() because we are changing the image and this is after setting the widget which causes flickering as it takes a frame to change after the mouse button is lifted)
+        // Check if the button was clicked.
+        // (Can't use `.set().was_clicked()` because we are changing the image after setting the
+        // widget, which causes flickering since it takes a frame to change after the mouse button
+        // is lifted).
         if ui.widget_input(state.ids.button).clicks().left().count() % 2 == 1 {
             value = !value;
         }

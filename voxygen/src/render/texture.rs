@@ -89,7 +89,7 @@ impl<P: Pipeline> Texture<P> {
         })
     }
 
-    // Updates a texture with the given data (used for updating the glyph cache texture)
+    /// Update a texture with the given data (used for updating the glyph cache texture).
     pub fn update(
         &self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,
@@ -113,7 +113,7 @@ impl<P: Pipeline> Texture<P> {
             )
             .map_err(|err| RenderError::TexUpdateError(err))
     }
-    /// Get dimensions of the represented image
+    /// Get dimensions of the represented image.
     pub fn get_dimensions(&self) -> Vec2<u16> {
         let (w, h, ..) = self.tex.get_info().kind.get_dimensions();
         Vec2::new(w, h)

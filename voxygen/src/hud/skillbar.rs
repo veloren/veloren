@@ -68,12 +68,13 @@ impl<'a> Widget for Skillbar<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        // TODO: Read from parameter / character struct
+        // TODO: Read from parameter/character struct
         let xp_percentage = 0.4;
         let hp_percentage = 1.0;
         let mana_percentage = 1.0;
 
-        // Crosshair TODO: Only show while aiming with a bow or when casting a spell
+        // TODO: Only show while aiming with a bow or when casting a spell.
+        // Crosshair
         // Image::new(self.imgs.crosshair)
         // .w_h(101.0 * 0.5, 101.0 * 0.5)
         // .mid_top_with_margin_on(ui.window, 500.0)
@@ -158,14 +159,14 @@ impl<'a> Widget for Skillbar<'a> {
 
         // Level Display
 
-        // Insert actual Level here
+        // TODO: Insert actual Level here.
         Text::new("1")
             .left_from(state.ids.xp_bar, -15.0)
             .font_size(10)
             .color(TEXT_COLOR)
             .set(state.ids.level_text, ui);
 
-        // Insert next Level here
+        // TODO: Insert next Level here.
         Text::new("2")
             .right_from(state.ids.xp_bar, -15.0)
             .font_size(10)

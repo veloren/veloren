@@ -85,15 +85,15 @@ impl Window {
             self.needs_refresh_resize = false;
         }
 
-        // Copy data that is needed by the events closure to avoid lifetime errors
-        // TODO: Remove this if/when the compiler permits it
+        // Copy data that is needed by the events closure to avoid lifetime errors.
+        // TODO: Remove this if/when the compiler permits it.
         let cursor_grabbed = self.cursor_grabbed;
         let renderer = &mut self.renderer;
         let window = &mut self.window;
         let key_map = &self.key_map;
 
         self.events_loop.poll_events(|event| {
-            // Get events for ui
+            // Get events for ui.
             if let Some(event) = ui::Event::try_from(event.clone(), &window) {
                 events.push(Event::Ui(event));
             }
@@ -174,7 +174,7 @@ impl Window {
     }
 }
 
-/// Represents a key that the game recognises after keyboard mapping
+/// Represents a key that the game recognises after keyboard mapping.
 #[derive(Clone, Copy)]
 pub enum Key {
     ToggleCursor,
@@ -197,12 +197,12 @@ pub enum Key {
     Help,
 }
 
-/// Represents an incoming event from the window
+/// Represents an incoming event from the window.
 #[derive(Clone)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
-    /// The window has been resized
+    /// The window has been resized.
     Resize(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
     Char(char),
@@ -210,12 +210,12 @@ pub enum Event {
     CursorPan(Vec2<f32>),
     /// The camera has been requested to zoom.
     Zoom(f32),
-    /// A key that the game recognises has been pressed down
+    /// A key that the game recognises has been pressed down.
     KeyDown(Key),
-    /// A key that the game recognises has been released down
+    /// A key that the game recognises has been released down.
     KeyUp(Key),
-    /// Event that the ui uses
+    /// Event that the ui uses.
     Ui(ui::Event),
-    /// Game settings have changed
+    /// Game settings have changed.
     SettingsChanged,
 }

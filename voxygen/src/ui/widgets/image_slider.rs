@@ -17,7 +17,7 @@ pub trait ValueFromPercent<T> {
 
 /// Linear value selection.
 ///
-/// If the slider's width is greater than it's height, it will automatically become a horizontal
+/// If the slider's width is greater than its height, it will automatically become a horizontal
 /// slider, otherwise it will be a vertical slider.
 ///
 /// Its reaction is triggered if the value is updated or if the mouse button is released while
@@ -31,9 +31,9 @@ pub struct ImageSlider<T, K> {
     max: T,
     /// The amount in which the slider's display should be skewed.
     ///
-    /// Higher skew amounts (above 1.0) will weight lower values.
+    /// Higher skew amounts (above 1.0) will weigh lower values.
     ///
-    /// Lower skew amounts (below 1.0) will weight heigher values.
+    /// Lower skew amounts (below 1.0) will weigh higher values.
     ///
     /// All skew amounts should be greater than 0.0.
     skew: f32,
@@ -47,7 +47,7 @@ struct Track {
     color: Option<Color>,
     src_rect: Option<Rect>,
     breadth: Option<f32>,
-    // Padding on the ends of the track constraining the slider to a smaller area
+    // Padding on the ends of the track constraining the slider to a smaller area.
     padding: (f32, f32),
 }
 
@@ -202,13 +202,13 @@ where
             if mouse.buttons.left().is_down() {
                 let mouse_abs_xy = mouse.abs_xy();
                 let (mouse_offset, track_length) = if is_horizontal {
-                    // Horizontal.
+                    // Horizontal
                     (
                         mouse_abs_xy[0] - rect.x.start - start_pad,
                         rect.w() - start_pad - end_pad,
                     )
                 } else {
-                    // Vertical.
+                    // Vertical
                     (
                         mouse_abs_xy[1] - rect.y.start - start_pad,
                         rect.h() - start_pad - end_pad,
@@ -264,7 +264,7 @@ where
             })
             .unwrap_or(slider.image_id);
 
-        // The rectangle for positioning and sizing the slider.
+        // A rectangle for positioning and sizing the slider.
         let value_perc = utils::map_range(new_value, min, max, 0.0, 1.0);
         let unskewed_perc = value_perc.powf(1.0 / skew as f64);
         let slider_rect = if is_horizontal {

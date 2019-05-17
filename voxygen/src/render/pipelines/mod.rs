@@ -23,9 +23,9 @@ gfx_defines! {
         proj_mat: [[f32; 4]; 4] = "proj_mat",
         cam_pos: [f32; 4] = "cam_pos",
         focus_pos: [f32; 4] = "focus_pos",
-        // TODO: Fix whatever alignment issue requires these uniforms to be aligned
+        // TODO: Fix whatever alignment issue requires these uniforms to be aligned.
         view_distance: [f32; 4] = "view_distance",
-        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64
+        time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
         tick: [f32; 4] = "tick",
         screen_res: [f32; 4] = "screen_res",
     }

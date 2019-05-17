@@ -59,12 +59,12 @@ impl GraphicCache {
     {
         match self
             .rect_map
-            .get(&(graphic_id, dims, source.map(|e| e.to_bits()))) //<-------- TODO: Replace this with rounded representation of source
+            .get(&(graphic_id, dims, source.map(|e| e.to_bits()))) // TODO: Replace this with rounded representation of source
         {
             Some(aabr) => Some(*aabr),
             None => match self.graphic_map.get(&graphic_id) {
                 Some(graphic) => {
-                    // Allocate rectangle
+                    // Allocate rectangle.
                     let aabr = match self
                         .atlas
                         .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
@@ -76,13 +76,16 @@ impl GraphicCache {
                                 max: Vec2::new(max.x as u16, max.y as u16),
                             }
                         }
-                        // Out of room
-                        // TODO: make more room by 1. expanding cache size, 2. removing unused allocations, 3. rearranging rectangles
+                        // Out of room.
+                        // TODO: Make more room.
+                        //  1) Expand cache size
+                        //  2) Remove unused allocations
+                        //  3) Rearrange rectangles
                         None => return None,
                     };
 
-                    // Render image
-                    // TODO: use source
+                    // Render image.
+                    // TODO: Use source.
                     let data = match graphic {
                         Graphic::Image(ref image) => image
                             .resize_exact(
@@ -99,14 +102,14 @@ impl GraphicCache {
                         Graphic::Blank => return None,
                     };
 
-                    // Draw to allocated area
+                    // Draw to allocated area.
                     cacher(aabr, data);
 
-                    // Insert area into map for retrieval
+                    // Insert area into map for retrieval.
                     self.rect_map
                         .insert((graphic_id, dims, source.map(|e| e.to_bits())), aabr);
 
-                    // Return area
+                    // Return area.
                     Some(aabr)
                 }
                 None => None,

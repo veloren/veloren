@@ -9,16 +9,17 @@ use std::{
 
 #[derive(Debug)]
 pub enum Error {
-    // Error parsing input string or error resolving host name
+    // Error parsing input string or error resolving host name.
     BadAddress(std::io::Error),
-    // Parsing yielded an empty iterator (specifically to_socket_addrs())
+    // Parsing yielded an empty iterator (specifically to_socket_addrs()).
     NoAddress,
-    // Parsing/host name resolution successful but could not connect
+    // Parsing/host name resolution successful but could not connect.
     ConnectionFailed(ClientError),
     ClientCrashed,
 }
 
-// Used to asynchronusly parse the server address, resolve host names, and create the client (which involves establishing a connection to the server)
+// Used to asynchronously parse the server address, resolve host names,
+// and create the client (which involves establishing a connection to the server).
 pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
@@ -34,19 +35,20 @@ impl ClientInit {
         let (tx, rx) = channel();
 
         thread::spawn(move || {
-            // Sleep the thread to wait for the single-player server to start up
+            // Sleep the thread to wait for the single-player server to start up.
             if wait {
                 thread::sleep(Duration::from_millis(500));
             }
-            // Parses ip address or resolves hostname
-            // Note: if you use an ipv6 address the number after the last colon will be used as the port unless you use [] around the address
+            // Parse ip address or resolves hostname.
+            // Note: if you use an ipv6 address, the number after the last colon will be used
+            // as the port unless you use [] around the address.
             match server_address
                 .to_socket_addrs()
                 .or((server_address.as_ref(), default_port).to_socket_addrs())
             {
-                Ok(socket_adders) => {
+                Ok(socket_address) => {
                     let (first_addrs, second_addrs) =
-                        socket_adders.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
+                        socket_address.partition::<Vec<_>, _>(|a| a.is_ipv6() == prefer_ipv6);
 
                     let mut last_err = None;
 
@@ -59,11 +61,11 @@ impl ClientInit {
                             }
                             Err(err) => {
                                 match err {
-                                    // assume connection failed and try next address
+                                    // Assume the connection failed and try next address.
                                     ClientError::Network(_) => {
                                         last_err = Some(Error::ConnectionFailed(err))
                                     }
-                                    // TODO: handle error?
+                                    // TODO: Handle errors?
                                     _ => panic!(
                                         "Unexpected non-network error when creating client: {:?}",
                                         err
@@ -72,11 +74,11 @@ impl ClientInit {
                             }
                         }
                     }
-                    // Parsing/host name resolution successful but no connection succeeded
+                    // Parsing/host name resolution successful but no connection succeeded.
                     let _ = tx.send(Err(last_err.unwrap_or(Error::NoAddress)));
                 }
                 Err(err) => {
-                    // Error parsing input string or error resolving host name
+                    // Error parsing input string or error resolving host name.
                     let _ = tx.send(Err(Error::BadAddress(err)));
                 }
             }
@@ -84,8 +86,8 @@ impl ClientInit {
 
         ClientInit { rx }
     }
-    // Returns None is the thread is still running
-    // Otherwise returns the Result of client creation
+    /// Poll if the thread is complete.
+    /// Returns None if the thread is still running, otherwise returns the Result of client creation.
     pub fn poll(&self) -> Option<Result<Client, Error>> {
         match self.rx.try_recv() {
             Ok(result) => Some(result),

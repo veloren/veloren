@@ -16,7 +16,7 @@ use common::{
     comp::{
         self,
         actor::{
-            Belt, Chest, Draw, Foot, Hand, Head, Pants, Pigchest, Pighead, Pigleg_l, Pigleg_r,
+            Belt, Chest, Draw, Foot, Hand, Head, Pants, PigChest, PigHead, PigLegL, PigLegR,
             Shoulder, Weapon,
         },
         Body, HumanoidBody, QuadrupedBody,
@@ -75,12 +75,12 @@ impl FigureModelCache {
                                     None,
                                 ],
                                 Body::Quadruped(body) => [
-                                    Some(Self::load_pighead(body.pighead)),
-                                    Some(Self::load_pigchest(body.pigchest)),
-                                    Some(Self::load_piglf_leg(body.pigleg_l)),
-                                    Some(Self::load_pigrf_leg(body.pigleg_r)),
-                                    Some(Self::load_piglb_leg(body.pigleg_l)),
-                                    Some(Self::load_pigrb_leg(body.pigleg_r)),
+                                    Some(Self::load_pig_head(body.pig_head)),
+                                    Some(Self::load_pig_chest(body.pig_chest)),
+                                    Some(Self::load_pig_leg_lf(body.pig_leg_l)),
+                                    Some(Self::load_pig_leg_rf(body.pig_leg_r)),
+                                    Some(Self::load_pig_leg_lb(body.pig_leg_l)),
+                                    Some(Self::load_pig_leg_rb(body.pig_leg_r)),
                                     None,
                                     None,
                                     None,
@@ -117,15 +117,15 @@ impl FigureModelCache {
     }
 
     pub fn clean(&mut self, tick: u64) {
-        // TODO: Don't hard-code this
+        // TODO: Don't hard-code this.
         self.models
             .retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
-    // TODO: Don't make this public
+    // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
+        let full_path: String = ["/voxygen/voxel/", filename].concat();
+        Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
 
@@ -205,7 +205,7 @@ impl FigureModelCache {
         Self::load_mesh(
             match weapon {
                 Weapon::Sword => "sword.vox",
-                // TODO actually match against other weapons and set the right model
+                // TODO actually match against other weapons and set the right model.
                 _ => "sword.vox",
             },
             Vec3::new(0.0, 0.0, -4.0),
@@ -238,55 +238,55 @@ impl FigureModelCache {
         )
     }
 
-    fn load_pighead(pighead: Pighead) -> Mesh<FigurePipeline> {
+    fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match pighead {
-                Pighead::Default => "pighead.vox",
+            match pig_head {
+                PigHead::Default => "pighead.vox",
             },
             Vec3::new(-6.0, 4.5, 3.0),
         )
     }
 
-    fn load_pigchest(pigchest: Pigchest) -> Mesh<FigurePipeline> {
+    fn load_pig_chest(pig_chest: PigChest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match pigchest {
-                Pigchest::Default => "pigchest.vox",
+            match pig_chest {
+                PigChest::Default => "pigchest.vox",
             },
             Vec3::new(-5.0, 4.5, 0.0),
         )
     }
 
-    fn load_piglf_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
+    fn load_pig_leg_lf(pig_leg_l: PigLegL) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pig_leg_l {
+                PigLegL::Default => "pigleg_l.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
+
+    fn load_pig_leg_rf(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match pig_leg_r {
+                PigLegR::Default => "pigleg_r.vox",
+            },
+            Vec3::new(0.0, -1.0, -1.5),
+        )
+    }
+
+    fn load_pig_leg_lb(pigleg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pigleg_l {
-                Pigleg_l::Default => "pigleg_l.vox",
+                PigLegL::Default => "pigleg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
     }
 
-    fn load_pigrf_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
+    fn load_pig_leg_rb(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match pigleg_r {
-                Pigleg_r::Default => "pigleg_r.vox",
-            },
-            Vec3::new(0.0, -1.0, -1.5),
-        )
-    }
-
-    fn load_piglb_leg(pigleg_l: Pigleg_l) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match pigleg_l {
-                Pigleg_l::Default => "pigleg_l.vox",
-            },
-            Vec3::new(0.0, -1.0, -1.5),
-        )
-    }
-
-    fn load_pigrb_leg(pigleg_r: Pigleg_r) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match pigleg_r {
-                Pigleg_r::Default => "pigleg_r.vox",
+            match pig_leg_r {
+                PigLegR::Default => "pigleg_r.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -411,7 +411,7 @@ impl FigureMgr {
             }
         }
 
-        // Clear states that have dead entities
+        // Clear states that have dead entities.
         self.character_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_states

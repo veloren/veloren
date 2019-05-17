@@ -15,7 +15,7 @@ fn main() {
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::new().expect("Failed to create server instance");
+    let mut server = Server::new().expect("Failed to create server instance!");
 
     loop {
         let events = server
@@ -30,10 +30,10 @@ fn main() {
             }
         }
 
-        // Clean up the server after a tick
+        // Clean up the server after a tick.
         server.cleanup();
 
-        // Wait for the next tick
+        // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));
     }
 }
