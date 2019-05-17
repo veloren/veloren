@@ -94,10 +94,10 @@ impl WriteVol for Chonk {
                 SubChunk::Homogeneous(cblock) if *cblock == block => Ok(()),
                 SubChunk::Homogeneous(cblock) => {
                     let mut new_chunk = Chunk::filled(*cblock, ());
-                    match new_chunk.set(rpos, block).map_err(|err| {
-                        println!("Error!! {:?}", rpos);
-                        ChonkError::ChunkError(err)
-                    }) {
+                    match new_chunk
+                        .set(rpos, block)
+                        .map_err(|err| ChonkError::ChunkError(err))
+                    {
                         Ok(()) => {
                             self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
                             Ok(())
