@@ -32,6 +32,14 @@ impl Chonk {
         }
     }
 
+    pub fn get_z_min(&self) -> i32 {
+        self.z_offset
+    }
+
+    pub fn get_z_max(&self) -> i32 {
+        self.z_offset + (self.sub_chunks.len() as u32 * TerrainChunkSize::SIZE.z) as i32
+    }
+
     fn sub_chunk_idx(&self, z: i32) -> usize {
         ((z - self.z_offset) as u32 / TerrainChunkSize::SIZE.z as u32) as usize
     }
