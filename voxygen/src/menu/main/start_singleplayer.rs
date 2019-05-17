@@ -52,6 +52,7 @@ impl PlayState for StartSingleplayerState {
                 if !net_settings.servers.contains(&server_address) {
                     net_settings.servers.push(server_address.clone());
                 }
+                // TODO: Handle this result
                 global_state.settings.save_to_file();
 
                 PlayStateResult::Push(Box::new(CharSelectionState::new(

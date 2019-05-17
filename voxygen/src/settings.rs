@@ -85,19 +85,34 @@ impl Default for Settings {
 }
 
 impl Settings {
-    pub fn load() -> Result<Self, ConfigError> {
-        let mut config = Config::new();
-
-        config.merge(
-            Config::try_from(&Settings::default())
-                .expect("Default settings struct could not be converted to Config"),
-        );
+    pub fn load() -> Self {
+        let default_settings = Settings::default();
 
         let path = Settings::get_settings_path();
 
-        config.merge::<config::File<config::FileSourceFile>>(path.into())?;
+        let mut config = Config::new();
 
-        config.try_into()
+        config
+            .merge(
+                Config::try_from(&default_settings)
+                    .expect("Default settings struct could not be converted to Config"),
+            )
+            .unwrap();
+
+        // TODO: log errors here
+        // If merge or try_into fail use the default settings
+        match config.merge::<config::File<_>>(path.into()) {
+            Ok(_) => match config.try_into() {
+                Ok(settings) => settings,
+                Err(_) => default_settings,
+            },
+            Err(_) => {
+                // Maybe the file didn't exist
+                // TODO: Handle this result
+                default_settings.save_to_file();
+                default_settings
+            }
+        }
     }
 
     pub fn save_to_file(&self) -> std::io::Result<()> {

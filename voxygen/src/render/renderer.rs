@@ -190,11 +190,14 @@ impl Renderer {
     pub fn on_resize(&mut self) -> Result<(), RenderError> {
         let dims = self.win_color_view.get_dimensions();
 
-        let (tgt_color_view, tgt_depth_view, tgt_color_res) =
-            Self::create_rt_views(&mut self.factory, (dims.0, dims.1))?;
-        self.tgt_color_res = tgt_color_res;
-        self.tgt_color_view = tgt_color_view;
-        self.tgt_depth_view = tgt_depth_view;
+        // Panics when creating texture with w,h of 0,0
+        if dims.0 != 0 && dims.1 != 0 {
+            let (tgt_color_view, tgt_depth_view, tgt_color_res) =
+                Self::create_rt_views(&mut self.factory, (dims.0, dims.1))?;
+            self.tgt_color_res = tgt_color_res;
+            self.tgt_color_view = tgt_color_view;
+            self.tgt_depth_view = tgt_depth_view;
+        }
 
         Ok(())
     }

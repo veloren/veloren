@@ -33,7 +33,7 @@ impl ClientInit {
 
         let (tx, rx) = channel();
 
-        let handle = Some(thread::spawn(move || {
+        thread::spawn(move || {
             // Sleep the thread to wait for the single-player server to start up
             if wait {
                 thread::sleep(Duration::from_millis(500));
@@ -80,7 +80,7 @@ impl ClientInit {
                     let _ = tx.send(Err(Error::BadAddress(err)));
                 }
             }
-        }));
+        });
 
         ClientInit { rx }
     }
