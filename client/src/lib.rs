@@ -38,7 +38,7 @@ pub struct Client {
     thread_pool: ThreadPool,
 
     last_ping: f64,
-    pub postbox: PostBox<ClientMsg, ServerMsg>,
+    postbox: PostBox<ClientMsg, ServerMsg>,
 
     last_server_ping: Instant,
     last_ping_delta: f64,
@@ -59,7 +59,7 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity) = match postbox.next_message() {
+        let (mut state, entity) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
@@ -73,6 +73,9 @@ impl Client {
             }
             _ => return Err(Error::ServerWentMad),
         };
+
+        // Initialize ecs components the client has control over
+        state.write_component(entity, comp::Actions::new());
 
         Ok(Self {
             client_state,
@@ -97,6 +100,11 @@ impl Client {
 
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
+    }
+
+    pub fn request_character(&mut self, name: String, body: comp::Body) {
+        self.postbox
+            .send_message(ClientMsg::Character { name, body });
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
@@ -157,17 +165,40 @@ impl Client {
         // approximate order of things. Please update it as this code changes.
         //
         // 1) Collect input from the frontend, apply input effects to the state of the game
-        // 2) Go through any events (timer-driven or otherwise) that need handling and apply them
+        // 2) Handle messages from the server
+        // 3) Go through any events (timer-driven or otherwise) that need handling and apply them
         //    to the state of the game
-        // 3) Perform a single LocalState tick (i.e: update the world and entities in the world)
-        // 4) Go through the terrain update queue and apply all changes to the terrain
-        // 5) Finish the tick, passing control of the main thread back to the frontend
+        // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
+        // 5) Go through the terrain update queue and apply all changes to the terrain
+        // 6) Sync information to the server
+        // 7) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend.
-        let mut frontend_events = Vec::new();
+        // 1) Handle input from frontend.
+        for event in input.events {
+            match event {
+                InputEvent::AttackStarted => {
+                    self.state
+                        .ecs_mut()
+                        .write_storage::<comp::Actions>()
+                        .get_mut(self.entity)
+                        .unwrap() // We initialized it in the constructor
+                        .0
+                        .push(comp::Action::Attack);
+                }
+                _ => {}
+            }
+        }
 
-        // Handle new messages from the server.
-        frontend_events.append(&mut self.handle_new_messages()?);
+        // Tell the server about the actions.
+        if let Some(actions) = self
+            .state
+            .ecs()
+            .read_storage::<comp::Actions>()
+            .get(self.entity)
+        {
+            self.postbox
+                .send_message(ClientMsg::PlayerActions(actions.clone()));
+        }
 
         // Pass character control from frontend input to the player's entity.
         // TODO: Only do this if the entity already has a Control component!
@@ -180,35 +211,18 @@ impl Client {
             },
         );
 
-        // Tick the client's LocalState (step 3).
+        // 2) Build up a list of events for this frame, to be passed to the frontend.
+        let mut frontend_events = Vec::new();
+
+        // Handle new messages from the server.
+        frontend_events.append(&mut self.handle_new_messages()?);
+
+        // 3)
+
+        // 4) Tick the client's LocalState
         self.state.tick(dt);
 
-        // Update the server about the player's physics attributes.
-        match (
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-        ) {
-            (Some(pos), Some(vel), Some(dir)) => {
-                self.postbox
-                    .send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
-            }
-            _ => {}
-        }
-
-        // Update the server about the player's currently playing animation and the previous one.
-        if let Some(animation_history) = self
-            .state
-            .read_storage::<comp::AnimationHistory>()
-            .get(self.entity)
-            .cloned()
-        {
-            if Some(animation_history.current) != animation_history.last {
-                self.postbox
-                    .send_message(ClientMsg::PlayerAnimation(animation_history));
-            }
-        }
-
+        // 5) Terrain
         let pos = self
             .state
             .read_storage::<comp::phys::Pos>()
@@ -259,13 +273,39 @@ impl Client {
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
-        // send a ping to the server once every second
+        // Send a ping to the server once every second
         if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
             self.postbox.send_message(ClientMsg::Ping);
             self.last_server_ping = Instant::now();
         }
 
-        // Finish the tick, pass control back to the frontend (step 6).
+        // 6) Update the server about the player's physics attributes.
+        match (
+            self.state.read_storage().get(self.entity).cloned(),
+            self.state.read_storage().get(self.entity).cloned(),
+            self.state.read_storage().get(self.entity).cloned(),
+        ) {
+            (Some(pos), Some(vel), Some(dir)) => {
+                self.postbox
+                    .send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
+            }
+            _ => {}
+        }
+
+        // Update the server about the player's current animation.
+        if let Some(mut animation_info) = self
+            .state
+            .ecs_mut()
+            .write_storage::<comp::AnimationInfo>()
+            .get_mut(self.entity)
+        {
+            if animation_info.changed {
+                self.postbox
+                    .send_message(ClientMsg::PlayerAnimation(animation_info.clone()));
+            }
+        }
+
+        // 7) Finish the tick, pass control back to the frontend.
         self.tick += 1;
         Ok(frontend_events)
     }
@@ -319,10 +359,10 @@ impl Client {
                     },
                     ServerMsg::EntityAnimation {
                         entity,
-                        animation_history,
+                        animation_info,
                     } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
-                            self.state.write_component(entity, animation_history);
+                            self.state.write_component(entity, animation_info);
                         }
                         None => {}
                     },

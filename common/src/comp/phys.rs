@@ -28,7 +28,7 @@ impl Component for Dir {
     type Storage = VecStorage<Self>;
 }
 
-// Update
+// ForceUpdate
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ForceUpdate;

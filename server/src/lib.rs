@@ -134,7 +134,7 @@ impl Server {
             .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::AnimationHistory::new(comp::Animation::Idle))
+            .with(comp::Actions::new())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -156,7 +156,10 @@ impl Server {
         state.write_component(entity, comp::phys::ForceUpdate);
 
         // Set initial animation.
-        state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
+        state.write_component(entity, comp::AnimationInfo::new());
+
+        // Set initial actions (none).
+        state.write_component(entity, comp::Actions::new());
 
         // Tell the client its request was successful.
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
@@ -180,7 +183,7 @@ impl Server {
         // 6) Send relevant state updates to all clients
         // 7) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend.
+        // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
         // If networking has problems, handle them.
@@ -188,19 +191,19 @@ impl Server {
             return Err(err.into());
         }
 
-        // Handle new client connections (step 2).
-        frontend_events.append(&mut self.handle_new_connections()?);
+        // 2)
 
-        // Handle new messages from clients
+        // 3) Handle inputs from clients
+        frontend_events.append(&mut self.handle_new_connections()?);
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Tick the client's LocalState (step 3).
+        // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
         // Tick the world
         self.world.tick(dt);
 
-        // Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
@@ -261,10 +264,10 @@ impl Server {
             self.state.remove_chunk(key);
         }
 
-        // Synchronise clients with the new state of the world.
+        // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
-        // Finish the tick, pass control back to the frontend (step 6).
+        // 7) Finish the tick, pass control back to the frontend.
         Ok(frontend_events)
     }
 
@@ -389,10 +392,19 @@ impl Server {
                             | ClientState::Spectator
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-                        ClientMsg::PlayerAnimation(animation_history) => {
+                        ClientMsg::PlayerActions(mut actions) => {
+                            state
+                                .ecs_mut()
+                                .write_storage::<comp::Actions>()
+                                .get_mut(entity)
+                                .map(|s| {
+                                    s.0.append(&mut actions.0);
+                                });
+                        }
+                        ClientMsg::PlayerAnimation(animation_info) => {
                             match client.client_state {
                                 ClientState::Character => {
-                                    state.write_component(entity, animation_history)
+                                    state.write_component(entity, animation_info)
                                 }
                                 // Only characters can send animations.
                                 _ => client.error_state(RequestStateError::Impossible),
@@ -492,17 +504,17 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync logical information other players have authority over, not the server.
-        for (other_entity, &uid, &animation_history) in (
+        for (other_entity, &uid, &animation_info) in (
             &state.ecs().entities(),
             &state.ecs().read_storage::<common::state::Uid>(),
-            &state.ecs().read_storage::<comp::AnimationHistory>(),
+            &state.ecs().read_storage::<comp::AnimationInfo>(),
         )
             .join()
         {
-            // AnimationHistory
+            // Animation
             client.postbox.send_message(ServerMsg::EntityAnimation {
                 entity: uid.into(),
-                animation_history: animation_history,
+                animation_info: animation_info,
             });
         }
 
@@ -543,36 +555,36 @@ impl Server {
             }
         }
 
-        // Sync animation states.
-        for (entity, &uid, &animation_history) in (
+        // Sync animation.
+        for (entity, &uid, &animation_info) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::AnimationHistory>(),
+            &self.state.ecs().read_storage::<comp::AnimationInfo>(),
         )
             .join()
         {
-            // Check if we need to sync.
-            if Some(animation_history.current) == animation_history.last {
-                continue;
+            if animation_info.changed {
+                self.clients.notify_ingame_except(
+                    entity,
+                    ServerMsg::EntityAnimation {
+                        entity: uid.into(),
+                        animation_info: animation_info.clone(),
+                    },
+                );
             }
-
-            self.clients.notify_ingame_except(
-                entity,
-                ServerMsg::EntityAnimation {
-                    entity: uid.into(),
-                    animation_history,
-                },
-            );
         }
 
-        // Update animation last/current state.
-        for (entity, mut animation_history) in (
+        // Sync deaths.
+        let todo_remove = (
             &self.state.ecs().entities(),
-            &mut self.state.ecs().write_storage::<comp::AnimationHistory>(),
+            &self.state.ecs().read_storage::<comp::Dying>(),
         )
             .join()
-        {
-            animation_history.last = Some(animation_history.current);
+            .map(|(entity, _)| entity)
+            .collect::<Vec<EcsEntity>>();
+
+        for entity in todo_remove {
+            self.state.ecs_mut().delete_entity_synced(entity);
         }
 
         // Remove all force flags.
