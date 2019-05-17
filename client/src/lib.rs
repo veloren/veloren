@@ -46,7 +46,7 @@ pub struct Client {
     entity: EcsEntity,
     view_distance: u64,
 
-    pending_chunks: HashMap<Vec3<i32>, Instant>,
+    pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
 
 impl Client {
@@ -221,18 +221,16 @@ impl Client {
             'outer: for dist in 0..10 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
-                        for k in 0..6 {
-                            let key = Vec3::new(i, j, k);
-                            if self.state.terrain().get_key(key).is_none()
-                                && !self.pending_chunks.contains_key(&key)
-                            {
-                                if self.pending_chunks.len() < 4 {
-                                    self.postbox
-                                        .send_message(ClientMsg::TerrainChunkRequest { key });
-                                    self.pending_chunks.insert(key, Instant::now());
-                                } else {
-                                    break 'outer;
-                                }
+                        let key = Vec2::new(i, j);
+                        if self.state.terrain().get_key(key).is_none()
+                            && !self.pending_chunks.contains_key(&key)
+                        {
+                            if self.pending_chunks.len() < 4 {
+                                self.postbox
+                                    .send_message(ClientMsg::TerrainChunkRequest { key });
+                                self.pending_chunks.insert(key, Instant::now());
+                            } else {
+                                break 'outer;
                             }
                         }
                     }

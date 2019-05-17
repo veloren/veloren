@@ -44,9 +44,9 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: mpsc::Sender<(Vec3<i32>, TerrainChunk)>,
-    chunk_rx: mpsc::Receiver<(Vec3<i32>, TerrainChunk)>,
-    pending_chunks: HashSet<Vec3<i32>>,
+    chunk_tx: mpsc::Sender<(Vec2<i32>, TerrainChunk)>,
+    chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
+    pending_chunks: HashSet<Vec2<i32>>,
 }
 
 impl Server {
@@ -555,7 +555,7 @@ impl Server {
             .clear();
     }
 
-    pub fn generate_chunk(&mut self, key: Vec3<i32>) {
+    pub fn generate_chunk(&mut self, key: Vec2<i32>) {
         if self.pending_chunks.insert(key) {
             let chunk_tx = self.chunk_tx.clone();
             self.thread_pool

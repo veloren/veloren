@@ -34,7 +34,7 @@ pub enum ServerMsg {
         animation_history: comp::AnimationHistory,
     },
     TerrainChunkUpdate {
-        key: Vec3<i32>,
+        key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
     Disconnect,
