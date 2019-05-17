@@ -108,7 +108,7 @@ impl State {
         ecs.register::<comp::phys::Pos>();
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
-        ecs.register::<comp::AnimationHistory>();
+        ecs.register::<comp::ActionState>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Control>();
 

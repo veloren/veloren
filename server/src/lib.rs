@@ -123,7 +123,7 @@ impl Server {
             .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::AnimationHistory::new(comp::Animation::Idle))
+            .with(comp::ActionState::new())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -143,8 +143,8 @@ impl Server {
         // Make sure everything is accepted
         state.write_component(entity, comp::phys::ForceUpdate);
 
-        // Set initial animation
-        state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
+        // Set initial action state
+        state.write_component(entity, comp::ActionState::new());
 
         // Tell the client his request was successful
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
@@ -362,12 +362,12 @@ impl Server {
                             | ClientState::Spectator
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-                        ClientMsg::PlayerAnimation(animation_history) => {
+                        ClientMsg::PlayerActionState(action_state) => {
                             match client.client_state {
                                 ClientState::Character => {
-                                    state.write_component(entity, animation_history)
+                                    state.write_component(entity, action_state)
                                 }
-                                // Only characters can send animations
+                                // Only characters can send action states
                                 _ => client.error_state(RequestStateError::Impossible),
                             }
                         }
@@ -465,17 +465,17 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync logical information other players have authority over, not the server
-        for (other_entity, &uid, &animation_history) in (
+        for (other_entity, &uid, &action_state) in (
             &state.ecs().entities(),
             &state.ecs().read_storage::<common::state::Uid>(),
-            &state.ecs().read_storage::<comp::AnimationHistory>(),
+            &state.ecs().read_storage::<comp::ActionState>(),
         )
             .join()
         {
-            // AnimationHistory
-            client.postbox.send_message(ServerMsg::EntityAnimation {
+            // ActionState
+            client.postbox.send_message(ServerMsg::EntityActionState {
                 entity: uid.into(),
-                animation_history: animation_history,
+                action_state,
             });
         }
 
@@ -516,36 +516,25 @@ impl Server {
             }
         }
 
-        // Sync animation states
-        for (entity, &uid, &animation_history) in (
+        // Sync action states
+        for (entity, &uid, &action_state) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::AnimationHistory>(),
+            &self.state.ecs().read_storage::<comp::ActionState>(),
         )
             .join()
         {
-            // Check if we need to sync
-            if Some(animation_history.current) == animation_history.last {
+            if !action_state.changed {
                 continue;
             }
 
             self.clients.notify_ingame_except(
                 entity,
-                ServerMsg::EntityAnimation {
+                ServerMsg::EntityActionState {
                     entity: uid.into(),
-                    animation_history,
+                    action_state,
                 },
             );
-        }
-
-        // Update animation last/current state
-        for (entity, mut animation_history) in (
-            &self.state.ecs().entities(),
-            &mut self.state.ecs().write_storage::<comp::AnimationHistory>(),
-        )
-            .join()
-        {
-            animation_history.last = Some(animation_history.current);
         }
 
         // Remove all force flags

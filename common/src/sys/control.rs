@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, Pos, Vel},
-        Animation, AnimationHistory, Control,
+        Animation, ActionState, Control,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -24,13 +24,13 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Dir>,
-        WriteStorage<'a, AnimationHistory>,
+        WriteStorage<'a, ActionState>,
         ReadStorage<'a, Control>,
     );
 
     fn run(
         &mut self,
-        (terrain, dt, entities, pos, mut vels, mut dirs, mut anims, controls): Self::SystemData,
+        (terrain, dt, entities, pos, mut vels, mut dirs, mut action_states, controls): Self::SystemData,
     ) {
         for (entity, pos, mut vel, mut dir, control) in
             (&entities, &pos, &mut vels, &mut dirs, &controls).join()
@@ -94,22 +94,25 @@ impl<'a> System<'a> for Sys {
                 Animation::Jump
             };
 
-            let last_history = anims.get_mut(entity).cloned();
+            let last_action_state = action_states.get_mut(entity).cloned();
 
-            let time = if let Some((true, time)) =
-                last_history.map(|last| (last.current == animation, last.time))
+            let (changed, time) = if let Some((true, time)) =
+                last_action_state.map(|last| (last.animation == animation, last.time))
             {
-                time
+                (false, time)
             } else {
-                0.0
+                (true, 0.0)
             };
 
-            anims.insert(
+            let attack_started = last_action_state.map_or(false, |last| last.attack_started);
+
+            action_states.insert(
                 entity,
-                AnimationHistory {
-                    last: last_history.map(|last| last.current),
-                    current: animation,
+                ActionState {
+                    animation,
+                    changed,
                     time,
+                    attack_started,
                 },
             );
         }

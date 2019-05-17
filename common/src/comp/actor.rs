@@ -200,32 +200,3 @@ pub enum Actor {
 impl Component for Actor {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct AnimationHistory {
-    pub last: Option<Animation>,
-    pub current: Animation,
-    pub time: f64,
-}
-
-impl AnimationHistory {
-    pub fn new(animation: Animation) -> Self {
-        Self {
-            last: None,
-            current: animation,
-            time: 0.0,
-        }
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum Animation {
-    Idle,
-    Run,
-    Jump,
-    Gliding,
-}
-
-impl Component for AnimationHistory {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
-}

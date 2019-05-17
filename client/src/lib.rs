@@ -39,7 +39,7 @@ pub struct Client {
     thread_pool: ThreadPool,
 
     last_ping: f64,
-    pub postbox: PostBox<ClientMsg, ServerMsg>,
+    postbox: PostBox<ClientMsg, ServerMsg>,
 
     tick: u64,
     state: State,
@@ -92,6 +92,10 @@ impl Client {
 
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
+    }
+
+    pub fn request_character(&mut self, name: String, body: comp::Body) {
+        self.postbox.send_message(ClientMsg::Character { name, body, });
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
@@ -180,16 +184,16 @@ impl Client {
             _ => {}
         }
 
-        // Update the server about the player's currently playing animation and the previous one
-        if let Some(animation_history) = self
+        // Update the server about the player's current action state
+        if let Some(action_state) = self
             .state
-            .read_storage::<comp::AnimationHistory>()
+            .read_storage::<comp::ActionState>()
             .get(self.entity)
             .cloned()
         {
-            if Some(animation_history.current) != animation_history.last {
+            if action_state.changed {
                 self.postbox
-                    .send_message(ClientMsg::PlayerAnimation(animation_history));
+                    .send_message(ClientMsg::PlayerActionState(action_state));
             }
         }
 
@@ -293,12 +297,12 @@ impl Client {
                         }
                         None => {}
                     },
-                    ServerMsg::EntityAnimation {
+                    ServerMsg::EntityActionState {
                         entity,
-                        animation_history,
+                        action_state,
                     } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
-                            self.state.write_component(entity, animation_history);
+                            self.state.write_component(entity, action_state);
                         }
                         None => {}
                     },

@@ -29,9 +29,9 @@ pub enum ServerMsg {
         vel: comp::phys::Vel,
         dir: comp::phys::Dir,
     },
-    EntityAnimation {
+    EntityActionState {
         entity: u64,
-        animation_history: comp::AnimationHistory,
+        action_state: comp::ActionState,
     },
     TerrainChunkUpdate {
         key: Vec3<i32>,

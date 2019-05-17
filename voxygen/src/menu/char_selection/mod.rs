@@ -75,11 +75,10 @@ impl PlayState for CharSelectionState {
                     ui::Event::Play => {
                         self.client
                             .borrow_mut()
-                            .postbox
-                            .send_message(ClientMsg::Character {
-                                name: self.char_selection_ui.character_name.clone(),
-                                body: comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
-                            });
+                            .request_character(
+                                self.char_selection_ui.character_name.clone(),
+                                comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
+                            );
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
                             self.client.clone(),
