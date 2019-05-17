@@ -3,6 +3,7 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use glutin::{ElementState, MouseButton};
 use std::collections::HashMap;
 use vek::*;
 
@@ -124,7 +125,11 @@ impl Window {
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-
+                    glutin::WindowEvent::MouseInput { button, state, .. }
+                        if cursor_grabbed && state == ElementState::Pressed =>
+                    {
+                        events.push(Event::Click(button, state))
+                    }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
                         Some(keycode) => match key_map.get(&keycode) {
@@ -292,6 +297,7 @@ pub enum Event {
     /// A key has been typed that corresponds to a specific character.
     Char(char),
     /// The cursor has been panned across the screen while grabbed.
+    Click(MouseButton, ElementState),
     CursorPan(Vec2<f32>),
     /// The camera has been requested to zoom.
     Zoom(f32),

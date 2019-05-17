@@ -9,6 +9,7 @@ use crate::{
 };
 use client::{self, Client, Input, InputEvent};
 use common::clock::Clock;
+use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
 
@@ -138,7 +139,11 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    // Movement Key Pressed
+                    // Attack key pressed
+                    Event::Click(MouseButton::Left, state) => {
+                        self.input_events.push(InputEvent::AttackStarted)
+                    }
+                    // Movement key pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
                     Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
@@ -148,7 +153,7 @@ impl PlayState for SessionState {
                         self.key_state.jump = true;
                     }
                     Event::KeyDown(Key::Glide) => self.key_state.glide = true,
-                    // Movement Key Released
+                    // Movement key released
                     Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
                     Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
                     Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,

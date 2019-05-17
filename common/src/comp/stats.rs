@@ -1,6 +1,6 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Health {
     pub current: u32,
     pub maximum: u32,
@@ -14,7 +14,7 @@ impl Health {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub hp: Health,
     pub xp: u32,
@@ -35,4 +35,11 @@ impl Default for Stats {
 
 impl Component for Stats {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Dying;
+
+impl Component for Dying {
+    type Storage = NullStorage<Self>;
 }
