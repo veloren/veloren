@@ -253,7 +253,7 @@ impl<S: PostSend, R: PostRecv> PostBox<S, R> {
         let _ = self.send_tx.send(data);
     }
 
-    // TODO: This method is super messy
+    // TODO: This method is super messy.
     pub fn next_message(&mut self) -> Option<R> {
         if self.err.is_some() {
             return None;
@@ -528,14 +528,14 @@ fn connect() {
 
     let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
 
-    // We should start off with 0 incoming connections
+    // We should start off with 0 incoming connections.
     thread::sleep(Duration::from_millis(250));
     assert_eq!(postoffice.new_connections().len(), 0);
     assert_eq!(postoffice.error(), None);
 
     let postbox = PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap();
 
-    // Now a postbox has been created, we should have 1 new
+    // Now a postbox has been created, we should have 1 new.
     thread::sleep(Duration::from_millis(250));
     let incoming = postoffice.new_connections();
     assert_eq!(incoming.len(), 1);
@@ -549,7 +549,7 @@ fn connect_fail() {
 
     let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(listen_addr).unwrap();
 
-    // We should start off with 0 incoming connections
+    // We should start off with 0 incoming connections.
     thread::sleep(Duration::from_millis(250));
     assert_eq!(postoffice.new_connections().len(), 0);
     assert_eq!(postoffice.error(), None);
@@ -564,7 +564,7 @@ fn connection_count() {
     let mut postoffice = PostOffice::<TestMsg<u32>, TestMsg<f32>>::bind(srv_addr).unwrap();
     let mut postboxes = Vec::new();
 
-    // We should start off with 0 incoming connections
+    // We should start off with 0 incoming connections.
     thread::sleep(Duration::from_millis(250));
     assert_eq!(postoffice.new_connections().len(), 0);
     assert_eq!(postoffice.error(), None);
@@ -573,7 +573,7 @@ fn connection_count() {
         postboxes.push(PostBox::<TestMsg<f32>, TestMsg<u32>>::to_server(srv_addr).unwrap());
     }
 
-    // 5 postboxes created, we should have 5
+    // 5 postboxes created, we should have 5.
     thread::sleep(Duration::from_millis(3500));
     let incoming = postoffice.new_connections();
     assert_eq!(incoming.len(), 5);
@@ -597,7 +597,7 @@ fn disconnect() {
         incoming.next().unwrap()
     };
 
-    // The client postbox has since been disconnected
+    // The client postbox has since been disconnected.
     thread::sleep(Duration::from_millis(2050));
     let incoming_msgs = server_postbox.new_messages();
     assert_eq!(incoming_msgs.len(), 0);

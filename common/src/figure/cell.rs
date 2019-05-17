@@ -4,7 +4,7 @@ use vek::*;
 // Crate
 use crate::vol::Vox;
 
-/// A type representing a single voxel in a figure
+/// A type representing a single voxel in a figure.
 #[derive(Copy, Clone, Debug)]
 pub enum Cell {
     Filled([u8; 3]),

@@ -37,7 +37,7 @@ widget_ids! {
         singleplayer_text,
         usrnm_bg,
         srvr_bg,
-        // Serverlist
+        // Server list
         servers_button,
         servers_frame,
         servers_text,
@@ -237,7 +237,7 @@ impl MainMenuUi {
 
             let netsettings = &global_state.settings.networking;
 
-            // TODO: draw scroll bar or remove it
+            // TODO: Draw scroll bar or remove it.
             let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
                 .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
                 .w_h(400.0, 300.0)

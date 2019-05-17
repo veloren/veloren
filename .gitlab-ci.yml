@@ -4,8 +4,8 @@ stages:
   - post-build
   - executable
 
-# our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
-# speeds up building because we skip the git clean and dont need any gitlab caches
+# Our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
+# speeds up building because we skip the git clean and don't need any gitlab caches.
 variables:
   GIT_STRATEGY: none
 before_script:

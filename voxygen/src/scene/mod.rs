@@ -20,7 +20,7 @@ use common::{comp, figure::Segment};
 use dot_vox;
 use vek::*;
 
-// TODO: Don't hard-code this
+// TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
 struct Skybox {
@@ -78,9 +78,9 @@ impl Scene {
         &mut self.camera
     }
 
-    /// Handle an incoming user input event (i.e: cursor moved, key pressed, window closed, etc.).
+    /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
     ///
-    /// If the event is handled, return true
+    /// If the event is handled, return true.
     pub fn handle_input_event(&mut self, event: Event) -> bool {
         match event {
             // When the window is resized, change the camera's aspect ratio
@@ -105,7 +105,7 @@ impl Scene {
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
-        // Get player position
+        // Get player position.
         let player_pos = client
             .state()
             .ecs()
@@ -114,16 +114,16 @@ impl Scene {
             .map(|pos| pos.0)
             .unwrap_or(Vec3::zero());
 
-        // Alter camera position to match player
+        // Alter camera position to match player.
         self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 2.1);
 
-        // Tick camera for interpolation
+        // Tick camera for interpolation.
         self.camera.update(client.state().get_time());
 
-        // Compute camera matrices
+        // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
-        // Update global constants
+        // Update global constants.
         renderer
             .update_consts(
                 &mut self.globals,
@@ -140,22 +140,22 @@ impl Scene {
             )
             .expect("Failed to update global constants");
 
-        // Maintain the terrain
+        // Maintain the terrain.
         self.terrain.maintain(renderer, client);
 
-        // Maintain the figures
+        // Maintain the figures.
         self.figure_mgr.maintain(renderer, client);
 
-        // Remove unused figures
+        // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
     }
 
-    /// Render the scene using the provided `Renderer`
+    /// Render the scene using the provided `Renderer`.
     pub fn render(&mut self, renderer: &mut Renderer, client: &mut Client) {
-        // Render the skybox first (it appears over everything else so must be rendered first)
+        // Render the skybox first (it appears over everything else so must be rendered first).
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
-        // Render terrain and figures
+        // Render terrain and figures.
         self.terrain.render(renderer, &self.globals);
         self.figure_mgr.render(renderer, client, &self.globals);
 

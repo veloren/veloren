@@ -7,16 +7,16 @@ use client;
 // Crate
 use crate::render::RenderError;
 
-/// Represents any error that may be triggered by Voxygen
+/// Represents any error that may be triggered by Voxygen.
 #[derive(Debug)]
 pub enum Error {
-    /// An error relating to the internal client
+    /// An error relating to the internal client.
     ClientError(client::Error),
-    /// A miscellaneous error relating to a backend dependency
+    /// A miscellaneous error relating to a backend dependency.
     BackendError(Box<any::Any>),
-    /// An error relating the rendering subsystem
+    /// An error relating the rendering subsystem.
     RenderError(RenderError),
-    // A miscellaneous error with an unknown or unspecified source
+    /// A miscellaneous error with an unknown or unspecified source.
     Other(failure::Error),
 }
 
