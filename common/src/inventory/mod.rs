@@ -2,7 +2,9 @@
 use specs::{Component, VecStorage};
 
 //Re-Exports
-use super::item::Item;
+pub mod item;
+
+use item::Item;
 
 pub struct Inventory {
     pub slots: Vec<Option<Item>>
@@ -16,17 +18,20 @@ impl Inventory {
         }
     }
 
-    fn get(&self, cell: u8) -> Option<Item> {
+    // Get info about an item slot
+    fn get(&self, cell: usize) -> Option<Item> {
         self.slots.get_mut(cell)
     }
 
-    fn insert(&mut self, cell: u8, item: Item) -> Option<Item> {
+    // Insert an item to a slot if its empty
+    fn insert(&mut self, cell: usize, item: Item) -> Option<Item> {
         self.slots
           .get_mut(cell)
           .and_then(|cell| cell.replace(item))
     }
 
-    fn remove(&mut self, cell: u8, item: Item) -> Option<Item> {
+    // Remove an item from the slot
+    fn remove(&mut self, cell: usize, item: Item) -> Option<Item> {
         self.slots
           .get_mut(cell)
           .and_then(|cell| cell.take(item))
