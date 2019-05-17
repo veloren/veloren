@@ -1,9 +1,3 @@
-use std::{
-    collections::HashMap,
-    sync::Arc,
-    marker::PhantomData,
-};
-use vek::*;
 use crate::{
     terrain::TerrainChunkMeta,
     vol::{BaseVol, ReadVol, SampleVol, SizedVol, VolSize, Vox, WriteVol},
@@ -12,6 +6,8 @@ use crate::{
         dyna::{Dyna, DynaErr},
     },
 };
+use std::{collections::HashMap, marker::PhantomData, sync::Arc};
+use vek::*;
 
 #[derive(Debug)]
 pub enum VolMap2dErr<V: BaseVol> {
@@ -134,11 +130,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
         S::SIZE.into()
     }
 
-    pub fn insert(
-        &mut self,
-        key: Vec2<i32>,
-        chunk: Arc<V>,
-    ) -> Option<Arc<V>> {
+    pub fn insert(&mut self, key: Vec2<i32>, chunk: Arc<V>) -> Option<Arc<V>> {
         self.chunks.insert(key, chunk)
     }
 

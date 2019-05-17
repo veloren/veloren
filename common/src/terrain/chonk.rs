@@ -1,19 +1,10 @@
-use vek::*;
-use serde_derive::{Deserialize, Serialize};
+use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{
-        BaseVol,
-        ReadVol,
-        WriteVol,
-        VolSize,
-    },
+    vol::{BaseVol, ReadVol, VolSize, WriteVol},
     volumes::chunk::{Chunk, ChunkErr},
 };
-use super::{
-    block::Block,
-    TerrainChunkSize,
-    TerrainChunkMeta,
-};
+use serde_derive::{Deserialize, Serialize};
+use vek::*;
 
 #[derive(Debug)]
 pub enum ChonkError {
@@ -51,14 +42,15 @@ impl BaseVol for Chonk {
     type Err = ChonkError;
 }
 
-
 impl ReadVol for Chonk {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Block, ChonkError> {
         if pos.z < self.z_offset {
             // Below the terrain
             Ok(&self.below)
-        } else if pos.z >= self.z_offset + TerrainChunkSize::SIZE.z as i32 * self.sub_chunks.len() as i32 {
+        } else if pos.z
+            >= self.z_offset + TerrainChunkSize::SIZE.z as i32 * self.sub_chunks.len() as i32
+        {
             // Above the terrain
             Ok(&self.above)
         } else {
@@ -66,17 +58,16 @@ impl ReadVol for Chonk {
 
             let sub_chunk_idx = self.sub_chunk_idx(pos.z);
 
-            match &self.sub_chunks[sub_chunk_idx] { // Can't fail
+            match &self.sub_chunks[sub_chunk_idx] {
+                // Can't fail
                 SubChunk::Homogeneous(block) => Ok(block),
                 SubChunk::Heterogeneous(chunk) => {
-                    let rpos = pos - Vec3::unit_z() * (
-                        self.z_offset +
-                        sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32
-                    );
-                    chunk
-                        .get(rpos)
-                        .map_err(|err| ChonkError::ChunkError(err))
-                },
+                    let rpos = pos
+                        - Vec3::unit_z()
+                            * (self.z_offset
+                                + sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32);
+                    chunk.get(rpos).map_err(|err| ChonkError::ChunkError(err))
+                }
             }
         }
     }
@@ -94,30 +85,26 @@ impl WriteVol for Chonk {
                 self.sub_chunks.push(SubChunk::Homogeneous(self.above));
             }
 
-            let rpos = pos - Vec3::unit_z() * (
-                self.z_offset +
-                sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32
-            );
+            let rpos = pos
+                - Vec3::unit_z()
+                    * (self.z_offset + sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32);
 
-            match &mut self.sub_chunks[sub_chunk_idx] { // Can't fail
+            match &mut self.sub_chunks[sub_chunk_idx] {
+                // Can't fail
                 SubChunk::Homogeneous(cblock) if *cblock == block => Ok(()),
                 SubChunk::Homogeneous(cblock) => {
                     let mut new_chunk = Chunk::filled(*cblock, ());
-                    match new_chunk
-                        .set(rpos, block)
-                        .map_err(|err| {
-                            println!("Error!! {:?}", rpos);
-                            ChonkError::ChunkError(err)
-                        })
-                    {
+                    match new_chunk.set(rpos, block).map_err(|err| {
+                        println!("Error!! {:?}", rpos);
+                        ChonkError::ChunkError(err)
+                    }) {
                         Ok(()) => {
                             self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
                             Ok(())
-                        },
+                        }
                         Err(err) => Err(err),
                     }
-
-                },
+                }
                 SubChunk::Heterogeneous(chunk) => chunk
                     .set(rpos, block)
                     .map_err(|err| ChonkError::ChunkError(err)),

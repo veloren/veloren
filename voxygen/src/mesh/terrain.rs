@@ -44,7 +44,7 @@ impl<M> Meshable for Dyna<Block, M> {
     }
 }
 
-impl<V: BaseVol<Vox=Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
 
@@ -108,7 +108,7 @@ impl<V: BaseVol<Vox=Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2d<
     }
 }
 
-impl<V: BaseVol<Vox=Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
 
