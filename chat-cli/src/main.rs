@@ -6,15 +6,15 @@ use std::time::Duration;
 const FPS: u64 = 60;
 
 fn main() {
-    // Init logging
+    // Initialize logging.
     pretty_env_logger::init();
 
     info!("Starting chat-cli...");
 
-    // Set up an fps clock
+    // Set up an fps clock.
     let mut clock = Clock::new();
 
-    // Create client
+    // Create a client.
     let mut client =
         Client::new(([127, 0, 0, 1], 59003), 300).expect("Failed to create client instance");
 
@@ -38,10 +38,10 @@ fn main() {
             }
         }
 
-        // Clean up the server after a tick
+        // Clean up the server after a tick.
         client.cleanup();
 
-        // Wait for the next tick
+        // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / FPS));
     }
 }

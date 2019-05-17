@@ -109,7 +109,7 @@ pub fn draw_vox(
         .map(|p| p.data)
         .collect::<Vec<[u8; 4]>>()
     } else {
-        // TODO: remove clone
+        // TODO: Remove clone.
         color.as_ref().to_vec()
     }
 }
@@ -121,7 +121,7 @@ fn ao_level(side1: bool, corner: bool, side2: bool) -> u8 {
         3 - [side1, corner, side2].iter().filter(|e| **e).count() as u8
     }
 }
-// TODO: generalize meshing code....
+// TODO: Generalize meshing code.
 fn create_quad(
     origin: Vec3<f32>,
     unit_x: Vec3<f32>,
@@ -140,7 +140,7 @@ fn create_quad(
     let c = Vert::new(origin + unit_x + unit_y, col, norm, c_ao);
     let d = Vert::new(origin + unit_y, col, norm, d_ao);
 
-    // Flip to fix anisotropy
+    // Flip to fix anisotropy.
     let (a, b, c, d) = if a_ao + c_ao > b_ao + d_ao {
         (d, a, b, c)
     } else {
@@ -163,7 +163,7 @@ fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
             let is_empty = |pos| segment.get(pos).map(|v| v.is_empty()).unwrap_or(true);
 
             let occluders = |unit_x, unit_y, dir| {
-                // would be nice to generate unit_x and unit_y from a given direction
+                // Would be nice to generate unit_x and unit_y from a given direction.
                 [
                     !is_empty(pos + dir - unit_x),
                     !is_empty(pos + dir - unit_x - unit_y),

@@ -104,7 +104,7 @@ impl<'a> Widget for CharacterWindow<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        // TODO: Read from parameter / character struct
+        // TODO: Read from parameter/character struct.
         let xp_percentage = 0.4;
 
         // Frame
@@ -133,7 +133,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         }
 
         // Title
-        Text::new("Character Name") // Add in actual Character Name
+        // TODO: Use an actual character name.
+        Text::new("Character Name")
             .mid_top_with_margin_on(state.charwindow_frame, 6.0)
             .font_id(self.fonts.metamorph)
             .font_size(14)
@@ -153,7 +154,7 @@ impl<'a> Widget for CharacterWindow<'a> {
 
         // Contents
 
-        //Head
+        // Head
         Image::new(self.imgs.head_bg)
             .w_h(28.0 * 1.8, 28.0 * 1.8)
             .mid_top_with_margin_on(state.content_align, 5.0)
@@ -319,7 +320,8 @@ impl<'a> Widget for CharacterWindow<'a> {
             .top_left_with_margins_on(state.charwindow_tab_bg, 7.0 * 4.0, 4.0 * 4.0)
             .set(state.charwindow_rectangle, ui);
 
-        // Tab Button -> Add that back in when we have multiple tabs
+        // TODO: Add this back in when we have multiple tabs.
+        // Tab Button ->
         // Button::image(self.imgs.charwindow_tab)
         //.w_h(65.0, 23.0)
         //.top_left_with_margins_on(state.charwindow_tab_bg, -18.0, 1.8)
@@ -328,7 +330,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         //.label_font_size(14)
         //.set(state.charwindow_tab1, ui);
 
-        Text::new("1") //Add in actual Character Level
+        // TODO: Use an actual character level.
+        Text::new("1")
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)
             .font_id(self.fonts.opensans)
             .font_size(30)
@@ -352,7 +355,8 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_tab1_expbar, ui);
 
         // Exp-Text
-        Text::new("120/170") // Shows the Exp / Exp to reach the next level
+        // TODO: Shows current Exp over the next threshold Exp.
+        Text::new("120/170")
             .mid_top_with_margin_on(state.charwindow_tab1_expbar, 10.0)
             .font_id(self.fonts.opensans)
             .font_size(15)
@@ -382,6 +386,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         .color(TEXT_COLOR)
         .set(state.charwindow_tab1_statnames, ui);
 
+        // TODO: Shows actual stat points.
         Text::new(
             "1234\n\
              \n\

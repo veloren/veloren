@@ -95,7 +95,7 @@ impl Client {
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
-    /// computationally expensive operations that run outside of the main thread (i.e: threads that
+    /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
     pub fn thread_pool(&self) -> &threadpool::ThreadPool {
@@ -114,7 +114,7 @@ impl Client {
         &mut self.state
     }
 
-    /// Get the player's entity
+    /// Get the player's entity.
     #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
         self.entity
@@ -126,13 +126,13 @@ impl Client {
         self.tick
     }
 
-    /// Send a chat message to the server
+    /// Send a chat message to the server.
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
         self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
-    /// Execute a single client tick, handle input and update the game state by the given duration
+    /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
     pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
@@ -147,13 +147,13 @@ impl Client {
         // 4) Go through the terrain update queue and apply all changes to the terrain
         // 5) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend
+        // Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
-        // Handle new messages from the server
+        // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Pass character control from frontend input to the player's entity
+        // Pass character control from frontend input to the player's entity.
         // TODO: Only do this if the entity already has a Control component!
         self.state.write_component(
             self.entity,
@@ -164,10 +164,10 @@ impl Client {
             },
         );
 
-        // Tick the client's LocalState (step 3)
+        // Tick the client's LocalState (step 3).
         self.state.tick(dt);
 
-        // Update the server about the player's physics attributes
+        // Update the server about the player's physics attributes.
         match (
             self.state.read_storage().get(self.entity).cloned(),
             self.state.read_storage().get(self.entity).cloned(),
@@ -180,7 +180,7 @@ impl Client {
             _ => {}
         }
 
-        // Update the server about the player's currently playing animation and the previous one
+        // Update the server about the player's currently playing animation and the previous one.
         if let Some(animation_history) = self
             .state
             .read_storage::<comp::AnimationHistory>()
@@ -201,7 +201,7 @@ impl Client {
         if let Some(pos) = pos {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
-            // Remove chunks that are too far from the player
+            // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
@@ -216,8 +216,8 @@ impl Client {
                 self.state.remove_chunk(key);
             }
 
-            // Request chunks from the server
-            // TODO: This is really not very efficient
+            // Request chunks from the server.
+            // TODO: This is really inefficient.
             'outer: for dist in 0..10 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
@@ -237,25 +237,25 @@ impl Client {
                 }
             }
 
-            // If chunks are taking too long, assume they're no longer pending
+            // If chunks are taking too long, assume they're no longer pending.
             let now = Instant::now();
             self.pending_chunks
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
-        // Finish the tick, pass control back to the frontend (step 6)
+        // Finish the tick, pass control back to the frontend (step 6).
         self.tick += 1;
         Ok(frontend_events)
     }
 
-    /// Clean up the client after a tick
+    /// Clean up the client after a tick.
     #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
     }
 
-    /// Handle new server messages
+    /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -324,7 +324,7 @@ impl Client {
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            // Try pinging the server if the timeout is nearing
+            // Try pinging the server if the timeout is nearing.
             self.postbox.send_message(ClientMsg::Ping);
         }
 

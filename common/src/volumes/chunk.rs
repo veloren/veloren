@@ -25,8 +25,8 @@ pub struct Chunk<V: Vox, S: VolSize, M> {
 }
 
 impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
-    /// Used to transform a voxel position in the volume into its corresponding index in the voxel
-    // array.
+    /// Used to transform a voxel position in the volume into its corresponding index
+    /// in the voxel array.
     #[inline(always)]
     fn idx_for(pos: Vec3<i32>) -> Option<usize> {
         if pos.map(|e| e >= 0).reduce_and()

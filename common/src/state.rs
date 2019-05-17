@@ -20,25 +20,25 @@ use std::{collections::HashSet, sync::Arc, time::Duration};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
-// TODO: Don't hard-code this
+// TODO: Don't hard-code this.
 const DAY_CYCLE_FACTOR: f64 = 24.0 * 60.0;
 
-/// A resource to store the time of day
+/// A resource that stores the time of day.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct TimeOfDay(f64);
 
-/// A resource to store the tick (i.e: physics) time
+/// A resource that stores the tick (i.e: physics) time.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Time(f64);
 
-/// A resource used to store the time since the last tick
+/// A resource that stores the time since the previous tick.
 #[derive(Default)]
 pub struct DeltaTime(pub f32);
 
 /// At what point should we stop speeding up physics to compensate for lag? If we speed physics up
-/// too fast, we'd skip important physics events like collisions. This constant determines what
-/// the upper limit is. If delta time exceeds this value, the game's physics will begin to produce
-/// time lag. Ideally, we'd avoid such a situation.
+/// too fast, we'd skip important physics events like collisions. This constant determines the
+/// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
+/// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 0.15;
 
 pub struct Changes {
@@ -64,7 +64,7 @@ impl Changes {
 }
 
 /// A type used to represent game state stored on both the client and the server. This includes
-/// things like entity components, terrain data, and global state like weather, time of day, etc.
+/// things like entity components, terrain data, and global states like weather, time of day, etc.
 pub struct State {
     ecs: sphynx::World<EcsCompPacket, EcsResPacket>,
     // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
@@ -82,7 +82,7 @@ impl State {
         }
     }
 
-    /// Create a new `State` from an ECS state package
+    /// Create a new `State` from an ECS state package.
     pub fn from_state_package(
         state_package: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,
     ) -> Self {
@@ -97,14 +97,14 @@ impl State {
         }
     }
 
-    // Create a new Sphynx ECS world
+    // Create a new Sphynx ECS world.
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
-        // Register synced components
+        // Register synced components.
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
 
-        // Register unsynched (or synced by other means) components
+        // Register unsynced (or synced by other means) components.
         ecs.register::<comp::phys::Pos>();
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
@@ -112,16 +112,16 @@ impl State {
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Control>();
 
-        // Register synced resources used by the ECS
+        // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));
 
-        // Register unsynced resources used by the ECS
+        // Register unsynced resources used by the ECS.
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
     }
 
-    /// Register a component with the state's ECS
+    /// Register a component with the state's ECS.
     pub fn with_component<T: Component>(mut self) -> Self
     where
         <T as Component>::Storage: Default,
@@ -130,27 +130,27 @@ impl State {
         self
     }
 
-    /// Write a component attributed to a particular entity
+    /// Write a component attributed to a particular entity.
     pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
         let _ = self.ecs.write_storage().insert(entity, comp);
     }
 
-    /// Read a component attributed to a particular entity
+    /// Read a component attributed to a particular entity.
     pub fn read_component_cloned<C: Component + Clone>(&self, entity: EcsEntity) -> Option<C> {
         self.ecs.read_storage().get(entity).cloned()
     }
 
-    /// Get a read-only reference to the storage of a particular component type
+    /// Get a read-only reference to the storage of a particular component type.
     pub fn read_storage<C: Component>(&self) -> EcsStorage<C, Fetch<EcsMaskedStorage<C>>> {
         self.ecs.read_storage::<C>()
     }
 
-    /// Get a reference to the internal ECS world
+    /// Get a reference to the internal ECS world.
     pub fn ecs(&self) -> &sphynx::World<EcsCompPacket, EcsResPacket> {
         &self.ecs
     }
 
-    /// Get a mutable reference to the internal ECS world
+    /// Get a mutable reference to the internal ECS world.
     pub fn ecs_mut(&mut self) -> &mut sphynx::World<EcsCompPacket, EcsResPacket> {
         &mut self.ecs
     }
@@ -194,7 +194,7 @@ impl State {
         }
     }
 
-    /// Remove the chunk with the given key from this state's terrain, if it exists
+    /// Remove the chunk with the given key from this state's terrain, if it exists.
     pub fn remove_chunk(&mut self, key: Vec2<i32>) {
         if self
             .ecs
@@ -208,27 +208,27 @@ impl State {
 
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
-        // Change the time accordingly
+        // Change the time accordingly.
         self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
         self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
 
-        // Update delta time
-        // Above a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events
+        // Update delta time.
+        // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events.
         self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
 
-        // Run systems to update the world
-        // Create and run dispatcher for ecs systems
+        // Run systems to update the world.
+        // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
         sys::add_local_systems(&mut dispatch_builder);
-        // This dispatches all the systems in parallel
+        // This dispatches all the systems in parallel.
         dispatch_builder.build().dispatch(&self.ecs.res);
 
         self.ecs.maintain();
     }
 
-    /// Clean up the state after a tick
+    /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
-        // Clean up data structures from the last tick
+        // Clean up data structures from the last tick.
         self.changes.cleanup();
     }
 }
