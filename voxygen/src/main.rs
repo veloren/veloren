@@ -73,14 +73,7 @@ pub trait PlayState {
 
 fn main() {
     // Set up the global state
-    let settings = match Settings::load() {
-        Ok(settings) => settings,
-        Err(err) => {
-            let settings = Settings::default();
-            settings.save_to_file();
-            settings
-        }
-    };
+    let settings = Settings::load();
     let window = Window::new(&settings).expect("Failed to create window");
 
     // Init logging
@@ -114,34 +107,45 @@ fn main() {
                 }
             }
         };
-        let msg = format!(" \
-A critical error has occured and Voxygen has been forced to terminate in an unusual manner. Details about the error can be found below.
-
-> What should I do?
-
-We need your help to fix this! You can help by contacting us and reporting this problem. To do this, open an issue on the Veloren issue tracker:
-
-https://www.gitlab.com/veloren/veloren/issues/new
-
-If you're on the Veloren community Discord server, we'd be grateful if you could also post a message in the #support channel.
-
-> What should I include?
-
-The error information below will be useful in finding and fixing the problem. Please include as much information about your setup and the events that led up to the panic as possible.
-
-Voxygen has logged information about the problem (including this message) to the file {:#?}. Please include the contents of this file in your bug report.
-
-> Error information
-
-The information below is intended for developers and testers.
-
-Panic Payload: {:?}
-PanicInfo: {}", settings_clone.log.file, reason, panic_info);
+        let msg = format!(
+            "A critical error has occured and Voxygen has been forced to \
+            terminate in an unusual manner. Details about the error can be \
+            found below.\n\
+            \n\
+            > What should I do?\n\
+            \n\
+            We need your help to fix this! You can help by contacting us and \
+            reporting this problem. To do this, open an issue on the Veloren \
+            issue tracker:\n\
+            \n\
+            https://www.gitlab.com/veloren/veloren/issues/new\n\
+            \n\
+            If you're on the Veloren community Discord server, we'd be \
+            grateful if you could also post a message in the #support channel.
+            \n\
+            > What should I include?\n\
+            \n\
+            The error information below will be useful in finding and fixing \
+            the problem. Please include as much information about your setup \
+            and the events that led up to the panic as possible.
+            \n\
+            Voxygen has logged information about the problem (including this \
+            message) to the file {:#?}. Please include the contents of this \
+            file in your bug report.
+            \n\
+            > Error information\n\
+            \n\
+            The information below is intended for developers and testers.\n\
+            \n\
+            Panic Payload: {:?}\n\
+            PanicInfo: {}",
+            settings_clone.log.file, reason, panic_info,
+        );
 
         log::error!(
             "VOXYGEN HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
             msg,
-            backtrace::Backtrace::new()
+            backtrace::Backtrace::new(),
         );
 
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
