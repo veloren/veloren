@@ -48,7 +48,8 @@ impl Singleplayer {
 
 impl Drop for Singleplayer {
     fn drop(&mut self) {
-        self.sender.send(Msg::Stop);
+        // Ignore the result
+        let _ = self.sender.send(Msg::Stop);
     }
 }
 
