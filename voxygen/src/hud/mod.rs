@@ -94,13 +94,13 @@ pub enum Event {
     Quit,
 }
 
-// TODO: are these the possible layouts we want?
-// TODO: maybe replace this with bitflags
-// map not here because it currently is displayed over the top of other open windows
+// TODO: Are these the possible layouts we want?
+// TODO: Maybe replace this with bitflags.
+// `map` is not here because it currently is displayed over the top of other open windows.
 #[derive(PartialEq)]
 pub enum Windows {
-    Settings,                              // display settings window
-    CharacterAnd(Option<SmallWindowType>), // show character window + optionally another
+    Settings,                              // Display settings window.
+    CharacterAnd(Option<SmallWindowType>), // Show character window + optionally another.
     Small(SmallWindowType),
     None,
 }
@@ -146,7 +146,7 @@ impl Show {
         };
     }
 
-    fn toggle_charwindow(&mut self) {
+    fn toggle_char_window(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::CharacterAnd(small) => match small {
                 Some(small) => Windows::Small(small),
@@ -212,14 +212,14 @@ pub struct Hud {
 impl Hud {
     pub fn new(window: &mut Window, settings: Settings) -> Self {
         let mut ui = Ui::new(window).unwrap();
-        // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
+        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
-        // Generate ids
+        // Generate ids.
         let ids = Ids::new(ui.id_generator());
-        // Load images
-        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
-        // Load fonts
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
+        // Load images.
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
+        // Load fonts.
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
         Self {
             ui,
@@ -251,12 +251,12 @@ impl Hud {
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
 
-        // Don't show anything if the UI is toggled off
+        // Don't show anything if the UI is toggled off.
         if !self.show.ui {
             return events;
         }
 
-        // Display debug window
+        // Display debug window.
         if self.show.debug {
             // Alpha Version
             Text::new(version)
@@ -273,7 +273,7 @@ impl Hud {
                 .set(self.ids.fps_counter, ui_widgets);
         }
 
-        // Add Bag-Space Button
+        // Add Bag-Space Button.
         if self.show.inventory_test_button {
             if Button::image(self.imgs.grid_button)
                 .w_h(100.0, 100.0)
@@ -314,7 +314,7 @@ impl Hud {
             };
         }
 
-        // Bag button and icons near it
+        // Bag button and nearby icons
         match Buttons::new(
             &self.show.open_windows,
             self.show.map,
@@ -326,7 +326,7 @@ impl Hud {
         {
             Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
             Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
-            Some(buttons::Event::ToggleCharacter) => self.show.toggle_charwindow(),
+            Some(buttons::Event::ToggleCharacter) => self.show.toggle_char_window(),
             Some(buttons::Event::ToggleSmall(small)) => self.show.toggle_small(small),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
             None => {}
@@ -365,10 +365,10 @@ impl Hud {
         }
         self.new_messages = VecDeque::new();
 
-        //Windows
+        // Windows
 
-        //Char Window will always appear at the left side. Other Windows either appear at the left side,
-        //or when the Char Window is opened they will appear right from it.
+        // Char Window will always appear at the left side. Other Windows default to the
+        // left side, but when the Char Window is opened they will appear to the right of it.
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
@@ -447,7 +447,7 @@ impl Hud {
         self.new_messages.push_back(msg);
     }
 
-    // Checks if a TextEdit widget has the keyboard captured
+    // Checks if a TextEdit widget has the keyboard captured.
     fn typing(&self) -> bool {
         if let Some(id) = self.ui.widget_capturing_keyboard() {
             self.ui
@@ -515,7 +515,7 @@ impl Hud {
                     true
                 }
                 Key::CharacterWindow => {
-                    self.show.toggle_charwindow();
+                    self.show.toggle_char_window();
                     true
                 }
                 Key::Social => {
@@ -547,7 +547,7 @@ impl Hud {
             }
             _ => false,
         };
-        // Handle cursor grab
+        // Handle cursor grab.
         if !self.force_ungrab {
             if cursor_grabbed != self.show.want_grab {
                 global_state.window.grab_cursor(self.show.want_grab);
@@ -571,8 +571,8 @@ impl Hud {
     }
 }
 
-//Get the text to show in the help window, along with the
-//length of the longest line in order to resize the window
+// Get the text to show in the help window and use the
+// length of the longest line to resize the window.
 fn get_help_text(cs: &ControlSettings) -> String {
     format!(
         "{free_cursor:?} = Free cursor\n\

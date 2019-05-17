@@ -1,7 +1,7 @@
 use crate::ray::{Ray, RayUntil};
 use vek::*;
 
-/// A voxel
+/// A voxel.
 pub trait Vox {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
@@ -50,7 +50,7 @@ pub trait SizedVol: BaseVol {
     #[inline(always)]
     fn get_size(&self) -> Vec3<u32>;
 
-    /// Iterate through all potential voxel positions in this volume
+    /// Iterate through all potential voxel positions in this volume.
     fn iter_positions(&self) -> VoxPosIter {
         VoxPosIter {
             pos: Vec3::zero(),
@@ -73,7 +73,7 @@ pub trait ReadVol: BaseVol {
     }
 }
 
-/// A volume that provides the ability to sample (i.e: clone a section of) its voxel data.
+/// A volume that provides the ability to sample (i.e., clone a section of) its voxel data.
 pub trait SampleVol<I>: BaseVol {
     type Sample: BaseVol + ReadVol;
     /// Take a sample of the volume by cloning voxels within the provided range.

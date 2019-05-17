@@ -276,16 +276,16 @@ pub struct CharSelectionUi {
 impl CharSelectionUi {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
-        // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
+        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images
-        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load fonts
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
-        // TODO: Randomize initial values
+        // TODO: Randomize initial values.
         Self {
             ui,
             ids,
@@ -299,20 +299,20 @@ impl CharSelectionUi {
         }
     }
 
-    // TODO: split this up into multiple modules or functions
+    // TODO: Split this into multiple modules or functions.
     fn update_layout(&mut self) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
 
-        // Character Selection /////////////////
+        // Character Selection
         // Supposed functionality:
-        // 3d rendered characters have to be clicked for selection
-        // Selected characters will appear in the selection window
-        // the selection window is only active when there are >0 characters on the server
-        // after logging into the server the character that was played last will be selected automatically
-        // if >1 characters are on the server but none of them was logged in last the one that was created last will be selected
-        // if the no. of characters = character_limit the "Create Character" button won't be clickable anymore
+        // 3d rendered characters have to be clicked for selection.
+        // Selected characters will appear in the selection window.
+        // The selection window is only active when there are >0 characters on the server.
+        // After logging into the server the character that was played last will be selected automatically.
+        // If >1 characters are on the server but none of them was logged in last the one that was created last will be selected.
+        // If the no. of characters = character_limit the "Create Character" button won't be clickable anymore.
 
         // Background Image
         if !self.character_creation {
@@ -336,7 +336,7 @@ impl CharSelectionUi {
                 events.push(Event::Logout);
             }
 
-            // Create Character Button
+            // Create Character Button.
             if Button::image(self.imgs.button)
                 .mid_bottom_with_margin_on(ui_widgets.window, 10.0)
                 .w_h(270.0, 50.0)
@@ -374,7 +374,7 @@ impl CharSelectionUi {
                 .font_size(14)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
-            // Click Character to Login <-- Temporary!
+            // Click Character to Login TODO: <-- Temporary!
             Image::new(self.imgs.window_frame_2)
                 .mid_top_with_margin_on(ui_widgets.window, 60.0)
                 .w_h(700.0, 70.0)
@@ -443,7 +443,7 @@ impl CharSelectionUi {
                 {}
             }
         }
-        // Character_Creation //////////////
+        // Character_Creation
         else {
             // Background
             //Image::new(self.imgs.bg_creation)
@@ -478,7 +478,7 @@ impl CharSelectionUi {
                 .set(self.ids.create_button, ui_widgets)
                 .was_clicked()
             {
-                // TODO: Save character
+                // TODO: Save character.
                 self.character_creation = false;
             }
             // Character Name Input
@@ -519,7 +519,7 @@ impl CharSelectionUi {
             .set(self.ids.creation_window, ui_widgets);
 
             // Arrows
-            // TODO: lower the resolution of the arrow images & use non decimal sizes below
+            // TODO: Lower the resolution of the arrow images & use non decimal sizes below.
             const ARROW_WH: [f64; 2] = [986.0 * 0.03, 1024.0 * 0.03];
             match self.creation_state {
                 CreationState::Race => {
@@ -586,7 +586,7 @@ impl CharSelectionUi {
 
             // Body
 
-            //Race Selection
+            // Race Selection
             if let CreationState::Race = self.creation_state {
                 Text::new("Choose your Race")
                     .mid_top_with_margin_on(self.ids.creation_window, 74.0)
@@ -595,7 +595,7 @@ impl CharSelectionUi {
                     .set(self.ids.select_window_title, ui_widgets);
 
                 // Male/Female/Race Icons
-                // for alignment
+                // Alignment
                 Rectangle::fill_with([151.0, 68.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_window, 210.0)
                     .set(self.ids.body_type_bg, ui_widgets);
@@ -636,11 +636,11 @@ impl CharSelectionUi {
                 {
                     self.character_body.body_type = BodyType::Female;
                 }
-                // for alignment
+                // Alignment
                 Rectangle::fill_with([458.0, 68.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_window, 120.0)
                     .set(self.ids.races_bg, ui_widgets);
-                // TODO: If races where in some sort of array format we could do this in a loop
+                // TODO: If races were in some sort of array format, we could do this in a loop.
                 // Human
                 Image::new(if let BodyType::Male = self.character_body.body_type {
                     self.imgs.human_m
@@ -777,7 +777,7 @@ impl CharSelectionUi {
 
                 // Description Headline and Text
 
-                // TODO: Load these from files (or from the server???)
+                // TODO: Load these from files (or from the server???).
                 const HUMAN_DESC: &str =
                     "The former nomads were only recently able to gain a foothold in the world of Veloren. \n\
                     \n\
@@ -854,7 +854,6 @@ impl CharSelectionUi {
                     .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
-                // Races Descriptions
             }
 
             if let CreationState::Weapon = self.creation_state {
@@ -863,7 +862,7 @@ impl CharSelectionUi {
                     .font_size(28)
                     .color(TEXT_COLOR)
                     .set(self.ids.select_window_title, ui_widgets);
-                // BG for Alignment
+                // Alignment
                 Rectangle::fill_with([470.0, 60.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_window, 180.0)
                     .set(self.ids.weapon_bg, ui_widgets);
@@ -997,7 +996,7 @@ impl CharSelectionUi {
                     self.character_body.weapon = Weapon::Staff;
                 }
 
-                // TODO: Load these from files (or from the server???)
+                // TODO: Load these from files (or from the server???).
                 const SWORDSHIELD_DESC: &str = " MISSING ";
                 const DAGGERS_DESC: &str = " MISSING ";
                 const SWORD_DESC: &str = " MISSING ";
@@ -1028,12 +1027,11 @@ impl CharSelectionUi {
                     .color(TEXT_COLOR)
                     .wrap_by_word()
                     .set(self.ids.race_description, ui_widgets);
-                // Races Descriptions
             }
-            // 3 states/windows: 1.Skin & Eyes 2.Hair 3.Accessories
-            // If one state is activated the other ones collapse
-            // The title bar is the button to unfold/collapse the windows
-            // The BG Frame can be stretched to the needed size
+            // 3 states/windows: 1: Skin & Eyes 2: Hair 3: Accessories
+            // If one state is activated, the other ones collapse.
+            // The title bar is the button to unfold/collapse the windows.
+            // The BG Frame can be stretched to the needed size.
 
             // Window BG
             if let CreationState::Body(state) = self.creation_state {
@@ -1093,7 +1091,7 @@ impl CharSelectionUi {
                         {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-                    } // State 1 fin
+                    }
 
                     // Hair Open
                     BodyPart::Hair => {
@@ -1144,7 +1142,7 @@ impl CharSelectionUi {
                         {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-                    } // State 2 fin
+                    }
 
                     // Open: Accessories
                     BodyPart::Accessories => {
@@ -1195,10 +1193,10 @@ impl CharSelectionUi {
                         {
                             self.creation_state = CreationState::Body(BodyPart::Accessories);
                         }
-                    } // State 3 fin
-                } // match fin
+                    }
+                }
 
-                // Body Customization Window Contents ////////////////////////
+                // Body Customization Window Contents
                 match state {
                     BodyPart::SkinEyes => {
                         // Skin Color: Text, Brightness Slider, Picker
@@ -1207,18 +1205,18 @@ impl CharSelectionUi {
                             .font_size(25)
                             .color(TEXT_COLOR)
                             .set(self.ids.skin_color_text, ui_widgets);
-                        // TODO: Align Buttons here
-                        // They set an i32 to a value from 0-14
-                        // Depending on the race another color will be chosen
-                        // Here only the BG image changes depending on the race.
+                        // TODO: Align Buttons here.
+                        // Users set a variable to a value from 0-14.
+                        // Depending on the race another color will be chosen.
+                        // Only the BG image (190x114 -> 2px border!) changes depending on the race.
                         Rectangle::fill_with([192.0, 116.0], color::WHITE)
                             .top_right_with_margins_on(self.ids.skin_eyes_window, 60.0, 30.0)
                             .color(TEXT_COLOR)
                             .set(self.ids.skin_rect, ui_widgets);
 
-                        // TODO:Slider
-                        // Sliders actually change the Alpha-Level of the main colour chosen above
-                        // -> They will appear "brighter", therefore the sliders are labeled "Brightness"
+                        // TODO: Slider
+                        // Sliders actually change the Alpha-Level of the main colour chosen above.
+                        // -> They will appear "brighter", therefore the sliders are labeled "Brightness".
                         Image::new(self.imgs.slider_range)
                             .w_h(208.0, 12.0)
                             .bottom_left_with_margins_on(self.ids.skin_rect, 10.0, -255.0)
@@ -1241,17 +1239,16 @@ impl CharSelectionUi {
                             .font_size(25)
                             .color(TEXT_COLOR)
                             .set(self.ids.eye_color_text, ui_widgets);
-                        // TODO: Align 16 Buttons here
-                        //
-                        // They set a variable to a value from 0-14
-                        // Depending on the race another color will be chosen
+                        // TODO: Align 16 Buttons here.
+                        // Users set a variable to a value from 0-14.
+                        // Depending on the race another color will be chosen.
                         // Only the BG image (190x114 -> 2px border!) changes depending on the race.
                         Rectangle::fill_with([192.0, 116.0], color::WHITE)
                             .top_right_with_margins_on(self.ids.skin_eyes_window, 186.0, 30.0)
                             .color(TEXT_COLOR)
                             .set(self.ids.eyes_rect, ui_widgets);
 
-                        // TODO:Slider
+                        // TODO: Slider
 
                         Image::new(self.imgs.slider_range)
                             .w_h(208.0, 12.0)
@@ -1270,7 +1267,7 @@ impl CharSelectionUi {
                             .set(self.ids.eye_color_slider_text, ui_widgets);
                     }
 
-                    // Hair ///////////////////////////////////////////////////////
+                    // Hair
 
                     // Hair Styles -> Arrows
                     // Hair Color -> Picker
@@ -1352,7 +1349,7 @@ impl CharSelectionUi {
                             .set(self.ids.eyebrow_arrow_l, ui_widgets)
                             .was_clicked()
                         {};
-                        // Beard -> Only active when "male" was chosen
+                        // Beard -> Only active if "male" was chosen.
                         if let BodyType::Male = self.character_body.body_type {
                             Text::new("Beard Style")
                                 .mid_top_with_margin_on(self.ids.hair_window, 340.0)
@@ -1378,9 +1375,9 @@ impl CharSelectionUi {
                         }
                     }
 
-                    // Accessories ///////////////////////////////
+                    // Accessories
 
-                    // Accessory Picker -> Arrows (Name Changes with race!)
+                    // Accessory Picker -> Arrows (Name changes with race!)
                     // Color -> Picker
                     // Brightness -> Slider
                     BodyPart::Accessories => {
@@ -1450,7 +1447,7 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Human
+                            }
                             Race::Orc => {
                                 Text::new("Head Band")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
@@ -1516,7 +1513,7 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Orc
+                            }
                             Race::Elf => {
                                 Text::new("Tribe Markings")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
@@ -1582,7 +1579,7 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Elf
+                            }
                             Race::Dwarf => {
                                 Text::new("War Paint")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
@@ -1648,7 +1645,7 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Dwarf
+                            }
                             Race::Undead => {
                                 Text::new("Teeth")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
@@ -1714,7 +1711,7 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Undead
+                            }
                             Race::Danari => {
                                 Text::new("Horns")
                                     .mid_top_with_margin_on(self.ids.accessories_window, 60.0)
@@ -1780,12 +1777,12 @@ impl CharSelectionUi {
                                     .color(TEXT_COLOR)
                                     .font_size(14)
                                     .set(self.ids.warpaint_slider_text, ui_widgets);
-                            } // Danari
+                            }
                         } // match Race fin
-                    } // Accessories fin
-                } // Body Customization Fin
-            } // CreationState::Body Fin
-        } // Char Creation fin
+                    }
+                }
+            }
+        }
 
         events
     }

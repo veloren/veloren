@@ -12,9 +12,9 @@ use std::{
 
 #[derive(Debug, Clone)]
 pub enum Error {
-    /// An asset of a different type has already been loaded with this specifier
+    /// An asset of a different type has already been loaded with this specifier.
     InvalidType,
-    /// Asset does not exist
+    /// Asset does not exist.
     NotFound(String),
 }
 
@@ -35,8 +35,8 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-/// Function used to load assets
-/// loaded assets are cached in a global singleton hashmap
+/// Function used to load assets.
+/// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -54,9 +54,9 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
         .downcast()?)
 }
 
-/// Function used to load assets that will panic if the asset is not found
-/// Use this to load essential assets
-/// loaded assets are cached in a global singleton hashmap
+/// Function used to load assets that will panic if the asset is not found.
+/// Use this to load essential assets.
+/// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -89,11 +89,11 @@ impl Asset for DotVoxData {
     }
 }
 
-// TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
+// TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
 fn try_open_with_path(name: &str) -> Option<File> {
     debug!("Trying to access \"{}\"", name);
-    // TODO: don't do this?
-    // if it's stupid and it works..,
+    // TODO: Don't do this?
+    // If it's stupid but it works...
     [
         "assets".to_string(),
         "../assets".to_string(), /* optimizations */

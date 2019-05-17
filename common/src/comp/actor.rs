@@ -71,24 +71,23 @@ pub enum Draw {
 }
 ////
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Pighead {
+pub enum PigHead {
     Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Pigchest {
+pub enum PigChest {
     Default,
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Pigleg_l {
+pub enum PigLegL {
     Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Pigleg_r {
+pub enum PigLegR {
     Default,
 }
-////
 
 const ALL_RACES: [Race; 6] = [
     Race::Danari,
@@ -158,19 +157,19 @@ const ALL_QRACES: [Race; 6] = [
     Race::Undead,
 ];
 const ALL_QBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-const ALL_QHEADS: [Pighead; 1] = [Pighead::Default];
-const ALL_QCHESTS: [Pigchest; 1] = [Pigchest::Default];
-const ALL_QPIGLEG_LS: [Pigleg_l; 1] = [Pigleg_l::Default];
-const ALL_QPIGLEG_RS: [Pigleg_r; 1] = [Pigleg_r::Default];
+const ALL_QPIG_HEADS: [PigHead; 1] = [PigHead::Default];
+const ALL_QPIG_CHESTS: [PigChest; 1] = [PigChest::Default];
+const ALL_QPIG_LEG_LS: [PigLegL; 1] = [PigLegL::Default];
+const ALL_QPIG_LEG_RS: [PigLegR; 1] = [PigLegR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QuadrupedBody {
     pub race: Race,
     pub body_type: BodyType,
-    pub pighead: Pighead,
-    pub pigchest: Pigchest,
-    pub pigleg_l: Pigleg_l,
-    pub pigleg_r: Pigleg_r,
+    pub pig_head: PigHead,
+    pub pig_chest: PigChest,
+    pub pig_leg_l: PigLegL,
+    pub pig_leg_r: PigLegR,
 }
 
 impl QuadrupedBody {
@@ -178,10 +177,10 @@ impl QuadrupedBody {
         Self {
             race: *thread_rng().choose(&ALL_QRACES).unwrap(),
             body_type: *thread_rng().choose(&ALL_QBODY_TYPES).unwrap(),
-            pighead: *thread_rng().choose(&ALL_QHEADS).unwrap(),
-            pigchest: *thread_rng().choose(&ALL_QCHESTS).unwrap(),
-            pigleg_l: *thread_rng().choose(&ALL_QPIGLEG_LS).unwrap(),
-            pigleg_r: *thread_rng().choose(&ALL_QPIGLEG_RS).unwrap(),
+            pig_head: *thread_rng().choose(&ALL_QPIG_HEADS).unwrap(),
+            pig_chest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
+            pig_leg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
+            pig_leg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
         }
     }
 }

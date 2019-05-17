@@ -21,7 +21,7 @@ impl World {
     }
 
     pub fn generate_chunk(chunk_pos: Vec2<i32>) -> TerrainChunk {
-        // TODO: This is all test code, remove/improve this later
+        // TODO: This is all test code, remove/improve this later.
 
         let air = Block::empty();
         let stone = Block::new(1, Rgb::new(200, 220, 255));

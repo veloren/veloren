@@ -93,15 +93,15 @@ impl FigureModelCache {
     }
 
     pub fn clean(&mut self, tick: u64) {
-        // TODO: Don't hard-code this
+        // TODO: Don't hard-code this.
         self.models
             .retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
-    // TODO: Don't make this public
+    // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
+        let full_path: String = ["/voxygen/voxel/", filename].concat();
+        Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
 
@@ -181,7 +181,7 @@ impl FigureModelCache {
         Self::load_mesh(
             match weapon {
                 Weapon::Sword => "sword.vox",
-                // TODO actually match against other weapons and set the right model
+                // TODO actually match against other weapons and set the right model.
                 _ => "sword.vox",
             },
             Vec3::new(0.0, 0.0, -4.0),
@@ -276,9 +276,9 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
 
                         state.update(renderer, pos.0, dir.0);
-                    } // TODO: Non-humanoid bodies
+                    } // TODO: Non-humanoid bodies.
                 },
-                // TODO: Non-character actors
+                // TODO: Non-character actors.
             }
         }
 
@@ -308,9 +308,9 @@ impl FigureMgr {
                                 state.bone_consts(),
                             );
                         }
-                    } // TODO: Non-humanoid bodies
+                    } // TODO: Non-humanoid bodies.
                 },
-                // TODO: Non-character actors
+                // TODO: Non-character actors.
             }
         }
     }

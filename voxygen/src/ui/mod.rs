@@ -88,7 +88,7 @@ pub struct Ui {
     draw_commands: Vec<DrawCommand>,
     // Model for drawing the ui
     model: DynamicModel<UiPipeline>,
-    // Stores new window size for updating scaling
+    // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
     // Scaling of the ui
     scale: Scale,
@@ -110,10 +110,10 @@ impl Ui {
         })
     }
 
-    // Set the scaling mode of the ui
+    // Set the scaling mode of the ui.
     pub fn scaling_mode(&mut self, mode: ScaleMode) {
         self.scale.scaling_mode(mode);
-        // Give conrod the new size
+        // Give conrod the new size.
         let (w, h) = self.scale.scaled_window_size().into_tuple();
         self.ui.handle_event(Input::Resize(w, h));
     }
@@ -134,7 +134,7 @@ impl Ui {
         self.ui.set_widgets()
     }
 
-    // Accepts Option so widget can be unfocused
+    // Accepts Option so widget can be unfocused.
     pub fn focus_widget(&mut self, id: Option<WidgId>) {
         self.ui.keyboard_capture(match id {
             Some(id) => id,
@@ -142,12 +142,12 @@ impl Ui {
         });
     }
 
-    // Get id of current widget capturing keyboard
+    // Get id of current widget capturing keyboard.
     pub fn widget_capturing_keyboard(&self) -> Option<WidgId> {
         self.ui.global_input().current.widget_capturing_keyboard
     }
 
-    // Get whether a widget besides the window is capturing the mouse
+    // Get whether a widget besides the window is capturing the mouse.
     pub fn no_widget_capturing_mouse(&self) -> bool {
         self.ui
             .global_input()
@@ -157,7 +157,7 @@ impl Ui {
             .is_none()
     }
 
-    // Get the widget graph
+    // Get the widget graph.
     pub fn widget_graph(&self) -> &Graph {
         self.ui.widget_graph()
     }
@@ -203,8 +203,8 @@ impl Ui {
         self.draw_commands.clear();
         let mut mesh = Mesh::new();
 
-        // TODO: this could be removed entirely if the draw call just used both textures
-        //       however this allows for flexibility if we want to interleave other draw calls later
+        // TODO: this could be removed entirely if the draw call just used both textures,
+        //  however this allows for flexibility if we want to interweave other draw calls later.
         enum State {
             Image,
             Plain,
@@ -213,8 +213,8 @@ impl Ui {
         let mut current_state = State::Plain;
         let mut start = 0;
 
-        let window_scizzor = default_scissor(renderer);
-        let mut current_scizzor = window_scizzor;
+        let window_scissor = default_scissor(renderer);
+        let mut current_scissor = window_scissor;
 
         // Switches to the `Plain` state and completes the previous `Command` if not already in the
         // `Plain` state.
@@ -239,12 +239,12 @@ impl Ui {
                 ..
             } = prim;
 
-            // Check for a change in the scizzor
-            let new_scizzor = {
+            // Check for a change in the scissor.
+            let new_scissor = {
                 let (l, b, w, h) = scizzor.l_b_w_h();
                 // Calculate minimum x and y coordinates while
-                //  - flipping y axis (from +up to +down)
-                //  - moving origin to top-left corner (from middle)
+                // flipping y axis (from +up to +down) and
+                // moving origin to top-left corner (from middle).
                 let min_x = self.ui.win_w / 2.0 + l;
                 let min_y = self.ui.win_h / 2.0 - b - h;
                 Aabr {
@@ -257,22 +257,22 @@ impl Ui {
                         y: ((min_y + h) * p_scale_factor) as u16,
                     },
                 }
-                .intersection(window_scizzor)
+                .intersection(window_scissor)
             };
-            if new_scizzor != current_scizzor {
-                // Finish the current command
+            if new_scissor != current_scissor {
+                // Finish the current command.
                 self.draw_commands.push(match current_state {
                     State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
                     State::Image => DrawCommand::image(start..mesh.vertices().len()),
                 });
                 start = mesh.vertices().len();
 
-                // Update the scizzor and produce a command.
-                current_scizzor = new_scizzor;
-                self.draw_commands.push(DrawCommand::Scissor(new_scizzor));
+                // Update the scissor and produce a command.
+                current_scissor = new_scissor;
+                self.draw_commands.push(DrawCommand::Scissor(new_scissor));
             }
 
-            // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0)
+            // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
             let ui_win_w = self.ui.win_w;
             let ui_win_h = self.ui.win_h;
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
@@ -303,7 +303,7 @@ impl Ui {
                         _ => {}
                     }
 
-                    // Switch to the image state if we are not in it already
+                    // Switch to the image state if we are not in it already.
                     if let State::Plain = current_state {
                         self.draw_commands
                             .push(DrawCommand::plain(start..mesh.vertices().len()));
@@ -318,8 +318,8 @@ impl Ui {
                         (rect.w() * p_scale_factor).round() as u16,
                         (rect.h() * p_scale_factor).round() as u16,
                     );
-                    // Transform the source rectangle into uv coordinate
-                    // TODO: make sure this is right
+                    // Transform the source rectangle into uv coordinate.
+                    // TODO: Make sure this is right.
                     let source_aabr = {
                         let (uv_l, uv_r, uv_b, uv_t) = (0.0, 1.0, 0.0, 1.0); /*match source_rect {
                                                                                  Some(src_rect) => {
@@ -339,7 +339,7 @@ impl Ui {
                     let (cache_w, cache_h) =
                         cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
-                    // Cache graphic at particular resolution
+                    // Cache graphic at particular resolution.
                     let uv_aabr = match graphic_cache.cache_res(
                         *graphic_id,
                         resolution,
@@ -371,15 +371,15 @@ impl Ui {
                     font_id,
                 } => {
                     switch_to_plain_state!();
-                    // Get screen width and height
+                    // Get screen width and height.
                     let (screen_w, screen_h) =
                         renderer.get_resolution().map(|e| e as f32).into_tuple();
-                    // Calculate dpi factor
+                    // Calculate dpi factor.
                     let dpi_factor = screen_w / ui_win_w as f32;
 
                     let positioned_glyphs = text.positioned_glyphs(dpi_factor);
                     let (glyph_cache, cache_tex) = self.cache.glyph_cache_mut_and_tex();
-                    // Queue the glyphs to be cached
+                    // Queue the glyphs to be cached.
                     for glyph in positioned_glyphs {
                         glyph_cache.queue_glyph(font_id.index(), glyph.clone());
                     }
@@ -424,7 +424,7 @@ impl Ui {
                 }
                 PrimitiveKind::Rectangle { color } => {
                     let color = srgb_to_linear(color.to_fsa().into());
-                    // Don't draw a transparent rectangle
+                    // Don't draw a transparent rectangle.
                     if color[3] == 0.0 {
                         continue;
                     }
@@ -442,7 +442,7 @@ impl Ui {
                     ));
                 }
                 PrimitiveKind::TrianglesSingleColor { color, triangles } => {
-                    // Don't draw transparent triangle or switch state if there are actually no triangles
+                    // Don't draw transparent triangle or switch state if there are actually no triangles.
                     let color = srgb_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
                     if triangles.is_empty() || color[3] == 0.0 {
                         continue;
@@ -454,7 +454,7 @@ impl Ui {
                         let p1 = Vec2::new(vx(tri[0][0]), vy(tri[0][1]));
                         let p2 = Vec2::new(vx(tri[1][0]), vy(tri[1][1]));
                         let p3 = Vec2::new(vx(tri[2][0]), vy(tri[2][1]));
-                        // If triangle is clockwise reverse it
+                        // If triangle is clockwise, reverse it.
                         let (v1, v2): (Vec3<f32>, Vec3<f32>) = ((p2 - p1).into(), (p3 - p1).into());
                         let triangle = if v1.cross(v2).z > 0.0 {
                             [p1.into_array(), p2.into_array(), p3.into_array()]
@@ -469,49 +469,49 @@ impl Ui {
                         ));
                     }
                 }
-                _ => {} // TODO: Add this
+                _ => {} // TODO: Add this.
                         //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
-                        // Other uneeded for now
+                        // Other unneeded for now.
                         //PrimitiveKind::Other {..} => {println!("primitive kind other with id {:?}", id);}
             }
         }
-        // Enter the final command
+        // Enter the final command.
         self.draw_commands.push(match current_state {
             State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
             State::Image => DrawCommand::image(start..mesh.vertices().len()),
         });
 
-        // create a larger dynamic model if the mesh is larger than the current model size
+        // Create a larger dynamic model if the mesh is larger than the current model size.
         if self.model.vbuf.len() < mesh.vertices().len() {
             self.model = renderer
                 .create_dynamic_model(mesh.vertices().len() * 4 / 3)
                 .unwrap();
         }
         renderer.update_model(&self.model, &mesh, 0).unwrap();
-        // Update model with new mesh
+        // Update model with new mesh.
 
-        // Handle window resizing
+        // Handle window resizing.
         if let Some(new_dims) = self.window_resized.take() {
             self.scale.window_resized(new_dims, renderer);
             let (w, h) = self.scale.scaled_window_size().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
 
             let res = renderer.get_resolution();
-            // Avoid panic in graphic cache when minimizing
+            // Avoid panic in graphic cache when minimizing.
             if res.x > 0 && res.y > 0 {
                 self.cache
                     .clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
             }
-            // TODO: probably need to resize glyph cache, see conrod's gfx backend for reference
+            // TODO: Probably need to resize glyph cache, see conrod's gfx backend for reference.
         }
     }
 
     pub fn render(&self, renderer: &mut Renderer) {
-        let mut scissor = default_scissor(renderer);
+        let mut scissor_to_render = default_scissor(renderer);
         for draw_command in self.draw_commands.iter() {
             match draw_command {
-                DrawCommand::Scissor(scizzor) => {
-                    scissor = *scizzor;
+                DrawCommand::Scissor(scissor) => {
+                    scissor_to_render = *scissor;
                 }
                 DrawCommand::Draw { kind, verts } => {
                     let tex = match kind {
@@ -519,7 +519,7 @@ impl Ui {
                         DrawKind::Plain => self.cache.glyph_cache_tex(),
                     };
                     let model = self.model.submodel(verts.clone());
-                    renderer.render_ui_element(&model, &tex, scissor);
+                    renderer.render_ui_element(&model, &tex, scissor_to_render);
                 }
             }
         }

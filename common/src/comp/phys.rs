@@ -1,7 +1,7 @@
 use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 use vek::*;
 
-// Pos
+// Position
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
@@ -10,7 +10,7 @@ impl Component for Pos {
     type Storage = VecStorage<Self>;
 }
 
-// Vel
+// Velocity
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Vel(pub Vec3<f32>);
@@ -19,7 +19,7 @@ impl Component for Vel {
     type Storage = VecStorage<Self>;
 }
 
-// Dir
+// Direction
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Dir(pub Vec3<f32>);
@@ -28,7 +28,7 @@ impl Component for Dir {
     type Storage = VecStorage<Self>;
 }
 
-// Dir
+// Update
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ForceUpdate;
