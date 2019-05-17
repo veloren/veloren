@@ -36,6 +36,9 @@ widget_ids! {
         v_logo,
         version,
         divider,
+        bodyrace_text,
+        facialfeatures_text,
+
 
         // Characters
         character_box_1,
@@ -255,7 +258,8 @@ pub struct CharSelectionUi {
     character_creation: bool,    
     pub character_name: String,
     pub character_body: HumanoidBody, 
-    pub character_weapon: Weapon,   
+    pub character_weapon: Weapon, 
+    pub body_type: BodyType,  
     // TODO: remove this
     eye_color_brightness: f32,
 }
@@ -281,7 +285,8 @@ impl CharSelectionUi {
             character_creation: false,            
             character_name: "Character Name".to_string(),
             character_body: HumanoidBody::random(), 
-            character_weapon: Weapon::Sword,           
+            character_weapon: Weapon::Sword,   
+            body_type: BodyType::Male,        
             eye_color_brightness: 0.5,
         }
     }
@@ -555,11 +560,17 @@ impl CharSelectionUi {
                            
 
                 // Male/Female/Race Icons
+                
+                Text::new("Body & Weapon")
+                .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
+                .font_size(24)
+                .font_id(self.fonts.metamorph)
+                .color(TEXT_COLOR)
+                .set(self.ids.bodyrace_text, ui_widgets);
                 // for alignment
                 Rectangle::fill_with([146.0, 486.0], color::TRANSPARENT)
-                    .mid_top_with_margin_on(self.ids.creation_alignment, 20.0)
+                    .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
                     .set(self.ids.creation_buttons_alignment, ui_widgets);
-
                 // Male
                 Image::new(self.imgs.male)
                     .w_h(68.0, 68.0)
@@ -572,7 +583,7 @@ impl CharSelectionUi {
                 })
                 .middle_of(self.ids.male)
                 .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                .press_image(self.imgs.icon_border_press)                
                 .set(self.ids.body_type_1, ui_widgets)
                 .was_clicked()
                 {
@@ -738,7 +749,7 @@ impl CharSelectionUi {
 
                 Image::new(self.imgs.sword)
                     .w_h(68.0, 68.0)
-                    .top_right_with_margins_on(self.ids.creation_buttons_alignment, 0.0, 0.0)
+                    .down_from(self.ids.female, 10.0)
                     .set(self.ids.sword, ui_widgets);
                 if Button::image(if let Weapon::Sword = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -859,7 +870,18 @@ impl CharSelectionUi {
                 Image::new(self.imgs.divider)
                     .w_h(300.0, 6.0)
                     .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment, -36.0)
-                    .set(self.ids.divider, ui_widgets)
+                    .set(self.ids.divider, ui_widgets);                
+                
+                // Facial Features
+                Text::new("Facial Features")
+                    .mid_top_with_margin_on(self.ids.divider, 26.0)
+                    .font_size(24)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.facialfeatures_text, ui_widgets);
+
+
+            
 
                
         } // Char Creation fin
