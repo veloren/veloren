@@ -1,3 +1,4 @@
+use common::comp::HumanoidBody;
 use crate::{
     anim::{
         character::{CharacterSkeleton, IdleAnimation},
@@ -116,7 +117,8 @@ impl Scene {
 
         let model = self
             .figure_model_cache
-            .get_or_create_model(renderer, body, client.get_tick());
+            .get_or_create_model(renderer, comp::Body::Humanoid(body), client.get_tick());
+
 
         renderer.render_figure(
             model,
