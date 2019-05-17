@@ -93,15 +93,15 @@ impl FigureModelCache {
     }
 
     pub fn clean(&mut self, tick: u64) {
-        // TODO: Don't hard-code this
+        // TODO: Don't hard-code this.
         self.models
             .retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
-    // TODO: Don't make this public
+    // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
+        let full_path: String = ["/voxygen/voxel/", filename].concat();
+        Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
 
@@ -123,7 +123,7 @@ impl FigureModelCache {
         )
     }
 
-    fn load_lf_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
+    fn load_leg_lf(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
                 Belt::Default => "pigleg_l.vox",
@@ -132,7 +132,7 @@ impl FigureModelCache {
         )
     }
 
-    fn load_rf_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
+    fn load_leg_rf(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
                 Pants::Default => "pigleg_r.vox",
@@ -141,7 +141,7 @@ impl FigureModelCache {
         )
     }
 
-    fn load_lb_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
+    fn load_leg_lb(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
                 Hand::Default => "pigleg_l.vox",
@@ -150,7 +150,7 @@ impl FigureModelCache {
         )
     }
 
-    fn load_rb_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
+    fn load_leg_rb(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
                 Hand::Default => "pigleg_r.vox",
@@ -214,7 +214,7 @@ impl FigureMgr {
 
         self.states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
-    }
+}  // TODO: Place `render` into above impl and fix `maintain`.
 
     pub fn render(
         &mut self,

@@ -1,4 +1,4 @@
-//! # Implementing new commands
+//! # Implementing new commands.
 //! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
 //! and provide a handler function.
 
@@ -9,26 +9,26 @@ use vek::*;
 
 use lazy_static::lazy_static;
 use scan_fmt::scan_fmt;
-/// Struct representing a command that a user can run from server chat
+/// Struct representing a command that a user can run from server chat.
 pub struct ChatCommand {
-    /// The keyword used to invoke the command, omitting the leading '/'
+    /// The keyword used to invoke the command, omitting the leading '/'.
     pub keyword: &'static str,
-    /// A format string for parsing arguments
+    /// A format string for parsing arguments.
     arg_fmt: &'static str,
-    /// message to explain how the command is used
+    /// A message that explains how the command is used.
     help_string: &'static str,
-    /// Handler function called when the command is executed
+    /// Handler function called when the command is executed.
     /// # Arguments
-    /// * `&mut Server` - the `Server` instance executing the command
-    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the command
-    /// * `String` - a `String` containing the part of the command after the keyword
-    /// * `&ChatCommand` - the command to execute with the above arguments
-    /// Handler functions must parse arguments from the the given `String` (`scan_fmt!` is included for this purpose)
+    /// * `&mut Server` - the `Server` instance executing the command.
+    /// * `EcsEntity` - an `Entity` corresponding to the player that invoked the command.
+    /// * `String` - a `String` containing the part of the command after the keyword.
+    /// * `&ChatCommand` - the command to execute with the above arguments.
+    /// Handler functions must parse arguments from the the given `String` (`scan_fmt!` is included for this purpose).
     handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
 }
 
 impl ChatCommand {
-    /// Creates a new chat command
+    /// Creates a new chat command.
     pub fn new(
         keyword: &'static str,
         arg_fmt: &'static str,
@@ -42,14 +42,14 @@ impl ChatCommand {
             handler,
         }
     }
-    /// Calls the contained handler function, passing `&self` as the last argument
+    /// Calls the contained handler function, passing `&self` as the last argument.
     pub fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
         (self.handler)(server, entity, args, self);
     }
 }
 
 lazy_static! {
-    /// Static list of chat commands available to the server
+    /// Static list of chat commands available to the server.
     pub static ref CHAT_COMMANDS: Vec<ChatCommand> = vec![
         ChatCommand::new(
             "jump",
@@ -81,7 +81,8 @@ lazy_static! {
             "/pet : Spawn a test pet NPC",
             handle_pet
         ),
-        ChatCommand::new("help", "", "/help: Display this message", handle_help)
+        ChatCommand::new(
+            "help", "", "/help: Display this message", handle_help)
     ];
 }
 
@@ -104,7 +105,7 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
                 None => server.clients.notify(
                     entity,
-                    ServerMsg::Chat(String::from("Command 'jump' invalid in current state")),
+                    ServerMsg::Chat(String::from("Command 'jump' invalid in current state.")),
                 ),
             }
         }
@@ -165,7 +166,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                     }
                     None => server.clients.notify(
                         entity,
-                        ServerMsg::Chat(format!("Unable to teleport to player '{}'", alias)),
+                        ServerMsg::Chat(format!("Unable to teleport to player '{}'!", alias)),
                     ),
                 },
                 None => {

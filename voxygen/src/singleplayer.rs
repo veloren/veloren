@@ -28,7 +28,7 @@ impl Singleplayer {
 
         let sock = SocketAddr::from((
             [127, 0, 0, 1],
-            pick_unused_port().expect("Failed to find unused port"),
+            pick_unused_port().expect("Failed to find unused port!"),
         ));
 
         let sock2 = sock.clone();
@@ -60,12 +60,12 @@ fn run_server(sock: SocketAddr, rec: Receiver<Msg>) {
     let mut clock = Clock::new();
 
     // Create server
-    let mut server = Server::bind(sock).expect("Failed to create server instance");
+    let mut server = Server::bind(sock).expect("Failed to create server instance!");
 
     loop {
         let events = server
             .tick(Input::default(), clock.get_last_delta())
-            .expect("Failed to tick server");
+            .expect("Failed to tick server!");
 
         for event in events {
             match event {
@@ -75,7 +75,7 @@ fn run_server(sock: SocketAddr, rec: Receiver<Msg>) {
             }
         }
 
-        // Clean up the server after a tick
+        // Clean up the server after a tick.
         server.cleanup();
 
         match rec.try_recv() {
@@ -86,7 +86,7 @@ fn run_server(sock: SocketAddr, rec: Receiver<Msg>) {
             },
         }
 
-        // Wait for the next tick
+        // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));
     }
 }

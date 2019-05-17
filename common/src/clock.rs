@@ -43,7 +43,7 @@ impl Clock {
             .duration_since(self.last_sys_time)
             .expect("Time went backwards!");
 
-        // Attempt to sleep to fill the gap
+        // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = tgt.checked_sub(delta) {
             let adjustment = if self.running_tps_average == 0.0 {
                 1.0

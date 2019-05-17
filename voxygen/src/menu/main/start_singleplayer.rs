@@ -13,7 +13,7 @@ pub struct StartSingleplayerState {
 }
 
 impl StartSingleplayerState {
-    /// Create a new `MainMenuState`
+    /// Create a new `MainMenuState`.
     pub fn new() -> Self {
         let (singleplayer, sock) = Singleplayer::new();
 
@@ -34,13 +34,12 @@ impl PlayState for StartSingleplayerState {
                     true,
                 );
 
-                // Client creation
+                // Create the client.
                 let client = loop {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
-                        // An error occured!
                         Some(Err(err)) => {
-                            warn!("Failed to start singleplayer server: {:?}", err);
+                            warn!("Failed to start single-player server: {:?}", err);
                             return PlayStateResult::Pop;
                         }
                         _ => {}
@@ -52,7 +51,7 @@ impl PlayState for StartSingleplayerState {
                 if !net_settings.servers.contains(&server_address) {
                     net_settings.servers.push(server_address.clone());
                 }
-                // TODO: Handle this result
+                // TODO: Handle this result.
                 global_state.settings.save_to_file();
 
                 PlayStateResult::Push(Box::new(CharSelectionState::new(
@@ -65,6 +64,6 @@ impl PlayState for StartSingleplayerState {
     }
 
     fn name(&self) -> &'static str {
-        "Starting Singleplayer"
+        "Starting Single-Player"
     }
 }

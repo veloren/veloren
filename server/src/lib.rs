@@ -56,7 +56,7 @@ impl Server {
         Self::bind(SocketAddr::from(([0; 4], 59003)))
     }
 
-    /// Create a new server bound to the given socket
+    /// Create a new server bound to the given socket.
     #[allow(dead_code)]
     pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
@@ -114,7 +114,7 @@ impl Server {
         &mut self.world
     }
 
-    /// Build a non-player character
+    /// Build a non-player character.
     #[allow(dead_code)]
     pub fn create_npc(&mut self, name: String, body: comp::Body) -> EcsEntityBuilder {
         self.state
@@ -140,18 +140,18 @@ impl Server {
         state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-        // Make sure everything is accepted
+        // Make sure everything is accepted.
         state.write_component(entity, comp::phys::ForceUpdate);
 
-        // Set initial animation
+        // Set initial animation.
         state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
 
-        // Tell the client his request was successful
+        // Tell the client its request was successful.
         client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
         client.client_state = ClientState::Character;
     }
 
-    /// Execute a single server tick, handle input and update the game state by the given duration
+    /// Execute a single server tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
     pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most server-side things are
@@ -168,27 +168,27 @@ impl Server {
         // 6) Send relevant state updates to all clients
         // 7) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend
+        // Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
-        // If networking has problems, handle them
+        // If networking has problems, handle them.
         if let Some(err) = self.postoffice.error() {
             return Err(err.into());
         }
 
-        // Handle new client connections (step 2)
+        // Handle new client connections (step 2).
         frontend_events.append(&mut self.handle_new_connections()?);
 
         // Handle new messages from clients
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Tick the client's LocalState (step 3)
+        // Tick the client's LocalState (step 3).
         self.state.tick(dt);
 
-        // Fetch any generated `TerrainChunk`s and insert them into the terrain
-        // Also, send the chunk data to anybody that is close by
+        // Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // Also, send the chunk data to anybody that is close by.
         if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
-            // Send the chunk to all nearby players
+            // Send the chunk to all nearby players.
             for (entity, player, pos) in (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
@@ -216,12 +216,12 @@ impl Server {
             self.pending_chunks.remove(&key);
         }
 
-        // Remove chunks that are too far from players
+        // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
         self.state.terrain().iter().for_each(|(key, _)| {
             let mut min_dist = i32::MAX;
 
-            // For each player with a position, calculate the distance
+            // For each player with a position, calculate the distance.
             for (_, pos) in (
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
@@ -243,21 +243,21 @@ impl Server {
             self.state.remove_chunk(key);
         }
 
-        // Synchronise clients with the new state of the world
+        // Synchronise clients with the new state of the world.
         self.sync_clients();
 
-        // Finish the tick, pass control back to the frontend (step 6)
+        // Finish the tick, pass control back to the frontend (step 6).
         Ok(frontend_events)
     }
 
-    /// Clean up the server after a tick
+    /// Clean up the server after a tick.
     #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
     }
 
-    /// Handle new client connections
+    /// Handle new client connections.
     fn handle_new_connections(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -269,11 +269,10 @@ impl Server {
                 last_ping: self.state.get_time(),
             };
 
-            // Return the state of the current world
-            // (All components Sphynx tracks)
+            // Return the state of the current world (all of the components that Sphynx tracks).
             client.notify(ServerMsg::InitialSync {
                 ecs_state: self.state.ecs().gen_state_package(),
-                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail
+                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
             });
 
             self.clients.add(entity, client);
@@ -284,7 +283,7 @@ impl Server {
         Ok(frontend_events)
     }
 
-    /// Handle new client messages
+    /// Handle new client messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -297,17 +296,17 @@ impl Server {
             let mut disconnect = false;
             let new_msgs = client.postbox.new_messages();
 
-            // Update client ping
+            // Update client ping.
             if new_msgs.len() > 0 {
                 client.last_ping = state.get_time();
 
-                // Process incoming messages
+                // Process incoming messages.
                 for msg in new_msgs {
                     match msg {
                         ClientMsg::RequestState(requested_state) => match requested_state {
                             ClientState::Connected => disconnect = true, // Default state
                             ClientState::Registered => match client.client_state {
-                                // Use ClientMsg::Register instead
+                                // Use ClientMsg::Register instead.
                                 ClientState::Connected => {
                                     client.error_state(RequestStateError::WrongMessage)
                                 }
@@ -319,7 +318,7 @@ impl Server {
                                 }
                             },
                             ClientState::Spectator => match requested_state {
-                                // Become Registered first
+                                // Become Registered first.
                                 ClientState::Connected => {
                                     client.error_state(RequestStateError::Impossible)
                                 }
@@ -330,7 +329,7 @@ impl Server {
                                     client.allow_state(ClientState::Spectator)
                                 }
                             },
-                            // Use ClientMsg::Character instead
+                            // Use ClientMsg::Character instead.
                             ClientState::Character => {
                                 client.error_state(RequestStateError::WrongMessage)
                             }
@@ -339,11 +338,11 @@ impl Server {
                             ClientState::Connected => {
                                 Self::initialize_player(state, entity, client, player)
                             }
-                            // Use RequestState instead (No need to send `player` again)
+                            // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Character { name, body } => match client.client_state {
-                            // Become Registered first
+                            // Become Registered first.
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
@@ -367,7 +366,7 @@ impl Server {
                                 ClientState::Character => {
                                     state.write_component(entity, animation_history)
                                 }
-                                // Only characters can send animations
+                                // Only characters can send animations.
                                 _ => client.error_state(RequestStateError::Impossible),
                             }
                         }
@@ -377,7 +376,7 @@ impl Server {
                                 state.write_component(entity, vel);
                                 state.write_component(entity, dir);
                             }
-                            // Only characters send their position
+                            // Only characters can send positions.
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
@@ -396,7 +395,7 @@ impl Server {
                                 }
                             }
                         },
-                        // Always possible
+                        // Always possible.
                         ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                         ClientMsg::Pong => {}
                         ClientMsg::Disconnect => disconnect = true,
@@ -408,7 +407,7 @@ impl Server {
             {
                 disconnect = true;
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT * 0.5 {
-                // Try pinging the client if the timeout is nearing
+                // Try pinging the client if the timeout is nearing.
                 client.postbox.send_message(ServerMsg::Ping);
             }
 
@@ -421,9 +420,9 @@ impl Server {
             }
         });
 
-        // Handle new chat messages
+        // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
-            // Handle chat commands
+            // Handle chat commands.
             if msg.starts_with("/") && msg.len() > 1 {
                 let argv = String::from(&msg[1..]);
                 self.process_chat_cmd(entity, argv);
@@ -439,14 +438,14 @@ impl Server {
             }
         }
 
-        // Handle client disconnects
+        // Handle client disconnects.
         for entity in disconnected_clients {
             self.state.ecs_mut().delete_entity_synced(entity);
 
             frontend_events.push(Event::ClientDisconnected { entity });
         }
 
-        // Generate requested chunks
+        // Generate requested chunks.
         for key in requested_chunks {
             self.generate_chunk(key);
         }
@@ -454,17 +453,17 @@ impl Server {
         Ok(frontend_events)
     }
 
-    /// Initialize a new client states with important information
+    /// Initialize a new client states with important information.
     fn initialize_player(
         state: &mut State,
         entity: specs::Entity,
         client: &mut Client,
         player: comp::Player,
     ) {
-        // Save player metadata (for example the username)
+        // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync logical information other players have authority over, not the server
+        // Sync logical information other players have authority over, not the server.
         for (other_entity, &uid, &animation_history) in (
             &state.ecs().entities(),
             &state.ecs().read_storage::<common::state::Uid>(),
@@ -479,17 +478,17 @@ impl Server {
             });
         }
 
-        // Tell the client his request was successful
+        // Tell the client its request was successful.
         client.allow_state(ClientState::Registered);
     }
 
-    /// Sync client states with the most up to date information
+    /// Sync client states with the most up to date information.
     fn sync_clients(&mut self) {
-        // Sync 'logical' state using Sphynx
+        // Sync 'logical' state using Sphynx.
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // Sync 'physical' state
+        // Sync 'physical' state.
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
@@ -516,7 +515,7 @@ impl Server {
             }
         }
 
-        // Sync animation states
+        // Sync animation states.
         for (entity, &uid, &animation_history) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
@@ -524,7 +523,7 @@ impl Server {
         )
             .join()
         {
-            // Check if we need to sync
+            // Check if we need to sync.
             if Some(animation_history.current) == animation_history.last {
                 continue;
             }
@@ -538,7 +537,7 @@ impl Server {
             );
         }
 
-        // Update animation last/current state
+        // Update animation last/current state.
         for (entity, mut animation_history) in (
             &self.state.ecs().entities(),
             &mut self.state.ecs().write_storage::<comp::AnimationHistory>(),
@@ -548,7 +547,7 @@ impl Server {
             animation_history.last = Some(animation_history.current);
         }
 
-        // Remove all force flags
+        // Remove all force flags.
         self.state
             .ecs_mut()
             .write_storage::<comp::phys::ForceUpdate>()
@@ -564,18 +563,18 @@ impl Server {
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {
-        // separate string into keyword and arguments
+        // Separate string into keyword and arguments.
         let sep = cmd.find(' ');
         let (kwd, args) = match sep {
             Some(i) => (cmd[..i].to_string(), cmd[(i + 1)..].to_string()),
             None => (cmd, "".to_string()),
         };
 
-        // find command object and run its handler
+        // Find the command object and run its handler.
         let action_opt = CHAT_COMMANDS.iter().find(|x| x.keyword == kwd);
         match action_opt {
             Some(action) => action.execute(self, entity, args),
-            // unknown command
+            // Unknown command
             None => {
                 self.clients.notify(
                     entity,

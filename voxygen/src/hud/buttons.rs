@@ -150,9 +150,9 @@ impl<'a> Widget for Buttons<'a> {
             return Some(Event::ToggleMap);
         };
 
-        // Other Windows can only be accessed, when Settings are closed.
-        // Opening Settings will close all other Windows including the Bag.
-        // Opening the Map won't close the windows displayed before.
+        // Other Windows can only be accessed when `Settings` is closed.
+        // Opening `Settings` will close all other Windows, including the `Bag`.
+        // Opening the `Map` won't close the previously displayed windows.
         Image::new(self.imgs.social_button)
             .w_h(25.0, 25.0)
             .left_from(state.ids.settings_button, 10.0)
