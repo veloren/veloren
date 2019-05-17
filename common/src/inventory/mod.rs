@@ -1,23 +1,35 @@
 //Library
-use specs::{Component, VecStorage}
+use specs::{Component, VecStorage};
 
-// Re-exports
-use self::item;
+//Re-Exports
+use super::item::Item;
 
 pub struct Inventory {
-    pub mut slots: Vec<Option<Item>>
+    pub slots: Vec<Option<Item>>
 }
 
 impl Inventory {
     fn new() -> Inventory {
         Inventory {
             slots: Vec<Option<Item>> = 
-                vec![None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None];
+                vec![None; 24];
         }
     }
 
     fn get(&self, cell: u8) -> Option<Item> {
-        self.slots.get(cell)
+        self.slots.get_mut(cell)
+    }
+
+    fn insert(&mut self, cell: u8, item: Item) -> Option<Item> {
+        self.slots
+          .get_mut(cell)
+          .and_then(|cell| cell.replace(item))
+    }
+
+    fn remove(&mut self, cell: u8, item: Item) -> Option<Item> {
+        self.slots
+          .get_mut(cell)
+          .and_then(|cell| cell.take(item))
     }
 }
 
