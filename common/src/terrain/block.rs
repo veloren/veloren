@@ -4,7 +4,7 @@ use vek::*;
 // Crate
 use crate::vol::Vox;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     kind: u8,
     color: [u8; 3],
