@@ -347,13 +347,13 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, actor, animation_history, stats) in (
+        for (entity, pos, vel, dir, actor, animation_info, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Actor>(),
-            &ecs.read_storage::<comp::AnimationHistory>(),
+            &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
@@ -365,21 +365,21 @@ impl FigureMgr {
                             FigureState::new(renderer, CharacterSkeleton::new())
                         });
 
-                        let target_skeleton = match animation_history.current {
+                        let target_skeleton = match animation_info.animation {
                             comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Run => character::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Jump => character::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Attack => character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
@@ -390,7 +390,7 @@ impl FigureMgr {
                                 character::GlidingAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     time,
-                                    animation_history.time,
+                                    animation_info.time,
                                 )
                             }
                         };
@@ -404,21 +404,21 @@ impl FigureMgr {
                             FigureState::new(renderer, QuadrupedSkeleton::new())
                         });
 
-                        let target_skeleton = match animation_history.current {
+                        let target_skeleton = match animation_info.animation {
                             comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Idle => quadruped::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Jump => quadruped::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
 
                             // TODO!

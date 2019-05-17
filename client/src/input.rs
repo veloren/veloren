@@ -2,6 +2,7 @@ use vek::*;
 
 pub enum InputEvent {
     Jump,
+    AttackStarted,
 }
 
 pub struct Input {
