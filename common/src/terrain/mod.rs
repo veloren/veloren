@@ -1,12 +1,13 @@
 pub mod biome;
 pub mod block;
+pub mod chonk;
 
 // Reexports
 pub use self::{biome::BiomeKind, block::Block};
 
 use crate::{
     vol::VolSize,
-    volumes::{chunk::Chunk, vol_map::VolMap},
+    volumes::{chunk::Chunk, vol_map_2d::VolMap2d},
 };
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
@@ -41,5 +42,5 @@ impl TerrainChunkMeta {
 
 // Terrain type aliases
 
-pub type TerrainChunk = Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
-pub type TerrainMap = VolMap<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainChunk = chonk::Chonk; //Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainMap = VolMap2d<TerrainChunk, TerrainChunkSize>;
