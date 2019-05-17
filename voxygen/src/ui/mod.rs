@@ -122,7 +122,7 @@ impl Ui {
         self.image_map.insert(self.cache.add_graphic(graphic))
     }
 
-    pub fn new_font(&mut self, mut font: Arc<Font>) -> font::Id {
+    pub fn new_font(&mut self, font: Arc<Font>) -> font::Id {
         self.ui.fonts.insert(font.as_ref().0.clone())
     }
 
