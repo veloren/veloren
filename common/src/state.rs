@@ -39,12 +39,12 @@ pub struct DeltaTime(pub f32);
 /// too fast, we'd skip important physics events like collisions. This constant determines what
 /// the upper limit is. If delta time exceeds this value, the game's physics will begin to produce
 /// time lag. Ideally, we'd avoid such a situation.
-const MAX_DELTA_TIME: f32 = 0.05;
+const MAX_DELTA_TIME: f32 = 0.15;
 
 pub struct Changes {
-    pub new_chunks: HashSet<Vec3<i32>>,
-    pub changed_chunks: HashSet<Vec3<i32>>,
-    pub removed_chunks: HashSet<Vec3<i32>>,
+    pub new_chunks: HashSet<Vec2<i32>>,
+    pub changed_chunks: HashSet<Vec2<i32>>,
+    pub removed_chunks: HashSet<Vec2<i32>>,
 }
 
 impl Changes {
@@ -181,7 +181,7 @@ impl State {
     }
 
     /// Insert the provided chunk into this state's terrain.
-    pub fn insert_chunk(&mut self, key: Vec3<i32>, chunk: TerrainChunk) {
+    pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: TerrainChunk) {
         if self
             .ecs
             .write_resource::<TerrainMap>()
@@ -195,7 +195,7 @@ impl State {
     }
 
     /// Remove the chunk with the given key from this state's terrain, if it exists
-    pub fn remove_chunk(&mut self, key: Vec3<i32>) {
+    pub fn remove_chunk(&mut self, key: Vec2<i32>) {
         if self
             .ecs
             .write_resource::<TerrainMap>()

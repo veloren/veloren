@@ -74,10 +74,7 @@ pub trait ReadVol: BaseVol {
 }
 
 /// A volume that provides the ability to sample (i.e: clone a section of) its voxel data.
-pub trait SampleVol: BaseVol
-where
-    Self::Vox: Clone,
-{
+pub trait SampleVol<I>: BaseVol {
     type Sample: BaseVol + ReadVol;
     /// Take a sample of the volume by cloning voxels within the provided range.
     ///
@@ -86,7 +83,7 @@ where
     ///
     /// Note that the resultant volume has a coordinate space relative to the sample, not the
     /// original volume.
-    fn sample(&self, range: Aabb<i32>) -> Result<Self::Sample, Self::Err>;
+    fn sample(&self, range: I) -> Result<Self::Sample, Self::Err>;
 }
 
 /// A volume that provides write access to its voxel data.
