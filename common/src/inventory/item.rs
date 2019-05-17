@@ -1,7 +1,7 @@
 use specs::{Component, VecStorage};
 use crate::comp::actor;
 
-#[derive(Clone)]
+ #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
     Helmet(actor::Head),
     Shoulders(actor::Shoulder),
@@ -10,9 +10,13 @@ pub enum Armor {
     Gloves(actor::Hand),
     Pants(actor::Pants),
     Boots(actor::Foot),
+    Back,
+    Tabard,
+    Gem,
+    Necklace,
 }
 
-#[derive(Clone)]
+ #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Rarity {
     Common,
     Uncommon,
@@ -20,10 +24,10 @@ pub enum Rarity {
     Legendary,
 }
 
-#[derive(Clone)]
+ #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Item {
-    Weapon { damage: i8, strength: i8, rarity: Rarity, variant: actor::Weapon},
-    Armor { defense: i8, health_bonus: i8, rarity: Rarity, variant: Armor },
+    Weapon { damage: i16, strength: i16, rarity: Rarity, variant: actor::Weapon},
+    Armor { defense: i16, health_bonus: i16, rarity: Rarity, variant: Armor },
 }
 
 impl Component for Item {

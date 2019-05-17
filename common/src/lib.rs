@@ -2,7 +2,8 @@
     euclidean_division,
     duration_float,
     trait_alias,
-    bind_by_move_pattern_guards
+    bind_by_move_pattern_guards,
+    option_flattening
 )]
 
 #[macro_use]
