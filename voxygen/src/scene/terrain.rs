@@ -1,11 +1,11 @@
-use std::{collections::HashMap, sync::mpsc, time::Duration};
-use vek::*;
-use client::Client;
-use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map_2d::VolMap2dErr};
 use crate::{
     mesh::Meshable,
     render::{Consts, Globals, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
 };
+use client::Client;
+use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map_2d::VolMap2dErr};
+use std::{collections::HashMap, sync::mpsc, time::Duration};
+use vek::*;
 
 struct TerrainChunk {
     // GPU data
@@ -174,12 +174,12 @@ impl Terrain {
                                 .expect("Failed to upload chunk mesh to the GPU"),
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
-                                    model_offs: Vec3::from(response
-                                        .pos
-                                        .map2(TerrainMap::chunk_size(), |e, sz| {
+                                    model_offs: Vec3::from(
+                                        response.pos.map2(TerrainMap::chunk_size(), |e, sz| {
                                             e as f32 * sz as f32
-                                        }))
-                                        .into_array(),
+                                        }),
+                                    )
+                                    .into_array(),
                                 }])
                                 .expect("Failed to upload chunk locals to the GPU"),
                         },

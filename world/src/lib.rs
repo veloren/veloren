@@ -4,8 +4,8 @@ use vek::*;
 
 // Project
 use common::{
-    terrain::{Block, TerrainChunk, TerrainChunkSize, TerrainChunkMeta},
-    vol::{SizedVol, Vox, WriteVol, VolSize},
+    terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    vol::{SizedVol, VolSize, Vox, WriteVol},
 };
 
 #[derive(Debug)]
@@ -39,7 +39,8 @@ impl World {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
                 for z in 0..256 {
                     let lpos = Vec3::new(x, y, z);
-                    let wpos = lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+                    let wpos =
+                        lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                     let wposf = wpos.map(|e| e as f64);
 
                     let chaos_freq = 1.0 / 100.0;
@@ -54,27 +55,28 @@ impl World {
                         .max(0.0)
                         + 0.5;
 
-                    let height = perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
-                        + perlin_nz.get((wposf * small_freq).into_array())
-                            * small_ampl
-                            * 3.0
-                            * chaos.powf(2.0)
-                        + offs;
-                    let temp = (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
+                    let height =
+                        perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
+                            + perlin_nz.get((wposf * small_freq).into_array())
+                                * small_ampl
+                                * 3.0
+                                * chaos.powf(2.0)
+                            + offs;
+                    let temp =
+                        (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
 
-                    let _ = chunk
-                        .set(
-                            lpos,
-                            if wposf.z < height - 4.0 {
-                                stone
-                            } else if wposf.z < height - 2.0 {
-                                dirt
-                            } else if wposf.z < height {
-                                Block::new(2, Rgb::new(10 + (150.0 * temp) as u8, 150, 0))
-                            } else {
-                                air
-                            },
-                        );
+                    let _ = chunk.set(
+                        lpos,
+                        if wposf.z < height - 4.0 {
+                            stone
+                        } else if wposf.z < height - 2.0 {
+                            dirt
+                        } else if wposf.z < height {
+                            Block::new(2, Rgb::new(10 + (150.0 * temp) as u8, 150, 0))
+                        } else {
+                            air
+                        },
+                    );
                 }
             }
         }
