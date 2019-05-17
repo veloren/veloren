@@ -36,16 +36,16 @@ impl<'a> System<'a> for Sys {
             }
 
             // Basic collision with terrain
-            let mut i = 0;
+            let mut i = 0.0;
             while terrain
                 .get(pos.0.map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false)
-                && i < 100
+                && i < 6000.0 * dt.0
             {
                 pos.0.z += 0.0025;
                 vel.0.z = 0.0;
-                i += 1;
+                i += 1.0;
             }
         }
     }
