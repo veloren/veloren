@@ -237,7 +237,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.debug_button_label, ui);
         }
 
-        // 2 Gameplay////////////////
+        // 2 Gameplay
         if Button::image(if let SettingsTab::Gameplay = state.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -264,7 +264,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             state.update(|s| s.settings_tab = SettingsTab::Gameplay);
         }
 
-        // 3 Controls/////////////////////
+        // 3 Controls
         if Button::image(if let SettingsTab::Controls = state.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -356,7 +356,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_id(self.fonts.opensans)
             .font_size(18)
             .set(state.ids.controls_text, ui);
-            // TODO: Replace with buttons that show the actual keybind and allow the user to change it.
+            // TODO: Replace with buttons that show actual keybinds and allow the user to change them.
             Text::new(
                 "TAB\n\
                  F1\n\
@@ -423,7 +423,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_size(18)
             .set(state.ids.controls_controls, ui);
         }
-        // 4 Video////////////////////////////////
+        // 4 Video
         if Button::image(if let SettingsTab::Video = state.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -451,7 +451,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             state.update(|s| s.settings_tab = SettingsTab::Video);
         }
 
-        // 5 Sound///////////////////////////////
+        // 5 Sound
         if Button::image(if let SettingsTab::Sound = state.settings_tab {
             self.imgs.settings_button_pressed
         } else {

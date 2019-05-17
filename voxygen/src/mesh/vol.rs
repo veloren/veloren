@@ -7,7 +7,7 @@ use crate::render::{
     Pipeline,
 };
 
-/// Given a volume, a position and the cardinal directions, compute each vertex' AO value
+/// Given volume, position, and cardinal directions, compute each vertex's AO value.
 /// `dirs` should be a slice of length 5 so that the sliding window of size 2 over the slice
 /// yields each vertex' adjacent positions.
 fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<f32> {
@@ -29,7 +29,7 @@ fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, dirs: &[Vec3<i32>]) -> Vec4<
                     .get(pos + offs[0] + offs[1])
                     .map(|v| !v.is_empty())
                     .unwrap_or(false);
-                // Map both 1 and 2 neighbors to 0.5 occlusion
+                // Map both 1 and 2 neighbors to 0.5 occlusion.
                 if s1 || s2 || corner {
                     0.5
                 } else {

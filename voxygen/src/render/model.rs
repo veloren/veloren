@@ -28,7 +28,7 @@ impl<P: Pipeline> Model<P> {
     }
 }
 
-/// Represents a mesh on the GPU which can be updated dynamically
+/// Represents a mesh on the GPU which can be updated dynamically.
 pub struct DynamicModel<P: Pipeline> {
     pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
 }
@@ -42,7 +42,7 @@ impl<P: Pipeline> DynamicModel<P> {
         })
     }
 
-    /// Create a model with a slice of a portion of this model to send to the renderer
+    /// Create a model with a slice of a portion of this model to send to the renderer.
     pub fn submodel(&self, range: Range<usize>) -> Model<P> {
         Model {
             vbuf: self.vbuf.clone(),

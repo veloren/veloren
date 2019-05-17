@@ -8,12 +8,12 @@ pub struct Mesh<P: Pipeline> {
 }
 
 impl<P: Pipeline> Mesh<P> {
-    /// Create a new `Mesh`
+    /// Create a new `Mesh`.
     pub fn new() -> Self {
         Self { verts: vec![] }
     }
 
-    /// Clear vertices, allows reusing allocated memory of the underlying Vec
+    /// Clear vertices, allows reusing allocated memory of the underlying Vec.
     pub fn clear(&mut self) {
         self.verts.clear();
     }
@@ -50,12 +50,12 @@ impl<P: Pipeline> Mesh<P> {
         self.verts.push(quad.a);
     }
 
-    /// Push the vertices of another mesh onto the end of this mesh
+    /// Push the vertices of another mesh onto the end of this mesh.
     pub fn push_mesh(&mut self, other: &Mesh<P>) {
         self.verts.extend_from_slice(other.vertices());
     }
 
-    /// Push the vertices of another mesh onto the end of this mesh
+    /// Map and push the vertices of another mesh onto the end of this mesh.
     pub fn push_mesh_map<F: FnMut(P::Vertex) -> P::Vertex>(&mut self, other: &Mesh<P>, mut f: F) {
         // Reserve enough space in our Vec. This isn't necessary, but it tends to reduce the number
         // of required (re)allocations.

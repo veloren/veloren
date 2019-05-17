@@ -1,4 +1,4 @@
-// TODO: Get rid of this ugliness
+// TODO: Get rid of this ugliness.
 #[rustfmt::skip]
 pub fn arr_to_mat(arr: [f32; 16]) -> [[f32; 4]; 4] {
     [
