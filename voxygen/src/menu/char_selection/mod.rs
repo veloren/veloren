@@ -2,6 +2,7 @@ mod scene;
 mod ui;
 
 use crate::{
+    render::Renderer,
     session::SessionState,
     window::{Event, Window},
     Direction, GlobalState, PlayState, PlayStateResult,
@@ -78,7 +79,7 @@ impl PlayState for CharSelectionState {
                             .postbox
                             .send_message(ClientMsg::Character {
                                 name: self.char_selection_ui.character_name.clone(),
-                                body: comp::Body::Humanoid(self.char_selection_ui.character_body), //body: comp::Body::Quadruped(comp::QuadrupedBody::random()),
+                                body: comp::Body::Humanoid(self.char_selection_ui.character_body),
                             });
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             &mut global_state.window,
@@ -93,9 +94,12 @@ impl PlayState for CharSelectionState {
             self.scene
                 .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
-            // Render the scene.
-            self.scene
-                .render(global_state.window.renderer_mut(), &self.client.borrow());
+            // Render the scene
+            self.scene.render(
+                global_state.window.renderer_mut(),
+                &self.client.borrow(),
+                self.char_selection_ui.character_body,
+            );
 
             // Draw the UI to the screen.
             self.char_selection_ui

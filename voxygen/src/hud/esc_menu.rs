@@ -111,14 +111,14 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(170.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Servers")
+            .label("Characters")
             .label_y(conrod_core::position::Relative::Scalar(2.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
         {
-            // TODO: Show servers window (needed in-game?).
+            return Some(Event::Logout); // TODO: Open Character Selection
         };
         // Logout
         if Button::image(self.imgs.button)
