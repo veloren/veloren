@@ -343,8 +343,9 @@ impl Renderer {
             .factory
             .read_mapping(&download)
             .map_err(|err| RenderError::MappingError(err))?
-            .iter()
+            .chunks_exact(width as usize)
             .rev()
+            .flatten()
             .flatten()
             .map(|&e| e)
             .collect::<Vec<_>>();
