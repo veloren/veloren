@@ -100,7 +100,7 @@ impl FigureModelCache {
 
     // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let full_path: String = ["/voxygen/voxel/npc/", filename].concat();
+        let full_path: String = ["voxygen/voxel/npc/", filename].concat();S
         Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
