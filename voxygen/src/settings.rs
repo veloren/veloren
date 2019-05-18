@@ -35,6 +35,9 @@ pub struct ControlSettings {
     pub settings: VirtualKeyCode,
     pub help: VirtualKeyCode,
     pub toggle_interface: VirtualKeyCode,
+    pub toggle_debug: VirtualKeyCode,
+    pub fullscreen: VirtualKeyCode,
+    pub screenshot: VirtualKeyCode,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -71,6 +74,9 @@ impl Default for Settings {
                 settings: VirtualKeyCode::N,
                 help: VirtualKeyCode::F1,
                 toggle_interface: VirtualKeyCode::F2,
+                toggle_debug: VirtualKeyCode::F3,
+                fullscreen: VirtualKeyCode::F11,
+                screenshot: VirtualKeyCode::F4,
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
