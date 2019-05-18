@@ -7,6 +7,7 @@ use std::{
     fs::File,
     io::BufReader,
     io::Read,
+    path::PathBuf,
     sync::{Arc, RwLock},
 };
 
@@ -92,8 +93,9 @@ impl Asset for DotVoxData {
 // TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
 fn try_open_with_path(name: &str) -> Option<File> {
     debug!("Trying to access \"{}\"", name);
-    // TODO: Don't do this?
-    // If it's stupid but it works...
+    let abs_path = std::env::current_dir().expect("No current directory?");
+    // TODO: don't do this?
+    // if it's stupid and it works..,
     [
         "assets".to_string(),
         "../assets".to_string(), /* optimizations */
@@ -105,7 +107,12 @@ fn try_open_with_path(name: &str) -> Option<File> {
         [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
     ]
     .into_iter()
-    .map(|bp| [bp, name].concat())
+    .map(|bp| {
+        let mut p = abs_path.clone();
+        p.push(bp);
+        p.push(name);
+        p
+    })
     .find_map(|ref filename| File::open(filename).ok())
 }
 
