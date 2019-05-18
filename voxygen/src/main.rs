@@ -42,6 +42,10 @@ impl GlobalState {
         self.window.grab_cursor(false);
         self.window.needs_refresh_resize();
     }
+
+    pub fn maintain(&mut self) {
+        self.audio.maintain();
+    }
 }
 
 pub enum Direction {

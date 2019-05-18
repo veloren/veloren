@@ -198,6 +198,9 @@ impl PlayState for SessionState {
                 .swap_buffers()
                 .expect("Failed to swap window buffers!");
 
+            // Maintain global state
+            global_state.maintain();
+
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
 
