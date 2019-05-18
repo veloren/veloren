@@ -25,7 +25,7 @@ impl Inventory {
     }
 
     // Insert an item to a slot if its empty
-    pub fn insert(&mut self, cell: usize, item: Item) -> Option<Item> {
+    pub fn swap(&mut self, cell: usize, item: Item) -> Option<Item> {
         //TODO: Check if a slot is empty first.
         self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }

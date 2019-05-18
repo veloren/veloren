@@ -52,7 +52,7 @@ impl FigureModelCache {
             }
             None => {
                 self.models.insert(
-                    body.clone(),
+                    body,
                     (
                         {
                             let bone_meshes = match body {
