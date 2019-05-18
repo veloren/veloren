@@ -2,7 +2,7 @@
 pub use sphynx::Uid;
 
 use crate::{
-    comp,
+    comp, inventory,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{TerrainChunk, TerrainMap},
@@ -111,6 +111,7 @@ impl State {
         ecs.register::<comp::AnimationHistory>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Control>();
+        ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));

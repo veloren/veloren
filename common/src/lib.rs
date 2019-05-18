@@ -2,7 +2,8 @@
     euclidean_division,
     duration_float,
     trait_alias,
-    bind_by_move_pattern_guards
+    bind_by_move_pattern_guards,
+    option_flattening, // Converts Option<Option<Item>> into Option<Item> TODO: Remove this once this feature becomes stable
 )]
 
 #[macro_use]
@@ -14,6 +15,7 @@ pub mod assets;
 pub mod clock;
 pub mod comp;
 pub mod figure;
+pub mod inventory;
 pub mod msg;
 pub mod ray;
 pub mod state;
