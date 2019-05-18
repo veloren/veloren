@@ -100,7 +100,7 @@ impl FigureModelCache {
 
     // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let full_path: String = ["/voxygen/voxel/", filename].concat();
+        let full_path: String = ["/voxygen/voxel/npc/", filename].concat();
         Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
@@ -108,7 +108,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "pighead.vox",
+                Head::Default => "pig_purple/pighead.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -117,7 +117,7 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "pigchest.vox",
+                Chest::Default => "pig_purple/pigchest.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -126,7 +126,7 @@ impl FigureModelCache {
     fn load_leg_lf(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "pigleg_l.vox",
+                Belt::Default => "pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -135,7 +135,7 @@ impl FigureModelCache {
     fn load_leg_rf(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pigleg_r.vox",
+                Pants::Default => "pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -144,7 +144,7 @@ impl FigureModelCache {
     fn load_leg_lb(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pigleg_l.vox",
+                Hand::Default => "pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -153,7 +153,7 @@ impl FigureModelCache {
     fn load_leg_rb(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pigleg_r.vox",
+                Hand::Default => "pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )

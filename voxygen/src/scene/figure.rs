@@ -132,7 +132,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "head.vox",
+                Head::Default => "figure/head.vox",
             },
             Vec3::new(-7.0, -5.5, -6.0),
         )
@@ -141,7 +141,12 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "chest.vox",
+                Chest::Default => "figure/body/chest_male.vox",
+                Chest::Blue => "armor/chest/chest_blue.vox",
+                Chest::Brown => "armor/chest/chest_brown.vox",
+                Chest::Dark => "armor/chest/chest_dark.vox",
+                Chest::Green => "armor/chest/chest_green.vox",
+                Chest::Orange => "armor/chest/chest_orange.vox",
             },
             Vec3::new(-6.0, -3.5, 0.0),
         )
@@ -150,7 +155,8 @@ impl FigureModelCache {
     fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "belt.vox",
+                //Belt::Default => "figure/body/belt_male.vox",
+                Belt::Dark => "armor/belt/belt_dark.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -159,7 +165,12 @@ impl FigureModelCache {
     fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pants.vox",
+                Pants::Default => "figure/body/pants_male.vox",
+                Pants::Blue => "armor/pants/pants_blue.vox",
+                Pants::Brown => "armor/pants/pants_brown.vox",
+                Pants::Dark => "armor/pants/pants_dark.vox",
+                Pants::Green => "armor/pants/pants_green.vox",
+                Pants::Orange => "armor/pants/pants_orange.vox",
             },
             Vec3::new(-5.0, -3.5, 0.0),
         )
@@ -168,7 +179,7 @@ impl FigureModelCache {
     fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "hand.vox",
+                Hand::Default => "figure/body/hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
@@ -177,7 +188,7 @@ impl FigureModelCache {
     fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "hand.vox",
+                Hand::Default => "figure/body/hand.vox",
             },
             Vec3::new(2.0, 0.0, -7.0),
         )
@@ -186,7 +197,8 @@ impl FigureModelCache {
     fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::Default => "foot.vox",
+                Foot::Default => "figure/body/foot.vox",
+                Foot::Dark => "armor/foot/foot_dark.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
@@ -195,7 +207,8 @@ impl FigureModelCache {
     fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match foot {
-                Foot::Default => "foot.vox",
+                Foot::Default => "figure/body/foot.vox",
+                Foot::Dark => "armor/foot/foot_dark.vox",
             },
             Vec3::new(2.5, -3.5, -9.0),
         )
@@ -204,9 +217,9 @@ impl FigureModelCache {
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "sword.vox",
-                // TODO actually match against other weapons and set the right model.
-                _ => "sword.vox",
+                Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
+                // TODO actually match against other weapons and set the right model
+                _ => "weapon/sword/sword_wood_2h.vox",
             },
             Vec3::new(0.0, 0.0, -4.0),
         )
@@ -215,24 +228,24 @@ impl FigureModelCache {
     fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::Default => "shoulder_l.vox",
+                Shoulder::Default => "armor/shoulder/shoulder_l_brown.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(2.5, -0.5, 0.0),
         )
     }
 
     fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match shoulder {
-                Shoulder::Default => "shoulder_r.vox",
+                Shoulder::Default => "armor/shoulder/shoulder_r_brown.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(2.5, -0.5, 0.0),
         )
     }
     fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match draw {
-                Draw::Default => "glider.vox",
+                Draw::Default => "object/glider.vox",
             },
             Vec3::new(-26.0, -26.0, -5.0),
         )
@@ -241,7 +254,7 @@ impl FigureModelCache {
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_head {
-                PigHead::Default => "pighead.vox",
+                PigHead::Default => "npc/pig_purple/pighead.vox",
             },
             Vec3::new(-6.0, 4.5, 3.0),
         )
@@ -250,7 +263,7 @@ impl FigureModelCache {
     fn load_pig_chest(pig_chest: PigChest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_chest {
-                PigChest::Default => "pigchest.vox",
+                PigChest::Default => "npc/pig_purple/pigchest.vox",
             },
             Vec3::new(-5.0, 4.5, 0.0),
         )
@@ -259,7 +272,7 @@ impl FigureModelCache {
     fn load_pig_leg_lf(pig_leg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_l {
-                PigLegL::Default => "pigleg_l.vox",
+                PigLegL::Default => "npc/pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -268,7 +281,7 @@ impl FigureModelCache {
     fn load_pig_leg_rf(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_r {
-                PigLegR::Default => "pigleg_r.vox",
+                PigLegR::Default => "npc/pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -277,7 +290,7 @@ impl FigureModelCache {
     fn load_pig_leg_lb(pigleg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pigleg_l {
-                PigLegL::Default => "pigleg_l.vox",
+                PigLegL::Default => "npc/pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -286,7 +299,7 @@ impl FigureModelCache {
     fn load_pig_leg_rb(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_r {
-                PigLegR::Default => "pigleg_r.vox",
+                PigLegR::Default => "npc/pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )

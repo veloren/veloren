@@ -229,8 +229,8 @@ impl Hud {
             new_messages: VecDeque::new(),
             inventory_space: 0,
             show: Show {
-                help: true,
-                debug: false,
+                help: false,
+                debug: true,
                 bag: false,
                 esc_menu: false,
                 open_windows: Windows::None,

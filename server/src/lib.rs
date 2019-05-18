@@ -136,7 +136,6 @@ impl Server {
         body: comp::Body,
     ) {
         state.write_component(entity, comp::Actor::Character { name, body });
-        state.write_component(entity, comp::Stats::default());
         state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
