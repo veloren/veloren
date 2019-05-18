@@ -28,16 +28,27 @@ pub enum Head {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
     Default,
+    Blue,
+    Brown,
+    Dark,
+    Green,
+    Orange,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Belt {
-    Default,
+    //Default,
+    Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Pants {
     Default,
+    Blue,
+    Brown,
+    Dark,
+    Green,
+    Orange,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -48,6 +59,7 @@ pub enum Hand {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Foot {
     Default,
+    Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -90,7 +102,7 @@ pub enum PigLegR {
     Default,
 }
 
-const ALL_RACES: [Race; 6] = [
+pub const ALL_RACES: [Race; 6] = [
     Race::Danari,
     Race::Dwarf,
     Race::Elf,
@@ -98,14 +110,31 @@ const ALL_RACES: [Race; 6] = [
     Race::Orc,
     Race::Undead,
 ];
-const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-const ALL_HEADS: [Head; 1] = [Head::Default];
-const ALL_CHESTS: [Chest; 1] = [Chest::Default];
-const ALL_BELTS: [Belt; 1] = [Belt::Default];
-const ALL_PANTS: [Pants; 1] = [Pants::Default];
-const ALL_HANDS: [Hand; 1] = [Hand::Default];
-const ALL_FEET: [Foot; 1] = [Foot::Default];
-const ALL_WEAPONS: [Weapon; 7] = [
+pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+pub const ALL_HEADS: [Head; 1] = [Head::Default];
+pub const ALL_CHESTS: [Chest; 6] = [
+    Chest::Default,
+    Chest::Blue,
+    Chest::Brown,
+    Chest::Dark,
+    Chest::Green,
+    Chest::Orange,
+];
+pub const ALL_BELTS: [Belt; 1] = [
+    //Belt::Default,
+    Belt::Dark,
+];
+pub const ALL_PANTS: [Pants; 6] = [
+    Pants::Default,
+    Pants::Blue,
+    Pants::Brown,
+    Pants::Dark,
+    Pants::Green,
+    Pants::Orange,
+];
+pub const ALL_HANDS: [Hand; 1] = [Hand::Default];
+pub const ALL_FEET: [Foot; 2] = [Foot::Default, Foot::Dark];
+pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Daggers,
     Weapon::SwordShield,
     Weapon::Sword,
@@ -114,8 +143,8 @@ const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Bow,
     Weapon::Staff,
 ];
-const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
-const ALL_DRAW: [Draw; 1] = [Draw::Default];
+pub const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
+pub const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HumanoidBody {

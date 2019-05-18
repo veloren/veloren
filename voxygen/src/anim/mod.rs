@@ -1,5 +1,7 @@
 pub mod character;
+pub mod fixture;
 pub mod quadruped;
+
 // Library
 use vek::*;
 
