@@ -39,6 +39,13 @@ widget_ids! {
         bodyrace_text,
         facialfeatures_text,
 
+        // REMOVE THIS AFTER IMPLEMENTATION
+        daggers_grey,
+        axe_grey,
+        hammer_grey,
+        bow_grey,
+        staff_grey,
+
 
         // Characters
         character_box_1,
@@ -68,8 +75,24 @@ widget_ids! {
         undead_skin_bg,
         elf_skin_bg,
         danari_skin_bg,
-        name_input_bg,        
+        name_input_bg,    
 
+        // Sliders    
+        hairstyle_slider,
+        hairstyle_text,
+        haircolor_slider,
+        haircolor_text,
+        skin_slider,
+        skin_text,
+        eyecolor_slider,
+        eyecolor_text,
+        eyebrows_slider,
+        eyebrows_text,
+        beard_slider,
+        beard_slider_2,
+        beard_text,
+        accessories_slider,
+        accessories_text,
 
         // Buttons
         enter_world_button,
@@ -87,8 +110,7 @@ widget_ids! {
         race_5,
         race_6,
         body_type_1,
-        body_type_2,
-        weapon_buttons[],
+        body_type_2,        
 
         // Weapons
         sword,
@@ -112,58 +134,9 @@ widget_ids! {
         dwarf,
         undead,
         elf,
-        danari,
-        // Weapon Icons
-        weapon_bg,
-        weapon_icons[],
-        // Arrows
-        arrow_left,
-        arrow_mid_right_of,
-        // Body Features
-        window_skin_eyes,
-        window_skin_eyes_mid,
-        window_skin_eyes_bot,
-        window_hair,
-        window_hair_mid,
-        window_hair_bot,
-        window_acessories,
-        window_acessories_mid,
-        window_acessories_bot,
-        skin_color_picker,
-        skin_color_slider,
-        skin_color_text,
-        skin_color_slider_text,
-        eye_color_picker,
-        eye_color_slider,
-        eye_color_text,
-        eye_color_slider_text,
-        skin_color_slider_range,
-        skin_color_slider_indicator,
-        hair_color_slider_text,
-        chest_slider,
-        // Creation Hair Contents
-        hair_style_text,
-        hair_style_arrow_l,
-        hair_style_arrow_r,
-        hair_color_picker_bg,
-        hair_color_text,
-        hair_color_slider_range,
-        hair_color_slider_indicator,
-        eyebrow_style_text,
-        eyebrow_arrow_l,
-        eyebrow_arrow_r,
-        beard_style_text,
-        beard_arrow_l,
-        beard_arrow_r,
-        // Creation Accessories Contents
-        warpaint_text,
-        warpaint_arrow_l,
-        warpaint_arrow_r,
-        warpaint_color_picker_bg,
-        warpaint_color_text,
-        warpaint_slider_indicator,
-        warpaint_slider_range,
-        warpaint_slider_text,
+        danari,              
+        // Body Features        
+        chest_slider,    
     }
 }
 
@@ -250,6 +223,7 @@ pub enum Event {
 }
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -326,7 +300,7 @@ impl CharSelectionUi {
             Scrollbar::y_axis(self.ids.charlist_alignment)
                 .thickness(5.0)
                 .auto_hide(true)
-                .rgba(0.33, 0.33, 0.33, 1.0)
+                .rgba(0.0, 0.0, 0., 0.0)
                 .set(self.ids.selection_scrollbar, ui_widgets);
             // Server Name
             Text::new("Server Name") //TODO: Add in Server Name
@@ -397,7 +371,8 @@ impl CharSelectionUi {
                 .set(self.ids.create_character_button, ui_widgets)
                 .was_clicked()
             {
-                self.character_creation = true;                
+                self.character_creation = true;  
+                self.character_body.weapon = Weapon::Sword;              
             }
 
             // Alpha Version
@@ -566,19 +541,19 @@ impl CharSelectionUi {
 
                 // Male/Female/Race Icons
                 
-                Text::new("Body & Weapon")
+                Text::new("Character Creation")
                 .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                 .font_size(24)
                 .font_id(self.fonts.metamorph)
                 .color(TEXT_COLOR)
                 .set(self.ids.bodyrace_text, ui_widgets);
                 // Alignment
-                Rectangle::fill_with([136.0, 68.0], color::TRANSPARENT)
+                Rectangle::fill_with([140.0, 72.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
                     .set(self.ids.creation_buttons_alignment_1, ui_widgets);
                 // Male
                 Image::new(self.imgs.male)
-                    .w_h(68.0, 68.0)
+                    .w_h(70.0, 70.0)
                     .top_left_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.male, ui_widgets);
                 if Button::image(if let BodyType::Male = self.character_body.body_type {
@@ -596,7 +571,7 @@ impl CharSelectionUi {
                 }
                 // Female
                 Image::new(self.imgs.female)
-                    .w_h(68.0, 68.0)
+                    .w_h(70.0, 70.0)
                     .top_right_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.female, ui_widgets);
                 if Button::image(if let BodyType::Female = self.character_body.body_type {
@@ -614,8 +589,8 @@ impl CharSelectionUi {
                 }     
 
                 // Alignment for Races and Weapons
-                 Rectangle::fill_with([260.0, 180.0], color::RED)
-                    .down_from(self.ids.creation_alignment, 30.0)
+                 Rectangle::fill_with([214.0, 304.0], color::TRANSPARENT)
+                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_1, -324.0)
                     .set(self.ids.creation_buttons_alignment_2, ui_widgets);         
 
                 // Human
@@ -624,7 +599,7 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.human_f
                 })
-                .w_h(60.0, 60.0)
+                .w_h(70.0, 70.0)
                 .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                 .set(self.ids.human, ui_widgets);
                 if Button::image(if let Race::Human = self.character_body.race {
@@ -647,8 +622,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.orc_f
                 })
-                .w_h(60.0, 60.0)
-                .right_from(self.ids.human, 0.0)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.human, 2.0)
                 .set(self.ids.orc, ui_widgets);
                 if Button::image(if let Race::Orc = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -669,8 +644,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.dwarf_f
                 })
-                .w_h(60.0, 60.0)
-                .right_from(self.ids.orc, 0.0)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.orc, 2.0)
                 .set(self.ids.dwarf, ui_widgets);
                 if Button::image(if let Race::Dwarf = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -691,8 +666,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.elf_f
                 })
-                .w_h(60.0, 60.0)
-                .down_from(self.ids.human, 1.0)
+                .w_h(70.0, 70.0)
+                .down_from(self.ids.human, 2.0)
                 .set(self.ids.elf, ui_widgets);
                 if Button::image(if let Race::Elf = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -713,8 +688,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.undead_f
                 })
-                .w_h(60.0, 60.0)
-                .right_from(self.ids.elf, 0.0)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.elf, 2.0)
                 .set(self.ids.undead, ui_widgets);
                 if Button::image(if let Race::Undead = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -735,14 +710,14 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.danari_f
                 })
-                .right_from(self.ids.undead, 0.0)
+                .right_from(self.ids.undead, 2.0)
                 .set(self.ids.danari, ui_widgets);
                 if Button::image(if let Race::Danari = self.character_body.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
                 })
-                .w_h(60.0, 60.0)
+                .w_h(70.0, 70.0)
                 .middle_of(self.ids.danari)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
@@ -755,7 +730,7 @@ impl CharSelectionUi {
                 // Hammer
 
                  Image::new(self.imgs.hammer)
-                    .w_h(60.0, 60.0)
+                    .w_h(70.0, 70.0)
                     .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                     .set(self.ids.hammer, ui_widgets);
                 if Button::image(if let Weapon::Hammer = self.character_body.weapon {
@@ -764,19 +739,23 @@ impl CharSelectionUi {
                     self.imgs.icon_border
                 })
                 .middle_of(self.ids.hammer)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
                 .set(self.ids.hammer_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.character_body.weapon = Weapon::Hammer;
+                    //self.character_body.weapon = Weapon::Hammer;
                 }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.hammer)
+                .set(self.ids.hammer_grey, ui_widgets);
 
                 // Bow
 
                  Image::new(self.imgs.bow)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.hammer, 0.0)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.hammer, 2.0)
                     .set(self.ids.bow, ui_widgets);
                 if Button::image(if let Weapon::Bow = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -784,18 +763,21 @@ impl CharSelectionUi {
                     self.imgs.icon_border
                 })
                 .middle_of(self.ids.bow)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
                 .set(self.ids.bow_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.character_body.weapon = Weapon::Bow;
+                    //self.character_body.weapon = Weapon::Bow;
                 }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.bow)
+                .set(self.ids.bow_grey, ui_widgets);
                 // Staff
-
                  Image::new(self.imgs.staff)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.bow, 0.0)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.bow, 2.0)
                     .set(self.ids.staff, ui_widgets);
                 if Button::image(if let Weapon::Staff = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -803,18 +785,21 @@ impl CharSelectionUi {
                     self.imgs.icon_border
                 })
                 .middle_of(self.ids.staff)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
                 .set(self.ids.staff_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.character_body.weapon = Weapon::Staff;
+                    //self.character_body.weapon = Weapon::Staff;
                 }
+                // REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.staff)
+                .set(self.ids.staff_grey, ui_widgets);
                 // Sword
-
                 Image::new(self.imgs.sword)
-                    .w_h(60.0, 60.0)
-                    .up_from(self.ids.axe, 0.0)
+                    .w_h(70.0, 70.0)
+                    .up_from(self.ids.hammer, 2.0)
                     .set(self.ids.sword, ui_widgets);
                 if Button::image(if let Weapon::Sword = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -832,8 +817,8 @@ impl CharSelectionUi {
 
                 // Daggers
                 Image::new(self.imgs.daggers)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.sword, 0.0)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.sword, 2.0)
                     .set(self.ids.daggers, ui_widgets);
                 if Button::image(if let Weapon::Daggers = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -841,18 +826,21 @@ impl CharSelectionUi {
                     self.imgs.icon_border
                 })
                 .middle_of(self.ids.daggers)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
                 .set(self.ids.daggers_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.character_body.weapon = Weapon::Daggers;
-                }
+                   // self.character_body.weapon = Weapon::Daggers;
+                }// REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.daggers)
+                .set(self.ids.daggers_grey, ui_widgets);
 
                 // Axe
                 Image::new(self.imgs.axe)
-                    .w_h(60.0, 60.0)
-                    .right_from(self.ids.daggers, 0.0)
+                    .w_h(70.0, 70.0)
+                    .right_from(self.ids.daggers, 2.0)
                     .set(self.ids.axe, ui_widgets);
                 if Button::image(if let Weapon::Axe = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -860,45 +848,224 @@ impl CharSelectionUi {
                     self.imgs.icon_border
                 })
                 .middle_of(self.ids.axe)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
+                //.hover_image(self.imgs.icon_border_mo)
+                //.press_image(self.imgs.icon_border_press)
                 .set(self.ids.axe_button, ui_widgets)
                 .was_clicked()
                 {
-                    self.character_body.weapon = Weapon::Axe;
+                    //self.character_body.weapon = Weapon::Axe;
                 }       
-                //Divider
-                Image::new(self.imgs.divider)
-                    .w_h(300.0, 6.0)
-                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_2, -36.0)
-                    .set(self.ids.divider, ui_widgets);                
+                // REMOVE THIS AFTER IMPLEMENTATION
+                Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+                .middle_of(self.ids.axe)
+                .set(self.ids.axe_grey, ui_widgets);                      
                 
-                // Facial Features
-                Text::new("Facial Features")
-                    .mid_top_with_margin_on(self.ids.divider, 26.0)
-                    .font_size(24)
-                    .font_id(self.fonts.metamorph)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.facialfeatures_text, ui_widgets);
-        
                 // Sliders
 
                 // Hair Style
+                Text::new("Hair Style")
+                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_2, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.hairstyle_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.hairstyle_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.hairstyle_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }                    
+                    
+                // Hair Color
+
+                Text::new("Hair Color")
+                    .mid_bottom_with_margin_on(self.ids.hairstyle_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.haircolor_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.haircolor_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.haircolor_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
 
                 // Skin
 
-                // Eye Brows
+                Text::new("Skin")
+                    .mid_bottom_with_margin_on(self.ids.haircolor_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.skin_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.skin_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.skin_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
 
-                // Eye Color
+                // EyeBrows
+                Text::new("Eyebrows")
+                    .mid_bottom_with_margin_on(self.ids.skin_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.eyebrows_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.eyebrows_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.eyebrows_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
 
-                // Acessories
+                // EyeColor
+                Text::new("Eye Color")
+                    .mid_bottom_with_margin_on(self.ids.eyebrows_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.eyecolor_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.eyecolor_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.eyecolor_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
+                // Accessories
+                Text::new("Accessories")
+                    .mid_bottom_with_margin_on(self.ids.eyecolor_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.accessories_text, ui_widgets);
+                let current_chest = self.character_body.chest;
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.accessories_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.accessories_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
 
+                // Beard
+                if let BodyType::Male = self.character_body.body_type {
+                Text::new("Beard")
+                    .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR)
+                    .set(self.ids.beard_text, ui_widgets);
 
+                                    
+                if let Some(new_val) = ImageSlider::discrete(ALL_CHESTS
+                                .iter()
+                                .position(|&c| c == current_chest)
+                                .unwrap_or(0),
+                            0,
+                            ALL_CHESTS.len() - 1,
+                            self.imgs.slider_indicator,
+                            self.imgs.slider_range,
+                            )                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0)             
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.beard_slider, ui_widgets){
+                        self.character_body.chest = ALL_CHESTS[new_val];
+                    }
+                } else {
+                    Text::new("Beard")
+                    .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
+                    .font_size(18)
+                    .font_id(self.fonts.metamorph)
+                    .color(TEXT_COLOR_2)
+                    .set(self.ids.beard_text, ui_widgets);
+                    if let Some(val) = ImageSlider::continuous(5.0, 0.0, 10.0, self.imgs.nothing, self.imgs.slider_range)                    
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)              
+                    .track_breadth(12.0)
+                    .slider_length(10.0) 
+                    .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                    .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))            
+                    .pad_track((5.0, 5.0))                  
+                    .set(self.ids.beard_slider_2, ui_widgets){}
 
-
+                }  
             
 
-               
         } // Char Creation fin
 
         events
