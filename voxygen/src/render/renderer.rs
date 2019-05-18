@@ -343,14 +343,15 @@ impl Renderer {
             .factory
             .read_mapping(&download)
             .map_err(|err| RenderError::MappingError(err))?
-            .iter()
+            .chunks_exact(width as usize)
             .rev()
+            .flatten()
             .flatten()
             .map(|&e| e)
             .collect::<Vec<_>>();
         Ok(image::DynamicImage::ImageRgba8(
             // Should not fail if the dimensions are correct.
-            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap(),
+            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap()
         ))
     }
 
