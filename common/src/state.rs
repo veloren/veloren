@@ -6,6 +6,7 @@ use crate::{
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{TerrainChunk, TerrainMap},
+    inventory,
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
@@ -111,6 +112,7 @@ impl State {
         ecs.register::<comp::AnimationHistory>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Control>();
+        ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));
