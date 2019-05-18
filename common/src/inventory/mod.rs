@@ -5,6 +5,7 @@ use specs::{Component, VecStorage};
 pub mod item;
 
 use item::Item;
+use std::mem::swap;
 
  #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
@@ -25,6 +26,7 @@ impl Inventory {
 
     // Insert an item to a slot if its empty
     pub fn insert(&mut self, cell: usize, item: Item) -> Option<Item> {
+        //TODO: Check if a slot is empty first.
         self.slots
           .get_mut(cell)
           .and_then(|cell| cell.replace(item))
@@ -32,9 +34,13 @@ impl Inventory {
 
     // Remove an item from the slot
     pub fn remove(&mut self, cell: usize, item: Item) -> Option<Item> {
-        self.slots
-          .get_mut(cell)
-          .and_then(|cell| item.take().cloned())
+        let mut tmp_item = Some(item);
+
+        if let Some(old_item) = self.slots.get_mut(cell) {
+            swap(old_item, &mut tmp_item);
+        }
+
+        tmp_item
     }
 }
 
