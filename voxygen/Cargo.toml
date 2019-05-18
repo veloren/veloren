@@ -26,7 +26,6 @@ euc = "0.2"
 
 # Audio
 rodio = "0.8"
-lewton = "0.9"
 
 # ECS
 specs = "0.14"

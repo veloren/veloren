@@ -62,7 +62,7 @@ impl AudioFrontend {
     pub fn maintain(&mut self) {
         let music = [
             "voxygen/audio/soundtrack/Ethereal_Bonds.ogg",
-            "voxygen/audio/soundtrack/Field_Grazing.ogg",
+            "voxygen/audio/soundtrack/Field_Grazing.mp3",
             "voxygen/audio/soundtrack/fiesta_del_pueblo.ogg",
             "voxygen/audio/soundtrack/library_theme_with_harpsichord.ogg",
             "voxygen/audio/soundtrack/Mineral_Deposits.ogg",
