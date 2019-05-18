@@ -167,11 +167,15 @@ impl PlayState for SessionState {
             self.tick(clock.get_last_delta())
                 .expect("Failed to tick the scene!");
 
+            // Maintain global state
+            global_state.maintain();
+
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
                 &mut self.client.borrow_mut(),
             );
+
             // Maintain the UI.
             for event in self
                 .hud
