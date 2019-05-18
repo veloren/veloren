@@ -4,6 +4,7 @@
     trait_alias,
     bind_by_move_pattern_guards,
     option_flattening, // Converts Option<Option<Item>> into Option<Item> TODO: Remove this once this feature becomes stable
+    copysign,
 )]
 
 #[macro_use]
