@@ -347,7 +347,7 @@ impl Ui {
                         |aabr, data| {
                             let offset = aabr.min.into_array();
                             let size = aabr.size().into_array();
-                            renderer.update_texture(cache_tex, offset, size, &data);
+                            renderer.update_texture(cache_tex, offset, size, data);
                         },
                     ) {
                         Some(aabr) => Aabr {
