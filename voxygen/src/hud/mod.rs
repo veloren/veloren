@@ -463,6 +463,10 @@ impl Hud {
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
+            WinEvent::SettingsChanged => {
+                self.settings = global_state.settings.clone();
+                false
+            }
             WinEvent::Ui(event) => {
                 if (self.typing() && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
@@ -541,10 +545,6 @@ impl Hud {
                 _ => self.typing(),
             },
             WinEvent::Char(_) => self.typing(),
-            WinEvent::SettingsChanged => {
-                self.settings = global_state.settings.clone();
-                true
-            }
             _ => false,
         };
         // Handle cursor grab.
