@@ -1,6 +1,7 @@
 use rand::prelude::*;
 use specs::{Component, FlaggedStorage, VecStorage};
 use vek::*;
+use crate::inventory::Inventory;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Race {
@@ -50,6 +51,11 @@ pub enum Foot {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Shoulder {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Weapon {
     Daggers,
     SwordShield,
@@ -58,11 +64,6 @@ pub enum Weapon {
     Hammer,
     Bow,
     Staff,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Shoulder {
-    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -116,7 +117,7 @@ const ALL_WEAPONS: [Weapon; 7] = [
 const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
 const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HumanoidBody {
     pub race: Race,
     pub body_type: BodyType,
@@ -129,6 +130,7 @@ pub struct HumanoidBody {
     pub weapon: Weapon,
     pub shoulder: Shoulder,
     pub draw: Draw,
+    pub inventory: Inventory,
 }
 
 impl HumanoidBody {
@@ -145,6 +147,7 @@ impl HumanoidBody {
             weapon: *thread_rng().choose(&ALL_WEAPONS).unwrap(),
             shoulder: *thread_rng().choose(&ALL_SHOULDERS).unwrap(),
             draw: *thread_rng().choose(&ALL_DRAW).unwrap(),
+            inventory: Inventory::new(),
         }
     }
 }
@@ -162,7 +165,7 @@ const ALL_QPIG_CHESTS: [PigChest; 1] = [PigChest::Default];
 const ALL_QPIG_LEG_LS: [PigLegL; 1] = [PigLegL::Default];
 const ALL_QPIG_LEG_RS: [PigLegR; 1] = [PigLegR::Default];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QuadrupedBody {
     pub race: Race,
     pub body_type: BodyType,
@@ -170,6 +173,7 @@ pub struct QuadrupedBody {
     pub pig_chest: PigChest,
     pub pig_leg_l: PigLegL,
     pub pig_leg_r: PigLegR,
+    pub inventory: Inventory,
 }
 
 impl QuadrupedBody {
@@ -181,11 +185,12 @@ impl QuadrupedBody {
             pig_chest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
             pig_leg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
             pig_leg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
+            inventory: Inventory::new(),
         }
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Body {
     Humanoid(HumanoidBody),
     Quadruped(QuadrupedBody),
