@@ -47,10 +47,6 @@ impl PlayState for MainMenuState {
         // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
 
-        global_state
-            .audio
-            .play_music("voxygen/audio/soundtrack/veloren_title_tune-3.ogg");
-
         loop {
             // Handle window events.
             for event in global_state.window.fetch_events() {
@@ -128,7 +124,10 @@ impl PlayState for MainMenuState {
                 .swap_buffers()
                 .expect("Failed to swap window buffers!");
 
-            // Wait for the next tick.
+            // Maintain global_state
+            global_state.maintain();
+
+            // Wait for the next tick
             clock.tick(Duration::from_millis(1000 / FPS));
         }
     }
