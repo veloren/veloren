@@ -55,7 +55,7 @@ impl GraphicCache {
         mut cacher: F,
     ) -> Option<Aabr<u16>>
     where
-        F: FnMut(Aabr<u16>, Vec<[u8; 4]>),
+        F: FnMut(Aabr<u16>, &[[u8; 4]]),
     {
         match self
             .rect_map
@@ -94,6 +94,7 @@ impl GraphicCache {
                                 image::FilterType::Nearest,
                             )
                             .to_rgba()
+                            // TODO: might be a better way to do this
                             .pixels()
                             .map(|p| p.data)
                             .collect::<Vec<[u8; 4]>>(),
@@ -103,7 +104,7 @@ impl GraphicCache {
                     };
 
                     // Draw to allocated area.
-                    cacher(aabr, data);
+                    cacher(aabr, &data);
 
                     // Insert area into map for retrieval.
                     self.rect_map

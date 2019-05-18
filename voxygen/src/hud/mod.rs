@@ -538,6 +538,10 @@ impl Hud {
                     self.show.toggle_help();
                     true
                 }
+                Key::ToggleDebug => {
+                    self.show.debug = !self.show.debug;
+                    true
+                }
                 _ => false,
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {

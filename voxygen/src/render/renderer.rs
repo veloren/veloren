@@ -306,6 +306,54 @@ impl Renderer {
         texture.update(&mut self.encoder, offset, size, data)
     }
 
+    /// Creates a download buffer, downloads the win_color_view, and converts to a image::DynamicImage.
+    pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
+        let (width, height) = self.get_resolution().into_tuple();
+        use gfx::{
+            format::{Formatted, SurfaceTyped},
+            memory::Typed,
+        };
+        type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
+        let mut download = self
+            .factory
+            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)
+            .map_err(|err| RenderError::BufferCreationError(err))?;
+        self.encoder
+            .copy_texture_to_buffer_raw(
+                self.win_color_view.raw().get_texture(),
+                None,
+                gfx::texture::RawImageInfo {
+                    xoffset: 0,
+                    yoffset: 0,
+                    zoffset: 0,
+                    width,
+                    height,
+                    depth: 0,
+                    format: WinColorFmt::get_format(),
+                    mipmap: 0,
+                },
+                download.raw(),
+                0,
+            )
+            .map_err(|err| RenderError::CopyError(err))?;
+        self.flush();
+
+        // Assumes that the format is Rgba8.
+        let raw_data = self
+            .factory
+            .read_mapping(&download)
+            .map_err(|err| RenderError::MappingError(err))?
+            .iter()
+            .rev()
+            .flatten()
+            .map(|&e| e)
+            .collect::<Vec<_>>();
+        Ok(image::DynamicImage::ImageRgba8(
+            // Should not fail if the dimensions are correct.
+            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap(),
+        ))
+    }
+
     /// Queue the rendering of the provided skybox model in the upcoming frame.
     pub fn render_skybox(
         &mut self,
