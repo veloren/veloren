@@ -557,8 +557,9 @@ impl Server {
     pub fn generate_chunk(&mut self, key: Vec2<i32>) {
         if self.pending_chunks.insert(key) {
             let chunk_tx = self.chunk_tx.clone();
-            self.thread_pool
-                .execute(move || chunk_tx.send((key, World::generate_chunk(key))).unwrap());
+            self.thread_pool.execute(move || {
+                let _ = chunk_tx.send((key, World::generate_chunk(key)));
+            });
         }
     }
 
