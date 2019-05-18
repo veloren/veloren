@@ -4,6 +4,7 @@
 #[macro_use]
 pub mod ui;
 pub mod anim;
+pub mod audio;
 pub mod error;
 pub mod hud;
 pub mod key_state;
@@ -19,7 +20,7 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{menu::main::MainMenuState, settings::Settings, window::Window};
+use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use log;
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr, thread};
@@ -31,6 +32,7 @@ const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
 pub struct GlobalState {
     settings: Settings,
     window: Window,
+    audio: AudioFrontend,
 }
 
 impl GlobalState {
@@ -39,6 +41,10 @@ impl GlobalState {
     pub fn on_play_state_changed(&mut self) {
         self.window.grab_cursor(false);
         self.window.needs_refresh_resize();
+    }
+
+    pub fn maintain(&mut self) {
+        self.audio.maintain();
     }
 }
 
@@ -91,7 +97,7 @@ fn main() {
     ])
     .unwrap();
 
-    // Set up panic handler to relay swish panic messages to the user.
+    // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
@@ -153,7 +159,11 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    let mut global_state = GlobalState { settings, window };
+    let mut global_state = GlobalState {
+        settings,
+        window,
+        audio: AudioFrontend::new(),
+    };
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];

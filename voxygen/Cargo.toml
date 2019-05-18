@@ -24,6 +24,9 @@ conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.2"
 
+# Audio
+rodio = "0.8"
+
 # ECS
 specs = "0.14"
 
@@ -49,3 +52,4 @@ directories = "1.0"
 portpicker = "0.1"
 num = "0.2"
 backtrace = "0.3"
+rand = "0.5"

@@ -86,6 +86,9 @@ impl PlayState for MainMenuState {
                 None => {}
             }
 
+            // Maintain global_state
+            global_state.maintain();
+
             // Maintain the UI.
             for event in self.main_menu_ui.maintain(global_state) {
                 match event {
@@ -124,7 +127,7 @@ impl PlayState for MainMenuState {
                 .swap_buffers()
                 .expect("Failed to swap window buffers!");
 
-            // Wait for the next tick.
+            // Wait for the next tick
             clock.tick(Duration::from_millis(1000 / FPS));
         }
     }
