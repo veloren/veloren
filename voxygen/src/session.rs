@@ -167,11 +167,15 @@ impl PlayState for SessionState {
             self.tick(clock.get_last_delta())
                 .expect("Failed to tick the scene!");
 
+            // Maintain global state
+            global_state.maintain();
+
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
                 &mut self.client.borrow_mut(),
             );
+
             // Maintain the UI.
             for event in self
                 .hud
@@ -197,9 +201,6 @@ impl PlayState for SessionState {
                 .window
                 .swap_buffers()
                 .expect("Failed to swap window buffers!");
-
-            // Maintain global state
-            global_state.maintain();
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
