@@ -126,7 +126,7 @@ image_ids! {
 
         charwindow_gradient:"/voxygen/element/misc_bg/charwindow.png",
 
-        // Spell Book Window       
+        // Spell Book Window
         spellbook_icon: "/voxygen/element/icons/spellbook.png",
 
         // Bag
@@ -136,7 +136,7 @@ image_ids! {
         bag_open: "/voxygen/element/buttons/bag/open.png",
         bag_open_hover: "/voxygen/element/buttons/bag/open_hover.png",
         bag_open_press: "/voxygen/element/buttons/bag/open_press.png",
-        
+
         map_icon: "/voxygen/element/icons/map.png",
 
         grid_button: "/voxygen/element/buttons/border.png",
@@ -155,7 +155,7 @@ image_ids! {
 
         esc_bg: "/voxygen/element/frames/menu.png",
 
-        window_frame_2: "/voxygen/element/frames/window_2.png",        
+        window_frame_2: "/voxygen/element/frames/window_2.png",
 
         // Char Window
         charwindow: "/voxygen/element/misc_bg/charwindow.png",
@@ -166,13 +166,13 @@ image_ids! {
         progress_frame: "/voxygen/element/frames/progress_bar.png",
         progress: "/voxygen/element/misc_bg/progress.png",
 
-        // Quest-Log Window        
+        // Quest-Log Window
         questlog_icon: "/voxygen/element/icons/questlog.png",
 
         // Window BG
         window_bg: "/voxygen/element/misc_bg/window_bg.png",
 
-        // Social Window       
+        // Social Window
         social_icon: "/voxygen/element/icons/social.png",
 
 

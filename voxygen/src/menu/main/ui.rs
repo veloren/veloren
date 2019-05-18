@@ -174,7 +174,7 @@ impl MainMenuUi {
             .middle_of(ui_widgets.window)
             .set(self.ids.usrnm_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
-            .w_h(337.0, 67.0)            
+            .w_h(337.0, 67.0)
             .middle_of(self.ids.usrnm_bg)
             .set(self.ids.username_bg, ui_widgets);
         for event in TextBox::new(&self.username)
@@ -296,7 +296,7 @@ impl MainMenuUi {
             .down_from(self.ids.usrnm_bg, 30.0)
             .set(self.ids.srvr_bg, ui_widgets);
         Image::new(self.imgs.input_bg)
-            .w_h(337.0, 67.0)            
+            .w_h(337.0, 67.0)
             .middle_of(self.ids.srvr_bg)
             .set(self.ids.address_bg, ui_widgets);
         for event in TextBox::new(&self.server_address)

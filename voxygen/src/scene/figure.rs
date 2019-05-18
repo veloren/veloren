@@ -219,7 +219,7 @@ impl FigureModelCache {
             match weapon {
                 Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
                 // TODO actually match against other weapons and set the right model
-                _ => "weapon/sword/sword_wood_2h.vox",               
+                _ => "weapon/sword/sword_wood_2h.vox",
             },
             Vec3::new(0.0, 0.0, -4.0),
         )

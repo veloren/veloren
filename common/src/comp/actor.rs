@@ -71,7 +71,7 @@ pub enum Shoulder {
 pub enum Weapon {
     Daggers,
     SwordShield,
-    Sword,    
+    Sword,
     Axe,
     Hammer,
     Bow,
@@ -121,8 +121,9 @@ pub const ALL_CHESTS: [Chest; 6] = [
     Chest::Orange,
 ];
 pub const ALL_BELTS: [Belt; 1] = [
-    //Belt::Default, 
-    Belt::Dark];
+    //Belt::Default,
+    Belt::Dark,
+];
 pub const ALL_PANTS: [Pants; 6] = [
     Pants::Default,
     Pants::Blue,
@@ -135,7 +136,7 @@ pub const ALL_HANDS: [Hand; 1] = [Hand::Default];
 pub const ALL_FEET: [Foot; 2] = [Foot::Default, Foot::Dark];
 pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Daggers,
-    Weapon::SwordShield,    
+    Weapon::SwordShield,
     Weapon::Sword,
     Weapon::Axe,
     Weapon::Hammer,
