@@ -1,8 +1,8 @@
-// Library
+mod sim;
+
+use std::time::Duration;
 use noise::{NoiseFn, Perlin, Seedable};
 use vek::*;
-
-// Project
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{SizedVol, VolSize, Vox, WriteVol},
@@ -13,11 +13,19 @@ pub enum Error {
     Other(String),
 }
 
-pub struct World;
+pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+
+pub struct World {
+    sim: sim::WorldSim,
+}
 
 impl World {
-    pub fn new() -> Self {
-        Self
+    pub fn generate(seed: u32) -> Self {
+        Self { sim: sim::WorldSim::generate(seed) }
+    }
+
+    pub fn tick(&mut self, dt: Duration) {
+        // TODO
     }
 
     pub fn generate_chunk(chunk_pos: Vec2<i32>) -> TerrainChunk {
