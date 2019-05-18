@@ -169,10 +169,11 @@ const ALL_QPIG_LEG_RS: [PigLegR; 1] = [PigLegR::Default];
 pub struct QuadrupedBody {
     pub race: Race,
     pub body_type: BodyType,
-    pub pighead: Pighead,
-    pub pigchest: Pigchest,
-    pub pigleg_l: Pigleg_l,
-    pub pigleg_r: Pigleg_r,
+    pub pig_head: PigHead,
+    pub pig_chest: PigChest,
+    pub pig_leg_l: PigLegL,
+    pub pig_leg_r: PigLegR,
+    pub inventory: Inventory,
 }
 
 impl QuadrupedBody {
@@ -180,10 +181,11 @@ impl QuadrupedBody {
         Self {
             race: *thread_rng().choose(&ALL_QRACES).unwrap(),
             body_type: *thread_rng().choose(&ALL_QBODY_TYPES).unwrap(),
-            pighead: *thread_rng().choose(&ALL_QHEADS).unwrap(),
-            pigchest: *thread_rng().choose(&ALL_QCHESTS).unwrap(),
-            pigleg_l: *thread_rng().choose(&ALL_QPIGLEG_LS).unwrap(),
-            pigleg_r: *thread_rng().choose(&ALL_QPIGLEG_RS).unwrap(),
+            pighead: *thread_rng().choose(&ALL_QPIG_HEADS).unwrap(),
+            pigchest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
+            pigleg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
+            pigleg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
+            inventory: Inventory::new(),
         }
     }
 }
