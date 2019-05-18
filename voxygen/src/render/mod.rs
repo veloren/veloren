@@ -42,6 +42,8 @@ pub enum RenderError {
     CombinedError(gfx::CombinedError),
     BufferCreationError(gfx::buffer::CreationError),
     IncludeError(glsl_include::Error),
+    MappingError(gfx::mapping::Error),
+    CopyError(gfx::CopyError<[u16; 3], usize>),
 }
 
 /// Used to represent a specific rendering configuration.
