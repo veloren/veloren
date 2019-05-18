@@ -127,7 +127,7 @@ image_ids! {
         charwindow_gradient:"voxygen/element/misc_bg/charwindow.png",
 
         // Spell Book Window
-        spellbook_icon: "voxygen/element/icons/spellbook.png",        
+        spellbook_icon: "voxygen/element/icons/spellbook.png",
         // Bag
         bag: "voxygen/element/buttons/bag/closed.png",
         bag_hover: "voxygen/element/buttons/bag/closed_hover.png",
