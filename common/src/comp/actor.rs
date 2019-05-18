@@ -181,10 +181,10 @@ impl QuadrupedBody {
         Self {
             race: *thread_rng().choose(&ALL_QRACES).unwrap(),
             body_type: *thread_rng().choose(&ALL_QBODY_TYPES).unwrap(),
-            pighead: *thread_rng().choose(&ALL_QPIG_HEADS).unwrap(),
-            pigchest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
-            pigleg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
-            pigleg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
+            pig_head: *thread_rng().choose(&ALL_QPIG_HEADS).unwrap(),
+            pig_chest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
+            pig_leg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
+            pig_leg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
             inventory: Inventory::new(),
         }
     }
