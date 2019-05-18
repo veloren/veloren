@@ -1,3 +1,4 @@
+use crate::inventory::Inventory;
 use rand::prelude::*;
 use specs::{Component, FlaggedStorage, VecStorage};
 use vek::*;
@@ -50,6 +51,11 @@ pub enum Foot {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Shoulder {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Weapon {
     Daggers,
     SwordShield,
@@ -58,11 +64,6 @@ pub enum Weapon {
     Hammer,
     Bow,
     Staff,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Shoulder {
-    Default,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
