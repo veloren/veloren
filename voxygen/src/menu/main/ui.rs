@@ -137,6 +137,7 @@ impl MainMenuUi {
         Text::new(version)
             .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
+            .font_id(self.fonts.opensans)
             .color(TEXT_COLOR)
             .set(self.ids.version, ui_widgets);
 

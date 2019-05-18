@@ -58,7 +58,8 @@ widget_ids! {
         char_level,
         creation_window,
         select_window_title,
-        creation_buttons_alignment,        
+        creation_buttons_alignment_1, 
+        creation_buttons_alignment_2,       
         weapon_heading,
         weapon_description,        
         human_skin_bg,
@@ -117,7 +118,7 @@ widget_ids! {
         weapon_icons[],
         // Arrows
         arrow_left,
-        arrow_right,
+        arrow_mid_right_of,
         // Body Features
         window_skin_eyes,
         window_skin_eyes_mid,
@@ -259,15 +260,17 @@ pub struct CharSelectionUi {
     pub character_name: String,
     pub character_body: HumanoidBody, 
     pub character_weapon: Weapon, 
-    pub body_type: BodyType,  
-    // TODO: remove this
-    eye_color_brightness: f32,
+    pub body_type: BodyType,       
 }
 
 impl CharSelectionUi {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
+<<<<<<< HEAD
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
+=======
+        // TODO: adjust/remove this, mid_right_of now it is used to demonstrate window scaling functionality
+>>>>>>> Update
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
         // Generate ids
         let ids = Ids::new(ui.id_generator());
@@ -286,8 +289,7 @@ impl CharSelectionUi {
             character_name: "Character Name".to_string(),
             character_body: HumanoidBody::random(), 
             character_weapon: Weapon::Sword,   
-            body_type: BodyType::Male,        
-            eye_color_brightness: 0.5,
+            body_type: BodyType::Male, 
         }
     }
 
@@ -477,7 +479,10 @@ impl CharSelectionUi {
             
             
         }
-        // Character_Creation
+       
+       
+        // Character_Creation //////////////////////////////////////////////////////////////////////
+
         else {
             // Back Button
             if Button::image(self.imgs.button)
@@ -567,14 +572,14 @@ impl CharSelectionUi {
                 .font_id(self.fonts.metamorph)
                 .color(TEXT_COLOR)
                 .set(self.ids.bodyrace_text, ui_widgets);
-                // for alignment
-                Rectangle::fill_with([146.0, 486.0], color::TRANSPARENT)
+                // Alignment
+                Rectangle::fill_with([136.0, 68.0], color::TRANSPARENT)
                     .mid_top_with_margin_on(self.ids.creation_alignment, 60.0)
-                    .set(self.ids.creation_buttons_alignment, ui_widgets);
+                    .set(self.ids.creation_buttons_alignment_1, ui_widgets);
                 // Male
                 Image::new(self.imgs.male)
                     .w_h(68.0, 68.0)
-                    .top_left_with_margins_on(self.ids.creation_buttons_alignment, 0.0, 0.0)
+                    .top_left_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.male, ui_widgets);
                 if Button::image(if let BodyType::Male = self.character_body.body_type {
                     self.imgs.icon_border_pressed
@@ -592,7 +597,7 @@ impl CharSelectionUi {
                 // Female
                 Image::new(self.imgs.female)
                     .w_h(68.0, 68.0)
-                    .top_right_with_margins_on(self.ids.creation_buttons_alignment, 0.0, 0.0)
+                    .top_right_with_margins_on(self.ids.creation_buttons_alignment_1, 0.0, 0.0)
                     .set(self.ids.female, ui_widgets);
                 if Button::image(if let BodyType::Female = self.character_body.body_type {
                     self.imgs.icon_border_pressed
@@ -606,19 +611,21 @@ impl CharSelectionUi {
                 .was_clicked()
                 {
                     self.character_body.body_type = BodyType::Female;
-                }
-                // for alignment
-                Rectangle::fill_with([68.0, 458.0], color::TRANSPARENT)
-                    .bottom_left_with_margins_on(self.ids.body_type_bg, 78.0, 0.0)
-                    .set(self.ids.races_bg, ui_widgets);                
+                }     
+
+                // Alignment for Races and Weapons
+                 Rectangle::fill_with([260.0, 180.0], color::RED)
+                    .down_from(self.ids.creation_alignment, 30.0)
+                    .set(self.ids.creation_buttons_alignment_2, ui_widgets);         
+
                 // Human
                 Image::new(if let BodyType::Male = self.character_body.body_type {
                     self.imgs.human_m
                 } else {
                     self.imgs.human_f
                 })
-                .w_h(68.0, 68.0)
-                .down_from(self.ids.male, 10.0)
+                .w_h(60.0, 60.0)
+                .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                 .set(self.ids.human, ui_widgets);
                 if Button::image(if let Race::Human = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -640,8 +647,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.orc_f
                 })
-                .w_h(68.0, 68.0)
-                .down_from(self.ids.human, 1.0)
+                .w_h(60.0, 60.0)
+                .right_from(self.ids.human, 0.0)
                 .set(self.ids.orc, ui_widgets);
                 if Button::image(if let Race::Orc = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -662,8 +669,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.dwarf_f
                 })
-                .w_h(68.0, 68.0)
-                .down_from(self.ids.orc, 1.0)
+                .w_h(60.0, 60.0)
+                .right_from(self.ids.orc, 0.0)
                 .set(self.ids.dwarf, ui_widgets);
                 if Button::image(if let Race::Dwarf = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -684,8 +691,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.elf_f
                 })
-                .w_h(68.0, 68.0)
-                .down_from(self.ids.dwarf, 1.0)
+                .w_h(60.0, 60.0)
+                .down_from(self.ids.human, 1.0)
                 .set(self.ids.elf, ui_widgets);
                 if Button::image(if let Race::Elf = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -706,8 +713,8 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.undead_f
                 })
-                .w_h(68.0, 68.0)
-                .down_from(self.ids.elf, 1.0)
+                .w_h(60.0, 60.0)
+                .right_from(self.ids.elf, 0.0)
                 .set(self.ids.undead, ui_widgets);
                 if Button::image(if let Race::Undead = self.character_body.race {
                     self.imgs.icon_border_pressed
@@ -728,14 +735,14 @@ impl CharSelectionUi {
                 } else {
                     self.imgs.danari_f
                 })
-                .down_from(self.ids.undead, 1.0)
+                .right_from(self.ids.undead, 0.0)
                 .set(self.ids.danari, ui_widgets);
                 if Button::image(if let Race::Danari = self.character_body.race {
                     self.imgs.icon_border_pressed
                 } else {
                     self.imgs.icon_border
                 })
-                .w_h(68.0, 68.0)
+                .w_h(60.0, 60.0)
                 .middle_of(self.ids.danari)
                 .hover_image(self.imgs.icon_border_mo)
                 .press_image(self.imgs.icon_border_press)
@@ -745,72 +752,11 @@ impl CharSelectionUi {
                     self.character_body.race = Race::Danari;
                 }
 
-                // Sword
-
-                Image::new(self.imgs.sword)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.female, 10.0)
-                    .set(self.ids.sword, ui_widgets);
-                if Button::image(if let Weapon::Sword = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.sword)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.sword_button, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Sword;
-                }
-
-
-                // Daggers
-
-                Image::new(self.imgs.daggers)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.sword, 1.0)
-                    .set(self.ids.daggers, ui_widgets);
-                if Button::image(if let Weapon::Daggers = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.daggers)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.daggers_button, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Daggers;
-                }
-
-                // Axe
-
-                Image::new(self.imgs.axe)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.daggers, 1.0)
-                    .set(self.ids.axe, ui_widgets);
-                if Button::image(if let Weapon::Axe = self.character_body.weapon {
-                    self.imgs.icon_border_pressed
-                } else {
-                    self.imgs.icon_border
-                })
-                .middle_of(self.ids.axe)
-                .hover_image(self.imgs.icon_border_mo)
-                .press_image(self.imgs.icon_border_press)
-                .set(self.ids.axe_button, ui_widgets)
-                .was_clicked()
-                {
-                    self.character_body.weapon = Weapon::Axe;
-                }
-
                 // Hammer
 
                  Image::new(self.imgs.hammer)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.axe, 1.0)
+                    .w_h(60.0, 60.0)
+                    .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                     .set(self.ids.hammer, ui_widgets);
                 if Button::image(if let Weapon::Hammer = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -829,8 +775,8 @@ impl CharSelectionUi {
                 // Bow
 
                  Image::new(self.imgs.bow)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.hammer, 1.0)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.hammer, 0.0)
                     .set(self.ids.bow, ui_widgets);
                 if Button::image(if let Weapon::Bow = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -845,12 +791,11 @@ impl CharSelectionUi {
                 {
                     self.character_body.weapon = Weapon::Bow;
                 }
-
                 // Staff
 
                  Image::new(self.imgs.staff)
-                    .w_h(68.0, 68.0)
-                    .down_from(self.ids.bow, 1.0)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.bow, 0.0)
                     .set(self.ids.staff, ui_widgets);
                 if Button::image(if let Weapon::Staff = self.character_body.weapon {
                     self.imgs.icon_border_pressed
@@ -865,11 +810,67 @@ impl CharSelectionUi {
                 {
                     self.character_body.weapon = Weapon::Staff;
                 }
-            
+                // Sword
+
+                Image::new(self.imgs.sword)
+                    .w_h(60.0, 60.0)
+                    .up_from(self.ids.axe, 0.0)
+                    .set(self.ids.sword, ui_widgets);
+                if Button::image(if let Weapon::Sword = self.character_body.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.sword)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.sword_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.character_body.weapon = Weapon::Sword;
+                }
+
+                // Daggers
+                Image::new(self.imgs.daggers)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.sword, 0.0)
+                    .set(self.ids.daggers, ui_widgets);
+                if Button::image(if let Weapon::Daggers = self.character_body.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.daggers)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.daggers_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.character_body.weapon = Weapon::Daggers;
+                }
+
+                // Axe
+                Image::new(self.imgs.axe)
+                    .w_h(60.0, 60.0)
+                    .right_from(self.ids.daggers, 0.0)
+                    .set(self.ids.axe, ui_widgets);
+                if Button::image(if let Weapon::Axe = self.character_body.weapon {
+                    self.imgs.icon_border_pressed
+                } else {
+                    self.imgs.icon_border
+                })
+                .middle_of(self.ids.axe)
+                .hover_image(self.imgs.icon_border_mo)
+                .press_image(self.imgs.icon_border_press)
+                .set(self.ids.axe_button, ui_widgets)
+                .was_clicked()
+                {
+                    self.character_body.weapon = Weapon::Axe;
+                }       
                 //Divider
                 Image::new(self.imgs.divider)
                     .w_h(300.0, 6.0)
-                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment, -36.0)
+                    .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_2, -36.0)
                     .set(self.ids.divider, ui_widgets);                
                 
                 // Facial Features
@@ -879,6 +880,20 @@ impl CharSelectionUi {
                     .font_id(self.fonts.metamorph)
                     .color(TEXT_COLOR)
                     .set(self.ids.facialfeatures_text, ui_widgets);
+        
+                // Sliders
+
+                // Hair Style
+
+                // Skin
+
+                // Eye Brows
+
+                // Eye Color
+
+                // Acessories
+
+
 
 
             
