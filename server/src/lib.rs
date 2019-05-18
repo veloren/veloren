@@ -30,6 +30,8 @@ use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
+const DEFAULT_WORLD_SEED: u32 = 1337;
+
 pub enum Event {
     ClientConnected { entity: EcsEntity },
     ClientDisconnected { entity: EcsEntity },
@@ -66,7 +68,7 @@ impl Server {
 
         let mut this = Self {
             state,
-            world: World::new(),
+            world: World::generate(DEFAULT_WORLD_SEED),
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -183,6 +185,9 @@ impl Server {
 
         // Tick the client's LocalState (step 3).
         self.state.tick(dt);
+
+        // Tick the world
+        self.world.tick(dt);
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
