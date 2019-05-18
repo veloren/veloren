@@ -97,8 +97,6 @@ fn main() {
     ])
     .unwrap();
 
-    let audio = AudioFrontend::new();
-
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
@@ -164,7 +162,7 @@ fn main() {
     let mut global_state = GlobalState {
         settings,
         window,
-        audio,
+        audio: AudioFrontend::new(),
     };
 
     // Set up the initial play state.
