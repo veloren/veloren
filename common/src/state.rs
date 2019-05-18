@@ -2,11 +2,10 @@
 pub use sphynx::Uid;
 
 use crate::{
-    comp,
+    comp, inventory,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{TerrainChunk, TerrainMap},
-    inventory,
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};

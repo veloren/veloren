@@ -1,7 +1,7 @@
+use crate::inventory::Inventory;
 use rand::prelude::*;
 use specs::{Component, FlaggedStorage, VecStorage};
 use vek::*;
-use crate::inventory::Inventory;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Race {

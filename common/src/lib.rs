@@ -15,6 +15,7 @@ pub mod assets;
 pub mod clock;
 pub mod comp;
 pub mod figure;
+pub mod inventory;
 pub mod msg;
 pub mod ray;
 pub mod state;
@@ -23,7 +24,6 @@ pub mod terrain;
 pub mod util;
 pub mod vol;
 pub mod volumes;
-pub mod inventory;
 
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client.
 /// # Examples

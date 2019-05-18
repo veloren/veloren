@@ -7,9 +7,9 @@ pub mod item;
 use item::Item;
 use std::mem::swap;
 
- #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
-    pub slots: Vec<Option<Item>>
+    pub slots: Vec<Option<Item>>,
 }
 
 impl Inventory {
@@ -27,9 +27,7 @@ impl Inventory {
     // Insert an item to a slot if its empty
     pub fn insert(&mut self, cell: usize, item: Item) -> Option<Item> {
         //TODO: Check if a slot is empty first.
-        self.slots
-          .get_mut(cell)
-          .and_then(|cell| cell.replace(item))
+        self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }
 
     // Remove an item from the slot
