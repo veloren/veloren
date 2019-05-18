@@ -90,6 +90,9 @@ impl PlayState for CharSelectionState {
                 }
             }
 
+            // Mantain global state
+            global_state.maintain();
+
             // Maintain the scene.
             self.scene
                 .maintain(global_state.window.renderer_mut(), &self.client.borrow());
@@ -118,9 +121,6 @@ impl PlayState for CharSelectionState {
                 .window
                 .swap_buffers()
                 .expect("Failed to swap window buffers");
-
-            // Mantain global state
-            global_state.maintain();
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
