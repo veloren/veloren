@@ -119,6 +119,9 @@ impl PlayState for CharSelectionState {
                 .swap_buffers()
                 .expect("Failed to swap window buffers");
 
+            // Mantain global state
+            global_state.maintain();
+
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
         }
