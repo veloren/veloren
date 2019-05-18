@@ -1,4 +1,3 @@
-#![feature(copysign)]
 // Library
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
