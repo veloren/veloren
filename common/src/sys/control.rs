@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, Pos, Vel},
-        Animation, ActionState, Control,
+        ActionState, Animation, Control,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -96,13 +96,14 @@ impl<'a> System<'a> for Sys {
 
             let last_action_state = action_states.get_mut(entity).cloned();
 
-            let (changed, time) = if let Some((true, time)) =
-                last_action_state.map(|last| (last.animation == animation, last.time))
-            {
-                (false, time)
-            } else {
-                (true, 0.0)
-            };
+            let changed = last_action_state.map_or(true, |last| last.changed);
+            let (changed, time) = last_action_state.map_or((true, 0.0), |last| {
+                if last.animation == animation {
+                    (changed, last.time)
+                } else {
+                    (true, 0.0)
+                }
+            });
 
             let attack_started = last_action_state.map_or(false, |last| last.attack_started);
 

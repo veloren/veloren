@@ -365,7 +365,7 @@ impl Server {
                         ClientMsg::PlayerActionState(action_state) => {
                             match client.client_state {
                                 ClientState::Character => {
-                                    state.write_component(entity, action_state)
+                                    state.write_component(entity, dbg!(action_state))
                                 }
                                 // Only characters can send action states
                                 _ => client.error_state(RequestStateError::Impossible),

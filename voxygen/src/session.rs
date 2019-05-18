@@ -9,9 +9,9 @@ use crate::{
 };
 use client::{self, Client, Input, InputEvent};
 use common::clock::Clock;
+use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
-use glutin::MouseButton;
 
 const FPS: u64 = 60;
 
@@ -139,7 +139,9 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     // Attack key pressed
-                    Event::Click(MouseButton::Left, state) => self.input_events.push(InputEvent::AttackStarted),
+                    Event::Click(MouseButton::Left, state) => {
+                        self.input_events.push(InputEvent::AttackStarted)
+                    }
                     // Movement key pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) => self.key_state.down = true,

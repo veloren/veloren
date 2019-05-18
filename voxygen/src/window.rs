@@ -3,9 +3,9 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use glutin::{ElementState, MouseButton};
 use std::collections::HashMap;
 use vek::*;
-use glutin::{ElementState, MouseButton};
 
 pub struct Window {
     events_loop: glutin::EventsLoop,
@@ -109,9 +109,9 @@ impl Window {
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                    glutin::WindowEvent::MouseInput {
-                        button, state, ..
-                    } if cursor_grabbed && state == ElementState::Pressed => {
+                    glutin::WindowEvent::MouseInput { button, state, .. }
+                        if cursor_grabbed && state == ElementState::Pressed =>
+                    {
                         events.push(Event::Click(button, state))
                     }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode

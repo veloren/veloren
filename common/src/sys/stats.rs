@@ -4,7 +4,7 @@ use vek::*;
 
 // Crate
 use crate::{
-    comp::{phys::Pos, Stats, ActionState, Control},
+    comp::{phys::Pos, ActionState, Control, Stats},
     state::DeltaTime,
 };
 
@@ -12,10 +12,7 @@ use crate::{
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        Entities<'a>,
-        WriteStorage<'a, Stats>,
-    );
+    type SystemData = (Entities<'a>, WriteStorage<'a, Stats>);
 
     fn run(&mut self, (entities, mut stats): Self::SystemData) {
         for (entity, mut stat) in (&entities, &mut stats).join() {

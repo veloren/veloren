@@ -95,7 +95,8 @@ impl Client {
     }
 
     pub fn request_character(&mut self, name: String, body: comp::Body) {
-        self.postbox.send_message(ClientMsg::Character { name, body, });
+        self.postbox
+            .send_message(ClientMsg::Character { name, body });
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
@@ -171,7 +172,14 @@ impl Client {
         for event in input.events {
             match event {
                 InputEvent::AttackStarted => {
-                    self.state.ecs_mut().write_storage::<comp::ActionState>().get_mut(self.entity).map(|s| s.attack_started = true);
+                    self.state
+                        .ecs_mut()
+                        .write_storage::<comp::ActionState>()
+                        .get_mut(self.entity)
+                        .map(|s| {
+                            s.attack_started = true;
+                            s.changed = true;
+                        });
                 }
                 _ => {}
             }
