@@ -2,7 +2,8 @@
     euclidean_division,
     duration_float,
     trait_alias,
-    bind_by_move_pattern_guards
+    bind_by_move_pattern_guards,
+    option_flattening
 )]
 
 #[macro_use]
@@ -22,6 +23,7 @@ pub mod terrain;
 pub mod util;
 pub mod vol;
 pub mod volumes;
+pub mod inventory;
 
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client.
 /// # Examples
