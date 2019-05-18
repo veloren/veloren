@@ -5,7 +5,15 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
+use crate::{
+    render::Renderer,
+    ui::{
+        self,
+        img_ids::{ImageGraphic, VoxelGraphic},
+        ImageSlider, ScaleMode, Ui,
+    },
+    window::Window,
+};
 widget_ids! {
     struct Ids {
 
@@ -34,6 +42,8 @@ widget_ids! {
         sound,
         test,
         video,
+        vd_slider,
+        vd_slider_text,
     }
 }
 
@@ -450,7 +460,28 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             state.update(|s| s.settings_tab = SettingsTab::Video);
         }
+        // Contents
+        if let SettingsTab::Video = state.settings_tab { 
+           Text::new("Viewdistance")
+            .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
+            .font_size(14)
+            .font_id(self.fonts.opensans)
+            .color(TEXT_COLOR)
+            .set(state.ids.vd_slider_text, ui);
 
+        if let Some(new_val) = ImageSlider::continuous(5.0,
+                    5.0,
+                    25.0,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,)
+            .w_h(208.0, 22.0)
+            .down_from(state.ids.vd_slider_text, 10.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.vd_slider, ui)
+            {}
+        }
         // 5 Sound
         if Button::image(if let SettingsTab::Sound = state.settings_tab {
             self.imgs.settings_button_pressed
