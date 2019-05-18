@@ -240,11 +240,7 @@ pub struct CharSelectionUi {
 impl CharSelectionUi {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
-<<<<<<< HEAD
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-=======
-        // TODO: adjust/remove this, mid_right_of now it is used to demonstrate window scaling functionality
->>>>>>> Update
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
         // Generate ids
         let ids = Ids::new(ui.id_generator());
