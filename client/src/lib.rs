@@ -168,6 +168,15 @@ impl Client {
             },
         );
 
+        for event in input.events {
+            match event {
+                InputEvent::AttackStarted => {
+                    self.state.ecs_mut().write_storage::<comp::ActionState>().get_mut(self.entity).map(|s| s.attack_started = true);
+                }
+                _ => {}
+            }
+        }
+
         // Tick the client's LocalState (step 3)
         self.state.tick(dt);
 
