@@ -570,8 +570,8 @@ impl Ui {
         let mut locals = &self.interface_locals;
         for draw_command in self.draw_commands.iter() {
             match draw_command {
-                DrawCommand::Scissor(scissor) => {
-                    scissor_to_render = *scissor;
+                DrawCommand::Scissor(new_scissor) => {
+                    scissor = *new_scissor;
                 }
                 DrawCommand::WorldPos(ref pos) => {
                     locals = pos.as_ref().unwrap_or(&self.interface_locals);

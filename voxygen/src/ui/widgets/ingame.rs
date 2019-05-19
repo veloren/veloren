@@ -223,7 +223,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
     type Style = Style;
     type Event = W::Event;
 
-    fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: W::init_ids(id_gen),
             parameters: self.parameters,

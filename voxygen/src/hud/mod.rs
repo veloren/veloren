@@ -48,7 +48,7 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 widget_ids! {
     struct Ids {
         // Character Names
-        name_tags[],
+        ingame_elements[],
 
         // Test
         temp,
@@ -268,29 +268,42 @@ impl Hud {
             return events;
         }
 
-        // Nametags
-        let ecs = client.state().ecs();
+        // Nametags and healthbars
         {
-            let actor_read_storage = ecs.read_storage::<comp::Actor>();
-            let pos_read_storage = ecs.read_storage::<comp::phys::Pos>();
-            let num = (&actor_read_storage, &pos_read_storage).join().count();
-            self.ids
-                .name_tags
-                .resize(num, &mut ui_widgets.widget_id_generator());
-            for (i, (name, pos)) in (&actor_read_storage, &pos_read_storage)
+            let ecs = client.state().ecs();
+            let actor = ecs.read_storage::<comp::Actor>();
+            let pos = ecs.read_storage::<comp::phys::Pos>();
+            let stats = ecs.read_storage::<comp::stats::Stats>();
+            let mut id_walker = self.ids.ingame_elements.walk();
+            for (pos, name) in (&pos, &actor)
                 .join()
-                .map(|(actor, pos)| match actor {
-                    comp::Actor::Character { name, .. } => (name, pos.0),
+                .filter_map(|(pos, actor)| match actor {
+                    comp::Actor::Character { name, .. } => Some((pos.0, name)),
+                    _ => None,
                 })
-                .enumerate()
             {
+                let id = id_walker.next(&mut self.ids.ingame_elements, &mut ui_widgets.widget_id_generator());
                 Text::new(&name)
                     .font_size(20)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
-                    .set(self.ids.name_tags[i], ui_widgets);
+                    .set(id, ui_widgets);
+            }
+            for (pos, hp) in (&pos, &stats).join().map(|(pos, stats)| (pos.0, stats.hp)) {
+                let id = id_walker.next(&mut self.ids.ingame_elements, &mut ui_widgets.widget_id_generator());
+                (
+                    // Healh Bar
+                    Rectangle::fill_with([120.0, 12.0], color::BLACK)
+                        .x_y(0.0, -25.0),
+                    // Filling
+                    Rectangle::fill_with([114.0 * (hp.current as f64 / hp.maximum as f64), 6.0], HP_COLOR)
+                        .x_y(0.0, -25.0),
+                )
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .resolution(100.0)
+                    .set(id, ui_widgets);
             }
         }
         // test
