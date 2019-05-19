@@ -12,7 +12,11 @@ mod font_ids;
 pub use event::Event;
 pub use graphic::Graphic;
 pub use scale::ScaleMode;
-pub use widgets::{image_slider::ImageSlider, ingame::Ingame, toggle_button::ToggleButton};
+pub use widgets::{
+    image_slider::ImageSlider,
+    ingame::{Ingame, Ingameable},
+    toggle_button::ToggleButton,
+};
 
 use crate::{
     render::{
@@ -294,8 +298,12 @@ impl Ui {
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
                 }
-                Some((n, res)) => in_world = Some((n - 1, res)),
-                None => (),
+                Some((n, res)) => match kind {
+                    // Other types don't need to be drawn in the game
+                    PrimitiveKind::Other(_) => (),
+                    _ => in_world = Some((n - 1, res)),
+                },
+                None => {}
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
@@ -500,11 +508,11 @@ impl Ui {
                 PrimitiveKind::Other(container) => {
                     if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
                         // Retrieve world position
-                        let (pos, res) = container
+                        let parameters = container
                             .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
                             .unwrap()
                             .state
-                            .pos_res();
+                            .parameters;
                         // Finish current state
                         self.draw_commands.push(match current_state {
                             State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
@@ -513,10 +521,10 @@ impl Ui {
                         start = mesh.vertices().len();
                         // Push new position command
                         self.draw_commands.push(DrawCommand::WorldPos(Some(
-                            renderer.create_consts(&[pos.into()]).unwrap(),
+                            renderer.create_consts(&[parameters.pos.into()]).unwrap(),
                         )));
 
-                        in_world = Some((1, res));
+                        in_world = Some((parameters.num, parameters.res));
                         p_scale_factor = 1.0;
                     }
                 }
