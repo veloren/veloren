@@ -162,8 +162,7 @@ impl Server {
         state.write_component(entity, comp::Actions::new());
 
         // Tell the client its request was successful.
-        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
-        client.client_state = ClientState::Character;
+        client.allow_state(ClientState::Character);
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
@@ -584,16 +583,41 @@ impl Server {
             .collect::<Vec<EcsEntity>>();
 
         for entity in todo_kill {
-            self.state.ecs_mut().write_storage::<comp::Dying>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::Actor>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::Stats>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::phys::Pos>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::phys::Vel>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::phys::Dir>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::AnimationInfo>().remove(entity);
-            self.state.ecs_mut().write_storage::<comp::Actions>().remove(entity);
-            self.clients
-                .notify(entity, ServerMsg::ForceState(ClientState::Registered));
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Dying>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Actor>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Stats>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::phys::Pos>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::phys::Vel>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::phys::Dir>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::AnimationInfo>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Actions>()
+                .remove(entity);
+            if let Some(client) = self.clients.get_mut(&entity) {
+                client.force_state(ClientState::Registered);
+            }
         }
 
         // Remove all force flags.
