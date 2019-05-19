@@ -193,6 +193,9 @@ impl PlayState for SessionState {
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance)
                     }
+                    HudEvent::AdjustVolume(volume) => {
+                        global_state.audio.set_volume(volume);
+                    }
                 }
             }
 

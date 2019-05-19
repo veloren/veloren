@@ -1,11 +1,10 @@
-use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
-use crate::{hud::Show, ui::ToggleButton};
+use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use crate::{
     render::Renderer,
     ui::{
         self,
         img_ids::{ImageGraphic, VoxelGraphic},
-        ImageSlider, ScaleMode, Ui,
+        ImageSlider, ScaleMode, ToggleButton, Ui,
     },
     window::Window,
 };
@@ -44,6 +43,8 @@ widget_ids! {
         video,
         vd_slider,
         vd_slider_text,
+        audio_volume_slider,
+        audio_volume_text,
     }
 }
 
@@ -63,18 +64,26 @@ pub struct SettingsWindow<'a> {
     fonts: &'a Fonts,
 
     current_vd: u32,
+    current_volume: f32,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, current_vd: u32) -> Self {
+    pub fn new(
+        show: &'a Show,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        current_vd: u32,
+        current_volume: f32,
+    ) -> Self {
         Self {
             show,
             imgs,
             fonts,
             current_vd,
+            current_volume,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -92,6 +101,7 @@ pub enum Event {
     ToggleDebug,
     Close,
     AdjustViewDistance(u32),
+    AdjustVolume(f32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -312,6 +322,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             Toggle Help Window\n\
             Toggle Interface\n\
             Toggle FPS and Debug Info\n\
+            Take Screenshot\n\
+            Toggle Fullscreen\n\
             \n\
             \n\
             Move Forward\n\
@@ -378,6 +390,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                  F1\n\
                  F2\n\
                  F3\n\
+                 F4\n\
+                 F11\n\
                  \n\
                  \n\
                  W\n\
@@ -489,7 +503,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.vd_slider, ui)
             {
-                events.push(Event::AdjustViewDistance(new_val as u32));
+                events.push(Event::AdjustViewDistance(new_val));
             }
         }
         // 5 Sound
@@ -518,6 +532,32 @@ impl<'a> Widget for SettingsWindow<'a> {
         .was_clicked()
         {
             state.update(|s| s.settings_tab = SettingsTab::Sound);
+        }
+        // Contents
+        if let SettingsTab::Sound = state.settings_tab {
+            Text::new("Volume")
+                .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.audio_volume_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                self.current_volume,
+                0.0,
+                1.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.audio_volume_text, 10.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.audio_volume_slider, ui)
+            {
+                events.push(Event::AdjustVolume(new_val));
+            }
         }
 
         events
