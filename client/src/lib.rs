@@ -35,6 +35,7 @@ pub enum Event {
 
 pub struct Client {
     client_state: Option<ClientState>,
+    pending_state_request: bool,
     thread_pool: ThreadPool,
 
     last_ping: f64,
@@ -79,6 +80,7 @@ impl Client {
 
         Ok(Self {
             client_state,
+            pending_state_request: false,
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
@@ -105,6 +107,7 @@ impl Client {
     pub fn request_character(&mut self, name: String, body: comp::Body) {
         self.postbox
             .send_message(ClientMsg::Character { name, body });
+        self.pending_state_request = true;
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
@@ -137,6 +140,17 @@ impl Client {
     #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
         self.entity
+    }
+
+    /// Get the client state
+    #[allow(dead_code)]
+    pub fn get_client_state(&self) -> Option<ClientState> {
+        self.client_state
+    }
+
+    /// Get the pending state request bool
+    pub fn is_request_pending(&self) -> bool {
+        self.pending_state_request
     }
 
     /// Get the current tick number.
@@ -372,12 +386,14 @@ impl Client {
                     }
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = Some(state);
+                        self.pending_state_request = false;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
                         self.client_state = Some(state);
+                        self.pending_state_request = false;
                     }
                     ServerMsg::ForceState(state) => {
-                        self.client_state = Some(state);
+                        self.client_state = Some(dbg!(state));
                     }
                     ServerMsg::Disconnect => {
                         self.client_state = None;

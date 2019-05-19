@@ -78,7 +78,7 @@ impl PlayState for CharSelectionState {
                             self.char_selection_ui.character_name.clone(),
                             comp::Body::Humanoid(self.char_selection_ui.character_body),
                         );
-                        return PlayStateResult::Switch(Box::new(SessionState::new(
+                        return PlayStateResult::Push(Box::new(SessionState::new(
                             &mut global_state.window,
                             self.client.clone(),
                             global_state.settings.clone(),

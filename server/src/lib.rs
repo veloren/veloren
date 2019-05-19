@@ -586,6 +586,8 @@ impl Server {
 
         for entity in todo_remove {
             self.state.ecs_mut().delete_entity_synced(entity);
+            self.clients
+                .notify(entity, ServerMsg::ForceState(ClientState::Registered));
         }
 
         // Remove all force flags.
