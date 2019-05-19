@@ -69,8 +69,8 @@ impl FigureModelCache {
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw(body.draw)),
-                                    None,
-                                    None,
+                                    Some(Self::load_l_weapon(body.hand)),
+                                    Some(Self::load_r_weapon(body.hand)),
                                     None,
                                     None,
                                 ],
@@ -208,7 +208,7 @@ impl FigureModelCache {
                 // TODO actually match against other weapons and set the right model
                 _ => "sword.vox",
             },
-            Vec3::new(0.0, 0.0, -4.0),
+            Vec3::new(-6.5, -1.5, -16.0),
         )
     }
 
@@ -217,7 +217,7 @@ impl FigureModelCache {
             match shoulder {
                 Shoulder::Default => "shoulder_l.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(-2.5, 0.0, 0.0),
         )
     }
 
@@ -226,9 +226,10 @@ impl FigureModelCache {
             match shoulder {
                 Shoulder::Default => "shoulder_r.vox",
             },
-            Vec3::new(2.5, 0.0, 0.0),
+            Vec3::new(-2.5, 0.0, 0.0),
         )
     }
+
     fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match draw {
@@ -237,6 +238,26 @@ impl FigureModelCache {
             Vec3::new(-26.0, -26.0, -5.0),
         )
     }
+    
+    fn load_l_weapon(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hand {
+                Hand::Default => "hand.vox",
+            },
+            Vec3::new(-2.0, -2.5, -2.0),
+        )
+    }
+    
+    fn load_r_weapon(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hand {
+                Hand::Default => "hand.vox",
+            },
+            Vec3::new(-2.0, -2.5, -2.0),
+        )
+    }
+
+
 
     fn load_pighead(pighead: Pighead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
@@ -345,6 +366,11 @@ impl FigureMgr {
                                 action_state.time,
                             ),
                             comp::Animation::Jump => character::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                action_state.time,
+                            ),
+                            comp::Animation::Attack => character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 action_state.time,

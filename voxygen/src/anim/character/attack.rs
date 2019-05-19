@@ -10,9 +10,9 @@ use super::{super::Animation, CharacterSkeleton, SCALE};
 pub struct Input {
     pub attack: bool,
 }
-pub struct IdleAnimation;
+pub struct AttackAnimation;
 
-impl Animation for IdleAnimation {
+impl Animation for AttackAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -23,13 +23,15 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 12.0).sin();
+        let wave = (anim_time as f32 * 2.0).sin();
         let wavecos = (anim_time as f32 * 12.0).cos();
         let wave_slow = (anim_time as f32 * 6.0 + PI).sin();
         let wavecos_slow = (anim_time as f32 * 6.0 + PI).cos();
         let waveultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let waveultracos_slow = (anim_time as f32 * 1.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
+        let wave_stop = (anim_time as f32 * 0.5).min(PI / 2.0).sin();
+
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -43,19 +45,19 @@ impl Animation for IdleAnimation {
                 .sin()
                 * 0.25,
         );
-        next.head.offset = Vec3::new(5.5, 2.0, 11.0 + waveultra_slow * 0.3);
+        next.head.offset = Vec3::new(5.5, 2.0, 11.0);
         next.head.ori = Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(5.5, 0.0, 7.0 + waveultra_slow * 0.3);
+        next.chest.offset = Vec3::new(5.5, 0.0, 7.0);
         next.chest.ori = Quaternion::rotation_x(0.0);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(5.5, 0.0, 5.0 + waveultra_slow * 0.3);
+        next.belt.offset = Vec3::new(5.5, 0.0, 5.0);
         next.belt.ori = Quaternion::rotation_x(0.0);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(5.5, 0.0, 2.0 + waveultra_slow * 0.3);
+        next.shorts.offset = Vec3::new(5.5, 0.0, 2.0);
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
@@ -65,15 +67,15 @@ impl Animation for IdleAnimation {
             11.5 + waveultra_slow * 0.5,
         );
 
-        next.l_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);
+        next.l_hand.ori = Quaternion::rotation_x(0.0);
         next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
             9.0,
-            -2.0 + waveultracos_slow * 0.15,
-            11.5 + waveultra_slow * 0.5,
+            -2.0,
+            11.5,
         );
-        next.r_hand.ori = Quaternion::rotation_x(0.0 + waveultra_slow * 0.06);
+        next.r_hand.ori = Quaternion::rotation_x(0.0);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.3, -0.1, 8.0);
@@ -84,8 +86,8 @@ impl Animation for IdleAnimation {
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-8.0, -5.5, 15.0);
-        next.weapon.ori = Quaternion::rotation_y(2.5);
+        next.weapon.offset = Vec3::new(0.0, 0.0, 35.0);
+        next.weapon.ori = Quaternion::rotation_z(wave * 1.0);
         next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, -3.0, 2.5);
@@ -96,21 +98,22 @@ impl Animation for IdleAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one();
 
-        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
+        next.draw.offset = Vec3::new(13.5, 0.0, 15.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
-        next.l_weapon.offset = Vec3::new(0.0, 0.0, 0.0);
-        //next.l_weapon.ori = Quaternion::rotation_y(2.5);
+        next.l_weapon.offset = Vec3::new(5.0, -2.5, -3.0);
+        next.l_weapon.ori =Quaternion::rotation_x(0.0);
         next.l_weapon.scale = Vec3::one();
 
-        next.r_weapon.offset = Vec3::new(0.0, 0.0, 0.0);
-        //next.r_weapon.ori = Quaternion::rotation_y(2.5);
+        next.r_weapon.offset = Vec3::new(5.0, -2.5, -8.0);
+        next.r_weapon.ori =Quaternion::rotation_x(0.0);
         next.r_weapon.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
+
         next
     }
 }
