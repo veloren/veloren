@@ -91,6 +91,7 @@ font_ids! {
 pub enum Event {
     SendMessage(String),
     AdjustViewDistance(u32),
+    AdjustVolume(f32),
     Logout,
     Quit,
 }
@@ -210,6 +211,7 @@ pub struct Hud {
     force_ungrab: bool,
     // TODO: move to settings
     current_vd: u32,
+    current_volume: f32,
 }
 
 impl Hud {
@@ -247,6 +249,7 @@ impl Hud {
             settings,
             force_ungrab: false,
             current_vd: 5,
+            current_volume: 0.5,
         }
     }
 
@@ -376,8 +379,14 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, self.current_vd)
-                .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(
+                &self.show,
+                &self.imgs,
+                &self.fonts,
+                self.current_vd,
+                self.current_volume,
+            )
+            .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::ToggleHelp => self.show.toggle_help(),
@@ -389,6 +398,10 @@ impl Hud {
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         self.current_vd = view_distance;
                         events.push(Event::AdjustViewDistance(view_distance));
+                    }
+                    settings_window::Event::AdjustVolume(volume) => {
+                        self.current_volume = volume;
+                        events.push(Event::AdjustVolume(volume));
                     }
                 }
             }
