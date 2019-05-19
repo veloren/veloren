@@ -73,7 +73,6 @@ impl Server {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
-        state.ecs_mut().register::<comp::phys::ForceUpdate>();
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 280.0)));
