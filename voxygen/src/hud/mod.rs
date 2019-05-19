@@ -25,7 +25,7 @@ use small_window::{SmallWindow, SmallWindowType};
 use crate::{
     render::{Consts, Globals, Renderer},
     settings::{ControlSettings, Settings},
-    ui::{Ingame, ScaleMode, Ui},
+    ui::{Ingame, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
@@ -284,27 +284,24 @@ impl Hud {
                 })
                 .enumerate()
             {
-                Ingame::from_primitive(
-                    pos + Vec3::new(0.0, 0.0, 3.0),
-                    Text::new(&name)
-                        .font_size(15)
-                        .color(Color::Rgba(1.0, 1.0, 1.0, 1.0)),
-                )
-                .resolution(50.0)
-                .set(self.ids.name_tags[i], ui_widgets);
+                Text::new(&name)
+                    .font_size(20)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .x_y(0.0, 0.0)
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .resolution(100.0)
+                    .set(self.ids.name_tags[i], ui_widgets);
             }
         }
         // test
-        Ingame::from_primitive(
-            [0.0, 25.0, 25.0].into(),
-            //Rectangle::fill_with([1.0, 1.0], Color::Rgba(0.2, 0.0, 0.4, 1.0)),
-            Text::new("Squarefection")
-                .font_size(20)
-                .color(TEXT_COLOR)
-                .font_id(self.fonts.opensans),
-        )
-        .resolution(40.0)
-        .set(self.ids.temp, ui_widgets);
+        Text::new("Squarefection")
+            .font_size(20)
+            .color(TEXT_COLOR)
+            .font_id(self.fonts.opensans)
+            .x_y(0.0, 0.0)
+            .position_ingame([0.0, 25.0, 25.0].into())
+            .resolution(40.0)
+            .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
         if self.show.debug {
