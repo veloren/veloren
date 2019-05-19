@@ -314,7 +314,7 @@ impl Renderer {
             memory::Typed,
         };
         type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
-        let mut download = self
+        let download = self
             .factory
             .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)
             .map_err(|err| RenderError::BufferCreationError(err))?;
