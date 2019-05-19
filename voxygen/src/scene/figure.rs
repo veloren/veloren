@@ -257,7 +257,7 @@ impl FigureModelCache {
             match hand {
                 Hand::Default => "figure/body/hand.vox",
             },
-            Vec3::new(0.0, -2.5, 0.0),
+            Vec3::new(-2.0, -2.5, 0.0),
         )
     }
 
@@ -266,7 +266,7 @@ impl FigureModelCache {
             match hand {
                 Hand::Default => "figure/body/hand.vox",
             },
-            Vec3::new(-2.0, -2.5, 0.0),
+            Vec3::new(-2.0, 2.5, 0.0),
         )
     }
 
