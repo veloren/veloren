@@ -47,13 +47,16 @@ impl World {
             * 1000.0)
         };
 
-        let offset_z = self.sim.get(chunk_pos.map(|e| e as u32))
+        let offset_z = if let Some(offset_z) = self.sim
+            .get(chunk_pos.map(|e| e as u32))
             .map(|chunk| chunk.alt as i32)
-            .unwrap_or(0);
+        {
+            offset_z as i32
+        } else {
+            return TerrainChunk::new(0, air, air, TerrainChunkMeta::void());
+        };
 
-        //get_offset(chunk_pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32));
-
-        let mut chunk = TerrainChunk::new(offset_z as i32, stone, air, TerrainChunkMeta::void());
+        let mut chunk = TerrainChunk::new(offset_z, stone, air, TerrainChunkMeta::void());
 
         for x in 0..TerrainChunkSize::SIZE.x as i32 {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
