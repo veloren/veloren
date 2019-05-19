@@ -80,6 +80,14 @@ impl Animation for RunAnimation {
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
+        next.l_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_hold.ori = Quaternion::rotation_x(0.0);
+        next.l_hold.scale = Vec3::one();
+
+        next.r_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_hold.ori = Quaternion::rotation_x(0.0);
+        next.r_hold.scale = Vec3::one();
+
         next
     }
 }
