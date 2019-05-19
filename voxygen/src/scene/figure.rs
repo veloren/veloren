@@ -358,6 +358,15 @@ impl FigureMgr {
         )
             .join()
         {
+            // Change in health as color!
+            let col = stats
+                .and_then(|stats| stats.hp.last_change)
+                .map(|(change_by, time)| {
+                    Rgba::broadcast(1.0)
+                        + Rgba::new(0.0, -1.0, -1.0, 0.0).map(|c| (c / (1.0 + 5.0 * time)) as f32)
+                })
+                .unwrap_or(Rgba::broadcast(1.0));
+
             match actor {
                 comp::Actor::Character { body, .. } => match body {
                     Body::Humanoid(body) => {
@@ -396,8 +405,7 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-
-                        state.update(renderer, pos.0, dir.0, Rgba::white());
+                        state.update(renderer, pos.0, dir.0, col);
                     }
                     Body::Quadruped(body) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
@@ -426,21 +434,6 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        state.update(renderer, pos.0, dir.0, col);
-
                         state.update(renderer, pos.0, dir.0, col);
                     }
                 },

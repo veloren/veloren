@@ -17,7 +17,6 @@ impl<'a> System<'a> for Sys {
     fn run(&mut self, (dt, mut animation_infos): Self::SystemData) {
         for (mut animation_info) in (&mut animation_infos).join() {
             animation_info.time += dt.0 as f64;
-            &animation_info.time;
         }
     }
 }
