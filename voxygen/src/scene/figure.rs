@@ -69,13 +69,8 @@ impl FigureModelCache {
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw(body.draw)),
-<<<<<<< HEAD
                                     Some(Self::load_left_equip(body.weapon)),
-                                    None,
-=======
-                                    Some(Self::load_left_hold(body.hand)),
-                                    Some(Self::load_right_hold(body.hand)),
->>>>>>> attack state
+                                    Some(Self::load_right_equip(body.hand)),
                                     None,
                                     None,
                                 ],
@@ -143,6 +138,7 @@ impl FigureModelCache {
         )
     }
 
+
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
@@ -154,6 +150,7 @@ impl FigureModelCache {
                 Chest::Orange => "armor/chest/chest_orange.vox",
             },
             Vec3::new(-6.0, -3.5, 0.0),
+
         )
     }
 
@@ -205,7 +202,7 @@ impl FigureModelCache {
                 Foot::Default => "figure/body/foot.vox",
                 Foot::Dark => "armor/foot/foot_dark.vox",
             },
-            Vec3::new(2.5, -3.5, -9.0),
+            Vec3::new(-2.5, -3.5, -9.0),
         )
     }
 
@@ -215,7 +212,7 @@ impl FigureModelCache {
                 Foot::Default => "figure/body/foot.vox",
                 Foot::Dark => "armor/foot/foot_dark.vox",
             },
-            Vec3::new(2.5, -3.5, -9.0),
+            Vec3::new(-2.5, -3.5, -9.0),
         )
     }
 
@@ -267,7 +264,6 @@ impl FigureModelCache {
             Vec3::new(-6.5, -1.5, -5.0),
         )
     }
-
     fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
