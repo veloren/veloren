@@ -219,7 +219,7 @@ impl Window {
                 std::thread::spawn(move || {
                     use std::{path::PathBuf, time::SystemTime};
                     // Check if folder exists and create it if it does not
-                    let mut path = std::path::PathBuf::from("./screenshots");
+                    let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir(&path) {
                             log::error!("Coudn't create folder for screenshot: {:?}", err);
