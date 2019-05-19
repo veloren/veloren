@@ -513,7 +513,7 @@ impl Server {
             .join()
         {
             // Animation
-            client.postbox.send_message(ServerMsg::EntityAnimation {
+            client.notify(ServerMsg::EntityAnimation {
                 entity: uid.into(),
                 animation_info: animation_info,
             });
