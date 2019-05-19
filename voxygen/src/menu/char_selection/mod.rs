@@ -8,7 +8,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, msg::ClientMsg};
+use common::{clock::Clock, comp, msg::ClientMsg, msg::ClientState};
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
@@ -46,7 +46,9 @@ impl PlayState for CharSelectionState {
         // Set up an fps clock.
         let mut clock = Clock::new();
 
-        loop {
+        while self.client.borrow().is_request_pending()
+            || self.client.borrow().get_client_state() == Some(ClientState::Registered)
+        {
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 match event {
@@ -122,6 +124,8 @@ impl PlayState for CharSelectionState {
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
         }
+
+        PlayStateResult::Pop
     }
 
     fn name(&self) -> &'static str {
