@@ -5,13 +5,13 @@ use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 pub struct Health {
     pub current: u32,
     pub maximum: u32,
-    pub last_change: Option<(i32, Time)>,
+    pub last_change: Option<(i32, f64)>,
 }
 
 impl Health {
-    pub fn change_by(&mut self, amount: i32, current_time: Time) {
+    pub fn change_by(&mut self, amount: i32) {
         self.current = (self.current as i32 + amount).max(0) as u32;
-        self.last_change = dbg!(Some((amount, current_time)));
+        self.last_change = Some((amount, 0.0));
     }
 }
 
