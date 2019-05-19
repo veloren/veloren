@@ -1,16 +1,17 @@
 use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use crate::state::Time;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Health {
     pub current: u32,
     pub maximum: u32,
-    pub last_change: Option<(i32, f64)>,
+    pub last_change: Option<(i32, Time)>,
 }
 
 impl Health {
-    pub fn change_by(&mut self, amount: i32, current_time: f64) {
+    pub fn change_by(&mut self, amount: i32, current_time: Time) {
         self.current = (self.current as i32 + amount).max(0) as u32;
-        self.last_change = Some((amount, current_time));
+        self.last_change = dbg!(Some((amount, current_time)));
     }
 }
 
