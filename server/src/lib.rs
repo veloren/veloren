@@ -575,7 +575,7 @@ impl Server {
         }
 
         // Sync deaths.
-        let todo_remove = (
+        let todo_kill = (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<comp::Dying>(),
         )
@@ -583,8 +583,15 @@ impl Server {
             .map(|(entity, _)| entity)
             .collect::<Vec<EcsEntity>>();
 
-        for entity in todo_remove {
-            self.state.ecs_mut().delete_entity_synced(entity);
+        for entity in todo_kill {
+            self.state.ecs_mut().write_storage::<comp::Dying>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::Actor>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::Stats>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::phys::Pos>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::phys::Vel>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::phys::Dir>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::AnimationInfo>().remove(entity);
+            self.state.ecs_mut().write_storage::<comp::Actions>().remove(entity);
             self.clients
                 .notify(entity, ServerMsg::ForceState(ClientState::Registered));
         }
