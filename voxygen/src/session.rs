@@ -115,6 +115,7 @@ impl PlayState for SessionState {
 
         // Set up an fps clock.
         let mut clock = Clock::new();
+        self.client.borrow_mut().state_mut().terrain_mut().clear();
 
         // Load a few chunks. TODO: Remove this.
         /*
