@@ -184,6 +184,11 @@ impl State {
         self.ecs.read_resource::<TerrainMap>()
     }
 
+    /// Get a writable reference to this state's terrain.
+    pub fn terrain_mut(&self) -> FetchMut<TerrainMap> {
+        self.ecs.write_resource::<TerrainMap>()
+    }
+
     /// Insert the provided chunk into this state's terrain.
     pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: TerrainChunk) {
         if self
