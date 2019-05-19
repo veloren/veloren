@@ -119,7 +119,10 @@ impl<T, K> ImageSlider<T, K> {
     }
 }
 
-impl<T> ImageSlider<T, Continuous> {
+impl<T> ImageSlider<T, Continuous>
+where
+    T: Float,
+{
     pub fn continuous(
         value: T,
         min: T,
@@ -131,7 +134,10 @@ impl<T> ImageSlider<T, Continuous> {
     }
 }
 
-impl<T> ImageSlider<T, Discrete> {
+impl<T> ImageSlider<T, Discrete>
+where
+    T: Integer,
+{
     pub fn discrete(
         value: T,
         min: T,
