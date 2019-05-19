@@ -4,7 +4,7 @@ use vek::*;
 
 // Crate
 use crate::{
-    comp::{phys::Pos, ActionState, ActionEvent, Control, Stats},
+    comp::{phys::Pos, Animation, AnimationInfo, Control, Stats},
     state::DeltaTime,
 };
 
@@ -12,14 +12,12 @@ use crate::{
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (
-        Read<'a, DeltaTime>,
-        WriteStorage<'a, ActionState>,
-    );
+    type SystemData = (Read<'a, DeltaTime>, WriteStorage<'a, AnimationInfo>);
 
-    fn run(&mut self, (dt, mut action_states): Self::SystemData) {
-        for (dt, mut animation) in (dt, &mut animation).join() {
-            animation.time += dt.0 as f64;
+    fn run(&mut self, (dt, mut animation_infos): Self::SystemData) {
+        for (mut animation_info) in (&mut animation_infos).join() {
+            animation_info.time += dt.0 as f64;
+            &animation_info.time;
         }
     }
 }

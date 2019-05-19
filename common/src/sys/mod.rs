@@ -1,5 +1,6 @@
 pub mod action;
 pub mod agent;
+pub mod animation;
 pub mod control;
 pub mod phys;
 mod stats;
@@ -14,6 +15,7 @@ const PHYS_SYS: &str = "phys_sys";
 const ANIM_SYS: &str = "anim_sys";
 const MOVEMENT_SYS: &str = "movement_sys";
 const ACTION_SYS: &str = "action_sys";
+const ANIMATION_SYS: &str = "animation_sys";
 const STATS_SYS: &str = "stats_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
@@ -23,5 +25,6 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(anim::Sys, ANIM_SYS, &[]);
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
     dispatch_builder.add(action::Sys, ACTION_SYS, &[]);
+    dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[ACTION_SYS]);
 }
