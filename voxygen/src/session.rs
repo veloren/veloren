@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client, Input, InputEvent};
-use common::clock::Clock;
+use common::{clock::Clock, msg::ClientState};
 use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
@@ -128,7 +128,9 @@ impl PlayState for SessionState {
         */
 
         // Game loop
-        loop {
+        while self.client.borrow().is_request_pending()
+            || self.client.borrow().get_client_state() == Some(ClientState::Character)
+        {
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -237,6 +239,8 @@ impl PlayState for SessionState {
             // Clean things up after the tick.
             self.cleanup();
         }
+
+        PlayStateResult::Pop
     }
 
     fn name(&self) -> &'static str {
