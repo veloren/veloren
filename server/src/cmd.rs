@@ -135,9 +135,14 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
-        Some(alias) => server
-            .state
-            .write_component(entity, comp::player::Player { alias }),
+        Some(alias) => {
+            server
+                .state
+                .ecs_mut()
+                .write_storage::<comp::Player>()
+                .get_mut(entity)
+                .map(|player| player.alias = alias);
+        }
         None => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),

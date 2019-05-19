@@ -90,6 +90,7 @@ font_ids! {
 
 pub enum Event {
     SendMessage(String),
+    AdjustViewDistance(u32),
     Logout,
     Quit,
 }
@@ -207,6 +208,8 @@ pub struct Hud {
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
     force_ungrab: bool,
+    // TODO: move to settings
+    current_vd: u32,
 }
 
 impl Hud {
@@ -243,6 +246,7 @@ impl Hud {
             to_focus: None,
             settings,
             force_ungrab: false,
+            current_vd: 5,
         }
     }
 
@@ -372,18 +376,21 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            match SettingsWindow::new(&self.show, &self.imgs, &self.fonts)
+            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, self.current_vd)
                 .set(self.ids.settings_window, ui_widgets)
             {
-                Some(settings_window::Event::ToggleHelp) => self.show.toggle_help(),
-                Some(settings_window::Event::ToggleInventoryTestButton) => {
-                    self.show.inventory_test_button = !self.show.inventory_test_button
+                match event {
+                    settings_window::Event::ToggleHelp => self.show.toggle_help(),
+                    settings_window::Event::ToggleInventoryTestButton => {
+                        self.show.inventory_test_button = !self.show.inventory_test_button
+                    }
+                    settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
+                    settings_window::Event::Close => self.show.open_windows = Windows::None,
+                    settings_window::Event::AdjustViewDistance(view_distance) => {
+                        self.current_vd = view_distance;
+                        events.push(Event::AdjustViewDistance(view_distance));
+                    }
                 }
-                Some(settings_window::Event::ToggleDebug) => self.show.debug = !self.show.debug,
-                Some(settings_window::Event::Close) => {
-                    self.show.open_windows = Windows::None;
-                }
-                None => {}
             }
         }
 

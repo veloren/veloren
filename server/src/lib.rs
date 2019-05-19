@@ -198,9 +198,9 @@ impl Server {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
-                    .reduce_max();
+                    .reduce_max() as u32;
 
-                if dist < 10 {
+                if player.view_distance.map(|vd| dist < vd).unwrap_or(false) {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -218,10 +218,10 @@ impl Server {
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
         self.state.terrain().iter().for_each(|(key, _)| {
-            let mut min_dist = i32::MAX;
+            let mut should_drop = true;
 
             // For each player with a position, calculate the distance.
-            for (_, pos) in (
+            for (player, pos) in (
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
             )
@@ -229,12 +229,15 @@ impl Server {
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = Vec2::from(chunk_pos - key)
-                    .map(|e: i32| e.abs())
+                    .map(|e: i32| e.abs() as u32)
                     .reduce_max();
-                min_dist = min_dist.min(dist);
+
+                if player.view_distance.map(|vd| dist <= vd).unwrap_or(false) {
+                    should_drop = false;
+                }
             }
 
-            if min_dist > 10 {
+            if should_drop {
                 chunks_to_remove.push(key);
             }
         });
@@ -339,6 +342,16 @@ impl Server {
                             }
                             // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
+                        },
+                        ClientMsg::SetViewDistance(view_distance) => match client.client_state {
+                            ClientState::Character { .. } => {
+                                state
+                                    .ecs_mut()
+                                    .write_storage::<comp::Player>()
+                                    .get_mut(entity)
+                                    .map(|player| player.view_distance = Some(view_distance));
+                            }
+                            _ => {}
                         },
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.

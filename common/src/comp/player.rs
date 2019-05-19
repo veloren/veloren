@@ -3,11 +3,15 @@ use specs::{Component, FlaggedStorage, VecStorage};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,
+    pub view_distance: Option<u32>,
 }
 
 impl Player {
-    pub fn new(alias: String) -> Self {
-        Self { alias }
+    pub fn new(alias: String, view_distance: Option<u32>) -> Self {
+        Self {
+            alias,
+            view_distance,
+        }
     }
 }
 

@@ -190,6 +190,9 @@ impl PlayState for SessionState {
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     }
+                    HudEvent::AdjustViewDistance(view_distance) => {
+                        self.client.borrow_mut().set_view_distance(view_distance)
+                    }
                 }
             }
 
