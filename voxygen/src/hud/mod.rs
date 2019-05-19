@@ -273,16 +273,24 @@ impl Hud {
             let ecs = client.state().ecs();
             let actor = ecs.read_storage::<comp::Actor>();
             let pos = ecs.read_storage::<comp::phys::Pos>();
-            let stats = ecs.read_storage::<comp::stats::Stats>();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let entities = ecs.entities();
+            let player = client.entity();
             let mut id_walker = self.ids.ingame_elements.walk();
-            for (pos, name) in (&pos, &actor)
-                .join()
-                .filter_map(|(pos, actor)| match actor {
-                    comp::Actor::Character { name, .. } => Some((pos.0, name)),
-                    _ => None,
-                })
+            for (pos, name) in
+                (&entities, &pos, &actor)
+                    .join()
+                    .filter_map(|(entity, pos, actor)| match actor {
+                        comp::Actor::Character { name, .. } if entity != player => {
+                            Some((pos.0, name))
+                        }
+                        _ => None,
+                    })
             {
-                let id = id_walker.next(&mut self.ids.ingame_elements, &mut ui_widgets.widget_id_generator());
+                let id = id_walker.next(
+                    &mut self.ids.ingame_elements,
+                    &mut ui_widgets.widget_id_generator(),
+                );
                 Text::new(&name)
                     .font_size(20)
                     .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
@@ -291,15 +299,30 @@ impl Hud {
                     .resolution(100.0)
                     .set(id, ui_widgets);
             }
-            for (pos, hp) in (&pos, &stats).join().map(|(pos, stats)| (pos.0, stats.hp)) {
-                let id = id_walker.next(&mut self.ids.ingame_elements, &mut ui_widgets.widget_id_generator());
+            for (pos, hp) in (&entities, &pos, &stats)
+                .join()
+                .filter_map(|(entity, pos, stats)| {
+                    if entity != player {
+                        Some((pos.0, stats.hp))
+                    } else {
+                        None
+                    }
+                })
+            {
+                let id = id_walker.next(
+                    &mut self.ids.ingame_elements,
+                    &mut ui_widgets.widget_id_generator(),
+                );
                 (
                     // Healh Bar
-                    Rectangle::fill_with([120.0, 12.0], color::BLACK)
+                    Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                         .x_y(0.0, -25.0),
                     // Filling
-                    Rectangle::fill_with([114.0 * (hp.current as f64 / hp.maximum as f64), 6.0], HP_COLOR)
-                        .x_y(0.0, -25.0),
+                    Rectangle::fill_with(
+                        [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
+                        HP_COLOR,
+                    )
+                    .x_y(0.0, -25.0),
                 )
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
@@ -409,7 +432,15 @@ impl Hud {
         }
 
         // Skillbar
-        Skillbar::new(&self.imgs, &self.fonts).set(self.ids.skillbar, ui_widgets);
+        // Get player stats
+        let stats = client
+            .state()
+            .ecs()
+            .read_storage::<comp::Stats>()
+            .get(client.entity())
+            .map(|&s| s)
+            .unwrap_or_default();
+        Skillbar::new(&self.imgs, &self.fonts, stats).set(self.ids.skillbar, ui_widgets);
 
         // Chat box
         match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)

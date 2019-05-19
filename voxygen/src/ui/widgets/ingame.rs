@@ -65,7 +65,7 @@ where
     }
 }
 
-trait IngameWidget: Ingameable + Widget {}
+pub trait IngameWidget: Ingameable + Widget {}
 impl<T> IngameWidget for T where T: Ingameable + Widget {}
 
 impl<W, E> Ingameable for (W, E)
@@ -148,7 +148,7 @@ where
 }
 
 #[derive(Clone, Copy)]
-enum Ids {
+pub enum Ids {
     None,
     One(Id),
     Two([Id; 2]),

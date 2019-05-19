@@ -171,16 +171,15 @@ impl PlayState for SessionState {
             global_state.maintain();
 
             // Maintain the scene.
-            self.scene.maintain(
-                global_state.window.renderer_mut(),
-                &self.client.borrow(),
-            );
+            self.scene
+                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
             // Maintain the UI.
-            for event in self
-                .hud
-                .maintain(global_state.window.renderer_mut(), clock.get_tps(), &self.client.borrow())
-            {
+            for event in self.hud.maintain(
+                global_state.window.renderer_mut(),
+                clock.get_tps(),
+                &self.client.borrow(),
+            ) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
