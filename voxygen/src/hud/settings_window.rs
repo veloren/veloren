@@ -1,11 +1,19 @@
 use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
 use crate::{hud::Show, ui::ToggleButton};
+use crate::{
+    render::Renderer,
+    ui::{
+        self,
+        img_ids::{ImageGraphic, VoxelGraphic},
+        ImageSlider, ScaleMode, Ui,
+    },
+    window::Window,
+};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 widget_ids! {
     struct Ids {
 
@@ -34,6 +42,8 @@ widget_ids! {
         sound,
         test,
         video,
+        vd_slider,
+        vd_slider_text,
     }
 }
 
@@ -52,16 +62,19 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
+    current_vd: u32,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, current_vd: u32) -> Self {
         Self {
             show,
             imgs,
             fonts,
+            current_vd,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -78,12 +91,13 @@ pub enum Event {
     ToggleInventoryTestButton,
     ToggleDebug,
     Close,
+    AdjustViewDistance(u32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
     type State = State;
     type Style = ();
-    type Event = Option<Event>;
+    type Event = Vec<Event>;
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
@@ -98,6 +112,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
+
+        let mut events = Vec::new();
 
         // Frame Alignment
         Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
@@ -132,7 +148,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.settings_close, ui)
             .was_clicked()
         {
-            return Some(Event::Close);
+            events.push(Event::Close);
         }
 
         // Title
@@ -180,7 +196,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.button_help, ui);
 
             if self.show.help != show_help {
-                return Some(Event::ToggleHelp);
+                events.push(Event::ToggleHelp);
             }
 
             Text::new("Show Help")
@@ -204,7 +220,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.inventory_test_button, ui);
 
             if self.show.inventory_test_button != inventory_test_button {
-                return Some(Event::ToggleInventoryTestButton);
+                events.push(Event::ToggleInventoryTestButton);
             }
 
             Text::new("Show Inventory Test Button")
@@ -225,7 +241,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     .set(state.ids.debug_button, ui);
 
             if self.show.debug != show_debug {
-                return Some(Event::ToggleDebug);
+                events.push(Event::ToggleDebug);
             }
 
             Text::new("Show Debug Window")
@@ -450,7 +466,32 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             state.update(|s| s.settings_tab = SettingsTab::Video);
         }
+        // Contents
+        if let SettingsTab::Video = state.settings_tab {
+            Text::new("Viewdistance")
+                .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.vd_slider_text, ui);
 
+            if let Some(new_val) = ImageSlider::discrete(
+                self.current_vd,
+                1,
+                25,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.vd_slider_text, 10.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.vd_slider, ui)
+            {
+                events.push(Event::AdjustViewDistance(new_val as u32));
+            }
+        }
         // 5 Sound
         if Button::image(if let SettingsTab::Sound = state.settings_tab {
             self.imgs.settings_button_pressed
@@ -479,6 +520,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             state.update(|s| s.settings_tab = SettingsTab::Sound);
         }
 
-        None
+        events
     }
 }

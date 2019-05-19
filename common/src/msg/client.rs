@@ -12,6 +12,7 @@ pub enum ClientMsg {
         body: comp::Body,
     },
     RequestState(ClientState),
+    SetViewDistance(u32),
     Ping,
     Pong,
     Chat(String),
