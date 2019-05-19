@@ -30,7 +30,7 @@ impl PlayState for StartSingleplayerState {
 
                 let client_init = ClientInit::new(
                     (server_address.clone(), self.sock.port(), false),
-                    (comp::Player::new(username.clone()), 300),
+                    comp::Player::new(username.clone(), Some(10)),
                     true,
                 );
 

@@ -44,7 +44,7 @@ pub struct Client {
     tick: u64,
     state: State,
     entity: EcsEntity,
-    view_distance: u64,
+    view_distance: Option<u32>,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
@@ -52,7 +52,7 @@ pub struct Client {
 impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
-    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: u64) -> Result<Self, Error> {
+    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let mut client_state = Some(ClientState::Connected);
         let mut postbox = PostBox::to(addr)?;
 
@@ -92,6 +92,12 @@ impl Client {
 
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
+    }
+
+    pub fn set_view_distance(&mut self, view_distance: u32) {
+        self.view_distance = Some(view_distance.max(5).min(25));
+        self.postbox
+            .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
@@ -198,16 +204,16 @@ impl Client {
             .read_storage::<comp::phys::Pos>()
             .get(self.entity)
             .cloned();
-        if let Some(pos) = pos {
+        if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
             // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| e.abs())
+                    .map(|e: i32| e.abs() as u32)
                     .reduce_max()
-                    > 10
+                    > view_distance
                 {
                     chunks_to_remove.push(key);
                 }
@@ -218,7 +224,7 @@ impl Client {
 
             // Request chunks from the server.
             // TODO: This is really inefficient.
-            'outer: for dist in 0..10 {
+            'outer: for dist in 0..view_distance as i32 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
                         let key = Vec2::new(i, j);

@@ -128,7 +128,6 @@ image_ids! {
 
         // Spell Book Window
         spellbook_icon: "voxygen/element/icons/spellbook.png",
-
         // Bag
         bag: "voxygen/element/buttons/bag/closed.png",
         bag_hover: "voxygen/element/buttons/bag/closed_hover.png",
