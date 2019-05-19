@@ -173,7 +173,7 @@ impl PlayState for SessionState {
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
-                &self.client.borrow_mut(),
+                &self.client.borrow(),
             );
 
             // extract HUD events ensuring the client borrow gets dropped
