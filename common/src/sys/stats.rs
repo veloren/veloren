@@ -14,14 +14,18 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, Stats>,
+        Read<'a, DeltaTime>,
+        WriteStorage<'a, Stats>,
         WriteStorage<'a, Dying>,
     );
 
-    fn run(&mut self, (entities, stats, mut dyings): Self::SystemData) {
-        for (entity, stat) in (&entities, &stats).join() {
+    fn run(&mut self, (entities, dt, mut stats, mut dyings): Self::SystemData) {
+        for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.hp.current == 0 {
                 dyings.insert(entity, Dying);
+            }
+            if let Some(change) = &mut stat.hp.last_change {
+                change.1 += dt.0 as f64;
             }
         }
     }
