@@ -10,9 +10,9 @@ use super::{super::Animation, CharacterSkeleton, SCALE};
 pub struct Input {
     pub attack: bool,
 }
-pub struct IdleAnimation;
+pub struct AttackAnimation;
 
-impl Animation for IdleAnimation {
+impl Animation for AttackAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -23,7 +23,7 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 12.0).sin();
+        let wave = (anim_time as f32 * 1.0).sin();
         let wave_cos = (anim_time as f32 * 12.0).cos();
         let wave_slow = (anim_time as f32 * 6.0 + PI).sin();
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
@@ -85,7 +85,7 @@ impl Animation for IdleAnimation {
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(-5.0, -6.0, 18.0);
-        next.weapon.ori = Quaternion::rotation_y(2.5);
+        next.weapon.ori = Quaternion::rotation_z(wave * 1.0);
         next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.0, 2.5);
@@ -99,20 +99,18 @@ impl Animation for IdleAnimation {
         next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
-        
-        next.l_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+
+        next.l_hold.offset = Vec3::new(0.0, 0.0, 5.0);
         next.l_hold.ori = Quaternion::rotation_x(0.0);
         next.l_hold.scale = Vec3::one();
 
-        next.r_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_hold.offset = Vec3::new(-2.0, -2.5, 0.0);
         next.r_hold.ori = Quaternion::rotation_x(0.0);
         next.r_hold.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
-
-
         next
     }
 }
