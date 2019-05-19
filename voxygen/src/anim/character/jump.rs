@@ -75,13 +75,24 @@ impl Animation for JumpAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one();
 
+        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
+        next.draw.ori = Quaternion::rotation_y(0.0);
+        next.draw.scale = Vec3::one() * 0.0;
+
+        next.l_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.l_hold.ori = Quaternion::rotation_x(0.0);
+        next.l_hold.scale = Vec3::one();
+
+        next.r_hold.offset = Vec3::new(0.0, 0.0, 0.0);
+        next.r_hold.ori = Quaternion::rotation_x(0.0);
+        next.r_hold.scale = Vec3::one();
+        
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.0);
         next.torso.ori = Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one() / 11.0;
 
-        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
-        next.draw.ori = Quaternion::rotation_y(0.0);
-        next.draw.scale = Vec3::one() * 0.0;
+
+
         next
     }
 }
