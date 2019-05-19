@@ -1,5 +1,5 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 use crate::state::Time;
+use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Health {

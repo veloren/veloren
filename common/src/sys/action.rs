@@ -5,7 +5,7 @@ use vek::*;
 // Crate
 use crate::{
     comp::{phys::Pos, Action, Actions, Control, Stats},
-    state::{Time, DeltaTime},
+    state::{DeltaTime, Time},
 };
 
 // Basic ECS AI agent system
