@@ -90,7 +90,7 @@ font_ids! {
 
 pub enum Event {
     SendMessage(String),
-    AdjustVd(u8),
+    AdjustViewDistance(u32),
     Logout,
     Quit,
 }
@@ -209,7 +209,7 @@ pub struct Hud {
     settings: Settings,
     force_ungrab: bool,
     // TODO: move to settings
-    current_vd: u8,
+    current_vd: u32,
 }
 
 impl Hud {
@@ -386,9 +386,9 @@ impl Hud {
                     }
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::Close => self.show.open_windows = Windows::None,
-                    settings_window::Event::AdjustVd(new_vd) => {
-                        self.current_vd = new_vd;
-                        events.push(Event::AdjustVd(new_vd));
+                    settings_window::Event::AdjustViewDistance(view_distance) => {
+                        self.current_vd = view_distance;
+                        events.push(Event::AdjustViewDistance(view_distance));
                     }
                 }
             }

@@ -62,14 +62,14 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
-    current_vd: u8,
+    current_vd: u32,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, current_vd: u8) -> Self {
+    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, current_vd: u32) -> Self {
         Self {
             show,
             imgs,
@@ -91,7 +91,7 @@ pub enum Event {
     ToggleInventoryTestButton,
     ToggleDebug,
     Close,
-    AdjustVd(u8),
+    AdjustViewDistance(u32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -489,7 +489,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.vd_slider, ui)
             {
-                events.push(Event::AdjustVd(new_val));
+                events.push(Event::AdjustViewDistance(new_val as u32));
             }
         }
         // 5 Sound
