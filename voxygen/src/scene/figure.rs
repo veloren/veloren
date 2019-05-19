@@ -69,8 +69,13 @@ impl FigureModelCache {
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw(body.draw)),
+<<<<<<< HEAD
                                     Some(Self::load_left_equip(body.weapon)),
                                     None,
+=======
+                                    Some(Self::load_left_hold(body.hand)),
+                                    Some(Self::load_right_hold(body.hand)),
+>>>>>>> attack state
                                     None,
                                     None,
                                 ],
@@ -263,6 +268,14 @@ impl FigureModelCache {
         )
     }
 
+    fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hand {
+                Hand::Default => "figure/body/hand.vox",
+            },
+            Vec3::new(-2.0, -2.5, -2.0),
+        )
+    }
 
 
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
