@@ -78,6 +78,6 @@ impl AudioFrontend {
     }
 
     pub fn set_volume(&mut self, volume: f32) {
-        self.stream.set_volume(volume.min(1.0))
+        self.stream.set_volume(volume.min(1.0).max(0.0))
     }
 }
