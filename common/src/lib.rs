@@ -2,7 +2,9 @@
     euclidean_division,
     duration_float,
     trait_alias,
-    bind_by_move_pattern_guards
+    bind_by_move_pattern_guards,
+    option_flattening, // Converts Option<Option<Item>> into Option<Item> TODO: Remove this once this feature becomes stable
+    copysign,
 )]
 
 #[macro_use]
@@ -14,6 +16,7 @@ pub mod assets;
 pub mod clock;
 pub mod comp;
 pub mod figure;
+pub mod inventory;
 pub mod msg;
 pub mod ray;
 pub mod state;
@@ -23,7 +26,7 @@ pub mod util;
 pub mod vol;
 pub mod volumes;
 
-/// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client
+/// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client.
 /// # Examples
 /// ```
 /// use std::net::SocketAddr;

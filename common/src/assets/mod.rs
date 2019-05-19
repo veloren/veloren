@@ -7,14 +7,15 @@ use std::{
     fs::File,
     io::BufReader,
     io::Read,
+    path::PathBuf,
     sync::{Arc, RwLock},
 };
 
 #[derive(Debug, Clone)]
 pub enum Error {
-    /// An asset of a different type has already been loaded with this specifier
+    /// An asset of a different type has already been loaded with this specifier.
     InvalidType,
-    /// Asset does not exist
+    /// Asset does not exist.
     NotFound(String),
 }
 
@@ -35,8 +36,8 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-/// Function used to load assets
-/// loaded assets are cached in a global singleton hashmap
+/// Function used to load assets.
+/// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -54,9 +55,9 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
         .downcast()?)
 }
 
-/// Function used to load assets that will panic if the asset is not found
-/// Use this to load essential assets
-/// loaded assets are cached in a global singleton hashmap
+/// Function used to load assets that will panic if the asset is not found.
+/// Use this to load essential assets.
+/// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -89,9 +90,10 @@ impl Asset for DotVoxData {
     }
 }
 
-// TODO: System to load file from specifiers (eg "core.ui.backgrounds.city")
+// TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
 fn try_open_with_path(name: &str) -> Option<File> {
     debug!("Trying to access \"{}\"", name);
+    let abs_path = std::env::current_dir().expect("No current directory?");
     // TODO: don't do this?
     // if it's stupid and it works..,
     [
@@ -105,7 +107,12 @@ fn try_open_with_path(name: &str) -> Option<File> {
         [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
     ]
     .into_iter()
-    .map(|bp| [bp, name].concat())
+    .map(|bp| {
+        let mut p = abs_path.clone();
+        p.push(bp);
+        p.push(name);
+        p
+    })
     .find_map(|ref filename| File::open(filename).ok())
 }
 

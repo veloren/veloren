@@ -21,7 +21,7 @@ pub struct MainMenuState {
 }
 
 impl MainMenuState {
-    /// Create a new `MainMenuState`
+    /// Create a new `MainMenuState`.
     pub fn new(global_state: &mut GlobalState) -> Self {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
@@ -41,29 +41,29 @@ const BG_COLOR: Rgba<f32> = Rgba {
 
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
-        // Set up an fps clock
+        // Set up an fps clock.
         let mut clock = Clock::new();
 
-        // Used for client creation
+        // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
 
         loop {
-            // Handle window events
+            // Handle window events.
             for event in global_state.window.fetch_events() {
                 match event {
                     Event::Close => return PlayStateResult::Shutdown,
-                    // Pass events to ui
+                    // Pass events to ui.
                     Event::Ui(event) => {
                         self.main_menu_ui.handle_event(event);
                     }
-                    // Ignore all other events
+                    // Ignore all other events.
                     _ => {}
                 }
             }
 
             global_state.window.renderer_mut().clear(BG_COLOR);
 
-            // Poll client creation
+            // Poll client creation.
             match client_init.as_ref().and_then(|init| init.poll()) {
                 Some(Ok(client)) => {
                     self.main_menu_ui.connected();
@@ -86,7 +86,10 @@ impl PlayState for MainMenuState {
                 None => {}
             }
 
-            // Maintain the UI
+            // Maintain global_state
+            global_state.maintain();
+
+            // Maintain the UI.
             for event in self.main_menu_ui.maintain(global_state) {
                 match event {
                     MainMenuEvent::LoginAttempt {
@@ -98,12 +101,12 @@ impl PlayState for MainMenuState {
                         if !net_settings.servers.contains(&server_address) {
                             net_settings.servers.push(server_address.clone());
                         }
-                        // TODO: Handle this result
+                        // TODO: Handle this result.
                         global_state.settings.save_to_file();
-                        // Don't try to connect if there is already a connection in progress
+                        // Don't try to connect if there is already a connection in progress.
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),
-                            (comp::Player::new(username.clone()), 300),
+                            comp::Player::new(username.clone(), Some(10)),
                             false,
                         )));
                     }
@@ -114,15 +117,15 @@ impl PlayState for MainMenuState {
                 }
             }
 
-            // Draw the UI to the screen
+            // Draw the UI to the screen.
             self.main_menu_ui.render(global_state.window.renderer_mut());
 
-            // Finish the frame
+            // Finish the frame.
             global_state.window.renderer_mut().flush();
             global_state
                 .window
                 .swap_buffers()
-                .expect("Failed to swap window buffers");
+                .expect("Failed to swap window buffers!");
 
             // Wait for the next tick
             clock.tick(Duration::from_millis(1000 / FPS));

@@ -83,24 +83,25 @@ widget_ids! {
 
 font_ids! {
     pub struct Fonts {
-        opensans: "/voxygen/font/OpenSans-Regular.ttf",
-        metamorph: "/voxygen/font/Metamorphous-Regular.ttf",
+        opensans: "voxygen/font/OpenSans-Regular.ttf",
+        metamorph: "voxygen/font/Metamorphous-Regular.ttf",
     }
 }
 
 pub enum Event {
     SendMessage(String),
+    AdjustViewDistance(u32),
     Logout,
     Quit,
 }
 
-// TODO: are these the possible layouts we want?
-// TODO: maybe replace this with bitflags
-// map not here because it currently is displayed over the top of other open windows
+// TODO: Are these the possible layouts we want?
+// TODO: Maybe replace this with bitflags.
+// `map` is not here because it currently is displayed over the top of other open windows.
 #[derive(PartialEq)]
 pub enum Windows {
-    Settings,                              // display settings window
-    CharacterAnd(Option<SmallWindowType>), // show character window + optionally another
+    Settings,                              // Display settings window.
+    CharacterAnd(Option<SmallWindowType>), // Show character window + optionally another.
     Small(SmallWindowType),
     None,
 }
@@ -146,7 +147,7 @@ impl Show {
         };
     }
 
-    fn toggle_charwindow(&mut self) {
+    fn toggle_char_window(&mut self) {
         self.open_windows = match self.open_windows {
             Windows::CharacterAnd(small) => match small {
                 Some(small) => Windows::Small(small),
@@ -207,19 +208,21 @@ pub struct Hud {
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
     force_ungrab: bool,
+    // TODO: move to settings
+    current_vd: u32,
 }
 
 impl Hud {
     pub fn new(window: &mut Window, settings: Settings) -> Self {
         let mut ui = Ui::new(window).unwrap();
-        // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
+        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
-        // Generate ids
+        // Generate ids.
         let ids = Ids::new(ui.id_generator());
-        // Load images
-        let imgs = Imgs::load(&mut ui).expect("Failed to load images");
-        // Load fonts
-        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
+        // Load images.
+        let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
+        // Load fonts.
+        let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
         Self {
             ui,
@@ -229,8 +232,8 @@ impl Hud {
             new_messages: VecDeque::new(),
             inventory_space: 0,
             show: Show {
-                help: true,
-                debug: false,
+                help: false,
+                debug: true,
                 bag: false,
                 esc_menu: false,
                 open_windows: Windows::None,
@@ -243,6 +246,7 @@ impl Hud {
             to_focus: None,
             settings,
             force_ungrab: false,
+            current_vd: 5,
         }
     }
 
@@ -251,12 +255,12 @@ impl Hud {
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
 
-        // Don't show anything if the UI is toggled off
+        // Don't show anything if the UI is toggled off.
         if !self.show.ui {
             return events;
         }
 
-        // Display debug window
+        // Display debug window.
         if self.show.debug {
             // Alpha Version
             Text::new(version)
@@ -273,7 +277,7 @@ impl Hud {
                 .set(self.ids.fps_counter, ui_widgets);
         }
 
-        // Add Bag-Space Button
+        // Add Bag-Space Button.
         if self.show.inventory_test_button {
             if Button::image(self.imgs.grid_button)
                 .w_h(100.0, 100.0)
@@ -314,7 +318,7 @@ impl Hud {
             };
         }
 
-        // Bag button and icons near it
+        // Bag button and nearby icons
         match Buttons::new(
             &self.show.open_windows,
             self.show.map,
@@ -326,7 +330,7 @@ impl Hud {
         {
             Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
             Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
-            Some(buttons::Event::ToggleCharacter) => self.show.toggle_charwindow(),
+            Some(buttons::Event::ToggleCharacter) => self.show.toggle_char_window(),
             Some(buttons::Event::ToggleSmall(small)) => self.show.toggle_small(small),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
             None => {}
@@ -365,25 +369,28 @@ impl Hud {
         }
         self.new_messages = VecDeque::new();
 
-        //Windows
+        // Windows
 
-        //Char Window will always appear at the left side. Other Windows either appear at the left side,
-        //or when the Char Window is opened they will appear right from it.
+        // Char Window will always appear at the left side. Other Windows default to the
+        // left side, but when the Char Window is opened they will appear to the right of it.
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            match SettingsWindow::new(&self.show, &self.imgs, &self.fonts)
+            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, self.current_vd)
                 .set(self.ids.settings_window, ui_widgets)
             {
-                Some(settings_window::Event::ToggleHelp) => self.show.toggle_help(),
-                Some(settings_window::Event::ToggleInventoryTestButton) => {
-                    self.show.inventory_test_button = !self.show.inventory_test_button
+                match event {
+                    settings_window::Event::ToggleHelp => self.show.toggle_help(),
+                    settings_window::Event::ToggleInventoryTestButton => {
+                        self.show.inventory_test_button = !self.show.inventory_test_button
+                    }
+                    settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
+                    settings_window::Event::Close => self.show.open_windows = Windows::None,
+                    settings_window::Event::AdjustViewDistance(view_distance) => {
+                        self.current_vd = view_distance;
+                        events.push(Event::AdjustViewDistance(view_distance));
+                    }
                 }
-                Some(settings_window::Event::ToggleDebug) => self.show.debug = !self.show.debug,
-                Some(settings_window::Event::Close) => {
-                    self.show.open_windows = Windows::None;
-                }
-                None => {}
             }
         }
 
@@ -447,7 +454,7 @@ impl Hud {
         self.new_messages.push_back(msg);
     }
 
-    // Checks if a TextEdit widget has the keyboard captured
+    // Checks if a TextEdit widget has the keyboard captured.
     fn typing(&self) -> bool {
         if let Some(id) = self.ui.widget_capturing_keyboard() {
             self.ui
@@ -463,6 +470,10 @@ impl Hud {
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
+            WinEvent::SettingsChanged => {
+                self.settings = global_state.settings.clone();
+                false
+            }
             WinEvent::Ui(event) => {
                 if (self.typing() && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
@@ -515,7 +526,7 @@ impl Hud {
                     true
                 }
                 Key::CharacterWindow => {
-                    self.show.toggle_charwindow();
+                    self.show.toggle_char_window();
                     true
                 }
                 Key::Social => {
@@ -534,6 +545,10 @@ impl Hud {
                     self.show.toggle_help();
                     true
                 }
+                Key::ToggleDebug => {
+                    self.show.debug = !self.show.debug;
+                    true
+                }
                 _ => false,
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
@@ -541,13 +556,9 @@ impl Hud {
                 _ => self.typing(),
             },
             WinEvent::Char(_) => self.typing(),
-            WinEvent::SettingsChanged => {
-                self.settings = global_state.settings.clone();
-                true
-            }
             _ => false,
         };
-        // Handle cursor grab
+        // Handle cursor grab.
         if !self.force_ungrab {
             if cursor_grabbed != self.show.want_grab {
                 global_state.window.grab_cursor(self.show.want_grab);
@@ -571,8 +582,8 @@ impl Hud {
     }
 }
 
-//Get the text to show in the help window, along with the
-//length of the longest line in order to resize the window
+// Get the text to show in the help window and use the
+// length of the longest line to resize the window.
 fn get_help_text(cs: &ControlSettings) -> String {
     format!(
         "{free_cursor:?} = Free cursor\n\

@@ -23,11 +23,11 @@ pub struct SessionState {
     hud: Hud,
 }
 
-/// Represents an active game session (i.e: one that is being played)
+/// Represents an active game session (i.e., the one being played).
 impl SessionState {
-    /// Create a new `SessionState`
+    /// Create a new `SessionState`.
     pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, settings: Settings) -> Self {
-        // Create a scene for this session. The scene handles visible elements of the game world
+        // Create a scene for this session. The scene handles visible elements of the game world.
         let scene = Scene::new(window.renderer_mut(), &client.borrow());
         Self {
             scene,
@@ -39,7 +39,7 @@ impl SessionState {
     }
 }
 
-// The background colour
+// Background colour
 const BG_COLOR: Rgba<f32> = Rgba {
     r: 0.0,
     g: 0.3,
@@ -48,9 +48,10 @@ const BG_COLOR: Rgba<f32> = Rgba {
 };
 
 impl SessionState {
-    /// Tick the session (and the client attached to it)
+    /// Tick the session (and the client attached to it).
     pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
-        // Calculate the movement input vector of the player from the current key presses and the camera direction
+        // Calculate the movement input vector of the player from the current key presses
+        // and the camera direction.
         let ori = self.scene.camera().get_orientation();
         let unit_vecs = (
             Vec2::new(ori[0].cos(), -ori[0].sin()),
@@ -59,7 +60,7 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        // Take the input events
+        // Take the input events.
         let mut input_events = Vec::new();
         mem::swap(&mut self.input_events, &mut input_events);
 
@@ -85,7 +86,7 @@ impl SessionState {
         Ok(())
     }
 
-    /// Clean up the session (and the client attached to it) after a tick
+    /// Clean up the session (and the client attached to it) after a tick.
     pub fn cleanup(&mut self) {
         self.client.borrow_mut().cleanup();
     }
@@ -109,13 +110,13 @@ impl SessionState {
 
 impl PlayState for SessionState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
-        // Trap the cursor
+        // Trap the cursor.
         global_state.window.grab_cursor(true);
 
-        // Set up an fps clock
+        // Set up an fps clock.
         let mut clock = Clock::new();
 
-        // Load a few chunks TODO: Remove this
+        // Load a few chunks. TODO: Remove this.
         /*
         for x in -6..7 {
             for y in -6..7 {
@@ -128,9 +129,9 @@ impl PlayState for SessionState {
 
         // Game loop
         loop {
-            // Handle window events
+            // Handle window events.
             for event in global_state.window.fetch_events() {
-                // Pass all events to the ui first
+                // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
                 }
@@ -167,16 +168,20 @@ impl PlayState for SessionState {
                 // TODO: Do something if the event wasn't handled?
             }
 
-            // Perform an in-game tick
+            // Perform an in-game tick.
             self.tick(clock.get_last_delta())
-                .expect("Failed to tick the scene");
+                .expect("Failed to tick the scene!");
 
-            // Maintain the scene
+            // Maintain global state
+            global_state.maintain();
+
+            // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
                 &mut self.client.borrow_mut(),
             );
-            // Maintain the UI
+
+            // Maintain the UI.
             for event in self
                 .hud
                 .maintain(global_state.window.renderer_mut(), clock.get_tps())
@@ -190,22 +195,25 @@ impl PlayState for SessionState {
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     }
+                    HudEvent::AdjustViewDistance(view_distance) => {
+                        self.client.borrow_mut().set_view_distance(view_distance)
+                    }
                 }
             }
 
-            // Render the session
+            // Render the session.
             self.render(global_state.window.renderer_mut());
 
-            // Display the frame on the window
+            // Display the frame on the window.
             global_state
                 .window
                 .swap_buffers()
-                .expect("Failed to swap window buffers");
+                .expect("Failed to swap window buffers!");
 
-            // Wait for the next tick
+            // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
 
-            // Clean things up after the tick
+            // Clean things up after the tick.
             self.cleanup();
         }
     }

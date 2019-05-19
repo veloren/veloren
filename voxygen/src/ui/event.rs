@@ -7,12 +7,12 @@ impl Event {
     pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
         use conrod_winit::*;
         use winit;
-        // A wrapper around the winit window that allows us to implement the trait necessary for enabling
-        // the winit <-> conrod conversion functions.
+        // A wrapper around the winit window that allows us to implement the trait necessary for
+        // enabling the winit <-> conrod conversion functions.
         struct WindowRef<'a>(&'a winit::Window);
 
-        // Implement the `WinitWindow` trait for `WindowRef` to allow for generating compatible conversion
-        // functions.
+        // Implement the `WinitWindow` trait for `WindowRef` to allow for generating compatible
+        // conversion functions.
         impl<'a> conrod_winit::WinitWindow for WindowRef<'a> {
             fn get_inner_size(&self) -> Option<(u32, u32)> {
                 winit::Window::get_inner_size(&self.0).map(Into::into)

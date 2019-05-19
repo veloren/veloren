@@ -12,7 +12,7 @@ pub struct Consts<T: Copy + gfx::traits::Pod> {
 }
 
 impl<T: Copy + gfx::traits::Pod> Consts<T> {
-    /// Create a new `Const<T>`
+    /// Create a new `Const<T>`.
     pub fn new(factory: &mut gfx_backend::Factory, len: usize) -> Self {
         Self {
             buf: factory.create_constant_buffer(len),

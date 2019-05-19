@@ -93,22 +93,22 @@ impl FigureModelCache {
     }
 
     pub fn clean(&mut self, tick: u64) {
-        // TODO: Don't hard-code this
+        // TODO: Don't hard-code this.
         self.models
             .retain(|_, (_, last_used)| *last_used + 60 > tick);
     }
 
-    // TODO: Don't make this public
+    // TODO: Don't make this public.
     pub fn load_mesh(filename: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-        let fullpath: String = ["/voxygen/voxel/", filename].concat();
-        Segment::from(assets::load_expect::<DotVoxData>(fullpath.as_str()).as_ref())
+        let full_path: String = ["voxygen/voxel/npc/", filename].concat();S
+        Segment::from(assets::load_expect::<DotVoxData>(full_path.as_str()).as_ref())
             .generate_mesh(position)
     }
 
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "pighead.vox",
+                Head::Default => "pig_purple/pighead.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -117,43 +117,43 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "pigchest.vox",
+                Chest::Default => "pig_purple/pigchest.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_lf_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
+    fn load_leg_lf(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "pigleg_l.vox",
+                Belt::Default => "pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_rf_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
+    fn load_leg_rf(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pigleg_r.vox",
+                Pants::Default => "pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_lb_leg(leg_l: Leg_l) -> Mesh<FigurePipeline> {
+    fn load_leg_lb(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pigleg_l.vox",
+                Hand::Default => "pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
     }
 
-    fn load_rb_leg(leg_R: Leg_r) -> Mesh<FigurePipeline> {
+    fn load_leg_rb(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pigleg_r.vox",
+                Hand::Default => "pig_purple/pigleg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -214,7 +214,7 @@ impl FigureMgr {
 
         self.states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
-    }
+}  // TODO: Place `render` into above impl and fix `maintain`.
 
     pub fn render(
         &mut self,

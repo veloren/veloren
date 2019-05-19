@@ -5,7 +5,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::{fs::File, io::prelude::*, path::PathBuf};
 use toml;
 
-/// Settings contains everything that can be configured in the Settings.toml file
+/// `Settings` contains everything that can be configured in the Settings.toml file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -14,7 +14,7 @@ pub struct Settings {
     pub log: Log,
 }
 
-/// ControlSettings contains keybindings
+/// `ControlSettings` contains keybindings.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ControlSettings {
     pub toggle_cursor: VirtualKeyCode,
@@ -35,6 +35,9 @@ pub struct ControlSettings {
     pub settings: VirtualKeyCode,
     pub help: VirtualKeyCode,
     pub toggle_interface: VirtualKeyCode,
+    pub toggle_debug: VirtualKeyCode,
+    pub fullscreen: VirtualKeyCode,
+    pub screenshot: VirtualKeyCode,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -71,6 +74,9 @@ impl Default for Settings {
                 settings: VirtualKeyCode::N,
                 help: VirtualKeyCode::F1,
                 toggle_interface: VirtualKeyCode::F2,
+                toggle_debug: VirtualKeyCode::F3,
+                fullscreen: VirtualKeyCode::F11,
+                screenshot: VirtualKeyCode::F4,
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
@@ -95,20 +101,20 @@ impl Settings {
         config
             .merge(
                 Config::try_from(&default_settings)
-                    .expect("Default settings struct could not be converted to Config"),
+                    .expect("Default settings struct could not be converted to Config!"),
             )
             .unwrap();
 
-        // TODO: log errors here
-        // If merge or try_into fail use the default settings
+        // TODO: Log errors here.
+        // If merge or try_into fail, use the default settings.
         match config.merge::<config::File<_>>(path.into()) {
             Ok(_) => match config.try_into() {
                 Ok(settings) => settings,
                 Err(_) => default_settings,
             },
             Err(_) => {
-                // Maybe the file didn't exist
-                // TODO: Handle this result
+                // Maybe the file didn't exist.
+                // TODO: Handle this result.
                 default_settings.save_to_file();
                 default_settings
             }
@@ -126,7 +132,7 @@ impl Settings {
 
     fn get_settings_path() -> PathBuf {
         let proj_dirs =
-            ProjectDirs::from("net", "veloren", "voxygen").expect("No home directory defined.");
+            ProjectDirs::from("net", "veloren", "voxygen").expect("No home directory defined!");
         let path = proj_dirs.config_dir();
         path.join("settings");
         let path = path.with_extension("toml");

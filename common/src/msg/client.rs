@@ -12,6 +12,7 @@ pub enum ClientMsg {
         body: comp::Body,
     },
     RequestState(ClientState),
+    SetViewDistance(u32),
     Ping,
     Pong,
     Chat(String),
@@ -22,7 +23,7 @@ pub enum ClientMsg {
         dir: comp::phys::Dir,
     },
     TerrainChunkRequest {
-        key: Vec3<i32>,
+        key: Vec2<i32>,
     },
     Disconnect,
 }

@@ -34,7 +34,7 @@ impl Camera {
             ori: Vec3::zero(),
             tgt_dist: 10.0,
             dist: 10.0,
-            fov: 1.3,
+            fov: 1.1,
             aspect,
             last_time: None,
         }
@@ -79,7 +79,7 @@ impl Camera {
 
         let proj_mat = Mat4::perspective_rh_no(self.fov, self.aspect, NEAR_PLANE, FAR_PLANE);
 
-        // TODO: Make this more efficient
+        // TODO: Make this more efficient.
         let cam_pos = Vec3::from(view_mat.inverted() * Vec4::unit_w());
 
         (view_mat, proj_mat, cam_pos)
@@ -95,7 +95,7 @@ impl Camera {
         self.ori.z = (self.ori.z + delta.z) % (2.0 * PI);
     }
 
-    /// Set the orientation of the camera about its focus
+    /// Set the orientation of the camera about its focus.
     pub fn set_orientation(&mut self, orientation: Vec3<f32>) {
         // Wrap camera yaw
         self.ori.x = orientation.x % (2.0 * PI);
@@ -111,7 +111,7 @@ impl Camera {
         self.tgt_dist = (self.tgt_dist + delta).max(0.0);
     }
 
-    /// Set the distance of the camera from the target (i.e: zoom)
+    /// Set the distance of the camera from the target (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) {
         self.tgt_dist = dist;
     }
@@ -146,7 +146,7 @@ impl Camera {
         self.aspect = if aspect.is_normal() { aspect } else { 1.0 };
     }
 
-    /// Get the orientation of the camera
+    /// Get the orientation of the camera.
     pub fn get_orientation(&self) -> Vec3<f32> {
         self.ori
     }

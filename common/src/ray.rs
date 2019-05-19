@@ -54,7 +54,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             pos = self.from + dir * dist;
             ipos = pos.map(|e| e.floor() as i32);
 
-            // Allow one iteration above max
+            // Allow one iteration above max.
             if dist > max {
                 break;
             }

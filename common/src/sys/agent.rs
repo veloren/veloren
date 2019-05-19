@@ -34,10 +34,10 @@ impl<'a> System<'a> for Sys {
                         Some(tgt_pos) => {
                             let tgt_pos = tgt_pos.0 + *offset;
 
-                            // Jump with target
+                            // Jump with target.
                             control.jumping = tgt_pos.z > pos.0.z + 1.0;
 
-                            // Move towards the target
+                            // Move towards the target.
                             let dist = tgt_pos.distance(pos.0);
                             control.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
@@ -50,7 +50,7 @@ impl<'a> System<'a> for Sys {
                         _ => control.move_dir = Vec2::zero(),
                     }
 
-                    // Change offset occasionally
+                    // Change offset occasionally.
                     if rand::random::<f32>() < 0.003 {
                         *offset =
                             Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)

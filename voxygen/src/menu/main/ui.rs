@@ -37,7 +37,7 @@ widget_ids! {
         singleplayer_text,
         usrnm_bg,
         srvr_bg,
-        // Serverlist
+        // Server list
         servers_button,
         servers_frame,
         servers_text,
@@ -55,22 +55,22 @@ widget_ids! {
 image_ids! {
     struct Imgs {
         <VoxelGraphic>
-        v_logo: "/voxygen/element/v_logo.vox",
-        input_bg: "/voxygen/element/misc_bg/textbox.vox",
-        button: "/voxygen/element/buttons/button.vox",
-        button_hover: "/voxygen/element/buttons/button_hover.vox",
-        button_press: "/voxygen/element/buttons/button_press.vox",
+        v_logo: "voxygen/element/v_logo.vox",
+        input_bg: "voxygen/element/misc_bg/textbox.vox",
+        button: "voxygen/element/buttons/button.vox",
+        button_hover: "voxygen/element/buttons/button_hover.vox",
+        button_press: "voxygen/element/buttons/button_press.vox",
 
         <ImageGraphic>
-        bg: "/voxygen/background/bg_main.png",
-        error_frame: "/voxygen/element/frames/window_2.png",
+        bg: "voxygen/background/bg_main.png",
+        error_frame: "voxygen/element/frames/window_2.png",
     }
 }
 
 font_ids! {
     pub struct Fonts {
-        opensans: "/voxygen/font/OpenSans-Regular.ttf",
-        metamorph: "/voxygen/font/Metamorphous-Regular.ttf",
+        opensans: "voxygen/font/OpenSans-Regular.ttf",
+        metamorph: "voxygen/font/Metamorphous-Regular.ttf",
     }
 }
 
@@ -137,6 +137,7 @@ impl MainMenuUi {
         Text::new(version)
             .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
+            .font_id(self.fonts.opensans)
             .color(TEXT_COLOR)
             .set(self.ids.version, ui_widgets);
 
@@ -237,7 +238,7 @@ impl MainMenuUi {
 
             let netsettings = &global_state.settings.networking;
 
-            // TODO: draw scroll bar or remove it
+            // TODO: Draw scroll bar or remove it.
             let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
                 .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
                 .w_h(400.0, 300.0)

@@ -57,7 +57,7 @@ impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
 }
 
 /// This macro will automatically load all specified assets, get the corresponding ImgIds and
-/// create a struct with all of them
+/// create a struct with all of them.
 ///
 /// Example usage:
 /// ```

@@ -12,6 +12,7 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
+    fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
     supplement_events: Vec<Event>,
@@ -57,12 +58,16 @@ impl Window {
         key_map.insert(settings.controls.settings, Key::Settings);
         key_map.insert(settings.controls.help, Key::Help);
         key_map.insert(settings.controls.toggle_interface, Key::ToggleInterface);
+        key_map.insert(settings.controls.toggle_debug, Key::ToggleDebug);
+        key_map.insert(settings.controls.fullscreen, Key::Fullscreen);
+        key_map.insert(settings.controls.screenshot, Key::Screenshot);
 
         let tmp = Ok(Self {
             events_loop,
             renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
             window,
             cursor_grabbed: false,
+            fullscreen: false,
             needs_refresh_resize: false,
             key_map,
             supplement_events: vec![],
@@ -86,15 +91,17 @@ impl Window {
             self.needs_refresh_resize = false;
         }
 
-        // Copy data that is needed by the events closure to avoid lifetime errors
-        // TODO: Remove this if/when the compiler permits it
+        // Copy data that is needed by the events closure to avoid lifetime errors.
+        // TODO: Remove this if/when the compiler permits it.
         let cursor_grabbed = self.cursor_grabbed;
         let renderer = &mut self.renderer;
         let window = &mut self.window;
         let key_map = &self.key_map;
+        let mut toggle_fullscreen = false;
+        let mut take_screenshot = false;
 
         self.events_loop.poll_events(|event| {
-            // Get events for ui
+            // Get events for ui.
             if let Some(event) = ui::Event::try_from(event.clone(), &window) {
                 events.push(Event::Ui(event));
             }
@@ -117,9 +124,19 @@ impl Window {
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
                         Some(keycode) => match key_map.get(&keycode) {
+                            Some(Key::Fullscreen) => match input.state {
+                                glutin::ElementState::Pressed => {
+                                    toggle_fullscreen = !toggle_fullscreen
+                                }
+                                _ => (),
+                            },
+                            Some(Key::Screenshot) => match input.state {
+                                glutin::ElementState::Pressed => take_screenshot = true,
+                                _ => {}
+                            },
                             Some(&key) => events.push(match input.state {
                                 glutin::ElementState::Pressed => Event::KeyDown(key),
-                                _ => Event::KeyUp(key),
+                                glutin::ElementState::Released => Event::KeyUp(key),
                             }),
                             _ => {}
                         },
@@ -142,6 +159,15 @@ impl Window {
                 _ => {}
             }
         });
+
+        if take_screenshot {
+            self.take_screenshot();
+        }
+
+        if toggle_fullscreen {
+            self.fullscreen(!self.is_fullscreen());
+        }
+
         events
     }
 
@@ -161,6 +187,20 @@ impl Window {
         let _ = self.window.grab_cursor(grab);
     }
 
+    pub fn is_fullscreen(&self) -> bool {
+        self.fullscreen
+    }
+
+    pub fn fullscreen(&mut self, fullscreen: bool) {
+        self.fullscreen = fullscreen;
+        if fullscreen {
+            self.window
+                .set_fullscreen(Some(self.window.get_current_monitor()));
+        } else {
+            self.window.set_fullscreen(None);
+        }
+    }
+
     pub fn needs_refresh_resize(&mut self) {
         self.needs_refresh_resize = true;
     }
@@ -177,9 +217,37 @@ impl Window {
     pub fn send_supplement_event(&mut self, event: Event) {
         self.supplement_events.push(event)
     }
+
+    pub fn take_screenshot(&mut self) {
+        match self.renderer.create_screenshot() {
+            Ok(img) => {
+                std::thread::spawn(move || {
+                    use std::{path::PathBuf, time::SystemTime};
+                    // Check if folder exists and create it if it does not
+                    let mut path = std::path::PathBuf::from("./screenshots");
+                    if !path.exists() {
+                        if let Err(err) = std::fs::create_dir(&path) {
+                            log::error!("Coudn't create folder for screenshot: {:?}", err);
+                        }
+                    }
+                    path.push(format!(
+                        "screenshot_{}.png",
+                        SystemTime::now()
+                            .duration_since(SystemTime::UNIX_EPOCH)
+                            .map(|d| d.as_millis())
+                            .unwrap_or(0)
+                    ));
+                    if let Err(err) = img.save(&path) {
+                        log::error!("Coudn't save screenshot: {:?}", err);
+                    }
+                });
+            }
+            Err(err) => log::error!("Coudn't create screenshot due to renderer error: {:?}", err),
+        }
+    }
 }
 
-/// Represents a key that the game recognises after keyboard mapping
+/// Represents a key that the game recognises after keyboard mapping.
 #[derive(Clone, Copy)]
 pub enum Key {
     ToggleCursor,
@@ -200,14 +268,17 @@ pub enum Key {
     Settings,
     ToggleInterface,
     Help,
+    ToggleDebug,
+    Fullscreen,
+    Screenshot,
 }
 
-/// Represents an incoming event from the window
+/// Represents an incoming event from the window.
 #[derive(Clone)]
 pub enum Event {
     /// The window has been requested to close.
     Close,
-    /// The window has been resized
+    /// The window has been resized.
     Resize(Vec2<u32>),
     /// A key has been typed that corresponds to a specific character.
     Char(char),
@@ -216,12 +287,14 @@ pub enum Event {
     CursorPan(Vec2<f32>),
     /// The camera has been requested to zoom.
     Zoom(f32),
-    /// A key that the game recognises has been pressed down
+    /// A key that the game recognises has been pressed down.
     KeyDown(Key),
-    /// A key that the game recognises has been released down
+    /// A key that the game recognises has been released down.
     KeyUp(Key),
-    /// Event that the ui uses
+    /// Event that the ui uses.
     Ui(ui::Event),
-    /// Game settings have changed
+    // The view distance has been changed
+    ViewDistanceChanged(u32),
+    /// Game settings have changed.
     SettingsChanged,
 }

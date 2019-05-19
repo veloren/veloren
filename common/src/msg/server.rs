@@ -34,7 +34,7 @@ pub enum ServerMsg {
         action_state: comp::ActionState,
     },
     TerrainChunkUpdate {
-        key: Vec3<i32>,
+        key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
     Disconnect,

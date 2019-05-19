@@ -67,8 +67,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    /// Create a new `Renderer` from a variety of backend-specific components and the window
-    /// targets.
+    /// Create a new `Renderer` from a variety of backend-specific components and the window targets.
     pub fn new(
         device: gfx_backend::Device,
         mut factory: gfx_backend::Factory,
@@ -186,11 +185,11 @@ impl Renderer {
         (&mut self.win_color_view, &mut self.win_depth_view)
     }
 
-    /// Resize internal render targets to match window render target dimensions
+    /// Resize internal render targets to match window render target dimensions.
     pub fn on_resize(&mut self) -> Result<(), RenderError> {
         let dims = self.win_color_view.get_dimensions();
 
-        // Panics when creating texture with w,h of 0,0
+        // Avoid panics when creating texture with w,h of 0,0.
         if dims.0 != 0 && dims.1 != 0 {
             let (tgt_color_view, tgt_depth_view, tgt_color_res) =
                 Self::create_rt_views(&mut self.factory, (dims.0, dims.1))?;
@@ -224,7 +223,7 @@ impl Renderer {
     }
 
     /// Queue the clearing of the color and depth targets ready for a new frame to be rendered.
-    /// TODO: Make a version of this that doesn't clear the colour target for speed
+    /// TODO: Make a version of this that doesn't clear the colour target for speed.
     pub fn clear(&mut self, col: Rgba<f32>) {
         self.encoder.clear(&self.tgt_color_view, col.into_array());
         self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
@@ -262,7 +261,7 @@ impl Renderer {
         Ok(Model::new(&mut self.factory, mesh))
     }
 
-    /// Create a new dynamic model with the specified size
+    /// Create a new dynamic model with the specified size.
     pub fn create_dynamic_model<P: Pipeline>(
         &mut self,
         size: usize,
@@ -270,7 +269,7 @@ impl Renderer {
         DynamicModel::new(&mut self.factory, size)
     }
 
-    /// Update a dynamic model with a mesh and a offset
+    /// Update a dynamic model with a mesh and a offset.
     pub fn update_model<P: Pipeline>(
         &mut self,
         model: &DynamicModel<P>,
@@ -288,7 +287,7 @@ impl Renderer {
         Texture::new(&mut self.factory, image)
     }
 
-    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions
+    /// Create a new dynamic texture (gfx::memory::Usage::Dynamic) with the specified dimensions.
     pub fn create_dynamic_texture<P: Pipeline>(
         &mut self,
         dims: Vec2<u16>,
@@ -296,7 +295,7 @@ impl Renderer {
         Texture::new_dynamic(&mut self.factory, dims.x, dims.y)
     }
 
-    /// Update a texture with the provided offset, size, and data
+    /// Update a texture with the provided offset, size, and data.
     pub fn update_texture<P: Pipeline>(
         &mut self,
         texture: &Texture<P>,
@@ -305,6 +304,55 @@ impl Renderer {
         data: &[[u8; 4]],
     ) -> Result<(), RenderError> {
         texture.update(&mut self.encoder, offset, size, data)
+    }
+
+    /// Creates a download buffer, downloads the win_color_view, and converts to a image::DynamicImage.
+    pub fn create_screenshot(&mut self) -> Result<image::DynamicImage, RenderError> {
+        let (width, height) = self.get_resolution().into_tuple();
+        use gfx::{
+            format::{Formatted, SurfaceTyped},
+            memory::Typed,
+        };
+        type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
+        let mut download = self
+            .factory
+            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)
+            .map_err(|err| RenderError::BufferCreationError(err))?;
+        self.encoder
+            .copy_texture_to_buffer_raw(
+                self.win_color_view.raw().get_texture(),
+                None,
+                gfx::texture::RawImageInfo {
+                    xoffset: 0,
+                    yoffset: 0,
+                    zoffset: 0,
+                    width,
+                    height,
+                    depth: 0,
+                    format: WinColorFmt::get_format(),
+                    mipmap: 0,
+                },
+                download.raw(),
+                0,
+            )
+            .map_err(|err| RenderError::CopyError(err))?;
+        self.flush();
+
+        // Assumes that the format is Rgba8.
+        let raw_data = self
+            .factory
+            .read_mapping(&download)
+            .map_err(|err| RenderError::MappingError(err))?
+            .chunks_exact(width as usize)
+            .rev()
+            .flatten()
+            .flatten()
+            .map(|&e| e)
+            .collect::<Vec<_>>();
+        Ok(image::DynamicImage::ImageRgba8(
+            // Should not fail if the dimensions are correct.
+            image::ImageBuffer::from_raw(width as u32, height as u32, raw_data).unwrap(),
+        ))
     }
 
     /// Queue the rendering of the provided skybox model in the upcoming frame.
@@ -449,7 +497,7 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 },
                 pipe,
             )
-            // Do some funky things to work around an oddity in gfx's error ownership rules
+            // Do some funky things to work around an oddity in gfx's error ownership rules.
             .map_err(|err| {
                 RenderError::PipelineError(match err {
                     gfx::PipelineStateError::Program(err) => gfx::PipelineStateError::Program(err),

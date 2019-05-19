@@ -42,8 +42,8 @@ impl<'a> System<'a> for Sys {
                 && vel.0.z <= 0.0;
 
             let (gliding, friction) = if on_ground {
-                // TODO: Don't hard-code this
-                // Apply physics to the player: acceleration and non-linear decceleration
+                // TODO: Don't hard-code this.
+                // Apply physics to the player: acceleration and non-linear deceleration.
                 vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 200.0;
 
                 if control.jumping {
@@ -52,12 +52,12 @@ impl<'a> System<'a> for Sys {
 
                 (false, 0.15)
             } else {
-                // TODO: Don't hard-code this
-                // Apply physics to the player: acceleration and non-linear decceleration
+                // TODO: Don't hard-code this.
+                // Apply physics to the player: acceleration and non-linear deceleration.
                 vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 10.0;
 
                 if control.gliding && vel.0.z < 0.0 {
-                    // TODO: Don't hard-code this
+                    // TODO: Don't hard-code this.
                     let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
                     vel.0.z +=
                         dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);

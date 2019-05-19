@@ -39,7 +39,8 @@ impl<'a> Chat<'a> {
     }
 
     fn scrolled_to_bottom(state: &State, ui: &UiCell) -> bool {
-        // could be more efficient to cache result and update it when a scroll event has occurred instead of every frame
+        // Might be more efficient to cache result and update it when a scroll event has occurred
+        // instead of every frame.
         if let Some(scroll) = ui
             .widget_graph()
             .widget(state.ids.message_box)
@@ -84,7 +85,7 @@ impl<'a> Widget for Chat<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        // Maintain scrolling
+        // Maintain scrolling.
         if !self.new_messages.is_empty() {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
@@ -93,8 +94,8 @@ impl<'a> Widget for Chat<'a> {
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
         let input_focused = keyboard_capturer == Some(state.ids.input);
 
-        // Only show if it has the keyboard captured
-        // Chat input with rectangle as background
+        // Only show if it has the keyboard captured.
+        // Chat input uses a rectangle as its background.
         if input_focused {
             let text_edit = TextEdit::new(&state.input)
                 .w(460.0)
@@ -139,7 +140,7 @@ impl<'a> Widget for Chat<'a> {
             .scroll_kids_vertically()
             .set(state.ids.message_box, ui);
         while let Some(item) = items.next(ui) {
-            // This would be easier if conrod used the v-metrics from rusttype
+            // This would be easier if conrod used the v-metrics from rusttype.
             let widget = if item.i < state.messages.len() {
                 let text = Text::new(&state.messages[item.i])
                     .font_size(15)
@@ -147,15 +148,15 @@ impl<'a> Widget for Chat<'a> {
                     .w(470.0)
                     .color(TEXT_COLOR)
                     .line_spacing(2.0);
-                // Add space between messages
+                // Add space between messages.
                 let y = match text.get_y_dimension(ui) {
                     Dimension::Absolute(y) => y + 2.0,
                     _ => 0.0,
                 };
                 text.h(y)
             } else {
-                // Spacer at bottom of the last message so that it is not cut off
-                // Needs to be larger than the space above
+                // Spacer at bottom of the last message so that it is not cut off.
+                // Needs to be larger than the space above.
                 Text::new("")
                     .font_size(6)
                     .font_id(self.fonts.opensans)
@@ -165,7 +166,7 @@ impl<'a> Widget for Chat<'a> {
         }
 
         // Chat Arrow
-        // Check if already at bottom
+        // Check if already at bottom.
         if !Self::scrolled_to_bottom(state, ui) {
             if Button::image(self.imgs.chat_arrow)
                 .w_h(20.0, 20.0)
@@ -179,11 +180,11 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        // If the chat widget is focused return a focus event to pass the focus to the input box
+        // If the chat widget is focused, return a focus event to pass the focus to the input box.
         if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
         }
-        // If enter is pressed and the input box is not empty send the current message
+        // If enter is pressed and the input box is not empty, send the current message.
         else if ui
             .widget_input(state.ids.input)
             .presses()

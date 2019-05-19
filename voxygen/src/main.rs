@@ -4,6 +4,7 @@
 #[macro_use]
 pub mod ui;
 pub mod anim;
+pub mod audio;
 pub mod error;
 pub mod hud;
 pub mod key_state;
@@ -19,26 +20,31 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{menu::main::MainMenuState, settings::Settings, window::Window};
+use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use log;
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr, thread};
 
-/// The URL of the default public server that Voxygen will connect to
+/// The URL of the default public server that Voxygen will connect to.
 const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
 
-/// A type used to store state that is shared between all play states
+/// A type used to store state that is shared between all play states.
 pub struct GlobalState {
     settings: Settings,
     window: Window,
+    audio: AudioFrontend,
 }
 
 impl GlobalState {
-    /// Called after a change in play state has occured (usually used to reverse any temporary
+    /// Called after a change in play state has occurred (usually used to reverse any temporary
     /// effects a state may have made).
     pub fn on_play_state_changed(&mut self) {
         self.window.grab_cursor(false);
         self.window.needs_refresh_resize();
+    }
+
+    pub fn maintain(&mut self) {
+        self.audio.maintain();
     }
 }
 
@@ -47,16 +53,16 @@ pub enum Direction {
     Backwards,
 }
 
-// States can either close (and revert to a previous state), push a new state on top of themselves,
-// or switch to a totally different state
+/// States can either close (and revert to a previous state), push a new state on top of themselves,
+/// or switch to a totally different state.
 pub enum PlayStateResult {
-    /// Pop all play states in reverse order and shut down the program
+    /// Pop all play states in reverse order and shut down the program.
     Shutdown,
-    /// Close the current play state and pop it from the play state stack
+    /// Close the current play state and pop it from the play state stack.
     Pop,
-    /// Push a new play state onto the play state stack
+    /// Push a new play state onto the play state stack.
     Push(Box<dyn PlayState>),
-    /// Switch the current play state with a new play state
+    /// Switch the current play state with a new play state.
     Switch(Box<dyn PlayState>),
 }
 
@@ -67,16 +73,16 @@ pub trait PlayState {
     /// is closed).
     fn play(&mut self, direction: Direction, global_state: &mut GlobalState) -> PlayStateResult;
 
-    /// Get a descriptive name for this state type
+    /// Get a descriptive name for this state type.
     fn name(&self) -> &'static str;
 }
 
 fn main() {
-    // Set up the global state
+    // Set up the global state.
     let settings = Settings::load();
-    let window = Window::new(&settings).expect("Failed to create window");
+    let window = Window::new(&settings).expect("Failed to create window!");
 
-    // Init logging
+    // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
@@ -153,9 +159,13 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    let mut global_state = GlobalState { settings, window };
+    let mut global_state = GlobalState {
+        settings,
+        window,
+        audio: AudioFrontend::new(),
+    };
 
-    // Set up the initial play state
+    // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
         .last()
@@ -173,14 +183,14 @@ fn main() {
         .last_mut()
         .map(|last| last.play(direction, &mut global_state))
     {
-        // Implement state transfer logic
+        // Implement state transfer logic.
         match state_result {
             PlayStateResult::Shutdown => {
                 direction = Direction::Backwards;
                 log::info!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
-                        log::info!("Popped state '{}'", old_state.name());
+                        log::info!("Popped state '{}'.", old_state.name());
                         global_state.on_play_state_changed();
                     });
                 }
@@ -188,13 +198,13 @@ fn main() {
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
-                    log::info!("Popped state '{}'", old_state.name());
+                    log::info!("Popped state '{}'.", old_state.name());
                     global_state.on_play_state_changed();
                 });
             }
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
-                log::info!("Pushed state '{}'", new_state.name());
+                log::info!("Pushed state '{}'.", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
             }
@@ -202,7 +212,7 @@ fn main() {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
                     log::info!(
-                        "Switching to state '{}' from state '{}'",
+                        "Switching to state '{}' from state '{}'.",
                         new_state.name(),
                         old_state.name()
                     );

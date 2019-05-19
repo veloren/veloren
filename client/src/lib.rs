@@ -44,15 +44,15 @@ pub struct Client {
     tick: u64,
     state: State,
     entity: EcsEntity,
-    view_distance: u64,
+    view_distance: Option<u32>,
 
-    pending_chunks: HashMap<Vec3<i32>, Instant>,
+    pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
 
 impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
-    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: u64) -> Result<Self, Error> {
+    pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let mut client_state = Some(ClientState::Connected);
         let mut postbox = PostBox::to(addr)?;
 
@@ -94,13 +94,15 @@ impl Client {
         self.postbox.send_message(ClientMsg::Register { player });
     }
 
-    pub fn request_character(&mut self, name: String, body: comp::Body) {
+
+    pub fn set_view_distance(&mut self, view_distance: u32) {
+        self.view_distance = Some(view_distance.max(5).min(25));
         self.postbox
-            .send_message(ClientMsg::Character { name, body });
+            .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any
-    /// computationally expensive operations that run outside of the main thread (i.e: threads that
+    /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
     pub fn thread_pool(&self) -> &threadpool::ThreadPool {
@@ -119,7 +121,7 @@ impl Client {
         &mut self.state
     }
 
-    /// Get the player's entity
+    /// Get the player's entity.
     #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
         self.entity
@@ -131,13 +133,13 @@ impl Client {
         self.tick
     }
 
-    /// Send a chat message to the server
+    /// Send a chat message to the server.
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
         self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
-    /// Execute a single client tick, handle input and update the game state by the given duration
+    /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
     pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
@@ -152,13 +154,13 @@ impl Client {
         // 4) Go through the terrain update queue and apply all changes to the terrain
         // 5) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend
+        // Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
-        // Handle new messages from the server
+        // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Pass character control from frontend input to the player's entity
+        // Pass character control from frontend input to the player's entity.
         // TODO: Only do this if the entity already has a Control component!
         self.state.write_component(
             self.entity,
@@ -186,9 +188,10 @@ impl Client {
         }
 
         // Tick the client's LocalState (step 3)
+
         self.state.tick(dt);
 
-        // Update the server about the player's physics attributes
+        // Update the server about the player's physics attributes.
         match (
             self.state.read_storage().get(self.entity).cloned(),
             self.state.read_storage().get(self.entity).cloned(),
@@ -203,6 +206,7 @@ impl Client {
 
         // Update the server about the player's current action state
         if let Some(action_state) = self
+
             .state
             .read_storage::<comp::ActionState>()
             .get(self.entity)
@@ -219,16 +223,16 @@ impl Client {
             .read_storage::<comp::phys::Pos>()
             .get(self.entity)
             .cloned();
-        if let Some(pos) = pos {
+        if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
             let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
 
-            // Remove chunks that are too far from the player
+            // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| e.abs())
+                    .map(|e: i32| e.abs() as u32)
                     .reduce_max()
-                    > 10
+                    > view_distance
                 {
                     chunks_to_remove.push(key);
                 }
@@ -237,48 +241,46 @@ impl Client {
                 self.state.remove_chunk(key);
             }
 
-            // Request chunks from the server
-            // TODO: This is really not very efficient
-            'outer: for dist in 0..10 {
+            // Request chunks from the server.
+            // TODO: This is really inefficient.
+            'outer: for dist in 0..view_distance as i32 {
                 for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
                     for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
-                        for k in 0..6 {
-                            let key = Vec3::new(i, j, k);
-                            if self.state.terrain().get_key(key).is_none()
-                                && !self.pending_chunks.contains_key(&key)
-                            {
-                                if self.pending_chunks.len() < 4 {
-                                    self.postbox
-                                        .send_message(ClientMsg::TerrainChunkRequest { key });
-                                    self.pending_chunks.insert(key, Instant::now());
-                                } else {
-                                    break 'outer;
-                                }
+                        let key = Vec2::new(i, j);
+                        if self.state.terrain().get_key(key).is_none()
+                            && !self.pending_chunks.contains_key(&key)
+                        {
+                            if self.pending_chunks.len() < 4 {
+                                self.postbox
+                                    .send_message(ClientMsg::TerrainChunkRequest { key });
+                                self.pending_chunks.insert(key, Instant::now());
+                            } else {
+                                break 'outer;
                             }
                         }
                     }
                 }
             }
 
-            // If chunks are taking too long, assume they're no longer pending
+            // If chunks are taking too long, assume they're no longer pending.
             let now = Instant::now();
             self.pending_chunks
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
-        // Finish the tick, pass control back to the frontend (step 6)
+        // Finish the tick, pass control back to the frontend (step 6).
         self.tick += 1;
         Ok(frontend_events)
     }
 
-    /// Clean up the client after a tick
+    /// Clean up the client after a tick.
     #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
     }
 
-    /// Handle new server messages
+    /// Handle new server messages.
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
@@ -347,7 +349,7 @@ impl Client {
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            // Try pinging the server if the timeout is nearing
+            // Try pinging the server if the timeout is nearing.
             self.postbox.send_message(ClientMsg::Ping);
         }
 
