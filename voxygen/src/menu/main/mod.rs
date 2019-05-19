@@ -106,7 +106,7 @@ impl PlayState for MainMenuState {
                         // Don't try to connect if there is already a connection in progress.
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),
-                            (comp::Player::new(username.clone()), 300),
+                            comp::Player::new(username.clone(), Some(10)),
                             false,
                         )));
                     }

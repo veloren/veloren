@@ -216,6 +216,8 @@ pub enum Event {
     KeyUp(Key),
     /// Event that the ui uses.
     Ui(ui::Event),
+    // The view distance has been changed
+    ViewDistanceChanged(u32),
     /// Game settings have changed.
     SettingsChanged,
 }

@@ -190,9 +190,8 @@ impl PlayState for SessionState {
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     }
-                    HudEvent::AdjustVd(new_vd) => {
-                        println!("New VD is {}, TODO: Actually change VD", new_vd);
-                        //self.client.borrow_mut().set_vd(new_vd);
+                    HudEvent::AdjustViewDistance(view_distance) => {
+                        self.client.borrow_mut().set_view_distance(view_distance)
                     }
                 }
             }
