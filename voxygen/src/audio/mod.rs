@@ -76,4 +76,8 @@ impl AudioFrontend {
             self.play_music(music[i])
         }
     }
+
+    pub fn set_volume(&mut self, volume: f32) {
+        self.stream.set_volume(volume.min(1.0))
+    }
 }
