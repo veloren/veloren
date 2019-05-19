@@ -28,7 +28,7 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 60.0;
 pub struct TimeOfDay(f64);
 
 /// A resource that stores the tick (i.e: physics) time.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Time(f64);
 
 /// A resource that stores the time since the previous tick.
