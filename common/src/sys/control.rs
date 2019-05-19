@@ -86,7 +86,7 @@ impl<'a> System<'a> for Sys {
                 if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
                 } else {
-                    Animation::Idle
+                    Animation::Attack
                 }
             } else if gliding {
                 Animation::Gliding

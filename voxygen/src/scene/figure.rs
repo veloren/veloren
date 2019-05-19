@@ -69,8 +69,8 @@ impl FigureModelCache {
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw(body.draw)),
-                                    None,
-                                    None,
+                                    Some(Self::load_left_hold(body.hand)),
+                                    Some(Self::load_right_hold(body.hand)),
                                     None,
                                     None,
                                 ],
@@ -221,7 +221,7 @@ impl FigureModelCache {
                 // TODO actually match against other weapons and set the right model
                 _ => "weapon/sword/sword_wood_2h.vox",
             },
-            Vec3::new(0.0, 0.0, -4.0),
+            Vec3::new(-6.5, -1.5, -4.0),
         )
     }
 
@@ -242,12 +242,31 @@ impl FigureModelCache {
             Vec3::new(2.5, -0.5, 0.0),
         )
     }
+
     fn load_draw(draw: Draw) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match draw {
                 Draw::Default => "object/glider.vox",
             },
             Vec3::new(-26.0, -26.0, -5.0),
+        )
+    }
+
+    fn load_left_hold(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hand {
+                Hand::Default => "figure/body/hand.vox",
+            },
+            Vec3::new(0.0, -2.5, 0.0),
+        )
+    }
+
+    fn load_right_hold(hand: Hand) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hand {
+                Hand::Default => "figure/body/hand.vox",
+            },
+            Vec3::new(-2.0, -2.5, 0.0),
         )
     }
 
@@ -358,6 +377,11 @@ impl FigureMgr {
                                 animation_history.time,
                             ),
                             comp::Animation::Jump => character::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_history.time,
+                            ),
+                            comp::Animation::Attack => character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_history.time,
