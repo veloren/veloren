@@ -165,6 +165,10 @@ fn main() {
         audio: AudioFrontend::new(),
     };
 
+    // TODO: Remove this when the volume setting can be saved
+    // Lower the volume to 50%
+    global_state.audio.set_volume(0.5);
+
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
