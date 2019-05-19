@@ -44,6 +44,8 @@ widget_ids! {
         video,
         vd_slider,
         vd_slider_text,
+        audio_volume_slider,
+        audio_volume_text,
     }
 }
 
@@ -63,6 +65,7 @@ pub struct SettingsWindow<'a> {
     fonts: &'a Fonts,
 
     current_vd: u32,
+    //current_volume: u32,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -75,6 +78,7 @@ impl<'a> SettingsWindow<'a> {
             imgs,
             fonts,
             current_vd,
+            //current_volume,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -518,6 +522,33 @@ impl<'a> Widget for SettingsWindow<'a> {
         .was_clicked()
         {
             state.update(|s| s.settings_tab = SettingsTab::Sound);
+        }
+        // Contents
+        if let SettingsTab::Sound = state.settings_tab {
+            Text::new("Volume")
+                .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.audio_volume_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                //self.current_volume,
+                self.current_vd,
+                0,
+                100,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.audio_volume_text, 10.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.audio_volume_slider, ui)
+            {
+                events.push(Event::AdjustViewDistance(new_val as u32));
+            }
         }
 
         events
