@@ -145,6 +145,10 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
         self.chunks.get(&key)
     }
 
+    pub fn clear(&mut self) {
+        self.chunks.clear();
+    }
+
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> {
         self.chunks.remove(&key)
     }
