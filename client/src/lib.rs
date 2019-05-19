@@ -102,6 +102,7 @@ impl Client {
 
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
+        self.pending_state_request = true;
     }
 
     pub fn request_character(&mut self, name: String, body: comp::Body) {
