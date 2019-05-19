@@ -76,6 +76,12 @@ lazy_static! {
             handle_tp
         ),
         ChatCommand::new(
+            "kill",
+            "{}",
+            "/kill : Kill yourself",
+            handle_kill
+        ),
+        ChatCommand::new(
             "pet",
             "{}",
             "/pet : Spawn a test pet NPC",
@@ -130,6 +136,12 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
+}
+
+fn handle_kill(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    server
+        .state
+        .write_component::<comp::Dying>(entity, comp::Dying)
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
