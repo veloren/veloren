@@ -2,7 +2,7 @@ use config::{Config, ConfigError};
 use directories::ProjectDirs;
 use glutin::VirtualKeyCode;
 use serde_derive::{Deserialize, Serialize};
-use std::{fs::File, io::prelude::*, path::PathBuf};
+use std::{fs, io::prelude::*, path::PathBuf};
 use toml;
 
 /// `Settings` contains everything that can be configured in the Settings.toml file.
@@ -124,7 +124,11 @@ impl Settings {
     pub fn save_to_file(&self) -> std::io::Result<()> {
         let path = Settings::get_settings_path();
 
-        let mut config_file = File::create(path)?;
+        if let Some(dir) = path.parent() {
+            fs::create_dir_all(dir)?;
+        }
+
+        let mut config_file = fs::File::create(path)?;
         let s: &str = &toml::to_string_pretty(self).unwrap();
         config_file.write_all(s.as_bytes()).unwrap();
         Ok(())
