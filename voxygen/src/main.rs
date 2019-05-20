@@ -166,7 +166,9 @@ fn main() {
     };
 
     // Load volume from audio file
-    global_state.audio.set_volume(settings.audio.music_volume);
+    global_state
+        .audio
+        .set_volume(global_state.settings.audio.music_volume);
 
     global_state.settings.audio.audio_devices = global_state.audio.get_devices();
 
@@ -175,7 +177,7 @@ fn main() {
     if global_state.settings.audio.audio_device != "" {
         global_state
             .audio
-            .set_device(global_state.settings.audio.audio_device);
+            .set_device(global_state.settings.audio.audio_device.clone());
     } else {
         global_state.settings.audio.audio_device = global_state.audio.get_device();
         global_state.settings.save_to_file();

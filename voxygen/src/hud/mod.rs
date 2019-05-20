@@ -210,16 +210,10 @@ pub struct Hud {
     to_focus: Option<Option<widget::Id>>,
     settings: Settings,
     force_ungrab: bool,
-    // TODO: move to settings
-    current_vd: u32,
-    current_volume: f32,
-    audio_devices: Vec<String>,
-    current_audio_device: String,
 }
 
 impl Hud {
     pub fn new(window: &mut Window, settings: Settings) -> Self {
-        let settings = global_state.settings;
         let mut ui = Ui::new(window).unwrap();
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -252,8 +246,6 @@ impl Hud {
             to_focus: None,
             settings,
             force_ungrab: false,
-            current_vd: 5,
-            current_volume: 0.5,
         }
     }
 
@@ -383,16 +375,8 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(
-                &self.show,
-                &self.imgs,
-                &self.fonts,
-                self.current_vd,
-                self.current_volume,
-                self.audio_devices,
-                self.current_audio_device,
-            )
-            .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, &self.settings)
+                .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::ToggleHelp => self.show.toggle_help(),
@@ -402,15 +386,15 @@ impl Hud {
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::Close => self.show.open_windows = Windows::None,
                     settings_window::Event::AdjustViewDistance(view_distance) => {
-                        self.current_vd = view_distance;
+                        self.settings.graphics.view_distance = view_distance;
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
                     settings_window::Event::AdjustVolume(volume) => {
-                        self.current_volume = volume;
+                        self.settings.audio.music_volume = volume;
                         events.push(Event::AdjustVolume(volume));
                     }
                     settings_window::Event::ChangeAudioDevice(name) => {
-                        self.current_audio_device = name;
+                        self.settings.audio.audio_device = name.clone();
                         events.push(Event::ChangeAudioDevice(name));
                     }
                 }
