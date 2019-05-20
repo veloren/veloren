@@ -12,6 +12,8 @@ pub enum ChonkError {
     OutOfBounds,
 }
 
+const SUB_CHUNK_HEIGHT: u32 = 16;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chonk {
     z_offset: i32,
@@ -37,11 +39,11 @@ impl Chonk {
     }
 
     pub fn get_z_max(&self) -> i32 {
-        self.z_offset + (self.sub_chunks.len() as u32 * TerrainChunkSize::SIZE.z) as i32
+        self.z_offset + (self.sub_chunks.len() as u32 * SUB_CHUNK_HEIGHT) as i32
     }
 
     fn sub_chunk_idx(&self, z: i32) -> usize {
-        ((z - self.z_offset) as u32 / TerrainChunkSize::SIZE.z as u32) as usize
+        ((z - self.z_offset) as u32 / SUB_CHUNK_HEIGHT as u32) as usize
     }
 }
 
@@ -57,7 +59,7 @@ impl ReadVol for Chonk {
             // Below the terrain
             Ok(&self.below)
         } else if pos.z
-            >= self.z_offset + TerrainChunkSize::SIZE.z as i32 * self.sub_chunks.len() as i32
+            >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32
         {
             // Above the terrain
             Ok(&self.above)
@@ -73,7 +75,7 @@ impl ReadVol for Chonk {
                     let rpos = pos
                         - Vec3::unit_z()
                             * (self.z_offset
-                                + sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32);
+                                + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
                     chunk.get(rpos).map_err(|err| ChonkError::ChunkError(err))
                 }
             }
@@ -95,7 +97,7 @@ impl WriteVol for Chonk {
 
             let rpos = pos
                 - Vec3::unit_z()
-                    * (self.z_offset + sub_chunk_idx as i32 * TerrainChunkSize::SIZE.z as i32);
+                    * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
 
             match &mut self.sub_chunks[sub_chunk_idx] {
                 // Can't fail
