@@ -12,6 +12,7 @@ pub struct Settings {
     pub controls: ControlSettings,
     pub networking: NetworkingSettings,
     pub log: Log,
+    pub graphics: GraphicsSettings,
     pub audio: AudioSettings,
 }
 
@@ -51,6 +52,11 @@ pub struct NetworkingSettings {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Log {
     pub file: PathBuf,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GraphicsSettings {
+    pub view_distance: u32,
 }
 
 /// AudioSettings controls the volume of different audio subsystems and which
@@ -104,6 +110,7 @@ impl Default for Settings {
             log: Log {
                 file: "voxygen.log".into(),
             },
+            graphics: GraphicsSettings { view_distance: 5 },
             audio: AudioSettings {
                 music_volume: 0.5,
                 sfx_volume: 0.5,

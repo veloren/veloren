@@ -7,6 +7,7 @@ use crate::{
         ImageSlider, ScaleMode, ToggleButton, Ui,
     },
     window::Window,
+    Settings,
 };
 use conrod_core::{
     color,
@@ -65,33 +66,19 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
-    current_vd: u32,
-    current_volume: f32,
-    audio_devices: Vec<String>,
-    current_audio_device: String,
+    settings: &'a Settings,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(
-        show: &'a Show,
-        imgs: &'a Imgs,
-        fonts: &'a Fonts,
-        current_vd: u32,
-        current_volume: f32,
-        audio_devices: Vec<String>,
-        current_audio_device: String,
-    ) -> Self {
+    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, settings: &'a Settings) -> Self {
         Self {
             show,
             imgs,
             fonts,
-            current_vd,
-            current_volume,
-            audio_devices,
-            current_audio_device,
+            settings,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -499,7 +486,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.vd_slider_text, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                self.current_vd,
+                self.settings.graphics.view_distance,
                 1,
                 25,
                 self.imgs.slider_indicator,
@@ -553,7 +540,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.audio_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
-                self.current_volume,
+                self.settings.audio.music_volume,
                 0.0,
                 1.0,
                 self.imgs.slider_indicator,
@@ -578,7 +565,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.audio_device_text, ui);
 
             // TODO: Draw scroll bar or remove it.
-            let (mut items, scrollbar) = List::flow_down(self.audio_devices.len())
+            let (mut items, scrollbar) = List::flow_down(self.settings.audio.audio_devices.len())
                 .down_from(state.ids.audio_device_text, 10.0)
                 .w_h(400.0, 300.0)
                 .scrollbar_next_to()
@@ -588,12 +575,12 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             while let Some(item) = items.next(ui) {
                 let mut text = "".to_string();
-                if &self.audio_devices[item.i] == &self.current_audio_device {
+                if &self.settings.audio.audio_devices[item.i] == &self.settings.audio.audio_device {
                     text.push_str("* ")
                 } else {
                     text.push_str("  ")
                 }
-                text.push_str(&self.audio_devices[item.i]);
+                text.push_str(&self.settings.audio.audio_devices[item.i]);
 
                 // TODO: Use buttons to allow changing audio devices
                 item.set(
