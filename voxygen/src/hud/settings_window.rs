@@ -11,7 +11,7 @@ use crate::{
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Image, List, Rectangle, Scrollbar, Text},
+    widget::{self, Button, DropDownList, Image, List, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 widget_ids! {
@@ -564,53 +564,22 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.audio_device_text, ui);
 
-            // TODO: Draw scroll bar or remove it.
-            let (mut items, scrollbar) = List::flow_down(self.settings.audio.audio_devices.len())
+            // Get which device is currently selected
+            let selected = self
+                .settings
+                .audio
+                .audio_devices
+                .iter()
+                .position(|x| x.contains(&self.settings.audio.audio_device));
+
+            if let Some(clicked) = DropDownList::new(&self.settings.audio.audio_devices, selected)
+                .w_h(400.0, 22.0)
                 .down_from(state.ids.audio_device_text, 10.0)
-                .w_h(400.0, 300.0)
-                .scrollbar_next_to()
-                .scrollbar_thickness(18.0)
-                .scrollbar_color(TEXT_COLOR)
-                .set(state.ids.audio_device_list, ui);
-
-            while let Some(item) = items.next(ui) {
-                let mut text = "".to_string();
-                if &self.settings.audio.audio_devices[item.i] == &self.settings.audio.audio_device {
-                    text.push_str("* ")
-                } else {
-                    text.push_str("  ")
-                }
-                text.push_str(&self.settings.audio.audio_devices[item.i]);
-
-                // TODO: Use buttons to allow changing audio devices
-                item.set(
-                    Text::new(&text)
-                        .down_from(state.ids.audio_device_text, 10.0)
-                        .font_size(14)
-                        .font_id(self.fonts.opensans)
-                        .color(TEXT_COLOR),
-                    ui,
-                );
-
-                /*
-                if item
-                    .set(
-                        Button::image(self.imgs.button)
-                            .w_h(100.0, 53.0)
-                            .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                            .hover_image(self.imgs.button_hover)
-                            .press_image(self.imgs.button_press)
-                            .label_y(Relative::Scalar(2.0))
-                            .label(&text)
-                            .label_font_size(20)
-                            .label_color(TEXT_COLOR),
-                        ui,
-                    )
-                    .was_clicked()
-                {
-                    events.push(Event::ChangeAudioDevice(self.audio_devices[item.i]));
-                }
-                */
+                .label_font_id(self.fonts.opensans)
+                .set(state.ids.audio_device_list, ui)
+            {
+                let new_val = self.settings.audio.audio_devices[clicked].clone();
+                events.push(Event::ChangeAudioDevice(new_val));
             }
         }
 
