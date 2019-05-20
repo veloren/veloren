@@ -1081,7 +1081,7 @@ impl CharSelectionUi {
 
     pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
         let events = self.update_layout();
-        self.ui.maintain(renderer);
+        self.ui.maintain(renderer, None);
         events
     }
 

@@ -179,6 +179,7 @@ impl PlayState for SessionState {
                 global_state.window.renderer_mut(),
                 clock.get_tps(),
                 &self.client.borrow(),
+                &self.scene.camera(),
             );
             for event in hud_events {
                 match event {
@@ -195,6 +196,7 @@ impl PlayState for SessionState {
                     }
                 }
             }
+            {}
 
             // Render the session.
             self.render(global_state.window.renderer_mut());

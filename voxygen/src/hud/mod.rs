@@ -24,6 +24,7 @@ use small_window::{SmallWindow, SmallWindowType};
 
 use crate::{
     render::{Consts, Globals, Renderer},
+    scene::camera::Camera,
     settings::{ControlSettings, Settings},
     ui::{Ingame, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, Key, Window},
@@ -667,12 +668,20 @@ impl Hud {
         handled
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64, client: &Client) -> Vec<Event> {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        tps: f64,
+        client: &Client,
+        camera: &Camera,
+    ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
         let events = self.update_layout(tps, client);
-        self.ui.maintain(renderer);
+        let (view_mat, _, _) = camera.compute_dependents(client);
+        let fov = camera.get_fov();
+        self.ui.maintain(renderer, Some((view_mat, fov)));
         events
     }
 
