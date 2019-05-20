@@ -48,10 +48,12 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 widget_ids! {
     struct Ids {
         // Character Names
-        ingame_elements[],
+        name_tags[],
+        // Health Bars
+        health_bars[],
+        health_bar_backs[],
 
         // Test
-        temp,
         bag_space_add,
         // Debug
         debug_bg,
@@ -279,7 +281,9 @@ impl Hud {
             let stats = ecs.read_storage::<comp::Stats>();
             let entities = ecs.entities();
             let player = client.entity();
-            let mut id_walker = self.ids.ingame_elements.walk();
+            let mut name_id_walker = self.ids.name_tags.walk();
+            let mut health_id_walker = self.ids.health_bars.walk();
+            let mut health_back_id_walker = self.ids.health_bar_backs.walk();
             for (pos, name) in
                 (&entities, &pos, &actor)
                     .join()
@@ -290,8 +294,8 @@ impl Hud {
                         _ => None,
                     })
             {
-                let id = id_walker.next(
-                    &mut self.ids.ingame_elements,
+                let id = name_id_walker.next(
+                    &mut self.ids.name_tags,
                     &mut ui_widgets.widget_id_generator(),
                 );
                 Text::new(&name)
@@ -312,35 +316,32 @@ impl Hud {
                     }
                 })
             {
-                let id = id_walker.next(
-                    &mut self.ids.ingame_elements,
+                let back_id = health_back_id_walker.next(
+                    &mut self.ids.health_bar_backs,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                (
-                    // Healh Bar
-                    Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
-                        .x_y(0.0, -25.0),
-                    // Filling
-                    Rectangle::fill_with(
-                        [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
-                        HP_COLOR,
-                    )
-                    .x_y(0.0, -25.0),
-                )
+                let bar_id = health_id_walker.next(
+                    &mut self.ids.health_bars,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                // Healh Bar
+                Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
+                    .x_y(0.0, -25.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
-                    .set(id, ui_widgets);
+                    .set(back_id, ui_widgets);
+
+                // Filling
+                Rectangle::fill_with(
+                    [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
+                    HP_COLOR,
+                )
+                .x_y(0.0, -25.0)
+                .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                .resolution(100.0)
+                .set(bar_id, ui_widgets);
             }
         }
-        // test
-        Text::new("Squarefection")
-            .font_size(20)
-            .color(TEXT_COLOR)
-            .font_id(self.fonts.opensans)
-            .x_y(0.0, 0.0)
-            .position_ingame([0.0, 25.0, 25.0].into())
-            .resolution(40.0)
-            .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
         if self.show.debug {
