@@ -191,13 +191,22 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {
-                        self.client.borrow_mut().set_view_distance(view_distance)
+                        self.client.borrow_mut().set_view_distance(view_distance);
+
+                        global_state.settings.graphics.view_distance = view_distance;
+                        global_state.settings.save_to_file();
                     }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.set_volume(volume);
+
+                        global_state.settings.audio.music_volume = volume;
+                        global_state.settings.save_to_file();
                     }
                     HudEvent::ChangeAudioDevice(name) => {
-                        global_state.audio.set_device(name);
+                        global_state.audio.set_device(name.clone());
+
+                        global_state.settings.audio.audio_device = name;
+                        global_state.settings.save_to_file();
                     }
                 }
             }
