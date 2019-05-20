@@ -46,14 +46,6 @@ impl PlayState for StartSingleplayerState {
                     }
                 };
 
-                let mut net_settings = &mut global_state.settings.networking;
-                net_settings.username = username.clone();
-                if !net_settings.servers.contains(&server_address) {
-                    net_settings.servers.push(server_address.clone());
-                }
-                // TODO: Handle this result.
-                global_state.settings.save_to_file();
-
                 PlayStateResult::Push(Box::new(CharSelectionState::new(
                     &mut global_state.window,
                     std::rc::Rc::new(std::cell::RefCell::new(client)),
