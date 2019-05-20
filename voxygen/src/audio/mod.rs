@@ -92,6 +92,12 @@ impl AudioFrontend {
     pub fn set_device(&mut self, name: String) {
         if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
             self.device = dev;
+            self.stream = rodio::SpatialSink::new(
+                &self.device,
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [-1.0, 0.0, 0.0],
+            );
         }
     }
 }
