@@ -15,25 +15,21 @@ pub struct Ingame<W> {
     parameters: IngameParameters,
 }
 
-pub trait Ingameable: Sized {
-    type Event;
+pub trait Ingameable: Widget + Sized {
     fn prim_count(&self) -> usize;
-    fn set_ingame(self, ids: Ids, parent_id: Id, ui: &mut UiCell) -> Self::Event;
-    fn init_ids(mut id_gen: widget::id::Generator) -> Ids;
+    // Note this is not responsible for the 3d positioning
+    // Only call this directly if using IngameAnchor
+    fn set_ingame(self, id: widget::Id, parent_id: Id, ui: &mut UiCell) -> Self::Event {
+        self
+            // should pass focus to the window if these are clicked
+            // (they are not displayed where conrod thinks they are)
+            .graphics_for(ui.window)
+            //.parent(parent_id) // is this needed
+            .set(id, ui)
+    }
     fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> {
         Ingame::new(pos, self)
     }
-}
-
-// Note this is not responsible for the positioning
-// Only call this directly if using IngameAnchor
-pub fn set_ingame<W: Widget>(widget: W, parent_id: Id, id: Id, ui: &mut UiCell) -> W::Event {
-    widget
-        // should pass focus to the window if these are clicked
-        // (they are not displayed where conrod thinks they are)
-        .graphics_for(ui.window)
-        //.parent(id) // is this needed
-        .set(id, ui)
 }
 
 pub trait PrimitiveMarker {}
@@ -51,134 +47,8 @@ impl<P> Ingameable for P
 where
     P: Widget + PrimitiveMarker,
 {
-    type Event = P::Event;
     fn prim_count(&self) -> usize {
         1
-    }
-    fn set_ingame(self, ids: Ids, parent_id: Id, ui: &mut UiCell) -> Self::Event {
-        let id = ids.one().unwrap();
-
-        set_ingame(self, parent_id, id, ui)
-    }
-    fn init_ids(mut id_gen: widget::id::Generator) -> Ids {
-        Ids::One(id_gen.next())
-    }
-}
-
-pub trait IngameWidget: Ingameable + Widget {}
-impl<T> IngameWidget for T where T: Ingameable + Widget {}
-
-impl<W, E> Ingameable for (W, E)
-where
-    W: IngameWidget,
-    E: IngameWidget,
-{
-    type Event = (<W as Widget>::Event, <E as Widget>::Event);
-    fn prim_count(&self) -> usize {
-        self.0.prim_count() + self.1.prim_count()
-    }
-    fn set_ingame(self, ids: Ids, parent_id: Id, ui: &mut UiCell) -> Self::Event {
-        let (w1, w2) = self;
-        let [id1, id2] = ids.two().unwrap();
-        (
-            set_ingame(w1, parent_id, id1, ui),
-            set_ingame(w2, parent_id, id2, ui),
-        )
-    }
-    fn init_ids(mut id_gen: widget::id::Generator) -> Ids {
-        Ids::Two([id_gen.next(), id_gen.next()])
-    }
-}
-impl<W, E, R> Ingameable for (W, E, R)
-where
-    W: IngameWidget,
-    E: IngameWidget,
-    R: IngameWidget,
-{
-    type Event = (
-        <W as Widget>::Event,
-        <E as Widget>::Event,
-        <R as Widget>::Event,
-    );
-    fn prim_count(&self) -> usize {
-        self.0.prim_count() + self.1.prim_count() + self.2.prim_count()
-    }
-    fn set_ingame(self, ids: Ids, parent_id: Id, ui: &mut UiCell) -> Self::Event {
-        let (w1, w2, w3) = self;
-        let ids = ids.three().unwrap();
-        (
-            set_ingame(w1, parent_id, ids[0], ui),
-            set_ingame(w2, parent_id, ids[1], ui),
-            set_ingame(w3, parent_id, ids[2], ui),
-        )
-    }
-    fn init_ids(mut id_gen: widget::id::Generator) -> Ids {
-        Ids::Three([id_gen.next(), id_gen.next(), id_gen.next()])
-    }
-}
-impl<W, E, R, T> Ingameable for (W, E, R, T)
-where
-    W: IngameWidget,
-    E: IngameWidget,
-    R: IngameWidget,
-    T: IngameWidget,
-{
-    type Event = (
-        <W as Widget>::Event,
-        <E as Widget>::Event,
-        <R as Widget>::Event,
-        <T as Widget>::Event,
-    );
-    fn prim_count(&self) -> usize {
-        self.0.prim_count() + self.1.prim_count() + self.2.prim_count() + self.3.prim_count()
-    }
-    fn set_ingame(self, ids: Ids, parent_id: Id, ui: &mut UiCell) -> Self::Event {
-        let (w1, w2, w3, w4) = self;
-        let ids = ids.four().unwrap();
-        (
-            set_ingame(w1, parent_id, ids[0], ui),
-            set_ingame(w2, parent_id, ids[1], ui),
-            set_ingame(w3, parent_id, ids[2], ui),
-            set_ingame(w4, parent_id, ids[3], ui),
-        )
-    }
-    fn init_ids(mut id_gen: widget::id::Generator) -> Ids {
-        Ids::Four([id_gen.next(), id_gen.next(), id_gen.next(), id_gen.next()])
-    }
-}
-
-#[derive(Clone, Copy)]
-pub enum Ids {
-    None,
-    One(Id),
-    Two([Id; 2]),
-    Three([Id; 3]),
-    Four([Id; 4]),
-}
-impl Ids {
-    fn one(self) -> Option<Id> {
-        match self {
-            Ids::One(id) => Some(id),
-            _ => None,
-        }
-    }
-    fn two(self) -> Option<[Id; 2]> {
-        match self {
-            Ids::Two(ids) => Some(ids),
-            _ => None,
-        }
-    }
-    fn three(self) -> Option<[Id; 3]> {
-        match self {
-            Ids::Three(ids) => Some(ids),
-            _ => None,
-        }
-    }
-    fn four(self) -> Option<[Id; 4]> {
-        match self {
-            Ids::Four(ids) => Some(ids),
-            _ => None,
-        }
     }
 }
 
@@ -195,7 +65,7 @@ pub struct IngameParameters {
 }
 
 pub struct State {
-    ids: Ids,
+    id: Option<widget::Id>,
     pub parameters: IngameParameters,
 }
 
@@ -223,9 +93,9 @@ impl<W: Ingameable> Widget for Ingame<W> {
     type Style = Style;
     type Event = W::Event;
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+    fn init_state(&self, mut id_gen: widget::id::Generator) -> Self::State {
         State {
-            ids: W::init_ids(id_gen),
+            id: Some(id_gen.next()),
             parameters: self.parameters,
         }
     }
@@ -247,7 +117,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
             });
         }
 
-        widget.set_ingame(state.ids, id, ui)
+        widget.set_ingame(state.id.unwrap(), id, ui)
     }
 
     fn default_x_position(&self, ui: &Ui) -> Position {
@@ -306,7 +176,7 @@ impl Widget for IngameAnchor {
 
     fn init_state(&self, _: widget::id::Generator) -> Self::State {
         State {
-            ids: Ids::None,
+            id: None,
             parameters: self.parameters,
         }
     }
