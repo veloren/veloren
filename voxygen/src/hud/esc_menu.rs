@@ -14,6 +14,7 @@ widget_ids! {
         menu_button_3,
         menu_button_4,
         menu_button_5,
+        menu_button_6,
     }
 }
 
@@ -66,7 +67,7 @@ impl<'a> Widget for EscMenu<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         Image::new(self.imgs.esc_bg)
-            .w_h(228.0, 450.0)
+            .w_h(228.0, 520.0)
             .middle_of(ui.window)
             .set(state.ids.esc_bg, ui);
 
@@ -150,7 +151,21 @@ impl<'a> Widget for EscMenu<'a> {
         {
             return Some(Event::Quit);
         };
-
+        // Back
+        if Button::image(self.imgs.button)
+            .mid_top_with_margin_on(state.ids.esc_bg, 435.0)
+            .w_h(170.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Back")
+            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(17)
+            .set(state.ids.menu_button_6, ui)
+            .was_clicked()
+        {
+            return Some(Event::Quit);
+        };
         None
     }
 }
