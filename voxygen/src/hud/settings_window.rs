@@ -10,7 +10,7 @@ use crate::{
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    widget::{self, Button, Image, List, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 widget_ids! {
@@ -45,6 +45,8 @@ widget_ids! {
         vd_slider_text,
         audio_volume_slider,
         audio_volume_text,
+        audio_device_list,
+        audio_device_text,
     }
 }
 
@@ -65,6 +67,8 @@ pub struct SettingsWindow<'a> {
 
     current_vd: u32,
     current_volume: f32,
+    audio_devices: Vec<String>,
+    current_audio_device: String,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -77,6 +81,8 @@ impl<'a> SettingsWindow<'a> {
         fonts: &'a Fonts,
         current_vd: u32,
         current_volume: f32,
+        audio_devices: Vec<String>,
+        current_audio_device: String,
     ) -> Self {
         Self {
             show,
@@ -84,6 +90,8 @@ impl<'a> SettingsWindow<'a> {
             fonts,
             current_vd,
             current_volume,
+            audio_devices,
+            current_audio_device,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -102,6 +110,7 @@ pub enum Event {
     Close,
     AdjustViewDistance(u32),
     AdjustVolume(f32),
+    ChangeAudioDevice(String),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -535,6 +544,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
         // Contents
         if let SettingsTab::Sound = state.settings_tab {
+            // Volume Slider ----------------------------------------------------
             Text::new("Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
@@ -557,6 +567,63 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.audio_volume_slider, ui)
             {
                 events.push(Event::AdjustVolume(new_val));
+            }
+
+            // Audio Device Selector --------------------------------------------
+            Text::new("Volume")
+                .down_from(state.ids.audio_volume_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.audio_device_text, ui);
+
+            // TODO: Draw scroll bar or remove it.
+            let (mut items, scrollbar) = List::flow_down(self.audio_devices.len())
+                .down_from(state.ids.audio_device_text, 10.0)
+                .w_h(400.0, 300.0)
+                .scrollbar_next_to()
+                .scrollbar_thickness(18.0)
+                .scrollbar_color(TEXT_COLOR)
+                .set(state.ids.audio_device_list, ui);
+
+            while let Some(item) = items.next(ui) {
+                let mut text = "".to_string();
+                if &self.audio_devices[item.i] == &self.current_audio_device {
+                    text.push_str("* ")
+                } else {
+                    text.push_str("  ")
+                }
+                text.push_str(&self.audio_devices[item.i]);
+
+                // TODO: Use buttons to allow changing audio devices
+                item.set(
+                    Text::new(&text)
+                        .down_from(state.ids.audio_device_text, 10.0)
+                        .font_size(14)
+                        .font_id(self.fonts.opensans)
+                        .color(TEXT_COLOR),
+                    ui,
+                );
+
+                /*
+                if item
+                    .set(
+                        Button::image(self.imgs.button)
+                            .w_h(100.0, 53.0)
+                            .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .label_y(Relative::Scalar(2.0))
+                            .label(&text)
+                            .label_font_size(20)
+                            .label_color(TEXT_COLOR),
+                        ui,
+                    )
+                    .was_clicked()
+                {
+                    events.push(Event::ChangeAudioDevice(self.audio_devices[item.i]));
+                }
+                */
             }
         }
 
