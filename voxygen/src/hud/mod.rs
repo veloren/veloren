@@ -92,6 +92,7 @@ pub enum Event {
     SendMessage(String),
     AdjustViewDistance(u32),
     AdjustVolume(f32),
+    ChangeAudioDevice(String),
     Logout,
     Quit,
 }
@@ -212,10 +213,13 @@ pub struct Hud {
     // TODO: move to settings
     current_vd: u32,
     current_volume: f32,
+    audio_devices: Vec<String>,
+    current_audio_device: String,
 }
 
 impl Hud {
     pub fn new(window: &mut Window, settings: Settings) -> Self {
+        let settings = global_state.settings;
         let mut ui = Ui::new(window).unwrap();
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -385,6 +389,8 @@ impl Hud {
                 &self.fonts,
                 self.current_vd,
                 self.current_volume,
+                self.audio_devices,
+                self.current_audio_device,
             )
             .set(self.ids.settings_window, ui_widgets)
             {
@@ -402,6 +408,10 @@ impl Hud {
                     settings_window::Event::AdjustVolume(volume) => {
                         self.current_volume = volume;
                         events.push(Event::AdjustVolume(volume));
+                    }
+                    settings_window::Event::ChangeAudioDevice(name) => {
+                        self.current_audio_device = name;
+                        events.push(Event::ChangeAudioDevice(name));
                     }
                 }
             }
