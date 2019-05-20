@@ -508,7 +508,7 @@ impl MainMenuUi {
 
     pub fn maintain(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let events = self.update_layout(global_state);
-        self.ui.maintain(global_state.window.renderer_mut());
+        self.ui.maintain(global_state.window.renderer_mut(), None);
         events
     }
 

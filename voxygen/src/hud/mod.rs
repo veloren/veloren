@@ -24,6 +24,7 @@ use small_window::{SmallWindow, SmallWindowType};
 
 use crate::{
     render::{Consts, Globals, Renderer},
+    scene::camera::Camera,
     settings::{ControlSettings, Settings},
     ui::{Ingame, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, Key, Window},
@@ -342,15 +343,6 @@ impl Hud {
                 .set(bar_id, ui_widgets);
             }
         }
-        // test
-        Text::new("Squarefection")
-            .font_size(20)
-            .color(TEXT_COLOR)
-            .font_id(self.fonts.opensans)
-            .x_y(0.0, 0.0)
-            .position_ingame([0.0, 25.0, 25.0].into())
-            .resolution(20.0)
-            .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
         if self.show.debug {
@@ -682,12 +674,15 @@ impl Hud {
         client: &Client,
         global_state: &mut GlobalState,
         debug_info: DebugInfo,
+        camera: &Camera,
     ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
         let events = self.update_layout(client, global_state, debug_info);
-        self.ui.maintain(&mut global_state.window.renderer_mut());
+        let (view_mat, _, _) = camera.compute_dependents(client);
+        let fov = camera.get_fov();
+        self.ui.maintain(&mut global_state.window.renderer_mut(), Some((view_mat, fov)));
         events
     }
 

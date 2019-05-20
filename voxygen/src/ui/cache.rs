@@ -17,8 +17,8 @@ pub struct Cache {
 impl Cache {
     pub fn new(renderer: &mut Renderer) -> Result<Self, Error> {
         let (w, h) = renderer.get_resolution().into_tuple();
-        const SCALE_TOLERANCE: f32 = 0.1;
-        const POSITION_TOLERANCE: f32 = 0.1;
+        const SCALE_TOLERANCE: f32 = 0.3;
+        const POSITION_TOLERANCE: f32 = 0.5;
 
         let graphic_cache_dims = Vec2::new(w * 4, h * 4);
         Ok(Self {

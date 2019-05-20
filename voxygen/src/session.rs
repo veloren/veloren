@@ -182,6 +182,7 @@ impl PlayState for SessionState {
                     tps: clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms(),
                 },
+                &self.scene.camera(),
             );
             // Maintain the UI.
             for event in hud_events {
@@ -214,6 +215,7 @@ impl PlayState for SessionState {
                     }
                 }
             }
+            {}
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
