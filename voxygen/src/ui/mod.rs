@@ -23,6 +23,7 @@ use crate::{
         create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
         UiLocals, UiMode, UiPipeline,
     },
+    scene::camera::Camera,
     window::Window,
     Error,
 };
@@ -205,7 +206,7 @@ impl Ui {
         self.ui.widget_input(id)
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, mats: Option<(Mat4<f32>, f32)>) {
         // Regenerate draw commands and associated models only if the ui changed
         let mut primitives = match self.ui.draw_if_changed() {
             Some(primitives) => primitives,
@@ -229,6 +230,7 @@ impl Ui {
         let mut current_scissor = window_scissor;
 
         let mut in_world = None;
+        // TODO: maybe mutate an ingame scale factor instead of this, depends on if we want them to scale with other ui scaling or not
         let mut p_scale_factor = self.scale.scale_factor_physical();
 
         // Switches to the `Plain` state and completes the previous `Command` if not already in the
@@ -301,8 +303,14 @@ impl Ui {
                 }
                 Some((n, res)) => match kind {
                     // Other types don't need to be drawn in the game
-                    PrimitiveKind::Other(_) => (),
-                    _ => in_world = Some((n - 1, res)),
+                    PrimitiveKind::Other(_) => {}
+                    _ => {
+                        in_world = Some((n - 1, res));
+                        // Skip
+                        if p_scale_factor < 0.5 {
+                            continue;
+                        }
+                    }
                 },
                 None => {}
             }
@@ -526,7 +534,25 @@ impl Ui {
                         )));
 
                         in_world = Some((parameters.num, parameters.res));
-                        p_scale_factor = 1.0;
+                        // Calculate the scale factor to pixels at this 3d point using the camera.
+                        p_scale_factor = match mats {
+                            Some((view_mat, fov)) => {
+                                let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
+                                let scale_factor = self.ui.win_w as f64
+                                    / (-2.0
+                                        * pos_in_view.z as f64
+                                        * (0.5 * fov as f64).tan()
+                                        * parameters.res as f64);
+                                // Don't draw really small ingame elements or those behind the camera
+                                if scale_factor > 0.1 {
+                                    scale_factor.min(2.0).max(0.5)
+                                } else {
+                                    // TODO: use a flag or option instead of this
+                                    -1.0
+                                }
+                            }
+                            None => 1.0,
+                        }
                     }
                 }
                 _ => {} // TODO: Add this.
