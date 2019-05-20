@@ -5,6 +5,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::BufReader,
+    iter::{Filter, Iterator},
     path::PathBuf,
     sync::mpsc::{channel, Receiver, Sender, TryRecvError},
     thread,
@@ -21,7 +22,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     pub fn new() -> Self {
-        let mut device = rodio::default_output_device().unwrap();
+        let mut device = AudioFrontend::get_devices_raw()[0].clone();
 
         let mut sink =
             rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
@@ -37,17 +38,10 @@ impl AudioFrontend {
         let bufreader = assets::load_from_path(path).unwrap();
         let src = Decoder::new(bufreader).unwrap();
 
-        let mut sink = rodio::SpatialSink::new(
-            &self.device,
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [-1.0, 0.0, 0.0],
-        );
-
-        sink.append(src);
-
-        // self.streams.insert(path.to_string(), sink);
-        self.stream = sink;
+        // TODO: stop previous audio from playing. Sink has this ability, but
+        // SpatialSink does not for some reason. This means that we will
+        // probably want to use sinks for music, and SpatialSink for sfx.
+        self.stream.append(src);
     }
 
     pub fn maintain(&mut self) {
@@ -70,6 +64,13 @@ impl AudioFrontend {
 
     pub fn set_volume(&mut self, volume: f32) {
         self.stream.set_volume(volume.min(1.0).max(0.0))
+    }
+
+    /// Internal method for working with rodio. Filters out the jack audio server.
+    fn get_devices_raw() -> Vec<Device> {
+        rodio::output_devices()
+            .filter(|x| !x.name().contains("jack"))
+            .collect()
     }
 
     /// Returns a vec of the audio devices available.
