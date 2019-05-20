@@ -175,11 +175,12 @@ impl PlayState for SessionState {
                 .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
             // Maintain the UI.
-            for event in self.hud.maintain(
+            let hud_events = self.hud.maintain(
                 global_state.window.renderer_mut(),
                 clock.get_tps(),
                 &self.client.borrow(),
-            ) {
+            );
+            for event in hud_events {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
