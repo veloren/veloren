@@ -1,7 +1,7 @@
 mod sim;
 
 use std::{
-    ops::{Add, Neg},
+    ops::{Add, Mul, Neg},
     time::Duration,
 };
 use noise::{NoiseFn, Perlin, Seedable};
@@ -54,12 +54,22 @@ impl World {
                 let wpos2d = Vec2::new(x, y) + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                 let wposf2d = wpos2d.map(|e| e as f64);
 
+                let max_z = self.sim
+                    .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
+                    .unwrap_or(0.0) as i32;
+
                 let chaos = self.sim
                     .get_interpolated(wpos2d, |chunk| chunk.chaos)
                     .unwrap_or(0.0);
 
-                let ridge_freq = 1.0 / 128.0;
-                let ridge_ampl = 96.0;
+                let damp = self.sim
+                    .get_interpolated(wpos2d, |chunk| chunk.damp)
+                    .unwrap_or(0.0)
+                    .abs().neg().add(1.0)
+                    .mul(1.0 - chaos);
+
+                let ridge_freq = 1.0 / 125.0;
+                let ridge_ampl = 125.0;
 
                 let ridge = ridge_nz
                     .get((wposf2d * ridge_freq).into_array()).abs().neg().add(1.0) as f32 * ridge_ampl * chaos.powf(8.0);
@@ -67,19 +77,20 @@ impl World {
                 let height_z = self.sim
                     .get_interpolated(wpos2d, |chunk| chunk.alt)
                     .unwrap_or(0.0)
-                    + ridge;
+                    + ridge
+                    - damp.powf(20.0) * 32.0;
 
-                for z in base_z..base_z + 256 {
+                for z in base_z..max_z {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = lpos
                         + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                     let wposf = wpos.map(|e| e as f64);
 
-                    let warp_freq = 1.0 / 48.0;
-                    let warp_ampl = 24.0;
+                    let warp_freq = 1.0 / 40.0;
+                    let warp_ampl = 45.0;
 
                     let height = height_z
-                        + warp_nz.get((wposf * warp_freq).into_array()) as f32 * warp_ampl * (chaos + 0.05);
+                        + warp_nz.get((wposf * warp_freq).into_array()) as f32 * warp_ampl * (chaos + 0.05).min(0.85);
 
                     let temp =
                         (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) as f32 + 1.0) * 0.5;
