@@ -339,6 +339,15 @@ impl Hud {
                 .set(bar_id, ui_widgets);
             }
         }
+        // test
+        Text::new("Squarefection")
+            .font_size(20)
+            .color(TEXT_COLOR)
+            .font_id(self.fonts.opensans)
+            .x_y(0.0, 0.0)
+            .position_ingame([0.0, 25.0, 25.0].into())
+            .resolution(20.0)
+            .set(self.ids.temp, ui_widgets);
 
         // Display debug window.
         if self.show.debug {
