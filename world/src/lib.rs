@@ -1,6 +1,9 @@
 mod sim;
 
-use std::time::Duration;
+use std::{
+    ops::{Add, Neg},
+    time::Duration,
+};
 use noise::{NoiseFn, Perlin, Seedable};
 use vek::*;
 use common::{
@@ -12,8 +15,6 @@ use common::{
 pub enum Error {
     Other(String),
 }
-
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
 pub struct World {
     sim: sim::WorldSim,
@@ -37,66 +38,61 @@ impl World {
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
         let sand = Block::new(4, Rgb::new(180, 150, 50));
 
-        let offset_nz = Perlin::new().set_seed(3);
-        let perlin_nz = Perlin::new().set_seed(1);
-        let temp_nz = Perlin::new().set_seed(2);
-        let chaos_nz = Perlin::new().set_seed(3);
+        let warp_nz = Perlin::new().set_seed(self.sim.seed + 0);
+        let temp_nz = Perlin::new().set_seed(self.sim.seed + 1);
+        let ridge_nz = Perlin::new().set_seed(self.sim.seed + 2);
 
-        let get_offset = |pos: Vec2<i32>| {
-            ((offset_nz.get(pos.map(|e| e as f64 / 4000.0).into_array()) + 1.0)
-            * 1000.0)
+        let base_z = match self.sim.get_base_z(chunk_pos.map(|e| e as u32)) {
+            Some(base_z) => base_z as i32,
+            None => return TerrainChunk::new(0, air, air, TerrainChunkMeta::void()),
         };
 
-        let offset_z = if let Some(offset_z) = self.sim
-            .get(chunk_pos.map(|e| e as u32))
-            .map(|chunk| chunk.alt as i32)
-        {
-            offset_z as i32
-        } else {
-            return TerrainChunk::new(0, air, air, TerrainChunkMeta::void());
-        };
-
-        let mut chunk = TerrainChunk::new(offset_z, stone, air, TerrainChunkMeta::void());
+        let mut chunk = TerrainChunk::new(base_z, stone, air, TerrainChunkMeta::void());
 
         for x in 0..TerrainChunkSize::SIZE.x as i32 {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
-                for z in offset_z as i32..offset_z as i32 + 256 {
+                let wpos2d = Vec2::new(x, y) + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+                let wposf2d = wpos2d.map(|e| e as f64);
+
+                let chaos = self.sim
+                    .get_interpolated(wpos2d, |chunk| chunk.chaos)
+                    .unwrap_or(0.0);
+
+                let ridge_freq = 1.0 / 128.0;
+                let ridge_ampl = 96.0;
+
+                let ridge = ridge_nz
+                    .get((wposf2d * ridge_freq).into_array()).abs().neg().add(1.0) as f32 * ridge_ampl * chaos.powf(8.0);
+
+                let height_z = self.sim
+                    .get_interpolated(wpos2d, |chunk| chunk.alt)
+                    .unwrap_or(0.0)
+                    + ridge;
+
+                for z in base_z..base_z + 256 {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = lpos
                         + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                     let wposf = wpos.map(|e| e as f64);
 
-                    let chaos_freq = 1.0 / 100.0;
-                    let freq = 1.0 / 128.0;
-                    let ampl = 75.0;
-                    let small_freq = 1.0 / 32.0;
-                    let small_ampl = 6.0;
-                    let offs = 128.0;
+                    let warp_freq = 1.0 / 48.0;
+                    let warp_ampl = 24.0;
 
-                    let chaos = chaos_nz
-                        .get(Vec2::from(wposf * chaos_freq).into_array())
-                        .max(0.0)
-                        + 0.5;
+                    let height = height_z
+                        + warp_nz.get((wposf * warp_freq).into_array()) as f32 * warp_ampl * (chaos + 0.05);
 
-                    let height =
-                        perlin_nz.get(Vec2::from(wposf * freq).into_array()) * ampl * chaos
-                            + perlin_nz.get((wposf * small_freq).into_array())
-                                * small_ampl
-                                * 3.0
-                                * chaos.powf(2.0)
-                            + offs
-                            + get_offset(Vec2::from(wpos)) as f64;
                     let temp =
-                        (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) + 1.0) * 0.5;
+                        (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) as f32 + 1.0) * 0.5;
 
+                    let z = wposf.z as f32;
                     let _ = chunk.set(
                         lpos,
-                        if wposf.z < height - 4.0 {
+                        if z < height - 4.0 {
                             stone
-                        } else if wposf.z < height - 2.0 {
+                        } else if z < height - 2.0 {
                             dirt
-                        } else if wposf.z < height {
-                            Block::new(2, Rgb::new(10 + (150.0 * temp) as u8, 150, 0))
+                        } else if z < height {
+                            Block::new(2, Rgb::new(10 + (75.0 * temp) as u8, 180, 50 - (50.0 * temp) as u8))
                         } else {
                             air
                         },
