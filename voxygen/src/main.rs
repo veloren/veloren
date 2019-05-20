@@ -165,9 +165,21 @@ fn main() {
         audio: AudioFrontend::new(),
     };
 
-    // TODO: Remove this when the volume setting can be saved
-    // Lower the volume to 50%
-    global_state.audio.set_volume(0.5);
+    // Load volume from audio file
+    global_state.audio.set_volume(settings.audio.music_volume);
+
+    global_state.settings.audio.audio_devices = global_state.audio.get_devices();
+
+    // Load last used audio device, or set the current audio device as the last
+    // used if there is no last used
+    if global_state.settings.audio.audio_device != "" {
+        global_state
+            .audio
+            .set_device(global_state.settings.audio.audio_device);
+    } else {
+        global_state.settings.audio.audio_device = global_state.audio.get_device();
+        global_state.settings.save_to_file();
+    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];

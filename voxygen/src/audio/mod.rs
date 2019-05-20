@@ -23,15 +23,6 @@ impl AudioFrontend {
     pub fn new() -> Self {
         let mut device = rodio::default_output_device().unwrap();
 
-        for d in rodio::devices() {
-            if d.name().contains("jack") {
-                continue;
-            }
-
-            device = d;
-            break;
-        }
-
         let mut sink =
             rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
 
@@ -79,5 +70,27 @@ impl AudioFrontend {
 
     pub fn set_volume(&mut self, volume: f32) {
         self.stream.set_volume(volume.min(1.0).max(0.0))
+    }
+
+    /// Returns a vec of the audio devices available.
+    /// Does not return rodio Device struct in case our audio backend changes.
+    // TODO: Decide if this should be an associated function
+    pub fn get_devices(&self) -> Vec<String> {
+        rodio::output_devices().map(|x| x.name()).collect()
+    }
+
+    /// Returns the name of the current audio device.
+    /// Does not return rodio Device struct in case our audio backend changes.
+    pub fn get_device(&self) -> String {
+        self.device.name()
+    }
+
+    /// Sets the current audio device from a string.
+    /// Does not use the rodio Device struct in case that detail changes.
+    /// If the string is an invalid audio device, then no change is made.
+    pub fn set_device(&mut self, name: String) {
+        if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
+            self.device = dev;
+        }
     }
 }
