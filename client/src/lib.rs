@@ -137,6 +137,13 @@ impl Client {
         &mut self.state
     }
 
+    /// Remove all cached terrain
+    #[allow(dead_code)]
+    pub fn reset_terrain(&mut self) {
+        self.state.terrain_mut().clear();
+        self.pending_chunks.clear();
+    }
+
     /// Get the player's entity.
     #[allow(dead_code)]
     pub fn entity(&self) -> EcsEntity {
@@ -394,7 +401,7 @@ impl Client {
                         self.pending_state_request = false;
                     }
                     ServerMsg::ForceState(state) => {
-                        self.client_state = Some(dbg!(state));
+                        self.client_state = Some(state);
                     }
                     ServerMsg::Disconnect => {
                         self.client_state = None;

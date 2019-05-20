@@ -45,7 +45,7 @@ impl PlayState for CharSelectionState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
         let mut clock = Clock::new();
-        self.client.borrow_mut().state_mut().terrain_mut().clear();
+        self.client.borrow_mut().reset_terrain();
 
         while self.client.borrow().is_request_pending()
             || self.client.borrow().get_client_state() == Some(ClientState::Registered)
