@@ -14,7 +14,7 @@ pub use graphic::Graphic;
 pub use scale::ScaleMode;
 pub use widgets::{
     image_slider::ImageSlider,
-    ingame::{Ingame, Ingameable},
+    ingame::{Ingame, IngameAnchor, Ingameable},
     toggle_button::ToggleButton,
 };
 
@@ -255,6 +255,7 @@ impl Ui {
             // Check for a change in the scissor.
             let new_scissor = {
                 let (l, b, w, h) = scizzor.l_b_w_h();
+                let scale_factor = self.scale.scale_factor_physical();
                 // Calculate minimum x and y coordinates while
                 // flipping y axis (from +up to +down) and
                 // moving origin to top-left corner (from middle).
@@ -262,12 +263,12 @@ impl Ui {
                 let min_y = self.ui.win_h / 2.0 - b - h;
                 Aabr {
                     min: Vec2 {
-                        x: (min_x * p_scale_factor) as u16,
-                        y: (min_y * p_scale_factor) as u16,
+                        x: (min_x * scale_factor) as u16,
+                        y: (min_y * scale_factor) as u16,
                     },
                     max: Vec2 {
-                        x: ((min_x + w) * p_scale_factor) as u16,
-                        y: ((min_y + h) * p_scale_factor) as u16,
+                        x: ((min_x + w) * scale_factor) as u16,
+                        y: ((min_y + h) * scale_factor) as u16,
                     },
                 }
                 .intersection(window_scissor)
@@ -530,7 +531,6 @@ impl Ui {
                 }
                 _ => {} // TODO: Add this.
                         //PrimitiveKind::TrianglesMultiColor {..} => {println!("primitive kind multicolor with id {:?}", id);}
-                        // Other unneeded for now.
             }
         }
         // Enter the final command.
@@ -538,6 +538,19 @@ impl Ui {
             State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
             State::Image => DrawCommand::image(start..mesh.vertices().len()),
         });
+
+        // Draw glyoh cache (use for debugging)
+        /*self.draw_commands
+            .push(DrawCommand::Scissor(default_scissor(renderer)));
+        start = mesh.vertices().len();
+        mesh.push_quad(create_ui_quad(
+            Aabr { min: (-1.0, -1.0).into(), max: (1.0, 1.0).into() },
+            Aabr { min: (0.0, 1.0).into(), max: (1.0, 0.0).into() },
+            Rgba::new(1.0, 1.0, 1.0, 0.8),
+            UiMode::Text,
+        ));
+        self.draw_commands
+            .push(DrawCommand::plain(start..mesh.vertices().len()));*/
 
         // Create a larger dynamic model if the mesh is larger than the current model size.
         if self.model.vbuf.len() < mesh.vertices().len() {
@@ -589,7 +602,7 @@ impl Ui {
     }
 }
 
-fn default_scissor(renderer: &mut Renderer) -> Aabr<u16> {
+fn default_scissor(renderer: &Renderer) -> Aabr<u16> {
     let (screen_w, screen_h) = renderer.get_resolution().map(|e| e as u16).into_tuple();
     Aabr {
         min: Vec2 { x: 0, y: 0 },
