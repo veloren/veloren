@@ -7,7 +7,7 @@ use crate::{
         ImageSlider, ScaleMode, ToggleButton, Ui,
     },
     window::Window,
-    GlobalState,
+    AudioFrontend, GlobalState,
 };
 use conrod_core::{
     color,
@@ -562,6 +562,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Audio Device Selector --------------------------------------------
+            let device = self.global_state.audio.get_device();
+            let device_list = AudioFrontend::get_devices();
             Text::new("Volume")
                 .down_from(state.ids.audio_volume_slider, 10.0)
                 .font_size(14)
@@ -570,22 +572,15 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.audio_device_text, ui);
 
             // Get which device is currently selected
-            let selected = self
-                .global_state
-                .settings
-                .audio
-                .audio_devices
-                .iter()
-                .position(|x| x.contains(&self.global_state.settings.audio.audio_device));
+            let selected = device_list.iter().position(|x| x.contains(&device));
 
-            if let Some(clicked) =
-                DropDownList::new(&self.global_state.settings.audio.audio_devices, selected)
-                    .w_h(400.0, 22.0)
-                    .down_from(state.ids.audio_device_text, 10.0)
-                    .label_font_id(self.fonts.opensans)
-                    .set(state.ids.audio_device_list, ui)
+            if let Some(clicked) = DropDownList::new(&device_list, selected)
+                .w_h(400.0, 22.0)
+                .down_from(state.ids.audio_device_text, 10.0)
+                .label_font_id(self.fonts.opensans)
+                .set(state.ids.audio_device_list, ui)
             {
-                let new_val = self.global_state.settings.audio.audio_devices[clicked].clone();
+                let new_val = device_list[clicked].clone();
                 events.push(Event::ChangeAudioDevice(new_val));
             }
         }
