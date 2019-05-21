@@ -60,6 +60,7 @@ impl Window {
         key_map.insert(settings.controls.toggle_debug, Key::ToggleDebug);
         key_map.insert(settings.controls.fullscreen, Key::Fullscreen);
         key_map.insert(settings.controls.screenshot, Key::Screenshot);
+        key_map.insert(settings.controls.toggle_ingame_ui, Key::ToggleIngameUi);
 
         let tmp = Ok(Self {
             events_loop,
@@ -266,6 +267,7 @@ pub enum Key {
     ToggleDebug,
     Fullscreen,
     Screenshot,
+    ToggleIngameUi,
 }
 
 /// Represents an incoming event from the window.
