@@ -124,34 +124,48 @@ impl WorldSim {
         let temp = self.get_interpolated(pos, |chunk| chunk.temp)?;
         let rockiness = self.get_interpolated(pos, |chunk| chunk.rockiness)?;
 
-        let rock = (self.gen_ctx.small_nz.get((wposf.div(200.0)).into_array()) as f32)
+        let rock = (self.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
             .mul(rockiness)
-            .sub(0.3)
+            .sub(0.2)
             .max(0.0)
-            .mul(2.5);
+            .mul(2.0);
 
         let alt = self.get_interpolated(pos, |chunk| chunk.alt)?
-            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32 * chaos.max(0.2) * 32.0
-            + rock * 30.0;
+            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32 * chaos.max(0.15) * 32.0
+            + rock * 15.0;
 
         // Colours
         let cold_grass = Rgb::new(0.0, 0.75, 0.25);
         let warm_grass = Rgb::new(0.55, 0.9, 0.0);
-        let stone = Rgb::new(0.8, 0.7, 0.551);
+        let cold_stone = Rgb::new(0.78, 0.86, 1.0);
+        let warm_stone = Rgb::new(0.8, 0.7, 0.55);
+        let sand = Rgb::new(0.93, 0.84, 0.23);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, temp);
-        let ground = Rgb::lerp(grass, stone, rock.mul(5.0).min(0.8));
-        let cliff = stone;
+        let ground = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
+        let cliff = Rgb::lerp(cold_stone, warm_stone, temp);
 
         Some(Sample {
             alt,
-            surface_color: Rgb::lerp(ground, cliff, (alt - SEA_LEVEL) / 150.0),
+            chaos,
+            surface_color: Rgb::lerp(
+                sand,
+                // Land
+                Rgb::lerp(
+                    ground,
+                    cliff,
+                    (alt - SEA_LEVEL - 100.0) / 150.0
+                ),
+                // Beach
+                (alt - SEA_LEVEL - 2.0) / 5.0,
+            ),
         })
     }
 }
 
 pub struct Sample {
     pub alt: f32,
+    pub chaos: f32,
     pub surface_color: Rgb<f32>,
 }
 
@@ -167,7 +181,7 @@ struct GenCtx {
 }
 
 const Z_TOLERANCE: (f32, f32) = (32.0, 64.0);
-const SEA_LEVEL: f32 = 64.0;
+pub const SEA_LEVEL: f32 = 64.0;
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -182,7 +196,7 @@ impl SimChunk {
 
         let hill = (gen_ctx.hill_nz
             .get((wposf.div(3500.0)).into_array()) as f32)
-            .add(1.0).mul(0.5);
+            .max(0.0);
 
         let chaos = (gen_ctx.chaos_nz
             .get((wposf.div(3500.0)).into_array()) as f32)
@@ -192,15 +206,18 @@ impl SimChunk {
 
         let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
+        let alt_base = gen_ctx.alt_nz.get((wposf.div(5000.0)).into_array()) as f32 * 0.4;
+
         let alt_main = gen_ctx.alt_nz.get((wposf.div(750.0)).into_array()) as f32;
 
         Self {
             chaos,
             alt: SEA_LEVEL + (0.0
                 + alt_main
-                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32 * alt_main * 1.3)
+                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32 * alt_main.max(0.05) * chaos * 1.3)
                 .add(1.0).mul(0.5)
                 .mul(chaos)
+                .add(alt_base)
                 .mul(750.0),
             temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
                 .add(1.0).mul(0.5),
