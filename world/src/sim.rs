@@ -27,13 +27,20 @@ impl WorldSim {
             chaos_nz: RidgedMulti::new()
                 .set_octaves(7)
                 .set_seed(seed + 2),
+            hill_nz: SuperSimplex::new()
+                .set_seed(seed + 3),
             alt_nz: HybridMulti::new()
                 .set_octaves(7)
                 .set_persistence(0.1)
-                .set_seed(seed + 3),
-            small_nz: BasicMulti::new()
-                .set_octaves(1)
                 .set_seed(seed + 4),
+            temp_nz: SuperSimplex::new()
+                .set_seed(seed + 5),
+            small_nz: BasicMulti::new()
+                .set_octaves(2)
+                .set_seed(seed + 6),
+            rock_nz: HybridMulti::new()
+                .set_persistence(0.3)
+                .set_seed(seed + 7),
         };
 
         let mut chunks = Vec::new();
@@ -114,17 +121,31 @@ impl WorldSim {
         );*/
 
         let chaos = self.get_interpolated(pos, |chunk| chunk.chaos)?;
+        let temp = self.get_interpolated(pos, |chunk| chunk.temp)?;
+        let rockiness = self.get_interpolated(pos, |chunk| chunk.rockiness)?;
+
+        let rock = (self.gen_ctx.small_nz.get((wposf.div(200.0)).into_array()) as f32)
+            .mul(rockiness)
+            .sub(0.3)
+            .max(0.0)
+            .mul(2.5);
 
         let alt = self.get_interpolated(pos, |chunk| chunk.alt)?
-            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32 * chaos.max(0.2) * 32.0;
+            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32 * chaos.max(0.2) * 32.0
+            + rock * 30.0;
 
         // Colours
-        let grass = Rgb::new(0.0, 0.765, 0.05);
-        let stone = Rgb::new(0.695, 0.66, 0.551);
+        let cold_grass = Rgb::new(0.0, 0.75, 0.25);
+        let warm_grass = Rgb::new(0.55, 0.9, 0.0);
+        let stone = Rgb::new(0.8, 0.7, 0.551);
+
+        let grass = Rgb::lerp(cold_grass, warm_grass, temp);
+        let ground = Rgb::lerp(grass, stone, rock.mul(5.0).min(0.8));
+        let cliff = stone;
 
         Some(Sample {
             alt,
-            surface_color: Lerp::lerp(grass, stone, (alt - SEA_LEVEL) / 300.0),
+            surface_color: Rgb::lerp(ground, cliff, (alt - SEA_LEVEL) / 150.0),
         })
     }
 }
@@ -139,43 +160,77 @@ struct GenCtx {
     turb_y_nz: BasicMulti,
     chaos_nz: RidgedMulti,
     alt_nz: HybridMulti,
+    hill_nz: SuperSimplex,
+    temp_nz: SuperSimplex,
     small_nz: BasicMulti,
+    rock_nz: HybridMulti,
 }
 
-const Z_TOLERANCE: f32 = 32.0;
+const Z_TOLERANCE: (f32, f32) = (32.0, 64.0);
 const SEA_LEVEL: f32 = 64.0;
 
 pub struct SimChunk {
     pub chaos: f32,
     pub alt: f32,
+    pub temp: f32,
+    pub rockiness: f32,
 }
 
 impl SimChunk {
     fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
         let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
 
+        let hill = (gen_ctx.hill_nz
+            .get((wposf.div(3500.0)).into_array()) as f32)
+            .add(1.0).mul(0.5);
+
         let chaos = (gen_ctx.chaos_nz
             .get((wposf.div(3500.0)).into_array()) as f32)
             .add(1.0).mul(0.5)
-            .powf(1.85);
+            .powf(1.9)
+            .add(0.25 * hill);
 
         let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
+        let alt_main = gen_ctx.alt_nz.get((wposf.div(750.0)).into_array()) as f32;
+
         Self {
             chaos,
-            alt: SEA_LEVEL + (gen_ctx.alt_nz
-                .get((wposf.div(750.0)).into_array()) as f32)
+            alt: SEA_LEVEL + (0.0
+                + alt_main
+                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32 * alt_main * 1.3)
                 .add(1.0).mul(0.5)
                 .mul(chaos)
-                .mul(650.0),
+                .mul(750.0),
+            temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
+                .add(1.0).mul(0.5),
+            rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .sub(0.1)
+                .mul(1.2)
+                .max(0.0),
         }
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE
+        self.alt - Z_TOLERANCE.0
     }
 
     pub fn get_max_z(&self) -> f32 {
-        self.alt + Z_TOLERANCE
+        self.alt + Z_TOLERANCE.1
+    }
+}
+
+trait Hsv {
+    fn into_hsv(self) -> Self;
+    fn into_rgb(self) -> Self;
+}
+
+impl Hsv for Rgb<f32> {
+    fn into_hsv(mut self) -> Self {
+        unimplemented!()
+    }
+
+    fn into_rgb(mut self) -> Self {
+        unimplemented!()
     }
 }
