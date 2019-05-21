@@ -208,12 +208,11 @@ pub struct Hud {
     inventory_space: u32,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
-    settings: Settings,
     force_ungrab: bool,
 }
 
 impl Hud {
-    pub fn new(window: &mut Window, settings: Settings) -> Self {
+    pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
         ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
@@ -244,12 +243,11 @@ impl Hud {
                 want_grab: true,
             },
             to_focus: None,
-            settings,
             force_ungrab: false,
         }
     }
 
-    fn update_layout(&mut self, tps: f64) -> Vec<Event> {
+    fn update_layout(&mut self, tps: f64, global_state: &GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -298,7 +296,7 @@ impl Hud {
                 .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
                 .w_h(300.0, 190.0)
                 .set(self.ids.help_bg, ui_widgets);
-            Text::new(get_help_text(&self.settings.controls).as_str())
+            Text::new(get_help_text(&global_state.settings.controls).as_str())
                 .color(TEXT_COLOR)
                 .top_left_with_margins_on(self.ids.help_bg, 20.0, 20.0)
                 .font_id(self.fonts.opensans)
@@ -375,7 +373,7 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, &self.settings)
+            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, &global_state)
                 .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
@@ -386,15 +384,12 @@ impl Hud {
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::Close => self.show.open_windows = Windows::None,
                     settings_window::Event::AdjustViewDistance(view_distance) => {
-                        self.settings.graphics.view_distance = view_distance;
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
                     settings_window::Event::AdjustVolume(volume) => {
-                        self.settings.audio.music_volume = volume;
                         events.push(Event::AdjustVolume(volume));
                     }
                     settings_window::Event::ChangeAudioDevice(name) => {
-                        self.settings.audio.audio_device = name.clone();
                         events.push(Event::ChangeAudioDevice(name));
                     }
                 }
@@ -477,10 +472,6 @@ impl Hud {
     pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
         let cursor_grabbed = global_state.window.is_cursor_grabbed();
         let handled = match event {
-            WinEvent::SettingsChanged => {
-                self.settings = global_state.settings.clone();
-                false
-            }
             WinEvent::Ui(event) => {
                 if (self.typing() && event.is_keyboard() && self.show.ui)
                     || !(cursor_grabbed && event.is_keyboard_or_mouse())
@@ -575,12 +566,12 @@ impl Hud {
         handled
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, tps: f64) -> Vec<Event> {
+    pub fn maintain(&mut self, global_state: &mut GlobalState, tps: f64) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(tps);
-        self.ui.maintain(renderer);
+        let events = self.update_layout(tps, &global_state);
+        self.ui.maintain(&mut global_state.window.renderer_mut());
         events
     }
 
