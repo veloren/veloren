@@ -1,8 +1,8 @@
 use std::{
-    ops::{Add, Mul, Div, Neg},
+    ops::{Add, Sub, Mul, Div, Neg},
     f32,
 };
-use noise::{NoiseFn, SuperSimplex, OpenSimplex, Seedable};
+use noise::{NoiseFn, BasicMulti, HybridMulti, RidgedMulti, SuperSimplex, OpenSimplex, Seedable, MultiFractal};
 use vek::*;
 use common::{
     terrain::TerrainChunkSize,
@@ -14,19 +14,26 @@ pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 pub struct WorldSim {
     pub seed: u32,
     chunks: Vec<SimChunk>,
+    gen_ctx: GenCtx,
 }
 
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
         let mut gen_ctx = GenCtx {
-            base_nz: OpenSimplex::new()
+            turb_x_nz: BasicMulti::new()
                 .set_seed(seed + 0),
-            damp_nz: SuperSimplex::new()
+            turb_y_nz: BasicMulti::new()
                 .set_seed(seed + 1),
-            chaos_nz: SuperSimplex::new()
+            chaos_nz: RidgedMulti::new()
+                .set_octaves(7)
                 .set_seed(seed + 2),
-            alt_nz: OpenSimplex::new()
+            alt_nz: HybridMulti::new()
+                .set_octaves(7)
+                .set_persistence(0.1)
                 .set_seed(seed + 3),
+            small_nz: BasicMulti::new()
+                .set_octaves(1)
+                .set_seed(seed + 4),
         };
 
         let mut chunks = Vec::new();
@@ -39,6 +46,7 @@ impl WorldSim {
         Self {
             seed,
             chunks,
+            gen_ctx,
         }
     }
 
@@ -94,28 +102,50 @@ impl WorldSim {
             y[y_idx] = cubic(x0, x1, x2, x3, pos.x.fract() as f32);
         }
 
-        /*
-        fn cosine_interp (a: f32, b: f32, x: f32) -> f32 {
-            let x2 = x;//(1.0 - (x * f32::consts::PI).cos()) / 2.0;
-            a * (1.0 - x2) + b * x2
-        }
-        */
-
         Some(cubic(y[0], y[1], y[2], y[3], pos.y.fract() as f32))
+    }
+
+    pub fn sample(&self, pos: Vec2<i32>) -> Option<Sample> {
+        let wposf = pos.map(|e| e as f64);
+
+        /*let wposf = wposf + Vec2::new(
+            self.gen_ctx.turb_x_nz.get((wposf.div(200.0)).into_array()) * 250.0,
+            self.gen_ctx.turb_y_nz.get((wposf.div(200.0)).into_array()) * 250.0,
+        );*/
+
+        let chaos = self.get_interpolated(pos, |chunk| chunk.chaos)?;
+
+        let alt = self.get_interpolated(pos, |chunk| chunk.alt)?
+            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32 * chaos.max(0.2) * 32.0;
+
+        // Colours
+        let grass = Rgb::new(0.0, 0.765, 0.05);
+        let stone = Rgb::new(0.695, 0.66, 0.551);
+
+        Some(Sample {
+            alt,
+            surface_color: Lerp::lerp(grass, stone, (alt - SEA_LEVEL) / 300.0),
+        })
     }
 }
 
+pub struct Sample {
+    pub alt: f32,
+    pub surface_color: Rgb<f32>,
+}
+
 struct GenCtx {
-    base_nz: OpenSimplex,
-    damp_nz: SuperSimplex,
-    chaos_nz: SuperSimplex,
-    alt_nz: OpenSimplex,
+    turb_x_nz: BasicMulti,
+    turb_y_nz: BasicMulti,
+    chaos_nz: RidgedMulti,
+    alt_nz: HybridMulti,
+    small_nz: BasicMulti,
 }
 
 const Z_TOLERANCE: f32 = 32.0;
+const SEA_LEVEL: f32 = 64.0;
 
 pub struct SimChunk {
-    pub damp: f32,
     pub chaos: f32,
     pub alt: f32,
 }
@@ -124,34 +154,20 @@ impl SimChunk {
     fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
         let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
 
-        let base = (gen_ctx.base_nz.get((wposf.div(6000.0)).into_array()) as f32)
-            .add(1.0).mul(0.5)
-            .mul(100.0)
-            .add(32.0);
-
-        let damp = (0.0
-            + gen_ctx.damp_nz.get((wposf.div(2000.0)).into_array())
-            + gen_ctx.damp_nz.get((wposf.div(250.0)).into_array()) * 0.25
-            ) as f32;
-
         let chaos = (gen_ctx.chaos_nz
-            .get((wposf.div(1000.0)).into_array()) as f32)
+            .get((wposf.div(3500.0)).into_array()) as f32)
             .add(1.0).mul(0.5)
-            .mul(damp.max(0.0))
-            .add(0.15)
-            .powf(2.0)
-            .min(1.0);
+            .powf(1.85);
+
+        let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
         Self {
-            damp,
             chaos,
-            alt: base + ((0.0
-                + gen_ctx.alt_nz.get((wposf.div(650.0)).into_array()) * 0.7
-                + gen_ctx.alt_nz.get((wposf.div(100.0)).into_array()) * 0.3
-                ) as f32)
+            alt: SEA_LEVEL + (gen_ctx.alt_nz
+                .get((wposf.div(750.0)).into_array()) as f32)
                 .add(1.0).mul(0.5)
-                .mul(750.0)
-                .mul(chaos.max(0.05)),
+                .mul(chaos)
+                .mul(650.0),
         }
     }
 
