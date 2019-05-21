@@ -206,7 +206,7 @@ impl Ui {
         self.ui.widget_input(id)
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, mats: Option<(Mat4<f32>, f32)>) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, cam_params: Option<(Mat4<f32>, f32)>) {
         // Regenerate draw commands and associated models only if the ui changed
         let mut primitives = match self.ui.draw_if_changed() {
             Some(primitives) => primitives,
@@ -229,7 +229,13 @@ impl Ui {
         let window_scissor = default_scissor(renderer);
         let mut current_scissor = window_scissor;
 
-        let mut in_world = None;
+        enum Placement {
+            Interface,
+            // Number and resolution
+            InWorld(usize, Option<f32>),
+        };
+
+        let mut placement = Placement::Interface;
         // TODO: maybe mutate an ingame scale factor instead of this, depends on if we want them to scale with other ui scaling or not
         let mut p_scale_factor = self.scale.scale_factor_physical();
 
@@ -288,9 +294,9 @@ impl Ui {
                 self.draw_commands.push(DrawCommand::Scissor(new_scissor));
             }
 
-            match in_world {
-                Some((0, _)) => {
-                    in_world = None;
+            match placement {
+                Placement::InWorld(0, _) => {
+                    placement = Placement::Interface;
                     p_scale_factor = self.scale.scale_factor_physical();
                     // Finish current state
                     self.draw_commands.push(match current_state {
@@ -301,22 +307,21 @@ impl Ui {
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
                 }
-                Some((n, res)) => match kind {
+                Placement::InWorld(n, res) => match kind {
                     // Other types don't need to be drawn in the game
                     PrimitiveKind::Other(_) => {}
                     _ => {
-                        in_world = Some((n - 1, res));
-                        // Skip
-                        if p_scale_factor < 0.5 {
+                        placement = Placement::InWorld(n - 1, res);
+                        if res.is_none() {
                             continue;
                         }
                     }
                 },
-                None => {}
+                Placement::Interface => {}
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let (ui_win_w, ui_win_h) = if let Some((_, res)) = in_world {
+            let (ui_win_w, ui_win_h) = if let Placement::InWorld(_, Some(res)) = placement {
                 (res as f64, res as f64)
             } else {
                 (self.ui.win_w, self.ui.win_h)
@@ -516,42 +521,41 @@ impl Ui {
                 }
                 PrimitiveKind::Other(container) => {
                     if container.type_id == std::any::TypeId::of::<widgets::ingame::State>() {
-                        // Retrieve world position
-                        let parameters = container
-                            .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
-                            .unwrap()
-                            .state
-                            .parameters;
-                        // Finish current state
-                        self.draw_commands.push(match current_state {
-                            State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-                            State::Image => DrawCommand::image(start..mesh.vertices().len()),
-                        });
-                        start = mesh.vertices().len();
-                        // Push new position command
-                        self.draw_commands.push(DrawCommand::WorldPos(Some(
-                            renderer.create_consts(&[parameters.pos.into()]).unwrap(),
-                        )));
-
-                        in_world = Some((parameters.num, parameters.res));
                         // Calculate the scale factor to pixels at this 3d point using the camera.
-                        p_scale_factor = match mats {
-                            Some((view_mat, fov)) => {
-                                let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
-                                let scale_factor = self.ui.win_w as f64
-                                    / (-2.0
-                                        * pos_in_view.z as f64
-                                        * (0.5 * fov as f64).tan()
-                                        * parameters.res as f64);
-                                // Don't draw really small ingame elements or those behind the camera
-                                if scale_factor > 0.1 {
-                                    scale_factor.min(2.0).max(0.5)
-                                } else {
-                                    // TODO: use a flag or option instead of this
-                                    -1.0
-                                }
-                            }
-                            None => 1.0,
+                        if let Some((view_mat, fov)) = cam_params {
+                            // Retrieve world position
+                            let parameters = container
+                                .state_and_style::<widgets::ingame::State, widgets::ingame::Style>()
+                                .unwrap()
+                                .state
+                                .parameters;
+                            // Finish current state
+                            self.draw_commands.push(match current_state {
+                                State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
+                                State::Image => DrawCommand::image(start..mesh.vertices().len()),
+                            });
+                            start = mesh.vertices().len();
+                            // Push new position command
+                            self.draw_commands.push(DrawCommand::WorldPos(Some(
+                                renderer.create_consts(&[parameters.pos.into()]).unwrap(),
+                            )));
+
+                            let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
+                            let scale_factor = self.ui.win_w as f64
+                                / (-2.0
+                                    * pos_in_view.z as f64
+                                    * (0.5 * fov as f64).tan()
+                                    * parameters.res as f64);
+                            // Don't process ingame elements behind the camera or very far away
+                            placement = if scale_factor > 0.1 {
+                                p_scale_factor = ((scale_factor * 10.0).log2().round().powi(2)
+                                    / 10.0)
+                                    .min(1.6)
+                                    .max(0.2);
+                                Placement::InWorld(parameters.num, Some(parameters.res))
+                            } else {
+                                Placement::InWorld(parameters.num, None)
+                            };
                         }
                     }
                 }
@@ -565,13 +569,19 @@ impl Ui {
             State::Image => DrawCommand::image(start..mesh.vertices().len()),
         });
 
-        // Draw glyoh cache (use for debugging)
+        // Draw glyph cache (use for debugging).
         /*self.draw_commands
             .push(DrawCommand::Scissor(default_scissor(renderer)));
         start = mesh.vertices().len();
         mesh.push_quad(create_ui_quad(
-            Aabr { min: (-1.0, -1.0).into(), max: (1.0, 1.0).into() },
-            Aabr { min: (0.0, 1.0).into(), max: (1.0, 0.0).into() },
+            Aabr {
+                min: (-1.0, -1.0).into(),
+                max: (1.0, 1.0).into(),
+            },
+            Aabr {
+                min: (0.0, 1.0).into(),
+                max: (1.0, 0.0).into(),
+            },
             Rgba::new(1.0, 1.0, 1.0, 0.8),
             UiMode::Text,
         ));
