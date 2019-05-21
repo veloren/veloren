@@ -42,7 +42,9 @@ pub struct State {
 }
 
 pub enum Event {
-    OpenSettings,
+    OpenSettings,    
+    Controls,
+    Characters,
     Logout,
     Quit,
     Close,
@@ -66,69 +68,70 @@ impl<'a> Widget for EscMenu<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        Image::new(self.imgs.esc_bg)
-            .w_h(228.0, 520.0)
+        Image::new(self.imgs.esc_frame)
+            .w_h(200.0, 328.0)
             .middle_of(ui.window)
             .set(state.ids.esc_bg, ui);
 
         Image::new(self.imgs.fireplace)
-            .w_h(180.0, 60.0)
-            .mid_top_with_margin_on(state.ids.esc_bg, 50.0)
+            .w_h(176.0, 50.0)
+            .mid_top_with_margin_on(state.ids.esc_bg, 12.0)
             .set(state.ids.fireplace, ui);
 
         // Settings
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 115.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.fireplace, -45.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Settings")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_1, ui)
             .was_clicked()
-        {
+        {               
             return Some(Event::OpenSettings);
         };
         // Controls
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 175.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.menu_button_1, -40.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Controls")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_2, ui)
             .was_clicked()
-        {
-            // TODO: Show controls window.
+        {   
+            return Some(Event::Controls); // TODO: Show the Controls Tab of the Settings           
         };
-        // Servers
+        // Characters
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 235.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.menu_button_2, -40.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Characters")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
-        {
-            return Some(Event::Logout); // TODO: Open Character Selection
+        {   
+
+            return Some(Event::Characters); // TODO: Open Character Selection
         };
         // Logout
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 295.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.menu_button_3, -40.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Logout")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_4, ui)
@@ -138,12 +141,12 @@ impl<'a> Widget for EscMenu<'a> {
         };
         // Quit
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 355.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.menu_button_4, -40.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Quit")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_5, ui)
@@ -153,18 +156,18 @@ impl<'a> Widget for EscMenu<'a> {
         };
         // Back
         if Button::image(self.imgs.button)
-            .mid_top_with_margin_on(state.ids.esc_bg, 435.0)
-            .w_h(170.0, 50.0)
+            .mid_bottom_with_margin_on(state.ids.menu_button_5, -50.0)
+            .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Back")
-            .label_y(conrod_core::position::Relative::Scalar(2.0))
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
             .set(state.ids.menu_button_6, ui)
             .was_clicked()
         {
-            return Some(Event::Quit);
+            return Some(Event::Close);
         };
         None
     }

@@ -628,6 +628,11 @@ impl Hud {
                 }
                 Some(esc_menu::Event::Logout) => events.push(Event::Logout),
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
+                Some(esc_menu::Event::Characters) => events.push(Event::Logout),
+                Some(esc_menu::Event::Controls) => {                
+                    self.show.esc_menu = false;
+                    self.show.open_windows = Windows::Settings;
+                },
                 None => {}
             }
         }
