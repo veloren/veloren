@@ -154,13 +154,13 @@ impl<'a> Widget for EscMenu<'a> {
         {
             return Some(Event::Quit);
         };
-        // Back
+        // Close
         if Button::image(self.imgs.button)
             .mid_bottom_with_margin_on(state.ids.menu_button_5, -50.0)
             .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Back")
+            .label("Close")
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
