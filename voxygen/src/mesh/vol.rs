@@ -50,22 +50,32 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>) -> P::Vertex>(
     ao: Vec4<f32>,
     vcons: &F,
 ) -> Quad<P> {
-    let ao_scale = 1.0;
+    let ao_scale = 0.95;
     let dark = col * (1.0 - ao_scale);
+
+    let ao_map = ao.map(|e| e.powf(2.0));
 
     if ao[0] + ao[2] < ao[1] + ao[3] {
         Quad::new(
-            vcons(origin + unit_y, norm, Rgb::lerp(dark, col, ao[3])),
-            vcons(origin, norm, Rgb::lerp(dark, col, ao[0])),
-            vcons(origin + unit_x, norm, Rgb::lerp(dark, col, ao[1])),
-            vcons(origin + unit_x + unit_y, norm, Rgb::lerp(dark, col, ao[2])),
+            vcons(origin + unit_y, norm, Rgb::lerp(dark, col, ao_map[3])),
+            vcons(origin, norm, Rgb::lerp(dark, col, ao_map[0])),
+            vcons(origin + unit_x, norm, Rgb::lerp(dark, col, ao_map[1])),
+            vcons(
+                origin + unit_x + unit_y,
+                norm,
+                Rgb::lerp(dark, col, ao_map[2]),
+            ),
         )
     } else {
         Quad::new(
-            vcons(origin, norm, Rgb::lerp(dark, col, ao[0])),
-            vcons(origin + unit_x, norm, Rgb::lerp(dark, col, ao[1])),
-            vcons(origin + unit_x + unit_y, norm, Rgb::lerp(dark, col, ao[2])),
-            vcons(origin + unit_y, norm, Rgb::lerp(dark, col, ao[3])),
+            vcons(origin, norm, Rgb::lerp(dark, col, ao_map[0])),
+            vcons(origin + unit_x, norm, Rgb::lerp(dark, col, ao_map[1])),
+            vcons(
+                origin + unit_x + unit_y,
+                norm,
+                Rgb::lerp(dark, col, ao_map[2]),
+            ),
+            vcons(origin + unit_y, norm, Rgb::lerp(dark, col, ao_map[3])),
         )
     }
 }

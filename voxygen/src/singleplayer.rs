@@ -31,9 +31,11 @@ impl Singleplayer {
             pick_unused_port().expect("Failed to find unused port!"),
         ));
 
-        let sock2 = sock.clone();
+        // Create server
+        let server = Server::bind(sock.clone()).expect("Failed to create server instance!");
+
         let thread = thread::spawn(move || {
-            run_server(sock2, reciever);
+            run_server(server, reciever);
         });
 
         (
@@ -53,14 +55,11 @@ impl Drop for Singleplayer {
     }
 }
 
-fn run_server(sock: SocketAddr, rec: Receiver<Msg>) {
+fn run_server(mut server: Server, rec: Receiver<Msg>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
     let mut clock = Clock::new();
-
-    // Create server
-    let mut server = Server::bind(sock).expect("Failed to create server instance!");
 
     loop {
         let events = server
