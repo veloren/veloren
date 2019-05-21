@@ -1,3 +1,4 @@
+use crate::settings::AudioSettings;
 use common::assets;
 use rand::prelude::*;
 use rodio::{Decoder, Device, Source, SpatialSink};
@@ -21,11 +22,15 @@ pub struct AudioFrontend {
 }
 
 impl AudioFrontend {
-    pub fn new() -> Self {
-        let mut device = AudioFrontend::get_devices_raw()[0].clone();
+    pub fn new(settings: &AudioSettings) -> Self {
+        let mut device = rodio::output_devices()
+            .find(|x| x.name() == settings.audio_device)
+            .or_else(rodio::default_output_device)
+            .expect("No Audio devices found");
 
         let mut sink =
             rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
+        sink.set_volume(settings.music_volume);
 
         AudioFrontend {
             device,
@@ -66,18 +71,18 @@ impl AudioFrontend {
         self.stream.set_volume(volume.min(1.0).max(0.0))
     }
 
-    /// Internal method for working with rodio. Filters out the jack audio server.
-    fn get_devices_raw() -> Vec<Device> {
-        rodio::output_devices()
-            .filter(|x| !x.name().contains("jack"))
-            .collect()
-    }
-
     /// Returns a vec of the audio devices available.
     /// Does not return rodio Device struct in case our audio backend changes.
-    // TODO: Decide if this should be an associated function
-    pub fn get_devices(&self) -> Vec<String> {
+    pub fn get_devices() -> Vec<String> {
         rodio::output_devices().map(|x| x.name()).collect()
+    }
+
+    /// Returns the default audio device.
+    /// Does not return rodio Device struct in case our audio backend changes.
+    pub fn get_default_device() -> String {
+        rodio::default_output_device()
+            .expect("No audio output devices detected.")
+            .name()
     }
 
     /// Returns the name of the current audio device.
