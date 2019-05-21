@@ -38,6 +38,9 @@ pub enum Event {
     Chat { entity: EcsEntity, msg: String },
 }
 
+#[derive(Copy, Clone)]
+struct SpawnPoint(Vec3<f32>);
+
 pub struct Server {
     state: State,
     world: Arc<World>,
@@ -65,6 +68,7 @@ impl Server {
 
         let mut state = State::new();
         state.ecs_mut().register::<comp::phys::ForceUpdate>();
+        state.ecs_mut().add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 150.0)));
 
         let mut this = Self {
             state,
@@ -81,6 +85,7 @@ impl Server {
             pending_chunks: HashSet::new(),
         };
 
+        /*
         for i in 0..4 {
             this.create_npc(
                 "Tobermory".to_owned(),
@@ -90,6 +95,7 @@ impl Server {
             .with(comp::Agent::Wanderer(Vec2::zero()))
             .build();
         }
+        */
 
         Ok(this)
     }
@@ -132,8 +138,10 @@ impl Server {
         name: String,
         body: comp::Body,
     ) {
+        let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
+
         state.write_component(entity, comp::Actor::Character { name, body });
-        state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
+        state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
         // Make sure everything is accepted.
