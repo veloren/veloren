@@ -58,9 +58,7 @@ impl ReadVol for Chonk {
         if pos.z < self.z_offset {
             // Below the terrain
             Ok(&self.below)
-        } else if pos.z
-            >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32
-        {
+        } else if pos.z >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32 {
             // Above the terrain
             Ok(&self.above)
         } else {
@@ -74,8 +72,7 @@ impl ReadVol for Chonk {
                 SubChunk::Heterogeneous(chunk) => {
                     let rpos = pos
                         - Vec3::unit_z()
-                            * (self.z_offset
-                                + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
                     chunk.get(rpos).map_err(|err| ChonkError::ChunkError(err))
                 }
             }
@@ -96,8 +93,7 @@ impl WriteVol for Chonk {
             }
 
             let rpos = pos
-                - Vec3::unit_z()
-                    * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+                - Vec3::unit_z() * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
 
             match &mut self.sub_chunks[sub_chunk_idx] {
                 // Can't fail

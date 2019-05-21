@@ -4,7 +4,7 @@ use crate::{
 };
 use client::Client;
 use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map_2d::VolMap2dErr};
-use std::{collections::HashMap, sync::mpsc, time::Duration, i32};
+use std::{collections::HashMap, i32, sync::mpsc, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
