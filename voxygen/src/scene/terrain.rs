@@ -4,7 +4,7 @@ use crate::{
 };
 use client::Client;
 use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map_2d::VolMap2dErr};
-use std::{collections::HashMap, sync::mpsc, time::Duration};
+use std::{collections::HashMap, i32, sync::mpsc, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -132,11 +132,6 @@ impl Terrain {
                     .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
             };
 
-            let aabb = Aabb {
-                min: Vec3::from(aabr.min),
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * 256,
-            };
-
             // Copy out the chunk data we need to perform the meshing. We do this by taking a
             // sample of the terrain that includes both the chunk we want and its neighbours.
             let volume = match client.state().terrain().sample(aabr) {
@@ -145,6 +140,19 @@ impl Terrain {
                 // queue to be processed at a later date when we have its neighbours.
                 Err(VolMap2dErr::NoSuchChunk) => return,
                 _ => panic!("Unhandled edge case"),
+            };
+
+            // The region to actually mesh
+            let z_min = volume
+                .iter()
+                .fold(i32::MAX, |min, (_, chunk)| chunk.get_z_min().min(min));
+            let z_max = volume
+                .iter()
+                .fold(i32::MIN, |max, (_, chunk)| chunk.get_z_max().max(max));
+
+            let aabb = Aabb {
+                min: Vec3::from(aabr.min) + Vec3::unit_z() * z_min,
+                max: Vec3::from(aabr.max) + Vec3::unit_z() * z_max,
             };
 
             // Clone various things so that they can be moved into the thread.

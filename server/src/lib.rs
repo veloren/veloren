@@ -23,12 +23,20 @@ use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
     Entity as EcsEntity,
 };
-use std::{collections::HashSet, i32, net::SocketAddr, sync::mpsc, time::Duration};
+use std::{
+    collections::HashSet,
+    i32,
+    net::SocketAddr,
+    sync::{mpsc, Arc},
+    time::Duration,
+};
 use threadpool::ThreadPool;
 use vek::*;
 use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
+
+const DEFAULT_WORLD_SEED: u32 = 1337;
 
 pub enum Event {
     ClientConnected { entity: EcsEntity },
@@ -36,9 +44,12 @@ pub enum Event {
     Chat { entity: EcsEntity, msg: String },
 }
 
+#[derive(Copy, Clone)]
+struct SpawnPoint(Vec3<f32>);
+
 pub struct Server {
     state: State,
-    world: World,
+    world: Arc<World>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
     clients: Clients,
@@ -63,10 +74,13 @@ impl Server {
 
         let mut state = State::new();
         state.ecs_mut().register::<comp::phys::ForceUpdate>();
+        state
+            .ecs_mut()
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 150.0)));
 
         let mut this = Self {
             state,
-            world: World::new(),
+            world: Arc::new(World::generate(DEFAULT_WORLD_SEED)),
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -79,6 +93,7 @@ impl Server {
             pending_chunks: HashSet::new(),
         };
 
+        /*
         for i in 0..4 {
             this.create_npc(
                 "Tobermory".to_owned(),
@@ -88,6 +103,7 @@ impl Server {
             .with(comp::Agent::Wanderer(Vec2::zero()))
             .build();
         }
+        */
 
         Ok(this)
     }
@@ -107,11 +123,6 @@ impl Server {
     #[allow(dead_code)]
     pub fn world(&self) -> &World {
         &self.world
-    }
-    /// Get a mutable reference to the server's world.
-    #[allow(dead_code)]
-    pub fn world_mut(&mut self) -> &mut World {
-        &mut self.world
     }
 
     /// Build a non-player character.
@@ -135,8 +146,10 @@ impl Server {
         name: String,
         body: comp::Body,
     ) {
+        let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
+
         state.write_component(entity, comp::Actor::Character { name, body });
-        state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
+        state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
         // Make sure everything is accepted.
@@ -183,6 +196,9 @@ impl Server {
 
         // Tick the client's LocalState (step 3).
         self.state.tick(dt);
+
+        // Tick the world
+        self.world.tick(dt);
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
@@ -569,8 +585,9 @@ impl Server {
     pub fn generate_chunk(&mut self, key: Vec2<i32>) {
         if self.pending_chunks.insert(key) {
             let chunk_tx = self.chunk_tx.clone();
+            let world = self.world.clone();
             self.thread_pool.execute(move || {
-                let _ = chunk_tx.send((key, World::generate_chunk(key)));
+                let _ = chunk_tx.send((key, world.generate_chunk(key))).unwrap();
             });
         }
     }
