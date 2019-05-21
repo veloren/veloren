@@ -1,7 +1,7 @@
 mod sim;
 
 use std::{
-    ops::{Add, Mul, Neg},
+    ops::{Add, Mul, Div, Neg},
     time::Duration,
 };
 use noise::{NoiseFn, Perlin, Seedable};
@@ -25,6 +25,10 @@ impl World {
         Self { sim: sim::WorldSim::generate(seed) }
     }
 
+    pub fn sim(&self) -> &sim::WorldSim {
+        &self.sim
+    }
+
     pub fn tick(&self, dt: Duration) {
         // TODO
     }
@@ -37,6 +41,7 @@ impl World {
         let grass = Block::new(2, Rgb::new(75, 150, 0));
         let dirt = Block::new(3, Rgb::new(128, 90, 0));
         let sand = Block::new(4, Rgb::new(180, 150, 50));
+        let water = Block::new(5, Rgb::new(100, 150, 255));
 
         let warp_nz = Perlin::new().set_seed(self.sim.seed + 0);
         let temp_nz = Perlin::new().set_seed(self.sim.seed + 1);
@@ -54,31 +59,18 @@ impl World {
                 let wpos2d = Vec2::new(x, y) + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                 let wposf2d = wpos2d.map(|e| e as f64);
 
+                let sim::Sample {
+                    alt,
+                    surface_color
+                } = if let Some(sample) = self.sim.sample(wpos2d) {
+                    sample
+                } else {
+                    continue
+                };
+
                 let max_z = self.sim
                     .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
                     .unwrap_or(0.0) as i32;
-
-                let chaos = self.sim
-                    .get_interpolated(wpos2d, |chunk| chunk.chaos)
-                    .unwrap_or(0.0);
-
-                let damp = self.sim
-                    .get_interpolated(wpos2d, |chunk| chunk.damp)
-                    .unwrap_or(0.0)
-                    .abs().neg().add(1.0)
-                    .mul(1.0 - chaos);
-
-                let ridge_freq = 1.0 / 125.0;
-                let ridge_ampl = 125.0;
-
-                let ridge = ridge_nz
-                    .get((wposf2d * ridge_freq).into_array()).abs().neg().add(1.0) as f32 * ridge_ampl * chaos.powf(8.0);
-
-                let height_z = self.sim
-                    .get_interpolated(wpos2d, |chunk| chunk.alt)
-                    .unwrap_or(0.0)
-                    + ridge
-                    - damp.powf(20.0) * 32.0;
 
                 for z in base_z..max_z {
                     let lpos = Vec3::new(x, y, z);
@@ -86,24 +78,18 @@ impl World {
                         + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                     let wposf = wpos.map(|e| e as f64);
 
-                    let warp_freq = 1.0 / 40.0;
-                    let warp_ampl = 45.0;
-
-                    let height = height_z
-                        + warp_nz.get((wposf * warp_freq).into_array()) as f32 * warp_ampl * (chaos + 0.05).min(0.85);
-
-                    let temp =
-                        (temp_nz.get(Vec2::from(wposf * (1.0 / 64.0)).into_array()) as f32 + 1.0) * 0.5;
+                    let height = alt;
+                    let temp = 0.0;
 
                     let z = wposf.z as f32;
                     let _ = chunk.set(
                         lpos,
-                        if z < height - 4.0 {
+                        if z < height - 6.0 {
                             stone
                         } else if z < height - 2.0 {
                             dirt
                         } else if z < height {
-                            Block::new(2, Rgb::new(10 + (75.0 * temp) as u8, 180, 50 - (50.0 * temp) as u8))
+                            Block::new(1, surface_color.map(|e| (e * 255.0) as u8))
                         } else {
                             air
                         },
@@ -113,5 +99,7 @@ impl World {
         }
 
         chunk
+
+        // */
     }
 }
