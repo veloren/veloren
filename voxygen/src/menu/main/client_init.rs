@@ -1,5 +1,6 @@
 use client::{error::Error as ClientError, Client};
 use common::comp;
+use log::info;
 use std::{
     net::ToSocketAddrs,
     sync::mpsc::{channel, Receiver, TryRecvError},
@@ -32,6 +33,7 @@ impl ClientInit {
         thread::spawn(move || {
             // Sleep the thread to wait for the single-player server to start up.
             if wait {
+                info!("Waiting for server to come up...");
                 thread::sleep(Duration::from_millis(500));
             }
             // Parse ip address or resolves hostname.
