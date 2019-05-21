@@ -17,6 +17,8 @@ use vek::*;
 
 pub struct AudioFrontend {
     device: Device,
+    // Performance optimisation, iterating through available audio devices takes time
+    devices: Vec<Device>,
     // streams: HashMap<String, SpatialSink>, //always use SpatialSink even if no possition is used for now
     stream: SpatialSink,
 }
@@ -36,6 +38,7 @@ impl AudioFrontend {
             device,
             // streams: HashMap::<String, SpatialSink>::new(),
             stream: sink,
+            devices: AudioFrontend::get_devices_raw(),
         }
     }
 
@@ -73,8 +76,18 @@ impl AudioFrontend {
 
     /// Returns a vec of the audio devices available.
     /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn get_devices() -> Vec<String> {
-        rodio::output_devices().map(|x| x.name()).collect()
+    pub fn get_devices(&self) -> Vec<String> {
+        self.devices.iter().map(|x| x.name()).collect()
+    }
+
+    /// Returns vec of devices
+    fn get_devices_raw() -> Vec<Device> {
+        rodio::output_devices().collect()
+    }
+
+    /// Caches vec of devices for later reference
+    fn collect_devices(&mut self) {
+        self.devices = AudioFrontend::get_devices_raw()
     }
 
     /// Returns the default audio device.
