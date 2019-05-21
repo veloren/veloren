@@ -12,7 +12,7 @@ pub enum ChonkError {
     OutOfBounds,
 }
 
-const SUB_CHUNK_HEIGHT: u32 = 32;
+const SUB_CHUNK_HEIGHT: u32 = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chonk {
