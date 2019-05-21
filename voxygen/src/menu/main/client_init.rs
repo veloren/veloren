@@ -1,6 +1,6 @@
-use log::info;
 use client::{error::Error as ClientError, Client};
 use common::comp;
+use log::info;
 use std::{
     net::ToSocketAddrs,
     sync::mpsc::{channel, Receiver, TryRecvError},

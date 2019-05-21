@@ -55,12 +55,21 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
             for y in range.min.y + 1..range.max.y - 1 {
                 for z in range.min.z..range.max.z {
                     let pos = Vec3::new(x, y, z);
-                    let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32) - Vec3::new(1.0, 1.0, 0.0);
+                    let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
+                        - Vec3::new(1.0, 1.0, 0.0);
 
                     if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
                         let col = col.map(|e| e as f32 / 255.0);
 
-                        vol::push_vox_verts(&mut mesh, self, pos, offs, col, TerrainVertex::new, false);
+                        vol::push_vox_verts(
+                            &mut mesh,
+                            self,
+                            pos,
+                            offs,
+                            col,
+                            TerrainVertex::new,
+                            false,
+                        );
                     }
                 }
             }

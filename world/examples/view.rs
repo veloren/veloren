@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Mul, Sub};
 use vek::*;
 use veloren_world::World;
 
@@ -8,11 +8,8 @@ const H: usize = 480;
 fn main() {
     let world = World::generate(0);
 
-    let mut win = minifb::Window::new(
-        "World Viewer",
-        W, H,
-        minifb::WindowOptions::default(),
-    ).unwrap();
+    let mut win =
+        minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
 
     let mut focus = Vec2::zero();
     let mut gain = 1.0;
@@ -27,13 +24,7 @@ fn main() {
                 let alt = world
                     .sim()
                     .sample(pos)
-                    .map(|sample| sample
-                        .alt
-                        .sub(64.0)
-                        .add(gain)
-                        .mul(0.7)
-                        .max(0.0)
-                        .min(255.0) as u8)
+                    .map(|sample| sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8)
                     .unwrap_or(0);
 
                 buf[j * W + i] = u32::from_le_bytes([alt; 4]);

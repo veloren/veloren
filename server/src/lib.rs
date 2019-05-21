@@ -23,7 +23,13 @@ use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
     Entity as EcsEntity,
 };
-use std::{collections::HashSet, i32, net::SocketAddr, sync::{Arc, mpsc}, time::Duration};
+use std::{
+    collections::HashSet,
+    i32,
+    net::SocketAddr,
+    sync::{mpsc, Arc},
+    time::Duration,
+};
 use threadpool::ThreadPool;
 use vek::*;
 use world::World;
@@ -68,7 +74,9 @@ impl Server {
 
         let mut state = State::new();
         state.ecs_mut().register::<comp::phys::ForceUpdate>();
-        state.ecs_mut().add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 150.0)));
+        state
+            .ecs_mut()
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 150.0)));
 
         let mut this = Self {
             state,
