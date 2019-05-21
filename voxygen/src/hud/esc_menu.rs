@@ -160,7 +160,7 @@ impl<'a> Widget for EscMenu<'a> {
             .w_h(168.0, 35.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
-            .label("Close")
+            .label("Resume")
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
             .label_font_size(17)
