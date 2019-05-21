@@ -43,16 +43,9 @@ impl World {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let warp_nz = Perlin::new().set_seed(self.sim.seed + 0);
-        let temp_nz = Perlin::new().set_seed(self.sim.seed + 1);
-        /*
-        let cliff_nz = BasicMulti::new()
-            .set_octaves(2)
-            .set_seed(self.sim.seed + 2);
-        let cliff_mask_nz = BasicMulti::new()
-            .set_octaves(4)
-            .set_seed(self.sim.seed + 3);
-        */
+        let warp_nz = BasicMulti::new()
+            .set_octaves(3)
+            .set_seed(self.sim.seed + 0);
 
         let base_z = match self.sim.get_base_z(chunk_pos.map(|e| e as u32)) {
             Some(base_z) => base_z as i32,
@@ -68,6 +61,7 @@ impl World {
 
                 let sim::Sample {
                     alt,
+                    chaos,
                     surface_color
                 } = if let Some(sample) = self.sim.sample(wpos2d) {
                     sample
@@ -85,31 +79,22 @@ impl World {
                         + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                     let wposf = wpos.map(|e| e as f64);
 
-                    /*
-                    let cliff_mask = cliff_mask_nz.get((wposf.div(Vec3::new(512.0, 512.0, 2048.0))).into_array())
-                        .sub(0.1)
-                        .max(0.0)
-                        .mul(1.5)
-                        .round() as f32;
-                    let cliff = (cliff_nz.get((wposf.div(Vec3::new(256.0, 256.0, 128.0))).into_array()) as f32)
-                        .mul(cliff_mask)
-                        //.mul((30.0).div((wposf.z as f32 - alt)).max(0.0))
-                        .mul(150.0)
-                        .min(64.0);
-                    */
+                    let warp = (warp_nz.get((wposf.div(Vec3::new(120.0, 120.0, 150.0))).into_array()) as f32)
+                        .mul((chaos - 0.1).max(0.0))
+                        .mul(90.0);
 
-                    let height = alt;// + cliff;
+                    let height = alt + warp;
                     let temp = 0.0;
 
                     let z = wposf.z as f32;
                     let _ = chunk.set(
                         lpos,
-                        if z < height - 6.0 {
+                        if z < height - 4.0 {
                             stone
-                        } else if z < height - 2.0 {
-                            dirt
                         } else if z < height {
                             Block::new(1, surface_color.map(|e| (e * 255.0) as u8))
+                        } else if z < sim::SEA_LEVEL {
+                            water
                         } else {
                             air
                         },
