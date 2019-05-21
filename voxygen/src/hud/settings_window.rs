@@ -563,7 +563,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Audio Device Selector --------------------------------------------
             let device = self.global_state.audio.get_device();
-            let device_list = AudioFrontend::get_devices();
+            let device_list = self.global_state.audio.get_devices();
             Text::new("Volume")
                 .down_from(state.ids.audio_volume_slider, 10.0)
                 .font_size(14)
