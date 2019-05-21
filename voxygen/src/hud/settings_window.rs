@@ -7,7 +7,7 @@ use crate::{
         ImageSlider, ScaleMode, ToggleButton, Ui,
     },
     window::Window,
-    Settings,
+    GlobalState,
 };
 use conrod_core::{
     color,
@@ -66,19 +66,24 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
-    settings: &'a Settings,
+    global_state: &'a GlobalState,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> SettingsWindow<'a> {
-    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts, settings: &'a Settings) -> Self {
+    pub fn new(
+        show: &'a Show,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        global_state: &'a GlobalState,
+    ) -> Self {
         Self {
             show,
             imgs,
             fonts,
-            settings,
+            global_state,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -486,7 +491,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.vd_slider_text, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                self.settings.graphics.view_distance,
+                self.global_state.settings.graphics.view_distance,
                 1,
                 25,
                 self.imgs.slider_indicator,
@@ -540,7 +545,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.audio_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
-                self.settings.audio.music_volume,
+                self.global_state.settings.audio.music_volume,
                 0.0,
                 1.0,
                 self.imgs.slider_indicator,
@@ -566,19 +571,21 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             // Get which device is currently selected
             let selected = self
+                .global_state
                 .settings
                 .audio
                 .audio_devices
                 .iter()
-                .position(|x| x.contains(&self.settings.audio.audio_device));
+                .position(|x| x.contains(&self.global_state.settings.audio.audio_device));
 
-            if let Some(clicked) = DropDownList::new(&self.settings.audio.audio_devices, selected)
-                .w_h(400.0, 22.0)
-                .down_from(state.ids.audio_device_text, 10.0)
-                .label_font_id(self.fonts.opensans)
-                .set(state.ids.audio_device_list, ui)
+            if let Some(clicked) =
+                DropDownList::new(&self.global_state.settings.audio.audio_devices, selected)
+                    .w_h(400.0, 22.0)
+                    .down_from(state.ids.audio_device_text, 10.0)
+                    .label_font_id(self.fonts.opensans)
+                    .set(state.ids.audio_device_list, ui)
             {
-                let new_val = self.settings.audio.audio_devices[clicked].clone();
+                let new_val = self.global_state.settings.audio.audio_devices[clicked].clone();
                 events.push(Event::ChangeAudioDevice(new_val));
             }
         }
