@@ -135,6 +135,7 @@ pub struct Show {
     map: bool,
     inventory_test_button: bool,
     mini_map: bool,
+    ingame: bool,
 
     want_grab: bool,
 }
@@ -258,6 +259,7 @@ impl Hud {
                 inventory_test_button: false,
                 mini_map: false,
                 want_grab: true,
+                ingame: true,
             },
             to_focus: None,
             force_ungrab: false,
@@ -275,7 +277,7 @@ impl Hud {
         }
 
         // Nametags and healthbars
-        {
+        if self.show.ingame {
             let ecs = client.state().ecs();
             let actor = ecs.read_storage::<comp::Actor>();
             let pos = ecs.read_storage::<comp::phys::Pos>();
@@ -648,6 +650,10 @@ impl Hud {
                 }
                 Key::ToggleDebug => {
                     self.show.debug = !self.show.debug;
+                    true
+                }
+                Key::ToggleIngameUi => {
+                    self.show.ingame = !self.show.ingame;
                     true
                 }
                 _ => false,

@@ -40,6 +40,7 @@ pub struct ControlSettings {
     pub toggle_debug: VirtualKeyCode,
     pub fullscreen: VirtualKeyCode,
     pub screenshot: VirtualKeyCode,
+    pub toggle_ingame_ui: VirtualKeyCode,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -95,6 +96,7 @@ impl Default for Settings {
                 toggle_debug: VirtualKeyCode::F3,
                 fullscreen: VirtualKeyCode::F11,
                 screenshot: VirtualKeyCode::F4,
+                toggle_ingame_ui: VirtualKeyCode::F6,
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
