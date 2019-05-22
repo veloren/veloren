@@ -142,7 +142,8 @@ impl WorldSim {
         let warm_grass = Rgb::new(0.55, 0.9, 0.0);
         let cold_stone = Rgb::new(0.78, 0.86, 1.0);
         let warm_stone = Rgb::new(0.72, 0.7, 0.33);
-        let sand = Rgb::new(0.93, 0.84, 0.23);
+        let sand = Rgb::new(0.93, 0.84, 0.33);
+        let snow = Rgb::broadcast(1.0);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, temp);
         let ground = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
@@ -154,7 +155,16 @@ impl WorldSim {
             surface_color: Rgb::lerp(
                 sand,
                 // Land
-                Rgb::lerp(ground, cliff, (alt - SEA_LEVEL - 100.0) / 150.0),
+                Rgb::lerp(
+                    ground,
+                    // Mountain
+                    Rgb::lerp(
+                        cliff,
+                        snow,
+                        (alt - SEA_LEVEL - 215.0 - temp * 24.0) / 4.0,
+                    ),
+                    (alt - SEA_LEVEL - 100.0) / 100.0
+                ),
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
             ),
@@ -203,7 +213,8 @@ impl SimChunk {
 
         let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(5000.0)).into_array()) as f32 * 0.4;
+        let alt_base = gen_ctx.alt_nz.get((wposf.div(5000.0)).into_array()) as f32;
+        let alt_base = alt_base * 0.4 + alt_base.mul(16.0).sin().mul(0.01);
 
         let alt_main = gen_ctx.alt_nz.get((wposf.div(750.0)).into_array()) as f32;
 
@@ -232,7 +243,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0
+        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.1)
     }
 
     pub fn get_max_z(&self) -> f32 {
