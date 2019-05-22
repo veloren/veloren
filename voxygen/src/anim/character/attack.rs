@@ -29,7 +29,11 @@ impl Animation for AttackAnimation {
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
-        let wave_dip = (wave_slow.abs() - 0.5).abs();
+        let wave_stop = (anim_time as f32 * 3.0).min(PI / 2.0).sin();
+        let wave_stop_alt = (anim_time as f32 * 28.0).min(PI / 2.0).sin();
+        let wave_stop_quick = (anim_time as f32 * 8.0).min(PI / 2.0).sin();
+        let peakwave = 1.0- (anim_time as f32 * 1.0).cos();
+
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
@@ -60,21 +64,21 @@ impl Animation for AttackAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -6.0,
-            -2.0 + wave_ultra_slow_cos * 0.15,
-            11.5 + wave_ultra_slow * 0.5,
-        );
+            -8.0,
+            4.0,
+            9.0,
+        ) / 11.0;
 
-        next.l_hand.ori = Quaternion::rotation_x(0.0);
-        next.l_hand.scale = Vec3::one();
+        next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.5);
+        next.l_hand.scale = Vec3::one() / 11.0;
 
         next.r_hand.offset = Vec3::new(
-            9.0,
-            -2.0,
-            11.5,
-        );
+            8.0,
+            4.0,
+            6.5,
+        ) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(0.0);
-        next.r_hand.scale = Vec3::one();
+        next.r_hand.scale = Vec3::one() / 11.0;
 
         next.l_foot.offset = Vec3::new(-3.3, -0.1, 8.0);
         next.l_foot.ori = Quaternion::identity();
@@ -84,8 +88,8 @@ impl Animation for AttackAnimation {
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.weapon.ori = Quaternion::identity();
+        next.weapon.offset = Vec3::new(-12.0, -2.0, 11.0);
+        next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.0, 2.5);
@@ -100,13 +104,11 @@ impl Animation for AttackAnimation {
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
-        next.l_hold.offset = Vec3::new(0.0, 0.0, 25.0);
-        next.l_hold.ori = Quaternion::rotation_z(wave * 10.0);
-        next.l_hold.scale = Vec3::one();
 
-        next.r_hold.offset = Vec3::new(2.0, 2.5, 0.0);
-        next.r_hold.ori = Quaternion::rotation_x(0.0);
-        next.r_hold.scale = Vec3::one();
+        next.left_equip.offset = Vec3::new(-8.0, 4.0, 10.0) / 13.0;
+        next.left_equip.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.5) * Quaternion::rotation_z(1.57);
+        next.left_equip.scale = Vec3::one() / 11.0;
+
 
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
