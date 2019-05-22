@@ -69,8 +69,8 @@ impl FigureModelCache {
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw(body.draw)),
-                                    Some(Self::load_left_hold(body.hand)),
-                                    Some(Self::load_right_hold(body.hand)),
+                                    Some(Self::load_left_equip(body.weapon)),
+                                    None,
                                     None,
                                     None,
                                 ],
@@ -181,7 +181,7 @@ impl FigureModelCache {
             match hand {
                 Hand::Default => "figure/body/hand.vox",
             },
-            Vec3::new(2.0, 0.0, -7.0),
+            Vec3::new(-2.0, -2.5, -2.0),
         )
     }
 
@@ -190,7 +190,7 @@ impl FigureModelCache {
             match hand {
                 Hand::Default => "figure/body/hand.vox",
             },
-            Vec3::new(2.0, 0.0, -7.0),
+            Vec3::new(-2.0, -2.5, -2.0),
         )
     }
 
@@ -252,23 +252,18 @@ impl FigureModelCache {
         )
     }
 
-    fn load_left_hold(hand: Hand) -> Mesh<FigurePipeline> {
+    fn load_left_equip(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match hand {
-                Hand::Default => "figure/body/hand.vox",
+            match weapon {
+                Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
+                _ => "weapon/sword/sword_wood_2h.vox",
+
             },
-            Vec3::new(-2.0, -2.5, 0.0),
+            Vec3::new(-6.5, -1.5, -5.0),
         )
     }
 
-    fn load_right_hold(hand: Hand) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match hand {
-                Hand::Default => "figure/body/hand.vox",
-            },
-            Vec3::new(-2.0, 2.5, 0.0),
-        )
-    }
+
 
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(

@@ -64,20 +64,20 @@ impl Animation for GlidingAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -8.0,
-            -10.0 + wave_very_slow * 2.5,
-            18.5 + wave_very_slow * 1.0,
-        );
-        next.l_hand.ori = Quaternion::rotation_x(0.9 - wave_very_slow * 0.10);
-        next.l_hand.scale = Vec3::one();
+            -10.0,
+            6.0 - wave_very_slow * 1.50,
+            15.0 + wave_very_slow * 0.50,
+        ) / 11.0;
+        next.l_hand.ori = Quaternion::rotation_x(0.2 + wave_very_slow_cos * 0.05);
+        next.l_hand.scale = Vec3::one() / 11.0;
 
         next.r_hand.offset = Vec3::new(
-            11.0,
-            -10.0 + wave_very_slow * 2.5,
-            18.5 + wave_very_slow * 1.0,
-        );
-        next.r_hand.ori = Quaternion::rotation_x(0.9 - wave_very_slow * 0.10);
-        next.r_hand.scale = Vec3::one();
+            10.0,
+            6.0 - wave_very_slow * 1.50,
+            14.5 + wave_very_slow * 0.50,
+        ) / 11.0;
+        next.r_hand.ori = Quaternion::rotation_x(0.1 + wave_very_slow * 0.05);
+        next.r_hand.scale = Vec3::one() / 11.0;
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 8.0);
         next.l_foot.ori = Quaternion::rotation_x(
@@ -91,7 +91,7 @@ impl Animation for GlidingAnimation {
         );
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-5.0, -6.0, 19.0);
+        next.weapon.offset = Vec3::new(-5.0, -5.0, 12.0);
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
@@ -103,17 +103,10 @@ impl Animation for GlidingAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one();
         
-        next.draw.offset = Vec3::new(13.5, 3.0, -1.0);
-        next.draw.ori = Quaternion::rotation_y(wave_very_slow_cos * 0.05);
+        next.draw.offset = Vec3::new(5.5, -9.0 + wave_very_slow * 0.10, 18.0);
+        next.draw.ori = Quaternion::rotation_x(0.95 - wave_very_slow * 0.15) * Quaternion::rotation_y(wave_very_slow_cos * 0.04);
         next.draw.scale = Vec3::one();
 
-        next.l_hold.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.l_hold.ori = Quaternion::rotation_x(0.0);
-        next.l_hold.scale = Vec3::one();
-
-        next.r_hold.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.r_hold.ori = Quaternion::rotation_x(0.0);
-        next.r_hold.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.0);
         next.torso.ori = Quaternion::rotation_x(-0.8 + wave_very_slow * 0.10);
