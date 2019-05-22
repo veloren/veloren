@@ -4,7 +4,7 @@ use vek::*;
 
 // Crate
 use crate::{
-    comp::{Control, Dying, Stats},
+    comp::{Dying, Stats},
     state::DeltaTime,
 };
 

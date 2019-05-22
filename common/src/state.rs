@@ -110,10 +110,10 @@ impl State {
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
         ecs.register::<comp::AnimationInfo>();
+        ecs.register::<comp::Inputs>();
         ecs.register::<comp::Actions>();
         ecs.register::<comp::Dying>();
         ecs.register::<comp::Agent>();
-        ecs.register::<comp::Control>();
         ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.

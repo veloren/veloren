@@ -1,13 +1,9 @@
 #![feature(label_break_value, duration_float)]
 
 pub mod error;
-pub mod input;
 
 // Reexports
-pub use crate::{
-    error::Error,
-    input::{Input, InputEvent},
-};
+pub use crate::error::Error;
 pub use specs::join::Join;
 pub use specs::Entity as EcsEntity;
 
@@ -75,8 +71,8 @@ impl Client {
             _ => return Err(Error::ServerWentMad),
         };
 
-        // Initialize ecs components the client has control over
-        state.write_component(entity, comp::Actions::new());
+        // Initialize ecs components the client has actions over
+        state.write_component(entity, comp::Inputs::default());
 
         Ok(Self {
             client_state,
@@ -180,7 +176,7 @@ impl Client {
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, input: comp::Inputs, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -193,45 +189,16 @@ impl Client {
         // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Sync information to the server
-        // 7) Finish the tick, passing control of the main thread back to the frontend
+        // 7) Finish the tick, passing actions of the main thread back to the frontend
 
         // 1) Handle input from frontend.
-        for event in input.events {
-            match event {
-                InputEvent::AttackStarted => {
-                    self.state
-                        .ecs_mut()
-                        .write_storage::<comp::Actions>()
-                        .get_mut(self.entity)
-                        .unwrap() // We initialized it in the constructor
-                        .0
-                        .push(comp::Action::Attack);
-                }
-                _ => {}
-            }
-        }
+        // Pass character actions from frontend input to the player's entity.
+        // TODO: Only do this if the entity already has a Inputs component!
+        self.state.write_component(self.entity, input.clone());
 
-        // Tell the server about the actions.
-        if let Some(actions) = self
-            .state
-            .ecs()
-            .read_storage::<comp::Actions>()
-            .get(self.entity)
-        {
-            self.postbox
-                .send_message(ClientMsg::PlayerActions(actions.clone()));
-        }
-
-        // Pass character control from frontend input to the player's entity.
-        // TODO: Only do this if the entity already has a Control component!
-        self.state.write_component(
-            self.entity,
-            comp::Control {
-                move_dir: input.move_dir,
-                jumping: input.jumping,
-                gliding: input.gliding,
-            },
-        );
+        // Tell the server about the inputs.
+        self.postbox
+            .send_message(ClientMsg::PlayerInputs(input.clone()));
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
