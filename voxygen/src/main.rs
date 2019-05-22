@@ -79,7 +79,7 @@ pub trait PlayState {
 
 fn main() {
     // Set up the global state.
-    let settings = Settings::load();
+    let mut settings = Settings::load();
     let window = Window::new(&settings).expect("Failed to create window!");
 
     // Initialize logging.
@@ -159,15 +159,15 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    let mut global_state = GlobalState {
-        settings,
-        window,
-        audio: AudioFrontend::new(),
-    };
+    if settings.audio.audio_device == None {
+        settings.audio.audio_device = Some(AudioFrontend::get_default_device());
+    }
 
-    // TODO: Remove this when the volume setting can be saved
-    // Lower the volume to 50%
-    global_state.audio.set_volume(0.5);
+    let mut global_state = GlobalState {
+        audio: AudioFrontend::new(&settings.audio),
+        window,
+        settings,
+    };
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];

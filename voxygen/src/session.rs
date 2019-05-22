@@ -32,7 +32,7 @@ impl SessionState {
             scene,
             client,
             key_state: KeyState::new(),
-            hud: Hud::new(window, settings),
+            hud: Hud::new(window),
             input_events: Vec::new(),
         }
     }
@@ -173,14 +173,11 @@ impl PlayState for SessionState {
             // Maintain the scene.
             self.scene.maintain(
                 global_state.window.renderer_mut(),
-                &mut self.client.borrow_mut(),
+                &self.client.borrow_mut(),
             );
 
             // Maintain the UI.
-            for event in self
-                .hud
-                .maintain(global_state.window.renderer_mut(), clock.get_tps())
-            {
+            for event in self.hud.maintain(global_state, clock.get_tps()) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
@@ -191,10 +188,22 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {
-                        self.client.borrow_mut().set_view_distance(view_distance)
+                        self.client.borrow_mut().set_view_distance(view_distance);
+
+                        global_state.settings.graphics.view_distance = view_distance;
+                        global_state.settings.save_to_file();
                     }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.set_volume(volume);
+
+                        global_state.settings.audio.music_volume = volume;
+                        global_state.settings.save_to_file();
+                    }
+                    HudEvent::ChangeAudioDevice(name) => {
+                        global_state.audio.set_device(name.clone());
+
+                        global_state.settings.audio.audio_device = Some(name);
+                        global_state.settings.save_to_file();
                     }
                 }
             }
