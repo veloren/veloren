@@ -5,6 +5,7 @@ use crate::{
 };
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum ChonkError {
@@ -69,10 +70,18 @@ impl ReadVol for Chonk {
             match &self.sub_chunks[sub_chunk_idx] {
                 // Can't fail
                 SubChunk::Homogeneous(block) => Ok(block),
+                SubChunk::Hash(cblock, map) => {
+                    let rpos = pos
+                        - Vec3::unit_z()
+                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+
+                    Ok(map.get(&rpos).unwrap_or(cblock))
+                },
                 SubChunk::Heterogeneous(chunk) => {
                     let rpos = pos
                         - Vec3::unit_z()
                             * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+
                     chunk.get(rpos).map_err(|err| ChonkError::ChunkError(err))
                 }
             }
@@ -99,17 +108,25 @@ impl WriteVol for Chonk {
                 // Can't fail
                 SubChunk::Homogeneous(cblock) if *cblock == block => Ok(()),
                 SubChunk::Homogeneous(cblock) => {
+                    let mut map = HashMap::new();
+                    map.insert(rpos, block);
+
+                    self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
+                    Ok(())
+                },
+                SubChunk::Hash(cblock, map) if map.len() < 4096 => {
+                    map.insert(rpos, block);
+                    Ok(())
+                },
+                SubChunk::Hash(cblock, map) => {
                     let mut new_chunk = Chunk::filled(*cblock, ());
-                    match new_chunk
-                        .set(rpos, block)
-                        .map_err(|err| ChonkError::ChunkError(err))
-                    {
-                        Ok(()) => {
-                            self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
-                            Ok(())
-                        }
-                        Err(err) => Err(err),
+
+                    for (map_pos, map_block) in map {
+                        new_chunk.set(*map_pos, *map_block).unwrap(); // Can't fail (I hope!)
                     }
+
+                    self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
+                    Ok(())
                 }
                 SubChunk::Heterogeneous(chunk) => chunk
                     .set(rpos, block)
@@ -122,6 +139,7 @@ impl WriteVol for Chonk {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SubChunk {
     Homogeneous(Block),
+    Hash(Block, HashMap<Vec3<i32>, Block>),
     Heterogeneous(Chunk<Block, TerrainChunkSize, ()>),
 }
 
