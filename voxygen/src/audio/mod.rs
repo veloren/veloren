@@ -59,7 +59,7 @@ impl AudioFrontend {
             "voxygen/audio/soundtrack/fiesta_del_pueblo.ogg",
             "voxygen/audio/soundtrack/library_theme_with_harpsichord.ogg",
             "voxygen/audio/soundtrack/Mineral_Deposits.ogg",
-            "voxygen/audio/soundtrack/Ruination.ogg",
+            //"voxygen/audio/soundtrack/Ruination.ogg",
             "voxygen/audio/soundtrack/sacred_temple.ogg",
             "voxygen/audio/soundtrack/Snowtop.ogg",
             "voxygen/audio/soundtrack/veloren_title_tune-3.ogg",
