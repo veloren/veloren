@@ -63,18 +63,18 @@ impl Animation for IdleAnimation {
             -6.0,
             -2.0 + wave_ultra_slow_cos * 0.15,
             11.5 + wave_ultra_slow * 0.5,
-        );
+        ) / 11.;
 
         next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.06);
-        next.l_hand.scale = Vec3::one();
+        next.l_hand.scale = Vec3::one() / 11.;
 
         next.r_hand.offset = Vec3::new(
             9.0,
             -2.0 + wave_ultra_slow_cos * 0.15,
             11.5 + wave_ultra_slow * 0.5,
-        );
+        ) / 11.;
         next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.06);
-        next.r_hand.scale = Vec3::one();
+        next.r_hand.scale = Vec3::one() / 11.;
 
         next.l_foot.offset = Vec3::new(-3.3, -0.1, 8.0);
         next.l_foot.ori = Quaternion::identity();
@@ -84,7 +84,7 @@ impl Animation for IdleAnimation {
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-5.0, -6.0, 18.0);
+        next.weapon.offset = Vec3::new(-5.0, -5.0, 12.0);
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
@@ -100,13 +100,6 @@ impl Animation for IdleAnimation {
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
         
-        next.l_hold.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.l_hold.ori = Quaternion::rotation_x(0.0);
-        next.l_hold.scale = Vec3::one();
-
-        next.r_hold.offset = Vec3::new(0.0, 0.0, 0.0);
-        next.r_hold.ori = Quaternion::rotation_x(0.0);
-        next.r_hold.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
