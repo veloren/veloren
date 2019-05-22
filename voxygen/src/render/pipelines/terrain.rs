@@ -1,4 +1,4 @@
-// Library
+use std::ops::{Add, Mul, Div};
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -10,8 +10,6 @@ use gfx::{
     gfx_vertex_struct_meta,
 };
 use vek::*;
-
-// Local
 use super::{
     super::{Pipeline, TgtColorFmt, TgtDepthFmt},
     Globals,
@@ -19,9 +17,8 @@ use super::{
 
 gfx_defines! {
     vertex Vertex {
-        pos: [f32; 3] = "v_pos",
-        norm: [f32; 3] = "v_norm",
-        col: [f32; 3] = "v_col",
+        pos: u32 = "v_pos",
+        col_norm: u32 = "v_col_norm",
     }
 
     constant Locals {
@@ -42,9 +39,17 @@ gfx_defines! {
 impl Vertex {
     pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
         Self {
-            pos: pos.into_array(),
-            col: col.into_array(),
-            norm: norm.into_array(),
+            pos: 0
+                | ((pos.x as u32) & 0x00FF) << 0
+                | ((pos.y as u32) & 0x00FF) << 8
+                | ((pos.z as u32) & 0xFFFF) << 16,
+            col_norm: 0
+                | ((col.r.mul(255.0) as u32) & 0xFF) << 8
+                | ((col.g.mul(255.0) as u32) & 0xFF) << 16
+                | ((col.b.mul(255.0) as u32) & 0xFF) << 24
+                | ((norm.x.add(1.0) as u32) & 0x3) << 0
+                | ((norm.y.add(1.0) as u32) & 0x3) << 2
+                | ((norm.z.add(1.0) as u32) & 0x3) << 4,
         }
     }
 }
