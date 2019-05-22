@@ -11,7 +11,9 @@ use conrod_core::{
     color,
     color::TRANSPARENT,
     position::Relative,
-    widget::{text_box::Event as TextBoxEvent, Button, Scrollbar, Image, List, Rectangle, Text, TextBox},
+    widget::{
+        text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Scrollbar, Text, TextBox,
+    },
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use std::sync::Arc;
@@ -152,21 +154,21 @@ impl MainMenuUi {
             .set(self.ids.version, ui_widgets);
 
         if self.show_disclaimer {
-        Image::new(self.imgs.disclaimer)
-            .w_h(1800.0, 800.0)
-            .middle_of(ui_widgets.window)
-            .scroll_kids()
-            .scroll_kids_vertically()            
-            .set(self.ids.disc_window, ui_widgets);
-        
-        Text::new("Disclaimer")
-            .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
-            .font_id(self.fonts.metamorph)
-            .font_size(35)
-            .font_id(self.fonts.metamorph)
-            .color(TEXT_COLOR)
-            .set(self.ids.disc_text_1, ui_widgets);  
-        Text::new(
+            Image::new(self.imgs.disclaimer)
+                .w_h(1800.0, 800.0)
+                .middle_of(ui_widgets.window)
+                .scroll_kids()
+                .scroll_kids_vertically()
+                .set(self.ids.disc_window, ui_widgets);
+
+            Text::new("Disclaimer")
+                .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
+                .font_id(self.fonts.metamorph)
+                .font_size(35)
+                .font_id(self.fonts.metamorph)
+                .color(TEXT_COLOR)
+                .set(self.ids.disc_text_1, ui_widgets);
+            Text::new(
             "Welcome to the alpha version of Veloren!\n\
             \n\
             \n\
@@ -194,10 +196,10 @@ impl MainMenuUi {
             .font_size(26)
             .font_id(self.fonts.opensans)
             .color(TEXT_COLOR)
-            .set(self.ids.disc_text_2, ui_widgets);   
-        if Button::image(self.imgs.button)
+            .set(self.ids.disc_text_2, ui_widgets);
+            if Button::image(self.imgs.button)
                 .w_h(300.0, 50.0)
-                .mid_bottom_with_margin_on(self.ids.disc_window, 20.0)
+                .mid_bottom_with_margin_on(self.ids.disc_window, 30.0)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .label_y(Relative::Scalar(2.0))
@@ -209,284 +211,283 @@ impl MainMenuUi {
             {
                 self.show_disclaimer = false
             };
-
         } else {
-        // TODO: Don't use macros for this?
-        // Input fields
-        // Used when the login button is pressed, or enter is pressed within input field
-        macro_rules! login {
-            () => {
-                self.login_error = None;
-                self.connecting = Some(std::time::Instant::now());
-                events.push(Event::LoginAttempt {
-                    username: self.username.clone(),
-                    server_address: self.server_address.clone(),
-                });
-            };
-        }
+            // TODO: Don't use macros for this?
+            // Input fields
+            // Used when the login button is pressed, or enter is pressed within input field
+            macro_rules! login {
+                () => {
+                    self.login_error = None;
+                    self.connecting = Some(std::time::Instant::now());
+                    events.push(Event::LoginAttempt {
+                        username: self.username.clone(),
+                        server_address: self.server_address.clone(),
+                    });
+                };
+            }
 
-        // Singleplayer
-        // Used when the singleplayer button is pressed
-        macro_rules! singleplayer {
-            () => {
-                self.login_error = None;
-                events.push(Event::StartSingleplayer);
-                events.push(Event::LoginAttempt {
-                    username: "singleplayer".to_string(),
-                    server_address: "localhost".to_string(),
-                });
-            };
-        }
+            // Singleplayer
+            // Used when the singleplayer button is pressed
+            macro_rules! singleplayer {
+                () => {
+                    self.login_error = None;
+                    events.push(Event::StartSingleplayer);
+                    events.push(Event::LoginAttempt {
+                        username: "singleplayer".to_string(),
+                        server_address: "localhost".to_string(),
+                    });
+                };
+            }
 
-        
-        // Username
-        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-            .middle_of(ui_widgets.window)
-            .set(self.ids.usrnm_bg, ui_widgets);
-        Image::new(self.imgs.input_bg)
-            .w_h(337.0, 67.0)
-            .middle_of(self.ids.usrnm_bg)
-            .set(self.ids.username_bg, ui_widgets);
-        for event in TextBox::new(&self.username)
-            .w_h(290.0, 30.0)
-            .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
-            .font_size(22)
-            .font_id(self.fonts.opensans)
-            .text_color(TEXT_COLOR)
-            // transparent background
-            .color(TRANSPARENT)
-            .border_color(TRANSPARENT)
-            .set(self.ids.username_field, ui_widgets)
-        {
-            match event {
-                TextBoxEvent::Update(username) => {
-                    // Note: TextBox limits the input string length to what fits in it
-                    self.username = username.to_string();
-                }
-                TextBoxEvent::Enter => {
-                    login!();
+            // Username
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                .middle_of(ui_widgets.window)
+                .set(self.ids.usrnm_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(337.0, 67.0)
+                .middle_of(self.ids.usrnm_bg)
+                .set(self.ids.username_bg, ui_widgets);
+            for event in TextBox::new(&self.username)
+                .w_h(290.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.username_bg, 44.0 / 2.0)
+                .font_size(22)
+                .font_id(self.fonts.opensans)
+                .text_color(TEXT_COLOR)
+                // transparent background
+                .color(TRANSPARENT)
+                .border_color(TRANSPARENT)
+                .set(self.ids.username_field, ui_widgets)
+            {
+                match event {
+                    TextBoxEvent::Update(username) => {
+                        // Note: TextBox limits the input string length to what fits in it
+                        self.username = username.to_string();
+                    }
+                    TextBoxEvent::Enter => {
+                        login!();
+                    }
                 }
             }
-        }
-        // Login error
-        if let Some(msg) = &self.login_error {
-            let text = Text::new(&msg)
-                .rgba(1.0, 1.0, 1.0, 1.0)
-                .font_size(30)
-                .font_id(self.fonts.opensans);
-            Rectangle::fill_with([400.0, 100.0], color::TRANSPARENT)
-                .rgba(0.1, 0.1, 0.1, 1.0)
-                .parent(ui_widgets.window)
-                .mid_top_with_margin_on(self.ids.username_bg, -35.0)
-                .set(self.ids.login_error_bg, ui_widgets);
-            Image::new(self.imgs.error_frame)
-                .w_h(400.0, 100.0)
-                .middle_of(self.ids.login_error_bg)
-                .set(self.ids.error_frame, ui_widgets);
-            text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
-                .set(self.ids.login_error, ui_widgets);
-            if Button::image(self.imgs.button)
-                .w_h(100.0, 30.0)
-                .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label_y(Relative::Scalar(2.0))
-                .label("Okay")
-                .label_font_size(10)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.button_ok, ui_widgets)
-                .was_clicked()
-            {
-                self.login_error = None
-            };
-        }
-        if self.show_servers {
-            Image::new(self.imgs.error_frame)
-                .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                .w_h(400.0, 400.0)
-                .set(self.ids.servers_frame, ui_widgets);
-
-            let netsettings = &global_state.settings.networking;
-
-            // TODO: Draw scroll bar or remove it.
-            let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
-                .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
-                .w_h(400.0, 300.0)
-                .scrollbar_next_to()
-                .scrollbar_thickness(18.0)
-                .scrollbar_color(TEXT_COLOR)
-                .set(self.ids.servers_text, ui_widgets);
-
-            while let Some(item) = items.next(ui_widgets) {
-                let mut text = "".to_string();
-                if &netsettings.servers[item.i] == &self.server_address {
-                    text.push_str("* ")
-                } else {
-                    text.push_str("  ")
-                }
-                text.push_str(&netsettings.servers[item.i]);
-
-                if item
-                    .set(
-                        Button::image(self.imgs.button)
-                            .w_h(100.0, 53.0)
-                            .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                            .hover_image(self.imgs.button_hover)
-                            .press_image(self.imgs.button_press)
-                            .label_y(Relative::Scalar(2.0))
-                            .label(&text)
-                            .label_font_size(20)
-                            .label_color(TEXT_COLOR),
-                        ui_widgets,
-                    )
+            // Login error
+            if let Some(msg) = &self.login_error {
+                let text = Text::new(&msg)
+                    .rgba(1.0, 1.0, 1.0, 1.0)
+                    .font_size(30)
+                    .font_id(self.fonts.opensans);
+                Rectangle::fill_with([400.0, 100.0], color::TRANSPARENT)
+                    .rgba(0.1, 0.1, 0.1, 1.0)
+                    .parent(ui_widgets.window)
+                    .mid_top_with_margin_on(self.ids.username_bg, -35.0)
+                    .set(self.ids.login_error_bg, ui_widgets);
+                Image::new(self.imgs.error_frame)
+                    .w_h(400.0, 100.0)
+                    .middle_of(self.ids.login_error_bg)
+                    .set(self.ids.error_frame, ui_widgets);
+                text.mid_top_with_margin_on(self.ids.error_frame, 10.0)
+                    .set(self.ids.login_error, ui_widgets);
+                if Button::image(self.imgs.button)
+                    .w_h(100.0, 30.0)
+                    .mid_bottom_with_margin_on(self.ids.login_error_bg, 5.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label_y(Relative::Scalar(2.0))
+                    .label("Okay")
+                    .label_font_size(10)
+                    .label_color(TEXT_COLOR)
+                    .set(self.ids.button_ok, ui_widgets)
                     .was_clicked()
                 {
-                    // TODO: Set as current server address
-                    self.server_address = netsettings.servers[item.i].clone();
+                    self.login_error = None
+                };
+            }
+            if self.show_servers {
+                Image::new(self.imgs.error_frame)
+                    .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
+                    .w_h(400.0, 400.0)
+                    .set(self.ids.servers_frame, ui_widgets);
+
+                let netsettings = &global_state.settings.networking;
+
+                // TODO: Draw scroll bar or remove it.
+                let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
+                    .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
+                    .w_h(400.0, 300.0)
+                    .scrollbar_next_to()
+                    .scrollbar_thickness(18.0)
+                    .scrollbar_color(TEXT_COLOR)
+                    .set(self.ids.servers_text, ui_widgets);
+
+                while let Some(item) = items.next(ui_widgets) {
+                    let mut text = "".to_string();
+                    if &netsettings.servers[item.i] == &self.server_address {
+                        text.push_str("* ")
+                    } else {
+                        text.push_str("  ")
+                    }
+                    text.push_str(&netsettings.servers[item.i]);
+
+                    if item
+                        .set(
+                            Button::image(self.imgs.button)
+                                .w_h(100.0, 53.0)
+                                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                                .hover_image(self.imgs.button_hover)
+                                .press_image(self.imgs.button_press)
+                                .label_y(Relative::Scalar(2.0))
+                                .label(&text)
+                                .label_font_size(20)
+                                .label_color(TEXT_COLOR),
+                            ui_widgets,
+                        )
+                        .was_clicked()
+                    {
+                        // TODO: Set as current server address
+                        self.server_address = netsettings.servers[item.i].clone();
+                    }
+                }
+
+                if Button::image(self.imgs.button)
+                    .w_h(200.0, 53.0)
+                    .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .label_y(Relative::Scalar(2.0))
+                    .label("Close")
+                    .label_font_size(20)
+                    .label_color(TEXT_COLOR)
+                    .set(self.ids.servers_close, ui_widgets)
+                    .was_clicked()
+                {
+                    self.show_servers = false
+                };
+            }
+            // Server address
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                .down_from(self.ids.usrnm_bg, 30.0)
+                .set(self.ids.srvr_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(337.0, 67.0)
+                .middle_of(self.ids.srvr_bg)
+                .set(self.ids.address_bg, ui_widgets);
+            for event in TextBox::new(&self.server_address)
+                .w_h(290.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
+                .font_size(22)
+                .font_id(self.fonts.opensans)
+                .text_color(TEXT_COLOR)
+                // transparent background
+                .color(TRANSPARENT)
+                .border_color(TRANSPARENT)
+                .set(self.ids.address_field, ui_widgets)
+            {
+                match event {
+                    TextBoxEvent::Update(server_address) => {
+                        self.server_address = server_address.to_string();
+                    }
+                    TextBoxEvent::Enter => {
+                        login!();
+                    }
                 }
             }
-
-            if Button::image(self.imgs.button)
-                .w_h(200.0, 53.0)
-                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .label_y(Relative::Scalar(2.0))
-                .label("Close")
-                .label_font_size(20)
-                .label_color(TEXT_COLOR)
-                .set(self.ids.servers_close, ui_widgets)
-                .was_clicked()
-            {
-                self.show_servers = false
-            };
-        }
-        // Server address
-        Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-            .down_from(self.ids.usrnm_bg, 30.0)
-            .set(self.ids.srvr_bg, ui_widgets);
-        Image::new(self.imgs.input_bg)
-            .w_h(337.0, 67.0)
-            .middle_of(self.ids.srvr_bg)
-            .set(self.ids.address_bg, ui_widgets);
-        for event in TextBox::new(&self.server_address)
-            .w_h(290.0, 30.0)
-            .mid_bottom_with_margin_on(self.ids.address_bg, 44.0 / 2.0)
-            .font_size(22)
-            .font_id(self.fonts.opensans)
-            .text_color(TEXT_COLOR)
-            // transparent background
-            .color(TRANSPARENT)
-            .border_color(TRANSPARENT)
-            .set(self.ids.address_field, ui_widgets)
-        {
-            match event {
-                TextBoxEvent::Update(server_address) => {
-                    self.server_address = server_address.to_string();
-                }
-                TextBoxEvent::Enter => {
+            // Login button
+            // Change button text and remove hover/press images if a connection is in progress
+            if let Some(start) = self.connecting {
+                Button::image(self.imgs.button)
+                    .w_h(258.0, 55.0)
+                    .down_from(self.ids.address_bg, 20.0)
+                    .align_middle_x_of(self.ids.address_bg)
+                    .label("Connecting...")
+                    .label_color({
+                        let pulse =
+                            ((start.elapsed().as_millis() as f32 * 0.008).sin() + 1.0) / 2.0;
+                        Color::Rgba(
+                            TEXT_COLOR.red() * (pulse / 2.0 + 0.5),
+                            TEXT_COLOR.green() * (pulse / 2.0 + 0.5),
+                            TEXT_COLOR.blue() * (pulse / 2.0 + 0.5),
+                            pulse / 4.0 + 0.75,
+                        )
+                    })
+                    .label_font_size(22)
+                    .label_y(Relative::Scalar(5.0))
+                    .set(self.ids.login_button, ui_widgets);
+            } else {
+                if Button::image(self.imgs.button)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .w_h(258.0, 55.0)
+                    .down_from(self.ids.address_bg, 20.0)
+                    .align_middle_x_of(self.ids.address_bg)
+                    .label("Login")
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(24)
+                    .label_y(Relative::Scalar(5.0))
+                    .set(self.ids.login_button, ui_widgets)
+                    .was_clicked()
+                {
                     login!();
                 }
-            }
-        }
-        // Login button
-        // Change button text and remove hover/press images if a connection is in progress
-        if let Some(start) = self.connecting {
-            Button::image(self.imgs.button)
-                .w_h(258.0, 55.0)
-                .down_from(self.ids.address_bg, 20.0)
-                .align_middle_x_of(self.ids.address_bg)
-                .label("Connecting...")
-                .label_color({
-                    let pulse = ((start.elapsed().as_millis() as f32 * 0.008).sin() + 1.0) / 2.0;
-                    Color::Rgba(
-                        TEXT_COLOR.red() * (pulse / 2.0 + 0.5),
-                        TEXT_COLOR.green() * (pulse / 2.0 + 0.5),
-                        TEXT_COLOR.blue() * (pulse / 2.0 + 0.5),
-                        pulse / 4.0 + 0.75,
-                    )
-                })
-                .label_font_size(22)
-                .label_y(Relative::Scalar(5.0))
-                .set(self.ids.login_button, ui_widgets);
-        } else {
+            };
+
+            // Singleplayer button
             if Button::image(self.imgs.button)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .w_h(258.0, 55.0)
-                .down_from(self.ids.address_bg, 20.0)
+                .down_from(self.ids.login_button, 20.0)
                 .align_middle_x_of(self.ids.address_bg)
-                .label("Login")
+                .label("Singleplayer")
                 .label_color(TEXT_COLOR)
-                .label_font_size(24)
+                .label_font_size(22)
                 .label_y(Relative::Scalar(5.0))
-                .set(self.ids.login_button, ui_widgets)
+                .label_x(Relative::Scalar(2.0))
+                .set(self.ids.singleplayer_button, ui_widgets)
                 .was_clicked()
             {
-                login!();
+                singleplayer!();
             }
-        };
-
-        // Singleplayer button
-        if Button::image(self.imgs.button)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .w_h(258.0, 55.0)
-            .down_from(self.ids.login_button, 20.0)
-            .align_middle_x_of(self.ids.address_bg)
-            .label("Singleplayer")
-            .label_color(TEXT_COLOR)
-            .label_font_size(22)
-            .label_y(Relative::Scalar(5.0))
-            .label_x(Relative::Scalar(2.0))
-            .set(self.ids.singleplayer_button, ui_widgets)
-            .was_clicked()
-        {
-            singleplayer!();
-        }
-        // Quit
-        if Button::image(self.imgs.button)
-            .w_h(190.0, 40.0)
-            .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Quit")
-            .label_color(TEXT_COLOR)
-            .label_font_size(20)
-            .label_y(Relative::Scalar(3.0))
-            .set(self.ids.quit_button, ui_widgets)
-            .was_clicked()
-        {
-            events.push(Event::Quit);
-        };
-        // Settings
-        if Button::image(self.imgs.button)
-            .w_h(190.0, 40.0)
-            .up_from(self.ids.quit_button, 8.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Settings")
-            .label_color(TEXT_COLOR)
-            .label_font_size(20)
-            .label_y(Relative::Scalar(3.0))
-            .set(self.ids.settings_button, ui_widgets)
-            .was_clicked()
-        {};
-        // Servers
-        if Button::image(self.imgs.button)
-            .w_h(190.0, 40.0)
-            .up_from(self.ids.settings_button, 8.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Servers")
-            .label_color(TEXT_COLOR)
-            .label_font_size(20)
-            .label_y(Relative::Scalar(3.0))
-            .set(self.ids.servers_button, ui_widgets)
-            .was_clicked()
-        {
-            self.show_servers = true;
-        };
+            // Quit
+            if Button::image(self.imgs.button)
+                .w_h(190.0, 40.0)
+                .bottom_left_with_margins_on(ui_widgets.window, 60.0, 30.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Quit")
+                .label_color(TEXT_COLOR)
+                .label_font_size(20)
+                .label_y(Relative::Scalar(3.0))
+                .set(self.ids.quit_button, ui_widgets)
+                .was_clicked()
+            {
+                events.push(Event::Quit);
+            };
+            // Settings
+            if Button::image(self.imgs.button)
+                .w_h(190.0, 40.0)
+                .up_from(self.ids.quit_button, 8.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Settings")
+                .label_color(TEXT_COLOR)
+                .label_font_size(20)
+                .label_y(Relative::Scalar(3.0))
+                .set(self.ids.settings_button, ui_widgets)
+                .was_clicked()
+            {};
+            // Servers
+            if Button::image(self.imgs.button)
+                .w_h(190.0, 40.0)
+                .up_from(self.ids.settings_button, 8.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label("Servers")
+                .label_color(TEXT_COLOR)
+                .label_font_size(20)
+                .label_y(Relative::Scalar(3.0))
+                .set(self.ids.servers_button, ui_widgets)
+                .was_clicked()
+            {
+                self.show_servers = true;
+            };
         }
 
         events
