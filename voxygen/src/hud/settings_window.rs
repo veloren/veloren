@@ -562,8 +562,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Audio Device Selector --------------------------------------------
-            let device = self.global_state.audio.get_device();
-            let device_list = self.global_state.audio.get_devices();
+            let device = self.global_state.audio.get_device_name();
+            let device_list = self.global_state.audio.list_device_names();
             Text::new("Volume")
                 .down_from(state.ids.audio_volume_slider, 10.0)
                 .font_size(14)

@@ -25,10 +25,13 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     pub fn new(settings: &AudioSettings) -> Self {
-        let mut device = rodio::output_devices()
-            .find(|x| x.name() == settings.audio_device)
-            .or_else(rodio::default_output_device)
-            .expect("No Audio devices found");
+        let mut device = match &settings.audio_device {
+            Some(dev) => rodio::output_devices()
+                .find(|x| &x.name() == dev)
+                .or_else(rodio::default_output_device)
+                .expect("No Audio devices found"),
+            None => rodio::default_output_device().expect("No audio devices found"),
+        };
 
         let mut sink =
             rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
@@ -38,7 +41,7 @@ impl AudioFrontend {
             device,
             // streams: HashMap::<String, SpatialSink>::new(),
             stream: sink,
-            devices: AudioFrontend::get_devices_raw(),
+            devices: AudioFrontend::list_devices_raw(),
         }
     }
 
@@ -76,18 +79,18 @@ impl AudioFrontend {
 
     /// Returns a vec of the audio devices available.
     /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn get_devices(&self) -> Vec<String> {
+    pub fn list_device_names(&self) -> Vec<String> {
         self.devices.iter().map(|x| x.name()).collect()
     }
 
     /// Returns vec of devices
-    fn get_devices_raw() -> Vec<Device> {
+    fn list_devices_raw() -> Vec<Device> {
         rodio::output_devices().collect()
     }
 
     /// Caches vec of devices for later reference
-    fn collect_devices(&mut self) {
-        self.devices = AudioFrontend::get_devices_raw()
+    fn maintain_devices(&mut self) {
+        self.devices = AudioFrontend::list_devices_raw()
     }
 
     /// Returns the default audio device.
@@ -100,7 +103,7 @@ impl AudioFrontend {
 
     /// Returns the name of the current audio device.
     /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn get_device(&self) -> String {
+    pub fn get_device_name(&self) -> String {
         self.device.name()
     }
 
