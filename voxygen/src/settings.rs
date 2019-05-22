@@ -60,20 +60,14 @@ pub struct GraphicsSettings {
 }
 
 /// AudioSettings controls the volume of different audio subsystems and which
-/// which device is used.
+/// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioSettings {
     pub music_volume: f32,
     pub sfx_volume: f32,
 
-    /// Audio Device that Voxygen wil use to play audio.
-    pub audio_device: String,
-
-    /// Audio devices that are available. Listed here so that it can be accessed
-    /// from the settings editor in the HUD, but skipped over because it is a
-    /// runtime specific detail that should not be persisted.
-    #[serde(skip)]
-    pub audio_devices: Vec<String>,
+    /// Audio Device that Voxygen will use to play audio.
+    pub audio_device: Option<String>,
 }
 
 impl Default for Settings {
@@ -114,8 +108,7 @@ impl Default for Settings {
             audio: AudioSettings {
                 music_volume: 0.5,
                 sfx_volume: 0.5,
-                audio_device: "".to_string(),
-                audio_devices: vec![],
+                audio_device: None,
             },
         }
     }

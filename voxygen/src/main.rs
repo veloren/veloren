@@ -159,8 +159,8 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    if settings.audio.audio_device == "" {
-        settings.audio.audio_device = AudioFrontend::get_default_device();
+    if settings.audio.audio_device == None {
+        settings.audio.audio_device = Some(AudioFrontend::get_default_device());
     }
 
     let mut global_state = GlobalState {
