@@ -5,10 +5,10 @@ use vek::*;
 // Crate
 use crate::{
     comp::{
-        phys::{Dir, Pos, Vel},
-        Animation, AnimationInfo, Control,
+        phys::{Dir, ForceUpdate, Pos, Vel},
+        Actions, Animation, AnimationInfo, InputEvent, Inputs, Stats,
     },
-    state::DeltaTime,
+    state::{DeltaTime, Time},
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
@@ -18,23 +18,47 @@ pub struct Sys;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ReadExpect<'a, TerrainMap>,
-        Read<'a, DeltaTime>,
         Entities<'a>,
+        Read<'a, Time>,
+        Read<'a, DeltaTime>,
+        ReadExpect<'a, TerrainMap>,
+        WriteStorage<'a, Inputs>,
+        WriteStorage<'a, Actions>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Dir>,
         WriteStorage<'a, AnimationInfo>,
-        ReadStorage<'a, Control>,
+        WriteStorage<'a, Stats>,
+        WriteStorage<'a, ForceUpdate>,
     );
 
     fn run(
         &mut self,
-        (terrain, dt, entities, pos, mut vels, mut dirs, mut animation_infos, controls): Self::SystemData,
+        (
+            entities,
+            time,
+            dt,
+            terrain,
+            mut inputs,
+            mut actions,
+            positions,
+            mut velocities,
+            mut directions,
+            mut animation_infos,
+            mut stats,
+            mut force_updates,
+        ): Self::SystemData,
     ) {
-        for (entity, pos, mut vel, mut dir, control) in
-            (&entities, &pos, &mut vels, &mut dirs, &controls).join()
+        for (entity, inputs, pos, mut dir, mut vel) in (
+            &entities,
+            &mut inputs,
+            &positions,
+            &mut directions,
+            &mut velocities,
+        )
+            .join()
         {
+            // Handle held-down inputs
             let on_ground = terrain
                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
@@ -44,9 +68,9 @@ impl<'a> System<'a> for Sys {
             let (gliding, friction) = if on_ground {
                 // TODO: Don't hard-code this.
                 // Apply physics to the player: acceleration and non-linear deceleration.
-                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 200.0;
+                vel.0 += Vec2::broadcast(dt.0) * inputs.move_dir * 200.0;
 
-                if control.jumping {
+                if inputs.jumping {
                     vel.0.z += 16.0;
                 }
 
@@ -54,9 +78,9 @@ impl<'a> System<'a> for Sys {
             } else {
                 // TODO: Don't hard-code this.
                 // Apply physics to the player: acceleration and non-linear deceleration.
-                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 10.0;
+                vel.0 += Vec2::broadcast(dt.0) * inputs.move_dir * 10.0;
 
-                if control.gliding && vel.0.z < 0.0 {
+                if inputs.gliding && vel.0.z < 0.0 {
                     // TODO: Don't hard-code this.
                     let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
                     vel.0.z +=
@@ -83,7 +107,7 @@ impl<'a> System<'a> for Sys {
             }
 
             let animation = if on_ground {
-                if control.move_dir.magnitude() > 0.01 {
+                if inputs.move_dir.magnitude() > 0.01 {
                     Animation::Run
                 } else {
                     Animation::Idle
@@ -108,6 +132,42 @@ impl<'a> System<'a> for Sys {
                     changed,
                 },
             );
+        }
+        for (entity, inputs, mut action, pos, dir) in (
+            &entities,
+            &mut inputs,
+            &mut actions,
+            &positions,
+            &mut directions,
+        )
+            .join()
+        {
+            // Handle event-based inputs
+            for event in inputs.events.drain(..) {
+                match event {
+                    InputEvent::Attack => {
+                        // Attack delay
+                        if action.attack_time.is_some() {
+                            continue;
+                        }
+                        for (b, pos_b, mut stat_b, mut vel_b) in
+                            (&entities, &positions, &mut stats, &mut velocities).join()
+                        {
+                            if entity != b
+                                && pos.0.distance_squared(pos_b.0) < 50.0
+                                && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
+                            {
+                                action.attack_time = Some(0.0);
+                                stat_b.hp.change_by(-10); // TODO: variable damage
+                                vel_b.0 += (pos_b.0 - pos.0).normalized() * 20.0;
+                                vel_b.0.z = 20.0;
+                                force_updates.insert(b, ForceUpdate);
+                            }
+                        }
+                    }
+                    InputEvent::Jump => {}
+                }
+            }
         }
     }
 }

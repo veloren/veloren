@@ -98,7 +98,7 @@ impl Server {
                 "Tobermory".to_owned(),
                 comp::Body::Humanoid(comp::HumanoidBody::random()),
             )
-            .with(comp::Control::default())
+            .with(comp::Actions::default())
             .with(comp::Agent::Wanderer(Vec2::zero()))
             .build();
         }
@@ -133,7 +133,8 @@ impl Server {
             .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::Actions::new())
+            .with(comp::Inputs::default())
+            .with(comp::Actions::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -149,17 +150,14 @@ impl Server {
 
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
+        state.write_component(entity, comp::Inputs::default());
+        state.write_component(entity, comp::Actions::default());
+        state.write_component(entity, comp::AnimationInfo::new());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-        // Make sure everything is accepted.
+        // Make sure physics are accepted.
         state.write_component(entity, comp::phys::ForceUpdate);
-
-        // Set initial animation.
-        state.write_component(entity, comp::AnimationInfo::new());
-
-        // Set initial actions (none).
-        state.write_component(entity, comp::Actions::new());
 
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
@@ -391,13 +389,13 @@ impl Server {
                             | ClientState::Spectator
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-                        ClientMsg::PlayerActions(mut actions) => {
+                        ClientMsg::PlayerInputs(mut inputs) => {
                             state
                                 .ecs_mut()
-                                .write_storage::<comp::Actions>()
+                                .write_storage::<comp::Inputs>()
                                 .get_mut(entity)
                                 .map(|s| {
-                                    s.0.append(&mut actions.0);
+                                    s.events.append(&mut inputs.events);
                                 });
                         }
                         ClientMsg::PlayerAnimation(animation_info) => {
@@ -613,7 +611,7 @@ impl Server {
                 .remove(entity);
             self.state
                 .ecs_mut()
-                .write_storage::<comp::Actions>()
+                .write_storage::<comp::Inputs>()
                 .remove(entity);
             if let Some(client) = self.clients.get_mut(&entity) {
                 client.force_state(ClientState::Registered);

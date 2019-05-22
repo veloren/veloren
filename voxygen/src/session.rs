@@ -7,8 +7,8 @@ use crate::{
     window::{Event, Key, Window},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client, Input, InputEvent};
-use common::{clock::Clock, msg::ClientState};
+use client::{self, Client};
+use common::{comp, clock::Clock, msg::ClientState};
 use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
@@ -19,7 +19,7 @@ pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
     key_state: KeyState,
-    input_events: Vec<InputEvent>,
+    input_events: Vec<comp::InputEvent>,
     hud: Hud,
 }
 
@@ -65,7 +65,7 @@ impl SessionState {
         mem::swap(&mut self.input_events, &mut input_events);
 
         for event in self.client.borrow_mut().tick(
-            Input {
+            comp::Inputs {
                 move_dir,
                 jumping: self.key_state.jump,
                 gliding: self.key_state.glide,
@@ -144,7 +144,7 @@ impl PlayState for SessionState {
                     }
                     // Attack key pressed
                     Event::Click(MouseButton::Left, state) => {
-                        self.input_events.push(InputEvent::AttackStarted)
+                        self.input_events.push(comp::InputEvent::Attack)
                     }
                     // Movement key pressed
                     Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
@@ -152,7 +152,7 @@ impl PlayState for SessionState {
                     Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
                     Event::KeyDown(Key::MoveRight) => self.key_state.right = true,
                     Event::KeyDown(Key::Jump) => {
-                        self.input_events.push(InputEvent::Jump);
+                        self.input_events.push(comp::InputEvent::Jump);
                         self.key_state.jump = true;
                     }
                     Event::KeyDown(Key::Glide) => self.key_state.glide = true,

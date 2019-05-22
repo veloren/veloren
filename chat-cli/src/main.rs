@@ -1,4 +1,4 @@
-use client::{Client, Event, Input};
+use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::info;
 use std::time::Duration;
@@ -23,7 +23,7 @@ fn main() {
     client.send_chat("Hello!".to_string());
 
     loop {
-        let events = match client.tick(Input::default(), clock.get_last_delta()) {
+        let events = match client.tick(comp::Inputs::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
                 println!("Error: {:?}", err);
