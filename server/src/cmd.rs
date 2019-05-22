@@ -214,7 +214,6 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                     "Bungo".to_owned(),
                     comp::Body::Quadruped(comp::QuadrupedBody::random()),
                 )
-                .with(comp::Control::default())
                 .with(comp::Agent::Pet {
                     target: entity,
                     offset: Vec2::zero(),

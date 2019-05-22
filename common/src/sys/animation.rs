@@ -4,7 +4,7 @@ use vek::*;
 
 // Crate
 use crate::{
-    comp::{phys::Pos, Animation, AnimationInfo, Control, Stats},
+    comp::{phys::Pos, Animation, AnimationInfo, Stats},
     state::DeltaTime,
 };
 
