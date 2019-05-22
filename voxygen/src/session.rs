@@ -202,7 +202,7 @@ impl PlayState for SessionState {
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
-                        global_state.settings.audio.audio_device = name;
+                        global_state.settings.audio.audio_device = Some(name);
                         global_state.settings.save_to_file();
                     }
                 }
