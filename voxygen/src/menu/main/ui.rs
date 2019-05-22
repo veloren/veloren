@@ -11,7 +11,7 @@ use conrod_core::{
     color,
     color::TRANSPARENT,
     position::Relative,
-    widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
+    widget::{text_box::Event as TextBoxEvent, Button, Scrollbar, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use std::sync::Arc;
@@ -22,6 +22,12 @@ widget_ids! {
         bg,
         v_logo,
         alpha_version,
+        // Disclaimer
+        disc_window,
+        disc_text_1,
+        disc_text_2,
+        disc_button,
+        disc_scrollbar,
         // Login, Singleplayer
         login_button,
         login_text,
@@ -60,6 +66,7 @@ image_ids! {
         button: "voxygen/element/buttons/button.vox",
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
+        disclaimer: "voxygen/element/frames/disclaimer.vox",
 
         <ImageGraphic>
         bg: "voxygen/background/bg_main.png",
@@ -93,6 +100,7 @@ pub struct MainMenuUi {
     login_error: Option<String>,
     connecting: Option<std::time::Instant>,
     show_servers: bool,
+    show_disclaimer: bool,
 }
 
 impl MainMenuUi {
@@ -119,6 +127,7 @@ impl MainMenuUi {
             login_error: None,
             connecting: None,
             show_servers: false,
+            show_disclaimer: true,
         }
     }
 
@@ -126,6 +135,7 @@ impl MainMenuUi {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
+        const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
@@ -141,6 +151,66 @@ impl MainMenuUi {
             .color(TEXT_COLOR)
             .set(self.ids.version, ui_widgets);
 
+        if self.show_disclaimer {
+        Image::new(self.imgs.disclaimer)
+            .w_h(1800.0, 800.0)
+            .middle_of(ui_widgets.window)
+            .scroll_kids()
+            .scroll_kids_vertically()            
+            .set(self.ids.disc_window, ui_widgets);
+        
+        Text::new("Disclaimer")
+            .top_left_with_margins_on(self.ids.disc_window, 30.0, 40.0)
+            .font_id(self.fonts.metamorph)
+            .font_size(35)
+            .font_id(self.fonts.metamorph)
+            .color(TEXT_COLOR)
+            .set(self.ids.disc_text_1, ui_widgets);  
+        Text::new(
+            "Welcome to the alpha version of Veloren!\n\
+            \n\
+            \n\
+            Before you dive into the fun, please keep a few things in mind:\n\
+            \n\
+            - This is a very early alpha. Expect bugs, extremely unfinished gameplay, unpolished mechanics, and missing features. \n\
+            If you are a reviewer, please DO NOT review this version.\n\
+            \n\
+            - If you have constructive feedback or bug reports, you can contact us via Reddit, GitLab, or our community Discord server.\n\
+            \n\
+            - Veloren is licensed under the GPL 3 open-source licence. That means you're free to play, modify, and redistribute the game however you wish \n\
+            (provided derived work is also under GPL 3).
+            \n\
+            - Veloren is a non-profit community project, and everybody working on it is a volunteer.\n\
+            If you like what you see, you're welcome to join the development or art teams!
+            \n\
+            - 'Voxel RPG' is a genre in its own right. First-person shooters used to be called Doom clones.\n\
+            Like them, we're trying to build a niche. This game is not a clone, and its development will diverge from existing games in the future.\n\
+            \n\
+            Thanks for taking the time to read this notice, we hope you enjoy the game!\n\
+            \n\
+            ~ The Veloren Devs")
+            .top_left_with_margins_on(self.ids.disc_window, 110.0, 40.0)
+            .font_id(self.fonts.metamorph)
+            .font_size(26)
+            .font_id(self.fonts.opensans)
+            .color(TEXT_COLOR)
+            .set(self.ids.disc_text_2, ui_widgets);   
+        if Button::image(self.imgs.button)
+                .w_h(300.0, 50.0)
+                .mid_bottom_with_margin_on(self.ids.disc_window, 20.0)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .label_y(Relative::Scalar(2.0))
+                .label("Accept")
+                .label_font_size(18)
+                .label_color(TEXT_COLOR)
+                .set(self.ids.disc_button, ui_widgets)
+                .was_clicked()
+            {
+                self.show_disclaimer = false
+            };
+
+        } else {
         // TODO: Don't use macros for this?
         // Input fields
         // Used when the login button is pressed, or enter is pressed within input field
@@ -168,7 +238,7 @@ impl MainMenuUi {
             };
         }
 
-        const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+        
         // Username
         Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
             .middle_of(ui_widgets.window)
@@ -417,6 +487,7 @@ impl MainMenuUi {
         {
             self.show_servers = true;
         };
+        }
 
         events
     }
