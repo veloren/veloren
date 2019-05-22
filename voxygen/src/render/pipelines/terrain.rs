@@ -1,4 +1,7 @@
-use std::ops::{Add, Mul, Div};
+use super::{
+    super::{Pipeline, TgtColorFmt, TgtDepthFmt},
+    Globals,
+};
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -9,11 +12,8 @@ use gfx::{
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
 };
+use std::ops::{Add, Div, Mul};
 use vek::*;
-use super::{
-    super::{Pipeline, TgtColorFmt, TgtDepthFmt},
-    Globals,
-};
 
 gfx_defines! {
     vertex Vertex {
