@@ -114,12 +114,13 @@ impl WriteVol for Chonk {
                     self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
                     Ok(())
                 },
-                SubChunk::Hash(cblock, map) if map.len() < 4096 => {
+                SubChunk::Hash(cblock, map) if map.len() < 1024 => {
                     map.insert(rpos, block);
                     Ok(())
                 },
                 SubChunk::Hash(cblock, map) => {
                     let mut new_chunk = Chunk::filled(*cblock, ());
+                    new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
 
                     for (map_pos, map_block) in map {
                         new_chunk.set(*map_pos, *map_block).unwrap(); // Can't fail (I hope!)
@@ -128,9 +129,21 @@ impl WriteVol for Chonk {
                     self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
                     Ok(())
                 }
+
+                /*
+                SubChunk::Homogeneous(cblock) => {
+                    let mut new_chunk = Chunk::filled(*cblock, ());
+
+                    new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope!)
+
+                    self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
+                    Ok(())
+                }
+                */
                 SubChunk::Heterogeneous(chunk) => chunk
                     .set(rpos, block)
                     .map_err(|err| ChonkError::ChunkError(err)),
+                //_ => unimplemented!(),
             }
         }
     }
