@@ -7,10 +7,11 @@ use crate::{
         ImageSlider, ScaleMode, ToggleButton, Ui,
     },
     window::Window,
+    AudioFrontend, GlobalState,
 };
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle, Scrollbar, Text},
+    widget::{self, Button, DropDownList, Image, List, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 widget_ids! {
@@ -45,6 +46,8 @@ widget_ids! {
         vd_slider_text,
         audio_volume_slider,
         audio_volume_text,
+        audio_device_list,
+        audio_device_text,
     }
 }
 
@@ -63,8 +66,7 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
-    current_vd: u32,
-    current_volume: f32,
+    global_state: &'a GlobalState,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -75,15 +77,13 @@ impl<'a> SettingsWindow<'a> {
         show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
-        current_vd: u32,
-        current_volume: f32,
+        global_state: &'a GlobalState,
     ) -> Self {
         Self {
             show,
             imgs,
             fonts,
-            current_vd,
-            current_volume,
+            global_state,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -102,6 +102,7 @@ pub enum Event {
     Close,
     AdjustViewDistance(u32),
     AdjustVolume(f32),
+    ChangeAudioDevice(String),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -490,7 +491,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.vd_slider_text, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                self.current_vd,
+                self.global_state.settings.graphics.view_distance,
                 1,
                 25,
                 self.imgs.slider_indicator,
@@ -535,6 +536,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
         // Contents
         if let SettingsTab::Sound = state.settings_tab {
+            // Volume Slider ----------------------------------------------------
             Text::new("Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
@@ -543,7 +545,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.audio_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
-                self.current_volume,
+                self.global_state.settings.audio.music_volume,
                 0.0,
                 1.0,
                 self.imgs.slider_indicator,
@@ -557,6 +559,29 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.audio_volume_slider, ui)
             {
                 events.push(Event::AdjustVolume(new_val));
+            }
+
+            // Audio Device Selector --------------------------------------------
+            let device = self.global_state.audio.get_device_name();
+            let device_list = self.global_state.audio.list_device_names();
+            Text::new("Volume")
+                .down_from(state.ids.audio_volume_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.audio_device_text, ui);
+
+            // Get which device is currently selected
+            let selected = device_list.iter().position(|x| x.contains(&device));
+
+            if let Some(clicked) = DropDownList::new(&device_list, selected)
+                .w_h(400.0, 22.0)
+                .down_from(state.ids.audio_device_text, 10.0)
+                .label_font_id(self.fonts.opensans)
+                .set(state.ids.audio_device_list, ui)
+            {
+                let new_val = device_list[clicked].clone();
+                events.push(Event::ChangeAudioDevice(new_val));
             }
         }
 
