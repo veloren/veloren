@@ -17,8 +17,11 @@ use common::{
     net::PostBox,
     state::State,
 };
-use std::time::Duration;
-use std::{collections::HashMap, net::SocketAddr, time::Instant};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    time::{Duration, Instant},
+};
 
 use threadpool::ThreadPool;
 use vek::*;
