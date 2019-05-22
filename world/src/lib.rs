@@ -75,7 +75,7 @@ impl World {
                     .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
                     .unwrap_or(0.0) as i32;
 
-                for z in base_z..max_z {
+                for z in base_z..max_z.max(sim::SEA_LEVEL as i32) {
                     let lpos = Vec3::new(x, y, z);
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);

@@ -93,19 +93,18 @@ impl WorldSim {
             co0 * x2 * x + co1 * x2 + co2 * x + co3
         };
 
-        let mut y = [T::default(); 4];
+        let mut x = [T::default(); 4];
 
-        for (y_idx, j) in (-1..3).enumerate() {
-            let x0 =
-                f(self.get(pos.map2(Vec2::new(-1, j), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let x1 = f(self.get(pos.map2(Vec2::new(0, j), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let x2 = f(self.get(pos.map2(Vec2::new(1, j), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let x3 = f(self.get(pos.map2(Vec2::new(2, j), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+        for (x_idx, j) in (-1..3).enumerate() {
+            let y0 = f(self.get(pos.map2(Vec2::new(j, -1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y1 = f(self.get(pos.map2(Vec2::new(j,  0), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y2 = f(self.get(pos.map2(Vec2::new(j,  1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y3 = f(self.get(pos.map2(Vec2::new(j,  2), |e, q| (e.max(0.0) as i32 + q) as u32))?);
 
-            y[y_idx] = cubic(x0, x1, x2, x3, pos.x.fract() as f32);
+            x[x_idx] = cubic(y0, y1, y2, y3, pos.y.fract() as f32);
         }
 
-        Some(cubic(y[0], y[1], y[2], y[3], pos.y.fract() as f32))
+        Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
 
     pub fn sample(&self, pos: Vec2<i32>) -> Option<Sample> {
@@ -132,16 +131,22 @@ impl WorldSim {
                 * 32.0
             + rock * 15.0;
 
+        let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
+
+        let marble = (self.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
+            .mul(0.5)
+            .add(1.0).mul(0.5);
+
         // Colours
         let cold_grass = Rgb::new(0.0, 0.75, 0.25);
         let warm_grass = Rgb::new(0.55, 0.9, 0.0);
         let cold_stone = Rgb::new(0.78, 0.86, 1.0);
-        let warm_stone = Rgb::new(0.8, 0.7, 0.55);
+        let warm_stone = Rgb::new(0.72, 0.7, 0.33);
         let sand = Rgb::new(0.93, 0.84, 0.23);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, temp);
         let ground = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
-        let cliff = Rgb::lerp(cold_stone, warm_stone, temp);
+        let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         Some(Sample {
             alt,
