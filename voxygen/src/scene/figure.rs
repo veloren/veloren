@@ -12,6 +12,7 @@ use crate::{
 };
 use client::Client;
 use common::{
+    msg::ClientState,
     assets,
     comp::{
         self,
@@ -457,22 +458,26 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
-            match actor {
-                comp::Actor::Character { body, .. } => {
-                    if let Some((locals, bone_consts)) = match body {
-                        Body::Humanoid(_) => self
-                            .character_states
-                            .get(&entity)
-                            .map(|state| (state.locals(), state.bone_consts())),
-                        Body::Quadruped(_) => self
-                            .quadruped_states
-                            .get(&entity)
-                            .map(|state| (state.locals(), state.bone_consts())),
-                    } {
-                        let model = self.model_cache.get_or_create_model(renderer, *body, tick);
+        for (entity, actor, _) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>(), &ecs.read_storage::<comp::Actions>()).join() {
+            // Check if player is alive
+                
+            {
+                match actor {
+                    comp::Actor::Character { body, .. } => {
+                        if let Some((locals, bone_consts)) = match body {
+                            Body::Humanoid(_) => self
+                                .character_states
+                                .get(&entity)
+                                .map(|state| (state.locals(), state.bone_consts())),
+                            Body::Quadruped(_) => self
+                                .quadruped_states
+                                .get(&entity)
+                                .map(|state| (state.locals(), state.bone_consts())),
+                        } {
+                            let model = self.model_cache.get_or_create_model(renderer, *body, tick);
 
-                        renderer.render_figure(model, globals, locals, bone_consts);
+                            renderer.render_figure(model, globals, locals, bone_consts);
+                        }
                     }
                 }
             }

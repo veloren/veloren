@@ -18,5 +18,6 @@ pub use inputs::Actions;
 pub use inputs::InputEvent;
 pub use inputs::Inputs;
 pub use player::Player;
+pub use player::Respawn;
 pub use stats::Dying;
 pub use stats::Stats;
