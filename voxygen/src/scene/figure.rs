@@ -273,8 +273,6 @@ impl FigureModelCache {
     }
 
 
-
-
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_head {
