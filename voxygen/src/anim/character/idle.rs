@@ -92,7 +92,7 @@ impl Animation for IdleAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.04;
 
-        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
+        next.draw.offset = Vec3::new(5.5, 0.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
