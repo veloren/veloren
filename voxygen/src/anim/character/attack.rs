@@ -68,7 +68,6 @@ impl Animation for AttackAnimation {
             4.0,
             9.0,
         ) / 11.0;
-
         next.l_hand.ori = Quaternion::rotation_x(0.0 + wave * 2.0 )* Quaternion::rotation_z(wave * 2.0);
         next.l_hand.scale = Vec3::one() / 11.0;
 
@@ -101,9 +100,9 @@ impl Animation for AttackAnimation {
         next.r_shoulder.scale = Vec3::one() * 1.04;
 
         next.draw.offset = Vec3::new(5.5, 0.0, 0.0);
+
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
-
 
         next.left_equip.offset = Vec3::new(-8.0, 4.0, 9.0) / 11.0;
         next.left_equip.ori = Quaternion::rotation_x(0.0 + wave * 2.0)* Quaternion::rotation_z(1.57 + wave * 2.0);
