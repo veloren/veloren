@@ -46,20 +46,20 @@ impl Animation for GlidingAnimation {
                 .sin()
                 * 0.25,
         );
-        next.head.offset = Vec3::new(5.5, 2.0, 12.0);
+        next.head.offset = Vec3::new(0.0, 2.0, 12.0);
         next.head.ori = Quaternion::rotation_x(0.35 - wave_very_slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + wave_very_slow_cos * 0.15);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(5.5, 0.0, 8.0);
+        next.chest.offset = Vec3::new(0.0, 0.0, 8.0);
         next.chest.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.15);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(5.5, 0.0, 6.0);
+        next.belt.offset = Vec3::new(0.0, 0.0, 6.0);
         next.belt.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.20);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(5.5, 0.0, 3.0);
+        next.shorts.offset = Vec3::new(0.0, 0.0, 3.0);
         next.shorts.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.25);
         next.shorts.scale = Vec3::one();
 
@@ -92,7 +92,7 @@ impl Animation for GlidingAnimation {
         );
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-9.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
@@ -105,16 +105,19 @@ impl Animation for GlidingAnimation {
         next.r_shoulder.scale = Vec3::one() * 1.04;
 
         
-        next.draw.offset = Vec3::new(5.5, -9.0 + wave_very_slow * 0.10, 18.0);
+        next.draw.offset = Vec3::new(0.0, -9.0 + wave_very_slow * 0.10, 18.0);
         next.draw.ori = Quaternion::rotation_x(0.95 - wave_very_slow * 0.15) * Quaternion::rotation_y(wave_very_slow_cos * 0.04);
         next.draw.scale = Vec3::one();
 
         next.left_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
         next.left_equip.ori = Quaternion::rotation_x(0.0);;
         next.left_equip.scale = Vec3::one() *0.0;
+        
+        next.right_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
+        next.right_equip.ori = Quaternion::rotation_x(0.0);;
+        next.right_equip.scale = Vec3::one() * 0.0;
 
-
-        next.torso.offset = Vec3::new(-0.5, -0.2, 0.0);
+        next.torso.offset = Vec3::new(0.0, -0.2, 0.0);
         next.torso.ori = Quaternion::rotation_x(-0.8 + wave_very_slow * 0.10);
         next.torso.scale = Vec3::one() / 11.0;
 
