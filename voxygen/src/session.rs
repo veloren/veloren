@@ -1,5 +1,5 @@
 use crate::{
-    hud::{Event as HudEvent, Hud},
+    hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
     scene::Scene,
@@ -176,12 +176,16 @@ impl PlayState for SessionState {
                 &self.client.borrow_mut(),
             );
 
-            // Maintain the UI.
-            for event in self.hud.maintain(
+            // extract HUD events ensuring the client borrow gets dropped
+            let hud_events = self.hud.maintain(
                 global_state,
-                clock.get_tps(),
-                self.client.borrow().get_ping_ms(),
-            ) {
+                DebugInfo {
+                    tps: clock.get_tps(),
+                    ping_ms: self.client.borrow().get_ping_ms(),
+                },
+            );
+            // Maintain the UI.
+            for event in hud_events {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
