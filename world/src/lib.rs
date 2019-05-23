@@ -1,4 +1,7 @@
+#![feature(euclidean_division)]
+
 mod sim;
+mod structure;
 
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -6,6 +9,7 @@ use common::{
 };
 use noise::{BasicMulti, MultiFractal, NoiseFn, Perlin, Seedable};
 use std::{
+    hash::Hash,
     ops::{Add, Div, Mul, Neg, Sub},
     time::Duration,
 };
@@ -64,7 +68,8 @@ impl World {
                     alt,
                     chaos,
                     surface_color,
-                } = if let Some(sample) = self.sim.sample(wpos2d) {
+                    close_trees,
+                } = if let Some(sample) = self.sim.sampler().sample(wpos2d) {
                     sample
                 } else {
                     continue;
@@ -90,6 +95,15 @@ impl World {
                     let height = alt + warp;
                     let temp = 0.0;
 
+                    let above_ground = if (&close_trees)
+                        .iter()
+                        .any(|tree| tree.distance_squared(wpos.into()) < 36)
+                    {
+                        grass
+                    } else {
+                        air
+                    };
+
                     let z = wposf.z as f32;
                     let _ = chunk.set(
                         lpos,
@@ -100,7 +114,7 @@ impl World {
                         } else if z < sim::SEA_LEVEL {
                             water
                         } else {
-                            air
+                            above_ground
                         },
                     );
                 }
@@ -108,7 +122,23 @@ impl World {
         }
 
         chunk
+    }
+}
 
-        // */
+struct Cache<K: Hash + Eq + Copy, V> {
+    map: hashbrown::HashMap<K, V>,
+}
+
+impl<K: Hash + Eq + Copy, V> Cache<K, V> {
+    pub fn new() -> Self {
+        Self {
+            map: hashbrown::HashMap::new(),
+        }
+    }
+
+    pub fn get<F: FnOnce(K) -> V>(&mut self, k: K, f: F) -> &V {
+        self.map
+            .entry(k)
+            .or_insert_with(|| f(k))
     }
 }
