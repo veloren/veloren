@@ -47,19 +47,19 @@ impl Animation for AttackAnimation {
                 .sin()
                 * 0.25,
         );
-        next.head.offset = Vec3::new(5.5, 2.0, 11.0);
+        next.head.offset = Vec3::new(0.0, 2.0, 11.0);
         next.head.ori = Quaternion::rotation_z(0.0);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(5.5, 0.0, 7.0);
+        next.chest.offset = Vec3::new(0.0, 0.0, 7.0);
         next.chest.ori = Quaternion::rotation_x(0.0);
         next.chest.scale = Vec3::one();
 
-        next.belt.offset = Vec3::new(5.5, 0.0, 5.0);
+        next.belt.offset = Vec3::new(0.0, 0.0, 5.0);
         next.belt.ori = Quaternion::rotation_x(0.0);
         next.belt.scale = Vec3::one();
 
-        next.shorts.offset = Vec3::new(5.5, 0.0, 2.0);
+        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0);
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
@@ -87,7 +87,7 @@ impl Animation for AttackAnimation {
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-9.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
@@ -99,8 +99,7 @@ impl Animation for AttackAnimation {
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.04;
 
-        next.draw.offset = Vec3::new(5.5, 0.0, 0.0);
-
+        next.draw.offset = Vec3::new(0.0, 5.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
@@ -108,8 +107,11 @@ impl Animation for AttackAnimation {
         next.left_equip.ori = Quaternion::rotation_x(0.0 + wave * 2.0)* Quaternion::rotation_z(1.57 + wave * 2.0);
         next.left_equip.scale = Vec3::one() / 11.0;
 
-
-        next.torso.offset = Vec3::new(-0.5, -0.2, 0.1);
+        next.right_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
+        next.right_equip.ori = Quaternion::rotation_x(0.0);;
+        next.right_equip.scale = Vec3::one() * 0.0;
+        
+        next.torso.offset = Vec3::new(0.0, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
         next
