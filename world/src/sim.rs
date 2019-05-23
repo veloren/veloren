@@ -1,3 +1,7 @@
+use crate::{
+    structure::StructureGen2d,
+    Cache,
+};
 use common::{terrain::TerrainChunkSize, vol::VolSize};
 use noise::{
     BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
@@ -15,6 +19,7 @@ pub struct WorldSim {
     pub seed: u32,
     chunks: Vec<SimChunk>,
     gen_ctx: GenCtx,
+    tree_gen: StructureGen2d,
 }
 
 impl WorldSim {
@@ -44,6 +49,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
+            tree_gen: StructureGen2d::new(seed, 64, 32),
         }
     }
 
@@ -107,29 +113,41 @@ impl WorldSim {
         Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
 
-    pub fn sample(&self, pos: Vec2<i32>) -> Option<Sample> {
-        let wposf = pos.map(|e| e as f64);
+    pub fn sampler(&self) -> Sampler {
+        Sampler {
+            sim: self,
+        }
+    }
+}
 
-        let alt_base = self.get_interpolated(pos, |chunk| chunk.alt_base)?;
-        let chaos = self.get_interpolated(pos, |chunk| chunk.chaos)?;
-        let temp = self.get_interpolated(pos, |chunk| chunk.temp)?;
-        let rockiness = self.get_interpolated(pos, |chunk| chunk.rockiness)?;
+pub struct Sampler<'a> {
+    sim: &'a WorldSim,
+}
 
-        let rock = (self.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
+impl<'a> Sampler<'a> {
+    pub fn sample(&self, wpos: Vec2<i32>) -> Option<Sample> {
+        let wposf = wpos.map(|e| e as f64);
+
+        let alt_base = self.sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
+        let chaos = self.sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+        let temp = self.sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+        let rockiness = self.sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+
+        let rock = (self.sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
             .mul(rockiness)
             .sub(0.2)
             .max(0.0)
             .mul(2.0);
 
-        let alt = self.get_interpolated(pos, |chunk| chunk.alt)?
-            + self.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32
+        let alt = self.sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            + self.sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32
                 * chaos.max(0.15)
                 * 32.0
             + rock * 15.0;
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
-        let marble = (self.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
+        let marble = (self.sim.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
             .mul(0.5)
             .add(1.0).mul(0.5);
 
@@ -164,6 +182,7 @@ impl WorldSim {
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
             ),
+            close_trees: self.sim.tree_gen.sample(wpos),
         })
     }
 }
@@ -172,6 +191,7 @@ pub struct Sample {
     pub alt: f32,
     pub chaos: f32,
     pub surface_color: Rgb<f32>,
+    pub close_trees: [Vec2<i32>; 9],
 }
 
 struct GenCtx {
@@ -248,20 +268,5 @@ impl SimChunk {
 
     pub fn get_max_z(&self) -> f32 {
         self.alt + Z_TOLERANCE.1
-    }
-}
-
-trait Hsv {
-    fn into_hsv(self) -> Self;
-    fn into_rgb(self) -> Self;
-}
-
-impl Hsv for Rgb<f32> {
-    fn into_hsv(mut self) -> Self {
-        unimplemented!()
-    }
-
-    fn into_rgb(mut self) -> Self {
-        unimplemented!()
     }
 }
