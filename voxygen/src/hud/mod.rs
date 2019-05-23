@@ -89,6 +89,11 @@ font_ids! {
     }
 }
 
+pub struct DebugInfo {
+    pub tps: f64,
+    pub ping_ms: f64,
+}
+
 pub enum Event {
     SendMessage(String),
     AdjustViewDistance(u32),
@@ -248,7 +253,7 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self, tps: f64, ping_ms: f64, global_state: &GlobalState) -> Vec<Event> {
+    fn update_layout(&mut self, global_state: &GlobalState, debug_info: DebugInfo) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -267,13 +272,13 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
-            Text::new(&format!("FPS: {:.1}", tps))
+            Text::new(&format!("FPS: {:.1}", debug_info.tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
-            Text::new(&format!("Ping: {:.1}ms", ping_ms))
+            Text::new(&format!("Ping: {:.1}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, 5.0)
                 .font_id(self.fonts.opensans)
@@ -576,13 +581,12 @@ impl Hud {
     pub fn maintain(
         &mut self,
         global_state: &mut GlobalState,
-        tps: f64,
-        ping_ms: f64,
+        debug_info: DebugInfo,
     ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(tps, ping_ms, &global_state);
+        let events = self.update_layout(&global_state, debug_info);
         self.ui.maintain(&mut global_state.window.renderer_mut());
         events
     }
