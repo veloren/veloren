@@ -177,7 +177,11 @@ impl PlayState for SessionState {
             );
 
             // Maintain the UI.
-            for event in self.hud.maintain(global_state, clock.get_tps()) {
+            for event in self.hud.maintain(
+                global_state,
+                clock.get_tps(),
+                self.client.borrow().get_ping_ms(),
+            ) {
                 match event {
                     HudEvent::SendMessage(msg) => {
                         // TODO: Handle result
