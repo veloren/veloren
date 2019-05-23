@@ -200,6 +200,52 @@ impl Server {
         // Tick the world
         self.world.tick(dt);
 
+        // Sync deaths.
+        let todo_kill = (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Dying>(),
+        )
+            .join()
+            .map(|(entity, _)| entity)
+            .collect::<Vec<EcsEntity>>();
+
+        for entity in todo_kill {
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Dying>()
+                .remove(entity);
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Actions>()
+                .remove(entity);
+            if let Some(client) = self.clients.get_mut(&entity) {
+                client.force_state(ClientState::Dead);
+            } else {
+                //self.state.ecs_mut().delete_entity_synced(entity);
+            }
+        }
+
+        // Handle respawns
+        let todo_respawn = (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Respawn>(),
+        )
+            .join()
+            .map(|(entity, _)| entity)
+            .collect::<Vec<EcsEntity>>();
+
+        for entity in todo_respawn {
+            if let Some(client) = self.clients.get_mut(&entity) {
+                client.allow_state(ClientState::Character);
+                self.state.ecs_mut().write_storage::<comp::Respawn>().remove(entity);
+                self.state.write_component(entity, comp::Stats::default());
+                self.state.write_component(entity, comp::Actions::default());
+                self.state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
+                self.state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+                self.state.write_component(entity, comp::phys::ForceUpdate);
+            }
+        }
+
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
@@ -331,9 +377,9 @@ impl Server {
                                 ClientState::Registered => {
                                     client.error_state(RequestStateError::Already)
                                 }
-                                ClientState::Spectator | ClientState::Character => {
-                                    client.allow_state(ClientState::Registered)
-                                }
+                                ClientState::Spectator
+                                | ClientState::Character
+                                | ClientState::Dead => client.allow_state(ClientState::Registered),
                             },
                             ClientState::Spectator => match requested_state {
                                 // Become Registered first.
@@ -343,14 +389,15 @@ impl Server {
                                 ClientState::Spectator => {
                                     client.error_state(RequestStateError::Already)
                                 }
-                                ClientState::Registered | ClientState::Character => {
-                                    client.allow_state(ClientState::Spectator)
-                                }
+                                ClientState::Registered
+                                | ClientState::Character
+                                | ClientState::Dead => client.allow_state(ClientState::Spectator),
                             },
                             // Use ClientMsg::Character instead.
                             ClientState::Character => {
                                 client.error_state(RequestStateError::WrongMessage)
                             }
+                            ClientState::Dead => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => {
@@ -374,7 +421,9 @@ impl Server {
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
-                            ClientState::Registered | ClientState::Spectator => {
+                            ClientState::Registered
+                            | ClientState::Spectator
+                            | ClientState::Dead => {
                                 Self::create_player_character(state, entity, client, name, body)
                             }
                             ClientState::Character => {
@@ -387,17 +436,21 @@ impl Server {
                             }
                             ClientState::Registered
                             | ClientState::Spectator
+                            | ClientState::Dead
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                         },
-                        ClientMsg::PlayerInputs(mut inputs) => {
-                            state
-                                .ecs_mut()
-                                .write_storage::<comp::Inputs>()
-                                .get_mut(entity)
-                                .map(|s| {
-                                    s.events.append(&mut inputs.events);
-                                });
-                        }
+                        ClientMsg::PlayerInputs(mut inputs) => match client.client_state {
+                            ClientState::Character | ClientState::Dead => {
+                                state
+                                    .ecs_mut()
+                                    .write_storage::<comp::Inputs>()
+                                    .get_mut(entity)
+                                    .map(|s| {
+                                        s.events.append(&mut inputs.events);
+                                    });
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
                         ClientMsg::PlayerAnimation(animation_info) => {
                             match client.client_state {
                                 ClientState::Character => {
@@ -417,7 +470,9 @@ impl Server {
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
-                            ClientState::Connected | ClientState::Registered => {
+                            ClientState::Connected
+                            | ClientState::Registered
+                            | ClientState::Dead => {
                                 client.error_state(RequestStateError::Impossible);
                             }
                             ClientState::Spectator | ClientState::Character => {
@@ -571,58 +626,12 @@ impl Server {
             }
         }
 
-        // Sync deaths.
-        let todo_kill = (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Dying>(),
-        )
-            .join()
-            .map(|(entity, _)| entity)
-            .collect::<Vec<EcsEntity>>();
-
-        for entity in todo_kill {
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Dying>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Actor>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Stats>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::phys::Pos>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::phys::Vel>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::phys::Dir>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::AnimationInfo>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Inputs>()
-                .remove(entity);
-            if let Some(client) = self.clients.get_mut(&entity) {
-                client.force_state(ClientState::Registered);
-            }
-        }
-
         // Remove all force flags.
         self.state
             .ecs_mut()
             .write_storage::<comp::phys::ForceUpdate>()
             .clear();
+
     }
 
     pub fn generate_chunk(&mut self, key: Vec2<i32>) {

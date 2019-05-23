@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{comp, clock::Clock, msg::ClientState};
+use common::{clock::Clock, comp, msg::ClientState};
 use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
@@ -131,44 +131,53 @@ impl PlayState for SessionState {
         // Game loop
         while self.client.borrow().is_request_pending()
             || self.client.borrow().get_client_state() == Some(ClientState::Character)
+            || self.client.borrow().get_client_state() == Some(ClientState::Dead)
         {
+            let alive = self.client.borrow().get_client_state() == Some(ClientState::Character);
+
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
                 }
-                let _handled = match event {
+
+                match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
                     // Attack key pressed
-                    Event::Click(MouseButton::Left, state) => {
-                        self.input_events.push(comp::InputEvent::Attack)
+                    Event::Click(MouseButton::Left, state) => match alive {
+                        true => {
+                            self.input_events.push(comp::InputEvent::Attack);
+                        }
+                        false => {
+                            self.input_events.push(comp::InputEvent::Respawn);
+                        }
+                        _ => unreachable!()
                     }
                     // Movement key pressed
-                    Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
-                    Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
-                    Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
-                    Event::KeyDown(Key::MoveRight) => self.key_state.right = true,
-                    Event::KeyDown(Key::Jump) => {
+                    Event::KeyDown(Key::MoveForward) if alive => self.key_state.up = true,
+                    Event::KeyDown(Key::MoveBack) if alive => self.key_state.down = true,
+                    Event::KeyDown(Key::MoveLeft) if alive => self.key_state.left = true,
+                    Event::KeyDown(Key::MoveRight) if alive => self.key_state.right = true,
+                    Event::KeyDown(Key::Jump) if alive => {
                         self.input_events.push(comp::InputEvent::Jump);
                         self.key_state.jump = true;
                     }
-                    Event::KeyDown(Key::Glide) => self.key_state.glide = true,
+                    Event::KeyDown(Key::Glide) if alive => self.key_state.glide = true,
                     // Movement key released
-                    Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
-                    Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
-                    Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
-                    Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
-                    Event::KeyUp(Key::Jump) => self.key_state.jump = false,
-                    Event::KeyUp(Key::Glide) => self.key_state.glide = false,
+                    Event::KeyUp(Key::MoveForward) if alive => self.key_state.up = false,
+                    Event::KeyUp(Key::MoveBack) if alive => self.key_state.down = false,
+                    Event::KeyUp(Key::MoveLeft) if alive => self.key_state.left = false,
+                    Event::KeyUp(Key::MoveRight) if alive => self.key_state.right = false,
+                    Event::KeyUp(Key::Jump) if alive => self.key_state.jump = false,
+                    Event::KeyUp(Key::Glide) if alive => self.key_state.glide = false,
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);
-                    }
-                };
-                // TODO: Do something if the event wasn't handled?
+                    } // TODO: Do something if the event wasn't handled?
+                }
             }
 
             // Perform an in-game tick.

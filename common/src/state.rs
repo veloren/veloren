@@ -103,6 +103,7 @@ impl State {
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
+        ecs.register_synced::<comp::Actions>();
         ecs.register::<comp::phys::ForceUpdate>();
 
         // Register unsynced (or synced by other means) components.
@@ -111,8 +112,8 @@ impl State {
         ecs.register::<comp::phys::Dir>();
         ecs.register::<comp::AnimationInfo>();
         ecs.register::<comp::Inputs>();
-        ecs.register::<comp::Actions>();
         ecs.register::<comp::Dying>();
+        ecs.register::<comp::Respawn>();
         ecs.register::<comp::Agent>();
         ecs.register::<inventory::Inventory>();
 
