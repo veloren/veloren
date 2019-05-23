@@ -31,6 +31,21 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
+            // Handle held-down control
+            let on_ground = terrain
+                .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
+                .map(|vox| !vox.is_empty())
+                .unwrap_or(false)
+                && vel.0.z <= 0.0;
+
+            // Friction
+            // Will never make the character go backwards since it is interpolating towards 0
+            let friction = if on_ground { 0.15 } else { 0.015 };
+            let mul = 50.0;
+            let z = vel.0.z;
+            vel.0 = Vec3::lerp(vel.0, Vec3::new(0.0, 0.0, 0.0), friction * dt.0 * mul);
+            vel.0.z = z;
+
             // Gravity
             vel.0.z = (vel.0.z - GRAVITY * dt.0).max(-50.0);
 
