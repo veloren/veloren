@@ -240,7 +240,11 @@ impl Server {
                 self.state.ecs_mut().write_storage::<comp::Respawn>().remove(entity);
                 self.state.write_component(entity, comp::Stats::default());
                 self.state.write_component(entity, comp::Actions::default());
-                self.state.write_component(entity, comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)));
+                self.state
+                    .ecs_mut()
+                    .write_storage::<comp::phys::Pos>()
+                    .get_mut(entity)
+                    .map(|pos| pos.0.z += 100.0);
                 self.state.write_component(entity, comp::phys::Vel(Vec3::zero()));
                 self.state.write_component(entity, comp::phys::ForceUpdate);
             }
