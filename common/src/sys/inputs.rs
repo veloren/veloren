@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, ForceUpdate, Pos, Vel},
-        Actions, Animation, AnimationInfo, InputEvent, Inputs, Stats,
+        Actions, Animation, AnimationInfo, Respawn, InputEvent, Inputs, Stats,
     },
     state::{DeltaTime, Time},
     terrain::TerrainMap,
@@ -29,6 +29,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Dir>,
         WriteStorage<'a, AnimationInfo>,
         WriteStorage<'a, Stats>,
+        WriteStorage<'a, Respawn>,
         WriteStorage<'a, ForceUpdate>,
     );
 
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             mut directions,
             mut animation_infos,
             mut stats,
+            mut respawns,
             mut force_updates,
         ): Self::SystemData,
     ) {
@@ -133,12 +135,9 @@ impl<'a> System<'a> for Sys {
                 },
             );
         }
-        for (entity, inputs, mut action, pos, dir) in (
+        for (entity, inputs) in (
             &entities,
             &mut inputs,
-            &mut actions,
-            &positions,
-            &mut directions,
         )
             .join()
         {
@@ -147,23 +146,25 @@ impl<'a> System<'a> for Sys {
                 match event {
                     InputEvent::Attack => {
                         // Attack delay
-                        if action.attack_time.is_some() {
-                            continue;
-                        }
-                        for (b, pos_b, mut stat_b, mut vel_b) in
-                            (&entities, &positions, &mut stats, &mut velocities).join()
-                        {
-                            if entity != b
-                                && pos.0.distance_squared(pos_b.0) < 50.0
-                                && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
+                        if let (Some(pos), Some(dir), Some(action)) = (positions.get(entity), directions.get(entity), actions.get_mut(entity)) {
+                            for (b, pos_b, mut stat_b, mut vel_b) in
+                                (&entities, &positions, &mut stats, &mut velocities).join()
                             {
-                                action.attack_time = Some(0.0);
-                                stat_b.hp.change_by(-10); // TODO: variable damage
-                                vel_b.0 += (pos_b.0 - pos.0).normalized() * 20.0;
-                                vel_b.0.z = 20.0;
-                                force_updates.insert(b, ForceUpdate);
+                                if entity != b
+                                    && pos.0.distance_squared(pos_b.0) < 50.0
+                                    && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
+                                {
+                                    action.attack_time = Some(0.0);
+                                    stat_b.hp.change_by(-10); // TODO: variable damage
+                                    vel_b.0 += (pos_b.0 - pos.0).normalized() * 20.0;
+                                    vel_b.0.z = 20.0;
+                                    force_updates.insert(b, ForceUpdate);
+                                }
                             }
                         }
+                    }
+                    InputEvent::Respawn => {
+                        respawns.insert(entity, Respawn);
                     }
                     InputEvent::Jump => {}
                 }

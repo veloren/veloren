@@ -5,6 +5,7 @@ use vek::*;
 pub enum InputEvent {
     Jump,
     Attack,
+    Respawn,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
