@@ -1,4 +1,4 @@
-#![feature(label_break_value)]
+#![feature(label_break_value, duration_float)]
 
 pub mod error;
 pub mod input;
@@ -16,14 +16,13 @@ use common::{
     msg::{ClientMsg, ClientState, ServerMsg},
     net::PostBox,
     state::State,
-    terrain::TerrainChunk,
 };
-use specs::Builder;
 use std::{
     collections::HashMap,
     net::SocketAddr,
     time::{Duration, Instant},
 };
+
 use threadpool::ThreadPool;
 use vek::*;
 
@@ -40,6 +39,9 @@ pub struct Client {
 
     last_ping: f64,
     pub postbox: PostBox<ClientMsg, ServerMsg>,
+
+    last_server_ping: Instant,
+    last_ping_delta: f64,
 
     tick: u64,
     state: State,
@@ -80,6 +82,9 @@ impl Client {
 
             last_ping: state.get_time(),
             postbox,
+
+            last_server_ping: Instant::now(),
+            last_ping_delta: 0.0,
 
             tick: 0,
             state,
@@ -136,6 +141,11 @@ impl Client {
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
         self.postbox.send_message(ClientMsg::Chat(msg))
+    }
+
+    #[allow(dead_code)]
+    pub fn get_ping_ms(&self) -> f64 {
+        self.last_ping_delta * 1000.0
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
@@ -249,6 +259,12 @@ impl Client {
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
         }
 
+        // send a ping to the server once every second
+        if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
+            self.postbox.send_message(ClientMsg::Ping);
+            self.last_server_ping = Instant::now();
+        }
+
         // Finish the tick, pass control back to the frontend (step 6).
         self.tick += 1;
         Ok(frontend_events)
@@ -276,7 +292,11 @@ impl Client {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
-                    ServerMsg::Pong => {}
+                    ServerMsg::Pong => {
+                        self.last_ping_delta = Instant::now()
+                            .duration_since(self.last_server_ping)
+                            .as_secs_f64()
+                    }
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
@@ -332,6 +352,7 @@ impl Client {
         } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
             // Try pinging the server if the timeout is nearing.
             self.postbox.send_message(ClientMsg::Ping);
+            self.last_server_ping = Instant::now();
         }
 
         Ok(frontend_events)

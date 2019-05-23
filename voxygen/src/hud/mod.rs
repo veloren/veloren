@@ -48,6 +48,7 @@ widget_ids! {
         // Debug
         debug_bg,
         fps_counter,
+        ping,
 
         // Game Version
         version,
@@ -247,7 +248,7 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self, tps: f64, global_state: &GlobalState) -> Vec<Event> {
+    fn update_layout(&mut self, tps: f64, ping_ms: f64, global_state: &GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -272,6 +273,12 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
+            Text::new(&format!("Ping: {:.1}ms", ping_ms))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.fps_counter, 5.0)
+                .font_id(self.fonts.opensans)
+                .font_size(14)
+                .set(self.ids.ping, ui_widgets);
         }
 
         // Add Bag-Space Button.
@@ -566,11 +573,16 @@ impl Hud {
         handled
     }
 
-    pub fn maintain(&mut self, global_state: &mut GlobalState, tps: f64) -> Vec<Event> {
+    pub fn maintain(
+        &mut self,
+        global_state: &mut GlobalState,
+        tps: f64,
+        ping_ms: f64,
+    ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(tps, &global_state);
+        let events = self.update_layout(tps, ping_ms, &global_state);
         self.ui.maintain(&mut global_state.window.renderer_mut());
         events
     }
