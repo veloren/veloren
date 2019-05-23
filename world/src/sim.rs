@@ -136,7 +136,7 @@ impl WorldSim {
         // Colours
         let cold_grass = Rgb::new(0.0, 0.75, 0.25);
         let warm_grass = Rgb::new(0.55, 0.9, 0.0);
-        let cold_stone = Rgb::new(0.65, 0.7, 0.85);
+        let cold_stone = Rgb::new(0.55, 0.75, 0.9);
         let warm_stone = Rgb::new(0.8, 0.6, 0.28);
         let sand = Rgb::new(0.93, 0.84, 0.33);
         let snow = Rgb::broadcast(1.0);
@@ -157,7 +157,7 @@ impl WorldSim {
                     Rgb::lerp(
                         cliff,
                         snow,
-                        (alt - SEA_LEVEL - 180.0 - alt_base - temp * 48.0) / 8.0,
+                        (alt - SEA_LEVEL - 200.0 - alt_base - temp * 48.0) / 8.0,
                     ),
                     (alt - SEA_LEVEL - 100.0) / 100.0
                 ),
