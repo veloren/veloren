@@ -19,9 +19,8 @@ const STATS_SYS: &str = "stats_sys";
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
     dispatch_builder.add(phys::Sys, PHYS_SYS, &[]);
-    dispatch_builder.add(action::Sys, ACTION_SYS, &[]);
-    dispatch_builder.add(inputs::Sys, INPUTS_SYS, &[]);
     dispatch_builder.add(actions::Sys, ACTIONS_SYS, &[]);
+    dispatch_builder.add(inputs::Sys, INPUTS_SYS, &[]);
     dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[INPUTS_SYS]);
 }
