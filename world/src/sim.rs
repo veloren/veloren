@@ -110,11 +110,7 @@ impl WorldSim {
     pub fn sample(&self, pos: Vec2<i32>) -> Option<Sample> {
         let wposf = pos.map(|e| e as f64);
 
-        /*let wposf = wposf + Vec2::new(
-            self.gen_ctx.turb_x_nz.get((wposf.div(200.0)).into_array()) * 250.0,
-            self.gen_ctx.turb_y_nz.get((wposf.div(200.0)).into_array()) * 250.0,
-        );*/
-
+        let alt_base = self.get_interpolated(pos, |chunk| chunk.alt_base)?;
         let chaos = self.get_interpolated(pos, |chunk| chunk.chaos)?;
         let temp = self.get_interpolated(pos, |chunk| chunk.temp)?;
         let rockiness = self.get_interpolated(pos, |chunk| chunk.rockiness)?;
@@ -161,7 +157,7 @@ impl WorldSim {
                     Rgb::lerp(
                         cliff,
                         snow,
-                        (alt - SEA_LEVEL - 215.0 - temp * 24.0) / 4.0,
+                        (alt - SEA_LEVEL - 180.0 - alt_base - temp * 48.0) / 8.0,
                     ),
                     (alt - SEA_LEVEL - 100.0) / 100.0
                 ),
@@ -194,6 +190,7 @@ pub const SEA_LEVEL: f32 = 64.0;
 
 pub struct SimChunk {
     pub chaos: f32,
+    pub alt_base: f32,
     pub alt: f32,
     pub temp: f32,
     pub rockiness: f32,
@@ -214,13 +211,17 @@ impl SimChunk {
         let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
         let alt_base = gen_ctx.alt_nz.get((wposf.div(5000.0)).into_array()) as f32;
-        let alt_base = alt_base * 0.4 + alt_base.mul(16.0).sin().mul(0.01);
+        let alt_base = alt_base
+            .mul(0.4)
+            .add(alt_base.mul(16.0).sin().mul(0.01))
+            .mul(750.0);
 
         let alt_main = gen_ctx.alt_nz.get((wposf.div(750.0)).into_array()) as f32;
 
         Self {
             chaos,
-            alt: SEA_LEVEL
+            alt_base,
+            alt: SEA_LEVEL + alt_base
                 + (0.0
                     + alt_main
                     + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
@@ -230,7 +231,6 @@ impl SimChunk {
                     .add(1.0)
                     .mul(0.5)
                     .mul(chaos)
-                    .add(alt_base)
                     .mul(750.0),
             temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
                 .add(1.0)
