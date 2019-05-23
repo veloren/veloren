@@ -1,5 +1,5 @@
 // Standard
-use std::f32::consts::PI;
+use std::{f32::consts::PI, ops::Mul};
 
 // Library
 use vek::*;
@@ -29,8 +29,21 @@ impl Animation for RunAnimation {
         let wave_slow_cos = (anim_time as f32 * 8.0 + PI).cos();
         let wave_dip = (wave_slow.abs() - 0.5).abs();
 
+        let head_look = Vec2::new(
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(7331.0)
+                .sin()
+                * 0.2,
+            ((global_time + anim_time) as f32 / 2.0)
+                .floor()
+                .mul(1337.0)
+                .sin()
+                * 0.1,
+        );
+
         next.head.offset = Vec3::new(5.5, 2.0, 11.0 + wave_cos * 1.3);
-        next.head.ori = Quaternion::rotation_x(0.15);
+        next.head.ori = Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(5.5, 0.0, 7.0 + wave_cos * 1.1);
@@ -65,11 +78,11 @@ impl Animation for RunAnimation {
         next.weapon.ori = Quaternion::rotation_y(2.5);
         next.weapon.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-10.0, -3.0, 2.5);
+        next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
         next.l_shoulder.scale = Vec3::one() * 1.04;
 
-        next.r_shoulder.offset = Vec3::new(0.0, -3.0, 2.5);
+        next.r_shoulder.offset = Vec3::new(0.0, -3.2, 2.5);
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
         next.r_shoulder.scale = Vec3::one() * 1.04;
 
@@ -81,7 +94,7 @@ impl Animation for RunAnimation {
         next.left_equip.ori = Quaternion::rotation_x(0.0);;
         next.left_equip.scale = Vec3::one() * 0.0;
 
-        next.draw.offset = Vec3::new(13.5, 0.0, 0.0);
+        next.draw.offset = Vec3::new(5.5, 0.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
