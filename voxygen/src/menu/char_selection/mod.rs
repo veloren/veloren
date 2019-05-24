@@ -47,9 +47,8 @@ impl PlayState for CharSelectionState {
         let mut clock = Clock::new();
         self.client.borrow_mut().reset_terrain();
 
-        while self.client.borrow().is_request_pending()
-            || self.client.borrow().get_client_state() == Some(ClientState::Registered)
-        {
+        let mut current_client_state = self.client.borrow().get_client_state();
+        while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 match event {
@@ -124,6 +123,8 @@ impl PlayState for CharSelectionState {
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
+
+            current_client_state = self.client.borrow().get_client_state();
         }
 
         PlayStateResult::Pop

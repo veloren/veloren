@@ -30,8 +30,7 @@ pub enum Event {
 }
 
 pub struct Client {
-    client_state: Option<ClientState>,
-    pending_state_request: bool,
+    client_state: ClientState,
     thread_pool: ThreadPool,
 
     last_ping: f64,
@@ -52,7 +51,7 @@ impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
-        let mut client_state = Some(ClientState::Connected);
+        let mut client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
@@ -76,7 +75,6 @@ impl Client {
 
         Ok(Self {
             client_state,
-            pending_state_request: false,
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
@@ -98,13 +96,13 @@ impl Client {
 
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
-        self.pending_state_request = true;
+        self.client_state = ClientState::Pending;
     }
 
     pub fn request_character(&mut self, name: String, body: comp::Body) {
         self.postbox
             .send_message(ClientMsg::Character { name, body });
-        self.pending_state_request = true;
+        self.client_state = ClientState::Pending;
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
@@ -148,13 +146,8 @@ impl Client {
 
     /// Get the client state
     #[allow(dead_code)]
-    pub fn get_client_state(&self) -> Option<ClientState> {
+    pub fn get_client_state(&self) -> ClientState {
         self.client_state
-    }
-
-    /// Get the pending state request bool
-    pub fn is_request_pending(&self) -> bool {
-        self.pending_state_request
     }
 
     /// Get the current tick number.
@@ -360,18 +353,15 @@ impl Client {
                         self.pending_chunks.remove(&key);
                     }
                     ServerMsg::StateAnswer(Ok(state)) => {
-                        self.client_state = Some(state);
-                        self.pending_state_request = false;
+                        self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        self.client_state = Some(state);
-                        self.pending_state_request = false;
+                        self.client_state = state;
                     }
                     ServerMsg::ForceState(state) => {
-                        self.client_state = Some(state);
+                        self.client_state = state;
                     }
                     ServerMsg::Disconnect => {
-                        self.client_state = None;
                         frontend_events.push(Event::Disconnect);
                     }
                 }
