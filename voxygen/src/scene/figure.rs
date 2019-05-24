@@ -138,7 +138,6 @@ impl FigureModelCache {
         )
     }
 
-
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
@@ -150,7 +149,6 @@ impl FigureModelCache {
                 Chest::Orange => "armor/chest/chest_orange.vox",
             },
             Vec3::new(-6.0, -3.5, 0.0),
-
         )
     }
 
@@ -259,7 +257,6 @@ impl FigureModelCache {
             match weapon {
                 Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
                 _ => "weapon/sword/sword_wood_2h.vox",
-
             },
             Vec3::new(-6.5, -1.5, -5.0),
         )
@@ -272,7 +269,6 @@ impl FigureModelCache {
             Vec3::new(-2.0, -2.5, -2.0),
         )
     }
-
 
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(

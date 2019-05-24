@@ -1,15 +1,15 @@
+pub mod attack;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod run;
-pub mod attack;
 
 // Reexports
+pub use self::attack::AttackAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::run::RunAnimation;
-pub use self::attack::AttackAnimation;
 
 // Crate
 use crate::render::FigureBoneData;
@@ -83,8 +83,6 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(self.right_equip.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
             FigureBoneData::default(),
-
-
         ]
     }
 
