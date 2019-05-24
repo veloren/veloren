@@ -309,9 +309,9 @@ impl SimChunk {
     fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
         let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
 
-        let hill = (gen_ctx.hill_nz.get((wposf.div(3500.0)).into_array()) as f32).max(0.0);
+        let hill = (gen_ctx.hill_nz.get((wposf.div(3_500.0)).into_array()) as f32).max(0.0);
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(3500.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(5_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .powf(1.9)
@@ -319,13 +319,13 @@ impl SimChunk {
 
         let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
 
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(5000.0)).into_array()) as f32;
+        let alt_base = gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32;
         let alt_base = alt_base
             .mul(0.4)
             .add(alt_base.mul(16.0).sin().mul(0.01))
-            .mul(750.0);
+            .mul(1_200.0);
 
-        let alt_main = gen_ctx.alt_nz.get((wposf.div(750.0)).into_array()) as f32;
+        let alt_main = gen_ctx.alt_nz.get((wposf.div(1_500.0)).into_array()) as f32;
 
         Self {
             chaos,
