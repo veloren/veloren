@@ -184,7 +184,7 @@ impl<'a> Sampler<'a> {
                     Rgb::lerp(
                         cliff,
                         snow,
-                        (alt - SEA_LEVEL - 320.0 - alt_base - temp * 48.0) / 12.0,
+                        (alt - SEA_LEVEL - 350.0 - alt_base - temp * 48.0) / 12.0,
                     ),
                     (alt - SEA_LEVEL - 150.0) / 180.0
                 ),
@@ -325,6 +325,7 @@ impl SimChunk {
         let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
         let alt_base = alt_base
             .mul(0.4)
+            .add(alt_base.mul(128.0).sin().mul(0.004))
             .mul(600.0);
 
         let alt_main = gen_ctx.alt_nz.get((wposf.div(1_500.0)).into_array()) as f32;
@@ -354,7 +355,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.1)
+        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.1) - 3.0
     }
 
     pub fn get_max_z(&self) -> f32 {
