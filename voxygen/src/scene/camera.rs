@@ -150,4 +150,9 @@ impl Camera {
     pub fn get_orientation(&self) -> Vec3<f32> {
         self.ori
     }
+
+    /// Get the field of view of the camera in radians.
+    pub fn get_fov(&self) -> f32 {
+        self.fov
+    }
 }

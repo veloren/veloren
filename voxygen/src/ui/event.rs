@@ -6,7 +6,6 @@ pub struct Event(pub Input);
 impl Event {
     pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
         use conrod_winit::*;
-        use winit;
         // A wrapper around the winit window that allows us to implement the trait necessary for
         // enabling the winit <-> conrod conversion functions.
         struct WindowRef<'a>(&'a winit::Window);

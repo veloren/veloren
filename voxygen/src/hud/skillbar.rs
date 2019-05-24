@@ -1,4 +1,5 @@
 use super::{img_ids::Imgs, Fonts, HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR};
+use common::comp::Stats;
 use conrod_core::{
     widget::{self, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
@@ -30,15 +31,18 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
+    stats: Stats,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Skillbar<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: Stats) -> Self {
         Self {
             imgs,
             fonts,
+            stats,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -68,9 +72,13 @@ impl<'a> Widget for Skillbar<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        // TODO: Read from parameter/character struct
-        let xp_percentage = 0.4;
-        let hp_percentage = 1.0;
+        // TODO: remove this
+        let level = (self.stats.xp as f64).log(4.0).trunc() as u32 + 1;
+        let start_level_xp = ((level - 1) as f64).powi(4);
+        let next_level_xp = (level as f64).powi(4) - start_level_xp;
+        // TODO: We need a max xp value
+        let xp_percentage = (self.stats.xp as f64 - start_level_xp) / next_level_xp;
+        let hp_percentage = self.stats.hp.current as f64 / self.stats.hp.maximum as f64;
         let mana_percentage = 1.0;
 
         // TODO: Only show while aiming with a bow or when casting a spell.
@@ -82,7 +90,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         // Experience-Bar
         Image::new(self.imgs.xp_bar)
-            .w_h(2688.0 / 6.0, 116.0 / 6.0)
+            .w_h(672.0 / 1.5, 29.0 / 1.5)
             .mid_bottom_of(ui.window)
             .set(state.ids.xp_bar, ui);
 
@@ -92,37 +100,37 @@ impl<'a> Widget for Skillbar<'a> {
 
         // Left Grid
         Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
+            .w_h(280.0 / 1.5, 56.0 / 1.5)
             .up_from(state.ids.xp_bar, 0.0)
             .align_left_of(state.ids.xp_bar)
             .set(state.ids.sb_grid_l, ui);
 
         Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
+            .w_h(280.0 / 1.5, 56.0 / 1.5)
             .middle_of(state.ids.sb_grid_l)
             .set(state.ids.sb_grid_bg_l, ui);
 
         // Right Grid
         Image::new(self.imgs.sb_grid)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
+            .w_h(280.0 / 1.5, 56.0 / 1.5)
             .up_from(state.ids.xp_bar, 0.0)
             .align_right_of(state.ids.xp_bar)
             .set(state.ids.sb_grid_r, ui);
 
         Image::new(self.imgs.sb_grid_bg)
-            .w_h(2240.0 / 12.0, 448.0 / 12.0)
+            .w_h(280.0 / 1.5, 56.0 / 1.5)
             .middle_of(state.ids.sb_grid_r)
             .set(state.ids.sb_grid_bg_r, ui);
 
         // Right and Left Click
         Image::new(self.imgs.l_click)
-            .w_h(224.0 / 6.0, 320.0 / 6.0)
+            .w_h(56.0 / 1.5, 80.0 / 1.5)
             .right_from(state.ids.sb_grid_bg_l, 0.0)
             .align_bottom_of(state.ids.sb_grid_bg_l)
             .set(state.ids.l_click, ui);
 
         Image::new(self.imgs.r_click)
-            .w_h(224.0 / 6.0, 320.0 / 6.0)
+            .w_h(56.0 / 1.5, 80.0 / 1.5)
             .left_from(state.ids.sb_grid_bg_r, 0.0)
             .align_bottom_of(state.ids.sb_grid_bg_r)
             .set(state.ids.r_click, ui);
@@ -135,7 +143,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.health_bar, ui);
 
         // Filling
-        Rectangle::fill_with([182.0 * (hp_percentage), 6.0], HP_COLOR) // "W=182.0 * [Health. %]"
+        Rectangle::fill_with([182.0 * hp_percentage, 6.0], HP_COLOR) // "W=182.0 * [Health. %]"
             .top_right_with_margins_on(state.ids.health_bar, 5.0, 0.0)
             .set(state.ids.health_bar_color, ui);
 
@@ -147,7 +155,7 @@ impl<'a> Widget for Skillbar<'a> {
             .set(state.ids.mana_bar, ui);
 
         // Filling
-        Rectangle::fill_with([182.0 * (mana_percentage), 6.0], MANA_COLOR) // "W=182.0 * [Mana. %]"
+        Rectangle::fill_with([182.0 * mana_percentage, 6.0], MANA_COLOR) // "W=182.0 * [Mana. %]"
             .top_left_with_margins_on(state.ids.mana_bar, 5.0, 0.0)
             .set(state.ids.mana_bar_color, ui);
 
@@ -159,15 +167,16 @@ impl<'a> Widget for Skillbar<'a> {
 
         // Level Display
 
+        // TODO: don't construct a new string here
         // TODO: Insert actual Level here.
-        Text::new("1")
+        Text::new(&level.to_string())
             .left_from(state.ids.xp_bar, -15.0)
             .font_size(10)
             .color(TEXT_COLOR)
             .set(state.ids.level_text, ui);
 
         // TODO: Insert next Level here.
-        Text::new("2")
+        Text::new(&(level + 1).to_string())
             .right_from(state.ids.xp_bar, -15.0)
             .font_size(10)
             .color(TEXT_COLOR)
