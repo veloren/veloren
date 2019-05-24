@@ -47,7 +47,7 @@ toml = "0.4"
 guillotiere = "0.4"
 fnv = "1.0"
 simplelog = "0.5"
-msgbox = "0.1"
+msgbox = { git = "https://github.com/bekker/msgbox-rs.git" }
 directories = "1.0"
 portpicker = "0.1"
 num = "0.2"
