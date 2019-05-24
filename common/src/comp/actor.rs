@@ -253,6 +253,7 @@ pub enum Animation {
     Run,
     Jump,
     Gliding,
+    Attack,
 }
 
 impl Component for AnimationHistory {
