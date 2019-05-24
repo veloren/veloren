@@ -1,16 +1,22 @@
 mod client_init;
+mod scene;
 mod start_singleplayer;
 mod ui;
 
 use super::char_selection::CharSelectionState;
 use crate::{
+    render::Renderer,
     window::{Event, Window},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use start_singleplayer::StartSingleplayerState;
-use std::time::Duration;
+use scene::Scene;
+use client::{Client};
+use std::{
+    time::Duration,
+};
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
 
@@ -18,13 +24,15 @@ const FPS: u64 = 60;
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
+    scene: Scene,
 }
 
 impl MainMenuState {
     /// Create a new `MainMenuState`.
-    pub fn new(global_state: &mut GlobalState) -> Self {
+    pub fn new(window: &mut Window, global_state: &mut GlobalState) -> Self {
         Self {
             main_menu_ui: MainMenuUi::new(global_state),
+            scene: Scene::new(window.renderer_mut()),
         }
     }
 }
@@ -86,6 +94,8 @@ impl PlayState for MainMenuState {
                 None => {}
             }
 
+            global_state.window.renderer_mut().clear(BG_COLOR);
+
             // Maintain global_state
             global_state.maintain();
 
@@ -120,6 +130,14 @@ impl PlayState for MainMenuState {
             // Draw the UI to the screen.
             self.main_menu_ui.render(global_state.window.renderer_mut());
 
+            // Maintain the scene
+            self.scene
+                .maintain(global_state.window.renderer_mut());
+
+            // Render the scene
+            self.scene.render(
+                global_state.window.renderer_mut(),
+            );
             // Finish the frame.
             global_state.window.renderer_mut().flush();
             global_state

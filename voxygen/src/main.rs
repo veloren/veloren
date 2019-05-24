@@ -24,6 +24,7 @@ use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
 use log;
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr, thread};
+use client::Client;
 
 /// The URL of the default public server that Voxygen will connect to.
 const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
@@ -170,7 +171,7 @@ fn main() {
     };
 
     // Set up the initial play state.
-    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
+    let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut window, &mut global_state))];
     states
         .last()
         .map(|current_state| log::info!("Started game with state '{}'", current_state.name()));
