@@ -129,11 +129,9 @@ impl PlayState for SessionState {
         */
 
         // Game loop
-        while self.client.borrow().is_request_pending()
-            || self.client.borrow().get_client_state() == Some(ClientState::Character)
-            || self.client.borrow().get_client_state() == Some(ClientState::Dead)
-        {
-            let alive = self.client.borrow().get_client_state() == Some(ClientState::Character);
+        let mut current_client_state = self.client.borrow().get_client_state();
+        while let ClientState::Pending | ClientState::Character | ClientState::Dead = current_client_state {
+            let alive = self.client.borrow().get_client_state() == ClientState::Character;
 
             // Handle window events.
             for event in global_state.window.fetch_events() {
@@ -248,6 +246,8 @@ impl PlayState for SessionState {
 
             // Clean things up after the tick.
             self.cleanup();
+
+            current_client_state = self.client.borrow().get_client_state();
         }
 
         PlayStateResult::Pop
