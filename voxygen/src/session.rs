@@ -181,7 +181,10 @@ impl PlayState for SessionState {
                         // TODO: Handle result
                         self.client.borrow_mut().send_chat(msg);
                     }
-                    HudEvent::Logout => return PlayStateResult::Pop,
+                    HudEvent::CharacterSelection => {
+                        self.client.borrow_mut().request_remove_character()
+                    }
+                    HudEvent::Logout => self.client.borrow_mut().request_logout(),
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
                     }

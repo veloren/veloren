@@ -3,7 +3,7 @@ use conrod_core::{
     widget_ids, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
+use super::{img_ids::Imgs, settings_window::SettingsTab, Fonts, TEXT_COLOR};
 
 widget_ids! {
     struct Ids {
@@ -42,9 +42,8 @@ pub struct State {
 }
 
 pub enum Event {
-    OpenSettings,    
-    Controls,
-    Characters,
+    OpenSettings(SettingsTab),
+    CharacterSelection,
     Logout,
     Quit,
     Close,
@@ -90,9 +89,10 @@ impl<'a> Widget for EscMenu<'a> {
             .label_font_size(17)
             .set(state.ids.menu_button_1, ui)
             .was_clicked()
-        {               
-            return Some(Event::OpenSettings);
+        {
+            return Some(Event::OpenSettings(SettingsTab::Interface));
         };
+
         // Controls
         if Button::image(self.imgs.button)
             .mid_bottom_with_margin_on(state.ids.menu_button_1, -40.0)
@@ -105,8 +105,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label_font_size(17)
             .set(state.ids.menu_button_2, ui)
             .was_clicked()
-        {   
-            return Some(Event::Controls); // TODO: Show the Controls Tab of the Settings           
+        {
+            return Some(Event::OpenSettings(SettingsTab::Controls));
         };
         // Characters
         if Button::image(self.imgs.button)
@@ -120,9 +120,8 @@ impl<'a> Widget for EscMenu<'a> {
             .label_font_size(17)
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
-        {   
-
-            return Some(Event::Characters); // TODO: Open Character Selection
+        {
+            return Some(Event::CharacterSelection);
         };
         // Logout
         if Button::image(self.imgs.button)

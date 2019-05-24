@@ -171,6 +171,19 @@ impl Client {
     pub fn clear_terrain(&mut self) {
         self.state.clear_terrain();
         self.pending_chunks.clear();
+    pub fn get_ping_ms(&self) -> f64 {
+        self.last_ping_delta * 1000.0
+    /// Ask the server to remove the client's character
+    pub fn request_remove_character(&mut self) {
+        // TODO: Pending state
+        self.postbox
+            .send_message(ClientMsg::RequestState(ClientState::Registered));
+    }
+    /// Ask the server to log the client out
+    pub fn request_logout(&mut self) {
+        // TODO: Pending state
+        self.postbox
+            .send_message(ClientMsg::RequestState(ClientState::Connected));
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
