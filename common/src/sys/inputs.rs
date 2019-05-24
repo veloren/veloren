@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, ForceUpdate, Pos, Vel},
-        Actions, Animation, AnimationInfo, Respawn, InputEvent, Inputs, Stats,
+        Actions, Animation, AnimationInfo, InputEvent, Inputs, Respawn, Stats,
     },
     state::{DeltaTime, Time},
     terrain::TerrainMap,
@@ -135,18 +135,17 @@ impl<'a> System<'a> for Sys {
                 },
             );
         }
-        for (entity, inputs) in (
-            &entities,
-            &mut inputs,
-        )
-            .join()
-        {
+        for (entity, inputs) in (&entities, &mut inputs).join() {
             // Handle event-based inputs
             for event in inputs.events.drain(..) {
                 match event {
                     InputEvent::Attack => {
                         // Attack delay
-                        if let (Some(pos), Some(dir), Some(action)) = (positions.get(entity), directions.get(entity), actions.get_mut(entity)) {
+                        if let (Some(pos), Some(dir), Some(action)) = (
+                            positions.get(entity),
+                            directions.get(entity),
+                            actions.get_mut(entity),
+                        ) {
                             for (b, pos_b, mut stat_b, mut vel_b) in
                                 (&entities, &positions, &mut stats, &mut velocities).join()
                             {
@@ -163,7 +162,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                     }
-                    InputEvent::Respawn => {
+                    InputEvent::RequestRespawn => {
                         respawns.insert(entity, Respawn);
                     }
                     InputEvent::Jump => {}
