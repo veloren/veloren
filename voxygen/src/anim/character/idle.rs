@@ -26,7 +26,6 @@ impl Animation for IdleAnimation {
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
 
-
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)
                 .floor()
@@ -68,7 +67,6 @@ impl Animation for IdleAnimation {
             7.5,
             -2.0 + wave_ultra_slow_cos * 0.15,
             8.0 + wave_ultra_slow * 0.5,
-
         ) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.06);
         next.r_hand.scale = Vec3::one() / 11.;
@@ -108,7 +106,6 @@ impl Animation for IdleAnimation {
         next.torso.offset = Vec3::new(0.0, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0;
-
 
         next
     }
