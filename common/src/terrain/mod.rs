@@ -1,6 +1,7 @@
 pub mod biome;
 pub mod block;
 pub mod chonk;
+pub mod structure;
 
 // Reexports
 pub use self::{biome::BiomeKind, block::Block};
