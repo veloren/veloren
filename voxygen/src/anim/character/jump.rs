@@ -24,7 +24,6 @@ impl Animation for JumpAnimation {
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
         let wave_stop_alt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
-
         next.head.offset = Vec3::new(0.0, 3.0, 13.0);
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
         next.head.scale = Vec3::one();
@@ -41,11 +40,19 @@ impl Animation for JumpAnimation {
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-8.0, 0.0 + wave_stop * 3.8, 7.0 + wave_stop * 3.2 -wave * 0.4) / 11.0;
+        next.l_hand.offset = Vec3::new(
+            -8.0,
+            0.0 + wave_stop * 3.8,
+            7.0 + wave_stop * 3.2 - wave * 0.4,
+        ) / 11.0;
         next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
         next.l_hand.scale = Vec3::one() / 11.0;
 
-        next.r_hand.offset = Vec3::new(8.0, 0.0 + wave_stop * -3.8, 7.0 + wave_stop * 3.2 - wave * 0.4) / 11.0;
+        next.r_hand.offset = Vec3::new(
+            8.0,
+            0.0 + wave_stop * -3.8,
+            7.0 + wave_stop * 3.2 - wave * 0.4,
+        ) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
         next.r_hand.scale = Vec3::one() / 11.0;
 
@@ -75,7 +82,7 @@ impl Animation for JumpAnimation {
 
         next.left_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
         next.left_equip.ori = Quaternion::rotation_x(0.0);;
-        next.left_equip.scale = Vec3::one() *0.0;
+        next.left_equip.scale = Vec3::one() * 0.0;
 
         next.right_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
         next.right_equip.ori = Quaternion::rotation_x(0.0);;
@@ -84,8 +91,6 @@ impl Animation for JumpAnimation {
         next.torso.offset = Vec3::new(0.0, -0.2, 0.0);
         next.torso.ori = Quaternion::rotation_x(-0.2);
         next.torso.scale = Vec3::one() / 11.0;
-
-
 
         next
     }
