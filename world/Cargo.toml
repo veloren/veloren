@@ -9,6 +9,7 @@ common = { package = "veloren-common", path = "../common" }
 vek = "0.9"
 noise = "0.5"
 fxhash = "0.2"
+lazy_static = "1.3"
 
 [dev-dependencies]
 minifb = { git = "https://github.com/emoon/rust_minifb.git" }

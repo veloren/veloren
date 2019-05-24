@@ -2708,6 +2708,7 @@ name = "veloren-world"
 version = "0.2.0"
 dependencies = [
  "fxhash 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.11.2 (git+https://github.com/emoon/rust_minifb.git)",
  "noise 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
