@@ -384,6 +384,7 @@ impl Server {
                                 ClientState::Spectator
                                 | ClientState::Character
                                 | ClientState::Dead => client.allow_state(ClientState::Registered),
+                                ClientState::Pending => {}
                             },
                             ClientState::Spectator => match requested_state {
                                 // Become Registered first.
@@ -396,12 +397,14 @@ impl Server {
                                 ClientState::Registered
                                 | ClientState::Character
                                 | ClientState::Dead => client.allow_state(ClientState::Spectator),
+                                ClientState::Pending => {}
                             },
                             // Use ClientMsg::Character instead.
                             ClientState::Character => {
                                 client.error_state(RequestStateError::WrongMessage)
                             }
                             ClientState::Dead => client.error_state(RequestStateError::Impossible),
+                            ClientState::Pending => {}
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => {
@@ -433,6 +436,7 @@ impl Server {
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
                             }
+                            ClientState::Pending => {}
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
                             ClientState::Connected => {
@@ -442,6 +446,7 @@ impl Server {
                             | ClientState::Spectator
                             | ClientState::Dead
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
+                            ClientState::Pending => {}
                         },
                         ClientMsg::PlayerInputs(mut inputs) => match client.client_state {
                             ClientState::Character | ClientState::Dead => {
@@ -490,6 +495,7 @@ impl Server {
                                     None => requested_chunks.push(key),
                                 }
                             }
+                            ClientState::Pending => {}
                         },
                         // Always possible.
                         ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
