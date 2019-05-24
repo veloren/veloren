@@ -117,20 +117,11 @@ impl PlayState for SessionState {
         let mut clock = Clock::new();
         self.client.borrow_mut().reset_terrain();
 
-        // Load a few chunks. TODO: Remove this.
-        /*
-        for x in -6..7 {
-            for y in -6..7 {
-                for z in -1..2 {
-                    self.client.borrow_mut().load_chunk(Vec3::new(x, y, z));
-                }
-            }
-        }
-        */
-
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
-        while let ClientState::Pending | ClientState::Character | ClientState::Dead = current_client_state {
+        while let ClientState::Pending | ClientState::Character | ClientState::Dead =
+            current_client_state
+        {
             let alive = self.client.borrow().get_client_state() == ClientState::Character;
 
             // Handle window events.
@@ -150,10 +141,10 @@ impl PlayState for SessionState {
                             self.input_events.push(comp::InputEvent::Attack);
                         }
                         false => {
-                            self.input_events.push(comp::InputEvent::Respawn);
+                            self.input_events.push(comp::InputEvent::RequestRespawn);
                         }
-                        _ => unreachable!()
-                    }
+                        _ => unreachable!(),
+                    },
                     // Movement key pressed
                     Event::KeyDown(Key::MoveForward) if alive => self.key_state.up = true,
                     Event::KeyDown(Key::MoveBack) if alive => self.key_state.down = true,
