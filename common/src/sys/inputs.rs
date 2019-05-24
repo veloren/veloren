@@ -149,11 +149,15 @@ impl<'a> System<'a> for Sys {
                             for (b, pos_b, mut stat_b, mut vel_b) in
                                 (&entities, &positions, &mut stats, &mut velocities).join()
                             {
+                                // Check if it is a hit
                                 if entity != b
                                     && pos.0.distance_squared(pos_b.0) < 50.0
                                     && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                                 {
+                                    // Set action
                                     action.attack_time = Some(0.0);
+
+                                    // Deal damage
                                     stat_b.hp.change_by(-10); // TODO: variable damage
                                     vel_b.0 += (pos_b.0 - pos.0).normalized() * 20.0;
                                     vel_b.0.z = 20.0;
