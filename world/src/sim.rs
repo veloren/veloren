@@ -56,7 +56,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 48, 32),
+            tree_gen: StructureGen2d::new(seed, 96, 128),
         }
     }
 
@@ -149,9 +149,9 @@ impl<'a> Sampler<'a> {
             .mul(2.0);
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
-            + sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32
-                * chaos.max(0.15)
-                * 32.0
+            + sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32
+                * chaos.max(0.2)
+                * 64.0
             + rock * 15.0;
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
@@ -161,8 +161,8 @@ impl<'a> Sampler<'a> {
             .add(1.0).mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.75, 0.25);
-        let warm_grass = Rgb::new(0.55, 0.9, 0.0);
+        let cold_grass = Rgb::new(0.0, 0.6, 0.2);
+        let warm_grass = Rgb::new(0.45, 0.9, 0.0);
         let cold_stone = Rgb::new(0.55, 0.75, 0.9);
         let warm_stone = Rgb::new(0.8, 0.6, 0.28);
         let sand = Rgb::new(0.93, 0.84, 0.33);
@@ -184,9 +184,9 @@ impl<'a> Sampler<'a> {
                     Rgb::lerp(
                         cliff,
                         snow,
-                        (alt - SEA_LEVEL - 200.0 - alt_base - temp * 48.0) / 8.0,
+                        (alt - SEA_LEVEL - 320.0 - alt_base - temp * 48.0) / 12.0,
                     ),
-                    (alt - SEA_LEVEL - 100.0) / 100.0
+                    (alt - SEA_LEVEL - 150.0) / 180.0
                 ),
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
@@ -295,7 +295,7 @@ struct GenCtx {
 }
 
 const Z_TOLERANCE: (f32, f32) = (48.0, 64.0);
-pub const SEA_LEVEL: f32 = 64.0;
+pub const SEA_LEVEL: f32 = 128.0;
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -309,21 +309,23 @@ impl SimChunk {
     fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
         let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
 
-        let hill = (gen_ctx.hill_nz.get((wposf.div(3_500.0)).into_array()) as f32).max(0.0);
+        let hill = (0.0
+            + gen_ctx.hill_nz.get((wposf.div(3_500.0)).into_array()).mul(1.0) as f32
+            + gen_ctx.hill_nz.get((wposf.div(1_000.0)).into_array()).mul(0.3) as f32
+        ).add(0.3).max(0.0);
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(5_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .powf(1.9)
             .add(0.25 * hill);
 
-        let chaos = chaos + chaos.mul(20.0).sin().mul(0.05);
+        let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
 
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32;
+        let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
         let alt_base = alt_base
             .mul(0.4)
-            .add(alt_base.mul(16.0).sin().mul(0.01))
-            .mul(1_200.0);
+            .mul(600.0);
 
         let alt_main = gen_ctx.alt_nz.get((wposf.div(1_500.0)).into_array()) as f32;
 
@@ -340,7 +342,7 @@ impl SimChunk {
                     .add(1.0)
                     .mul(0.5)
                     .mul(chaos)
-                    .mul(750.0),
+                    .mul(1200.0),
             temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5),
