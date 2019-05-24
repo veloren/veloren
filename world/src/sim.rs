@@ -3,16 +3,19 @@ structure::StructureGen2d,
     Cache,
 };
 use common::{
-    terrain::{Block, TerrainChunkSize},
-    vol::{Vox, VolSize},
+    assets,
+    terrain::{Block, TerrainChunkSize, Structure},
+    vol::{Vox, VolSize, ReadVol},
 };
 use noise::{
     BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
     SuperSimplex,
 };
+use lazy_static::lazy_static;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
 };
 use vek::*;
 
@@ -53,7 +56,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 64, 32),
+            tree_gen: StructureGen2d::new(seed, 48, 32),
         }
     }
 
@@ -208,7 +211,7 @@ impl<'a> Sampler<'a> {
             chaos,
             surface_color,
             close_trees,
-        } = self.sample_2d(wpos2d)?;
+        } = *self.sample_2d(wpos2d)?;
 
         // Apply warping
 
@@ -230,16 +233,19 @@ impl<'a> Sampler<'a> {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let above_ground = if (&close_trees)
+        let above_ground = (&close_trees)
             .iter()
-            .any(|tree| {
-                tree.distance_squared(wpos.into()) < 36
-            })
-        {
-            grass
-        } else {
-            air
-        };
+            .fold(air, |block, tree| {
+                match self.sample_2d(*tree) {
+                    Some(tree_sample) => {
+                        let tree_pos = Vec3::new(tree.x, tree.y, tree_sample.alt as i32);
+                        block.or(TREE.get(wpos - tree_pos)
+                            .map(|b| b.clone())
+                            .unwrap_or(Block::empty()))
+                    },
+                    None => block,
+                }
+            });
 
         let z = wposf.z as f32;
         Some(Sample3d {
@@ -256,6 +262,13 @@ impl<'a> Sampler<'a> {
     }
 }
 
+lazy_static! {
+    static ref TREE: Arc<Structure> = assets::load_map(
+        "world/tree/pine/3.vox",
+        |s: Structure| s.with_center(Vec3::new(15, 15, 14)),
+    ).unwrap();
+}
+
 #[derive(Copy, Clone)]
 pub struct Sample2d {
     pub alt: f32,
@@ -264,6 +277,7 @@ pub struct Sample2d {
     pub close_trees: [Vec2<i32>; 9],
 }
 
+#[derive(Copy, Clone)]
 pub struct Sample3d {
     pub block: Block,
 }
@@ -280,7 +294,7 @@ struct GenCtx {
     warp_nz: BasicMulti,
 }
 
-const Z_TOLERANCE: (f32, f32) = (32.0, 64.0);
+const Z_TOLERANCE: (f32, f32) = (48.0, 64.0);
 pub const SEA_LEVEL: f32 = 64.0;
 
 pub struct SimChunk {

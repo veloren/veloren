@@ -10,6 +10,7 @@ use super::Block;
 #[derive(Debug)]
 pub enum StructureError {}
 
+#[derive(Clone)]
 pub struct Structure {
     center: Vec3<i32>,
     vol: Dyna<Block, ()>,
@@ -31,7 +32,7 @@ impl BaseVol for Structure {
 impl ReadVol for Structure {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Block, StructureError> {
-        match self.vol.get(pos - self.center) {
+        match self.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
             Err(DynaErr::OutOfBounds) => Ok(&self.empty),
         }
