@@ -266,7 +266,12 @@ impl Hud {
         }
     }
 
-    fn update_layout(&mut self, client: &Client, global_state: &GlobalState, debug_info: DebugInfo) -> Vec<Event> {
+    fn update_layout(
+        &mut self,
+        client: &Client,
+        global_state: &GlobalState,
+        debug_info: DebugInfo,
+    ) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -688,7 +693,10 @@ impl Hud {
         let events = self.update_layout(client, global_state, debug_info);
         let (view_mat, _, _) = camera.compute_dependents(client);
         let fov = camera.get_fov();
-        self.ui.maintain(&mut global_state.window.renderer_mut(), Some((view_mat, fov)));
+        self.ui.maintain(
+            &mut global_state.window.renderer_mut(),
+            Some((view_mat, fov)),
+        );
         events
     }
 
