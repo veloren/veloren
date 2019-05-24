@@ -1,5 +1,6 @@
 // Library
 use vek::*;
+use serde_derive::{Deserialize, Serialize};
 
 // Local
 use crate::vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol};
@@ -13,6 +14,7 @@ pub enum DynaErr {
 // V = Voxel
 // S = Size (replace when const generics are a thing)
 // M = Metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Dyna<V: Vox, M> {
     vox: Vec<V>,
     meta: M,
