@@ -2,9 +2,17 @@ use crate::ray::{Ray, RayUntil};
 use vek::*;
 
 /// A voxel.
-pub trait Vox {
+pub trait Vox: Sized {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
+
+    fn or(self, other: Self) -> Self {
+        if self.is_empty() {
+            other
+        } else {
+            self
+        }
+    }
 }
 
 /// A volume that contains voxel data.

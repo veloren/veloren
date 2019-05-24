@@ -1,8 +1,11 @@
 use crate::{
-    structure::StructureGen2d,
+structure::StructureGen2d,
     Cache,
 };
-use common::{terrain::TerrainChunkSize, vol::VolSize};
+use common::{
+    terrain::{Block, TerrainChunkSize},
+    vol::{Vox, VolSize},
+};
 use noise::{
     BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
     SuperSimplex,
@@ -36,6 +39,7 @@ impl WorldSim {
             temp_nz: SuperSimplex::new().set_seed(seed + 5),
             small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 6),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
+            warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
         };
 
         let mut chunks = Vec::new();
@@ -116,38 +120,40 @@ impl WorldSim {
     pub fn sampler(&self) -> Sampler {
         Sampler {
             sim: self,
+            sample2d_cache: Cache::with_capacity(1024),
         }
     }
 }
 
 pub struct Sampler<'a> {
     sim: &'a WorldSim,
+    sample2d_cache: Cache<Vec2<i32>, Option<Sample2d>>,
 }
 
 impl<'a> Sampler<'a> {
-    pub fn sample(&self, wpos: Vec2<i32>) -> Option<Sample> {
+    fn sample_2d_impl(sim: &WorldSim, wpos: Vec2<i32>) -> Option<Sample2d> {
         let wposf = wpos.map(|e| e as f64);
 
-        let alt_base = self.sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
-        let chaos = self.sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
-        let temp = self.sim.get_interpolated(wpos, |chunk| chunk.temp)?;
-        let rockiness = self.sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+        let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
+        let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+        let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+        let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
 
-        let rock = (self.sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
+        let rock = (sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
             .mul(rockiness)
             .sub(0.2)
             .max(0.0)
             .mul(2.0);
 
-        let alt = self.sim.get_interpolated(wpos, |chunk| chunk.alt)?
-            + self.sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32
+        let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
+            + sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32
                 * chaos.max(0.15)
                 * 32.0
             + rock * 15.0;
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
-        let marble = (self.sim.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
+        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
             .mul(0.5)
             .add(1.0).mul(0.5);
 
@@ -163,7 +169,7 @@ impl<'a> Sampler<'a> {
         let ground = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        Some(Sample {
+        Some(Sample2d {
             alt,
             chaos,
             surface_color: Rgb::lerp(
@@ -182,16 +188,84 @@ impl<'a> Sampler<'a> {
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
             ),
-            close_trees: self.sim.tree_gen.sample(wpos),
+            close_trees: sim.tree_gen.sample(wpos),
+        })
+    }
+
+    pub fn sample_2d(&mut self, wpos2d: Vec2<i32>) -> Option<&Sample2d> {
+        let sim = &self.sim;
+        self.sample2d_cache.get(wpos2d, |wpos2d| Self::sample_2d_impl(sim, wpos2d)).as_ref()
+    }
+
+    pub fn sample_3d(&mut self, wpos: Vec3<i32>) -> Option<Sample3d> {
+        let wpos2d = Vec2::from(wpos);
+        let wposf = wpos.map(|e| e as f64);
+
+        // Sample 2D terrain attributes
+
+        let Sample2d {
+            alt,
+            chaos,
+            surface_color,
+            close_trees,
+        } = self.sample_2d(wpos2d)?;
+
+        // Apply warping
+
+        let warp = (self.sim.gen_ctx.warp_nz
+            .get((wposf.div(Vec3::new(120.0, 120.0, 150.0))).into_array())
+            as f32)
+            .mul((chaos - 0.1).max(0.0))
+            .mul(90.0);
+
+        let height = alt + warp;
+        let temp = 0.0;
+
+        // Sample blocks
+
+        let air = Block::empty();
+        let stone = Block::new(1, Rgb::new(200, 220, 255));
+        let grass = Block::new(2, Rgb::new(75, 150, 0));
+        let dirt = Block::new(3, Rgb::new(128, 90, 0));
+        let sand = Block::new(4, Rgb::new(180, 150, 50));
+        let water = Block::new(5, Rgb::new(100, 150, 255));
+
+        let above_ground = if (&close_trees)
+            .iter()
+            .any(|tree| {
+                tree.distance_squared(wpos.into()) < 36
+            })
+        {
+            grass
+        } else {
+            air
+        };
+
+        let z = wposf.z as f32;
+        Some(Sample3d {
+            block: if z < height - 4.0 {
+                stone
+            } else if z < height {
+                Block::new(1, surface_color.map(|e| (e * 255.0) as u8))
+            } else if z < SEA_LEVEL {
+                water
+            } else {
+                above_ground
+            },
         })
     }
 }
 
-pub struct Sample {
+#[derive(Copy, Clone)]
+pub struct Sample2d {
     pub alt: f32,
     pub chaos: f32,
     pub surface_color: Rgb<f32>,
     pub close_trees: [Vec2<i32>; 9],
+}
+
+pub struct Sample3d {
+    pub block: Block,
 }
 
 struct GenCtx {
@@ -203,6 +277,7 @@ struct GenCtx {
     temp_nz: SuperSimplex,
     small_nz: BasicMulti,
     rock_nz: HybridMulti,
+    warp_nz: BasicMulti,
 }
 
 const Z_TOLERANCE: (f32, f32) = (32.0, 64.0);
