@@ -34,7 +34,7 @@ Currently the communication of contributors happens mainly on our [official Disc
 
 We currently don't provide binary downloads of Veloren, you have to compile it yourself.
 
-Take a look at the [How to Compile Guide](https://book.veloren.net/dl/compiling.html) in the book.
+Take a look at the [How to Compile Guide](https://book.veloren.net/download/compiling.html) in the book.
 
 ## F.A.Q.
 ### **Q:** How is this game licensed?
