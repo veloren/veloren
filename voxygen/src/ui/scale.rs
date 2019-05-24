@@ -48,6 +48,10 @@ impl Scale {
     pub fn scale_factor_physical(&self) -> f64 {
         self.scale_factor_logical() * self.dpi_factor
     }
+    // Get the dpi factor (ratio between physical and logical coordinates)
+    pub fn dpi_factor(&self) -> f64 {
+        self.dpi_factor
+    }
     // Updates internal window size (and/or dpi_factor).
     pub fn window_resized(&mut self, new_dims: Vec2<f64>, renderer: &Renderer) {
         self.dpi_factor = renderer.get_resolution().x as f64 / new_dims.x;

@@ -23,18 +23,23 @@ use skillbar::Skillbar;
 use small_window::{SmallWindow, SmallWindowType};
 
 use crate::{
-    render::Renderer,
+    render::{Consts, Globals, Renderer},
+    scene::camera::Camera,
     settings::{ControlSettings, Settings},
-    ui::{ScaleMode, Ui},
+    ui::{Ingame, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, Key, Window},
     GlobalState,
 };
+use client::Client;
+use common::comp;
 use conrod_core::{
     color, graph,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
+use specs::Join;
 use std::collections::VecDeque;
+use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -43,6 +48,12 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 
 widget_ids! {
     struct Ids {
+        // Character Names
+        name_tags[],
+        // Health Bars
+        health_bars[],
+        health_bar_backs[],
+
         // Test
         bag_space_add,
         // Debug
@@ -124,6 +135,7 @@ pub struct Show {
     map: bool,
     inventory_test_button: bool,
     mini_map: bool,
+    ingame: bool,
 
     want_grab: bool,
 }
@@ -247,13 +259,19 @@ impl Hud {
                 inventory_test_button: false,
                 mini_map: false,
                 want_grab: true,
+                ingame: true,
             },
             to_focus: None,
             force_ungrab: false,
         }
     }
 
-    fn update_layout(&mut self, global_state: &GlobalState, debug_info: DebugInfo) -> Vec<Event> {
+    fn update_layout(
+        &mut self,
+        client: &Client,
+        global_state: &GlobalState,
+        debug_info: DebugInfo,
+    ) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -261,6 +279,76 @@ impl Hud {
         // Don't show anything if the UI is toggled off.
         if !self.show.ui {
             return events;
+        }
+
+        // Nametags and healthbars
+        if self.show.ingame {
+            let ecs = client.state().ecs();
+            let actor = ecs.read_storage::<comp::Actor>();
+            let pos = ecs.read_storage::<comp::phys::Pos>();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let entities = ecs.entities();
+            let player = client.entity();
+            let mut name_id_walker = self.ids.name_tags.walk();
+            let mut health_id_walker = self.ids.health_bars.walk();
+            let mut health_back_id_walker = self.ids.health_bar_backs.walk();
+            for (pos, name) in
+                (&entities, &pos, &actor)
+                    .join()
+                    .filter_map(|(entity, pos, actor)| match actor {
+                        comp::Actor::Character { name, .. } if entity != player => {
+                            Some((pos.0, name))
+                        }
+                        _ => None,
+                    })
+            {
+                let id = name_id_walker.next(
+                    &mut self.ids.name_tags,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                Text::new(&name)
+                    .font_size(20)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .x_y(0.0, 0.0)
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .resolution(100.0)
+                    .set(id, ui_widgets);
+            }
+            for (pos, hp) in (&entities, &pos, &stats)
+                .join()
+                .filter_map(|(entity, pos, stats)| {
+                    if entity != player {
+                        Some((pos.0, stats.hp))
+                    } else {
+                        None
+                    }
+                })
+            {
+                let back_id = health_back_id_walker.next(
+                    &mut self.ids.health_bar_backs,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                let bar_id = health_id_walker.next(
+                    &mut self.ids.health_bars,
+                    &mut ui_widgets.widget_id_generator(),
+                );
+                // Healh Bar
+                Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
+                    .x_y(0.0, -25.0)
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .resolution(100.0)
+                    .set(back_id, ui_widgets);
+
+                // Filling
+                Rectangle::fill_with(
+                    [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
+                    HP_COLOR,
+                )
+                .x_y(0.0, -25.0)
+                .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                .resolution(100.0)
+                .set(bar_id, ui_widgets);
+            }
         }
 
         // Display debug window.
@@ -362,7 +450,15 @@ impl Hud {
         }
 
         // Skillbar
-        Skillbar::new(&self.imgs, &self.fonts).set(self.ids.skillbar, ui_widgets);
+        // Get player stats
+        let stats = client
+            .state()
+            .ecs()
+            .read_storage::<comp::Stats>()
+            .get(client.entity())
+            .map(|&s| s)
+            .unwrap_or_default();
+        Skillbar::new(&self.imgs, &self.fonts, stats).set(self.ids.skillbar, ui_widgets);
 
         // Chat box
         match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
@@ -474,7 +570,9 @@ impl Hud {
             self.ui
                 .widget_graph()
                 .widget(id)
-                .and_then(graph::Container::unique_widget_state::<widget::TextEdit>)
+                .filter(|c| {
+                    c.type_id == std::any::TypeId::of::<<widget::TextEdit as Widget>::State>()
+                })
                 .is_some()
         } else {
             false
@@ -559,6 +657,10 @@ impl Hud {
                     self.show.debug = !self.show.debug;
                     true
                 }
+                Key::ToggleIngameUi => {
+                    self.show.ingame = !self.show.ingame;
+                    true
+                }
                 _ => false,
             },
             WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
@@ -580,19 +682,26 @@ impl Hud {
 
     pub fn maintain(
         &mut self,
+        client: &Client,
         global_state: &mut GlobalState,
         debug_info: DebugInfo,
+        camera: &Camera,
     ) -> Vec<Event> {
         if let Some(maybe_id) = self.to_focus.take() {
             self.ui.focus_widget(maybe_id);
         }
-        let events = self.update_layout(&global_state, debug_info);
-        self.ui.maintain(&mut global_state.window.renderer_mut());
+        let events = self.update_layout(client, global_state, debug_info);
+        let (view_mat, _, _) = camera.compute_dependents(client);
+        let fov = camera.get_fov();
+        self.ui.maintain(
+            &mut global_state.window.renderer_mut(),
+            Some((view_mat, fov)),
+        );
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
-        self.ui.render(renderer);
+    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+        self.ui.render(renderer, Some(globals));
     }
 }
 

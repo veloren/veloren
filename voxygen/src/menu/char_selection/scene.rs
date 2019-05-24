@@ -72,6 +72,10 @@ impl Scene {
         }
     }
 
+    pub fn globals(&self) -> &Consts<Globals> {
+        &self.globals
+    }
+
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         self.camera.set_focus_pos(Vec3::unit_z() * 2.0);
         self.camera.update(client.state().get_time());

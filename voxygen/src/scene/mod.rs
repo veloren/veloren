@@ -68,6 +68,11 @@ impl Scene {
         }
     }
 
+    /// Get a reference to the scene's globals
+    pub fn globals(&self) -> &Consts<Globals> {
+        &self.globals
+    }
+
     /// Get a reference to the scene's camera.
     pub fn camera(&self) -> &Camera {
         &self.camera
