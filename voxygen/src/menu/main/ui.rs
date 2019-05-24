@@ -21,7 +21,6 @@ use std::sync::Arc;
 widget_ids! {
     struct Ids {
         // Background and logo
-        bg,
         v_logo,
         alpha_version,
         // Disclaimer
@@ -71,7 +70,6 @@ image_ids! {
         disclaimer: "voxygen/element/frames/disclaimer.vox",
 
         <ImageGraphic>
-        bg: "voxygen/background/bg_main.png",
         error_frame: "voxygen/element/frames/window_2.png",
     }
 }
@@ -139,9 +137,6 @@ impl MainMenuUi {
         let version = env!("CARGO_PKG_VERSION");
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         // Background image, Veloren logo, Alpha-Version Label
-        Image::new(self.imgs.bg)
-            .middle_of(ui_widgets.window)
-            .set(self.ids.bg, ui_widgets);
         Image::new(self.imgs.v_logo)
             .w_h(123.0 * 3.0, 35.0 * 3.0)
             .top_left_with_margins(30.0, 30.0)
