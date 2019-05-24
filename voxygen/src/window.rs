@@ -60,6 +60,7 @@ impl Window {
         key_map.insert(settings.controls.toggle_debug, Key::ToggleDebug);
         key_map.insert(settings.controls.fullscreen, Key::Fullscreen);
         key_map.insert(settings.controls.screenshot, Key::Screenshot);
+        key_map.insert(settings.controls.toggle_ingame_ui, Key::ToggleIngameUi);
 
         let tmp = Ok(Self {
             events_loop,
@@ -219,7 +220,7 @@ impl Window {
                 std::thread::spawn(move || {
                     use std::{path::PathBuf, time::SystemTime};
                     // Check if folder exists and create it if it does not
-                    let mut path = std::path::PathBuf::from("./screenshots");
+                    let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir(&path) {
                             log::error!("Coudn't create folder for screenshot: {:?}", err);
@@ -266,6 +267,7 @@ pub enum Key {
     ToggleDebug,
     Fullscreen,
     Screenshot,
+    ToggleIngameUi,
 }
 
 /// Represents an incoming event from the window.
