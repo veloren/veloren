@@ -133,8 +133,8 @@ impl Client {
 
     /// Remove all cached terrain
     #[allow(dead_code)]
-    pub fn reset_terrain(&mut self) {
-        self.state.terrain_mut().clear();
+    pub fn clear_terrain(&mut self) {
+        self.state.clear_terrain();
         self.pending_chunks.clear();
     }
 

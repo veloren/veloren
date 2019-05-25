@@ -205,8 +205,4 @@ impl Terrain {
             renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
         }
     }
-
-    pub fn clear(&mut self) {
-        self.chunks.clear();
-    }
 }
