@@ -17,6 +17,7 @@ pub struct Window {
     needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
     supplement_events: Vec<Event>,
+    focused: bool,
 }
 
 impl Window {
@@ -75,6 +76,7 @@ impl Window {
             needs_refresh_resize: false,
             key_map,
             supplement_events: vec![],
+            focused: true,
         })
     }
 
@@ -99,6 +101,7 @@ impl Window {
         let cursor_grabbed = self.cursor_grabbed;
         let renderer = &mut self.renderer;
         let window = &mut self.window;
+        let focused = &mut self.focused;
         let key_map = &self.key_map;
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
@@ -143,19 +146,22 @@ impl Window {
                         },
                         _ => {}
                     },
+                    glutin::WindowEvent::Focused(new_focus) => *focused = new_focus,
                     _ => {}
                 },
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     glutin::DeviceEvent::MouseMotion {
                         delta: (dx, dy), ..
-                    } if cursor_grabbed => events.push(Event::CursorPan(Vec2::new(
+                    } if cursor_grabbed && *focused => events.push(Event::CursorPan(Vec2::new(
                         dx as f32 * pan_sensitivity,
                         dy as f32 * pan_sensitivity,
                     ))),
                     glutin::DeviceEvent::MouseWheel {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..
-                    } if cursor_grabbed => events.push(Event::Zoom(y as f32 * zoom_sensitivity)),
+                    } if cursor_grabbed && *focused => {
+                        events.push(Event::Zoom(y as f32 * zoom_sensitivity))
+                    }
                     _ => {}
                 },
                 _ => {}
