@@ -163,10 +163,10 @@ impl<'a> Sampler<'a> {
             .add(1.0).mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.6, 0.2);
-        let warm_grass = Rgb::new(0.45, 0.9, 0.0);
+        let cold_grass = Rgb::new(0.05, 0.5, 0.3);
+        let warm_grass = Rgb::new(0.4, 1.0, 0.05);
         let cold_stone = Rgb::new(0.55, 0.75, 0.9);
-        let warm_stone = Rgb::new(0.8, 0.6, 0.28);
+        let warm_stone = Rgb::new(0.75, 0.6, 0.35);
         let sand = Rgb::new(0.93, 0.84, 0.33);
         let snow = Rgb::broadcast(1.0);
 
