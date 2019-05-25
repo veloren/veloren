@@ -694,7 +694,7 @@ impl Hud {
                     self.show.debug = !self.show.debug;
                     true
                 }
-                Key::ToggleIngameUi => {
+                GameInput::ToggleIngameUi => {
                     self.show.ingame = !self.show.ingame;
                     true
                 }

@@ -1,7 +1,7 @@
 use crate::state::Time;
 use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Health {
     pub current: u32,
     pub maximum: u32,
@@ -15,7 +15,7 @@ impl Health {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub hp: Health,
     pub xp: u32,
