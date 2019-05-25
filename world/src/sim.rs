@@ -1,17 +1,14 @@
-use crate::{
-structure::StructureGen2d,
-    Cache,
-};
+use crate::{structure::StructureGen2d, Cache};
 use common::{
     assets,
-    terrain::{Block, TerrainChunkSize, Structure},
-    vol::{Vox, VolSize, ReadVol},
+    terrain::{Block, Structure, TerrainChunkSize},
+    vol::{ReadVol, VolSize, Vox},
 };
+use lazy_static::lazy_static;
 use noise::{
     BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
     SuperSimplex,
 };
-use lazy_static::lazy_static;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
@@ -110,10 +107,11 @@ impl WorldSim {
         let mut x = [T::default(); 4];
 
         for (x_idx, j) in (-1..3).enumerate() {
-            let y0 = f(self.get(pos.map2(Vec2::new(j, -1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y1 = f(self.get(pos.map2(Vec2::new(j,  0), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y2 = f(self.get(pos.map2(Vec2::new(j,  1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y3 = f(self.get(pos.map2(Vec2::new(j,  2), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y0 =
+                f(self.get(pos.map2(Vec2::new(j, -1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y1 = f(self.get(pos.map2(Vec2::new(j, 0), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y2 = f(self.get(pos.map2(Vec2::new(j, 1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+            let y3 = f(self.get(pos.map2(Vec2::new(j, 2), |e, q| (e.max(0.0) as i32 + q) as u32))?);
 
             x[x_idx] = cubic(y0, y1, y2, y3, pos.y.fract() as f32);
         }
@@ -160,7 +158,8 @@ impl<'a> Sampler<'a> {
 
         let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
             .mul(0.5)
-            .add(1.0).mul(0.5);
+            .add(1.0)
+            .mul(0.5);
 
         // Colours
         let cold_grass = Rgb::new(0.05, 0.5, 0.3);
@@ -188,7 +187,7 @@ impl<'a> Sampler<'a> {
                         snow,
                         (alt - SEA_LEVEL - 350.0 - alt_base - temp * 48.0) / 12.0,
                     ),
-                    (alt - SEA_LEVEL - 150.0) / 180.0
+                    (alt - SEA_LEVEL - 150.0) / 180.0,
                 ),
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
@@ -200,7 +199,9 @@ impl<'a> Sampler<'a> {
 
     pub fn sample_2d(&mut self, wpos2d: Vec2<i32>) -> Option<&Sample2d> {
         let sim = &self.sim;
-        self.sample2d_cache.get(wpos2d, |wpos2d| Self::sample_2d_impl(sim, wpos2d)).as_ref()
+        self.sample2d_cache
+            .get(wpos2d, |wpos2d| Self::sample_2d_impl(sim, wpos2d))
+            .as_ref()
     }
 
     pub fn sample_3d(&mut self, wpos: Vec3<i32>) -> Option<Sample3d> {
@@ -219,7 +220,10 @@ impl<'a> Sampler<'a> {
 
         // Apply warping
 
-        let warp = (self.sim.gen_ctx.warp_nz
+        let warp = (self
+            .sim
+            .gen_ctx
+            .warp_nz
             .get((wposf.div(Vec3::new(120.0, 120.0, 150.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
@@ -237,19 +241,22 @@ impl<'a> Sampler<'a> {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let above_ground = (&close_trees)
-            .iter()
-            .fold(air, |block, (tree_pos, tree_seed)| {
-                match self.sample_2d(*tree_pos) {
-                    Some(tree_sample) if tree_sample.tree_density > 0.5 => {
-                        let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
-                        block.or(TREES[*tree_seed as usize % TREES.len()].get(wpos - tree_pos3d)
-                            .map(|b| b.clone())
-                            .unwrap_or(Block::empty()))
-                    },
-                    _ => block,
-                }
-            });
+        let above_ground =
+            (&close_trees)
+                .iter()
+                .fold(air, |block, (tree_pos, tree_seed)| {
+                    match self.sample_2d(*tree_pos) {
+                        Some(tree_sample) if tree_sample.tree_density > 0.5 => {
+                            let tree_pos3d =
+                                Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
+                            block.or(TREES[*tree_seed as usize % TREES.len()]
+                                .get(wpos - tree_pos3d)
+                                .map(|b| b.clone())
+                                .unwrap_or(Block::empty()))
+                        }
+                        _ => block,
+                    }
+                });
 
         let z = wposf.z as f32;
         Some(Sample3d {
@@ -268,18 +275,42 @@ impl<'a> Sampler<'a> {
 
 lazy_static! {
     static ref TREES: [Arc<Structure>; 12] = [
-        assets::load_map("world/tree/oak/1.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
-        assets::load_map("world/tree/oak/2.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
-        assets::load_map("world/tree/oak/3.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
-        assets::load_map("world/tree/pine/3.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 14))).unwrap(),
-        assets::load_map("world/tree/pine/4.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 14))).unwrap(),
-        assets::load_map("world/tree/pine/5.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 12))).unwrap(),
-        assets::load_map("world/tree/temperate/1.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
-        assets::load_map("world/tree/temperate/2.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
-        assets::load_map("world/tree/temperate/3.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
-        assets::load_map("world/tree/temperate/4.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
-        assets::load_map("world/tree/temperate/5.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
-        assets::load_map("world/tree/temperate/6.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/oak/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/oak/2.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/oak/3.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine/3.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine/4.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine/5.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/1.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/2.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/3.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/4.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/5.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate/6.vox", |s: Structure| s
+            .with_center(Vec3::new(4, 4, 7)))
+        .unwrap(),
     ];
 }
 
@@ -327,9 +358,16 @@ impl SimChunk {
         let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
 
         let hill = (0.0
-            + gen_ctx.hill_nz.get((wposf.div(3_500.0)).into_array()).mul(1.0) as f32
-            + gen_ctx.hill_nz.get((wposf.div(1_000.0)).into_array()).mul(0.3) as f32
-        ).add(0.3).max(0.0);
+            + gen_ctx
+                .hill_nz
+                .get((wposf.div(3_500.0)).into_array())
+                .mul(1.0) as f32
+            + gen_ctx
+                .hill_nz
+                .get((wposf.div(1_000.0)).into_array())
+                .mul(0.3) as f32)
+            .add(0.3)
+            .max(0.0);
 
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
@@ -350,7 +388,8 @@ impl SimChunk {
         Self {
             chaos,
             alt_base,
-            alt: SEA_LEVEL + alt_base
+            alt: SEA_LEVEL
+                + alt_base
                 + (0.0
                     + alt_main
                     + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32

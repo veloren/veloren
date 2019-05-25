@@ -36,7 +36,10 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(specifier: &str, f: F) -> Result<Arc<A>, Error> {
+pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
+    specifier: &str,
+    f: F,
+) -> Result<Arc<A>, Error> {
     Ok(ASSETS
         .write()
         .unwrap()

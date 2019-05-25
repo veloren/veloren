@@ -1,11 +1,11 @@
+use super::Block;
+use crate::{
+    assets::{self, load_from_path, Asset},
+    vol::{BaseVol, ReadVol, Vox, WriteVol},
+    volumes::dyna::{Dyna, DynaErr},
+};
 use dot_vox::DotVoxData;
 use vek::*;
-use crate::{
-    assets::{self, Asset, load_from_path},
-    volumes::dyna::{Dyna, DynaErr},
-    vol::{Vox, BaseVol, ReadVol, WriteVol},
-};
-use super::Block;
 
 #[derive(Debug)]
 pub enum StructureError {}
@@ -50,11 +50,11 @@ impl Asset for Structure {
                 .map(|col| Rgba::from(col.to_ne_bytes()).into())
                 .collect::<Vec<_>>();
 
-            let mut vol = Dyna::filled(Vec3::new(
-                model.size.x,
-                model.size.y,
-                model.size.z,
-            ), Block::empty(), ());
+            let mut vol = Dyna::filled(
+                Vec3::new(model.size.x, model.size.y, model.size.z),
+                Block::empty(),
+                (),
+            );
 
             for voxel in &model.voxels {
                 if let Some(&color) = palette.get(voxel.i as usize) {

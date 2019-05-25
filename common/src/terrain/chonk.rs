@@ -4,8 +4,8 @@ use crate::{
     volumes::chunk::{Chunk, ChunkErr},
 };
 use serde_derive::{Deserialize, Serialize};
-use vek::*;
 use std::collections::HashMap;
+use vek::*;
 
 #[derive(Debug)]
 pub enum ChonkError {
@@ -76,7 +76,7 @@ impl ReadVol for Chonk {
                             * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
 
                     Ok(map.get(&rpos).unwrap_or(cblock))
-                },
+                }
                 SubChunk::Heterogeneous(chunk) => {
                     let rpos = pos
                         - Vec3::unit_z()
@@ -113,11 +113,11 @@ impl WriteVol for Chonk {
 
                     self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
                     Ok(())
-                },
+                }
                 SubChunk::Hash(cblock, map) if map.len() < 1024 => {
                     map.insert(rpos, block);
                     Ok(())
-                },
+                }
                 SubChunk::Hash(cblock, map) => {
                     let mut new_chunk = Chunk::filled(*cblock, ());
                     new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)

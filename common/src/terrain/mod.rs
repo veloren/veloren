@@ -4,11 +4,7 @@ pub mod chonk;
 pub mod structure;
 
 // Reexports
-pub use self::{
-    biome::BiomeKind,
-    block::Block,
-    structure::Structure,
-};
+pub use self::{biome::BiomeKind, block::Block, structure::Structure};
 
 use crate::{
     vol::VolSize,
