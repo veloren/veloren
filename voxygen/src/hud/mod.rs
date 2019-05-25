@@ -287,20 +287,29 @@ impl Hud {
             let actor = ecs.read_storage::<comp::Actor>();
             let pos = ecs.read_storage::<comp::phys::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let player = ecs.read_storage::<comp::Player>();
             let entities = ecs.entities();
-            let player = client.entity();
+            let me = client.entity();
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-            for (pos, name) in
-                (&entities, &pos, &actor)
-                    .join()
-                    .filter_map(|(entity, pos, actor)| match actor {
-                        comp::Actor::Character { name, .. } if entity != player => {
-                            Some((pos.0, name))
-                        }
-                        _ => None,
-                    })
+            for (pos, name) in (&entities, &pos, &actor, player.maybe())
+                .join()
+                .filter(|(entity, _, _, _)| *entity != me)
+                .map(|(entity, pos, actor, player)| match actor {
+                    comp::Actor::Character {
+                        name: char_name, ..
+                    } => {
+                        // Temporary
+                        // If the player used the default character name display thier name instead
+                        let name = if char_name == "Character Name" {
+                            player.map_or(char_name, |p| &p.alias)
+                        } else {
+                            char_name
+                        };
+                        (pos.0, name)
+                    }
+                })
             {
                 let id = name_id_walker.next(
                     &mut self.ids.name_tags,
@@ -317,7 +326,7 @@ impl Hud {
             for (pos, hp) in (&entities, &pos, &stats)
                 .join()
                 .filter_map(|(entity, pos, stats)| {
-                    if entity != player {
+                    if entity != me {
                         Some((pos.0, stats.hp))
                     } else {
                         None
