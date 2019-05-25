@@ -19,7 +19,6 @@ pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
     key_state: KeyState,
-    input_events: Vec<comp::InputEvent>,
     hud: Hud,
 }
 
@@ -34,7 +33,6 @@ impl SessionState {
             client,
             key_state: KeyState::new(),
             hud: Hud::new(window),
-            input_events: Vec::new(),
         }
     }
 }
@@ -60,19 +58,11 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        // Take the input events.
-        let mut input_events = Vec::new();
-        mem::swap(&mut self.input_events, &mut input_events);
-
-        for event in self.client.borrow_mut().tick(
-            comp::Inputs {
-                move_dir,
-                jumping: self.key_state.jump,
-                gliding: self.key_state.glide,
-                events: input_events,
-            },
-            dt,
-        )? {
+        for event in self
+            .client
+            .borrow_mut()
+            .tick(comp::Control { move_dir }, dt)?
+        {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -136,21 +126,19 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     // Attack key pressed
-                    Event::InputUpdate(GameInput::Attack, state) => {
-                        self.input_events.push(comp::InputEvent::Attack);
-                        //self.input_events.push(comp::InputEvent::RequestRespawn);
-                    },
+                    Event::InputUpdate(GameInput::Attack, true) => {
+                        self.client.borrow_mut().attack();
+                        self.client.borrow_mut().respawn();
+                    }
+                    Event::InputUpdate(GameInput::Jump, true) => {
+                        self.client.borrow_mut().jump();
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
-                    Event::InputUpdate(GameInput::Glide, state) => self.key_state.glide = state,
-                    Event::InputUpdate(GameInput::Jump, true) => {
-                        self.input_events.push(comp::InputEvent::Jump);
-                        self.key_state.jump = true;
-                    }
-                    Event::InputUpdate(GameInput::Jump, false) => {
-                        self.key_state.jump = false;
+                    Event::InputUpdate(GameInput::Glide, state) => {
+                        self.client.borrow_mut().glide(state)
                     }
 
                     // Pass all other events to the scene

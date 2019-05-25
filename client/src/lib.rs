@@ -70,9 +70,6 @@ impl Client {
             _ => return Err(Error::ServerWentMad),
         };
 
-        // Initialize ecs components the client has actions over
-        state.write_component(entity, comp::Inputs::default());
-
         Ok(Self {
             client_state,
             thread_pool: threadpool::Builder::new()
@@ -94,11 +91,13 @@ impl Client {
         })
     }
 
+    /// Request a state transition to `ClientState::Registered`.
     pub fn register(&mut self, player: comp::Player) {
         self.postbox.send_message(ClientMsg::Register { player });
         self.client_state = ClientState::Pending;
     }
 
+    /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, name: String, body: comp::Body) {
         self.postbox
             .send_message(ClientMsg::Character { name, body });
@@ -111,24 +110,56 @@ impl Client {
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
-    /// Get a reference to the client's worker thread pool. This pool should be used for any
-    /// computationally expensive operations that run outside of the main thread (i.e., threads that
-    /// block on I/O operations are exempt).
+    /// Send a chat message to the server.
     #[allow(dead_code)]
-    pub fn thread_pool(&self) -> &threadpool::ThreadPool {
-        &self.thread_pool
+    pub fn send_chat(&mut self, msg: String) {
+        self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
-    /// Get a reference to the client's game state.
+    /// Jump locally, the new positions will be synced to the server
     #[allow(dead_code)]
-    pub fn state(&self) -> &State {
-        &self.state
+    pub fn jump(&mut self) {
+        if self.client_state != ClientState::Character {
+            return;
+        }
+        self.state.write_component(self.entity, comp::Jumping);
     }
 
-    /// Get a mutable reference to the client's game state.
+    /// Start to glide locally, animation will be synced
     #[allow(dead_code)]
-    pub fn state_mut(&mut self) -> &mut State {
-        &mut self.state
+    pub fn glide(&mut self, state: bool) {
+        if self.client_state != ClientState::Character {
+            return;
+        }
+        if state {
+            self.state.write_component(self.entity, comp::Gliding);
+        } else {
+            self.state
+                .ecs_mut()
+                .write_storage::<comp::Gliding>()
+                .remove(self.entity);
+        }
+    }
+
+    /// Start to attack
+    #[allow(dead_code)]
+    pub fn attack(&mut self) {
+        if self.client_state != ClientState::Character {
+            return;
+        }
+        // TODO: Test if attack is possible using timeout
+        self.state
+            .write_component(self.entity, comp::Attacking::start());
+        self.postbox.send_message(ClientMsg::Attack);
+    }
+
+    /// Tell the server the client wants to respawn.
+    #[allow(dead_code)]
+    pub fn respawn(&mut self) {
+        if self.client_state != ClientState::Dead {
+            return;
+        }
+        self.postbox.send_message(ClientMsg::Respawn)
     }
 
     /// Remove all cached terrain
@@ -138,38 +169,9 @@ impl Client {
         self.pending_chunks.clear();
     }
 
-    /// Get the player's entity.
-    #[allow(dead_code)]
-    pub fn entity(&self) -> EcsEntity {
-        self.entity
-    }
-
-    /// Get the client state
-    #[allow(dead_code)]
-    pub fn get_client_state(&self) -> ClientState {
-        self.client_state
-    }
-
-    /// Get the current tick number.
-    #[allow(dead_code)]
-    pub fn get_tick(&self) -> u64 {
-        self.tick
-    }
-
-    /// Send a chat message to the server.
-    #[allow(dead_code)]
-    pub fn send_chat(&mut self, msg: String) {
-        self.postbox.send_message(ClientMsg::Chat(msg))
-    }
-
-    #[allow(dead_code)]
-    pub fn get_ping_ms(&self) -> f64 {
-        self.last_ping_delta * 1000.0
-    }
-
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(&mut self, input: comp::Inputs, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, control: comp::Control, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -187,11 +189,9 @@ impl Client {
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
         // TODO: Only do this if the entity already has a Inputs component!
-        self.state.write_component(self.entity, input.clone());
-
-        // Tell the server about the inputs.
-        self.postbox
-            .send_message(ClientMsg::PlayerInputs(input.clone()));
+        if self.client_state == ClientState::Character {
+            self.state.write_component(self.entity, control.clone());
+        }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
@@ -288,6 +288,25 @@ impl Client {
         }
 
         // 7) Finish the tick, pass control back to the frontend.
+
+        // Cleanup
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::Jumping>()
+            .remove(self.entity);
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::Gliding>()
+            .remove(self.entity);
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::Dying>()
+            .remove(self.entity);
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::Respawning>()
+            .remove(self.entity);
+
         self.tick += 1;
         Ok(frontend_events)
     }
@@ -377,6 +396,49 @@ impl Client {
         }
 
         Ok(frontend_events)
+    }
+
+    /// Get the player's entity.
+    #[allow(dead_code)]
+    pub fn entity(&self) -> EcsEntity {
+        self.entity
+    }
+
+    /// Get the client state
+    #[allow(dead_code)]
+    pub fn get_client_state(&self) -> ClientState {
+        self.client_state
+    }
+
+    /// Get the current tick number.
+    #[allow(dead_code)]
+    pub fn get_tick(&self) -> u64 {
+        self.tick
+    }
+
+    #[allow(dead_code)]
+    pub fn get_ping_ms(&self) -> f64 {
+        self.last_ping_delta * 1000.0
+    }
+
+    /// Get a reference to the client's worker thread pool. This pool should be used for any
+    /// computationally expensive operations that run outside of the main thread (i.e., threads that
+    /// block on I/O operations are exempt).
+    #[allow(dead_code)]
+    pub fn thread_pool(&self) -> &threadpool::ThreadPool {
+        &self.thread_pool
+    }
+
+    /// Get a reference to the client's game state.
+    #[allow(dead_code)]
+    pub fn state(&self) -> &State {
+        &self.state
+    }
+
+    /// Get a mutable reference to the client's game state.
+    #[allow(dead_code)]
+    pub fn state_mut(&mut self) -> &mut State {
+        &mut self.state
     }
 }
 

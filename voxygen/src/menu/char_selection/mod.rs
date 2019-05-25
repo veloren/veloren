@@ -109,7 +109,7 @@ impl PlayState for CharSelectionState {
             // Tick the client (currently only to keep the connection alive).
             self.client
                 .borrow_mut()
-                .tick(comp::Inputs::default(), clock.get_last_delta())
+                .tick(comp::Control::default(), clock.get_last_delta())
                 .expect("Failed to tick the client");
             self.client.borrow_mut().cleanup();
 

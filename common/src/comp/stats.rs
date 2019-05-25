@@ -21,6 +21,12 @@ pub struct Stats {
     pub xp: u32,
 }
 
+impl Stats {
+    pub fn is_dead(&self) -> bool {
+        self.hp.current == 0
+    }
+}
+
 impl Default for Stats {
     fn default() -> Self {
         Self {

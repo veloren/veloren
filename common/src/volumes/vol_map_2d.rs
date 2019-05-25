@@ -6,7 +6,11 @@ use crate::{
         dyna::{Dyna, DynaErr},
     },
 };
-use std::{collections::{hash_map, HashMap}, marker::PhantomData, sync::Arc};
+use std::{
+    collections::{hash_map, HashMap},
+    marker::PhantomData,
+    sync::Arc,
+};
 use vek::*;
 
 #[derive(Debug)]

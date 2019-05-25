@@ -126,15 +126,19 @@ impl Server {
 
     /// Build a non-player character.
     #[allow(dead_code)]
-    pub fn create_npc(&mut self, name: String, body: comp::Body) -> EcsEntityBuilder {
+    pub fn create_npc(
+        &mut self,
+        pos: comp::phys::Pos,
+        name: String,
+        body: comp::Body,
+    ) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
-            .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
+            .with(pos)
+            .with(comp::Control::default())
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::Inputs::default())
-            .with(comp::Actions::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -150,8 +154,7 @@ impl Server {
 
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
-        state.write_component(entity, comp::Inputs::default());
-        state.write_component(entity, comp::Actions::default());
+        state.write_component(entity, comp::Control::default());
         state.write_component(entity, comp::AnimationInfo::new());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
@@ -210,25 +213,17 @@ impl Server {
             .collect::<Vec<_>>();
 
         for entity in todo_kill {
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Dying>()
-                .remove(entity);
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Actions>()
-                .remove(entity);
             if let Some(client) = self.clients.get_mut(&entity) {
                 client.force_state(ClientState::Dead);
             } else {
-                //self.state.ecs_mut().delete_entity_synced(entity);
+                self.state.ecs_mut().delete_entity_synced(entity);
             }
         }
 
         // Handle respawns
         let todo_respawn = (
             &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Respawn>(),
+            &self.state.ecs().read_storage::<comp::Respawning>(),
         )
             .join()
             .map(|(entity, _)| entity)
@@ -237,12 +232,7 @@ impl Server {
         for entity in todo_respawn {
             if let Some(client) = self.clients.get_mut(&entity) {
                 client.allow_state(ClientState::Character);
-                self.state
-                    .ecs_mut()
-                    .write_storage::<comp::Respawn>()
-                    .remove(entity);
                 self.state.write_component(entity, comp::Stats::default());
-                self.state.write_component(entity, comp::Actions::default());
                 self.state
                     .ecs_mut()
                     .write_storage::<comp::phys::Pos>()
@@ -319,6 +309,16 @@ impl Server {
         self.sync_clients();
 
         // 7) Finish the tick, pass control back to the frontend.
+
+        // Cleanup
+        let ecs = self.state.ecs_mut();
+        for entity in ecs.entities().join() {
+            ecs.write_storage::<comp::Jumping>().remove(entity);
+            ecs.write_storage::<comp::Gliding>().remove(entity);
+            ecs.write_storage::<comp::Dying>().remove(entity);
+            ecs.write_storage::<comp::Respawning>().remove(entity);
+        }
+
         Ok(frontend_events)
     }
 
@@ -442,6 +442,18 @@ impl Server {
                             }
                             ClientState::Pending => {}
                         },
+                        ClientMsg::Attack => match client.client_state {
+                            ClientState::Character => {
+                                state.write_component(entity, comp::Attacking::start());
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
+                        ClientMsg::Respawn => match client.client_state {
+                            ClientState::Dead => {
+                                state.write_component(entity, comp::Respawning);
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
                         ClientMsg::Chat(msg) => match client.client_state {
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
@@ -451,18 +463,6 @@ impl Server {
                             | ClientState::Dead
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
                             ClientState::Pending => {}
-                        },
-                        ClientMsg::PlayerInputs(mut inputs) => match client.client_state {
-                            ClientState::Character | ClientState::Dead => {
-                                state
-                                    .ecs_mut()
-                                    .write_storage::<comp::Inputs>()
-                                    .get_mut(entity)
-                                    .map(|s| {
-                                        s.events.append(&mut inputs.events);
-                                    });
-                            }
-                            _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::PlayerAnimation(animation_info) => {
                             match client.client_state {
