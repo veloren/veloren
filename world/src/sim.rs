@@ -43,6 +43,7 @@ impl WorldSim {
             small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 6),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
             warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
+            tree_nz: BasicMulti::new().set_octaves(6).set_seed(seed + 9),
         };
 
         let mut chunks = Vec::new();
@@ -56,7 +57,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 96, 128),
+            tree_gen: StructureGen2d::new(seed, 32, 32),
         }
     }
 
@@ -141,6 +142,7 @@ impl<'a> Sampler<'a> {
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+        let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
 
         let rock = (sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
             .mul(rockiness)
@@ -191,6 +193,7 @@ impl<'a> Sampler<'a> {
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
             ),
+            tree_density,
             close_trees: sim.tree_gen.sample(wpos),
         })
     }
@@ -210,6 +213,7 @@ impl<'a> Sampler<'a> {
             alt,
             chaos,
             surface_color,
+            tree_density,
             close_trees,
         } = *self.sample_2d(wpos2d)?;
 
@@ -235,15 +239,15 @@ impl<'a> Sampler<'a> {
 
         let above_ground = (&close_trees)
             .iter()
-            .fold(air, |block, tree| {
-                match self.sample_2d(*tree) {
-                    Some(tree_sample) => {
-                        let tree_pos = Vec3::new(tree.x, tree.y, tree_sample.alt as i32);
-                        block.or(TREE.get(wpos - tree_pos)
+            .fold(air, |block, (tree_pos, tree_seed)| {
+                match self.sample_2d(*tree_pos) {
+                    Some(tree_sample) if tree_sample.tree_density > 0.5 => {
+                        let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
+                        block.or(TREES[*tree_seed as usize % TREES.len()].get(wpos - tree_pos3d)
                             .map(|b| b.clone())
                             .unwrap_or(Block::empty()))
                     },
-                    None => block,
+                    _ => block,
                 }
             });
 
@@ -263,10 +267,20 @@ impl<'a> Sampler<'a> {
 }
 
 lazy_static! {
-    static ref TREE: Arc<Structure> = assets::load_map(
-        "world/tree/pine/3.vox",
-        |s: Structure| s.with_center(Vec3::new(15, 15, 14)),
-    ).unwrap();
+    static ref TREES: [Arc<Structure>; 12] = [
+        assets::load_map("world/tree/oak/1.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
+        assets::load_map("world/tree/oak/2.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
+        assets::load_map("world/tree/oak/3.vox", |s: Structure| s.with_center(Vec3::new(15, 18, 14))).unwrap(),
+        assets::load_map("world/tree/pine/3.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 14))).unwrap(),
+        assets::load_map("world/tree/pine/4.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 14))).unwrap(),
+        assets::load_map("world/tree/pine/5.vox", |s: Structure| s.with_center(Vec3::new(15, 15, 12))).unwrap(),
+        assets::load_map("world/tree/temperate/1.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/temperate/2.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/temperate/3.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/temperate/4.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/temperate/5.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+        assets::load_map("world/tree/temperate/6.vox", |s: Structure| s.with_center(Vec3::new(4, 4, 7))).unwrap(),
+    ];
 }
 
 #[derive(Copy, Clone)]
@@ -274,7 +288,8 @@ pub struct Sample2d {
     pub alt: f32,
     pub chaos: f32,
     pub surface_color: Rgb<f32>,
-    pub close_trees: [Vec2<i32>; 9],
+    pub tree_density: f32,
+    pub close_trees: [(Vec2<i32>, u32); 9],
 }
 
 #[derive(Copy, Clone)]
@@ -292,6 +307,7 @@ struct GenCtx {
     small_nz: BasicMulti,
     rock_nz: HybridMulti,
     warp_nz: BasicMulti,
+    tree_nz: BasicMulti,
 }
 
 const Z_TOLERANCE: (f32, f32) = (48.0, 64.0);
@@ -303,6 +319,7 @@ pub struct SimChunk {
     pub alt: f32,
     pub temp: f32,
     pub rockiness: f32,
+    pub tree_density: f32,
 }
 
 impl SimChunk {
@@ -351,6 +368,10 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.2)
                 .max(0.0),
+            tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .add(1.0)
+                .mul(0.5)
+                .mul(1.0 - chaos * 0.75),
         }
     }
 
