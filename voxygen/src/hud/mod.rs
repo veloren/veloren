@@ -140,15 +140,20 @@ pub struct Show {
     want_grab: bool,
 }
 impl Show {
-    fn toggle_bag(&mut self) {
-        self.bag = !self.bag;
-        self.want_grab = !self.bag;
+    fn bag(&mut self, open: bool) {
+        self.bag = open;
+        self.want_grab = !open;
     }
-
-    fn toggle_map(&mut self) {
-        self.map = !self.map;
+    fn toggle_bag(&mut self) {
+        self.bag(!self.bag);
+    }
+    fn map(&mut self, open: bool) {
+        self.map = open;
         self.bag = false;
-        self.want_grab = !self.map;
+        self.want_grab = !open;
+    }
+    fn toggle_map(&mut self) {
+        self.map(!self.map)
     }
 
     fn toggle_mini_map(&mut self) {
@@ -179,13 +184,20 @@ impl Show {
         }
     }
 
-    fn toggle_settings(&mut self) {
-        self.open_windows = match self.open_windows {
-            Windows::Settings => Windows::None,
-            _ => Windows::Settings,
+    fn settings(&mut self, open: bool) {
+        self.open_windows = if open {
+            Windows::Settings
+        } else {
+            Windows::None
         };
         self.bag = false;
-        self.want_grab = self.open_windows != Windows::Settings;
+        self.want_grab = !open;
+    }
+    fn toggle_settings(&mut self) {
+        match self.open_windows {
+            Windows::Settings => self.settings(false),
+            _ => self.settings(true),
+        };
     }
 
     fn toggle_help(&mut self) {
@@ -287,20 +299,29 @@ impl Hud {
             let actor = ecs.read_storage::<comp::Actor>();
             let pos = ecs.read_storage::<comp::phys::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
+            let player = ecs.read_storage::<comp::Player>();
             let entities = ecs.entities();
-            let player = client.entity();
+            let me = client.entity();
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-            for (pos, name) in
-                (&entities, &pos, &actor)
-                    .join()
-                    .filter_map(|(entity, pos, actor)| match actor {
-                        comp::Actor::Character { name, .. } if entity != player => {
-                            Some((pos.0, name))
-                        }
-                        _ => None,
-                    })
+            for (pos, name) in (&entities, &pos, &actor, player.maybe())
+                .join()
+                .filter(|(entity, _, _, _)| *entity != me)
+                .map(|(entity, pos, actor, player)| match actor {
+                    comp::Actor::Character {
+                        name: char_name, ..
+                    } => {
+                        // Temporary
+                        // If the player used the default character name display thier name instead
+                        let name = if char_name == "Character Name" {
+                            player.map_or(char_name, |p| &p.alias)
+                        } else {
+                            char_name
+                        };
+                        (pos.0, name)
+                    }
+                })
             {
                 let id = name_id_walker.next(
                     &mut self.ids.name_tags,
@@ -317,7 +338,7 @@ impl Hud {
             for (pos, hp) in (&entities, &pos, &stats)
                 .join()
                 .filter_map(|(entity, pos, stats)| {
-                    if entity != player {
+                    if entity != me {
                         Some((pos.0, stats.hp))
                     } else {
                         None
@@ -444,7 +465,10 @@ impl Hud {
             match Bag::new(self.inventory_space, &self.imgs, &self.fonts)
                 .set(self.ids.bag, ui_widgets)
             {
-                Some(bag::Event::Close) => self.show.bag = false,
+                Some(bag::Event::Close) => {
+                    self.show.bag(false);
+                    self.force_ungrab = true;
+                }
                 None => {}
             }
         }
@@ -490,7 +514,10 @@ impl Hud {
                         self.show.inventory_test_button = !self.show.inventory_test_button
                     }
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
-                    settings_window::Event::Close => self.show.open_windows = Windows::None,
+                    settings_window::Event::Close => {
+                        self.show.settings(false);
+                        self.force_ungrab = true;
+                    }
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
@@ -538,7 +565,10 @@ impl Hud {
         // Map
         if self.show.map {
             match Map::new(&self.imgs, &self.fonts).set(self.ids.map, ui_widgets) {
-                Some(map::Event::Close) => self.show.map = false,
+                Some(map::Event::Close) => {
+                    self.show.map(false);
+                    self.force_ungrab = true;
+                }
                 None => {}
             }
         }
@@ -550,7 +580,11 @@ impl Hud {
                     self.show.esc_menu = false;
                     self.show.open_windows = Windows::Settings;
                 }
-                Some(esc_menu::Event::Close) => self.show.esc_menu = false,
+                Some(esc_menu::Event::Close) => {
+                    self.show.esc_menu = false;
+                    self.show.want_grab = false;
+                    self.force_ungrab = true;
+                }
                 Some(esc_menu::Event::Logout) => events.push(Event::Logout),
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 None => {}
