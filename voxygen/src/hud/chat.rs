@@ -17,6 +17,8 @@ widget_ids! {
     }
 }
 
+const MAX_MESSAGES: usize = 100;
+
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<String>,
@@ -90,6 +92,13 @@ impl<'a> Widget for Chat<'a> {
             state.update(|s| s.messages.extend(self.new_messages.drain(..)));
             ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
+
+        // Empty old messages
+        state.update(|s| {
+            while s.messages.len() > MAX_MESSAGES {
+                s.messages.pop_front();
+            }
+        });
 
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
         let input_focused = keyboard_capturer == Some(state.ids.input);
