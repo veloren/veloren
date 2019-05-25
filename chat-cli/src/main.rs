@@ -23,7 +23,7 @@ fn main() {
     client.send_chat("Hello!".to_string());
 
     loop {
-        let events = match client.tick(comp::Inputs::default(), clock.get_last_delta()) {
+        let events = match client.tick(comp::Control::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
                 println!("Error: {:?}", err);
