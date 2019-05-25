@@ -371,7 +371,7 @@ impl SimChunk {
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.0 - chaos * 0.75),
+                .mul(1.0 - chaos),
         }
     }
 
