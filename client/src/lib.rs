@@ -296,10 +296,6 @@ impl Client {
             .remove(self.entity);
         self.state
             .ecs_mut()
-            .write_storage::<comp::Gliding>()
-            .remove(self.entity);
-        self.state
-            .ecs_mut()
             .write_storage::<comp::Dying>()
             .remove(self.entity);
         self.state

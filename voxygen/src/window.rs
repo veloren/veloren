@@ -113,16 +113,25 @@ impl Window {
         key_map.insert(settings.controls.map, GameInput::Map);
         key_map.insert(settings.controls.bag, GameInput::Bag);
         key_map.insert(settings.controls.quest_log, GameInput::QuestLog);
-        key_map.insert(settings.controls.character_window, GameInput::CharacterWindow);
+        key_map.insert(
+            settings.controls.character_window,
+            GameInput::CharacterWindow,
+        );
         key_map.insert(settings.controls.social, GameInput::Social);
         key_map.insert(settings.controls.spellbook, GameInput::Spellbook);
         key_map.insert(settings.controls.settings, GameInput::Settings);
         key_map.insert(settings.controls.help, GameInput::Help);
-        key_map.insert(settings.controls.toggle_interface, GameInput::ToggleInterface);
+        key_map.insert(
+            settings.controls.toggle_interface,
+            GameInput::ToggleInterface,
+        );
         key_map.insert(settings.controls.toggle_debug, GameInput::ToggleDebug);
         key_map.insert(settings.controls.fullscreen, GameInput::Fullscreen);
         key_map.insert(settings.controls.screenshot, GameInput::Screenshot);
-        key_map.insert(settings.controls.toggle_ingame_ui, GameInput::ToggleIngameUi);
+        key_map.insert(
+            settings.controls.toggle_ingame_ui,
+            GameInput::ToggleIngameUi,
+        );
         key_map.insert(settings.controls.attack, GameInput::Attack);
 
         Ok(Self {
