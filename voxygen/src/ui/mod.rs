@@ -231,7 +231,7 @@ impl Ui {
 
         enum Placement {
             Interface,
-            // Number and resolution
+            // Number of primitives left to render ingame and relative scaling/resolution
             InWorld(usize, Option<f32>),
         };
 
@@ -295,6 +295,7 @@ impl Ui {
             }
 
             match placement {
+                // No primitives left to place in the world at the current position, go back to drawing the interface
                 Placement::InWorld(0, _) => {
                     placement = Placement::Interface;
                     p_scale_factor = self.scale.scale_factor_physical();
@@ -307,24 +308,22 @@ impl Ui {
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
                 }
-                Placement::InWorld(n, res) => match kind {
-                    // Other types don't need to be drawn in the game
+                // Primitives still left to draw ingame
+                Placement::InWorld(num_prims, res) => match kind {
+                    // Other types don't aren't drawn & shoudn't decrement the number of primitives left to draw ingame
                     PrimitiveKind::Other(_) => {}
-                    _ => {
-                        placement = Placement::InWorld(n - 1, res);
-                        if res.is_none() {
-                            continue;
-                        }
-                    }
+                    // Decrement the number of primitives left
+                    _ => placement = Placement::InWorld(num_prims - 1, res),
                 },
                 Placement::Interface => {}
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let (ui_win_w, ui_win_h) = if let Placement::InWorld(_, Some(res)) = placement {
-                (res as f64, res as f64)
-            } else {
-                (self.ui.win_w, self.ui.win_h)
+            let (ui_win_w, ui_win_h) = match placement {
+                Placement::InWorld(_, Some(res)) => (res as f64, res as f64),
+                // Behind the camera or far away
+                Placement::InWorld(_, None) => continue,
+                Placement::Interface => (self.ui.win_w, self.ui.win_h),
             };
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
