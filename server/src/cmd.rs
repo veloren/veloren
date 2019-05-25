@@ -212,7 +212,7 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         .read_component_cloned::<comp::phys::Pos>(entity)
     {
         Some(mut pos) => {
-            pos.0.x += 1.0;
+            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server
                 .create_npc(
                     pos,
