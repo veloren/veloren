@@ -25,11 +25,11 @@ impl StructureGen2d {
         let next = next.rotate_left(13).wrapping_mul(313322) ^ 0xDEADBEEF;
         let next = next.rotate_left(13).wrapping_mul(929009) ^ 0xFF329DE3;
         let next = next.rotate_left(13).wrapping_mul(422671) ^ 0x42892942;
-        next & 0xFFFF
+        next
     }
 
-    pub fn sample(&self, sample_pos: Vec2<i32>) -> [Vec2<i32>; 9] {
-        let mut samples = [Vec2::zero(); 9];
+    pub fn sample(&self, sample_pos: Vec2<i32>) -> [(Vec2<i32>, u32); 9] {
+        let mut samples = [(Vec2::zero(), 0); 9];
 
         let sample_closest = sample_pos.map(|e| e - e.rem_euclid(self.freq as i32));
 
@@ -38,10 +38,10 @@ impl StructureGen2d {
                 let center = sample_closest
                     + Vec2::new(i, j).map(|e| e as i32 - 1) * self.freq as i32
                     + self.freq as i32 / 2;
-                samples[i * 3 + j] = center + Vec2::new(
+                samples[i * 3 + j] = (center + Vec2::new(
                     (self.random(1, center) % (self.spread * 2)) as i32 - self.spread as i32,
                     (self.random(2, center) % (self.spread * 2)) as i32 - self.spread as i32,
-                );
+                ), self.random(3, center));
             }
         }
 

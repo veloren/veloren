@@ -64,17 +64,6 @@ impl World {
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                 let wposf2d = wpos2d.map(|e| e as f64);
 
-                let sim::Sample2d {
-                    alt,
-                    chaos,
-                    surface_color,
-                    close_trees,
-                } = if let Some(sample) = world_sampler.sample_2d(wpos2d) {
-                    sample
-                } else {
-                    continue;
-                };
-
                 let max_z = self
                     .sim
                     .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
