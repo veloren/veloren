@@ -131,6 +131,7 @@ impl PlayState for SessionState {
                     }
                     Event::InputUpdate(GameInput::Jump, true) => {
                         self.client.borrow_mut().jump();
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
