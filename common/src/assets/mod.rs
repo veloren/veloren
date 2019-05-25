@@ -36,6 +36,15 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
+/// Function used to load assets. Permits manipulating the loaded asset with a mapping function.
+/// Loaded assets are cached in a global singleton hashmap.
+/// Example usage:
+/// ```no_run
+/// use image::DynamicImage;
+/// use veloren_common::assets;
+///
+/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// ```
 pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
     f: F,
