@@ -348,7 +348,7 @@ impl Hud {
                     &mut self.ids.health_bars,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                // Healh Bar
+                // Health Bar
                 Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
                     .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
