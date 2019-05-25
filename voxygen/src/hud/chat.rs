@@ -96,7 +96,7 @@ impl<'a> Widget for Chat<'a> {
         // Empty old messages
         state.update(|s| {
             while s.messages.len() > MAX_MESSAGES {
-                s.messages.pop_back();
+                s.messages.pop_front();
             }
         });
 
