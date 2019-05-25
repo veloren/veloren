@@ -3,11 +3,67 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use vek::*;
 
-pub type MouseButton = glutin::MouseButton;
-pub type ElementState = glutin::ElementState;
+/// Represents a key that the game recognises after keyboard mapping.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum GameInput {
+    ToggleCursor,
+    MoveForward,
+    MoveBack,
+    MoveLeft,
+    MoveRight,
+    Jump,
+    Glide,
+    Enter,
+    Escape,
+    Map,
+    Bag,
+    QuestLog,
+    CharacterWindow,
+    Social,
+    Spellbook,
+    Settings,
+    ToggleInterface,
+    Help,
+    ToggleDebug,
+    Fullscreen,
+    Screenshot,
+    ToggleIngameUi,
+    Attack,
+    Respawn,
+}
+
+/// Represents an incoming event from the window.
+#[derive(Clone)]
+pub enum Event {
+    /// The window has been requested to close.
+    Close,
+    /// The window has been resized.
+    Resize(Vec2<u32>),
+    /// A key has been typed that corresponds to a specific character.
+    Char(char),
+    /// The cursor has been panned across the screen while grabbed.
+    CursorPan(Vec2<f32>),
+    /// The camera has been requested to zoom.
+    Zoom(f32),
+    /// A key that the game recognises has been pressed or released.
+    InputUpdate(GameInput, bool),
+    /// Event that the ui uses.
+    Ui(ui::Event),
+    // The view distance has been changed
+    ViewDistanceChanged(u32),
+    /// Game settings have changed.
+    SettingsChanged,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum KeyMouse {
+    Key(glutin::VirtualKeyCode),
+    Mouse(glutin::MouseButton),
+}
 
 pub struct Window {
     events_loop: glutin::EventsLoop,
@@ -18,7 +74,7 @@ pub struct Window {
     pub zoom_sensitivity: f32,
     fullscreen: bool,
     needs_refresh_resize: bool,
-    key_map: HashMap<glutin::VirtualKeyCode, Key>,
+    key_map: HashMap<KeyMouse, GameInput>,
     supplement_events: Vec<Event>,
     focused: bool,
 }
@@ -45,28 +101,29 @@ impl Window {
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
         let mut key_map = HashMap::new();
-        key_map.insert(settings.controls.toggle_cursor, Key::ToggleCursor);
-        key_map.insert(settings.controls.escape, Key::Escape);
-        key_map.insert(settings.controls.enter, Key::Enter);
-        key_map.insert(settings.controls.move_forward, Key::MoveForward);
-        key_map.insert(settings.controls.move_left, Key::MoveLeft);
-        key_map.insert(settings.controls.move_back, Key::MoveBack);
-        key_map.insert(settings.controls.move_right, Key::MoveRight);
-        key_map.insert(settings.controls.jump, Key::Jump);
-        key_map.insert(settings.controls.glide, Key::Glide);
-        key_map.insert(settings.controls.map, Key::Map);
-        key_map.insert(settings.controls.bag, Key::Bag);
-        key_map.insert(settings.controls.quest_log, Key::QuestLog);
-        key_map.insert(settings.controls.character_window, Key::CharacterWindow);
-        key_map.insert(settings.controls.social, Key::Social);
-        key_map.insert(settings.controls.spellbook, Key::Spellbook);
-        key_map.insert(settings.controls.settings, Key::Settings);
-        key_map.insert(settings.controls.help, Key::Help);
-        key_map.insert(settings.controls.toggle_interface, Key::ToggleInterface);
-        key_map.insert(settings.controls.toggle_debug, Key::ToggleDebug);
-        key_map.insert(settings.controls.fullscreen, Key::Fullscreen);
-        key_map.insert(settings.controls.screenshot, Key::Screenshot);
-        key_map.insert(settings.controls.toggle_ingame_ui, Key::ToggleIngameUi);
+        key_map.insert(settings.controls.toggle_cursor, GameInput::ToggleCursor);
+        key_map.insert(settings.controls.escape, GameInput::Escape);
+        key_map.insert(settings.controls.enter, GameInput::Enter);
+        key_map.insert(settings.controls.move_forward, GameInput::MoveForward);
+        key_map.insert(settings.controls.move_left, GameInput::MoveLeft);
+        key_map.insert(settings.controls.move_back, GameInput::MoveBack);
+        key_map.insert(settings.controls.move_right, GameInput::MoveRight);
+        key_map.insert(settings.controls.jump, GameInput::Jump);
+        key_map.insert(settings.controls.glide, GameInput::Glide);
+        key_map.insert(settings.controls.map, GameInput::Map);
+        key_map.insert(settings.controls.bag, GameInput::Bag);
+        key_map.insert(settings.controls.quest_log, GameInput::QuestLog);
+        key_map.insert(settings.controls.character_window, GameInput::CharacterWindow);
+        key_map.insert(settings.controls.social, GameInput::Social);
+        key_map.insert(settings.controls.spellbook, GameInput::Spellbook);
+        key_map.insert(settings.controls.settings, GameInput::Settings);
+        key_map.insert(settings.controls.help, GameInput::Help);
+        key_map.insert(settings.controls.toggle_interface, GameInput::ToggleInterface);
+        key_map.insert(settings.controls.toggle_debug, GameInput::ToggleDebug);
+        key_map.insert(settings.controls.fullscreen, GameInput::Fullscreen);
+        key_map.insert(settings.controls.screenshot, GameInput::Screenshot);
+        key_map.insert(settings.controls.toggle_ingame_ui, GameInput::ToggleIngameUi);
+        key_map.insert(settings.controls.attack, GameInput::Attack);
 
         Ok(Self {
             events_loop,
@@ -128,27 +185,26 @@ impl Window {
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. }
-                        if cursor_grabbed && state == glutin::ElementState::Pressed =>
+                        if cursor_grabbed =>
                     {
-                        events.push(Event::Click(button, state))
+                        if let Some(&game_input) = key_map.get(&KeyMouse::Mouse(button)) {
+                            events.push(Event::InputUpdate(game_input, state == glutin::ElementState::Pressed))
+                        }
                     }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
-                        Some(keycode) => match key_map.get(&keycode) {
-                            Some(Key::Fullscreen) => match input.state {
+                        Some(key) => match key_map.get(&KeyMouse::Key(key)) {
+                            Some(GameInput::Fullscreen) => match input.state {
                                 glutin::ElementState::Pressed => {
                                     toggle_fullscreen = !toggle_fullscreen
                                 }
                                 _ => (),
                             },
-                            Some(Key::Screenshot) => match input.state {
+                            Some(GameInput::Screenshot) => match input.state {
                                 glutin::ElementState::Pressed => take_screenshot = true,
                                 _ => {}
                             },
-                            Some(&key) => events.push(match input.state {
-                                glutin::ElementState::Pressed => Event::KeyDown(key),
-                                glutin::ElementState::Released => Event::KeyUp(key),
-                            }),
+                            Some(&game_input) => events.push(Event::InputUpdate(game_input, input.state == glutin::ElementState::Pressed)),
                             _ => {}
                         },
                         _ => {}
@@ -260,57 +316,4 @@ impl Window {
             Err(err) => log::error!("Coudn't create screenshot due to renderer error: {:?}", err),
         }
     }
-}
-
-/// Represents a key that the game recognises after keyboard mapping.
-#[derive(Clone, Copy)]
-pub enum Key {
-    ToggleCursor,
-    MoveForward,
-    MoveBack,
-    MoveLeft,
-    MoveRight,
-    Jump,
-    Glide,
-    Enter,
-    Escape,
-    Map,
-    Bag,
-    QuestLog,
-    CharacterWindow,
-    Social,
-    Spellbook,
-    Settings,
-    ToggleInterface,
-    Help,
-    ToggleDebug,
-    Fullscreen,
-    Screenshot,
-    ToggleIngameUi,
-}
-
-/// Represents an incoming event from the window.
-#[derive(Clone)]
-pub enum Event {
-    /// The window has been requested to close.
-    Close,
-    /// The window has been resized.
-    Resize(Vec2<u32>),
-    /// A key has been typed that corresponds to a specific character.
-    Char(char),
-    /// The cursor has been panned across the screen while grabbed.
-    Click(MouseButton, ElementState),
-    CursorPan(Vec2<f32>),
-    /// The camera has been requested to zoom.
-    Zoom(f32),
-    /// A key that the game recognises has been pressed down.
-    KeyDown(Key),
-    /// A key that the game recognises has been released down.
-    KeyUp(Key),
-    /// Event that the ui uses.
-    Ui(ui::Event),
-    // The view distance has been changed
-    ViewDistanceChanged(u32),
-    /// Game settings have changed.
-    SettingsChanged,
 }
