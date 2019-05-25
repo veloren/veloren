@@ -3,9 +3,11 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
-use glutin::{ElementState, MouseButton};
 use std::collections::HashMap;
 use vek::*;
+
+pub type MouseButton = glutin::MouseButton;
+pub type ElementState = glutin::ElementState;
 
 pub struct Window {
     events_loop: glutin::EventsLoop,
@@ -126,7 +128,7 @@ impl Window {
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. }
-                        if cursor_grabbed && state == ElementState::Pressed =>
+                        if cursor_grabbed && state == glutin::ElementState::Pressed =>
                     {
                         events.push(Event::Click(button, state))
                     }
