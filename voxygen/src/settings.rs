@@ -41,6 +41,8 @@ pub struct ControlSettings {
     pub fullscreen: VirtualKeyCode,
     pub screenshot: VirtualKeyCode,
     pub toggle_ingame_ui: VirtualKeyCode,
+    pub pan_sensitivity: f32,
+    pub zoom_sensitivity: f32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -97,6 +99,8 @@ impl Default for Settings {
                 fullscreen: VirtualKeyCode::F11,
                 screenshot: VirtualKeyCode::F4,
                 toggle_ingame_ui: VirtualKeyCode::F6,
+                pan_sensitivity: 1.0,
+                zoom_sensitivity: 1.0,
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
