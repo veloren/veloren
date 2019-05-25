@@ -36,6 +36,28 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
+/// Function used to load assets. Permits manipulating the loaded asset with a mapping function.
+/// Loaded assets are cached in a global singleton hashmap.
+/// Example usage:
+/// ```no_run
+/// use image::DynamicImage;
+/// use veloren_common::assets;
+///
+/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// ```
+pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
+    specifier: &str,
+    f: F,
+) -> Result<Arc<A>, Error> {
+    Ok(ASSETS
+        .write()
+        .unwrap()
+        .entry(specifier.to_string())
+        .or_insert(Arc::new(f(A::load(specifier)?)))
+        .clone()
+        .downcast()?)
+}
+
 /// Function used to load assets.
 /// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
@@ -46,13 +68,7 @@ lazy_static! {
 /// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
 pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
-    Ok(ASSETS
-        .write()
-        .unwrap()
-        .entry(specifier.to_string())
-        .or_insert(Arc::new(A::load(specifier)?))
-        .clone()
-        .downcast()?)
+    load_map(specifier, |x| x)
 }
 
 /// Function used to load assets that will panic if the asset is not found.
