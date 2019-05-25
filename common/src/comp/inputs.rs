@@ -1,33 +1,49 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum InputEvent {
-    Jump,
-    Attack,
-    RequestRespawn,
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Control {
+    pub move_dir: Vec2<f32>,
 }
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Respawning;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Inputs {
-    // Held down
-    pub move_dir: Vec2<f32>,
-    pub jumping: bool,
-    pub gliding: bool,
-
-    // Event based
-    pub events: Vec<InputEvent>,
+pub struct Attacking {
+    pub time: f32,
+    pub applied: bool,
 }
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Jumping;
 
-impl Component for Inputs {
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Gliding;
+
+impl Component for Control {
     type Storage = VecStorage<Self>;
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Actions {
-    pub attack_time: Option<f32>,
+impl Component for Respawning {
+    type Storage = NullStorage<Self>;
 }
 
-impl Component for Actions {
+impl Attacking {
+    pub fn start() -> Self {
+        Self {
+            time: 0.0,
+            applied: false,
+        }
+    }
+}
+impl Component for Attacking {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Component for Jumping {
+    type Storage = NullStorage<Self>;
+}
+
+impl Component for Gliding {
+    type Storage = NullStorage<Self>;
 }

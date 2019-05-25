@@ -141,7 +141,10 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 fn handle_kill(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     server
         .state
-        .write_component::<comp::Dying>(entity, comp::Dying)
+        .ecs_mut()
+        .write_storage::<comp::Stats>()
+        .get_mut(entity)
+        .map(|s| s.hp.current = 0);
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
@@ -208,9 +211,11 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
     {
-        Some(pos) => {
+        Some(mut pos) => {
+            pos.0.x += 1.0;
             server
                 .create_npc(
+                    pos,
                     "Bungo".to_owned(),
                     comp::Body::Quadruped(comp::QuadrupedBody::random()),
                 )
@@ -218,7 +223,6 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                     target: entity,
                     offset: Vec2::zero(),
                 })
-                .with(pos)
                 .build();
             server
                 .clients

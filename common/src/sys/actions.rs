@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, Pos, Vel},
-        Actions, Animation, AnimationInfo,
+        Animation, AnimationInfo, Attacking,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -17,18 +17,27 @@ use crate::{
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (Entities<'a>, Read<'a, DeltaTime>, WriteStorage<'a, Actions>);
+    type SystemData = (
+        Entities<'a>,
+        Read<'a, DeltaTime>,
+        WriteStorage<'a, Attacking>,
+    );
 
-    fn run(&mut self, (entities, dt, mut actions): Self::SystemData) {
-        for (entity, mut action) in (&entities, &mut actions).join() {
-            let should_end = action.attack_time.as_mut().map_or(false, |mut time| {
-                *time += dt.0;
-                *time > 0.5 // TODO: constant
-            });
+    fn run(&mut self, (entities, dt, mut attackings): Self::SystemData) {
+        for (entity, attacking) in (&entities, &mut attackings).join() {
+            attacking.time += dt.0;
+        }
 
-            if should_end {
-                action.attack_time = None;
-            }
+        let finished_attack = (&entities, &mut attackings)
+            .join()
+            .filter(|(e, a)| {
+                a.time > 0.5 // TODO: constant
+            })
+            .map(|(e, a)| e)
+            .collect::<Vec<_>>();
+
+        for entity in finished_attack {
+            attackings.remove(entity);
         }
     }
 }

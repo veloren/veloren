@@ -113,12 +113,18 @@ impl Window {
         key_map.insert(settings.controls.map, GameInput::Map);
         key_map.insert(settings.controls.bag, GameInput::Bag);
         key_map.insert(settings.controls.quest_log, GameInput::QuestLog);
-        key_map.insert(settings.controls.character_window, GameInput::CharacterWindow);
+        key_map.insert(
+            settings.controls.character_window,
+            GameInput::CharacterWindow,
+        );
         key_map.insert(settings.controls.social, GameInput::Social);
         key_map.insert(settings.controls.spellbook, GameInput::Spellbook);
         key_map.insert(settings.controls.settings, GameInput::Settings);
         key_map.insert(settings.controls.help, GameInput::Help);
-        key_map.insert(settings.controls.toggle_interface, GameInput::ToggleInterface);
+        key_map.insert(
+            settings.controls.toggle_interface,
+            GameInput::ToggleInterface,
+        );
         key_map.insert(settings.controls.toggle_debug, GameInput::ToggleDebug);
         key_map.insert(settings.controls.fullscreen, GameInput::Fullscreen);
         key_map.insert(settings.controls.screenshot, GameInput::Screenshot);
@@ -184,11 +190,12 @@ impl Window {
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                    glutin::WindowEvent::MouseInput { button, state, .. }
-                        if cursor_grabbed =>
-                    {
+                    glutin::WindowEvent::MouseInput { button, state, .. } if cursor_grabbed => {
                         if let Some(&game_input) = key_map.get(&KeyMouse::Mouse(button)) {
-                            events.push(Event::InputUpdate(game_input, state == glutin::ElementState::Pressed))
+                            events.push(Event::InputUpdate(
+                                game_input,
+                                state == glutin::ElementState::Pressed,
+                            ))
                         }
                     }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
@@ -204,7 +211,10 @@ impl Window {
                                 glutin::ElementState::Pressed => take_screenshot = true,
                                 _ => {}
                             },
-                            Some(&game_input) => events.push(Event::InputUpdate(game_input, input.state == glutin::ElementState::Pressed)),
+                            Some(&game_input) => events.push(Event::InputUpdate(
+                                game_input,
+                                input.state == glutin::ElementState::Pressed,
+                            )),
                             _ => {}
                         },
                         _ => {}
