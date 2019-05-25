@@ -4,7 +4,7 @@ use crate::{
     render::Renderer,
     scene::Scene,
     settings::Settings,
-    window::{Event, Key, Window},
+    window::{Event, GameInput, Window},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
@@ -136,32 +136,23 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     // Attack key pressed
-                    Event::Click(MouseButton::Left, state) => match alive {
-                        true => {
-                            self.input_events.push(comp::InputEvent::Attack);
-                        }
-                        false => {
-                            self.input_events.push(comp::InputEvent::RequestRespawn);
-                        }
-                        _ => unreachable!(),
+                    Event::InputUpdate(GameInput::Attack, state) => {
+                        self.input_events.push(comp::InputEvent::Attack);
+                        //self.input_events.push(comp::InputEvent::RequestRespawn);
                     },
-                    // Movement key pressed
-                    Event::KeyDown(Key::MoveForward) if alive => self.key_state.up = true,
-                    Event::KeyDown(Key::MoveBack) if alive => self.key_state.down = true,
-                    Event::KeyDown(Key::MoveLeft) if alive => self.key_state.left = true,
-                    Event::KeyDown(Key::MoveRight) if alive => self.key_state.right = true,
-                    Event::KeyDown(Key::Jump) if alive => {
+                    Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
+                    Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
+                    Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
+                    Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
+                    Event::InputUpdate(GameInput::Glide, state) => self.key_state.glide = state,
+                    Event::InputUpdate(GameInput::Jump, true) => {
                         self.input_events.push(comp::InputEvent::Jump);
                         self.key_state.jump = true;
                     }
-                    Event::KeyDown(Key::Glide) if alive => self.key_state.glide = true,
-                    // Movement key released
-                    Event::KeyUp(Key::MoveForward) if alive => self.key_state.up = false,
-                    Event::KeyUp(Key::MoveBack) if alive => self.key_state.down = false,
-                    Event::KeyUp(Key::MoveLeft) if alive => self.key_state.left = false,
-                    Event::KeyUp(Key::MoveRight) if alive => self.key_state.right = false,
-                    Event::KeyUp(Key::Jump) if alive => self.key_state.jump = false,
-                    Event::KeyUp(Key::Glide) if alive => self.key_state.glide = false,
+                    Event::InputUpdate(GameInput::Jump, false) => {
+                        self.key_state.jump = false;
+                    }
+
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);

@@ -27,7 +27,7 @@ use crate::{
     scene::camera::Camera,
     settings::{ControlSettings, Settings},
     ui::{Ingame, Ingameable, ScaleMode, Ui},
-    window::{Event as WinEvent, Key, Window},
+    window::{Event as WinEvent, GameInput, Window},
     GlobalState,
 };
 use client::Client;
@@ -624,20 +624,10 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::KeyDown(Key::ToggleInterface) => {
-                self.show.toggle_ui();
-                true
-            }
-            WinEvent::KeyDown(Key::ToggleCursor) => {
-                self.force_ungrab = !self.force_ungrab;
-                if self.force_ungrab {
-                    global_state.window.grab_cursor(false);
-                }
-                true
-            }
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
-            WinEvent::KeyDown(Key::Enter) => {
+
+            WinEvent::InputUpdate(GameInput::Enter, true) => {
                 self.ui.focus_widget(if self.typing() {
                     None
                 } else {
@@ -645,7 +635,7 @@ impl Hud {
                 });
                 true
             }
-            WinEvent::KeyDown(Key::Escape) => {
+            WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
                 } else {
@@ -654,40 +644,53 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::KeyDown(key) if !self.typing() => match key {
-                Key::Map => {
+
+            // Press key while not typing
+            WinEvent::InputUpdate(key, true) if !self.typing() => match key {
+                GameInput::ToggleInterface => {
+                    self.show.toggle_ui();
+                    true
+                }
+                GameInput::ToggleCursor => {
+                    self.force_ungrab = !self.force_ungrab;
+                    if self.force_ungrab {
+                        global_state.window.grab_cursor(false);
+                    }
+                    true
+                }
+                GameInput::Map => {
                     self.show.toggle_map();
                     true
                 }
-                Key::Bag => {
+                GameInput::Bag => {
                     self.show.toggle_bag();
                     true
                 }
-                Key::QuestLog => {
+                GameInput::QuestLog => {
                     self.show.toggle_small(SmallWindowType::QuestLog);
                     true
                 }
-                Key::CharacterWindow => {
+                GameInput::CharacterWindow => {
                     self.show.toggle_char_window();
                     true
                 }
-                Key::Social => {
+                GameInput::Social => {
                     self.show.toggle_small(SmallWindowType::Social);
                     true
                 }
-                Key::Spellbook => {
+                GameInput::Spellbook => {
                     self.show.toggle_small(SmallWindowType::Spellbook);
                     true
                 }
-                Key::Settings => {
+                GameInput::Settings => {
                     self.show.toggle_settings();
                     true
                 }
-                Key::Help => {
+                GameInput::Help => {
                     self.show.toggle_help();
                     true
                 }
-                Key::ToggleDebug => {
+                GameInput::ToggleDebug => {
                     self.show.debug = !self.show.debug;
                     true
                 }
@@ -697,11 +700,10 @@ impl Hud {
                 }
                 _ => false,
             },
-            WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
-                Key::ToggleCursor => false,
-                _ => self.typing(),
-            },
+            // Else the player is typing in chat
+            WinEvent::InputUpdate(key, _) => self.typing(),
             WinEvent::Char(_) => self.typing(),
+
             _ => false,
         };
         // Handle cursor grab.
