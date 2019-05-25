@@ -1,6 +1,6 @@
 // Library
-use vek::*;
 use serde_derive::{Deserialize, Serialize};
+use vek::*;
 
 // Local
 use crate::vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol};

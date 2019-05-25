@@ -7,6 +7,7 @@ use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{SizedVol, VolSize, Vox, WriteVol},
 };
+use fxhash::FxHashMap;
 use noise::{BasicMulti, MultiFractal, NoiseFn, Perlin, Seedable};
 use std::{
     hash::Hash,
@@ -14,7 +15,6 @@ use std::{
     time::Duration,
 };
 use vek::*;
-use fxhash::FxHashMap;
 
 #[derive(Debug)]
 pub enum Error {
@@ -74,11 +74,12 @@ impl World {
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                    let sim::Sample3d { block } = if let Some(sample) = world_sampler.sample_3d(wpos) {
-                        sample
-                    } else {
-                        continue
-                    };
+                    let sim::Sample3d { block } =
+                        if let Some(sample) = world_sampler.sample_3d(wpos) {
+                            sample
+                        } else {
+                            continue;
+                        };
 
                     let _ = chunk.set(lpos, block);
                 }
@@ -111,11 +112,13 @@ impl<K: Hash + Eq + Copy, V> Cache<K, V> {
 
     pub fn get<F: FnOnce(K) -> V>(&mut self, k: K, f: F) -> &V {
         let mut counter = &mut self.counter;
-        &self.map
+        &self
+            .map
             .entry(k)
             .or_insert_with(|| {
                 *counter += 1;
                 (*counter, f(k))
-            }).1
+            })
+            .1
     }
 }
