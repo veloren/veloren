@@ -397,7 +397,7 @@ impl FigureMgr {
                             comp::Animation::Attack => character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Gliding => {
                                 character::GlidingAnimation::update_skeleton(
