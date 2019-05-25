@@ -6,7 +6,7 @@ use crate::{
         dyna::{Dyna, DynaErr},
     },
 };
-use std::{collections::HashMap, marker::PhantomData, sync::Arc};
+use std::{collections::{hash_map, HashMap}, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]
@@ -147,6 +147,10 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
 
     pub fn clear(&mut self) {
         self.chunks.clear();
+    }
+
+    pub fn drain(&mut self) -> hash_map::Drain<Vec2<i32>, Arc<V>> {
+        self.chunks.drain()
     }
 
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> {
