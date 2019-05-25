@@ -23,7 +23,8 @@ fn main() {
 
                 let alt = world
                     .sim()
-                    .sample(pos)
+                    .sampler()
+                    .sample_2d(pos)
                     .map(|sample| sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8)
                     .unwrap_or(0);
 
