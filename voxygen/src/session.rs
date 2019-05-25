@@ -125,14 +125,12 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    // Attack key pressed
                     Event::InputUpdate(GameInput::Attack, true) => {
                         self.client.borrow_mut().attack();
                         self.client.borrow_mut().respawn();
                     }
                     Event::InputUpdate(GameInput::Jump, true) => {
                         self.client.borrow_mut().jump();
-                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
