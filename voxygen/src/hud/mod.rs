@@ -305,10 +305,10 @@ impl Hud {
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-            for (pos, name) in (&entities, &pos, &actor, player.maybe())
+            for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
                 .join()
-                .filter(|(entity, _, _, _)| *entity != me)
-                .map(|(entity, pos, actor, player)| match actor {
+                .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead())
+                .map(|(entity, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
                         name: char_name, ..
                     } => {
