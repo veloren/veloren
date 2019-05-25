@@ -366,7 +366,8 @@ impl FigureMgr {
                 .and_then(|stats| stats.hp.last_change)
                 .map(|(change_by, time)| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(0.0, -1.0, -1.0, 0.0).map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
+                        + Rgba::new(0.0, -1.0, -1.0, 0.0)
+                            .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
 
@@ -460,13 +461,17 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor, _) in (
+        for (entity, actor, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Actor>(),
-            &ecs.read_storage::<comp::Actions>(),
+            &ecs.read_storage::<comp::Stats>(), // Just to make sure the entity is alive
         )
             .join()
         {
+            if stats.is_dead() {
+                return;
+            }
+
             match actor {
                 comp::Actor::Character { body, .. } => {
                     if let Some((locals, bone_consts)) = match body {

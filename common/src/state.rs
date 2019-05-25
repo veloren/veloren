@@ -103,7 +103,7 @@ impl State {
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::Actions>();
+        ecs.register_synced::<comp::Attacking>();
         ecs.register::<comp::phys::ForceUpdate>();
 
         // Register unsynced (or synced by other means) components.
@@ -111,9 +111,12 @@ impl State {
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
         ecs.register::<comp::AnimationInfo>();
-        ecs.register::<comp::Inputs>();
+        ecs.register::<comp::Attacking>();
+        ecs.register::<comp::Control>();
+        ecs.register::<comp::Jumping>();
+        ecs.register::<comp::Respawning>();
+        ecs.register::<comp::Gliding>();
         ecs.register::<comp::Dying>();
-        ecs.register::<comp::Respawn>();
         ecs.register::<comp::Agent>();
         ecs.register::<inventory::Inventory>();
 
@@ -192,7 +195,8 @@ impl State {
 
     /// Removes every chunk of the terrain.
     pub fn clear_terrain(&mut self) {
-        let keys = self.terrain_mut()
+        let keys = self
+            .terrain_mut()
             .drain()
             .map(|(key, _)| key)
             .collect::<Vec<_>>();

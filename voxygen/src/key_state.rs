@@ -5,8 +5,6 @@ pub struct KeyState {
     pub left: bool,
     pub up: bool,
     pub down: bool,
-    pub jump: bool,
-    pub glide: bool,
 }
 
 impl KeyState {
@@ -16,8 +14,6 @@ impl KeyState {
             left: false,
             up: false,
             down: false,
-            jump: false,
-            glide: false,
         }
     }
 
