@@ -30,6 +30,8 @@ use specs::{Component, Entity as EcsEntity, Join, VecStorage};
 use std::{collections::HashMap, f32};
 use vek::*;
 
+const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
+
 pub struct FigureModelCache {
     models: HashMap<Body, (Model<FigurePipeline>, u64)>,
 }
@@ -364,7 +366,7 @@ impl FigureMgr {
                 .and_then(|stats| stats.hp.last_change)
                 .map(|(change_by, time)| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(0.0, -1.0, -1.0, 0.0).map(|c| (c / (1.0 + 5.0 * time)) as f32)
+                        + Rgba::new(0.0, -1.0, -1.0, 0.0).map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
 
