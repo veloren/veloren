@@ -40,7 +40,10 @@ impl WorldSim {
             small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 6),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
             warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
-            tree_nz: BasicMulti::new().set_octaves(6).set_seed(seed + 9),
+            tree_nz: BasicMulti::new()
+                .set_octaves(8)
+                .set_persistence(0.75)
+                .set_seed(seed + 9),
         };
 
         let mut chunks = Vec::new();
@@ -246,7 +249,10 @@ impl<'a> Sampler<'a> {
                 .iter()
                 .fold(air, |block, (tree_pos, tree_seed)| {
                     match self.sample_2d(*tree_pos) {
-                        Some(tree_sample) if tree_sample.tree_density > 0.5 => {
+                        Some(tree_sample)
+                            if tree_sample.tree_density
+                                > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2 =>
+                        {
                             let tree_pos3d =
                                 Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
                             block.or(TREES[*tree_seed as usize % TREES.len()]
@@ -385,21 +391,23 @@ impl SimChunk {
 
         let alt_main = gen_ctx.alt_nz.get((wposf.div(1_500.0)).into_array()) as f32;
 
+        let alt = SEA_LEVEL
+            + alt_base
+            + (0.0
+                + alt_main
+                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
+                    * alt_main.max(0.05)
+                    * chaos
+                    * 1.3)
+                .add(1.0)
+                .mul(0.5)
+                .mul(chaos)
+                .mul(1200.0);
+
         Self {
             chaos,
             alt_base,
-            alt: SEA_LEVEL
-                + alt_base
-                + (0.0
-                    + alt_main
-                    + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
-                        * alt_main.max(0.05)
-                        * chaos
-                        * 1.3)
-                    .add(1.0)
-                    .mul(0.5)
-                    .mul(chaos)
-                    .mul(1200.0),
+            alt,
             temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5),
@@ -410,7 +418,9 @@ impl SimChunk {
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.0 - chaos),
+                .mul(1.0 - chaos * 0.8)
+                .add(0.1)
+                .mul(if alt > SEA_LEVEL + 3.0 { 1.0 } else { 0.0 }),
         }
     }
 
