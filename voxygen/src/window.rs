@@ -11,6 +11,8 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
+    pub pan_sensitivity: f32,
+    pub zoom_sensitivity: f32,
     fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<glutin::VirtualKeyCode, Key>,
@@ -62,17 +64,18 @@ impl Window {
         key_map.insert(settings.controls.screenshot, Key::Screenshot);
         key_map.insert(settings.controls.toggle_ingame_ui, Key::ToggleIngameUi);
 
-        let tmp = Ok(Self {
+        Ok(Self {
             events_loop,
             renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
             window,
             cursor_grabbed: false,
+            pan_sensitivity: settings.controls.pan_sensitivity,
+            zoom_sensitivity: settings.controls.zoom_sensitivity,
             fullscreen: false,
             needs_refresh_resize: false,
             key_map,
             supplement_events: vec![],
-        });
-        tmp
+        })
     }
 
     pub fn renderer(&self) -> &Renderer {
@@ -97,6 +100,8 @@ impl Window {
         let renderer = &mut self.renderer;
         let window = &mut self.window;
         let key_map = &self.key_map;
+        let pan_sensitivity = self.pan_sensitivity;
+        let zoom_sensitivity = self.zoom_sensitivity;
         let mut toggle_fullscreen = false;
         let mut take_screenshot = false;
 
@@ -143,13 +148,14 @@ impl Window {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     glutin::DeviceEvent::MouseMotion {
                         delta: (dx, dy), ..
-                    } if cursor_grabbed => {
-                        events.push(Event::CursorPan(Vec2::new(dx as f32, dy as f32)))
-                    }
+                    } if cursor_grabbed => events.push(Event::CursorPan(Vec2::new(
+                        dx as f32 * pan_sensitivity,
+                        dy as f32 * pan_sensitivity,
+                    ))),
                     glutin::DeviceEvent::MouseWheel {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..
-                    } if cursor_grabbed => events.push(Event::Zoom(y as f32)),
+                    } if cursor_grabbed => events.push(Event::Zoom(y as f32 * zoom_sensitivity)),
                     _ => {}
                 },
                 _ => {}
