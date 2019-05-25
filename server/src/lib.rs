@@ -76,7 +76,7 @@ impl Server {
         state.ecs_mut().register::<comp::phys::ForceUpdate>();
         state
             .ecs_mut()
-            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 150.0)));
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 280.0)));
 
         let mut this = Self {
             state,
