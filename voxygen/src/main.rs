@@ -1,4 +1,5 @@
 #![feature(drain_filter)]
+#![feature(type_alias_enum_variants)]
 #![recursion_limit = "2048"]
 
 #[macro_use]
