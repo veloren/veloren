@@ -295,7 +295,7 @@ impl Server {
                     .map(|e: i32| e.abs())
                     .reduce_max() as u32;
 
-                if player.view_distance.map(|vd| dist < vd).unwrap_or(false) {
+                if player.view_distance.map(|vd| dist <= vd).unwrap_or(false) {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -329,6 +329,7 @@ impl Server {
 
                 if player.view_distance.map(|vd| dist <= vd).unwrap_or(false) {
                     should_drop = false;
+                    break;
                 }
             }
 
