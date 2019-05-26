@@ -72,15 +72,15 @@ impl Animation for IdleAnimation {
             * Quaternion::rotation_x(wolf_tail.y);
         next.wolf_tail.scale = Vec3::one() / 11.0;
 
-        next.wolf_torsoback.offset = Vec3::new(0.0, -9.5, 11.0 + wave_ultra_slow * 1.2) / 11.0;
+        next.wolf_torsoback.offset = Vec3::new(0.0, -11.7, 11.0 + wave_ultra_slow * 1.2) / 11.0;
         next.wolf_torsoback.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.wolf_torsoback.scale = Vec3::one() / 11.0;
 
         next.wolf_torsomid.offset = Vec3::new(0.0, 0.0, 12.0 + wave_ultra_slow * 0.7) / 11.0;
         next.wolf_torsomid.ori = Quaternion::rotation_y(wave_slow * 0.015);
-        next.wolf_torsomid.scale = Vec3::one() / 10.9;
+        next.wolf_torsomid.scale = Vec3::one() / 10.5;
 
-        next.wolf_ears.offset = Vec3::new(0.0, 0.75, 6.25);
+        next.wolf_ears.offset = Vec3::new(0.0, 0.75, 5.25);
         next.wolf_ears.ori = Quaternion::rotation_x(0.0 + wave_slow * 0.1);
         next.wolf_ears.scale = Vec3::one() * 1.05;
 
