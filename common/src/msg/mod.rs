@@ -9,8 +9,10 @@ pub use self::server::{RequestStateError, ServerMsg};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ClientState {
+    Pending,
     Connected,
     Registered,
     Spectator,
+    Dead,
     Character,
 }

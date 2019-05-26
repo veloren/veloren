@@ -4,11 +4,12 @@ use crate::{
     render::Renderer,
     scene::Scene,
     settings::Settings,
-    window::{Event, Key, Window},
+    window::{Event, GameInput, Window},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
-use client::{self, Client, Input, InputEvent};
-use common::clock::Clock;
+use client::{self, Client};
+use common::{clock::Clock, comp, msg::ClientState};
+use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
 
@@ -18,7 +19,6 @@ pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
     key_state: KeyState,
-    input_events: Vec<InputEvent>,
     hud: Hud,
 }
 
@@ -33,7 +33,6 @@ impl SessionState {
             client,
             key_state: KeyState::new(),
             hud: Hud::new(window),
-            input_events: Vec::new(),
         }
     }
 }
@@ -59,19 +58,11 @@ impl SessionState {
         let dir_vec = self.key_state.dir_vec();
         let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
-        // Take the input events.
-        let mut input_events = Vec::new();
-        mem::swap(&mut self.input_events, &mut input_events);
-
-        for event in self.client.borrow_mut().tick(
-            Input {
-                move_dir,
-                jumping: self.key_state.jump,
-                gliding: self.key_state.glide,
-                events: input_events,
-            },
-            dt,
-        )? {
+        for event in self
+            .client
+            .borrow_mut()
+            .tick(comp::Control { move_dir }, dt)?
+        {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -114,65 +105,56 @@ impl PlayState for SessionState {
 
         // Set up an fps clock.
         let mut clock = Clock::new();
-
-        // Load a few chunks. TODO: Remove this.
-        /*
-        for x in -6..7 {
-            for y in -6..7 {
-                for z in -1..2 {
-                    self.client.borrow_mut().load_chunk(Vec3::new(x, y, z));
-                }
-            }
-        }
-        */
+        self.client.borrow_mut().clear_terrain();
 
         // Game loop
-        loop {
+        let mut current_client_state = self.client.borrow().get_client_state();
+        while let ClientState::Pending | ClientState::Character | ClientState::Dead =
+            current_client_state
+        {
+            let alive = self.client.borrow().get_client_state() == ClientState::Character;
+
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
                 if self.hud.handle_event(event.clone(), global_state) {
                     continue;
                 }
-                let _handled = match event {
+
+                match event {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    // Movement Key Pressed
-                    Event::KeyDown(Key::MoveForward) => self.key_state.up = true,
-                    Event::KeyDown(Key::MoveBack) => self.key_state.down = true,
-                    Event::KeyDown(Key::MoveLeft) => self.key_state.left = true,
-                    Event::KeyDown(Key::MoveRight) => self.key_state.right = true,
-                    Event::KeyDown(Key::Jump) => {
-                        self.input_events.push(InputEvent::Jump);
-                        self.key_state.jump = true;
+                    Event::InputUpdate(GameInput::Attack, true) => {
+                        self.client.borrow_mut().attack();
+                        self.client.borrow_mut().respawn();
                     }
-                    Event::KeyDown(Key::Glide) => self.key_state.glide = true,
-                    // Movement Key Released
-                    Event::KeyUp(Key::MoveForward) => self.key_state.up = false,
-                    Event::KeyUp(Key::MoveBack) => self.key_state.down = false,
-                    Event::KeyUp(Key::MoveLeft) => self.key_state.left = false,
-                    Event::KeyUp(Key::MoveRight) => self.key_state.right = false,
-                    Event::KeyUp(Key::Jump) => self.key_state.jump = false,
-                    Event::KeyUp(Key::Glide) => self.key_state.glide = false,
+                    Event::InputUpdate(GameInput::Jump, true) => {
+                        self.client.borrow_mut().jump();
+                    }
+                    Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
+                    Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
+                    Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
+                    Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
+                    Event::InputUpdate(GameInput::Glide, state) => {
+                        self.client.borrow_mut().glide(state)
+                    }
+
                     // Pass all other events to the scene
                     event => {
                         self.scene.handle_input_event(event);
-                    }
-                };
-                // TODO: Do something if the event wasn't handled?
+                    } // TODO: Do something if the event wasn't handled?
+                }
             }
 
             // Perform an in-game tick.
-            self.tick(clock.get_last_delta())
-                .expect("Failed to tick the scene!");
+            if let Err(err) = self.tick(clock.get_last_delta()) {
+                log::error!("Failed to tick the scene: {:?}", err);
+                return PlayStateResult::Pop;
+            }
 
             // Maintain global state
             global_state.maintain();
-
-            // Maintain the scene.
-            self.scene
-                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
             // extract HUD events ensuring the client borrow gets dropped
             let hud_events = self.hud.maintain(
@@ -215,7 +197,10 @@ impl PlayState for SessionState {
                     }
                 }
             }
-            {}
+
+            // Maintain the scene.
+            self.scene
+                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
@@ -231,7 +216,11 @@ impl PlayState for SessionState {
 
             // Clean things up after the tick.
             self.cleanup();
+
+            current_client_state = self.client.borrow().get_client_state();
         }
+
+        PlayStateResult::Pop
     }
 
     fn name(&self) -> &'static str {

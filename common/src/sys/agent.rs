@@ -1,22 +1,29 @@
 // Library
-use specs::{Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
 
 // Crate
-use crate::comp::{phys::Pos, Agent, Control};
+use crate::comp::{phys::Pos, Agent, Control, Jumping};
 
 // Basic ECS AI agent system
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Entities<'a>,
         WriteStorage<'a, Agent>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Control>,
+        WriteStorage<'a, Jumping>,
     );
 
-    fn run(&mut self, (mut agents, positions, mut controls): Self::SystemData) {
-        for (mut agent, pos, mut control) in (&mut agents, &positions, &mut controls).join() {
+    fn run(
+        &mut self,
+        (entities, mut agents, positions, mut controls, mut jumpings): Self::SystemData,
+    ) {
+        for (entity, agent, pos, control) in
+            (&entities, &mut agents, &positions, &mut controls).join()
+        {
             match agent {
                 Agent::Wanderer(bearing) => {
                     *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
@@ -34,8 +41,9 @@ impl<'a> System<'a> for Sys {
                         Some(tgt_pos) => {
                             let tgt_pos = tgt_pos.0 + *offset;
 
-                            // Jump with target.
-                            control.jumping = tgt_pos.z > pos.0.z + 1.0;
+                            if tgt_pos.z > pos.0.z + 1.0 {
+                                jumpings.insert(entity, Jumping);
+                            }
 
                             // Move towards the target.
                             let dist = tgt_pos.distance(pos.0);
