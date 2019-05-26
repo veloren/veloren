@@ -602,6 +602,57 @@ impl FigureMgr {
 
                         state.update(renderer, pos.0, dir.0, col);
                     }
+                    Body::QuadrupedMedium(body) => {
+                        let state =
+                            self.QuadrupedMedium_states
+                                .entry(entity)
+                                .or_insert_with(|| {
+                                    FigureState::new(renderer, QuadrupedMediumSkeleton::new())
+                                });
+
+                        let target_skeleton = match animation_history.current {
+                            comp::Animation::Run => quadrupedmedium::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                            comp::Animation::Idle => {
+                                quadrupedmedium::IdleAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    time,
+                                    animation_history.time,
+                                )
+                            }
+                            comp::Animation::Jump => {
+                                quadrupedmedium::JumpAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    (vel.0.magnitude(), time),
+                                    animation_history.time,
+                                )
+                            }
+
+                            // TODO!
+                            _ => state.skeleton_mut().clone(),
+                        };
+
+                        state.skeleton.interpolate(&target_skeleton);
+
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        state.update(renderer, pos.0, dir.0, col);
+
+                        state.update(renderer, pos.0, dir.0, col);
+                    }
                 },
                 // TODO: Non-character actors
             }
