@@ -85,7 +85,7 @@ impl Animation for RunAnimation {
         next.wolf_torsomid.offset =
             Vec3::new(0.0, 0.0 + wave_quick_cos * 2.2, 14.0 + wave_med * 3.2) / 11.0;
         next.wolf_torsomid.ori = Quaternion::rotation_x(-0.15 + wave_med_cos * 0.12);
-        next.wolf_torsomid.scale = Vec3::one() / 10.9;
+        next.wolf_torsomid.scale = Vec3::one() / 10.5;
 
         next.wolf_ears.offset = Vec3::new(0.0, 0.75 + wave * 0.4, 6.25);
         next.wolf_ears.ori = Quaternion::rotation_x(wave * 0.2);
