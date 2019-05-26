@@ -2,9 +2,8 @@ use crate::{
     anim::{
         character::{self, CharacterSkeleton},
         quadruped::{self, QuadrupedSkeleton},
-        Animation,
-        QuadrupedMedium::{self, QuadrupedMediumSkeleton},
-        Skeleton,
+        quadrupedmedium::{self, QuadrupedMediumSkeleton},
+        Animation, Skeleton,
     },
     mesh::Meshable,
     render::{
@@ -564,20 +563,20 @@ impl FigureMgr {
                                 });
 
                         let target_skeleton = match animation_history.current {
-                            comp::Animation::Run => QuadrupedMedium::RunAnimation::update_skeleton(
+                            comp::Animation::Run => quadrupedmedium::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_history.time,
                             ),
                             comp::Animation::Idle => {
-                                QuadrupedMedium::IdleAnimation::update_skeleton(
+                                quadrupedmedium::IdleAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     time,
                                     animation_history.time,
                                 )
                             }
                             comp::Animation::Jump => {
-                                QuadrupedMedium::JumpAnimation::update_skeleton(
+                                quadrupedmedium::JumpAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     (vel.0.magnitude(), time),
                                     animation_history.time,
