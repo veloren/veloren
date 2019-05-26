@@ -117,6 +117,9 @@ impl PlayState for MainMenuState {
                         return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
                     }
                     MainMenuEvent::Quit => return PlayStateResult::Shutdown,
+                    MainMenuEvent::DisclaimerClosed => {
+                        global_state.settings.show_disclaimer = false
+                    }
                 }
             }
 
