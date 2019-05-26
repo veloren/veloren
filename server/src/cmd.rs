@@ -76,6 +76,12 @@ lazy_static! {
             handle_tp
         ),
         ChatCommand::new(
+            "kill",
+            "{}",
+            "/kill : Kill yourself",
+            handle_kill
+        ),
+        ChatCommand::new(
             "pet",
             "{}",
             "/pet : Spawn a test pet NPC",
@@ -130,6 +136,15 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
+}
+
+fn handle_kill(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Stats>()
+        .get_mut(entity)
+        .map(|s| s.hp.current = 0);
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
@@ -196,18 +211,18 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
     {
-        Some(pos) => {
+        Some(mut pos) => {
+            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server
                 .create_npc(
+                    pos,
                     "Bungo".to_owned(),
                     comp::Body::Quadruped(comp::QuadrupedBody::random()),
                 )
-                .with(comp::Control::default())
                 .with(comp::Agent::Pet {
                     target: entity,
                     offset: Vec2::zero(),
                 })
-                .with(pos)
                 .build();
             server
                 .clients

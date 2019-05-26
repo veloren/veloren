@@ -23,11 +23,14 @@ use common::{
     },
     figure::Segment,
     msg,
+    msg::ClientState,
 };
 use dot_vox::DotVoxData;
 use specs::{Component, Entity as EcsEntity, Join, VecStorage};
 use std::{collections::HashMap, f32};
 use vek::*;
+
+const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 
 pub struct FigureModelCache {
     models: HashMap<Body, (Model<FigurePipeline>, u64)>,
@@ -347,17 +350,27 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, actor, animation_history, stats) in (
+        for (entity, pos, vel, dir, actor, animation_info, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
             &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Actor>(),
-            &ecs.read_storage::<comp::AnimationHistory>(),
+            &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
         {
+            // Change in health as color!
+            let col = stats
+                .and_then(|stats| stats.hp.last_change)
+                .map(|(change_by, time)| {
+                    Rgba::broadcast(1.0)
+                        + Rgba::new(0.0, -1.0, -1.0, 0.0)
+                            .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
+                })
+                .unwrap_or(Rgba::broadcast(1.0));
+
             match actor {
                 comp::Actor::Character { body, .. } => match body {
                     Body::Humanoid(body) => {
@@ -365,60 +378,59 @@ impl FigureMgr {
                             FigureState::new(renderer, CharacterSkeleton::new())
                         });
 
-                        let target_skeleton = match animation_history.current {
+                        let target_skeleton = match animation_info.animation {
                             comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Run => character::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Jump => character::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Attack => character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Gliding => {
                                 character::GlidingAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     time,
-                                    animation_history.time,
+                                    animation_info.time,
                                 )
                             }
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-
-                        state.update(renderer, pos.0, dir.0, Rgba::white());
+                        state.update(renderer, pos.0, dir.0, col);
                     }
                     Body::Quadruped(body) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, QuadrupedSkeleton::new())
                         });
 
-                        let target_skeleton = match animation_history.current {
+                        let target_skeleton = match animation_info.animation {
                             comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Idle => quadruped::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Jump => quadruped::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
 
                             // TODO!
@@ -426,21 +438,6 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        state.update(renderer, pos.0, dir.0, col);
-
                         state.update(renderer, pos.0, dir.0, col);
                     }
                 },
@@ -464,7 +461,17 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor) in (&ecs.entities(), &ecs.read_storage::<comp::Actor>()).join() {
+        for (entity, actor, stat) in (
+            &ecs.entities(),
+            &ecs.read_storage::<comp::Actor>(),
+            &ecs.read_storage::<comp::Stats>(), // Just to make sure the entity is alive
+        )
+            .join()
+        {
+            if stat.is_dead() {
+                return;
+            }
+
             match actor {
                 comp::Actor::Character { body, .. } => {
                     if let Some((locals, bone_consts)) = match body {
@@ -480,6 +487,8 @@ impl FigureMgr {
                         let model = self.model_cache.get_or_create_model(renderer, *body, tick);
 
                         renderer.render_figure(model, globals, locals, bone_consts);
+                    } else {
+                        log::error!("Body has no saved figure");
                     }
                 }
             }

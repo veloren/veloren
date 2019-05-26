@@ -31,7 +31,7 @@ pub enum ServerMsg {
     },
     EntityAnimation {
         entity: u64,
-        animation_history: comp::AnimationHistory,
+        animation_info: comp::AnimationInfo,
     },
     TerrainChunkUpdate {
         key: Vec2<i32>,

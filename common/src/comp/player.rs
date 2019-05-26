@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
@@ -17,4 +17,10 @@ impl Player {
 
 impl Component for Player {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Respawn;
+impl Component for Respawn {
+    type Storage = NullStorage<Self>;
 }

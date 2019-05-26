@@ -73,7 +73,6 @@ impl Server {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::new();
-        state.ecs_mut().register::<comp::phys::ForceUpdate>();
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 280.0)));
@@ -99,7 +98,7 @@ impl Server {
                 "Tobermory".to_owned(),
                 comp::Body::Humanoid(comp::HumanoidBody::random()),
             )
-            .with(comp::Control::default())
+            .with(comp::Actions::default())
             .with(comp::Agent::Wanderer(Vec2::zero()))
             .build();
         }
@@ -127,14 +126,20 @@ impl Server {
 
     /// Build a non-player character.
     #[allow(dead_code)]
-    pub fn create_npc(&mut self, name: String, body: comp::Body) -> EcsEntityBuilder {
+    pub fn create_npc(
+        &mut self,
+        pos: comp::phys::Pos,
+        name: String,
+        body: comp::Body,
+    ) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
-            .with(comp::phys::Pos(Vec3::new(0.0, 0.0, 64.0)))
+            .with(pos)
+            .with(comp::Control::default())
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
-            .with(comp::AnimationHistory::new(comp::Animation::Idle))
+            .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -149,18 +154,17 @@ impl Server {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, comp::Actor::Character { name, body });
+        state.write_component(entity, comp::Stats::default());
+        state.write_component(entity, comp::Control::default());
+        state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
-        // Make sure everything is accepted.
+        // Make sure physics are accepted.
         state.write_component(entity, comp::phys::ForceUpdate);
 
-        // Set initial animation.
-        state.write_component(entity, comp::AnimationHistory::new(comp::Animation::Idle));
-
         // Tell the client its request was successful.
-        client.notify(ServerMsg::StateAnswer(Ok(ClientState::Character)));
-        client.client_state = ClientState::Character;
+        client.allow_state(ClientState::Character);
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
@@ -180,7 +184,7 @@ impl Server {
         // 6) Send relevant state updates to all clients
         // 7) Finish the tick, passing control of the main thread back to the frontend
 
-        // Build up a list of events for this frame, to be passed to the frontend.
+        // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
         // If networking has problems, handle them.
@@ -188,19 +192,60 @@ impl Server {
             return Err(err.into());
         }
 
-        // Handle new client connections (step 2).
-        frontend_events.append(&mut self.handle_new_connections()?);
+        // 2)
 
-        // Handle new messages from clients
+        // 3) Handle inputs from clients
+        frontend_events.append(&mut self.handle_new_connections()?);
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // Tick the client's LocalState (step 3).
+        // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
         // Tick the world
         self.world.tick(dt);
 
-        // Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // Sync deaths.
+        let todo_kill = (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Dying>(),
+        )
+            .join()
+            .map(|(entity, _)| entity)
+            .collect::<Vec<_>>();
+
+        for entity in todo_kill {
+            if let Some(client) = self.clients.get_mut(&entity) {
+                client.force_state(ClientState::Dead);
+            } else {
+                self.state.ecs_mut().delete_entity_synced(entity);
+            }
+        }
+
+        // Handle respawns
+        let todo_respawn = (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Respawning>(),
+        )
+            .join()
+            .map(|(entity, _)| entity)
+            .collect::<Vec<EcsEntity>>();
+
+        for entity in todo_respawn {
+            if let Some(client) = self.clients.get_mut(&entity) {
+                client.allow_state(ClientState::Character);
+                self.state.write_component(entity, comp::Stats::default());
+                self.state
+                    .ecs_mut()
+                    .write_storage::<comp::phys::Pos>()
+                    .get_mut(entity)
+                    .map(|pos| pos.0.z += 100.0);
+                self.state
+                    .write_component(entity, comp::phys::Vel(Vec3::zero()));
+                self.state.write_component(entity, comp::phys::ForceUpdate);
+            }
+        }
+
+        // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
@@ -261,10 +306,20 @@ impl Server {
             self.state.remove_chunk(key);
         }
 
-        // Synchronise clients with the new state of the world.
+        // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
-        // Finish the tick, pass control back to the frontend (step 6).
+        // 7) Finish the tick, pass control back to the frontend.
+
+        // Cleanup
+        let ecs = self.state.ecs_mut();
+        for entity in ecs.entities().join() {
+            ecs.write_storage::<comp::Jumping>().remove(entity);
+            ecs.write_storage::<comp::Gliding>().remove(entity);
+            ecs.write_storage::<comp::Dying>().remove(entity);
+            ecs.write_storage::<comp::Respawning>().remove(entity);
+        }
+
         Ok(frontend_events)
     }
 
@@ -331,9 +386,10 @@ impl Server {
                                 ClientState::Registered => {
                                     client.error_state(RequestStateError::Already)
                                 }
-                                ClientState::Spectator | ClientState::Character => {
-                                    client.allow_state(ClientState::Registered)
-                                }
+                                ClientState::Spectator
+                                | ClientState::Character
+                                | ClientState::Dead => client.allow_state(ClientState::Registered),
+                                ClientState::Pending => {}
                             },
                             ClientState::Spectator => match requested_state {
                                 // Become Registered first.
@@ -343,14 +399,17 @@ impl Server {
                                 ClientState::Spectator => {
                                     client.error_state(RequestStateError::Already)
                                 }
-                                ClientState::Registered | ClientState::Character => {
-                                    client.allow_state(ClientState::Spectator)
-                                }
+                                ClientState::Registered
+                                | ClientState::Character
+                                | ClientState::Dead => client.allow_state(ClientState::Spectator),
+                                ClientState::Pending => {}
                             },
                             // Use ClientMsg::Character instead.
                             ClientState::Character => {
                                 client.error_state(RequestStateError::WrongMessage)
                             }
+                            ClientState::Dead => client.error_state(RequestStateError::Impossible),
+                            ClientState::Pending => {}
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => {
@@ -374,12 +433,27 @@ impl Server {
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
-                            ClientState::Registered | ClientState::Spectator => {
+                            ClientState::Registered
+                            | ClientState::Spectator
+                            | ClientState::Dead => {
                                 Self::create_player_character(state, entity, client, name, body)
                             }
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
                             }
+                            ClientState::Pending => {}
+                        },
+                        ClientMsg::Attack => match client.client_state {
+                            ClientState::Character => {
+                                state.write_component(entity, comp::Attacking::start());
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
+                        ClientMsg::Respawn => match client.client_state {
+                            ClientState::Dead => {
+                                state.write_component(entity, comp::Respawning);
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
                             ClientState::Connected => {
@@ -387,12 +461,14 @@ impl Server {
                             }
                             ClientState::Registered
                             | ClientState::Spectator
+                            | ClientState::Dead
                             | ClientState::Character => new_chat_msgs.push((entity, msg)),
+                            ClientState::Pending => {}
                         },
-                        ClientMsg::PlayerAnimation(animation_history) => {
+                        ClientMsg::PlayerAnimation(animation_info) => {
                             match client.client_state {
                                 ClientState::Character => {
-                                    state.write_component(entity, animation_history)
+                                    state.write_component(entity, animation_info)
                                 }
                                 // Only characters can send animations.
                                 _ => client.error_state(RequestStateError::Impossible),
@@ -408,7 +484,9 @@ impl Server {
                             _ => client.error_state(RequestStateError::Impossible),
                         },
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
-                            ClientState::Connected | ClientState::Registered => {
+                            ClientState::Connected
+                            | ClientState::Registered
+                            | ClientState::Dead => {
                                 client.error_state(RequestStateError::Impossible);
                             }
                             ClientState::Spectator | ClientState::Character => {
@@ -422,6 +500,7 @@ impl Server {
                                     None => requested_chunks.push(key),
                                 }
                             }
+                            ClientState::Pending => {}
                         },
                         // Always possible.
                         ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
@@ -491,18 +570,35 @@ impl Server {
         // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync logical information other players have authority over, not the server.
-        for (other_entity, &uid, &animation_history) in (
+        // Sync physics
+        for (entity, &uid, &pos, &vel, &dir) in (
             &state.ecs().entities(),
-            &state.ecs().read_storage::<common::state::Uid>(),
-            &state.ecs().read_storage::<comp::AnimationHistory>(),
+            &state.ecs().read_storage::<Uid>(),
+            &state.ecs().read_storage::<comp::phys::Pos>(),
+            &state.ecs().read_storage::<comp::phys::Vel>(),
+            &state.ecs().read_storage::<comp::phys::Dir>(),
         )
             .join()
         {
-            // AnimationHistory
-            client.postbox.send_message(ServerMsg::EntityAnimation {
+            client.notify(ServerMsg::EntityPhysics {
                 entity: uid.into(),
-                animation_history: animation_history,
+                pos,
+                vel,
+                dir,
+            });
+        }
+
+        // Sync animations
+        for (entity, &uid, &animation_info) in (
+            &state.ecs().entities(),
+            &state.ecs().read_storage::<Uid>(),
+            &state.ecs().read_storage::<comp::AnimationInfo>(),
+        )
+            .join()
+        {
+            client.notify(ServerMsg::EntityAnimation {
+                entity: uid.into(),
+                animation_info: animation_info.clone(),
             });
         }
 
@@ -516,7 +612,7 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // Sync 'physical' state.
+        // Sync physics
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
@@ -538,41 +634,33 @@ impl Server {
             };
 
             match force_update {
-                Some(_) => self.clients.notify_ingame(msg),
-                None => self.clients.notify_ingame_except(entity, msg),
+                Some(_) => self.clients.notify_registered(msg),
+                None => self.clients.notify_registered_except(entity, msg),
             }
         }
 
-        // Sync animation states.
-        for (entity, &uid, &animation_history) in (
+        // Sync animations
+        for (entity, &uid, &animation_info, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::AnimationHistory>(),
+            &self.state.ecs().read_storage::<comp::AnimationInfo>(),
+            self.state
+                .ecs()
+                .read_storage::<comp::phys::ForceUpdate>()
+                .maybe(),
         )
             .join()
         {
-            // Check if we need to sync.
-            if Some(animation_history.current) == animation_history.last {
-                continue;
-            }
-
-            self.clients.notify_ingame_except(
-                entity,
-                ServerMsg::EntityAnimation {
+            if animation_info.changed || force_update.is_some() {
+                let msg = ServerMsg::EntityAnimation {
                     entity: uid.into(),
-                    animation_history,
-                },
-            );
-        }
-
-        // Update animation last/current state.
-        for (entity, mut animation_history) in (
-            &self.state.ecs().entities(),
-            &mut self.state.ecs().write_storage::<comp::AnimationHistory>(),
-        )
-            .join()
-        {
-            animation_history.last = Some(animation_history.current);
+                    animation_info: animation_info.clone(),
+                };
+                match force_update {
+                    Some(_) => self.clients.notify_registered(msg),
+                    None => self.clients.notify_registered_except(entity, msg),
+                }
+            }
         }
 
         // Remove all force flags.

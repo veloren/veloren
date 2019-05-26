@@ -27,7 +27,7 @@ use crate::{
     scene::camera::Camera,
     settings::{ControlSettings, Settings},
     ui::{Ingame, Ingameable, ScaleMode, Ui},
-    window::{Event as WinEvent, Key, Window},
+    window::{Event as WinEvent, GameInput, Window},
     GlobalState,
 };
 use client::Client;
@@ -305,10 +305,10 @@ impl Hud {
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-            for (pos, name) in (&entities, &pos, &actor, player.maybe())
+            for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
                 .join()
-                .filter(|(entity, _, _, _)| *entity != me)
-                .map(|(entity, pos, actor, player)| match actor {
+                .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead())
+                .map(|(entity, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
                         name: char_name, ..
                     } => {
@@ -335,15 +335,10 @@ impl Hud {
                     .resolution(100.0)
                     .set(id, ui_widgets);
             }
-            for (pos, hp) in (&entities, &pos, &stats)
+
+            for (entity, pos, stats) in (&entities, &pos, &stats)
                 .join()
-                .filter_map(|(entity, pos, stats)| {
-                    if entity != me {
-                        Some((pos.0, stats.hp))
-                    } else {
-                        None
-                    }
-                })
+                .filter(|(entity, _, stats)| *entity != me && !stats.is_dead())
             {
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
@@ -356,17 +351,20 @@ impl Hud {
                 // Healh Bar
                 Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
                 // Filling
                 Rectangle::fill_with(
-                    [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
+                    [
+                        120.0 * (stats.hp.current as f64 / stats.hp.maximum as f64),
+                        8.0,
+                    ],
                     HP_COLOR,
                 )
                 .x_y(0.0, -25.0)
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
                 .resolution(100.0)
                 .set(bar_id, ui_widgets);
             }
@@ -624,20 +622,10 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::KeyDown(Key::ToggleInterface) => {
-                self.show.toggle_ui();
-                true
-            }
-            WinEvent::KeyDown(Key::ToggleCursor) => {
-                self.force_ungrab = !self.force_ungrab;
-                if self.force_ungrab {
-                    global_state.window.grab_cursor(false);
-                }
-                true
-            }
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
-            WinEvent::KeyDown(Key::Enter) => {
+
+            WinEvent::InputUpdate(GameInput::Enter, true) => {
                 self.ui.focus_widget(if self.typing() {
                     None
                 } else {
@@ -645,7 +633,7 @@ impl Hud {
                 });
                 true
             }
-            WinEvent::KeyDown(Key::Escape) => {
+            WinEvent::InputUpdate(GameInput::Escape, true) => {
                 if self.typing() {
                     self.ui.focus_widget(None);
                 } else {
@@ -654,54 +642,66 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::KeyDown(key) if !self.typing() => match key {
-                Key::Map => {
+
+            // Press key while not typing
+            WinEvent::InputUpdate(key, true) if !self.typing() => match key {
+                GameInput::ToggleInterface => {
+                    self.show.toggle_ui();
+                    true
+                }
+                GameInput::ToggleCursor => {
+                    self.force_ungrab = !self.force_ungrab;
+                    if self.force_ungrab {
+                        global_state.window.grab_cursor(false);
+                    }
+                    true
+                }
+                GameInput::Map => {
                     self.show.toggle_map();
                     true
                 }
-                Key::Bag => {
+                GameInput::Bag => {
                     self.show.toggle_bag();
                     true
                 }
-                Key::QuestLog => {
+                GameInput::QuestLog => {
                     self.show.toggle_small(SmallWindowType::QuestLog);
                     true
                 }
-                Key::CharacterWindow => {
+                GameInput::CharacterWindow => {
                     self.show.toggle_char_window();
                     true
                 }
-                Key::Social => {
+                GameInput::Social => {
                     self.show.toggle_small(SmallWindowType::Social);
                     true
                 }
-                Key::Spellbook => {
+                GameInput::Spellbook => {
                     self.show.toggle_small(SmallWindowType::Spellbook);
                     true
                 }
-                Key::Settings => {
+                GameInput::Settings => {
                     self.show.toggle_settings();
                     true
                 }
-                Key::Help => {
+                GameInput::Help => {
                     self.show.toggle_help();
                     true
                 }
-                Key::ToggleDebug => {
+                GameInput::ToggleDebug => {
                     self.show.debug = !self.show.debug;
                     true
                 }
-                Key::ToggleIngameUi => {
+                GameInput::ToggleIngameUi => {
                     self.show.ingame = !self.show.ingame;
                     true
                 }
                 _ => false,
             },
-            WinEvent::KeyDown(key) | WinEvent::KeyUp(key) => match key {
-                Key::ToggleCursor => false,
-                _ => self.typing(),
-            },
+            // Else the player is typing in chat
+            WinEvent::InputUpdate(key, _) => self.typing(),
             WinEvent::Char(_) => self.typing(),
+
             _ => false,
         };
         // Handle cursor grab.

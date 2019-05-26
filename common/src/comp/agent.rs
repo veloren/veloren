@@ -13,24 +13,3 @@ pub enum Agent {
 impl Component for Agent {
     type Storage = VecStorage<Self>;
 }
-
-#[derive(Copy, Clone, Debug)]
-pub struct Control {
-    pub move_dir: Vec2<f32>,
-    pub jumping: bool,
-    pub gliding: bool,
-}
-
-impl Default for Control {
-    fn default() -> Self {
-        Self {
-            move_dir: Vec2::zero(),
-            jumping: false,
-            gliding: false,
-        }
-    }
-}
-
-impl Component for Control {
-    type Storage = VecStorage<Self>;
-}
