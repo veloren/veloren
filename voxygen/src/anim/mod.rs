@@ -1,3 +1,4 @@
+pub mod QuadrupedMedium;
 pub mod character;
 pub mod fixture;
 pub mod quadruped;

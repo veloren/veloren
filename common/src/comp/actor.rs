@@ -101,6 +101,57 @@ pub enum PigLegL {
 pub enum PigLegR {
     Default,
 }
+/////
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfUpperHead {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfJaw {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfLowerHead {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfTail {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfTorsoBack {
+    Default,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfTorsoMid {
+    Default,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfEars {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfLFFoot {
+    Default,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfRFFoot {
+    Default,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfLBFoot {
+    Default,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum WolfRBFoot {
+    Default,
+}
 
 pub const ALL_RACES: [Race; 6] = [
     Race::Danari,
@@ -178,6 +229,7 @@ impl HumanoidBody {
         }
     }
 }
+///////////
 const ALL_QRACES: [Race; 6] = [
     Race::Danari,
     Race::Dwarf,
@@ -214,11 +266,70 @@ impl QuadrupedBody {
         }
     }
 }
+/////////////
+const ALL_QMRACES: [Race; 6] = [
+    Race::Danari,
+    Race::Dwarf,
+    Race::Elf,
+    Race::Human,
+    Race::Orc,
+    Race::Undead,
+];
+const ALL_QMBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+const ALL_QMWOLF_UPPERHEADS: [WolfUpperHead; 1] = [WolfUpperHead::Default];
+const ALL_QMWOLF_JAWS: [WolfJaw; 1] = [WolfJaw::Default];
+const ALL_QMWOLF_LOWERHEADS: [WolfLowerHead; 1] = [WolfLowerHead::Default];
+const ALL_QMWOLF_TAILS: [WolfTail; 1] = [WolfTail::Default];
+const ALL_QMWOLF_TORSOBACKS: [WolfTorsoBack; 1] = [WolfTorsoBack::Default];
+const ALL_QMWOLF_TORSOMIDS: [WolfTorsoMid; 1] = [WolfTorsoMid::Default];
+const ALL_QMWOLF_EARS: [WolfEars; 1] = [WolfEars::Default];
+const ALL_QMWOLF_LFFEET: [WolfLFFoot; 1] = [WolfLFFoot::Default];
+const ALL_QMWOLF_RFFEET: [WolfRFFoot; 1] = [WolfRFFoot::Default];
+const ALL_QMWOLF_LBFEET: [WolfLBFoot; 1] = [WolfLBFoot::Default];
+const ALL_QMWOLF_RBFEET: [WolfRBFoot; 1] = [WolfRBFoot::Default];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct QuadrupedMediumBody {
+    pub race: Race,
+    pub body_type: BodyType,
+    pub wolf_upperhead: WolfUpperHead,
+    pub wolf_jaw: WolfJaw,
+    pub wolf_lowerhead: WolfLowerHead,
+    pub wolf_tail: WolfTail,
+    pub wolf_torsoback: WolfTorsoBack,
+    pub wolf_torsomid: WolfTorsoMid,
+    pub wolf_ears: WolfEars,
+    pub wolf_lffoot: WolfLFFoot,
+    pub wolf_rffoot: WolfRFFoot,
+    pub wolf_lbfoot: WolfLBFoot,
+    pub wolf_rbfoot: WolfRBFoot,
+}
+
+impl QuadrupedMediumBody {
+    pub fn random() -> Self {
+        Self {
+            race: *thread_rng().choose(&ALL_QMRACES).unwrap(),
+            body_type: *thread_rng().choose(&ALL_QMBODY_TYPES).unwrap(),
+            wolf_upperhead: *thread_rng().choose(&ALL_QMWOLF_UPPERHEADS).unwrap(),
+            wolf_jaw: *thread_rng().choose(&ALL_QMWOLF_JAWS).unwrap(),
+            wolf_lowerhead: *thread_rng().choose(&ALL_QMWOLF_LOWERHEADS).unwrap(),
+            wolf_tail: *thread_rng().choose(&ALL_QMWOLF_TAILS).unwrap(),
+            wolf_torsoback: *thread_rng().choose(&ALL_QMWOLF_TORSOBACKS).unwrap(),
+            wolf_torsomid: *thread_rng().choose(&ALL_QMWOLF_TORSOMIDS).unwrap(),
+            wolf_ears: *thread_rng().choose(&ALL_QMWOLF_EARS).unwrap(),
+            wolf_lffoot: *thread_rng().choose(&ALL_QMWOLF_LFFEET).unwrap(),
+            wolf_rffoot: *thread_rng().choose(&ALL_QMWOLF_RFFEET).unwrap(),
+            wolf_lbfoot: *thread_rng().choose(&ALL_QMWOLF_LBFEET).unwrap(),
+            wolf_rbfoot: *thread_rng().choose(&ALL_QMWOLF_RBFEET).unwrap(),
+        }
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Body {
     Humanoid(HumanoidBody),
     Quadruped(QuadrupedBody),
+    QuadrupedMedium(QuadrupedMediumBody),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
