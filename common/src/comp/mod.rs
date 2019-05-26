@@ -11,6 +11,7 @@ pub use actor::Actor;
 pub use actor::Body;
 pub use actor::HumanoidBody;
 pub use actor::QuadrupedBody;
+pub use actor::QuadrupedMediumBody;
 pub use agent::Agent;
 pub use animation::Animation;
 pub use animation::AnimationInfo;
@@ -19,6 +20,8 @@ pub use inputs::Control;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
 pub use inputs::Respawning;
+pub use agent::{Agent, Control};
+>>>>>>> add wolf
 pub use player::Player;
 pub use stats::Dying;
 pub use stats::Stats;

@@ -82,10 +82,16 @@ lazy_static! {
             handle_kill
         ),
         ChatCommand::new(
-            "pet",
+            "pig",
             "{}",
-            "/pet : Spawn a test pet NPC",
-            handle_pet
+            "/pig : Spawn a test pig NPC",
+            handle_petpig
+        ),
+        ChatCommand::new(
+            "wolf",
+            "{}",
+            "/wolf : Spawn a test wolf NPC",
+            handle_petwolf
         ),
         ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
@@ -206,7 +212,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     }
 }
 
-fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_petpig(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
@@ -223,6 +229,33 @@ fn handle_pet(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                     target: entity,
                     offset: Vec2::zero(),
                 })
+                .build();
+            server
+                .clients
+                .notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+    }
+}
+fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    match server
+        .state
+        .read_component_cloned::<comp::phys::Pos>(entity)
+    {
+        Some(pos) => {
+            server
+                .create_npc(
+                    "Tobermory".to_owned(),
+                    comp::Body::QuadrupedMedium(comp::QuadrupedMediumBody::random()),
+                )
+                .with(comp::Control::default())
+                .with(comp::Agent::Pet {
+                    target: entity,
+                    offset: Vec2::zero(),
+                })
+                .with(pos)
                 .build();
             server
                 .clients

@@ -2,7 +2,9 @@ use crate::{
     anim::{
         character::{self, CharacterSkeleton},
         quadruped::{self, QuadrupedSkeleton},
-        Animation, Skeleton,
+        Animation,
+        QuadrupedMedium::{self, QuadrupedMediumSkeleton},
+        Skeleton,
     },
     mesh::Meshable,
     render::{
@@ -17,9 +19,10 @@ use common::{
         self,
         actor::{
             Belt, Chest, Draw, Foot, Hand, Head, Pants, PigChest, PigHead, PigLegL, PigLegR,
-            Shoulder, Weapon,
+            Shoulder, Weapon, WolfEars, WolfJaw, WolfLBFoot, WolfLFFoot, WolfLowerHead, WolfRBFoot,
+            WolfRFFoot, WolfTail, WolfTorsoBack, WolfTorsoMid, WolfUpperHead,
         },
-        Body, HumanoidBody, QuadrupedBody,
+        Body, HumanoidBody, QuadrupedBody, QuadrupedMediumBody,
     },
     figure::Segment,
     msg,
@@ -89,6 +92,24 @@ impl FigureModelCache {
                                     None,
                                     None,
                                     None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::QuadrupedMedium(body) => [
+                                    Some(Self::load_wolf_upperhead(body.wolf_upperhead)),
+                                    Some(Self::load_wolf_jaw(body.wolf_jaw)),
+                                    Some(Self::load_wolf_lowerhead(body.wolf_lowerhead)),
+                                    Some(Self::load_wolf_tail(body.wolf_tail)),
+                                    Some(Self::load_wolf_torsoback(body.wolf_torsoback)),
+                                    Some(Self::load_wolf_torsomid(body.wolf_torsomid)),
+                                    Some(Self::load_wolf_ears(body.wolf_ears)),
+                                    Some(Self::load_wolf_lffoot(body.wolf_lffoot)),
+                                    Some(Self::load_wolf_rffoot(body.wolf_rffoot)),
+                                    Some(Self::load_wolf_lbfoot(body.wolf_lbfoot)),
+                                    Some(Self::load_wolf_rbfoot(body.wolf_rbfoot)),
                                     None,
                                     None,
                                     None,
@@ -220,9 +241,9 @@ impl FigureModelCache {
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
+                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
                 // TODO actually match against other weapons and set the right model
-                _ => "weapon/sword/sword_wood_2h.vox",
+                _ => "weapon/sword/sword_rusty_2h.vox",
             },
             Vec3::new(-6.5, -1.5, -4.0),
         )
@@ -258,8 +279,8 @@ impl FigureModelCache {
     fn load_left_equip(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "weapon/sword/sword_wood_2h.vox",
-                _ => "weapon/sword/sword_wood_2h.vox",
+                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
+                _ => "weapon/sword/sword_rusty_2h.vox",
             },
             Vec3::new(-6.5, -1.5, -5.0),
         )
@@ -272,7 +293,7 @@ impl FigureModelCache {
             Vec3::new(-2.0, -2.5, -2.0),
         )
     }
-
+    /////////
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_head {
@@ -326,12 +347,102 @@ impl FigureModelCache {
             Vec3::new(0.0, -1.0, -1.5),
         )
     }
+    //////
+    fn load_wolf_upperhead(wolf_upperhead: WolfUpperHead) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_upperhead {
+                WolfUpperHead::Default => "npc/wolf/wolf_upper_head.vox",
+            },
+            Vec3::new(-7.0, -6.0, -5.5),
+        )
+    }
+    fn load_wolf_jaw(wolf_jaw: WolfJaw) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_jaw {
+                WolfJaw::Default => "npc/wolf/wolf_jaw.vox",
+            },
+            Vec3::new(-3.0, -3.0, -2.5),
+        )
+    }
+    fn load_wolf_lowerhead(wolf_lowerhead: WolfLowerHead) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_lowerhead {
+                WolfLowerHead::Default => "npc/wolf/wolf_lower_head.vox",
+            },
+            Vec3::new(-7.0, -6.0, -5.5),
+        )
+    }
+    fn load_wolf_tail(wolf_tail: WolfTail) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_tail {
+                WolfTail::Default => "npc/wolf/wolf_tail.vox",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+    fn load_wolf_torsoback(wolf_torsoback: WolfTorsoBack) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_torsoback {
+                WolfTorsoBack::Default => "npc/wolf/wolf_torso_back.vox",
+            },
+            Vec3::new(-7.0, -6.0, -6.0),
+        )
+    }
+    fn load_wolf_torsomid(wolf_torsomid: WolfTorsoMid) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_torsomid {
+                WolfTorsoMid::Default => "npc/wolf/wolf_torso_mid.vox",
+            },
+            Vec3::new(-8.0, -5.5, -6.0),
+        )
+    }
+    fn load_wolf_ears(wolf_ears: WolfEars) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_ears {
+                WolfEars::Default => "npc/wolf/wolf_ears.vox",
+            },
+            Vec3::new(-4.0, -1.0, -1.0),
+        )
+    }
+    fn load_wolf_lffoot(wolf_lffoot: WolfLFFoot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_lffoot {
+                WolfLFFoot::Default => "npc/wolf/wolf_lf_foot.vox",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_wolf_rffoot(wolf_rffoot: WolfRFFoot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_rffoot {
+                WolfRFFoot::Default => "npc/wolf/wolf_rf_foot.vox",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_wolf_lbfoot(wolf_lbfoot: WolfLBFoot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_lbfoot {
+                WolfLBFoot::Default => "npc/wolf/wolf_lb_foot.vox",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_wolf_rbfoot(wolf_rbfoot: WolfRBFoot) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match wolf_rbfoot {
+                WolfRBFoot::Default => "npc/wolf/wolf_rb_foot.vox",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
 }
 
 pub struct FigureMgr {
     model_cache: FigureModelCache,
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
+    QuadrupedMedium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
 }
 
 impl FigureMgr {
@@ -340,6 +451,7 @@ impl FigureMgr {
             model_cache: FigureModelCache::new(),
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
+            QuadrupedMedium_states: HashMap::new(),
         }
     }
 
@@ -440,6 +552,57 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
                         state.update(renderer, pos.0, dir.0, col);
                     }
+                    Body::QuadrupedMedium(body) => {
+                        let state =
+                            self.QuadrupedMedium_states
+                                .entry(entity)
+                                .or_insert_with(|| {
+                                    FigureState::new(renderer, QuadrupedMediumSkeleton::new())
+                                });
+
+                        let target_skeleton = match animation_history.current {
+                            comp::Animation::Run => QuadrupedMedium::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_history.time,
+                            ),
+                            comp::Animation::Idle => {
+                                QuadrupedMedium::IdleAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    time,
+                                    animation_history.time,
+                                )
+                            }
+                            comp::Animation::Jump => {
+                                QuadrupedMedium::JumpAnimation::update_skeleton(
+                                    state.skeleton_mut(),
+                                    (vel.0.magnitude(), time),
+                                    animation_history.time,
+                                )
+                            }
+
+                            // TODO!
+                            _ => state.skeleton_mut().clone(),
+                        };
+
+                        state.skeleton.interpolate(&target_skeleton);
+
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        // Change in health as color!
+                        let col = stats
+                            .and_then(|stats| stats.hp.last_change)
+                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
+                            .unwrap_or(Rgba::broadcast(1.0));
+
+                        state.update(renderer, pos.0, dir.0, col);
+
+                        state.update(renderer, pos.0, dir.0, col);
+                    }
                 },
                 // TODO: Non-character actors
             }
@@ -449,6 +612,8 @@ impl FigureMgr {
         self.character_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.QuadrupedMedium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
@@ -481,6 +646,10 @@ impl FigureMgr {
                             .map(|state| (state.locals(), state.bone_consts())),
                         Body::Quadruped(_) => self
                             .quadruped_states
+                            .get(&entity)
+                            .map(|state| (state.locals(), state.bone_consts())),
+                        Body::QuadrupedMedium(_) => self
+                            .QuadrupedMedium_states
                             .get(&entity)
                             .map(|state| (state.locals(), state.bone_consts())),
                     } {
