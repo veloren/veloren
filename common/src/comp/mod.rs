@@ -11,6 +11,7 @@ pub use actor::Actor;
 pub use actor::Body;
 pub use actor::HumanoidBody;
 pub use actor::QuadrupedBody;
+pub use actor::QuadrupedMediumBody;
 pub use agent::Agent;
 pub use animation::Animation;
 pub use animation::AnimationInfo;
