@@ -559,24 +559,24 @@ impl FigureMgr {
                                     FigureState::new(renderer, QuadrupedMediumSkeleton::new())
                                 });
 
-                        let target_skeleton = match animation_history.current {
+                        let target_skeleton = match animation_info.animation {
                             comp::Animation::Run => quadrupedmedium::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
-                                animation_history.time,
+                                animation_info.time,
                             ),
                             comp::Animation::Idle => {
                                 quadrupedmedium::IdleAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     time,
-                                    animation_history.time,
+                                    animation_info.time,
                                 )
                             }
                             comp::Animation::Jump => {
                                 quadrupedmedium::JumpAnimation::update_skeleton(
                                     state.skeleton_mut(),
                                     (vel.0.magnitude(), time),
-                                    animation_history.time,
+                                    animation_info.time,
                                 )
                             }
 
