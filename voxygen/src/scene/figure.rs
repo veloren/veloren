@@ -2,9 +2,8 @@ use crate::{
     anim::{
         character::{self, CharacterSkeleton},
         quadruped::{self, QuadrupedSkeleton},
-        Animation,
         QuadrupedMedium::{self, QuadrupedMediumSkeleton},
-        Skeleton,
+        Animation, Skeleton,
     },
     mesh::Meshable,
     render::{
