@@ -20,8 +20,6 @@ pub use inputs::Control;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
 pub use inputs::Respawning;
-pub use agent::{Agent, Control};
->>>>>>> add wolf
 pub use player::Player;
 pub use stats::Dying;
 pub use stats::Stats;
