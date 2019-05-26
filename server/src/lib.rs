@@ -215,7 +215,8 @@ impl Server {
 
         for entity in todo_kill {
             if let Some(client) = self.clients.get_mut(&entity) {
-                self.state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+                self.state
+                    .write_component(entity, comp::phys::Vel(Vec3::zero()));
                 client.force_state(ClientState::Dead);
             } else {
                 self.state.ecs_mut().delete_entity_synced(entity);
