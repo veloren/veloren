@@ -53,7 +53,7 @@ impl Animation for JumpAnimation {
 
         next.wolf_torsomid.offset = Vec3::new(0.0, 0.0, 12.0 + wave_stop * 3.6) / 11.0;
         next.wolf_torsomid.ori = Quaternion::rotation_x(wave_slow * -0.25);
-        next.wolf_torsomid.scale = Vec3::one() / 10.9;
+        next.wolf_torsomid.scale = Vec3::one() / 10.5;
 
         next.wolf_ears.offset = Vec3::new(0.0, 0.75, 6.25);
         next.wolf_ears.ori = Quaternion::rotation_x(0.0);

@@ -324,6 +324,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             Toggle Interface\n\
             Toggle FPS and Debug Info\n\
             Take Screenshot\n\
+            Toggle Nametags\n\
             Toggle Fullscreen\n\
             \n\
             \n\
@@ -334,6 +335,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             \n\
             Jump\n\
             \n\
+            Glider
+            \n\
             Dodge\n\
             \n\
             Auto Walk\n\
@@ -341,6 +344,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             Sheathe/Draw Weapons\n\
             \n\
             Put on/Remove Helmet\n\
+            \n\
+            Sit\n\
             \n\
             \n\
             Basic Attack\n\
@@ -377,7 +382,14 @@ impl<'a> Widget for SettingsWindow<'a> {
             Chat commands:  \n\
             \n\
             /alias [Name] - Change your Chat Name   \n\
-            /tp [Name] - Teleports you to another player
+            /tp [Name] - Teleports you to another player    \n\
+            /jump <dx> <dy> <dz> - Offset your position \n\
+            /goto <x> <y> <z> - Teleport to a position  \n\
+            /tp <name> - Teleport to another player \n\
+            /kill - Kill yourself   \n\
+            /pig - Spawn pig NPC    \n\
+            /wolf - Spawn wolf NPC  \n\
+            /help - Display chat commands
             ",
             )
             .color(TEXT_COLOR)
@@ -392,6 +404,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                  F2\n\
                  F3\n\
                  F4\n\
+                 F6\n\
                  F11\n\
                  \n\
                  \n\
@@ -401,6 +414,10 @@ impl<'a> Widget for SettingsWindow<'a> {
                  D\n\
                  \n\
                  SPACE\n\
+                 \n\
+                 L-Shift\n\
+                 \n\
+                 ??\n\
                  \n\
                  ??\n\
                  \n\
