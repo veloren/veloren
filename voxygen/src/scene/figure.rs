@@ -618,7 +618,7 @@ impl FigureMgr {
             .join()
         {
             if stat.is_dead() {
-                return;
+                continue;
             }
 
             match actor {
