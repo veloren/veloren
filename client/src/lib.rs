@@ -105,7 +105,7 @@ impl Client {
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
-        self.view_distance = Some(view_distance.max(5).min(25));
+        self.view_distance = Some(view_distance.max(1).min(25));
         self.postbox
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
@@ -230,9 +230,9 @@ impl Client {
 
             // Request chunks from the server.
             // TODO: This is really inefficient.
-            'outer: for dist in 0..view_distance as i32 {
-                for i in chunk_pos.x - dist..chunk_pos.x + dist + 1 {
-                    for j in chunk_pos.y - dist..chunk_pos.y + dist + 1 {
+            'outer: for dist in 0..=view_distance as i32 {
+                for i in chunk_pos.x - dist..=chunk_pos.x + dist {
+                    for j in chunk_pos.y - dist..=chunk_pos.y + dist {
                         let key = Vec2::new(i, j);
                         if self.state.terrain().get_key(key).is_none()
                             && !self.pending_chunks.contains_key(&key)
