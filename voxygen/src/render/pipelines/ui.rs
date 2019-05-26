@@ -46,7 +46,7 @@ impl Pipeline for UiPipeline {
 impl From<Vec3<f32>> for Locals {
     fn from(pos: Vec3<f32>) -> Self {
         Self {
-            pos: [pos[0], pos[1], pos[2], 1.0],
+            pos: [pos.x, pos.y, pos.z, 1.0],
         }
     }
 }
