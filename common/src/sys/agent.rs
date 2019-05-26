@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
                             }
 
                             // Move towards the target.
-                            let dist = tgt_pos.distance(pos.0);
+                            let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
                             control.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
                             } else if dist < 1.5 && dist > 0.0 {
