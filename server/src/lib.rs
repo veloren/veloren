@@ -216,6 +216,7 @@ impl Server {
             if let Some(client) = self.clients.get_mut(&entity) {
                 self.state
                     .write_component(entity, comp::phys::Vel(Vec3::zero()));
+                self.state.write_component(entity, comp::phys::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
                 self.state.ecs_mut().delete_entity_synced(entity);
