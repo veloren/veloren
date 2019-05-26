@@ -60,7 +60,7 @@ enum DrawKind {
 enum DrawCommand {
     Draw { kind: DrawKind, verts: Range<usize> },
     Scissor(Aabr<u16>),
-    WorldPos(Option<Consts<UiLocals>>),
+    WorldPos(Option<usize>),
 }
 impl DrawCommand {
     fn image(verts: Range<usize>) -> DrawCommand {
@@ -97,6 +97,8 @@ pub struct Ui {
     // Consts for default ui drawing position (ie the interface)
     interface_locals: Consts<UiLocals>,
     default_globals: Consts<Globals>,
+    // Consts to specify positions of ingame elements (e.g. Nametags)
+    ingame_locals: Vec<Consts<UiLocals>>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
     // Scaling of the ui
@@ -118,6 +120,7 @@ impl Ui {
             model: renderer.create_dynamic_model(100)?,
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
+            ingame_locals: Vec::new(),
             window_resized: None,
             scale,
         })
@@ -229,9 +232,11 @@ impl Ui {
         let window_scissor = default_scissor(renderer);
         let mut current_scissor = window_scissor;
 
+        let mut ingame_local_index = 0;
+
         enum Placement {
             Interface,
-            // Number and resolution
+            // Number of primitives left to render ingame and relative scaling/resolution
             InWorld(usize, Option<f32>),
         };
 
@@ -295,6 +300,7 @@ impl Ui {
             }
 
             match placement {
+                // No primitives left to place in the world at the current position, go back to drawing the interface
                 Placement::InWorld(0, _) => {
                     placement = Placement::Interface;
                     p_scale_factor = self.scale.scale_factor_physical();
@@ -307,24 +313,22 @@ impl Ui {
                     // Push new position command
                     self.draw_commands.push(DrawCommand::WorldPos(None));
                 }
-                Placement::InWorld(n, res) => match kind {
-                    // Other types don't need to be drawn in the game
+                // Primitives still left to draw ingame
+                Placement::InWorld(num_prims, res) => match kind {
+                    // Other types don't aren't drawn & shoudn't decrement the number of primitives left to draw ingame
                     PrimitiveKind::Other(_) => {}
-                    _ => {
-                        placement = Placement::InWorld(n - 1, res);
-                        if res.is_none() {
-                            continue;
-                        }
-                    }
+                    // Decrement the number of primitives left
+                    _ => placement = Placement::InWorld(num_prims - 1, res),
                 },
                 Placement::Interface => {}
             }
 
             // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
-            let (ui_win_w, ui_win_h) = if let Placement::InWorld(_, Some(res)) = placement {
-                (res as f64, res as f64)
-            } else {
-                (self.ui.win_w, self.ui.win_h)
+            let (ui_win_w, ui_win_h) = match placement {
+                Placement::InWorld(_, Some(res)) => (res as f64, res as f64),
+                // Behind the camera or far away
+                Placement::InWorld(_, None) => continue,
+                Placement::Interface => (self.ui.win_w, self.ui.win_h),
             };
             let vx = |x: f64| (x / ui_win_w * 2.0) as f32;
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
@@ -529,16 +533,6 @@ impl Ui {
                                 .unwrap()
                                 .state
                                 .parameters;
-                            // Finish current state
-                            self.draw_commands.push(match current_state {
-                                State::Plain => DrawCommand::plain(start..mesh.vertices().len()),
-                                State::Image => DrawCommand::image(start..mesh.vertices().len()),
-                            });
-                            start = mesh.vertices().len();
-                            // Push new position command
-                            self.draw_commands.push(DrawCommand::WorldPos(Some(
-                                renderer.create_consts(&[parameters.pos.into()]).unwrap(),
-                            )));
 
                             let pos_in_view = view_mat * Vec4::from_point(parameters.pos);
                             let scale_factor = self.ui.win_w as f64
@@ -547,7 +541,34 @@ impl Ui {
                                     * (0.5 * fov as f64).tan()
                                     * parameters.res as f64);
                             // Don't process ingame elements behind the camera or very far away
-                            placement = if scale_factor > 0.1 {
+                            placement = if scale_factor > 0.2 {
+                                // Finish current state
+                                self.draw_commands.push(match current_state {
+                                    State::Plain => {
+                                        DrawCommand::plain(start..mesh.vertices().len())
+                                    }
+                                    State::Image => {
+                                        DrawCommand::image(start..mesh.vertices().len())
+                                    }
+                                });
+                                start = mesh.vertices().len();
+                                // Push new position command
+                                if self.ingame_locals.len() > ingame_local_index {
+                                    renderer
+                                        .update_consts(
+                                            &mut self.ingame_locals[ingame_local_index],
+                                            &[parameters.pos.into()],
+                                        )
+                                        .unwrap();
+                                } else {
+                                    self.ingame_locals.push(
+                                        renderer.create_consts(&[parameters.pos.into()]).unwrap(),
+                                    );
+                                }
+                                self.draw_commands
+                                    .push(DrawCommand::WorldPos(Some(ingame_local_index)));
+                                ingame_local_index += 1;
+
                                 p_scale_factor = ((scale_factor * 10.0).log2().round().powi(2)
                                     / 10.0)
                                     .min(1.6)
@@ -622,8 +643,8 @@ impl Ui {
                 DrawCommand::Scissor(new_scissor) => {
                     scissor = *new_scissor;
                 }
-                DrawCommand::WorldPos(ref pos) => {
-                    locals = pos.as_ref().unwrap_or(&self.interface_locals);
+                DrawCommand::WorldPos(index) => {
+                    locals = index.map_or(&self.interface_locals, |i| &self.ingame_locals[i]);
                 }
                 DrawCommand::Draw { kind, verts } => {
                     let tex = match kind {
