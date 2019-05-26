@@ -81,6 +81,10 @@ pub trait PlayState {
 fn main() {
     // Set up the global state.
     let mut settings = Settings::load();
+    // Save settings to add new fields or create the file if it is not already there
+    // TODO: Handle this result.
+    settings.save_to_file();
+
     let window = Window::new(&settings).expect("Failed to create window!");
 
     // Initialize logging.
