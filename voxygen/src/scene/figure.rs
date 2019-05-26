@@ -585,21 +585,6 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        // Change in health as color!
-                        let col = stats
-                            .and_then(|stats| stats.hp.last_change)
-                            .map(|(change_by, change_time)| Rgba::new(1.0, 0.7, 0.7, 1.0))
-                            .unwrap_or(Rgba::broadcast(1.0));
-
-                        state.update(renderer, pos.0, dir.0, col);
-
                         state.update(renderer, pos.0, dir.0, col);
                     }
                 },
