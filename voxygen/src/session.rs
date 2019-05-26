@@ -148,8 +148,10 @@ impl PlayState for SessionState {
             }
 
             // Perform an in-game tick.
-            self.tick(clock.get_last_delta())
-                .expect("Failed to tick the scene!");
+            if let Err(err) = self.tick(clock.get_last_delta()) {
+                log::error!("Failed to tick the scene: {:?}", err);
+                return PlayStateResult::Pop;
+            }
 
             // Maintain global state
             global_state.maintain();

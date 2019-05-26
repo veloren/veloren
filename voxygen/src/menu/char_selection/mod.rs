@@ -107,10 +107,14 @@ impl PlayState for CharSelectionState {
                 .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
-            self.client
+            if let Err(err) = self
+                .client
                 .borrow_mut()
                 .tick(comp::Control::default(), clock.get_last_delta())
-                .expect("Failed to tick the client");
+            {
+                log::error!("Failed to tick the scene: {:?}", err);
+                return PlayStateResult::Pop;
+            }
             self.client.borrow_mut().cleanup();
 
             // Finish the frame.
