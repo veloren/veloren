@@ -127,7 +127,7 @@ impl<'a> System<'a> for Sys {
             let last = animation_infos
                 .get_mut(entity)
                 .cloned()
-                .unwrap_or(AnimationInfo::new());
+                .unwrap_or(AnimationInfo::default());
             let changed = last.animation != animation;
 
             animation_infos.insert(
@@ -149,6 +149,7 @@ impl<'a> System<'a> for Sys {
                 {
                     // Check if it is a hit
                     if entity != b
+                        && !stat_b.is_dead()
                         && pos.0.distance_squared(pos_b.0) < 50.0
                         && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                     {

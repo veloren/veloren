@@ -156,10 +156,6 @@ impl PlayState for SessionState {
             // Maintain global state
             global_state.maintain();
 
-            // Maintain the scene.
-            self.scene
-                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
-
             // extract HUD events ensuring the client borrow gets dropped
             let hud_events = self.hud.maintain(
                 &self.client.borrow(),
@@ -201,7 +197,10 @@ impl PlayState for SessionState {
                     }
                 }
             }
-            {}
+
+            // Maintain the scene.
+            self.scene
+                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
