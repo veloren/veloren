@@ -17,8 +17,8 @@ pub struct AnimationInfo {
     pub changed: bool,
 }
 
-impl AnimationInfo {
-    pub fn new() -> Self {
+impl Default for AnimationInfo {
+    fn default() -> Self {
         Self {
             animation: Animation::Idle,
             time: 0.0,

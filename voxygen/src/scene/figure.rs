@@ -461,15 +461,15 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor, stats) in (
+        for (entity, actor, stat) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::Stats>(), // Just to make sure the entity is alive
         )
             .join()
         {
-            if stats.is_dead() {
-                return;
+            if stat.is_dead() {
+                //return;
             }
 
             match actor {
@@ -487,6 +487,8 @@ impl FigureMgr {
                         let model = self.model_cache.get_or_create_model(renderer, *body, tick);
 
                         renderer.render_figure(model, globals, locals, bone_consts);
+                    } else {
+                        panic!();
                     }
                 }
             }
