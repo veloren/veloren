@@ -90,6 +90,7 @@ pub enum Event {
     },
     StartSingleplayer,
     Quit,
+    DisclaimerClosed,
 }
 
 pub struct MainMenuUi {
@@ -129,11 +130,11 @@ impl MainMenuUi {
             login_error: None,
             connecting: None,
             show_servers: false,
-            show_disclaimer: true,
+            show_disclaimer: global_state.settings.show_disclaimer,
         }
     }
 
-    fn update_layout(&mut self, global_state: &GlobalState) -> Vec<Event> {
+    fn update_layout(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -209,8 +210,9 @@ impl MainMenuUi {
                 .set(self.ids.disc_button, ui_widgets)
                 .was_clicked()
             {
-                self.show_disclaimer = false
-            };
+                self.show_disclaimer = false;
+                events.push(Event::DisclaimerClosed);
+            }
         } else {
             // TODO: Don't use macros for this?
             // Input fields
