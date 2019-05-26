@@ -266,7 +266,6 @@ fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: 
             .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
-
 fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     for cmd in CHAT_COMMANDS.iter() {
         server
