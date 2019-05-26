@@ -244,18 +244,18 @@ fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: 
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
     {
-        Some(pos) => {
+        Some(mut pos) => {
+            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server
                 .create_npc(
+                    pos,
                     "Tobermory".to_owned(),
                     comp::Body::QuadrupedMedium(comp::QuadrupedMediumBody::random()),
                 )
-                .with(comp::Control::default())
                 .with(comp::Agent::Pet {
                     target: entity,
                     offset: Vec2::zero(),
                 })
-                .with(pos)
                 .build();
             server
                 .clients
