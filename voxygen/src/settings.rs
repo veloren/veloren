@@ -1,10 +1,8 @@
 use crate::window::KeyMouse;
-use config::{Config, ConfigError};
 use directories::ProjectDirs;
 use glutin::{MouseButton, VirtualKeyCode};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
-use toml;
 
 /// `Settings` contains everything that can be configured in the Settings.toml file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -129,28 +127,11 @@ impl Settings {
 
         let path = Settings::get_settings_path();
 
-        let mut config = Config::new();
-
-        config
-            .merge(
-                Config::try_from(&default_settings)
-                    .expect("Default settings struct could not be converted to Config!"),
-            )
-            .unwrap();
-
-        // TODO: Log errors here.
-        // If merge or try_into fail, use the default settings.
-        match config.merge::<config::File<_>>(path.into()) {
-            Ok(_) => match config.try_into() {
-                Ok(settings) => settings,
-                Err(_) => default_settings,
-            },
-            Err(_) => {
-                // Maybe the file didn't exist.
-                // TODO: Handle this result.
-                default_settings.save_to_file();
-                default_settings
-            }
+        // If file doesn't exist, use the default settings.
+        if let Ok(file) = fs::File::open(path) {
+            ron::de::from_reader(file).expect("Error parsing settings")
+        } else {
+            Self::default()
         }
     }
 
@@ -162,7 +143,7 @@ impl Settings {
         }
 
         let mut config_file = fs::File::create(path)?;
-        let s: &str = &toml::to_string_pretty(self).unwrap();
+        let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
         config_file.write_all(s.as_bytes()).unwrap();
         Ok(())
     }
@@ -172,7 +153,7 @@ impl Settings {
             ProjectDirs::from("net", "veloren", "voxygen").expect("No home directory defined!");
         let path = proj_dirs.config_dir();
         path.join("settings");
-        let path = path.with_extension("toml");
+        let path = path.with_extension("ron");
         path
     }
 }

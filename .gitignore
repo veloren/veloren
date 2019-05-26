@@ -15,9 +15,6 @@
 *.code-workspace
 
 # Veloren
-voxygen/keybinds.toml
-settings.toml
-voxygen/settings/
 *.rar
 *.log
 run.sh
