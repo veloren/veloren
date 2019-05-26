@@ -622,6 +622,17 @@ impl Hud {
                 }
                 true
             }
+            WinEvent::InputUpdate(GameInput::ToggleInterface, true) => {
+                self.show.toggle_ui();
+                true
+            }
+            WinEvent::InputUpdate(GameInput::ToggleCursor, true) => {
+                self.force_ungrab = !self.force_ungrab;
+                if self.force_ungrab {
+                    global_state.window.grab_cursor(false);
+                }
+                true
+            }
             _ if !self.show.ui => false,
             WinEvent::Zoom(_) => !cursor_grabbed && !self.ui.no_widget_capturing_mouse(),
 
@@ -645,17 +656,6 @@ impl Hud {
 
             // Press key while not typing
             WinEvent::InputUpdate(key, true) if !self.typing() => match key {
-                GameInput::ToggleInterface => {
-                    self.show.toggle_ui();
-                    true
-                }
-                GameInput::ToggleCursor => {
-                    self.force_ungrab = !self.force_ungrab;
-                    if self.force_ungrab {
-                        global_state.window.grab_cursor(false);
-                    }
-                    true
-                }
                 GameInput::Map => {
                     self.show.toggle_map();
                     true
