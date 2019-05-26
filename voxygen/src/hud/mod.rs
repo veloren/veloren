@@ -622,11 +622,11 @@ impl Hud {
                 }
                 true
             }
-            WinEvent::InputUpdate(GameInput::ToggleInterface, true) => {
+            WinEvent::InputUpdate(GameInput::ToggleInterface, true) if !self.typing() => {
                 self.show.toggle_ui();
                 true
             }
-            WinEvent::InputUpdate(GameInput::ToggleCursor, true) => {
+            WinEvent::InputUpdate(GameInput::ToggleCursor, true) if !self.typing() => {
                 self.force_ungrab = !self.force_ungrab;
                 if self.force_ungrab {
                     global_state.window.grab_cursor(false);
