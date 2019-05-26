@@ -469,7 +469,7 @@ impl FigureMgr {
             .join()
         {
             if stat.is_dead() {
-                //return;
+                return;
             }
 
             match actor {
@@ -488,7 +488,7 @@ impl FigureMgr {
 
                         renderer.render_figure(model, globals, locals, bone_consts);
                     } else {
-                        panic!();
+                        log::error!("Body has no saved figure");
                     }
                 }
             }
