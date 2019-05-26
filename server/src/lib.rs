@@ -155,7 +155,6 @@ impl Server {
 
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
-        state.write_component(entity, comp::Control::default());
         state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
