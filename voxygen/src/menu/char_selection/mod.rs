@@ -8,7 +8,7 @@ use crate::{
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, msg::ClientMsg};
+use common::{clock::Clock, comp, msg::ClientMsg, msg::ClientState};
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
@@ -46,7 +46,8 @@ impl PlayState for CharSelectionState {
         // Set up an fps clock.
         let mut clock = Clock::new();
 
-        loop {
+        let mut current_client_state = self.client.borrow().get_client_state();
+        while let ClientState::Pending | ClientState::Registered = current_client_state {
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 match event {
@@ -74,14 +75,11 @@ impl PlayState for CharSelectionState {
                         return PlayStateResult::Pop;
                     }
                     ui::Event::Play => {
-                        self.client
-                            .borrow_mut()
-                            .postbox
-                            .send_message(ClientMsg::Character {
-                                name: self.char_selection_ui.character_name.clone(),
-                                body: comp::Body::Humanoid(self.char_selection_ui.character_body),
-                            });
-                        return PlayStateResult::Switch(Box::new(SessionState::new(
+                        self.client.borrow_mut().request_character(
+                            self.char_selection_ui.character_name.clone(),
+                            comp::Body::Humanoid(self.char_selection_ui.character_body),
+                        );
+                        return PlayStateResult::Push(Box::new(SessionState::new(
                             &mut global_state.window,
                             self.client.clone(),
                             global_state.settings.clone(),
@@ -109,10 +107,14 @@ impl PlayState for CharSelectionState {
                 .render(global_state.window.renderer_mut(), self.scene.globals());
 
             // Tick the client (currently only to keep the connection alive).
-            self.client
+            if let Err(err) = self
+                .client
                 .borrow_mut()
-                .tick(client::Input::default(), clock.get_last_delta())
-                .expect("Failed to tick the client");
+                .tick(comp::Control::default(), clock.get_last_delta())
+            {
+                log::error!("Failed to tick the scene: {:?}", err);
+                return PlayStateResult::Pop;
+            }
             self.client.borrow_mut().cleanup();
 
             // Finish the frame.
@@ -124,7 +126,11 @@ impl PlayState for CharSelectionState {
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(1000 / FPS));
+
+            current_client_state = self.client.borrow().get_client_state();
         }
+
+        PlayStateResult::Pop
     }
 
     fn name(&self) -> &'static str {

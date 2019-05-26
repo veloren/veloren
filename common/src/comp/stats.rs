@@ -1,6 +1,7 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use crate::state::Time;
+use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Health {
     pub current: u32,
     pub maximum: u32,
@@ -8,16 +9,22 @@ pub struct Health {
 }
 
 impl Health {
-    pub fn change_by(&mut self, amount: i32, current_time: f64) {
+    pub fn change_by(&mut self, amount: i32) {
         self.current = (self.current as i32 + amount).max(0) as u32;
-        self.last_change = Some((amount, current_time));
+        self.last_change = Some((amount, 0.0));
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub hp: Health,
     pub xp: u32,
+}
+
+impl Stats {
+    pub fn is_dead(&self) -> bool {
+        self.hp.current == 0
+    }
 }
 
 impl Default for Stats {
@@ -35,4 +42,11 @@ impl Default for Stats {
 
 impl Component for Stats {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Dying;
+
+impl Component for Dying {
+    type Storage = NullStorage<Self>;
 }

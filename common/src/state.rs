@@ -28,8 +28,8 @@ const DAY_CYCLE_FACTOR: f64 = 24.0 * 60.0;
 pub struct TimeOfDay(f64);
 
 /// A resource that stores the tick (i.e: physics) time.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Time(f64);
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct Time(pub f64);
 
 /// A resource that stores the time since the previous tick.
 #[derive(Default)]
@@ -103,14 +103,21 @@ impl State {
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
+        ecs.register_synced::<comp::Attacking>();
+        ecs.register::<comp::phys::ForceUpdate>();
 
         // Register unsynced (or synced by other means) components.
         ecs.register::<comp::phys::Pos>();
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
-        ecs.register::<comp::AnimationHistory>();
-        ecs.register::<comp::Agent>();
+        ecs.register::<comp::AnimationInfo>();
+        ecs.register::<comp::Attacking>();
         ecs.register::<comp::Control>();
+        ecs.register::<comp::Jumping>();
+        ecs.register::<comp::Respawning>();
+        ecs.register::<comp::Gliding>();
+        ecs.register::<comp::Dying>();
+        ecs.register::<comp::Agent>();
         ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.
@@ -179,6 +186,24 @@ impl State {
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
         self.ecs.read_resource::<TerrainMap>()
+    }
+
+    /// Get a writable reference to this state's terrain.
+    pub fn terrain_mut(&self) -> FetchMut<TerrainMap> {
+        self.ecs.write_resource::<TerrainMap>()
+    }
+
+    /// Removes every chunk of the terrain.
+    pub fn clear_terrain(&mut self) {
+        let keys = self
+            .terrain_mut()
+            .drain()
+            .map(|(key, _)| key)
+            .collect::<Vec<_>>();
+
+        for key in keys {
+            self.remove_chunk(key);
+        }
     }
 
     /// Insert the provided chunk into this state's terrain.
