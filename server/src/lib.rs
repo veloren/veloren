@@ -139,6 +139,7 @@ impl Server {
             .with(comp::Control::default())
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
+            .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
     }
@@ -155,7 +156,7 @@ impl Server {
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
         state.write_component(entity, comp::Control::default());
-        state.write_component(entity, comp::AnimationInfo::new());
+        state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
@@ -569,18 +570,35 @@ impl Server {
         // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync logical information other players have authority over, not the server.
-        for (other_entity, &uid, &animation_info) in (
+        // Sync physics
+        for (entity, &uid, &pos, &vel, &dir) in (
             &state.ecs().entities(),
-            &state.ecs().read_storage::<common::state::Uid>(),
+            &state.ecs().read_storage::<Uid>(),
+            &state.ecs().read_storage::<comp::phys::Pos>(),
+            &state.ecs().read_storage::<comp::phys::Vel>(),
+            &state.ecs().read_storage::<comp::phys::Dir>(),
+        )
+            .join()
+        {
+            client.notify(ServerMsg::EntityPhysics {
+                entity: uid.into(),
+                pos,
+                vel,
+                dir,
+            });
+        }
+
+        // Sync animations
+        for (entity, &uid, &animation_info) in (
+            &state.ecs().entities(),
+            &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::AnimationInfo>(),
         )
             .join()
         {
-            // Animation
             client.notify(ServerMsg::EntityAnimation {
                 entity: uid.into(),
-                animation_info: animation_info,
+                animation_info: animation_info.clone(),
             });
         }
 
@@ -594,7 +612,7 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // Sync 'physical' state.
+        // Sync physics
         for (entity, &uid, &pos, &vel, &dir, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
@@ -616,27 +634,32 @@ impl Server {
             };
 
             match force_update {
-                Some(_) => self.clients.notify_ingame(msg),
-                None => self.clients.notify_ingame_except(entity, msg),
+                Some(_) => self.clients.notify_registered(msg),
+                None => self.clients.notify_registered_except(entity, msg),
             }
         }
 
-        // Sync animation.
-        for (entity, &uid, &animation_info) in (
+        // Sync animations
+        for (entity, &uid, &animation_info, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::AnimationInfo>(),
+            self.state
+                .ecs()
+                .read_storage::<comp::phys::ForceUpdate>()
+                .maybe(),
         )
             .join()
         {
-            if animation_info.changed {
-                self.clients.notify_ingame_except(
-                    entity,
-                    ServerMsg::EntityAnimation {
-                        entity: uid.into(),
-                        animation_info: animation_info.clone(),
-                    },
-                );
+            if animation_info.changed || force_update.is_some() {
+                let msg = ServerMsg::EntityAnimation {
+                    entity: uid.into(),
+                    animation_info: animation_info.clone(),
+                };
+                match force_update {
+                    Some(_) => self.clients.notify_registered(msg),
+                    None => self.clients.notify_registered_except(entity, msg),
+                }
             }
         }
 

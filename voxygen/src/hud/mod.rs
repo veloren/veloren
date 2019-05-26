@@ -335,15 +335,10 @@ impl Hud {
                     .resolution(100.0)
                     .set(id, ui_widgets);
             }
-            for (pos, hp) in (&entities, &pos, &stats)
+
+            for (entity, pos, stats) in (&entities, &pos, &stats)
                 .join()
-                .filter_map(|(entity, pos, stats)| {
-                    if entity != me {
-                        Some((pos.0, stats.hp))
-                    } else {
-                        None
-                    }
-                })
+                .filter(|(entity, _, stats)| *entity != me && !stats.is_dead())
             {
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
@@ -356,17 +351,20 @@ impl Hud {
                 // Healh Bar
                 Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
                 // Filling
                 Rectangle::fill_with(
-                    [120.0 * (hp.current as f64 / hp.maximum as f64), 8.0],
+                    [
+                        120.0 * (stats.hp.current as f64 / stats.hp.maximum as f64),
+                        8.0,
+                    ],
                     HP_COLOR,
                 )
                 .x_y(0.0, -25.0)
-                .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
                 .resolution(100.0)
                 .set(bar_id, ui_widgets);
             }
