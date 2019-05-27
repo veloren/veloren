@@ -573,7 +573,15 @@ impl Ui {
                                     / 10.0)
                                     .min(1.6)
                                     .max(0.2);
-                                Placement::InWorld(parameters.num, Some(parameters.res))
+
+                                // Scale down ingame elements that are close to the camera
+                                let res = if scale_factor > 3.2 {
+                                    parameters.res * scale_factor as f32 / 3.2
+                                } else {
+                                    parameters.res
+                                };
+
+                                Placement::InWorld(parameters.num, Some(res))
                             } else {
                                 Placement::InWorld(parameters.num, None)
                             };
