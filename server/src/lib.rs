@@ -136,12 +136,13 @@ impl Server {
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(comp::Control::default())
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Dir(Vec3::unit_y()))
+            .with(comp::Control::default())
             .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
+            .with(comp::phys::ForceUpdate)
     }
 
     pub fn create_player_character(
