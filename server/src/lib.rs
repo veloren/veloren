@@ -677,7 +677,7 @@ impl Server {
             let chunk_tx = self.chunk_tx.clone();
             let world = self.world.clone();
             self.thread_pool.execute(move || {
-                let _ = chunk_tx.send((key, world.generate_chunk(key))).unwrap();
+                let _ = chunk_tx.send((key, world.generate_chunk(key)));
             });
         }
     }
