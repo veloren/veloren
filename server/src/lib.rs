@@ -218,19 +218,21 @@ impl Server {
             .map(|(entity, dying)| {
                 // Chat message
                 if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
-                    // While waiting for if-let-chains to be implemented...
                     let msg = if let comp::HealthSource::Attack { by } = dying.cause {
-                        if let Some(attacker) = ecs
-                            .read_storage::<comp::Player>()
-                            .get(ecs.entity_from_uid(by.into()).unwrap())
-                        {
-                            format!("{} was killed by {}", &player.alias, &attacker.alias)
-                        } else {
-                            format!("{} died", &player.alias)
-                        }
+                        ecs.entity_from_uid(by.into()).and_then(|attacker| {
+                            ecs.read_storage::<comp::Player>()
+                                .get(attacker)
+                                .map(|attacker_alias| {
+                                    format!(
+                                        "{} was killed by {}",
+                                        &player.alias, &attacker_alias.alias
+                                    )
+                                })
+                        })
                     } else {
-                        format!("{} died", &player.alias)
-                    };
+                        None
+                    }
+                    .unwrap_or(format!("{} died", &player.alias));
 
                     clients.notify_registered(ServerMsg::Chat(msg));
                 }
