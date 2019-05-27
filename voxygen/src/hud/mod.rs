@@ -358,7 +358,7 @@ impl Hud {
                 // Filling
                 Rectangle::fill_with(
                     [
-                        120.0 * (stats.hp.current as f64 / stats.hp.maximum as f64),
+                        120.0 * (stats.hp.get_current() as f64 / stats.hp.get_maximum() as f64),
                         8.0,
                     ],
                     HP_COLOR,

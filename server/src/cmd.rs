@@ -150,7 +150,7 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         .ecs_mut()
         .write_storage::<comp::Stats>()
         .get_mut(entity)
-        .map(|s| s.hp.current = 0);
+        .map(|s| s.hp.set_to(0, comp::HealthSource::Suicide));
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {

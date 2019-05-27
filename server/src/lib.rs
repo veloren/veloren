@@ -211,14 +211,35 @@ impl Server {
         self.world.tick(dt);
 
         // Sync deaths.
-        let todo_kill = (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Dying>(),
-        )
+        let ecs = &self.state.ecs();
+        let clients = &mut self.clients;
+        let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
             .join()
-            .map(|(entity, _)| entity)
+            .map(|(entity, dying)| {
+                // Chat message
+                if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+                    // While waiting for if-let-chains to be implemented...
+                    let msg = if let comp::HealthSource::Attack { by } = dying.cause {
+                        if let Some(attacker) = ecs
+                            .read_storage::<comp::Player>()
+                            .get(ecs.entity_from_uid(by.into()).unwrap())
+                        {
+                            format!("{} was killed by {}", &player.alias, &attacker.alias)
+                        } else {
+                            format!("{} died", &player.alias)
+                        }
+                    } else {
+                        format!("{} died", &player.alias)
+                    };
+
+                    clients.notify_registered(ServerMsg::Chat(msg));
+                }
+
+                entity
+            })
             .collect::<Vec<_>>();
 
+        // Actually kill them
         for entity in todo_kill {
             if let Some(client) = self.clients.get_mut(&entity) {
                 self.state
@@ -228,11 +249,6 @@ impl Server {
             } else {
                 self.state.ecs_mut().delete_entity_synced(entity);
                 continue;
-            }
-
-            if let Some(player) = self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                self.clients
-                    .notify_registered(ServerMsg::Chat(format!("{} died", &player.alias)));
             }
         }
 
