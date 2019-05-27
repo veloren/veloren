@@ -81,11 +81,14 @@ pub trait PlayState {
 fn main() {
     // Set up the global state.
     let mut settings = Settings::load();
-    // Save settings to add new fields or create the file if it is not already there
-    // TODO: Handle this result.
-    settings.save_to_file();
-
     let window = Window::new(&settings).expect("Failed to create window!");
+
+    let mut global_state = GlobalState {
+        audio: AudioFrontend::new(&settings.audio),
+        window,
+        settings,
+    };
+
 
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
@@ -97,13 +100,13 @@ fn main() {
         WriteLogger::new(
             log::LevelFilter::Info,
             Config::default(),
-            File::create(&settings.log.file).unwrap(),
+            File::create(&global_state.settings.log.file).unwrap(),
         ),
     ])
     .unwrap();
 
     // Set up panic handler to relay swish panic messages to the user
-    let settings_clone = settings.clone();
+    let settings_clone = global_state.settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
@@ -164,15 +167,9 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    if settings.audio.audio_device == None {
-        settings.audio.audio_device = Some(AudioFrontend::get_default_device());
+    if global_state.settings.audio.audio_device == None {
+        global_state.settings.audio.audio_device = Some(AudioFrontend::get_default_device());
     }
-
-    let mut global_state = GlobalState {
-        audio: AudioFrontend::new(&settings.audio),
-        window,
-        settings,
-    };
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
@@ -231,4 +228,7 @@ fn main() {
             }
         }
     }
+    // Save settings to add new fields or create the file if it is not already there
+    // TODO: Handle this result.
+    global_state.settings.save_to_file();
 }
