@@ -65,7 +65,7 @@ impl Animation for JumpAnimation {
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
-        next.weapon.ori = Quaternion::rotation_y(2.5);
+        next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
