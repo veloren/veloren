@@ -17,7 +17,8 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
-    terrain::TerrainChunk,
+    terrain::{TerrainChunk, TerrainChunkSize},
+    vol::VolSize,
 };
 use specs::{
     join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
@@ -690,9 +691,34 @@ impl Server {
                 dir,
             };
 
+            let state = &self.state;
+            let mut clients = &mut self.clients;
+
+            let in_vd = |entity| {
+                // Get client position.
+                let client_pos = match state.ecs().read_storage::<comp::phys::Pos>().get(entity) {
+                    Some(pos) => pos.0,
+                    None => return false,
+                };
+                // Get client view distance
+                let client_vd = match state.ecs().read_storage::<comp::Player>().get(entity) {
+                    Some(comp::Player {
+                        view_distance: Some(vd),
+                        ..
+                    }) => *vd,
+                    _ => return false,
+                };
+
+                (pos.0 - client_pos)
+                    .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        (d.abs() as u32) < client_vd * sz as u32
+                    })
+                    .reduce_and()
+            };
+
             match force_update {
-                Some(_) => self.clients.notify_registered(msg),
-                None => self.clients.notify_registered_except(entity, msg),
+                Some(_) => clients.notify_ingame_if(msg, in_vd),
+                None => clients.notify_ingame_if_except(entity, msg, in_vd),
             }
         }
 
@@ -714,8 +740,8 @@ impl Server {
                     animation_info: animation_info.clone(),
                 };
                 match force_update {
-                    Some(_) => self.clients.notify_registered(msg),
-                    None => self.clients.notify_registered_except(entity, msg),
+                    Some(_) => self.clients.notify_ingame(msg),
+                    None => self.clients.notify_ingame_except(entity, msg),
                 }
             }
         }
