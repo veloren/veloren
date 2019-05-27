@@ -19,10 +19,12 @@ impl Health {
 pub struct Stats {
     pub hp: Health,
     pub xp: u32,
+    pub is_dead: bool,
 }
 
 impl Stats {
-    pub fn is_dead(&self) -> bool {
+    pub fn should_die(&self) -> bool {
+        // TODO: Remove
         self.hp.current == 0
     }
 }
@@ -36,6 +38,7 @@ impl Default for Stats {
                 last_change: None,
             },
             xp: 0,
+            is_dead: false,
         }
     }
 }
