@@ -149,7 +149,7 @@ impl<'a> System<'a> for Sys {
                 {
                     // Check if it is a hit
                     if entity != b
-                        && !stat_b.is_dead()
+                        && !stat_b.is_dead
                         && pos.0.distance_squared(pos_b.0) < 50.0
                         && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                     {

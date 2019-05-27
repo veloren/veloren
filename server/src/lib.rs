@@ -39,9 +39,16 @@ const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 const DEFAULT_WORLD_SEED: u32 = 1337;
 
 pub enum Event {
-    ClientConnected { entity: EcsEntity },
-    ClientDisconnected { entity: EcsEntity },
-    Chat { entity: EcsEntity, msg: String },
+    ClientConnected {
+        entity: EcsEntity,
+    },
+    ClientDisconnected {
+        entity: EcsEntity,
+    },
+    Chat {
+        entity: Option<EcsEntity>,
+        msg: String,
+    },
 }
 
 #[derive(Copy, Clone)]
@@ -220,6 +227,12 @@ impl Server {
                 client.force_state(ClientState::Dead);
             } else {
                 self.state.ecs_mut().delete_entity_synced(entity);
+                continue;
+            }
+
+            if let Some(player) = self.state.ecs().read_storage::<comp::Player>().get(entity) {
+                self.clients
+                    .notify_registered(ServerMsg::Chat(format!("{} died", &player.alias)));
             }
         }
 
@@ -316,8 +329,6 @@ impl Server {
         // Cleanup
         let ecs = self.state.ecs_mut();
         for entity in ecs.entities().join() {
-            ecs.write_storage::<comp::Jumping>().remove(entity);
-            ecs.write_storage::<comp::Gliding>().remove(entity);
             ecs.write_storage::<comp::Dying>().remove(entity);
             ecs.write_storage::<comp::Respawning>().remove(entity);
         }
@@ -415,7 +426,13 @@ impl Server {
                         },
                         ClientMsg::Register { player } => match client.client_state {
                             ClientState::Connected => {
-                                Self::initialize_player(state, entity, client, player)
+                                Self::initialize_player(state, entity, client, player);
+                                if let Some(player) =
+                                    state.ecs().read_storage::<comp::Player>().get(entity)
+                                {
+                                    new_chat_msgs
+                                        .push((None, format!("{} logged in", &player.alias)));
+                                }
                             }
                             // Use RequestState instead (No need to send `player` again).
                             _ => client.error_state(RequestStateError::Impossible),
@@ -464,7 +481,7 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs.push((entity, msg)),
+                            | ClientState::Character => new_chat_msgs.push((Some(entity), msg)),
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerAnimation(animation_info) => {
@@ -507,7 +524,9 @@ impl Server {
                         // Always possible.
                         ClientMsg::Ping => client.postbox.send_message(ServerMsg::Pong),
                         ClientMsg::Pong => {}
-                        ClientMsg::Disconnect => disconnect = true,
+                        ClientMsg::Disconnect => {
+                            disconnect = true;
+                        }
                     }
                 }
             } else if state.get_time() - client.last_ping > CLIENT_TIMEOUT || // Timeout
@@ -521,6 +540,9 @@ impl Server {
             }
 
             if disconnect {
+                if let Some(player) = state.ecs().read_storage::<comp::Player>().get(entity) {
+                    new_chat_msgs.push((None, format!("{} disconnected", &player.alias)));
+                }
                 disconnected_clients.push(entity);
                 client.postbox.send_message(ServerMsg::Disconnect);
                 true
@@ -531,20 +553,23 @@ impl Server {
 
         // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
-            // Handle chat commands.
-            if msg.starts_with("/") && msg.len() > 1 {
-                let argv = String::from(&msg[1..]);
-                self.process_chat_cmd(entity, argv);
+            if let Some(entity) = entity {
+                // Handle chat commands.
+                if msg.starts_with("/") && msg.len() > 1 {
+                    let argv = String::from(&msg[1..]);
+                    self.process_chat_cmd(entity, argv);
+                } else {
+                    self.clients.notify_registered(ServerMsg::Chat(
+                        match self.state.ecs().read_storage::<comp::Player>().get(entity) {
+                            Some(player) => format!("[{}] {}", &player.alias, msg),
+                            None => format!("[<anon>] {}", msg),
+                        },
+                    ));
+                }
             } else {
-                self.clients.notify_registered(ServerMsg::Chat(
-                    match self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                        Some(player) => format!("[{}] {}", &player.alias, msg),
-                        None => format!("[<anon>] {}", msg),
-                    },
-                ));
-
-                frontend_events.push(Event::Chat { entity, msg });
+                self.clients.notify_registered(ServerMsg::Chat(msg.clone()));
             }
+            frontend_events.push(Event::Chat { entity, msg });
         }
 
         // Handle client disconnects.
