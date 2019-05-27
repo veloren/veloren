@@ -93,7 +93,7 @@ impl<'a> System<'a> for Sys {
                         },
                         None => {
                             control.move_dir = Vec2::one();
-                            rand::random::<f32>().fract() < 0.25
+                            true
                         },
                     };
 
