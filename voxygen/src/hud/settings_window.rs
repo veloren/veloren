@@ -60,8 +60,7 @@ pub enum SettingsTab {
 
 #[derive(WidgetCommon)]
 pub struct SettingsWindow<'a> {
-    current_vd: u32,
-    current_volume: f32,
+    global_state: &'a GlobalState,
 
     show: &'a Show,
 
@@ -74,15 +73,13 @@ pub struct SettingsWindow<'a> {
 
 impl<'a> SettingsWindow<'a> {
     pub fn new(
-        current_vd: u32,
-        current_volume: f32,
+        global_state: &'a GlobalState,
         show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
     ) -> Self {
         Self {
-            current_vd,
-            current_volume,
+            global_state,
             show,
             imgs,
             fonts,

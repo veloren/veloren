@@ -173,6 +173,8 @@ impl Client {
         self.pending_chunks.clear();
     pub fn get_ping_ms(&self) -> f64 {
         self.last_ping_delta * 1000.0
+    }
+
     /// Ask the server to remove the client's character
     pub fn request_remove_character(&mut self) {
         // TODO: Pending state

@@ -558,8 +558,7 @@ impl Hud {
         // Settings
         if let Windows::Settings = self.show.open_windows {            
             for event in SettingsWindow::new(
-                self.current_vd,
-                self.current_volume,
+                &global_state,
                 &self.show,
                 &self.imgs,
                 &self.fonts,
