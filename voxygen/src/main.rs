@@ -89,7 +89,6 @@ fn main() {
         settings,
     };
 
-
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
         .and_then(|env| env.to_str().map(|s| s.to_owned()))
