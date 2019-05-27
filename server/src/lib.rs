@@ -283,19 +283,22 @@ impl Server {
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
-            for (entity, player, pos) in (
+            for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
                 &self.state.ecs().read_storage::<comp::phys::Pos>(),
             )
                 .join()
+                .filter_map(|(entity, player, pos)| {
+                    player.view_distance.map(|vd| (entity, vd, pos))
+                })
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
                 let dist = (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs())
                     .reduce_max() as u32;
 
-                if player.view_distance.map(|vd| dist <= vd).unwrap_or(false) {
+                if dist <= view_distance {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
