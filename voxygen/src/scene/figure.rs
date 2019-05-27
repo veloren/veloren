@@ -617,7 +617,7 @@ impl FigureMgr {
         )
             .join()
         {
-            if stat.is_dead() {
+            if stat.is_dead {
                 continue;
             }
 
