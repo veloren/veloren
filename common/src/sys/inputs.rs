@@ -115,11 +115,14 @@ impl<'a> System<'a> for Sys {
             let animation = if on_ground {
                 if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
+            } else if attackings.get(entity).is_some(){
+                Animation::Attack
                 } else {
                     Animation::Idle
                 }
             } else if glidings.get(entity).is_some() {
                 Animation::Gliding
+
             } else {
                 Animation::Jump
             };
