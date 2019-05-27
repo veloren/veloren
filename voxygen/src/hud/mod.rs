@@ -31,8 +31,7 @@ use crate::{
     GlobalState,
 };
 use client::Client;
-use common::comp;
-use common::comp::phys::Pos;
+use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
 use conrod_core::{
     color, graph,
     widget::{self, Button, Image, Rectangle, Text},
@@ -105,7 +104,7 @@ font_ids! {
 pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
-    pub coordinates: Option<Pos>,
+    pub coordinates: Option<comp::phys::Pos>,
 }
 
 pub enum Event {
@@ -305,6 +304,14 @@ impl Hud {
             let player = ecs.read_storage::<comp::Player>();
             let entities = ecs.entities();
             let me = client.entity();
+            let view_distance = client.view_distance().unwrap_or(1);
+            // Get player position.
+            let player_pos = client
+                .state()
+                .ecs()
+                .read_storage::<comp::phys::Pos>()
+                .get(client.entity())
+                .map_or(Vec3::zero(), |pos| pos.0);
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
@@ -313,6 +320,14 @@ impl Hud {
             for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
                 .join()
                 .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead)
+                // Don't process nametags outside the vd (visibility further limited by ui backend)
+                .filter(|(_, pos, _, _, _)| {
+                    (pos.0 - player_pos)
+                        .map2(TerrainChunkSize::SIZE, |d, sz| {
+                            (d.abs() as u32) < view_distance * sz as u32
+                        })
+                        .reduce_and()
+                })
                 .map(|(entity, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
                         name: char_name, ..
@@ -342,14 +357,21 @@ impl Hud {
             }
 
             // Render Health Bars
-            for (entity, pos, stats) in
-                (&entities, &pos, &stats)
-                    .join()
-                    .filter(|(entity, _, stats)| {
-                        *entity != me
-                            && !stats.is_dead
-                            && stats.hp.get_current() != stats.hp.get_maximum()
-                    })
+            for (entity, pos, stats) in (&entities, &pos, &stats)
+                .join()
+                .filter(|(entity, _, stats)| {
+                    *entity != me
+                        && !stats.is_dead
+                        && stats.hp.get_current() != stats.hp.get_maximum()
+                })
+                // Don't process health bars outside the vd (visibility further limited by ui backend)
+                .filter(|(_, pos, _)| {
+                    (pos.0 - player_pos)
+                        .map2(TerrainChunkSize::SIZE, |d, sz| {
+                            (d.abs() as u32) < view_distance * sz as u32
+                        })
+                        .reduce_and()
+                })
             {
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,

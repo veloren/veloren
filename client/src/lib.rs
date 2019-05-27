@@ -110,6 +110,10 @@ impl Client {
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
+    pub fn view_distance(&self) -> Option<u32> {
+        self.view_distance
+    }
+
     /// Send a chat message to the server.
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
