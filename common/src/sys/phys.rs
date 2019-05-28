@@ -1,5 +1,8 @@
 use crate::{
-    comp::phys::{Pos, Vel},
+    comp::{
+        phys::{Pos, Vel},
+        Stats,
+    },
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -16,12 +19,18 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
+        ReadStorage<'a, Stats>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
     );
 
-    fn run(&mut self, (terrain, dt, mut positions, mut velocities): Self::SystemData) {
-        for (pos, vel) in (&mut positions, &mut velocities).join() {
+    fn run(&mut self, (terrain, dt, stats, mut positions, mut velocities): Self::SystemData) {
+        for (stats, pos, vel) in (&stats, &mut positions, &mut velocities).join() {
+            // Disable while dead TODO: Replace with client states
+            if stats.is_dead {
+                continue;
+            }
+
             // Gravity
             vel.0.z = (vel.0.z - GRAVITY * dt.0).max(-50.0);
 
