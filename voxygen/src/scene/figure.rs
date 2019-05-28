@@ -244,7 +244,7 @@ impl FigureModelCache {
                 // TODO actually match against other weapons and set the right model
                 _ => "weapon/sword/sword_rusty_2h.vox",
             },
-            Vec3::new(-6.5, -1.5, -4.0),
+            Vec3::new(-1.5, -6.5, -4.0),
         )
     }
 
@@ -281,7 +281,7 @@ impl FigureModelCache {
                 Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
                 _ => "weapon/sword/sword_rusty_2h.vox",
             },
-            Vec3::new(-6.5, -1.5, -5.0),
+            Vec3::new(-1.5, -6.5, -4.5),
         )
     }
     fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
@@ -289,7 +289,7 @@ impl FigureModelCache {
             match hand {
                 Hand::Default => "figure/body/hand.vox",
             },
-            Vec3::new(-2.0, -2.5, -2.0),
+            Vec3::new(-2.0, -2.5, -5.0),
         )
     }
     /////////

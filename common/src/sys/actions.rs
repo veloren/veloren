@@ -31,7 +31,7 @@ impl<'a> System<'a> for Sys {
         let finished_attack = (&entities, &mut attackings)
             .join()
             .filter(|(e, a)| {
-                a.time > 0.5 // TODO: constant
+                a.time > 0.25 // TODO: constant
             })
             .map(|(e, a)| e)
             .collect::<Vec<_>>();
