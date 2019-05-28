@@ -24,7 +24,7 @@ dependencies = [
 [[package]]
 name = "alsa-sys"
 version = "0.1.1"
-source = "git+https://github.com/desttinghim/cpal#552e078bd1946773bf777fedc189511a1bf3cdb2"
+source = "git+https://github.com/desttinghim/cpal#b6dccc8768c67899db6b1ef9121ce926319cd07c"
 dependencies = [
  "libc 0.2.54 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -464,7 +464,7 @@ dependencies = [
 [[package]]
 name = "cpal"
 version = "0.8.2"
-source = "git+https://github.com/desttinghim/cpal#552e078bd1946773bf777fedc189511a1bf3cdb2"
+source = "git+https://github.com/desttinghim/cpal#b6dccc8768c67899db6b1ef9121ce926319cd07c"
 dependencies = [
  "alsa-sys 0.1.1 (git+https://github.com/desttinghim/cpal)",
  "core-foundation-sys 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
