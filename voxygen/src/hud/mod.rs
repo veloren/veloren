@@ -307,7 +307,7 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
             for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
                 .join()
-                .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead())
+                .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead)
                 .map(|(entity, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
                         name: char_name, ..
@@ -338,7 +338,7 @@ impl Hud {
 
             for (entity, pos, stats) in (&entities, &pos, &stats)
                 .join()
-                .filter(|(entity, _, stats)| *entity != me && !stats.is_dead())
+                .filter(|(entity, _, stats)| *entity != me && !stats.is_dead)
             {
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
@@ -358,7 +358,7 @@ impl Hud {
                 // Filling
                 Rectangle::fill_with(
                     [
-                        120.0 * (stats.hp.current as f64 / stats.hp.maximum as f64),
+                        120.0 * (stats.hp.get_current() as f64 / stats.hp.get_maximum() as f64),
                         8.0,
                     ],
                     HP_COLOR,

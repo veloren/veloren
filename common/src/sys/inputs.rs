@@ -6,9 +6,10 @@ use vek::*;
 use crate::{
     comp::{
         phys::{Dir, ForceUpdate, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Control, Gliding, Jumping, Respawning, Stats,
+        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
+        Stats,
     },
-    state::{DeltaTime, Time},
+    state::{DeltaTime, Time, Uid},
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
@@ -19,6 +20,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        ReadStorage<'a, Uid>,
         Read<'a, Time>,
         Read<'a, DeltaTime>,
         ReadExpect<'a, TerrainMap>,
@@ -39,6 +41,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
+            uids,
             time,
             dt,
             terrain,
@@ -142,8 +145,8 @@ impl<'a> System<'a> for Sys {
             );
         }
 
-        for (entity, pos, dir, attacking) in
-            (&entities, &positions, &directions, &mut attackings).join()
+        for (entity, &uid, pos, dir, attacking) in
+            (&entities, &uids, &positions, &directions, &mut attackings).join()
         {
             if !attacking.applied {
                 for (b, pos_b, mut stat_b, mut vel_b) in
@@ -151,12 +154,12 @@ impl<'a> System<'a> for Sys {
                 {
                     // Check if it is a hit
                     if entity != b
-                        && !stat_b.is_dead()
+                        && !stat_b.is_dead
                         && pos.0.distance_squared(pos_b.0) < 50.0
                         && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                     {
                         // Deal damage
-                        stat_b.hp.change_by(-10); // TODO: variable damage
+                        stat_b.hp.change_by(-10, HealthSource::Attack { by: uid }); // TODO: variable damage and weapon
                         vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                         vel_b.0.z = 15.0;
                         force_updates.insert(b, ForceUpdate);

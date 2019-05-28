@@ -103,21 +103,24 @@ impl State {
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::Attacking>();
+        ecs.register_synced::<comp::Attacking>(); // TODO: Don't send this to the client?
         ecs.register::<comp::phys::ForceUpdate>();
 
-        // Register unsynced (or synced by other means) components.
+        // Register components synced by other means
         ecs.register::<comp::phys::Pos>();
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Dir>();
         ecs.register::<comp::AnimationInfo>();
-        ecs.register::<comp::Attacking>();
+
+        // Register client-local components
         ecs.register::<comp::Control>();
         ecs.register::<comp::Jumping>();
+
+        // Register server-local components
+        ecs.register::<comp::Agent>();
         ecs.register::<comp::Respawning>();
         ecs.register::<comp::Gliding>();
         ecs.register::<comp::Dying>();
-        ecs.register::<comp::Agent>();
         ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.
