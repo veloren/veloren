@@ -285,9 +285,7 @@ fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &C
                     "Tobermory".to_owned(),
                     comp::Body::Humanoid(comp::HumanoidBody::random()),
                 )
-                .with(comp::Agent::Enemy {
-                    target: None,
-                })
+                .with(comp::Agent::Enemy { target: None })
                 .build();
             server
                 .clients
