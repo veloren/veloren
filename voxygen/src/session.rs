@@ -170,8 +170,7 @@ impl PlayState for SessionState {
                         .ecs()
                         .read_storage::<Pos>()
                         .get(self.client.borrow().entity())
-                        .unwrap()
-                        .0,
+                        .cloned(),
                 },
                 &self.scene.camera(),
             );

@@ -32,6 +32,7 @@ use crate::{
 };
 use client::Client;
 use common::comp;
+use common::comp::phys::Pos;
 use conrod_core::{
     color, graph,
     widget::{self, Button, Image, Rectangle, Text},
@@ -104,7 +105,7 @@ font_ids! {
 pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
-    pub coordinates: Vec3<f32>,
+    pub coordinates: Option<Pos>,
 }
 
 pub enum Event {
@@ -393,7 +394,11 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.ping, ui_widgets);
-            Text::new(&format!("Coordinates: {:.1}", debug_info.coordinates))
+            let coordinates_text = match debug_info.coordinates {
+                Some(coordinates) => format!("Coordinates: {:.1}", coordinates.0),
+                None => "Player has no Pos component".to_owned(),
+            };
+            Text::new(&coordinates_text)
                 .color(TEXT_COLOR)
                 .down_from(self.ids.ping, 5.0)
                 .font_id(self.fonts.opensans)
