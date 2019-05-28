@@ -307,6 +307,8 @@ impl Hud {
             let mut name_id_walker = self.ids.name_tags.walk();
             let mut health_id_walker = self.ids.health_bars.walk();
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
+
+            // Render Name Tags
             for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
                 .join()
                 .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead)
@@ -315,7 +317,7 @@ impl Hud {
                         name: char_name, ..
                     } => {
                         // Temporary
-                        // If the player used the default character name display thier name instead
+                        // If the player used the default character name display their name instead
                         let name = if char_name == "Character Name" {
                             player.map_or(char_name, |p| &p.alias)
                         } else {
@@ -338,9 +340,15 @@ impl Hud {
                     .set(id, ui_widgets);
             }
 
-            for (entity, pos, stats) in (&entities, &pos, &stats)
-                .join()
-                .filter(|(entity, _, stats)| *entity != me && !stats.is_dead)
+            // Render Health Bars
+            for (entity, pos, stats) in
+                (&entities, &pos, &stats)
+                    .join()
+                    .filter(|(entity, _, stats)| {
+                        *entity != me
+                            && !stats.is_dead
+                            && stats.hp.get_current() != stats.hp.get_maximum()
+                    })
             {
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
@@ -350,14 +358,14 @@ impl Hud {
                     &mut self.ids.health_bars,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                // Health Bar
+                // Background
                 Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
                     .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
-                // Filling
+                // % HP Filling
                 Rectangle::fill_with(
                     [
                         120.0 * (stats.hp.get_current() as f64 / stats.hp.get_maximum() as f64),
