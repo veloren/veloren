@@ -21,8 +21,19 @@ impl<'a> System<'a> for Sys {
 
     fn run(&mut self, (entities, dt, mut stats, mut dyings): Self::SystemData) {
         for (entity, mut stat) in (&entities, &mut stats).join() {
-            if stat.hp.current == 0 {
-                dyings.insert(entity, Dying);
+            if stat.should_die() && !stat.is_dead {
+                // TODO: Replace is_dead with client states
+                dyings.insert(
+                    entity,
+                    Dying {
+                        cause: stat
+                            .hp
+                            .last_change
+                            .expect("Nothing caused the entity to die")
+                            .2, // Safe because damage is necessary for death
+                    },
+                );
+                stat.is_dead = true;
             }
             if let Some(change) = &mut stat.hp.last_change {
                 change.1 += dt.0 as f64;

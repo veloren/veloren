@@ -294,14 +294,6 @@ impl Client {
             .ecs_mut()
             .write_storage::<comp::Jumping>()
             .remove(self.entity);
-        self.state
-            .ecs_mut()
-            .write_storage::<comp::Dying>()
-            .remove(self.entity);
-        self.state
-            .ecs_mut()
-            .write_storage::<comp::Respawning>()
-            .remove(self.entity);
 
         self.tick += 1;
         Ok(frontend_events)

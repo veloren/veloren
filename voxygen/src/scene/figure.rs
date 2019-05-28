@@ -475,7 +475,7 @@ impl FigureMgr {
             // Change in health as color!
             let col = stats
                 .and_then(|stats| stats.hp.last_change)
-                .map(|(change_by, time)| {
+                .map(|(change_by, time, _)| {
                     Rgba::broadcast(1.0)
                         + Rgba::new(0.0, -1.0, -1.0, 0.0)
                             .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
@@ -617,7 +617,7 @@ impl FigureMgr {
         )
             .join()
         {
-            if stat.is_dead() {
+            if stat.is_dead {
                 continue;
             }
 

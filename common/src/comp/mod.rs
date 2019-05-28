@@ -22,4 +22,5 @@ pub use inputs::Jumping;
 pub use inputs::Respawning;
 pub use player::Player;
 pub use stats::Dying;
+pub use stats::HealthSource;
 pub use stats::Stats;
