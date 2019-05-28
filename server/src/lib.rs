@@ -482,7 +482,14 @@ impl Server {
                         },
                         ClientMsg::Attack => match client.client_state {
                             ClientState::Character => {
-                                state.write_component(entity, comp::Attacking::start());
+                                if state
+                                    .ecs()
+                                    .read_storage::<comp::Attacking>()
+                                    .get(entity)
+                                    .is_none()
+                                {
+                                    state.write_component(entity, comp::Attacking::start());
+                                }
                             }
                             _ => client.error_state(RequestStateError::Impossible),
                         },
