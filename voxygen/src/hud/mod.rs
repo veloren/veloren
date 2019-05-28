@@ -60,6 +60,7 @@ widget_ids! {
         debug_bg,
         fps_counter,
         ping,
+        coordinates,
 
         // Game Version
         version,
@@ -103,6 +104,7 @@ font_ids! {
 pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
+    pub coordinates: Vec3<f32>,
 }
 
 pub enum Event {
@@ -391,6 +393,12 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.ping, ui_widgets);
+            Text::new(&format!("Coordinates: {:.1}", debug_info.coordinates))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.ping, 5.0)
+                .font_id(self.fonts.opensans)
+                .font_size(14)
+                .set(self.ids.coordinates, ui_widgets);
         }
 
         // Add Bag-Space Button.
