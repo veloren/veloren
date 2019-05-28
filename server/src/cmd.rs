@@ -94,6 +94,12 @@ lazy_static! {
             handle_petwolf
         ),
         ChatCommand::new(
+            "enemy",
+            "{}",
+            "/enemy : Spawn a test enemy NPC",
+            handle_enemy
+        ),
+        ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
     ];
 }
@@ -260,6 +266,30 @@ fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: 
             server
                 .clients
                 .notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+    }
+}
+fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    match server
+        .state
+        .read_component_cloned::<comp::phys::Pos>(entity)
+    {
+        Some(mut pos) => {
+            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
+            server
+                .create_npc(
+                    pos,
+                    "Tobermory".to_owned(),
+                    comp::Body::Humanoid(comp::HumanoidBody::random()),
+                )
+                .with(comp::Agent::Enemy { target: None })
+                .build();
+            server
+                .clients
+                .notify(entity, ServerMsg::Chat("Spawned enemy!".to_owned()));
         }
         None => server
             .clients
