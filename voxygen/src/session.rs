@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, msg::ClientState};
+use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
 use glutin::MouseButton;
 use std::{cell::RefCell, mem, rc::Rc, time::Duration};
 use vek::*;
@@ -163,6 +163,15 @@ impl PlayState for SessionState {
                 DebugInfo {
                     tps: clock.get_tps(),
                     ping_ms: self.client.borrow().get_ping_ms(),
+                    coordinates: self
+                        .client
+                        .borrow()
+                        .state()
+                        .ecs()
+                        .read_storage::<Pos>()
+                        .get(self.client.borrow().entity())
+                        .unwrap()
+                        .0,
                 },
                 &self.scene.camera(),
             );
