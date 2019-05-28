@@ -58,15 +58,21 @@ impl<'a> System<'a> for Sys {
             mut force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, pos, control, mut dir, mut vel) in (
+        for (entity, pos, control, stats, mut dir, mut vel) in (
             &entities,
             &positions,
             &controls,
+            &stats,
             &mut directions,
             &mut velocities,
         )
             .join()
         {
+            // Disable while dead TODO: Replace with client states
+            if stats.is_dead {
+                continue;
+            }
+
             // Handle held-down control
             let on_ground = terrain
                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
