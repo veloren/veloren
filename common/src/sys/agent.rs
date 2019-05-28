@@ -1,11 +1,11 @@
 // Library
+use rand::Rng;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use vek::*;
-use rand::Rng;
 
 // Crate
 use crate::{
-    comp::{phys::Pos, Agent, Control, Jumping, Attacking},
+    comp::{phys::Pos, Agent, Attacking, Control, Jumping},
     state::Time,
 };
 
@@ -70,7 +70,7 @@ impl<'a> System<'a> for Sys {
                             Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
                                 * 10.0;
                     }
-                },
+                }
                 Agent::Enemy { target } => {
                     let choose_new = match target.map(|tgt| positions.get(tgt)).flatten() {
                         Some(tgt_pos) => {
@@ -84,29 +84,32 @@ impl<'a> System<'a> for Sys {
 
                                 false
                             } else if dist < 60.0 {
-                                control.move_dir = Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
+                                control.move_dir =
+                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
 
                                 false
                             } else {
                                 true
                             }
-                        },
+                        }
                         None => {
                             control.move_dir = Vec2::one();
                             true
-                        },
+                        }
                     };
 
                     if choose_new {
                         let entities = (&entities, &positions)
                             .join()
-                            .filter(|(_, e_pos)| Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < 30.0)
+                            .filter(|(_, e_pos)| {
+                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < 30.0
+                            })
                             .map(|(e, _)| e)
                             .collect::<Vec<_>>();
 
                         *target = rand::thread_rng().choose(&entities).cloned();
                     }
-                },
+                }
             }
         }
     }
