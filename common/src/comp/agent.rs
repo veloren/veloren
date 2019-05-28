@@ -8,6 +8,9 @@ pub enum Agent {
         target: EcsEntity,
         offset: Vec2<f32>,
     },
+    Enemy {
+        target: Option<EcsEntity>,
+    },
 }
 
 impl Component for Agent {
