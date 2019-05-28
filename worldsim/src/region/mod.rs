@@ -5,8 +5,6 @@ use std::sync::Arc;
 use crate::{
     regionmanager::meta::RegionId,
     job::JobManager,
-    lodstore::LodLayer,
-    lodstore::Layer,
 };
 use lod::terrain::Terrain;
 
@@ -15,11 +13,11 @@ pub struct Region {
     id: RegionId,
     jobmanager: Arc<JobManager>,
 
-    pub block: LodLayer<Terrain>,
-    temp: LodLayer<Terrain>,
-    light: LodLayer<Terrain>,
-    evil: LodLayer<Terrain>,
-    civ: LodLayer<Terrain>,
+    pub block: Terrain,
+    temp: Terrain,
+    light: Terrain,
+    evil: Terrain,
+    civ: Terrain,
 }
 
 impl Region {
@@ -36,6 +34,39 @@ impl Region {
     }
 }
 
+fn rasterize(region: &Region) -> Vec<u64> {
+    let mut res = Vec::new();
+
+    // iterate over all Region9 / chunk5 / Block0 / subBlock that dont have children in RECT XYZ
+    //region.block
+
+    res
+}
+
+
+
+fn plant_trees(region: &Region) -> Vec<u64> {
+    let mut res = Vec::new();
+
+    // iterate over all Region9 / chunk5 / Block0 / subBlock that dont have children in RECT XYZ
+    // acces blocks around
+
+    res
+}
+
+
+
+fn corrosion(region: &Region) -> Vec<u64> {
+    let mut res = Vec::new();
+
+    // iterate over all Region9 / chunk5 / Block0 / subBlock that dont have children in RECT XYZ
+    // access neighbours
+
+    res
+}
+
+
+
 /*
 
 pub type aaa = LodLayer<e::Terain>;
@@ -48,6 +79,7 @@ fn example() {
 
 */
 
+/*
 #[cfg(test)]
 mod tests {
     use crate::{
@@ -85,3 +117,5 @@ mod tests {
         r.block.make_at_least(Vec3::new(0,0,0), Vec3::new(65535,65535,65535), -4);
     }*/
 }
+
+*/

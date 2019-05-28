@@ -71,9 +71,11 @@ impl Server {
                         println!("new server found");
                     },
                     RegionManagerMsg::CreateRegion{region_id} => {
+                        /*
                         let mut r = Region::new(region_id, self.jobmanager.clone());
                         r.block.make_at_least(Vec3::new(0,0,0), Vec3::new(65535,65535,65535), 9);
                         self.region.insert(region_id, r);
+                        */
                         println!("create region");
                     },
                     RegionManagerMsg::TakeOverRegionFrom{region_id, server_id} => {
