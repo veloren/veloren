@@ -53,13 +53,23 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
-                for z in range.min.z..range.max.z {
-                    let pos = Vec3::new(x, y, z);
-                    let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
-                        - Vec3::new(1.0, 1.0, 0.0);
+                let mut neighbour_shade = [[1.0f32; 3]; 3];
 
+                for z in (range.min.z..range.max.z).rev() {
+                    let pos = Vec3::new(x, y, z);
+
+                    // Create mesh polygons
                     if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                        let col = col.map(|e| e as f32 / 255.0);
+                        let avg_shade = neighbour_shade
+                            .iter()
+                            .map(|col| col.iter())
+                            .flatten()
+                            .fold(0.0, |a, x| a + x) / 9.0;
+
+                        let col = col.map(|e| e as f32 / 255.0) * (0.05 + avg_shade * 0.95);
+
+                        let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
+                        - Vec3::new(1.0, 1.0, 0.0);
 
                         vol::push_vox_verts(
                             &mut mesh,
@@ -70,6 +80,21 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
                             TerrainVertex::new,
                             false,
                         );
+                    }
+
+                    // Accumulate shade under opaque blocks
+                    for i in 0..3 {
+                        for j in 0..3 {
+                            neighbour_shade[i][j] = if self
+                                .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, 0))
+                                .map(|vox| !vox.is_empty())
+                                .unwrap_or(false)
+                            {
+                                neighbour_shade[i][j] * 0.85
+                            } else {
+                                (neighbour_shade[i][j] * 1.05).min(1.0)
+                            };
+                        }
                     }
                 }
             }
