@@ -18,6 +18,22 @@ use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
+struct GenCtx {
+    turb_x_nz: BasicMulti,
+    turb_y_nz: BasicMulti,
+    chaos_nz: RidgedMulti,
+    alt_nz: HybridMulti,
+    hill_nz: SuperSimplex,
+    temp_nz: SuperSimplex,
+    small_nz: BasicMulti,
+    rock_nz: HybridMulti,
+    warp_nz: BasicMulti,
+    tree_nz: BasicMulti,
+
+    cave_0_nz: HybridMulti,
+    cave_1_nz: HybridMulti,
+}
+
 pub struct WorldSim {
     pub seed: u32,
     chunks: Vec<SimChunk>,
@@ -44,6 +60,8 @@ impl WorldSim {
                 .set_octaves(8)
                 .set_persistence(0.75)
                 .set_seed(seed + 9),
+            cave_0_nz: HybridMulti::new().set_seed(seed + 10),
+            cave_1_nz: HybridMulti::new().set_seed(seed + 11),
         };
 
         let mut chunks = Vec::new();
@@ -57,7 +75,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 32, 32),
+            tree_gen: StructureGen2d::new(seed, 32, 28),
         }
     }
 
@@ -235,6 +253,10 @@ impl<'a> Sampler<'a> {
         let height = alt + warp;
         let temp = 0.0;
 
+        let cave_0 = self.sim.gen_ctx.cave_0_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
+        let cave_1 = self.sim.gen_ctx.cave_1_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
+        let cave = cave_0 * cave_1 > 0.997;
+
         // Sample blocks
 
         let air = Block::empty();
@@ -244,8 +266,21 @@ impl<'a> Sampler<'a> {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let above_ground =
-            (&close_trees)
+        let ground_block = if cave {
+            None
+        } else if (wposf.z as f32) < height - 4.0 {
+            Some(stone)
+        } else if (wposf.z as f32) < height {
+            Some(Block::new(1, surface_color.map(|e| (e * 255.0) as u8)))
+        } else if (wposf.z as f32) < SEA_LEVEL {
+            Some(water)
+        } else {
+            None
+        };
+
+        let block = match ground_block {
+            Some(block) => block,
+            None => (&close_trees)
                 .iter()
                 .fold(air, |block, (tree_pos, tree_seed)| {
                     match self.sample_2d(*tree_pos) {
@@ -262,20 +297,10 @@ impl<'a> Sampler<'a> {
                         }
                         _ => block,
                     }
-                });
+                }),
+        };
 
-        let z = wposf.z as f32;
-        Some(Sample3d {
-            block: if z < height - 4.0 {
-                stone
-            } else if z < height {
-                Block::new(1, surface_color.map(|e| (e * 255.0) as u8))
-            } else if z < SEA_LEVEL {
-                water
-            } else {
-                above_ground
-            },
-        })
+        Some(Sample3d { block })
     }
 }
 
@@ -334,20 +359,7 @@ pub struct Sample3d {
     pub block: Block,
 }
 
-struct GenCtx {
-    turb_x_nz: BasicMulti,
-    turb_y_nz: BasicMulti,
-    chaos_nz: RidgedMulti,
-    alt_nz: HybridMulti,
-    hill_nz: SuperSimplex,
-    temp_nz: SuperSimplex,
-    small_nz: BasicMulti,
-    rock_nz: HybridMulti,
-    warp_nz: BasicMulti,
-    tree_nz: BasicMulti,
-}
-
-const Z_TOLERANCE: (f32, f32) = (48.0, 64.0);
+const Z_TOLERANCE: (f32, f32) = (96.0, 64.0);
 pub const SEA_LEVEL: f32 = 128.0;
 
 pub struct SimChunk {
