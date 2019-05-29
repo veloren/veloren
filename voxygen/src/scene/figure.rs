@@ -26,6 +26,8 @@ use common::{
     figure::Segment,
     msg,
     msg::ClientState,
+    terrain::TerrainChunkSize,
+    vol::VolSize,
 };
 use dot_vox::DotVoxData;
 use specs::{Component, Entity as EcsEntity, Join, VecStorage};
@@ -461,6 +463,15 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
+        let view_distance = client.view_distance().unwrap_or(1);
+        // Get player position.
+        let player_pos = client
+            .state()
+            .ecs()
+            .read_storage::<comp::phys::Pos>()
+            .get(client.entity())
+            .map_or(Vec3::zero(), |pos| pos.0);
+
         for (entity, pos, vel, dir, actor, animation_info, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
@@ -472,6 +483,32 @@ impl FigureMgr {
         )
             .join()
         {
+            // Don't process figures outside the vd
+            let vd_percent = (pos.0 - player_pos)
+                .map2(TerrainChunkSize::SIZE, |d, sz| {
+                    (100 * d.abs() as u32) / (view_distance * sz)
+                })
+                .reduce_max();
+            // Keep from re-adding/removing entities on the border of the vd
+            if vd_percent > 120 {
+                match actor {
+                    comp::Actor::Character { body, .. } => match body {
+                        Body::Humanoid(_) => {
+                            self.character_states.remove(&entity);
+                        }
+                        Body::Quadruped(_) => {
+                            self.quadruped_states.remove(&entity);
+                        }
+                        Body::QuadrupedMedium(_) => {
+                            self.QuadrupedMedium_states.remove(&entity);
+                        }
+                    },
+                }
+                continue;
+            } else if vd_percent > 100 {
+                continue;
+            }
+
             // Change in health as color!
             let col = stats
                 .and_then(|stats| stats.hp.last_change)
@@ -610,17 +647,36 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        for (entity, actor, stat) in (
+        let view_distance = client.view_distance().unwrap_or(1);
+        // Get player position.
+        let player_pos = client
+            .state()
+            .ecs()
+            .read_storage::<comp::phys::Pos>()
+            .get(client.entity())
+            .map_or(Vec3::zero(), |pos| pos.0);
+
+        for (entity, _, _, _, actor, _, _) in (
             &ecs.entities(),
+            &ecs.read_storage::<comp::phys::Pos>(),
+            &ecs.read_storage::<comp::phys::Vel>(),
+            &ecs.read_storage::<comp::phys::Dir>(),
             &ecs.read_storage::<comp::Actor>(),
-            &ecs.read_storage::<comp::Stats>(), // Just to make sure the entity is alive
+            &ecs.read_storage::<comp::AnimationInfo>(),
+            ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
+            // Don't render figures outside the vd
+            .filter(|(_, pos, _, _, _, _, _)| {
+                (pos.0 - player_pos)
+                    .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        (d.abs() as u32) < view_distance * sz as u32
+                    })
+                    .reduce_and()
+            })
+            // Don't render dead entities
+            .filter(|(e, _, _, _, a, _, stats)| stats.map_or(true, |s| !s.is_dead))
         {
-            if stat.is_dead {
-                continue;
-            }
-
             match actor {
                 comp::Actor::Character { body, .. } => {
                     if let Some((locals, bone_consts)) = match body {

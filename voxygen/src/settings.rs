@@ -13,6 +13,7 @@ pub struct Settings {
     pub log: Log,
     pub graphics: GraphicsSettings,
     pub audio: AudioSettings,
+    pub show_disclaimer: bool,
 }
 
 /// `ControlSettings` contains keybindings.
@@ -117,6 +118,7 @@ impl Default for Settings {
                 sfx_volume: 0.5,
                 audio_device: None,
             },
+            show_disclaimer: true,
         }
     }
 }
