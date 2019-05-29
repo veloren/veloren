@@ -22,8 +22,8 @@ const HUMANOID_SPEED: f32 = 500.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
-const GLIDE_ACCEL: f32 = 25.0;
-const GLIDE_SPEED: f32 = 200.0;
+const GLIDE_ACCEL: f32 = 15.0;
+const GLIDE_SPEED: f32 = 45.0;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
