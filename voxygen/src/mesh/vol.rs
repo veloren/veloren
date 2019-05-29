@@ -53,9 +53,9 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>) -> P::Vertex>(
     let ao_scale = 0.95;
     let dark = col * (1.0 - ao_scale);
 
-    let ao_map = ao.map(|e| e.powf(2.0));
+    let ao_map = ao.map(|e| e.powf(1.5));
 
-    if ao[0] + ao[2] < ao[1] + ao[3] {
+    if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
             vcons(origin + unit_y, norm, Rgb::lerp(dark, col, ao_map[3])),
             vcons(origin, norm, Rgb::lerp(dark, col, ao_map[0])),
