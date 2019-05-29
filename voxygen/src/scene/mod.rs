@@ -116,8 +116,7 @@ impl Scene {
             .ecs()
             .read_storage::<comp::phys::Pos>()
             .get(client.entity())
-            .map(|pos| pos.0)
-            .unwrap_or(Vec3::zero());
+            .map_or(Vec3::zero(), |pos| pos.0);
 
         // Alter camera position to match player.
         self.camera.set_focus_pos(player_pos + Vec3::unit_z() * 2.1);

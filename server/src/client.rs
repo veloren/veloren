@@ -83,6 +83,16 @@ impl Clients {
         }
     }
 
+    pub fn notify_ingame_if<F: FnMut(EcsEntity) -> bool>(&mut self, msg: ServerMsg, mut f: F) {
+        for (entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
+            if client.client_state == ClientState::Spectator
+                || client.client_state == ClientState::Character
+            {
+                client.notify(msg.clone());
+            }
+        }
+    }
+
     pub fn notify_registered_except(&mut self, except_entity: EcsEntity, msg: ServerMsg) {
         for (entity, client) in self.clients.iter_mut() {
             if client.client_state != ClientState::Connected && *entity != except_entity {
@@ -93,6 +103,22 @@ impl Clients {
 
     pub fn notify_ingame_except(&mut self, except_entity: EcsEntity, msg: ServerMsg) {
         for (entity, client) in self.clients.iter_mut() {
+            if (client.client_state == ClientState::Spectator
+                || client.client_state == ClientState::Character)
+                && *entity != except_entity
+            {
+                client.notify(msg.clone());
+            }
+        }
+    }
+
+    pub fn notify_ingame_if_except<F: FnMut(EcsEntity) -> bool>(
+        &mut self,
+        except_entity: EcsEntity,
+        msg: ServerMsg,
+        mut f: F,
+    ) {
+        for (entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
             if (client.client_state == ClientState::Spectator
                 || client.client_state == ClientState::Character)
                 && *entity != except_entity
