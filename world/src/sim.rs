@@ -177,28 +177,38 @@ impl<'a> Sampler<'a> {
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
-        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(64.0)).into_array()) as f32)
-            .mul(0.5)
+        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5);
 
         // Colours
         let cold_grass = Rgb::new(0.05, 0.5, 0.3);
         let warm_grass = Rgb::new(0.4, 1.0, 0.05);
-        let cold_stone = Rgb::new(0.55, 0.75, 0.9);
-        let warm_stone = Rgb::new(0.75, 0.6, 0.35);
-        let sand = Rgb::new(0.93, 0.84, 0.33);
+        let cold_stone = Rgb::new(0.55, 0.7, 0.75);
+        let warm_stone = Rgb::new(0.65, 0.65, 0.35);
+        let beach_sand = Rgb::new(0.93, 0.84, 0.33);
+        let desert_sand = Rgb::new(0.97, 0.84, 0.23);
         let snow = Rgb::broadcast(1.0);
 
-        let grass = Rgb::lerp(cold_grass, warm_grass, temp);
-        let ground = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
+        let grass = Rgb::lerp(cold_grass, warm_grass, marble);
+        let grassland = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
+
+        let ground = Rgb::lerp(
+            Rgb::lerp(
+                snow,
+                grassland,
+                temp.add(0.65).mul(32.0).sub(0.65),
+            ),
+            desert_sand,
+            temp.sub(0.65).mul(32.0).add(0.65),
+        );
 
         Some(Sample2d {
             alt,
             chaos,
             surface_color: Rgb::lerp(
-                sand,
+                beach_sand,
                 // Land
                 Rgb::lerp(
                     ground,
@@ -253,10 +263,6 @@ impl<'a> Sampler<'a> {
         let height = alt + warp;
         let temp = 0.0;
 
-        let cave_0 = self.sim.gen_ctx.cave_0_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
-        let cave_1 = self.sim.gen_ctx.cave_1_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
-        let cave = cave_0 * cave_1 > 0.997;
-
         // Sample blocks
 
         let air = Block::empty();
@@ -266,14 +272,26 @@ impl<'a> Sampler<'a> {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let ground_block = if cave {
-            None
-        } else if (wposf.z as f32) < height - 4.0 {
+        let ground_block = if (wposf.z as f32) < height - 4.0 { // Underground
             Some(stone)
-        } else if (wposf.z as f32) < height {
+        } else if (wposf.z as f32) < height { // Surface
             Some(Block::new(1, surface_color.map(|e| (e * 255.0) as u8)))
-        } else if (wposf.z as f32) < SEA_LEVEL {
+        } else if (wposf.z as f32) < SEA_LEVEL { // Ocean
             Some(water)
+        } else {
+            None
+        };
+
+        let ground_block = if let Some(block) = ground_block { // Underground
+            let cave_0 = self.sim.gen_ctx.cave_0_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
+            let cave_1 = self.sim.gen_ctx.cave_1_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
+            let cave = cave_0 * cave_1 > 0.997;
+
+            if cave {
+                None
+            } else {
+                Some(block)
+            }
         } else {
             None
         };
@@ -420,9 +438,7 @@ impl SimChunk {
             chaos,
             alt_base,
             alt,
-            temp: (gen_ctx.temp_nz.get((wposf.div(48.0)).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5),
+            temp: (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32),
             rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .sub(0.1)
                 .mul(1.2)
@@ -430,7 +446,7 @@ impl SimChunk {
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.0 - chaos * 0.8)
+                .mul(1.0 - chaos * 0.85)
                 .add(0.1)
                 .mul(if alt > SEA_LEVEL + 3.0 { 1.0 } else { 0.0 }),
         }

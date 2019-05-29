@@ -92,7 +92,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
                             {
                                 neighbour_shade[i][j] * 0.85
                             } else {
-                                (neighbour_shade[i][j] * 1.05).min(1.0)
+                                (neighbour_shade[i][j] * 1.01).min(1.0)
                             };
                         }
                     }
