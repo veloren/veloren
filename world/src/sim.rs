@@ -333,41 +333,77 @@ impl<'a> Sampler<'a> {
 }
 
 lazy_static! {
-    static ref TREES: [Arc<Structure>; 12] = [
-        assets::load_map("world/tree/oak/1.vox", |s: Structure| s
+    static ref TREES: [Arc<Structure>; 23] = [
+        // green oaks
+        assets::load_map("world/tree/temperate_oak_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/oak/2.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_oak_green/2.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/oak/3.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_oak_green/3.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/pine/3.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_oak_green/4.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_oak_green/5.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_oak_green/6.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_oak_green/7.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_oak_green/8.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_oak_green/9.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 14)))
+        .unwrap(),
+        // green pines
+        assets::load_map("world/tree/temperate_pine_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
         .unwrap(),
-        assets::load_map("world/tree/pine/4.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_pine_green/2.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
         .unwrap(),
-        assets::load_map("world/tree/pine/5.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_pine_green/3.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/1.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_pine_green/4.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_pine_green/5.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_pine_green/6.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_pine_green/7.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/temperate_pine_green/8.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 12)))
+        .unwrap(),
+        // temperate small
+        assets::load_map("world/tree/temperate_small/1.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/2.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_small/2.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/3.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_small/3.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/4.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_small/4.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/5.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_small/5.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        assets::load_map("world/tree/temperate/6.vox", |s: Structure| s
+        assets::load_map("world/tree/temperate_small/6.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
     ];
