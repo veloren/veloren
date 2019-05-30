@@ -431,7 +431,7 @@ lazy_static! {
         assets::load_map("world/tree/temperate_small/6.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
-        // birch
+        // birch -> need roots!
         assets::load_map("world/tree/birch/1.vox", |s: Structure| s
             .with_center(Vec3::new(12, 9, 2)))
         .unwrap(),
@@ -468,7 +468,7 @@ lazy_static! {
         assets::load_map("world/tree/birch/12.vox", |s: Structure| s
             .with_center(Vec3::new(10, 9, 2)))
         .unwrap(),
-        // poplar
+        // poplar -> need roots!
         assets::load_map("world/tree/poplar/1.vox", |s: Structure| s
             .with_center(Vec3::new(6, 6, 2)))
         .unwrap(),
@@ -499,6 +499,109 @@ lazy_static! {
         assets::load_map("world/tree/poplar/10.vox", |s: Structure| s
             .with_center(Vec3::new(7, 7, 2)))
         .unwrap(),
+        // palm trees
+        /*assets::load_map("world/tree/desert_palm/1.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/2.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/3.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/4.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/5.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/6.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/7.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/8.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/9.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/desert_palm/10.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 10)))
+        .unwrap(),
+        // snow pines
+        assets::load_map("world/tree/snow_pine/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/2.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/3.vox", |s: Structure| s
+            .with_center(Vec3::new(17, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/4.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 8, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/5.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/6.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/7.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_pine/8.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 10, 12)))
+        .unwrap(),
+        // snow birches -> need roots!
+        assets::load_map("world/tree/snow_birch/1.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/2.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/3.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/4.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/5.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 11, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/6.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/7.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/8.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/9.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/10.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/11.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/snow_birch/12.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 9, 2)))
+        .unwrap(),
+        // willows
+        assets::load_map("world/tree/willow/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 14, 1)))
+        .unwrap(),
+        assets::load_map("world/tree/willow/2.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 12, 1)))
+        .unwrap(),
+
+        */
+
     ];
 }
 
