@@ -387,6 +387,31 @@ lazy_static! {
         assets::load_map("world/tree/pine_green/8.vox", |s: Structure| s
             .with_center(Vec3::new(12, 10, 12)))
         .unwrap(),
+        // green pines 2
+         assets::load_map("world/tree/pine_green_2/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/2.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/3.vox", |s: Structure| s
+            .with_center(Vec3::new(17, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/4.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 8, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/5.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/6.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/7.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_green_2/8.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 10, 12)))
+        .unwrap(),
         // blue pines
         assets::load_map("world/tree/pine_blue/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
@@ -599,7 +624,6 @@ lazy_static! {
         assets::load_map("world/tree/willow/2.vox", |s: Structure| s
             .with_center(Vec3::new(11, 12, 1)))
         .unwrap(),
-
         */
 
     ];
