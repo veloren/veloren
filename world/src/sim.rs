@@ -195,11 +195,7 @@ impl<'a> Sampler<'a> {
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let ground = Rgb::lerp(
-            Rgb::lerp(
-                snow,
-                grassland,
-                temp.add(0.65).mul(32.0).sub(0.65),
-            ),
+            Rgb::lerp(snow, grassland, temp.add(0.65).mul(32.0).sub(0.65)),
             desert_sand,
             temp.sub(0.65).mul(32.0).add(0.65),
         );
@@ -284,11 +280,14 @@ impl<'a> Sampler<'a> {
         let sand = Block::new(4, Rgb::new(180, 150, 50));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
-        let ground_block = if (wposf.z as f32) < height - 4.0 { // Underground
+        let ground_block = if (wposf.z as f32) < height - 4.0 {
+            // Underground
             Some(stone)
-        } else if (wposf.z as f32) < height { // Surface
+        } else if (wposf.z as f32) < height {
+            // Surface
             Some(Block::new(1, surface_color.map(|e| (e * 255.0) as u8)))
-        } else if (wposf.z as f32) < SEA_LEVEL { // Ocean
+        } else if (wposf.z as f32) < SEA_LEVEL {
+            // Ocean
             Some(water)
         } else {
             None
