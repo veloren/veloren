@@ -64,12 +64,13 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
                             .iter()
                             .map(|col| col.iter())
                             .flatten()
-                            .fold(0.0, |a, x| a + x) / 9.0;
+                            .fold(0.0, |a, x| a + x)
+                            / 9.0;
 
                         let col = col.map(|e| e as f32 / 255.0) * (0.01 + avg_shade * 0.99);
 
                         let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
-                        - Vec3::new(1.0, 1.0, 0.0);
+                            - Vec3::new(1.0, 1.0, 0.0);
 
                         vol::push_vox_verts(
                             &mut mesh,
