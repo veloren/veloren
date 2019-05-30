@@ -333,59 +333,84 @@ impl<'a> Sampler<'a> {
 }
 
 lazy_static! {
-    static ref TREES: [Arc<Structure>; 23] = [
+    static ref TREES: [Arc<Structure>; 53] = [
         // green oaks
-        assets::load_map("world/tree/temperate_oak_green/1.vox", |s: Structure| s
+        assets::load_map("world/tree/oak_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/2.vox", |s: Structure| s
+        assets::load_map("world/tree/oak_green/2.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/3.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/3.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 20, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/4.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/4.vox", |s: Structure| s
+            .with_center(Vec3::new(18, 21, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/5.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/5.vox", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/6.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/6.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 21, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/7.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/7.vox", |s: Structure| s
+            .with_center(Vec3::new(20, 19, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/8.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/8.vox", |s: Structure| s
+            .with_center(Vec3::new(22, 20, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_oak_green/9.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 14)))
+        assets::load_map("world/tree/oak_green/9.vox", |s: Structure| s
+            .with_center(Vec3::new(26, 26, 14)))
         .unwrap(),
         // green pines
-        assets::load_map("world/tree/temperate_pine_green/1.vox", |s: Structure| s
+        assets::load_map("world/tree/pine_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/2.vox", |s: Structure| s
+        assets::load_map("world/tree/pine_green/2.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/3.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/3.vox", |s: Structure| s
+            .with_center(Vec3::new(17, 15, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/4.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/4.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 8, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/5.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/5.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/6.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/6.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/7.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/7.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 15, 12)))
         .unwrap(),
-        assets::load_map("world/tree/temperate_pine_green/8.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 12)))
+        assets::load_map("world/tree/pine_green/8.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 10, 12)))
+        .unwrap(),
+        // blue pines
+        assets::load_map("world/tree/pine_blue/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/2.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 15, 14)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/3.vox", |s: Structure| s
+            .with_center(Vec3::new(17, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/4.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 8, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/5.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 12, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/6.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/7.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 15, 12)))
+        .unwrap(),
+        assets::load_map("world/tree/pine_blue/8.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 10, 12)))
         .unwrap(),
         // temperate small
         assets::load_map("world/tree/temperate_small/1.vox", |s: Structure| s
@@ -406,6 +431,74 @@ lazy_static! {
         assets::load_map("world/tree/temperate_small/6.vox", |s: Structure| s
             .with_center(Vec3::new(4, 4, 7)))
         .unwrap(),
+        // birch
+        assets::load_map("world/tree/birch/1.vox", |s: Structure| s
+            .with_center(Vec3::new(12, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/2.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/3.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/4.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/5.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 11, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/6.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/7.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/8.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/9.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/10.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 9, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/11.vox", |s: Structure| s
+            .with_center(Vec3::new(9, 10, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/birch/12.vox", |s: Structure| s
+            .with_center(Vec3::new(10, 9, 2)))
+        .unwrap(),
+        // poplar
+        assets::load_map("world/tree/poplar/1.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/2.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/3.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/4.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/5.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/6.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/7.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/8.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/9.vox", |s: Structure| s
+            .with_center(Vec3::new(6, 6, 2)))
+        .unwrap(),
+        assets::load_map("world/tree/poplar/10.vox", |s: Structure| s
+            .with_center(Vec3::new(7, 7, 2)))
+        .unwrap(),
     ];
 }
 
@@ -425,7 +518,7 @@ pub struct Sample3d {
     pub block: Block,
 }
 
-const Z_TOLERANCE: (f32, f32) = (96.0, 64.0);
+const Z_TOLERANCE: (f32, f32) = (126.0, 94.0);
 pub const SEA_LEVEL: f32 = 128.0;
 
 pub struct SimChunk {
