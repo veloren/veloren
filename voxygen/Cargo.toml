@@ -28,7 +28,7 @@ conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.2"
 
 # Audio
-rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "3d95bc859b56b7f07eecedee96bf79205729a0e2" }
+rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "7c9778e4f323b7663a5e870e063c9261db077f46" }
 
 # ECS
 specs = "0.14"
