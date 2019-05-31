@@ -60,7 +60,7 @@ impl WorldSim {
                 .set_octaves(8)
                 .set_persistence(0.75)
                 .set_seed(seed + 9),
-            cave_0_nz: BasicMulti::new().set_lacunarity(1.5).set_persistence(0.8).set_seed(seed + 10),
+            cave_0_nz: BasicMulti::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
         };
 
@@ -295,7 +295,7 @@ impl<'a> Sampler<'a> {
         };
 
         let ground_block = if let Some(block) = ground_block { // Underground
-            let cave = cave_xy * (wposf.z as f32 - cave_alt).div(180.0).powf(2.0).neg().add(1.0) > 0.9995;
+            let cave = cave_xy.powf(2.0) * (wposf.z as f32 - cave_alt).div(20.0).powf(4.0).neg().add(1.0) > 0.9994;
 
             if cave {
                 None
