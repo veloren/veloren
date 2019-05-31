@@ -19,7 +19,7 @@ pub struct AudioFrontend {
     device: Device,
     // Performance optimisation, iterating through available audio devices takes time
     devices: Vec<Device>,
-    // streams: HashMap<String, SpatialSink>, //always use SpatialSink even if no possition is used for now
+    // streams: HashMap<String, SpatialSink>, //always use SpatialSink even if no position is used for now
     stream: SpatialSink,
 }
 
