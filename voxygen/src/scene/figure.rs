@@ -18,8 +18,8 @@ use common::{
         self,
         actor::{
             Belt, Chest, Draw, Foot, Hand, Head, Pants, PigChest, PigHead, PigLegL, PigLegR,
-            Shoulder, Weapon, WolfEars, WolfJaw, WolfLBFoot, WolfLFFoot, WolfLowerHead, WolfRBFoot,
-            WolfRFFoot, WolfTail, WolfTorsoBack, WolfTorsoMid, WolfUpperHead,
+            Shoulder, Weapon, WolfEars, WolfFootLB, WolfFootLF, WolfFootRB, WolfFootRF,
+            WolfHeadLower, WolfHeadUpper, WolfJaw, WolfTail, WolfTorsoBack, WolfTorsoMid,
         },
         Body, HumanoidBody, QuadrupedBody, QuadrupedMediumBody,
     },
@@ -100,17 +100,17 @@ impl FigureModelCache {
                                     None,
                                 ],
                                 Body::QuadrupedMedium(body) => [
-                                    Some(Self::load_wolf_upperhead(body.wolf_upperhead)),
+                                    Some(Self::load_wolf_head_upper(body.wolf_head_upper)),
                                     Some(Self::load_wolf_jaw(body.wolf_jaw)),
-                                    Some(Self::load_wolf_lowerhead(body.wolf_lowerhead)),
+                                    Some(Self::load_wolf_head_lower(body.wolf_head_lower)),
                                     Some(Self::load_wolf_tail(body.wolf_tail)),
-                                    Some(Self::load_wolf_torsoback(body.wolf_torsoback)),
-                                    Some(Self::load_wolf_torsomid(body.wolf_torsomid)),
+                                    Some(Self::load_wolf_torso_back(body.wolf_torso_back)),
+                                    Some(Self::load_wolf_torso_mid(body.wolf_torso_mid)),
                                     Some(Self::load_wolf_ears(body.wolf_ears)),
-                                    Some(Self::load_wolf_lffoot(body.wolf_lffoot)),
-                                    Some(Self::load_wolf_rffoot(body.wolf_rffoot)),
-                                    Some(Self::load_wolf_lbfoot(body.wolf_lbfoot)),
-                                    Some(Self::load_wolf_rbfoot(body.wolf_rbfoot)),
+                                    Some(Self::load_wolf_foot_lf(body.wolf_foot_lf)),
+                                    Some(Self::load_wolf_foot_rf(body.wolf_foot_rf)),
+                                    Some(Self::load_wolf_foot_lb(body.wolf_foot_lb)),
+                                    Some(Self::load_wolf_foot_rb(body.wolf_foot_rb)),
                                     None,
                                     None,
                                     None,
@@ -286,6 +286,7 @@ impl FigureModelCache {
             Vec3::new(-1.5, -6.5, -4.5),
         )
     }
+
     fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
@@ -331,9 +332,9 @@ impl FigureModelCache {
         )
     }
 
-    fn load_pig_leg_lb(pigleg_l: PigLegL) -> Mesh<FigurePipeline> {
+    fn load_pig_leg_lb(pig_leg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match pigleg_l {
+            match pig_leg_l {
                 PigLegL::Default => "npc/pig_purple/pigleg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
@@ -349,14 +350,15 @@ impl FigureModelCache {
         )
     }
     //////
-    fn load_wolf_upperhead(wolf_upperhead: WolfUpperHead) -> Mesh<FigurePipeline> {
+    fn load_wolf_head_upper(wolf_upper_head: WolfHeadUpper) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_upperhead {
-                WolfUpperHead::Default => "npc/wolf/wolf_upper_head.vox",
+            match wolf_upper_head {
+                WolfHeadUpper::Default => "npc/wolf/wolf_upper_head.vox",
             },
             Vec3::new(-7.0, -6.0, -5.5),
         )
     }
+
     fn load_wolf_jaw(wolf_jaw: WolfJaw) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_jaw {
@@ -365,14 +367,16 @@ impl FigureModelCache {
             Vec3::new(-3.0, -3.0, -2.5),
         )
     }
-    fn load_wolf_lowerhead(wolf_lowerhead: WolfLowerHead) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_head_lower(wolf_head_lower: WolfHeadLower) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_lowerhead {
-                WolfLowerHead::Default => "npc/wolf/wolf_lower_head.vox",
+            match wolf_head_lower {
+                WolfHeadLower::Default => "npc/wolf/wolf_lower_head.vox",
             },
             Vec3::new(-7.0, -6.0, -5.5),
         )
     }
+
     fn load_wolf_tail(wolf_tail: WolfTail) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_tail {
@@ -381,22 +385,25 @@ impl FigureModelCache {
             Vec3::new(-2.0, -12.0, -5.0),
         )
     }
-    fn load_wolf_torsoback(wolf_torsoback: WolfTorsoBack) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_torso_back(wolf_torso_back: WolfTorsoBack) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_torsoback {
+            match wolf_torso_back {
                 WolfTorsoBack::Default => "npc/wolf/wolf_torso_back.vox",
             },
             Vec3::new(-7.0, -6.0, -6.0),
         )
     }
-    fn load_wolf_torsomid(wolf_torsomid: WolfTorsoMid) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_torso_mid(wolf_torso_mid: WolfTorsoMid) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_torsomid {
+            match wolf_torso_mid {
                 WolfTorsoMid::Default => "npc/wolf/wolf_torso_mid.vox",
             },
             Vec3::new(-8.0, -5.5, -6.0),
         )
     }
+
     fn load_wolf_ears(wolf_ears: WolfEars) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_ears {
@@ -405,34 +412,38 @@ impl FigureModelCache {
             Vec3::new(-4.0, -1.0, -1.0),
         )
     }
-    fn load_wolf_lffoot(wolf_lffoot: WolfLFFoot) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_foot_lf(wolf_foot_lf: WolfFootLF) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_lffoot {
-                WolfLFFoot::Default => "npc/wolf/wolf_lf_foot.vox",
+            match wolf_foot_lf {
+                WolfFootLF::Default => "npc/wolf/wolf_lf_foot.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
-    fn load_wolf_rffoot(wolf_rffoot: WolfRFFoot) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_foot_rf(wolf_foot_rf: WolfFootRF) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_rffoot {
-                WolfRFFoot::Default => "npc/wolf/wolf_rf_foot.vox",
+            match wolf_foot_rf {
+                WolfFootRF::Default => "npc/wolf/wolf_rf_foot.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
-    fn load_wolf_lbfoot(wolf_lbfoot: WolfLBFoot) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_foot_lb(wolf_foot_lb: WolfFootLB) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_lbfoot {
-                WolfLBFoot::Default => "npc/wolf/wolf_lb_foot.vox",
+            match wolf_foot_lb {
+                WolfFootLB::Default => "npc/wolf/wolf_lb_foot.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
-    fn load_wolf_rbfoot(wolf_rbfoot: WolfRBFoot) -> Mesh<FigurePipeline> {
+
+    fn load_wolf_foot_rb(wolf_foot_rb: WolfFootRB) -> Mesh<FigurePipeline> {
         Self::load_mesh(
-            match wolf_rbfoot {
-                WolfRBFoot::Default => "npc/wolf/wolf_rb_foot.vox",
+            match wolf_foot_rb {
+                WolfFootRB::Default => "npc/wolf/wolf_rb_foot.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
