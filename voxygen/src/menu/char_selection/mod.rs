@@ -88,14 +88,14 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            // Mantain global state
+            // Maintain global state.
             global_state.maintain();
 
             // Maintain the scene.
             self.scene
                 .maintain(global_state.window.renderer_mut(), &self.client.borrow());
 
-            // Render the scene
+            // Render the scene.
             self.scene.render(
                 global_state.window.renderer_mut(),
                 &self.client.borrow(),
