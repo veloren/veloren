@@ -5,7 +5,7 @@ use vek::*;
 // Crate
 use crate::{
     comp::{
-        phys::{Ori, ForceUpdate, Pos, Vel},
+        phys::{ForceUpdate, Ori, Pos, Vel},
         Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
         Stats,
     },
