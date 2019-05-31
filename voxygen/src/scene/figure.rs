@@ -299,7 +299,7 @@ impl FigureModelCache {
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_head {
-                PigHead::Default => "npc/pig_purple/pighead.vox",
+                PigHead::Default => "npc/pig_purple/pig_head.vox",
             },
             Vec3::new(-6.0, 4.5, 3.0),
         )
@@ -308,7 +308,7 @@ impl FigureModelCache {
     fn load_pig_chest(pig_chest: PigChest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_chest {
-                PigChest::Default => "npc/pig_purple/pigchest.vox",
+                PigChest::Default => "npc/pig_purple/pig_chest.vox",
             },
             Vec3::new(-5.0, 4.5, 0.0),
         )
@@ -317,7 +317,7 @@ impl FigureModelCache {
     fn load_pig_leg_lf(pig_leg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_l {
-                PigLegL::Default => "npc/pig_purple/pigleg_l.vox",
+                PigLegL::Default => "npc/pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -326,7 +326,7 @@ impl FigureModelCache {
     fn load_pig_leg_rf(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_r {
-                PigLegR::Default => "npc/pig_purple/pigleg_r.vox",
+                PigLegR::Default => "npc/pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -335,7 +335,7 @@ impl FigureModelCache {
     fn load_pig_leg_lb(pig_leg_l: PigLegL) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_l {
-                PigLegL::Default => "npc/pig_purple/pigleg_l.vox",
+                PigLegL::Default => "npc/pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -344,7 +344,7 @@ impl FigureModelCache {
     fn load_pig_leg_rb(pig_leg_r: PigLegR) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pig_leg_r {
-                PigLegR::Default => "npc/pig_purple/pigleg_r.vox",
+                PigLegR::Default => "npc/pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, -1.0, -1.5),
         )
@@ -353,7 +353,7 @@ impl FigureModelCache {
     fn load_wolf_head_upper(wolf_upper_head: WolfHeadUpper) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_upper_head {
-                WolfHeadUpper::Default => "npc/wolf/wolf_upper_head.vox",
+                WolfHeadUpper::Default => "npc/wolf/wolf_head_upper.vox",
             },
             Vec3::new(-7.0, -6.0, -5.5),
         )
@@ -371,7 +371,7 @@ impl FigureModelCache {
     fn load_wolf_head_lower(wolf_head_lower: WolfHeadLower) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_head_lower {
-                WolfHeadLower::Default => "npc/wolf/wolf_lower_head.vox",
+                WolfHeadLower::Default => "npc/wolf/wolf_head_lower.vox",
             },
             Vec3::new(-7.0, -6.0, -5.5),
         )
@@ -416,7 +416,7 @@ impl FigureModelCache {
     fn load_wolf_foot_lf(wolf_foot_lf: WolfFootLF) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_foot_lf {
-                WolfFootLF::Default => "npc/wolf/wolf_lf_foot.vox",
+                WolfFootLF::Default => "npc/wolf/wolf_foot_lf.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
@@ -425,7 +425,7 @@ impl FigureModelCache {
     fn load_wolf_foot_rf(wolf_foot_rf: WolfFootRF) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_foot_rf {
-                WolfFootRF::Default => "npc/wolf/wolf_rf_foot.vox",
+                WolfFootRF::Default => "npc/wolf/wolf_foot_rf.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
@@ -434,7 +434,7 @@ impl FigureModelCache {
     fn load_wolf_foot_lb(wolf_foot_lb: WolfFootLB) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_foot_lb {
-                WolfFootLB::Default => "npc/wolf/wolf_lb_foot.vox",
+                WolfFootLB::Default => "npc/wolf/wolf_foot_lb.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
@@ -443,7 +443,7 @@ impl FigureModelCache {
     fn load_wolf_foot_rb(wolf_foot_rb: WolfFootRB) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match wolf_foot_rb {
-                WolfFootRB::Default => "npc/wolf/wolf_rb_foot.vox",
+                WolfFootRB::Default => "npc/wolf/wolf_foot_rb.vox",
             },
             Vec3::new(-2.5, -4.0, -2.5),
         )
