@@ -206,7 +206,9 @@ impl<'a> Sampler<'a> {
             .neg()
             .add(1.0)
             .mul((1.15 - chaos).min(1.0));
-        let cave_alt = alt - 24.0 + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32).add(1.0).mul(0.5).powf(10.0).mul(96.0);
+        let cave_alt = alt - 24.0
+            + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(32.0).into_array()) as f32) * 6.0
+            + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32).add(1.0).mul(0.5).powf(12.0).mul(96.0);
 
         Some(Sample2d {
             alt,
@@ -294,7 +296,7 @@ impl<'a> Sampler<'a> {
         };
 
         let ground_block = if let Some(block) = ground_block { // Underground
-            let cave = cave_xy.powf(2.0) * (wposf.z as f32 - cave_alt).div(20.0).powf(4.0).neg().add(1.0) > 0.9994;
+            let cave = cave_xy.powf(2.0) * (wposf.z as f32 - cave_alt).div(20.0).powf(4.0).neg().add(1.0) > 0.996;
 
             if cave {
                 None
