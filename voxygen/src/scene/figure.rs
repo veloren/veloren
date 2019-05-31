@@ -443,7 +443,7 @@ pub struct FigureMgr {
     model_cache: FigureModelCache,
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
-    QuadrupedMedium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
 }
 
 impl FigureMgr {
@@ -452,7 +452,7 @@ impl FigureMgr {
             model_cache: FigureModelCache::new(),
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
-            QuadrupedMedium_states: HashMap::new(),
+            quadruped_medium_states: HashMap::new(),
         }
     }
 
@@ -500,7 +500,7 @@ impl FigureMgr {
                             self.quadruped_states.remove(&entity);
                         }
                         Body::QuadrupedMedium(_) => {
-                            self.QuadrupedMedium_states.remove(&entity);
+                            self.quadruped_medium_states.remove(&entity);
                         }
                     },
                 }
@@ -590,7 +590,7 @@ impl FigureMgr {
                     }
                     Body::QuadrupedMedium(body) => {
                         let state =
-                            self.QuadrupedMedium_states
+                            self.quadruped_medium_states
                                 .entry(entity)
                                 .or_insert_with(|| {
                                     FigureState::new(renderer, QuadrupedMediumSkeleton::new())
@@ -634,7 +634,7 @@ impl FigureMgr {
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
-        self.QuadrupedMedium_states
+        self.quadruped_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
@@ -689,7 +689,7 @@ impl FigureMgr {
                             .get(&entity)
                             .map(|state| (state.locals(), state.bone_consts())),
                         Body::QuadrupedMedium(_) => self
-                            .QuadrupedMedium_states
+                            .quadruped_medium_states
                             .get(&entity)
                             .map(|state| (state.locals(), state.bone_consts())),
                     } {
