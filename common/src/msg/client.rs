@@ -22,7 +22,7 @@ pub enum ClientMsg {
     PlayerPhysics {
         pos: comp::phys::Pos,
         vel: comp::phys::Vel,
-        dir: comp::phys::Dir,
+        ori: comp::phys::Ori,
     },
     TerrainChunkRequest {
         key: Vec2<i32>,

@@ -483,11 +483,11 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, dir, actor, animation_info, stats) in (
+        for (entity, pos, vel, ori, actor, animation_info, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
-            &ecs.read_storage::<comp::phys::Dir>(),
+            &ecs.read_storage::<comp::phys::Ori>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
@@ -568,7 +568,7 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-                        state.update(renderer, pos.0, dir.0, col);
+                        state.update(renderer, pos.0, ori.0, col);
                     }
                     Body::Quadruped(body) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
@@ -597,7 +597,7 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-                        state.update(renderer, pos.0, dir.0, col);
+                        state.update(renderer, pos.0, ori.0, col);
                     }
                     Body::QuadrupedMedium(body) => {
                         let state =
@@ -633,7 +633,7 @@ impl FigureMgr {
                         };
 
                         state.skeleton.interpolate(&target_skeleton);
-                        state.update(renderer, pos.0, dir.0, col);
+                        state.update(renderer, pos.0, ori.0, col);
                     }
                 },
                 // TODO: Non-character actors
@@ -671,7 +671,7 @@ impl FigureMgr {
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
-            &ecs.read_storage::<comp::phys::Dir>(),
+            &ecs.read_storage::<comp::phys::Ori>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
@@ -737,12 +737,12 @@ impl<S: Skeleton> FigureState<S> {
         &mut self,
         renderer: &mut Renderer,
         pos: Vec3<f32>,
-        dir: Vec3<f32>,
+        ori: Vec3<f32>,
         col: Rgba<f32>,
     ) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
-            * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
+            * Mat4::rotation_z(-ori.x.atan2(ori.y)); // + f32::consts::PI / 2.0);
 
         let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();

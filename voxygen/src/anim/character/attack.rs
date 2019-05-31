@@ -36,7 +36,7 @@ impl Animation for AttackAnimation {
         let wave_stop = (anim_time as f32 * 6.0).min(PI / 2.0).sin();
         let wave_stop_alt = (anim_time as f32 * 28.0).min(PI / 2.0).sin();
         let wave_stop_quick = (anim_time as f32 * 16.0).min(PI / 2.0).sin();
-        let peakwave = 1.0 - (anim_time as f32 * 1.0).cos();
+        let peak_wave = 1.0 - (anim_time as f32 * 1.0).cos();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)

@@ -25,7 +25,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (time, entities, mut agents, positions, mut controls, mut jumpings, mut attackings): Self::SystemData,
+        (time, entities, mut agents, positions, mut controls, mut jumps, mut attacks): Self::SystemData,
     ) {
         for (entity, agent, pos, control) in
             (&entities, &mut agents, &positions, &mut controls).join()
@@ -42,13 +42,13 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Agent::Pet { target, offset } => {
-                    // Run towards target
+                    // Run towards target.
                     match positions.get(*target) {
                         Some(tgt_pos) => {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                jumpings.insert(entity, Jumping);
+                                jumps.insert(entity, Jumping);
                             }
 
                             // Move towards the target.
@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
                                 control.move_dir = Vec2::zero();
 
                                 if rand::random::<f32>() < 0.2 {
-                                    attackings.insert(entity, Attacking::start());
+                                    attacks.insert(entity, Attacking::start());
                                 }
 
                                 false
