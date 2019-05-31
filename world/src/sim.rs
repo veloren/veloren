@@ -30,8 +30,8 @@ struct GenCtx {
     warp_nz: BasicMulti,
     tree_nz: BasicMulti,
 
-    cave_0_nz: HybridMulti,
-    cave_1_nz: HybridMulti,
+    cave_0_nz: BasicMulti,
+    cave_1_nz: SuperSimplex,
 }
 
 pub struct WorldSim {
@@ -60,8 +60,8 @@ impl WorldSim {
                 .set_octaves(8)
                 .set_persistence(0.75)
                 .set_seed(seed + 9),
-            cave_0_nz: HybridMulti::new().set_seed(seed + 10),
-            cave_1_nz: HybridMulti::new().set_seed(seed + 11),
+            cave_0_nz: BasicMulti::new().set_lacunarity(3.0).set_persistence(0.2).set_seed(seed + 10),
+            cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
         };
 
         let mut chunks = Vec::new();
@@ -204,6 +204,14 @@ impl<'a> Sampler<'a> {
             temp.sub(0.65).mul(32.0).add(0.65),
         );
 
+        // Caves
+        let cave_xy = (sim.gen_ctx.cave_0_nz.get(Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0).div(600.0).into_array()) as f32)
+            .powf(2.0)
+            .neg()
+            .add(1.0)
+            .mul((1.15 - chaos).min(1.0));
+        let cave_alt = alt - 24.0 + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32).add(1.0).mul(0.5).powf(10.0).mul(96.0);
+
         Some(Sample2d {
             alt,
             chaos,
@@ -225,6 +233,8 @@ impl<'a> Sampler<'a> {
             ),
             tree_density,
             close_trees: sim.tree_gen.sample(wpos),
+            cave_xy,
+            cave_alt,
         })
     }
 
@@ -247,6 +257,8 @@ impl<'a> Sampler<'a> {
             surface_color,
             tree_density,
             close_trees,
+            cave_xy,
+            cave_alt,
         } = *self.sample_2d(wpos2d)?;
 
         // Apply warping
@@ -283,9 +295,7 @@ impl<'a> Sampler<'a> {
         };
 
         let ground_block = if let Some(block) = ground_block { // Underground
-            let cave_0 = self.sim.gen_ctx.cave_0_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
-            let cave_1 = self.sim.gen_ctx.cave_1_nz.get(wposf.div(Vec3::new(800.0, 800.0, 600.0)).into_array()).sub(0.5).abs().powf(2.0).neg().add(1.0);
-            let cave = cave_0 * cave_1 > 0.997;
+            let cave = cave_xy * (wposf.z as f32 - cave_alt).div(150.0).powf(2.0).neg().add(1.0) > 0.9992;
 
             if cave {
                 None
@@ -370,6 +380,8 @@ pub struct Sample2d {
     pub surface_color: Rgb<f32>,
     pub tree_density: f32,
     pub close_trees: [(Vec2<i32>, u32); 9],
+    pub cave_xy: f32,
+    pub cave_alt: f32,
 }
 
 #[derive(Copy, Clone)]
@@ -453,7 +465,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.1) - 3.0
+        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.3)
     }
 
     pub fn get_max_z(&self) -> f32 {
