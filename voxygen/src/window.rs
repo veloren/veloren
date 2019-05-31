@@ -326,7 +326,10 @@ impl Window {
                     }
                 });
             }
-            Err(err) => log::error!("Couldn't create screenshot due to renderer error: {:?}", err),
+            Err(err) => log::error!(
+                "Couldn't create screenshot due to renderer error: {:?}",
+                err
+            ),
         }
     }
 }
