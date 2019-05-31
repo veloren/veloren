@@ -27,7 +27,7 @@ pub enum ServerMsg {
         entity: u64,
         pos: comp::phys::Pos,
         vel: comp::phys::Vel,
-        dir: comp::phys::Dir,
+        ori: comp::phys::Ori,
     },
     EntityAnimation {
         entity: u64,

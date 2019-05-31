@@ -5,7 +5,7 @@ use vek::*;
 // Crate
 use crate::{
     comp::{
-        phys::{Dir, Pos, Vel},
+        phys::{Ori, Pos, Vel},
         Animation, AnimationInfo, Attacking,
     },
     state::DeltaTime,
@@ -23,12 +23,12 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Attacking>,
     );
 
-    fn run(&mut self, (entities, dt, mut attackings): Self::SystemData) {
-        for (entity, attacking) in (&entities, &mut attackings).join() {
-            attacking.time += dt.0;
+    fn run(&mut self, (entities, dt, mut attacks): Self::SystemData) {
+        for (entity, attack) in (&entities, &mut attacks).join() {
+            attack.time += dt.0;
         }
 
-        let finished_attack = (&entities, &mut attackings)
+        let finished_attacks = (&entities, &mut attacks)
             .join()
             .filter(|(e, a)| {
                 a.time > 0.25 // TODO: constant
@@ -36,8 +36,8 @@ impl<'a> System<'a> for Sys {
             .map(|(e, a)| e)
             .collect::<Vec<_>>();
 
-        for entity in finished_attack {
-            attackings.remove(entity);
+        for entity in finished_attacks {
+            attacks.remove(entity);
         }
     }
 }
