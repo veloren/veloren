@@ -78,9 +78,14 @@ impl Renderer {
             env!("CARGO_MANIFEST_DIR"),
             "/shaders/include/globals.glsl"
         ));
+        let sky = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/shaders/include/sky.glsl"
+        ));
 
         let mut include_ctx = IncludeContext::new();
         include_ctx.include("globals.glsl", globals);
+        include_ctx.include("sky.glsl", globals);
 
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(

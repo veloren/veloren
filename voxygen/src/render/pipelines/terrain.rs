@@ -19,6 +19,7 @@ gfx_defines! {
     vertex Vertex {
         pos: u32 = "v_pos",
         col_norm: u32 = "v_col_norm",
+        light: u16 = "v_light",
     }
 
     constant Locals {
@@ -37,7 +38,7 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, light: f32) -> Self {
         Self {
             pos: 0
                 | ((pos.x as u32) & 0x00FF) << 0
@@ -50,6 +51,7 @@ impl Vertex {
                 | ((norm.x.add(1.0) as u32) & 0x3) << 0
                 | ((norm.y.add(1.0) as u32) & 0x3) << 2
                 | ((norm.z.add(1.0) as u32) & 0x3) << 4,
+            light: light.mul(4096.0) as u16,
         }
     }
 }

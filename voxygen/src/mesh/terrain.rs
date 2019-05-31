@@ -16,6 +16,7 @@ use crate::{
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
+/*
 impl<M> Meshable for Dyna<Block, M> {
     type Pipeline = TerrainPipeline;
     type Supplement = ();
@@ -43,6 +44,7 @@ impl<M> Meshable for Dyna<Block, M> {
         mesh
     }
 }
+*/
 
 impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
     type Pipeline = TerrainPipeline;
@@ -53,21 +55,22 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
-                let mut neighbour_shade = [[1.0f32; 3]; 3];
+                let mut neighbour_light = [[1.0f32; 3]; 3];
 
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
 
                     // Create mesh polygons
                     if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                        let avg_shade = neighbour_shade
+                        let avg_light = neighbour_light
                             .iter()
                             .map(|col| col.iter())
                             .flatten()
                             .fold(0.0, |a, x| a + x)
                             / 9.0;
+                        let light = avg_light;
 
-                        let col = col.map(|e| e as f32 / 255.0) * (0.01 + avg_shade * 0.99);
+                        let col = col.map(|e| e as f32 / 255.0);
 
                         let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
                             - Vec3::new(1.0, 1.0, 0.0);
@@ -78,7 +81,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
                             pos,
                             offs,
                             col,
-                            TerrainVertex::new,
+                            |pos, norm, col| TerrainVertex::new(pos, norm, col, light),
                             false,
                         );
                     }
@@ -86,14 +89,13 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
                     // Accumulate shade under opaque blocks
                     for i in 0..3 {
                         for j in 0..3 {
-                            neighbour_shade[i][j] = if self
+                            neighbour_light[i][j] = if let Ok(opacity) = self
                                 .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, 0))
-                                .map(|vox| !vox.is_empty())
-                                .unwrap_or(false)
+                                .map(|vox| vox.get_opacity())
                             {
-                                neighbour_shade[i][j] * 0.85
+                                neighbour_light[i][j] * (1.0 - opacity * 0.5)
                             } else {
-                                (neighbour_shade[i][j] * 1.01).min(1.0)
+                                (neighbour_light[i][j] * 1.05).min(1.0)
                             };
                         }
                     }
@@ -104,6 +106,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
     }
 }
 
+/*
 impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
@@ -167,3 +170,4 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap3
         mesh
     }
 }
+*/
