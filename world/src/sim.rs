@@ -195,9 +195,9 @@ impl<'a> Sampler<'a> {
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let ground = Rgb::lerp(
-            Rgb::lerp(snow, grassland, temp.add(0.65).mul(32.0).sub(0.65)),
+            Rgb::lerp(snow, grassland, temp.add(0.4).mul(32.0).sub(0.4)),
             desert_sand,
-            temp.sub(0.65).mul(32.0).add(0.65),
+            temp.sub(0.4).mul(32.0).add(0.4),
         );
 
         // Caves
@@ -677,8 +677,8 @@ impl SimChunk {
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .powf(1.9)
-            .add(0.25 * hill);
+            .powf(1.5)
+            .add(0.1 * hill);
 
         let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
 
