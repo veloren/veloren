@@ -276,11 +276,10 @@ impl<'a> Sampler<'a> {
         // Sample blocks
 
         let air = Block::empty();
-        let stone = Block::new(1, Rgb::new(200, 220, 255));
-        let grass = Block::new(2, Rgb::new(75, 150, 0));
-        let dirt = Block::new(3, Rgb::new(128, 90, 0));
-        let sand = Block::new(4, Rgb::new(180, 150, 50));
-        let water = Block::new(5, Rgb::new(100, 150, 255));
+        let stone = Block::new(2, Rgb::new(200, 220, 255));
+        let dirt = Block::new(1, Rgb::new(128, 90, 0));
+        let sand = Block::new(1, Rgb::new(180, 150, 50));
+        let water = Block::new(1, Rgb::new(100, 150, 255));
 
         let ground_block = if (wposf.z as f32) < height - 4.0 {
             // Underground

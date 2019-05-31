@@ -4,6 +4,7 @@
 
 in uint v_pos;
 in uint v_col_norm;
+in uint v_light;
 
 layout (std140)
 uniform u_locals {
@@ -13,13 +14,14 @@ uniform u_locals {
 out vec3 f_pos;
 out vec3 f_norm;
 out vec3 f_col;
+out float f_light;
 
 void main() {
 	f_pos = vec3(
 		float((v_pos >>  0) & 0x00FFu),
 		float((v_pos >>  8) & 0x00FFu),
 		float((v_pos >> 16) & 0xFFFFu)
-	);
+	) + model_offs;
 
 	f_norm = vec3(
 		float((v_col_norm >> 0) & 0x3u),
@@ -33,8 +35,10 @@ void main() {
 		float((v_col_norm >> 24) & 0xFFu)
 	) / 255.0;
 
+	f_light = float(v_light) / 4096.0;
+
 	gl_Position =
 		proj_mat *
 		view_mat *
-		vec4(f_pos + model_offs, 1);
+		vec4(f_pos, 1);
 }
