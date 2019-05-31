@@ -108,7 +108,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "pig_purple/pighead.vox",
+                Head::Default => "pig_purple/pig_head.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -117,7 +117,7 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "pig_purple/pigchest.vox",
+                Chest::Default => "pig_purple/pig_chest.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -126,7 +126,7 @@ impl FigureModelCache {
     fn load_leg_lf(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "pig_purple/pigleg_l.vox",
+                Belt::Default => "pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -135,7 +135,7 @@ impl FigureModelCache {
     fn load_leg_rf(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pig_purple/pigleg_r.vox",
+                Pants::Default => "pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -144,7 +144,7 @@ impl FigureModelCache {
     fn load_leg_lb(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pig_purple/pigleg_l.vox",
+                Hand::Default => "pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -153,7 +153,7 @@ impl FigureModelCache {
     fn load_leg_rb(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pig_purple/pigleg_r.vox",
+                Hand::Default => "pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
