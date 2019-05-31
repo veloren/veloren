@@ -85,13 +85,13 @@ lazy_static! {
             "pig",
             "{}",
             "/pig : Spawn a test pig NPC",
-            handle_petpig
+            handle_pet_pig
         ),
         ChatCommand::new(
             "wolf",
             "{}",
             "/wolf : Spawn a test wolf NPC",
-            handle_petwolf
+            handle_pet_wolf
         ),
         ChatCommand::new(
             "enemy",
@@ -218,7 +218,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     }
 }
 
-fn handle_petpig(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_pet_pig(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
@@ -245,7 +245,8 @@ fn handle_petpig(server: &mut Server, entity: EcsEntity, args: String, action: &
             .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
-fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+
+fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
@@ -272,6 +273,7 @@ fn handle_petwolf(server: &mut Server, entity: EcsEntity, args: String, action: 
             .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
+
 fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server
         .state
@@ -296,6 +298,7 @@ fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
     }
 }
+
 fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     for cmd in CHAT_COMMANDS.iter() {
         server

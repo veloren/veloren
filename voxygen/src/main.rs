@@ -121,7 +121,7 @@ fn main() {
             }
         };
         let msg = format!(
-            "A critical error has occured and Voxygen has been forced to \
+            "A critical error has occurred and Voxygen has been forced to \
             terminate in an unusual manner. Details about the error can be \
             found below.\n\
             \n\
