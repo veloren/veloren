@@ -68,105 +68,105 @@ impl<'a> Widget for EscMenu<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         Image::new(self.imgs.esc_frame)
-            .w_h(200.0, 328.0)
+            .w_h(240.0, 440.0)
             .middle_of(ui.window)
             .set(state.ids.esc_bg, ui);
 
         Image::new(self.imgs.fireplace)
-            .w_h(176.0, 50.0)
-            .mid_top_with_margin_on(state.ids.esc_bg, 12.0)
+            .w_h(210.0, 60.0)
+            .mid_top_with_margin_on(state.ids.esc_bg, 15.0)
             .set(state.ids.fireplace, ui);
 
-        // Settings
+        // Resume
         if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.fireplace, -45.0)
-            .w_h(168.0, 35.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Settings")
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(17)
-            .set(state.ids.menu_button_1, ui)
-            .was_clicked()
-        {
-            return Some(Event::OpenSettings(SettingsTab::Interface));
-        };
-
-        // Controls
-        if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.menu_button_1, -40.0)
-            .w_h(168.0, 35.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Controls")
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(17)
-            .set(state.ids.menu_button_2, ui)
-            .was_clicked()
-        {
-            return Some(Event::OpenSettings(SettingsTab::Controls));
-        };
-        // Characters
-        if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.menu_button_2, -40.0)
-            .w_h(168.0, 35.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Characters")
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(17)
-            .set(state.ids.menu_button_3, ui)
-            .was_clicked()
-        {
-            return Some(Event::CharacterSelection);
-        };
-        // Logout
-        if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.menu_button_3, -40.0)
-            .w_h(168.0, 35.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Logout")
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(17)
-            .set(state.ids.menu_button_4, ui)
-            .was_clicked()
-        {
-            return Some(Event::Logout);
-        };
-        // Quit
-        if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.menu_button_4, -40.0)
-            .w_h(168.0, 35.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
-            .label("Quit")
-            .label_y(conrod_core::position::Relative::Scalar(3.0))
-            .label_color(TEXT_COLOR)
-            .label_font_size(17)
-            .set(state.ids.menu_button_5, ui)
-            .was_clicked()
-        {
-            return Some(Event::Quit);
-        };
-        // Close
-        if Button::image(self.imgs.button)
-            .mid_bottom_with_margin_on(state.ids.menu_button_5, -50.0)
-            .w_h(168.0, 35.0)
+            .mid_bottom_with_margin_on(state.ids.fireplace, -55.0)
+            .w_h(210.0, 50.0)
             .hover_image(self.imgs.button_hover)
             .press_image(self.imgs.button_press)
             .label("Resume")
             .label_y(conrod_core::position::Relative::Scalar(3.0))
             .label_color(TEXT_COLOR)
-            .label_font_size(17)
+            .label_font_size(20)
+            .set(state.ids.menu_button_1, ui)
+            .was_clicked()
+        {
+            return Some(Event::Close);            
+        };
+
+        // Settings
+        if Button::image(self.imgs.button)
+            .mid_bottom_with_margin_on(state.ids.menu_button_1, -65.0)
+            .w_h(210.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Settings")
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(20)
+            .set(state.ids.menu_button_2, ui)
+            .was_clicked()
+        {
+            return Some(Event::OpenSettings(SettingsTab::Interface));            
+        };
+        // Controls
+        if Button::image(self.imgs.button)
+            .mid_bottom_with_margin_on(state.ids.menu_button_2, -55.0)
+            .w_h(210.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Controls")
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(20)
+            .set(state.ids.menu_button_3, ui)
+            .was_clicked()
+        {
+            return Some(Event::OpenSettings(SettingsTab::Controls));           
+        };
+        // Characters
+        if Button::image(self.imgs.button)
+            .mid_bottom_with_margin_on(state.ids.menu_button_3, -55.0)
+            .w_h(210.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Characters")
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(20)
+            .set(state.ids.menu_button_4, ui)
+            .was_clicked()
+        {
+            return Some(Event::CharacterSelection);               
+        };
+        // Logout
+        if Button::image(self.imgs.button)
+            .mid_bottom_with_margin_on(state.ids.menu_button_4, -65.0)
+            .w_h(210.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Logout")
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(20)
+            .set(state.ids.menu_button_5, ui)
+            .was_clicked()
+        {            
+            return Some(Event::Logout);
+        };
+        // Quit
+        if Button::image(self.imgs.button)
+            .mid_bottom_with_margin_on(state.ids.menu_button_5, -55.0)
+            .w_h(210.0, 50.0)
+            .hover_image(self.imgs.button_hover)
+            .press_image(self.imgs.button_press)
+            .label("Quit Game")
+            .label_y(conrod_core::position::Relative::Scalar(3.0))
+            .label_color(TEXT_COLOR)
+            .label_font_size(20)
             .set(state.ids.menu_button_6, ui)
             .was_clicked()
         {
-            return Some(Event::Close);
+            return Some(Event::Quit);
         };
         None
     }
