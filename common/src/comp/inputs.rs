@@ -47,6 +47,7 @@ impl Component for Attacking {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
+<<<<<<< HEAD
 impl Rolling {
     pub fn start() -> Self {
         Self {
