@@ -21,6 +21,7 @@ pub struct Rolling{
     pub applied: bool,
 }
 
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Jumping;
 
