@@ -24,7 +24,7 @@ pub struct Singleplayer {
 
 impl Singleplayer {
     pub fn new() -> (Self, SocketAddr) {
-        let (sender, reciever) = channel();
+        let (sender, receiver) = channel();
 
         let sock = SocketAddr::from((
             [127, 0, 0, 1],
@@ -35,7 +35,7 @@ impl Singleplayer {
         let server = Server::bind(sock.clone()).expect("Failed to create server instance!");
 
         let thread = thread::spawn(move || {
-            run_server(server, reciever);
+            run_server(server, receiver);
         });
 
         (

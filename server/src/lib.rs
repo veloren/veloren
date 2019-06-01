@@ -145,7 +145,7 @@ impl Server {
             .create_entity_synced()
             .with(pos)
             .with(comp::phys::Vel(Vec3::zero()))
-            .with(comp::phys::Dir(Vec3::unit_y()))
+            .with(comp::phys::Ori(Vec3::unit_y()))
             .with(comp::Control::default())
             .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
@@ -167,7 +167,7 @@ impl Server {
         state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-        state.write_component(entity, comp::phys::Dir(Vec3::unit_y()));
+        state.write_component(entity, comp::phys::Ori(Vec3::unit_y()));
         // Make sure physics are accepted.
         state.write_component(entity, comp::phys::ForceUpdate);
 
@@ -524,11 +524,11 @@ impl Server {
                                 _ => client.error_state(RequestStateError::Impossible),
                             }
                         }
-                        ClientMsg::PlayerPhysics { pos, vel, dir } => match client.client_state {
+                        ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                             ClientState::Character => {
                                 state.write_component(entity, pos);
                                 state.write_component(entity, vel);
-                                state.write_component(entity, dir);
+                                state.write_component(entity, ori);
                             }
                             // Only characters can send positions.
                             _ => client.error_state(RequestStateError::Impossible),
@@ -629,12 +629,12 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics
-        for (entity, &uid, &pos, &vel, &dir) in (
+        for (entity, &uid, &pos, &vel, &ori) in (
             &state.ecs().entities(),
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::phys::Pos>(),
             &state.ecs().read_storage::<comp::phys::Vel>(),
-            &state.ecs().read_storage::<comp::phys::Dir>(),
+            &state.ecs().read_storage::<comp::phys::Ori>(),
         )
             .join()
         {
@@ -642,7 +642,7 @@ impl Server {
                 entity: uid.into(),
                 pos,
                 vel,
-                dir,
+                ori,
             });
         }
 
@@ -671,12 +671,12 @@ impl Server {
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
         // Sync physics
-        for (entity, &uid, &pos, &vel, &dir, force_update) in (
+        for (entity, &uid, &pos, &vel, &ori, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::phys::Pos>(),
             &self.state.ecs().read_storage::<comp::phys::Vel>(),
-            &self.state.ecs().read_storage::<comp::phys::Dir>(),
+            &self.state.ecs().read_storage::<comp::phys::Ori>(),
             self.state
                 .ecs()
                 .read_storage::<comp::phys::ForceUpdate>()
@@ -688,7 +688,7 @@ impl Server {
                 entity: uid.into(),
                 pos,
                 vel,
-                dir,
+                ori,
             };
 
             let state = &self.state;

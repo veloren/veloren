@@ -311,7 +311,7 @@ impl Window {
                     let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir(&path) {
-                            log::error!("Coudn't create folder for screenshot: {:?}", err);
+                            log::error!("Couldn't create folder for screenshot: {:?}", err);
                         }
                     }
                     path.push(format!(
@@ -322,11 +322,14 @@ impl Window {
                             .unwrap_or(0)
                     ));
                     if let Err(err) = img.save(&path) {
-                        log::error!("Coudn't save screenshot: {:?}", err);
+                        log::error!("Couldn't save screenshot: {:?}", err);
                     }
                 });
             }
-            Err(err) => log::error!("Coudn't create screenshot due to renderer error: {:?}", err),
+            Err(err) => log::error!(
+                "Couldn't create screenshot due to renderer error: {:?}",
+                err
+            ),
         }
     }
 }
