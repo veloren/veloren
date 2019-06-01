@@ -293,12 +293,6 @@ impl Client {
 
         // 7) Finish the tick, pass control back to the frontend.
 
-        // Cleanup
-        self.state
-            .ecs_mut()
-            .write_storage::<comp::Jumping>()
-            .remove(self.entity);
-
         self.tick += 1;
         Ok(frontend_events)
     }
