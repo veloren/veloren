@@ -3,7 +3,11 @@
 //! and provide a handler function.
 
 use crate::Server;
-use common::{comp, msg::ServerMsg, npc::{NpcKind, get_npc_name}};
+use common::{
+    comp,
+    msg::ServerMsg,
+    npc::{get_npc_name, NpcKind},
+};
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
