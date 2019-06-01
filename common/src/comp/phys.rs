@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use specs::{Component, NullStorage, VecStorage};
 use vek::*;
 
 // Position

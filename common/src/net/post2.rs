@@ -10,7 +10,7 @@ use std::{
         mpsc, Arc,
     },
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 #[derive(Clone, Debug)]
@@ -34,7 +34,7 @@ impl From<bincode::Error> for Error {
 }
 
 impl From<mpsc::TryRecvError> for Error {
-    fn from(error: mpsc::TryRecvError) -> Self {
+    fn from(_error: mpsc::TryRecvError) -> Self {
         Error::ChannelFailure
     }
 }
@@ -74,7 +74,7 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
 
         loop {
             match self.listener.accept() {
-                Ok((stream, sock)) => new.push(PostBox::from_stream(stream).unwrap()),
+                Ok((stream, _sock)) => new.push(PostBox::from_stream(stream).unwrap()),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) => {
@@ -179,7 +179,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
         'work: while running.load(Ordering::Relaxed) {
             for _ in 0..30 {
-                // Get stream errors
+                // Get stream errors.
                 match stream.take_error() {
                     Ok(Some(e)) | Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
@@ -307,7 +307,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             thread::sleep(Duration::from_millis(10));
         }
 
-        stream.shutdown(Shutdown::Both);
+        stream
+            .shutdown(Shutdown::Both)
+            .expect("TCP worker stream shutdown call failed!");
     }
 }
 
@@ -321,6 +323,7 @@ impl<S: PostMsg, R: PostMsg> Drop for PostBox<S, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     fn create_postoffice<S: PostMsg, R: PostMsg>(
         id: u16,

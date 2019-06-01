@@ -4,13 +4,13 @@ use vek::*;
 // Project
 use common::{
     figure::Segment,
-    vol::{ReadVol, SizedVol, Vox},
+    vol::{ReadVol, SizedVol},
 };
 
 // Crate
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, FigurePipeline, Mesh, Quad},
+    render::{self, FigurePipeline, Mesh},
 };
 
 type FigureVertex = <FigurePipeline as render::Pipeline>::Vertex;

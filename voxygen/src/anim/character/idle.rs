@@ -5,7 +5,7 @@ use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 // Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
+use super::{super::Animation, CharacterSkeleton};
 
 pub struct Input {
     pub attack: bool,

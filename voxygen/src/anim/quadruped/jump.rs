@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 use vek::*;
 
 // Local
-use super::{super::Animation, QuadrupedSkeleton, SCALE};
+use super::{super::Animation, QuadrupedSkeleton};
 
 pub struct JumpAnimation;
 
@@ -21,7 +21,7 @@ impl Animation for JumpAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
-        let wave_test = (wave.cbrt());
+        let wave_test = wave.cbrt();
         let fuzz_wave = (anim_time as f32 * 12.0).sin();
         let wave_cos = (anim_time as f32 * 14.0).cos();
         let wave_slow = (anim_time as f32 * 7.0 + PI).sin();

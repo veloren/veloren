@@ -3,10 +3,7 @@ mod start_singleplayer;
 mod ui;
 
 use super::char_selection::CharSelectionState;
-use crate::{
-    window::{Event, Window},
-    Direction, GlobalState, PlayState, PlayStateResult,
-};
+use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use start_singleplayer::StartSingleplayerState;
@@ -102,7 +99,10 @@ impl PlayState for MainMenuState {
                             net_settings.servers.push(server_address.clone());
                         }
                         // TODO: Handle this result.
-                        global_state.settings.save_to_file();
+                        global_state
+                            .settings
+                            .save_to_file()
+                            .expect("Failed to save settings!");
                         // Don't try to connect if there is already a connection in progress.
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),

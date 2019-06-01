@@ -2,7 +2,7 @@
 use crate::render::FigureBoneData;
 
 // Local
-use super::{Bone, Skeleton};
+use super::Skeleton;
 
 const SCALE: f32 = 44.0;
 

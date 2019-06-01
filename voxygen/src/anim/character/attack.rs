@@ -5,7 +5,7 @@ use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
 // Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
+use super::{super::Animation, CharacterSkeleton};
 
 pub struct Input {
     pub attack: bool,
@@ -24,9 +24,9 @@ impl Animation for AttackAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 4.0).sin();
-        let wave_quicken = (1.0 - (anim_time as f32 * 16.0).cos());
-        let wave_quicken_slow = (1.0 - (anim_time as f32 * 12.0).cos());
-        let wave_quicken_double = (1.0 - (anim_time as f32 * 24.0).cos());
+        let wave_quicken = 1.0 - (anim_time as f32 * 16.0).cos();
+        let wave_quicken_slow = 1.0 - (anim_time as f32 * 12.0).cos();
+        let wave_quicken_double = 1.0 - (anim_time as f32 * 24.0).cos();
         let wave_quick = (anim_time as f32 * 0.5).sin();
         let wave_cos = (anim_time as f32 * 12.0).cos();
         let wave_slow = (anim_time as f32 * 10.0 + PI).cos();

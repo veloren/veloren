@@ -20,10 +20,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
-use specs::{
-    join::Join, saveload::MarkedBuilder, world::EntityBuilder as EcsEntityBuilder, Builder,
-    Entity as EcsEntity,
-};
+use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
     i32,
@@ -190,7 +187,7 @@ impl Server {
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most server-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -264,7 +261,10 @@ impl Server {
                 self.state.write_component(entity, comp::phys::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
-                self.state.ecs_mut().delete_entity_synced(entity);
+                self.state
+                    .ecs_mut()
+                    .delete_entity_synced(entity)
+                    .expect("Failed to delete client not found in kill list!");
                 continue;
             }
         }
@@ -388,7 +388,7 @@ impl Server {
     fn handle_new_connections(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
-        for mut postbox in self.postoffice.new_postboxes() {
+        for postbox in self.postoffice.new_postboxes() {
             let entity = self.state.ecs_mut().create_entity_synced().build();
             let mut client = Client {
                 client_state: ClientState::Connected,
@@ -623,7 +623,10 @@ impl Server {
 
         // Handle client disconnects.
         for entity in disconnected_clients {
-            self.state.ecs_mut().delete_entity_synced(entity);
+            self.state
+                .ecs_mut()
+                .delete_entity_synced(entity)
+                .expect("Failed to delete disconnected client!");
 
             frontend_events.push(Event::ClientDisconnected { entity });
         }
@@ -647,8 +650,7 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics
-        for (entity, &uid, &pos, &vel, &ori) in (
-            &state.ecs().entities(),
+        for (&uid, &pos, &vel, &ori) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::phys::Pos>(),
             &state.ecs().read_storage::<comp::phys::Vel>(),
@@ -665,8 +667,7 @@ impl Server {
         }
 
         // Sync animations
-        for (entity, &uid, &animation_info) in (
-            &state.ecs().entities(),
+        for (&uid, &animation_info) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::AnimationInfo>(),
         )
@@ -710,7 +711,7 @@ impl Server {
             };
 
             let state = &self.state;
-            let mut clients = &mut self.clients;
+            let clients = &mut self.clients;
 
             let in_vd = |entity| {
                 // Get client position.

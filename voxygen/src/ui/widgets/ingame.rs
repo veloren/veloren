@@ -1,10 +1,9 @@
 use conrod_core::{
-    builder_methods, image,
+    builder_methods,
     position::Dimension,
-    widget::{self, button, Id},
-    widget_ids, Color, Position, Positionable, Rect, Sizeable, Ui, UiCell, Widget, WidgetCommon,
+    widget::{self, Id},
+    Position, Ui, UiCell, Widget, WidgetCommon,
 };
-use std::slice;
 use vek::*;
 
 #[derive(Clone, WidgetCommon)]

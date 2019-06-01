@@ -11,12 +11,9 @@ use conrod_core::{
     color,
     color::TRANSPARENT,
     position::Relative,
-    widget::{
-        text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Scrollbar, Text, TextBox,
-    },
+    widget::{text_box::Event as TextBoxEvent, Button, Image, List, Rectangle, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
-use std::sync::Arc;
 
 widget_ids! {
     struct Ids {

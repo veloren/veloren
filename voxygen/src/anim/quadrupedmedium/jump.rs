@@ -5,7 +5,7 @@ use std::f32::consts::PI;
 use vek::*;
 
 // Local
-use super::{super::Animation, QuadrupedMediumSkeleton, SCALE};
+use super::{super::Animation, QuadrupedMediumSkeleton};
 
 pub struct JumpAnimation;
 

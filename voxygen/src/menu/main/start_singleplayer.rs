@@ -1,4 +1,4 @@
-use super::{client_init::ClientInit, DEFAULT_PORT};
+use super::client_init::ClientInit;
 use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
     PlayState, PlayStateResult,

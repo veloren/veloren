@@ -154,7 +154,7 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     }
 }
 
-fn handle_kill(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     server
         .state
         .ecs_mut()
@@ -222,7 +222,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     }
 }
 
-fn handle_pet_pig(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_pet_pig(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
@@ -250,7 +250,7 @@ fn handle_pet_pig(server: &mut Server, entity: EcsEntity, args: String, action: 
     }
 }
 
-fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)
@@ -278,7 +278,7 @@ fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, args: String, action:
     }
 }
 
-fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_enemy(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     match server
         .state
         .read_component_cloned::<comp::phys::Pos>(entity)

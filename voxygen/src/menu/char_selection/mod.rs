@@ -2,13 +2,12 @@ mod scene;
 mod ui;
 
 use crate::{
-    render::Renderer,
     session::SessionState,
     window::{Event, Window},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, msg::ClientMsg, msg::ClientState};
+use common::{clock::Clock, comp, msg::ClientState};
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;

@@ -24,7 +24,7 @@ pub use crate::error::Error;
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use log;
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
-use std::{fs::File, mem, panic, str::FromStr, thread};
+use std::{fs::File, mem, panic, str::FromStr};
 
 /// The URL of the default public server that Voxygen will connect to.
 const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
@@ -229,5 +229,8 @@ fn main() {
     }
     // Save settings to add new fields or create the file if it is not already there
     // TODO: Handle this result.
-    global_state.settings.save_to_file();
+    global_state
+        .settings
+        .save_to_file()
+        .expect("Failed to save settings!");
 }

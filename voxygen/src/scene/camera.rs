@@ -1,6 +1,6 @@
 use client::Client;
 
-use common::vol::{ReadVol, SampleVol};
+use common::vol::ReadVol;
 
 // Standard
 use std::f32::consts::PI;

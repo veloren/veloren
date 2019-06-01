@@ -8,7 +8,6 @@ use crate::{
     vol::{ReadVol, Vox},
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
 
 // Basic ECS physics system
 pub struct Sys;

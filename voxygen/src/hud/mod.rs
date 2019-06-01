@@ -25,15 +25,14 @@ use small_window::{SmallWindow, SmallWindowType};
 use crate::{
     render::{Consts, Globals, Renderer},
     scene::camera::Camera,
-    settings::{ControlSettings, Settings},
-    ui::{Ingame, Ingameable, ScaleMode, Ui},
+    settings::ControlSettings,
+    ui::{Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput, Window},
     GlobalState,
 };
 use client::Client;
 use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
 use conrod_core::{
-    color, graph,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -339,7 +338,7 @@ impl Hud {
                         })
                         .reduce_and()
                 })
-                .map(|(entity, pos, actor, _, player)| match actor {
+                .map(|(_, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
                         name: char_name, ..
                     } => {

@@ -14,8 +14,7 @@ use crate::{
     },
 };
 use client::Client;
-use common::comp::HumanoidBody;
-use common::{comp, figure::Segment};
+use common::comp::{self, HumanoidBody};
 use vek::*;
 
 struct Skybox {
@@ -85,19 +84,21 @@ impl Scene {
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
-        renderer.update_consts(
-            &mut self.globals,
-            &[Globals::new(
-                view_mat,
-                proj_mat,
-                cam_pos,
-                self.camera.get_focus_pos(),
-                100.0,
-                client.state().get_time_of_day(),
-                client.state().get_time(),
-                renderer.get_resolution(),
-            )],
-        );
+        renderer
+            .update_consts(
+                &mut self.globals,
+                &[Globals::new(
+                    view_mat,
+                    proj_mat,
+                    cam_pos,
+                    self.camera.get_focus_pos(),
+                    100.0,
+                    client.state().get_time_of_day(),
+                    client.state().get_time(),
+                    renderer.get_resolution(),
+                )],
+            )
+            .expect("Renderer failed to update!");
 
         self.figure_model_cache.clean(client.get_tick());
 

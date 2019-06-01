@@ -47,12 +47,9 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         let dir = (self.to - self.from).normalized();
         let max = (self.to - self.from).magnitude();
 
-        let mut pos = self.from;
-        let mut ipos = pos.map(|e| e.floor() as i32);
-
         for _ in 0..self.max_iter {
-            pos = self.from + dir * dist;
-            ipos = pos.map(|e| e.floor() as i32);
+            let pos = self.from + dir * dist;
+            let ipos = pos.map(|e| e.floor() as i32);
 
             // Allow one iteration above max.
             if dist > max {

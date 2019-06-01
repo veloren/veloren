@@ -23,7 +23,6 @@ use crate::{
         create_ui_quad, create_ui_tri, Consts, DynamicModel, Globals, Mesh, RenderError, Renderer,
         UiLocals, UiMode, UiPipeline,
     },
-    scene::camera::Camera,
     window::Window,
     Error,
 };
@@ -402,7 +401,9 @@ impl Ui {
                         |aabr, data| {
                             let offset = aabr.min.into_array();
                             let size = aabr.size().into_array();
-                            renderer.update_texture(cache_tex, offset, size, data);
+                            renderer
+                                .update_texture(cache_tex, offset, size, data)
+                                .expect("Failed to update texture!");
                         },
                     ) {
                         Some(aabr) => Aabr {
@@ -444,7 +445,9 @@ impl Ui {
                                 .map(|x| [255, 255, 255, *x])
                                 .collect::<Vec<[u8; 4]>>();
 
-                            renderer.update_texture(cache_tex, offset, size, &new_data);
+                            renderer
+                                .update_texture(cache_tex, offset, size, &new_data)
+                                .expect("Failed to update texture!");
                         })
                         .unwrap();
 

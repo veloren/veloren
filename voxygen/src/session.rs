@@ -9,8 +9,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
-use glutin::MouseButton;
-use std::{cell::RefCell, mem, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
 const FPS: u64 = 60;
@@ -110,8 +109,6 @@ impl PlayState for SessionState {
         while let ClientState::Pending | ClientState::Character | ClientState::Dead =
             current_client_state
         {
-            let alive = self.client.borrow().get_client_state() == ClientState::Character;
-
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -190,19 +187,28 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
-                        global_state.settings.save_to_file();
+                        global_state
+                            .settings
+                            .save_to_file()
+                            .expect("Failed to save settings!");
                     }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.set_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
-                        global_state.settings.save_to_file();
+                        global_state
+                            .settings
+                            .save_to_file()
+                            .expect("Failed to save settings!");
                     }
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
-                        global_state.settings.save_to_file();
+                        global_state
+                            .settings
+                            .save_to_file()
+                            .expect("Failed to save settings!");
                     }
                 }
             }

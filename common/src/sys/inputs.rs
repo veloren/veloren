@@ -6,10 +6,9 @@ use vek::*;
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
-        Stats,
+        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Stats,
     },
-    state::{DeltaTime, Time, Uid},
+    state::{DeltaTime, Uid},
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
@@ -31,7 +30,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Uid>,
-        Read<'a, Time>,
         Read<'a, DeltaTime>,
         ReadExpect<'a, TerrainMap>,
         ReadStorage<'a, Pos>,
@@ -41,7 +39,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Stats>,
         ReadStorage<'a, Control>,
         WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, ForceUpdate>,
@@ -52,7 +49,6 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             uids,
-            time,
             dt,
             terrain,
             positions,
@@ -60,10 +56,9 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut animation_infos,
             mut stats,
-            mut controls,
-            mut jumps,
-            mut respawns,
-            mut glides,
+            controls,
+            jumps,
+            glides,
             mut attacks,
             mut force_updates,
         ): Self::SystemData,
@@ -140,14 +135,16 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(AnimationInfo::default());
             let changed = last.animation != animation;
 
-            animation_infos.insert(
-                entity,
-                AnimationInfo {
-                    animation,
-                    time: if changed { 0.0 } else { last.time },
-                    changed,
-                },
-            );
+            animation_infos
+                .insert(
+                    entity,
+                    AnimationInfo {
+                        animation,
+                        time: if changed { 0.0 } else { last.time },
+                        changed,
+                    },
+                )
+                .expect("Inserting animation_info for an entity failed!");
         }
 
         for (entity, &uid, pos, ori, attacking) in
@@ -167,7 +164,9 @@ impl<'a> System<'a> for Sys {
                         stat_b.hp.change_by(-10, HealthSource::Attack { by: uid }); // TODO: variable damage and weapon
                         vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                         vel_b.0.z = 15.0;
-                        force_updates.insert(b, ForceUpdate);
+                        force_updates
+                            .insert(b, ForceUpdate)
+                            .expect("Inserting a forced update for an entity failed!");
                     }
                 }
                 attacking.applied = true;

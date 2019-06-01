@@ -1,6 +1,6 @@
 use common::clock::Clock;
 use log::info;
-use server::{Event, Input, Server};
+use server::{Event, Server};
 use std::time::Duration;
 
 const TPS: u64 = 30;
@@ -19,14 +19,14 @@ fn main() {
 
     loop {
         let events = server
-            .tick(Input::default(), clock.get_last_delta())
+            .tick(clock.get_last_delta())
             .expect("Failed to tick server");
 
         for event in events {
             match event {
-                Event::ClientConnected { entity } => info!("Client connected!"),
-                Event::ClientDisconnected { entity } => info!("Client disconnected!"),
-                Event::Chat { entity, msg } => info!("[Client] {}", msg),
+                Event::ClientConnected { entity: _ } => info!("Client connected!"),
+                Event::ClientDisconnected { entity: _ } => info!("Client disconnected!"),
+                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
             }
         }
 
