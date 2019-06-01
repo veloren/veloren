@@ -49,6 +49,8 @@ impl<'a> System<'a> for Sys {
 
                             if tgt_pos.z > pos.0.z + 1.0 {
                                 jumps.insert(entity, Jumping);
+                            } else {
+                                jumps.remove(entity);
                             }
 
                             // Move towards the target.
