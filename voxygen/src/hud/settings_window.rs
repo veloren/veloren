@@ -496,7 +496,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             events.push(Event::ChangeTab(SettingsTab::Video));
         }
         // Contents
-        if let SettingsTab::Video = state.settings_tab {
+        if let SettingsTab::Video = self.show.settings_tab {
             Text::new("View Distance")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
