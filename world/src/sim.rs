@@ -30,7 +30,7 @@ struct GenCtx {
     warp_nz: BasicMulti,
     tree_nz: BasicMulti,
 
-    cave_0_nz: BasicMulti,
+    cave_0_nz: SuperSimplex,
     cave_1_nz: SuperSimplex,
 }
 
@@ -60,7 +60,7 @@ impl WorldSim {
                 .set_octaves(8)
                 .set_persistence(0.75)
                 .set_seed(seed + 9),
-            cave_0_nz: BasicMulti::new().set_seed(seed + 10),
+            cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
         };
 
@@ -201,15 +201,32 @@ impl<'a> Sampler<'a> {
         );
 
         // Caves
-        let cave_at = |wposf: Vec2<f64>| (sim.gen_ctx.cave_0_nz.get(Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0).div(1000.0).into_array()) as f32)
-            .powf(2.5)
-            .neg()
-            .add(1.0)
-            .mul((1.2 - chaos).min(1.0));
+        let cave_at = |wposf: Vec2<f64>| {
+            (sim.gen_ctx.cave_0_nz.get(
+                Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0)
+                    .div(1000.0)
+                    .into_array(),
+            ) as f32)
+                .powf(2.0)
+                .neg()
+                .add(1.0)
+                .mul((1.15 - chaos).min(1.0))
+        };
         let cave_xy = cave_at(wposf);
         let cave_alt = alt - 32.0
-            + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(48.0).into_array()) as f32) * 8.0
-            + (sim.gen_ctx.cave_1_nz.get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32).add(1.0).mul(0.5).powf(8.0).mul(256.0);
+            + (sim
+                .gen_ctx
+                .cave_1_nz
+                .get(Vec2::new(wposf.x, wposf.y).div(48.0).into_array()) as f32)
+                * 8.0
+            + (sim
+                .gen_ctx
+                .cave_1_nz
+                .get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32)
+                .add(1.0)
+                .mul(0.5)
+                .powf(8.0)
+                .mul(256.0);
 
         Some(Sample2d {
             alt,
@@ -295,8 +312,15 @@ impl<'a> Sampler<'a> {
             None
         };
 
-        let ground_block = if let Some(block) = ground_block { // Underground
-            let cave = cave_xy.powf(2.0) * (wposf.z as f32 - cave_alt).div(40.0).powf(4.0).neg().add(1.0) > 0.9993;
+        let ground_block = if let Some(block) = ground_block {
+            // Underground
+            let cave = cave_xy.powf(2.0)
+                * (wposf.z as f32 - cave_alt)
+                    .div(40.0)
+                    .powf(4.0)
+                    .neg()
+                    .add(1.0)
+                > 0.9993;
 
             if cave {
                 None
