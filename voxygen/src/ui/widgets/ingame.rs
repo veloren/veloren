@@ -60,7 +60,7 @@ pub struct IngameParameters {
     pub pos: Vec3<f32>,
     // Number of pixels per 1 unit in world coordinates (ie a voxel)
     // Used for widgets that are rasterized before being sent to the gpu (text & images)
-    // Potentially make this autmatic based on distance to camera?
+    // Potentially make this automatic based on distance to camera?
     pub res: f32,
 }
 

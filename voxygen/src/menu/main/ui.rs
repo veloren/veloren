@@ -308,10 +308,10 @@ impl MainMenuUi {
                     .w_h(400.0, 400.0)
                     .set(self.ids.servers_frame, ui_widgets);
 
-                let netsettings = &global_state.settings.networking;
+                let net_settings = &global_state.settings.networking;
 
                 // TODO: Draw scroll bar or remove it.
-                let (mut items, scrollbar) = List::flow_down(netsettings.servers.len())
+                let (mut items, scrollbar) = List::flow_down(net_settings.servers.len())
                     .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
                     .w_h(400.0, 300.0)
                     .scrollbar_next_to()
@@ -321,12 +321,12 @@ impl MainMenuUi {
 
                 while let Some(item) = items.next(ui_widgets) {
                     let mut text = "".to_string();
-                    if &netsettings.servers[item.i] == &self.server_address {
+                    if &net_settings.servers[item.i] == &self.server_address {
                         text.push_str("* ")
                     } else {
                         text.push_str("  ")
                     }
-                    text.push_str(&netsettings.servers[item.i]);
+                    text.push_str(&net_settings.servers[item.i]);
 
                     if item
                         .set(
@@ -344,7 +344,7 @@ impl MainMenuUi {
                         .was_clicked()
                     {
                         // TODO: Set as current server address
-                        self.server_address = netsettings.servers[item.i].clone();
+                        self.server_address = net_settings.servers[item.i].clone();
                     }
                 }
 
