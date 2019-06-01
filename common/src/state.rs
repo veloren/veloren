@@ -115,6 +115,7 @@ impl State {
         // Register client-local components
         ecs.register::<comp::Control>();
         ecs.register::<comp::Jumping>();
+        ecs.register::<comp::Rolling>();
 
         // Register server-local components
         ecs.register::<comp::Agent>();

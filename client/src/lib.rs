@@ -145,7 +145,14 @@ impl Client {
         }
         self.state.write_component(self.entity, comp::Jumping);
     }
-
+    /// Start to roll locally, animation will be synced
+    #[allow(dead_code)]
+    pub fn roll(&mut self) {
+        if self.client_state != ClientState::Character {
+            return;
+        }
+        self.state.write_component(self.entity, comp::Rolling);
+    }
     /// Start to glide locally, animation will be synced
     #[allow(dead_code)]
     pub fn glide(&mut self, state: bool) {
