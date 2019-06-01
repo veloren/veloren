@@ -4,8 +4,6 @@ use crate::{
         
         Animation, AnimationInfo, Attacking, Rolling, Control, Gliding, HealthSource, Jumping, Respawning,
         Stats,
-
-
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,

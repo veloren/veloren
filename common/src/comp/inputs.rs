@@ -16,7 +16,6 @@ pub struct Attacking {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-<<<<<<< HEAD
 pub struct Rolling {
     pub time: f32,
     pub applied: bool,
