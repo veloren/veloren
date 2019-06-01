@@ -162,7 +162,7 @@ impl Client {
         }
         self.state.write_component(self.entity, comp::Jumping);
     }
-    /// Start to roll locally, animation will be synced
+    /// Start to roll
     #[allow(dead_code)]
     pub fn roll(&mut self) {
         if self.client_state != ClientState::Character {
