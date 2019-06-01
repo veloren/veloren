@@ -315,7 +315,7 @@ impl Ui {
                 }
                 // Primitives still left to draw ingame
                 Placement::InWorld(num_prims, res) => match kind {
-                    // Other types don't aren't drawn & shouldn't decrement the number of primitives left to draw ingame
+                    // Other types aren't drawn & shouldn't decrement the number of primitives left to draw ingame
                     PrimitiveKind::Other(_) => {}
                     // Decrement the number of primitives left
                     _ => placement = Placement::InWorld(num_prims - 1, res),
