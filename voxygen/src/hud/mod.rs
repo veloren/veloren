@@ -556,14 +556,9 @@ impl Hud {
         // left side, but when the Char Window is opened they will appear to the right of it.
 
         // Settings
-        if let Windows::Settings = self.show.open_windows {            
-            for event in SettingsWindow::new(
-                &global_state,
-                &self.show,
-                &self.imgs,
-                &self.fonts,
-            )
-            .set(self.ids.settings_window, ui_widgets)
+        if let Windows::Settings = self.show.open_windows {
+            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts)
+                .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::ToggleHelp => self.show.toggle_help(),

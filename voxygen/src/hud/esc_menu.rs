@@ -90,7 +90,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_1, ui)
             .was_clicked()
         {
-            return Some(Event::Close);            
+            return Some(Event::Close);
         };
 
         // Settings
@@ -106,7 +106,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_2, ui)
             .was_clicked()
         {
-            return Some(Event::OpenSettings(SettingsTab::Interface));            
+            return Some(Event::OpenSettings(SettingsTab::Interface));
         };
         // Controls
         if Button::image(self.imgs.button)
@@ -121,7 +121,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_3, ui)
             .was_clicked()
         {
-            return Some(Event::OpenSettings(SettingsTab::Controls));           
+            return Some(Event::OpenSettings(SettingsTab::Controls));
         };
         // Characters
         if Button::image(self.imgs.button)
@@ -136,7 +136,7 @@ impl<'a> Widget for EscMenu<'a> {
             .set(state.ids.menu_button_4, ui)
             .was_clicked()
         {
-            return Some(Event::CharacterSelection);               
+            return Some(Event::CharacterSelection);
         };
         // Logout
         if Button::image(self.imgs.button)
@@ -150,7 +150,7 @@ impl<'a> Widget for EscMenu<'a> {
             .label_font_size(20)
             .set(state.ids.menu_button_5, ui)
             .was_clicked()
-        {            
+        {
             return Some(Event::Logout);
         };
         // Quit
