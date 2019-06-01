@@ -121,6 +121,7 @@ impl<'a> System<'a> for Sys {
                     Animation::Attack
                 } else if rolls.get(entity).is_some() {
                     Animation::Roll
+
                 } else if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
                 } else {
