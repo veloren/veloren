@@ -16,6 +16,7 @@ pub enum GameInput {
     MoveLeft,
     MoveRight,
     Jump,
+    Roll,
     Glide,
     Enter,
     Escape,

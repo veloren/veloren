@@ -6,7 +6,7 @@ use vek::*;
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
+        Animation, AnimationInfo, Attacking, Rolling, Control, Gliding, HealthSource, Jumping, Respawning,
         Stats,
     },
     state::{DeltaTime, Time, Uid},
@@ -34,6 +34,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Rolling>,
         WriteStorage<'a, ForceUpdate>,
     );
 
@@ -55,6 +56,7 @@ impl<'a> System<'a> for Sys {
             mut respawns,
             mut glides,
             mut attacks,
+            mut rolls,
             mut force_updates,
         ): Self::SystemData,
     ) {
@@ -122,10 +124,12 @@ impl<'a> System<'a> for Sys {
             }
 
             let animation = if on_ground {
-                if control.move_dir.magnitude() > 0.01 {
-                    Animation::Run
-                } else if attacks.get(entity).is_some() {
+                if attacks.get(entity).is_some() {
                     Animation::Attack
+                } else if rolls.get(entity).is_some() {
+                    Animation::Attack
+                } else if control.move_dir.magnitude() > 0.01 {
+                    Animation::Run
                 } else {
                     Animation::Idle
                 }
