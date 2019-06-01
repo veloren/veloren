@@ -6,7 +6,7 @@ pub enum Armor {
     //TODO: Don't make armor be a body part. Wearing enemy's head is funny but also creepy thing to do.
     Helmet(actor::Head),
     Shoulders(actor::Shoulder),
-    ChestPlate(actor::Chest),
+    Chestplate(actor::Chest),
     Belt(actor::Belt),
     Gloves(actor::Hand),
     Pants(actor::Pants),
