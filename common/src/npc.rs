@@ -1,17 +1,17 @@
-use serde_json;
 use rand::seq::SliceRandom;
+use serde_json;
 use std::fs::File;
 
 pub enum NpcKind {
     Wolf,
-    Pig
+    Pig,
 }
 
 impl NpcKind {
     fn as_str(&self) -> &'static str {
         match *self {
             NpcKind::Wolf => "wolf",
-            NpcKind::Pig => "pig"
+            NpcKind::Pig => "pig",
         }
     }
 }
