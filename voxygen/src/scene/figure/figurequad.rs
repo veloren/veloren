@@ -108,7 +108,7 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "pig_purple/pighead.vox",
+                Head::Default => "pig_purple/pig_head.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -117,7 +117,7 @@ impl FigureModelCache {
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "pig_purple/pigchest.vox",
+                Chest::Default => "pig_purple/pig_chest.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -126,7 +126,7 @@ impl FigureModelCache {
     fn load_leg_lf(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match belt {
-                Belt::Default => "pig_purple/pigleg_l.vox",
+                Belt::Default => "pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -135,7 +135,7 @@ impl FigureModelCache {
     fn load_leg_rf(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match pants {
-                Pants::Default => "pig_purple/pigleg_r.vox",
+                Pants::Default => "pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -144,7 +144,7 @@ impl FigureModelCache {
     fn load_leg_lb(leg_l: Leg_l) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pig_purple/pigleg_l.vox",
+                Hand::Default => "pig_purple/pig_leg_l.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -153,7 +153,7 @@ impl FigureModelCache {
     fn load_leg_rb(leg_r: Leg_r) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hand {
-                Hand::Default => "pig_purple/pigleg_r.vox",
+                Hand::Default => "pig_purple/pig_leg_r.vox",
             },
             Vec3::new(0.0, 0.0, 0.0),
         )
@@ -180,11 +180,11 @@ impl FigureMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
-        for (entity, pos, vel, dir, actor, animation_history) in (
+        for (entity, pos, vel, ori, actor, animation_history) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::phys::Pos>(),
             &ecs.read_storage::<comp::phys::Vel>(),
-            &ecs.read_storage::<comp::phys::Dir>(),
+            &ecs.read_storage::<comp::phys::Ori>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationHistory>(),
         )
@@ -205,7 +205,7 @@ impl FigureMgr {
 
                         state.skeleton.interpolate(&target_skeleton);
 
-                        state.update(renderer, pos.0, dir.0);
+                        state.update(renderer, pos.0, ori.0);
                     } // TODO: Non-humanoid bodies
                 },
                 // TODO: Non-character actors
@@ -263,10 +263,10 @@ impl<S: Skeleton> FigureState<S> {
         }
     }
 
-    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, dir: Vec3<f32>) {
+    pub fn update(&mut self, renderer: &mut Renderer, pos: Vec3<f32>, ori: Vec3<f32>) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
-            * Mat4::rotation_z(-dir.x.atan2(dir.y)); // + f32::consts::PI / 2.0);
+            * Mat4::rotation_z(-ori.x.atan2(ori.y)); // + f32::consts::PI / 2.0);
 
         let locals = FigureLocals::new(mat);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();

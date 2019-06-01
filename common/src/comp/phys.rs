@@ -19,12 +19,12 @@ impl Component for Vel {
     type Storage = VecStorage<Self>;
 }
 
-// Direction
+// Orientation
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Dir(pub Vec3<f32>);
+pub struct Ori(pub Vec3<f32>);
 
-impl Component for Dir {
+impl Component for Ori {
     type Storage = VecStorage<Self>;
 }
 

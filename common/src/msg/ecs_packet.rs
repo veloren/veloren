@@ -19,7 +19,7 @@ sphynx::sum_type! {
     pub enum EcsCompPacket {
         Pos(comp::phys::Pos),
         Vel(comp::phys::Vel),
-        Dir(comp::phys::Dir),
+        Ori(comp::phys::Ori),
         Actor(comp::Actor),
         Player(comp::Player),
         Stats(comp::Stats),
@@ -33,7 +33,7 @@ sphynx::sum_type! {
     pub enum EcsCompPhantom {
         Pos(PhantomData<comp::phys::Pos>),
         Vel(PhantomData<comp::phys::Vel>),
-        Dir(PhantomData<comp::phys::Dir>),
+        Ori(PhantomData<comp::phys::Ori>),
         Actor(PhantomData<comp::Actor>),
         Player(PhantomData<comp::Player>),
         Stats(PhantomData<comp::Stats>),

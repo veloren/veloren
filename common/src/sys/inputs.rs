@@ -5,7 +5,7 @@ use vek::*;
 // Crate
 use crate::{
     comp::{
-        phys::{Dir, ForceUpdate, Pos, Vel},
+        phys::{ForceUpdate, Ori, Pos, Vel},
         Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
         Stats,
     },
@@ -26,7 +26,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
-        WriteStorage<'a, Dir>,
+        WriteStorage<'a, Ori>,
         WriteStorage<'a, AnimationInfo>,
         WriteStorage<'a, Stats>,
         ReadStorage<'a, Control>,
@@ -47,23 +47,23 @@ impl<'a> System<'a> for Sys {
             terrain,
             positions,
             mut velocities,
-            mut directions,
+            mut orientations,
             mut animation_infos,
             mut stats,
             mut controls,
-            mut jumpings,
-            mut respawnings,
-            mut glidings,
-            mut attackings,
+            mut jumps,
+            mut respawns,
+            mut glides,
+            mut attacks,
             mut force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, pos, control, stats, mut dir, mut vel) in (
+        for (entity, pos, control, stats, mut ori, mut vel) in (
             &entities,
             &positions,
             &controls,
             &stats,
-            &mut directions,
+            &mut orientations,
             &mut velocities,
         )
             .join()
@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
                 // Apply physics to the player: acceleration and non-linear deceleration.
                 vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 200.0;
 
-                if jumpings.get(entity).is_some() {
+                if jumps.get(entity).is_some() {
                     vel.0.z += 16.0;
                 }
 
@@ -95,7 +95,7 @@ impl<'a> System<'a> for Sys {
                 // Apply physics to the player: acceleration and non-linear deceleration.
                 vel.0 += Vec2::broadcast(dt.0) * control.move_dir * 10.0;
 
-                if glidings.get(entity).is_some() && vel.0.z < 0.0 {
+                if glides.get(entity).is_some() && vel.0.z < 0.0 {
                     // TODO: Don't hard-code this.
                     let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
                     vel.0.z +=
@@ -118,18 +118,18 @@ impl<'a> System<'a> for Sys {
                 * Vec3::new(1.0, 1.0, 0.0);
 
             if vel.0.magnitude_squared() != 0.0 {
-                dir.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
+                ori.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
             }
 
             let animation = if on_ground {
                 if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
-                } else if attackings.get(entity).is_some() {
+                } else if attacks.get(entity).is_some() {
                     Animation::Attack
                 } else {
                     Animation::Idle
                 }
-            } else if glidings.get(entity).is_some() {
+            } else if glides.get(entity).is_some() {
                 Animation::Gliding
             } else {
                 Animation::Jump
@@ -151,8 +151,8 @@ impl<'a> System<'a> for Sys {
             );
         }
 
-        for (entity, &uid, pos, dir, attacking) in
-            (&entities, &uids, &positions, &directions, &mut attackings).join()
+        for (entity, &uid, pos, ori, attacking) in
+            (&entities, &uids, &positions, &orientations, &mut attacks).join()
         {
             if !attacking.applied {
                 for (b, pos_b, mut stat_b, mut vel_b) in
@@ -162,7 +162,7 @@ impl<'a> System<'a> for Sys {
                     if entity != b
                         && !stat_b.is_dead
                         && pos.0.distance_squared(pos_b.0) < 50.0
-                        && dir.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
+                        && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                     {
                         // Deal damage
                         stat_b.hp.change_by(-10, HealthSource::Attack { by: uid }); // TODO: variable damage and weapon

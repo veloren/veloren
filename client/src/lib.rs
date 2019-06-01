@@ -271,9 +271,9 @@ impl Client {
             self.state.read_storage().get(self.entity).cloned(),
             self.state.read_storage().get(self.entity).cloned(),
         ) {
-            (Some(pos), Some(vel), Some(dir)) => {
+            (Some(pos), Some(vel), Some(ori)) => {
                 self.postbox
-                    .send_message(ClientMsg::PlayerPhysics { pos, vel, dir });
+                    .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
             }
             _ => {}
         }
@@ -341,12 +341,12 @@ impl Client {
                         entity,
                         pos,
                         vel,
-                        dir,
+                        ori,
                     } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
-                            self.state.write_component(entity, dir);
+                            self.state.write_component(entity, ori);
                         }
                         None => {}
                     },

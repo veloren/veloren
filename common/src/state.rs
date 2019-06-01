@@ -109,7 +109,7 @@ impl State {
         // Register components synced by other means
         ecs.register::<comp::phys::Pos>();
         ecs.register::<comp::phys::Vel>();
-        ecs.register::<comp::phys::Dir>();
+        ecs.register::<comp::phys::Ori>();
         ecs.register::<comp::AnimationInfo>();
 
         // Register client-local components

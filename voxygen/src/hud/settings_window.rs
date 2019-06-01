@@ -212,7 +212,7 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             Text::new("Show Help")
                 .right_from(state.ids.button_help, 10.0)
-                .font_size(12)
+                .font_size(14)
                 .font_id(self.fonts.opensans)
                 .graphics_for(state.ids.button_help)
                 .color(TEXT_COLOR)
@@ -500,7 +500,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
         // Contents
         if let SettingsTab::Video = state.settings_tab {
-            Text::new("Viewdistance")
+            Text::new("View Distance")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
