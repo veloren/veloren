@@ -426,13 +426,13 @@ impl Client {
     }
 
     /// Get a vector of all the players on the server
-    pub fn get_players(&mut self) -> Vec<(EcsEntity, comp::Player)> {
-        (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Player>(),
-        )
+    pub fn get_players(&mut self) -> Vec<comp::Player> {
+        // TODO: Don't clone players.
+        self.state
+            .ecs()
+            .read_storage::<comp::Player>()
             .join()
-            .map(|(e, p)| (e, p.clone()))
+            .map(|p| p.clone())
             .collect()
     }
 }
