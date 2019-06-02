@@ -129,6 +129,9 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().attack();
                         self.client.borrow_mut().respawn();
                     }
+                    Event::InputUpdate(GameInput::Roll, true) => {
+                        self.client.borrow_mut().roll();
+                    }
                     Event::InputUpdate(GameInput::Jump, true) => {
                         self.client.borrow_mut().jump();
                     }
