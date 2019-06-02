@@ -1,6 +1,6 @@
 use common::clock::Clock;
 use log::info;
-use server::{Event, Server};
+use server::{Event, Input, Server};
 use std::time::Duration;
 
 const TPS: u64 = 30;
