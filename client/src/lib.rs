@@ -9,7 +9,7 @@ pub use specs::Entity as EcsEntity;
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
 };
@@ -22,7 +22,7 @@ use std::{
 use threadpool::ThreadPool;
 use vek::*;
 
-const SERVER_TIMEOUT: f64 = 20.0; // Seconds
+const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
 pub enum Event {
     Chat(String),
@@ -32,8 +32,8 @@ pub enum Event {
 pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
+    pub server_info: ServerInfo,
 
-    last_ping: f64,
     postbox: PostBox<ClientMsg, ServerMsg>,
 
     last_server_ping: Instant,
@@ -55,28 +55,31 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (mut state, entity) = match postbox.next_message() {
+        let (mut state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
+                server_info,
             }) => {
                 let mut state = State::from_state_package(ecs_state);
                 let entity = state
                     .ecs()
                     .entity_from_uid(entity_uid)
                     .ok_or(Error::ServerWentMad)?;
-                (state, entity)
+                (state, entity, server_info)
             }
             _ => return Err(Error::ServerWentMad),
         };
+
+        postbox.send_message(ClientMsg::Ping);
 
         Ok(Self {
             client_state,
             thread_pool: threadpool::Builder::new()
                 .thread_name("veloren-worker".into())
                 .build(),
+            server_info,
 
-            last_ping: state.get_time(),
             postbox,
 
             last_server_ping: Instant::now(),
@@ -328,12 +331,9 @@ impl Client {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
-        // Step 1
         let new_msgs = self.postbox.new_messages();
 
         if new_msgs.len() > 0 {
-            self.last_ping = self.state.get_time();
-
             for msg in new_msgs {
                 match msg {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
@@ -393,14 +393,10 @@ impl Client {
             }
         } else if let Some(err) = self.postbox.error() {
             return Err(err.into());
-        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT {
+        // We regularily ping in the tick method
+        } else if Instant::now().duration_since(self.last_server_ping) > SERVER_TIMEOUT {
             return Err(Error::ServerTimeout);
-        } else if self.state.get_time() - self.last_ping > SERVER_TIMEOUT * 0.5 {
-            // Try pinging the server if the timeout is nearing.
-            self.postbox.send_message(ClientMsg::Ping);
-            self.last_server_ping = Instant::now();
         }
-
         Ok(frontend_events)
     }
 
@@ -445,6 +441,17 @@ impl Client {
     #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State {
         &mut self.state
+    }
+
+    /// Get a vector of all the players on the server
+    pub fn get_players(&mut self) -> Vec<comp::Player> {
+        // TODO: Don't clone players.
+        self.state
+            .ecs()
+            .read_storage::<comp::Player>()
+            .join()
+            .map(|p| p.clone())
+            .collect()
     }
 }
 
