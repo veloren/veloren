@@ -1,8 +1,3 @@
-// Library
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
-
-// Crate
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
@@ -12,6 +7,8 @@ use crate::{
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use vek::*;
 
 // Basic ECS AI agent system
 pub struct Sys;

@@ -19,7 +19,7 @@ fn main() {
 
     loop {
         let events = server
-            .tick(clock.get_last_delta())
+            .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server");
 
         for event in events {

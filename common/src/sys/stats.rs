@@ -1,11 +1,8 @@
-// Library
-use specs::{Entities, Join, Read, System, WriteStorage};
-
-// Crate
 use crate::{
     comp::{Dying, Stats},
     state::DeltaTime,
 };
+use specs::{Entities, Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
 pub struct Sys;

@@ -1,6 +1,6 @@
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, Mesh, Quad, TerrainPipeline},
+    render::{self, Mesh, TerrainPipeline},
 };
 use common::{
     terrain::Block,

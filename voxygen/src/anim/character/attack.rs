@@ -1,11 +1,6 @@
-// Standard
-use std::{f32::consts::PI, ops::Mul};
-
-// Library
-use vek::*;
-
-// Local
 use super::{super::Animation, CharacterSkeleton};
+use std::{f32::consts::PI, ops::Mul};
+use vek::*;
 
 pub struct Input {
     pub attack: bool,

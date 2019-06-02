@@ -1,8 +1,6 @@
+use crate::vol::Vox;
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
-
-// Crate
-use crate::vol::Vox;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {

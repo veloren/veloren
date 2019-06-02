@@ -1,11 +1,6 @@
-// Standard
-use std::f32::consts::PI;
-
-// Library
-use vek::*;
-
-// Local
 use super::{super::Animation, QuadrupedSkeleton};
+use std::f32::consts::PI;
+use vek::*;
 
 pub struct RunAnimation;
 

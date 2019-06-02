@@ -1,10 +1,7 @@
-// Library
+use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
 use rand::Rng;
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
-
-// Crate
-use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
 
 // Basic ECS AI agent system
 pub struct Sys;

@@ -1,8 +1,5 @@
-// Library
-use specs::{Join, Read, System, WriteStorage};
-
-// Crate
 use crate::{comp::AnimationInfo, state::DeltaTime};
+use specs::{Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
 pub struct Sys;

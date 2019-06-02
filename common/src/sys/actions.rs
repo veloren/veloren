@@ -1,8 +1,5 @@
-// Library
-use specs::{Entities, Join, Read, System, WriteStorage};
-
-// Crate
 use crate::{comp::Attacking, state::DeltaTime};
+use specs::{Entities, Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
 pub struct Sys;
@@ -21,8 +18,8 @@ impl<'a> System<'a> for Sys {
 
         let finished_attacks = (&entities, &mut attacks)
             .join()
-            .filter(|(_e, a)| a.time > 0.25) // TODO: constant
-            .map(|(e, _a)| e)
+            .filter(|(_, a)| a.time > 0.25) // TODO: constant
+            .map(|(e, _)| e)
             .collect::<Vec<_>>();
 
         for entity in finished_attacks {
