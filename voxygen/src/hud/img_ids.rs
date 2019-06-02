@@ -36,6 +36,7 @@ image_ids! {
         check_checked_mo: "voxygen/element/buttons/check/yes_mo.vox",
         slider: "voxygen/element/slider/track.vox",
         slider_indicator: "voxygen/element/slider/indicator.vox",
+        esc_frame: "voxygen/element/frames/esc_menu.vox",
 
         // Map Window
         map_frame_l: "voxygen/element/frames/map_l.vox",
