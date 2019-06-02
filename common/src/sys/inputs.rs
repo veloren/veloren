@@ -120,7 +120,7 @@ impl<'a> System<'a> for Sys {
                 if attacks.get(entity).is_some() {
                     Animation::Attack
                 } else if rolls.get(entity).is_some() {
-                    Animation::Attack
+                    Animation::Roll
                 } else if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
                 } else {
