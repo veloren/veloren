@@ -2,7 +2,7 @@ use client::Client;
 use common::clock::Clock;
 use log::info;
 use portpicker::pick_unused_port;
-use server::{Event, Server};
+use server::{Event, Input, Server};
 use std::{
     net::SocketAddr,
     sync::mpsc::{channel, Receiver, Sender, TryRecvError},
@@ -69,7 +69,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
     loop {
         let events = server
-            .tick(clock.get_last_delta())
+            .tick(Input::default(), clock.get_last_delta())
             .expect("Failed to tick server!");
 
         for event in events {
