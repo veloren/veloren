@@ -23,14 +23,7 @@ fn main() {
     // TODO: Remove or move somewhere else, this doesn't work immediately after connecting
     println!("Ping: {:?}", client.get_ping_ms());
 
-    println!(
-        "Players online: {:?}",
-        client
-            .get_players()
-            .into_iter()
-            .map(|(e, p)| p)
-            .collect::<Vec<comp::Player>>()
-    );
+    println!("Players online: {:?}", client.get_players());
 
     client.register(comp::Player::new("test".to_string(), None));
     client.send_chat("Hello!".to_string());
