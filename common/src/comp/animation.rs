@@ -8,6 +8,7 @@ pub enum Animation {
     Jump,
     Gliding,
     Attack,
+    Roll,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
