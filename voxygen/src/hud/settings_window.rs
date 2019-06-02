@@ -16,7 +16,6 @@ use conrod_core::{
 };
 widget_ids! {
     struct Ids {
-
         settings_content,
         settings_icon,
         settings_button_mo,
@@ -51,7 +50,7 @@ widget_ids! {
     }
 }
 
-enum SettingsTab {
+pub enum SettingsTab {
     Interface,
     Video,
     Sound,
@@ -61,12 +60,12 @@ enum SettingsTab {
 
 #[derive(WidgetCommon)]
 pub struct SettingsWindow<'a> {
+    global_state: &'a GlobalState,
+
     show: &'a Show,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
-
-    global_state: &'a GlobalState,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -74,24 +73,22 @@ pub struct SettingsWindow<'a> {
 
 impl<'a> SettingsWindow<'a> {
     pub fn new(
+        global_state: &'a GlobalState,
         show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
-        global_state: &'a GlobalState,
     ) -> Self {
         Self {
+            global_state,
             show,
             imgs,
             fonts,
-            global_state,
             common: widget::CommonBuilder::default(),
         }
     }
 }
 
 pub struct State {
-    settings_tab: SettingsTab,
-
     ids: Ids,
 }
 
@@ -99,6 +96,7 @@ pub enum Event {
     ToggleHelp,
     ToggleInventoryTestButton,
     ToggleDebug,
+    ChangeTab(SettingsTab),
     Close,
     AdjustViewDistance(u32),
     AdjustVolume(f32),
@@ -112,7 +110,6 @@ impl<'a> Widget for SettingsWindow<'a> {
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
-            settings_tab: SettingsTab::Interface,
             ids: Ids::new(id_gen),
         }
     }
@@ -170,18 +167,18 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.settings_title, ui);
 
         // Interface
-        if Button::image(if let SettingsTab::Interface = state.settings_tab {
+        if Button::image(if let SettingsTab::Interface = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button
         })
         .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Interface = state.settings_tab {
+        .hover_image(if let SettingsTab::Interface = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_hover
         })
-        .press_image(if let SettingsTab::Interface = state.settings_tab {
+        .press_image(if let SettingsTab::Interface = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_press
@@ -193,10 +190,10 @@ impl<'a> Widget for SettingsWindow<'a> {
         .set(state.ids.interface, ui)
         .was_clicked()
         {
-            state.update(|s| s.settings_tab = SettingsTab::Interface);
+            events.push(Event::ChangeTab(SettingsTab::Interface));
         }
 
-        if let SettingsTab::Interface = state.settings_tab {
+        if let SettingsTab::Interface = self.show.settings_tab {
             // Help
             let show_help =
                 ToggleButton::new(self.show.help, self.imgs.check, self.imgs.check_checked)
@@ -265,18 +262,18 @@ impl<'a> Widget for SettingsWindow<'a> {
         }
 
         // 2 Gameplay
-        if Button::image(if let SettingsTab::Gameplay = state.settings_tab {
+        if Button::image(if let SettingsTab::Gameplay = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button
         })
         .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Gameplay = state.settings_tab {
+        .hover_image(if let SettingsTab::Gameplay = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_hover
         })
-        .press_image(if let SettingsTab::Gameplay = state.settings_tab {
+        .press_image(if let SettingsTab::Gameplay = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_press
@@ -288,22 +285,22 @@ impl<'a> Widget for SettingsWindow<'a> {
         .set(state.ids.gameplay, ui)
         .was_clicked()
         {
-            state.update(|s| s.settings_tab = SettingsTab::Gameplay);
+            events.push(Event::ChangeTab(SettingsTab::Gameplay));
         }
 
         // 3 Controls
-        if Button::image(if let SettingsTab::Controls = state.settings_tab {
+        if Button::image(if let SettingsTab::Controls = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button
         })
         .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Controls = state.settings_tab {
+        .hover_image(if let SettingsTab::Controls = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_hover
         })
-        .press_image(if let SettingsTab::Controls = state.settings_tab {
+        .press_image(if let SettingsTab::Controls = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_press
@@ -315,9 +312,9 @@ impl<'a> Widget for SettingsWindow<'a> {
         .set(state.ids.controls, ui)
         .was_clicked()
         {
-            state.update(|s| s.settings_tab = SettingsTab::Controls);
+            events.push(Event::ChangeTab(SettingsTab::Controls));
         }
-        if let SettingsTab::Controls = state.settings_tab {
+        if let SettingsTab::Controls = self.show.settings_tab {
             Text::new(
                 "Free Cursor\n\
             Toggle Help Window\n\
@@ -472,18 +469,18 @@ impl<'a> Widget for SettingsWindow<'a> {
             .set(state.ids.controls_controls, ui);
         }
         // 4 Video
-        if Button::image(if let SettingsTab::Video = state.settings_tab {
+        if Button::image(if let SettingsTab::Video = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button
         })
         .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Video = state.settings_tab {
+        .hover_image(if let SettingsTab::Video = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_hover
         })
-        .press_image(if let SettingsTab::Video = state.settings_tab {
+        .press_image(if let SettingsTab::Video = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_press
@@ -496,10 +493,10 @@ impl<'a> Widget for SettingsWindow<'a> {
         .set(state.ids.video, ui)
         .was_clicked()
         {
-            state.update(|s| s.settings_tab = SettingsTab::Video);
+            events.push(Event::ChangeTab(SettingsTab::Video));
         }
         // Contents
-        if let SettingsTab::Video = state.settings_tab {
+        if let SettingsTab::Video = self.show.settings_tab {
             Text::new("View Distance")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
@@ -525,18 +522,18 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
         }
         // 5 Sound
-        if Button::image(if let SettingsTab::Sound = state.settings_tab {
+        if Button::image(if let SettingsTab::Sound = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button
         })
         .w_h(31.0 * 4.0, 12.0 * 4.0)
-        .hover_image(if let SettingsTab::Sound = state.settings_tab {
+        .hover_image(if let SettingsTab::Sound = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_hover
         })
-        .press_image(if let SettingsTab::Sound = state.settings_tab {
+        .press_image(if let SettingsTab::Sound = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
             self.imgs.settings_button_press
@@ -549,11 +546,10 @@ impl<'a> Widget for SettingsWindow<'a> {
         .set(state.ids.sound, ui)
         .was_clicked()
         {
-            state.update(|s| s.settings_tab = SettingsTab::Sound);
+            events.push(Event::ChangeTab(SettingsTab::Sound));
         }
         // Contents
-        if let SettingsTab::Sound = state.settings_tab {
-            // Volume Slider ----------------------------------------------------
+        if let SettingsTab::Sound = self.show.settings_tab {
             Text::new("Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)

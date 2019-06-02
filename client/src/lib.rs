@@ -104,6 +104,20 @@ impl Client {
         self.client_state = ClientState::Pending;
     }
 
+    /// Request a state transition to `ClientState::Character`.
+    pub fn request_logout(&mut self) {
+        self.postbox
+            .send_message(ClientMsg::RequestState(ClientState::Connected));
+        self.client_state = ClientState::Pending;
+    }
+
+    /// Request a state transition to `ClientState::Character`.
+    pub fn request_remove_character(&mut self) {
+        self.postbox
+            .send_message(ClientMsg::RequestState(ClientState::Registered));
+        self.client_state = ClientState::Pending;
+    }
+
     pub fn set_view_distance(&mut self, view_distance: u32) {
         self.view_distance = Some(view_distance.max(1).min(25));
         self.postbox
