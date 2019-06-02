@@ -1,103 +1,108 @@
-// Standard
-use std::{f32::consts::PI, ops::Mul};
+pub mod attack;
+pub mod gliding;
+pub mod idle;
+pub mod jump;
+pub mod roll;
+pub mod run;
 
-// Library
-use vek::*;
+// Reexports
+pub use self::attack::AttackAnimation;
+pub use self::gliding::GlidingAnimation;
+pub use self::idle::IdleAnimation;
+pub use self::jump::JumpAnimation;
+pub use self::roll::RollAnimation;
+pub use self::run::RunAnimation;
+
+// Crate
+use crate::render::FigureBoneData;
 
 // Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
+use super::{Bone, Skeleton};
 
-pub struct Input {
-    pub attack: bool,
+const SCALE: f32 = 11.0;
+
+#[derive(Clone)]
+pub struct CharacterSkeleton {
+    head: Bone,
+    chest: Bone,
+    belt: Bone,
+    shorts: Bone,
+    l_hand: Bone,
+    r_hand: Bone,
+    l_foot: Bone,
+    r_foot: Bone,
+    weapon: Bone,
+    l_shoulder: Bone,
+    r_shoulder: Bone,
+    draw: Bone,
+    left_equip: Bone,
+    right_equip: Bone,
+    torso: Bone,
 }
-pub struct RollAnimation;
 
-impl Animation for RollAnimation {
-    type Skeleton = CharacterSkeleton;
-    type Dependency = f64;
+impl CharacterSkeleton {
+    pub fn new() -> Self {
+        Self {
+            head: Bone::default(),
+            chest: Bone::default(),
+            belt: Bone::default(),
+            shorts: Bone::default(),
+            l_hand: Bone::default(),
+            r_hand: Bone::default(),
+            l_foot: Bone::default(),
+            r_foot: Bone::default(),
+            weapon: Bone::default(),
+            l_shoulder: Bone::default(),
+            r_shoulder: Bone::default(),
+            draw: Bone::default(),
+            left_equip: Bone::default(),
+            right_equip: Bone::default(),
+            torso: Bone::default(),
+        }
+    }
+}
 
-    fn update_skeleton(
-        skeleton: &Self::Skeleton,
-        global_time: f64,
-        anim_time: f64,
-    ) -> Self::Skeleton {
-        let mut next = (*skeleton).clone();
+impl Skeleton for CharacterSkeleton {
+    fn compute_matrices(&self) -> [FigureBoneData; 16] {
+        let chest_mat = self.chest.compute_base_matrix();
+        let torso_mat = self.torso.compute_base_matrix();
+        let l_hand_mat = self.l_hand.compute_base_matrix();
+        let weapon_mat = self.weapon.compute_base_matrix();
+        [
+            FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat),
+            FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
+            FigureBoneData::new(l_hand_mat),
+            FigureBoneData::new(self.r_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * weapon_mat),
+            FigureBoneData::new(torso_mat * chest_mat * self.l_shoulder.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * chest_mat * self.r_shoulder.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * self.draw.compute_base_matrix()),
+            FigureBoneData::new(self.left_equip.compute_base_matrix()),
+            FigureBoneData::new(self.right_equip.compute_base_matrix()),
+            FigureBoneData::new(torso_mat),
+            FigureBoneData::default(),
+        ]
+    }
 
-        let wave = (anim_time as f32 * 3.0).sin();
-        let wave_mid = (anim_time as f32 * 4.0).sin();
-        let wave_cos = (anim_time as f32 * 3.0).cos();
-        let wave_slow = (anim_time as f32 * 2.0 + PI).sin();
-
-        next.head.offset = Vec3::new(0.0, 2.0, 11.0 - 8.0);
-        next.head.ori = Quaternion::rotation_x(-0.4);
-        next.head.scale = Vec3::one();
-
-        next.chest.offset = Vec3::new(0.0, 0.0, 7.0 - 7.0);
-        next.chest.ori = Quaternion::rotation_x(wave * -0.5);
-        next.chest.scale = Vec3::one() * 1.01;
-
-        next.belt.offset = Vec3::new(0.0, 0.0, 5.0 - 5.0);
-        next.belt.ori = Quaternion::rotation_x(0.0);
-        next.belt.scale = Vec3::one();
-
-        next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 - 5.0);
-        next.shorts.ori = Quaternion::rotation_x(0.0);
-        next.shorts.scale = Vec3::one();
-
-        next.l_hand.offset = Vec3::new(
-            -6.5 + wave * -0.5,
-            -2.0 + wave_cos * 2.5,
-            8.0 + wave_mid * -4.5,
-        ) / 11.0;
-
-        next.l_hand.ori =
-            Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
-        next.l_hand.scale = Vec3::one() / 11.0;
-
-        next.r_hand.offset = Vec3::new(
-            6.5 + wave * 0.5,
-            -2.0 + wave_cos * 2.5,
-            8.0 + wave_mid * -4.5,
-        ) / 11.0;
-        next.r_hand.ori =
-            Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
-        next.r_hand.scale = Vec3::one() / 11.;
-
-        next.l_foot.offset = Vec3::new(-3.4, -0.1, 9.0 - 5.0 + wave * 1.2);
-        next.l_foot.ori = Quaternion::rotation_x(wave * 0.6);
-        next.l_foot.scale = Vec3::one();
-
-        next.r_foot.offset = Vec3::new(3.4, -0.1, 9.0 - 5.0 + wave * 1.0);
-        next.r_foot.ori = Quaternion::rotation_x(wave * -0.4);
-        next.r_foot.scale = Vec3::one();
-
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
-        next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-        next.weapon.scale = Vec3::one();
-
-        next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
-        next.l_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.04;
-
-        next.r_shoulder.offset = Vec3::new(0.0, -3.2, 2.5);
-        next.r_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.04;
-
-        next.draw.offset = Vec3::new(0.0, 5.0, 0.0);
-        next.draw.ori = Quaternion::rotation_y(0.0);
-        next.draw.scale = Vec3::one() * 0.0;
-
-        next.left_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
-        next.left_equip.ori = Quaternion::rotation_x(0.0);;
-        next.left_equip.scale = Vec3::one() * 0.0;
-
-        next.right_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
-        next.right_equip.ori = Quaternion::rotation_x(0.0);;
-        next.right_equip.scale = Vec3::one() * 0.0;
-
-        next.torso.offset = Vec3::new(0.0, -2.2, 1.1 + wave * 6.0) / 11.0;
-        next.torso.ori = Quaternion::rotation_x(wave_slow * 6.5);
-        next.torso.scale = Vec3::one() / 11.0;
-        next
+    fn interpolate(&mut self, target: &Self) {
+        self.head.interpolate(&target.head);
+        self.chest.interpolate(&target.chest);
+        self.belt.interpolate(&target.belt);
+        self.shorts.interpolate(&target.shorts);
+        self.l_hand.interpolate(&target.l_hand);
+        self.r_hand.interpolate(&target.r_hand);
+        self.l_foot.interpolate(&target.l_foot);
+        self.r_foot.interpolate(&target.r_foot);
+        self.weapon.interpolate(&target.weapon);
+        self.l_shoulder.interpolate(&target.l_shoulder);
+        self.r_shoulder.interpolate(&target.r_shoulder);
+        self.draw.interpolate(&target.draw);
+        self.left_equip.interpolate(&target.left_equip);
+        self.right_equip.interpolate(&target.right_equip);
+        self.torso.interpolate(&target.torso);
     }
 }
