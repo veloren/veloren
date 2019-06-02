@@ -14,7 +14,7 @@ use crate::{
 };
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
+    msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -66,6 +66,8 @@ pub struct Server {
     chunk_tx: mpsc::Sender<(Vec2<i32>, TerrainChunk)>,
     chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
     pending_chunks: HashSet<Vec2<i32>>,
+
+    server_info: ServerInfo,
 }
 
 impl Server {
@@ -98,6 +100,11 @@ impl Server {
             chunk_tx,
             chunk_rx,
             pending_chunks: HashSet::new(),
+
+            server_info: ServerInfo {
+                name: "Server name".to_owned(),
+                description: "This is the best Veloren server.".to_owned(),
+            },
         };
 
         /*
@@ -383,6 +390,7 @@ impl Server {
             client.notify(ServerMsg::InitialSync {
                 ecs_state: self.state.ecs().gen_state_package(),
                 entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
+                server_info: self.server_info.clone(),
             });
 
             self.clients.add(entity, client);
