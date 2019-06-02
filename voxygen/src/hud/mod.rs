@@ -18,7 +18,7 @@ use esc_menu::EscMenu;
 use img_ids::Imgs;
 use map::Map;
 use minimap::MiniMap;
-use settings_window::SettingsWindow;
+use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use small_window::{SmallWindow, SmallWindowType};
 
@@ -112,6 +112,7 @@ pub enum Event {
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
+    CharacterSelection,
     Logout,
     Quit,
 }
@@ -138,6 +139,7 @@ pub struct Show {
     inventory_test_button: bool,
     mini_map: bool,
     ingame: bool,
+    settings_tab: SettingsTab,
 
     want_grab: bool,
 }
@@ -229,6 +231,14 @@ impl Show {
             self.want_grab = false;
         }
     }
+
+    fn open_setting_tab(&mut self, tab: SettingsTab) {
+        self.open_windows = Windows::Settings;
+        self.esc_menu = false;
+        self.settings_tab = tab;
+        self.bag = false;
+        self.want_grab = false;
+    }
 }
 
 pub struct Hud {
@@ -272,6 +282,7 @@ impl Hud {
                 ui: true,
                 inventory_test_button: false,
                 mini_map: false,
+                settings_tab: SettingsTab::Interface,
                 want_grab: true,
                 ingame: true,
             },
@@ -546,7 +557,7 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&self.show, &self.imgs, &self.fonts, &global_state)
+            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts)
                 .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
@@ -555,10 +566,8 @@ impl Hud {
                         self.show.inventory_test_button = !self.show.inventory_test_button
                     }
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
-                    settings_window::Event::Close => {
-                        self.show.settings(false);
-                        self.force_ungrab = true;
-                    }
+                    settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
+                    settings_window::Event::Close => self.show.open_windows = Windows::None,
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
@@ -617,9 +626,8 @@ impl Hud {
         // Esc-menu
         if self.show.esc_menu {
             match EscMenu::new(&self.imgs, &self.fonts).set(self.ids.esc_menu, ui_widgets) {
-                Some(esc_menu::Event::OpenSettings) => {
-                    self.show.esc_menu = false;
-                    self.show.open_windows = Windows::Settings;
+                Some(esc_menu::Event::OpenSettings(tab)) => {
+                    self.show.open_setting_tab(tab);
                 }
                 Some(esc_menu::Event::Close) => {
                     self.show.esc_menu = false;
@@ -628,6 +636,7 @@ impl Hud {
                 }
                 Some(esc_menu::Event::Logout) => events.push(Event::Logout),
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
+                Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
                 None => {}
             }
         }
