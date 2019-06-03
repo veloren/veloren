@@ -16,6 +16,7 @@ pub struct Attacking {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+<<<<<<< HEAD
 pub struct Rolling {
     pub time: f32,
     pub applied: bool,
@@ -47,7 +48,7 @@ impl Component for Attacking {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-<<<<<<< HEAD
+
 impl Rolling {
     pub fn start() -> Self {
         Self {
