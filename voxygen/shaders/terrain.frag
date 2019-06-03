@@ -14,10 +14,6 @@ uniform u_locals {
 
 out vec4 tgt_color;
 
-vec3 point_light() {
-	return vec3(1.0, 0.9, 0.4) * 3.0 / pow(length(f_pos - focus_pos.xyz), 2.0);
-}
-
 void main() {
 	float glob_ambience = 0.001;
 
@@ -30,7 +26,7 @@ void main() {
 
 	float static_light = glob_ambience + min(sun_light, f_light);
 
-	vec3 light = point_light() + static_light;
+	vec3 light = static_light;
 
 	tgt_color = vec4(f_col * light, 1.0);
 }
