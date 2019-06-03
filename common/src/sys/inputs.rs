@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, AnimationInfo>,
         WriteStorage<'a, Stats>,
         ReadStorage<'a, Control>,
-        ReadStorage<'a, Jumping>,
+        WriteStorage<'a, Jumping>,
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
@@ -87,6 +87,7 @@ impl<'a> System<'a> for Sys {
 
                 if jumps.get(entity).is_some() {
                     vel.0.z += 16.0;
+                    jumps.remove(entity);
                 }
 
                 (false, 0.15)
