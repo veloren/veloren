@@ -2,9 +2,8 @@
 
 #include <globals.glsl>
 
-in uint v_pos;
-in uint v_col_norm;
-in uint v_light;
+in uint v_pos_norm;
+in uint v_col_light;
 
 layout (std140)
 uniform u_locals {
@@ -18,24 +17,28 @@ out float f_light;
 
 void main() {
 	f_pos = vec3(
-		float((v_pos >>  0) & 0x00FFu),
-		float((v_pos >>  8) & 0x00FFu),
-		float((v_pos >> 16) & 0xFFFFu)
+		float((v_pos_norm >>  0) & 0x00FFu),
+		float((v_pos_norm >>  8) & 0x00FFu),
+		float((v_pos_norm >> 16) & 0x1FFFu)
 	) + model_offs;
 
-	f_norm = vec3(
-		float((v_col_norm >> 0) & 0x3u),
-		float((v_col_norm >> 2) & 0x3u),
-		float((v_col_norm >> 4) & 0x3u)
-	) - 1.0;
-
 	f_col = vec3(
-		float((v_col_norm >>  8) & 0xFFu),
-		float((v_col_norm >> 16) & 0xFFu),
-		float((v_col_norm >> 24) & 0xFFu)
+		float((v_col_light >>  8) & 0xFFu),
+		float((v_col_light >> 16) & 0xFFu),
+		float((v_col_light >> 24) & 0xFFu)
 	) / 255.0;
 
-	f_light = float(v_light) / 4096.0;
+	uint norm_axis = (v_pos_norm >> 30) & 0x3u;
+	float norm_dir = float((v_pos_norm >> 29) & 0x1u) * 2.0 - 1.0;
+	if (norm_axis == 0u) {
+		f_norm = vec3(1.0, 0.0, 0.0) * norm_dir;
+	} else if (norm_axis == 1u) {
+		f_norm = vec3(0.0, 1.0, 0.0) * norm_dir;
+	} else {
+		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
+	}
+
+	f_light = float(v_col_light & 0xFFu) / 255.0;
 
 	gl_Position =
 		proj_mat *

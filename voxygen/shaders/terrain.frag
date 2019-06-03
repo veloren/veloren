@@ -26,7 +26,7 @@ void main() {
 
 	float static_light = glob_ambience + min(sun_light, f_light);
 
-	vec3 light = static_light;
+	vec3 light = vec3(static_light);
 
 	tgt_color = vec4(f_col * light, 1.0);
 }
