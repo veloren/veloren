@@ -128,6 +128,8 @@ impl<'a> System<'a> for Sys {
                 }
             } else if glides.get(entity).is_some() {
                 Animation::Gliding
+            } else if attacks.get(entity).is_some() {
+                    Animation::Attack
             } else {
                 Animation::Jump
             };
