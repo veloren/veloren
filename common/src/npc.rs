@@ -1,7 +1,10 @@
+use crate::assets;
+use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 use serde_json;
 use std::fs::File;
 use std::io::Error;
+use std::sync::Arc;
 
 pub enum NpcKind {
     Wolf,
@@ -17,14 +20,13 @@ impl NpcKind {
     }
 }
 
-const npc_names_dir: &str = "common/assets/npc_names.json";
+lazy_static! {
+    static ref NPC_NAMES_JSON: Arc<serde_json::Value> =
+        assets::load_expect("assets/common/npc_names.json");
+}
 
 pub fn get_npc_name(npc_type: NpcKind) -> String {
-    let npc_names_file =
-        File::open(npc_names_dir).expect(&format!("opening {} in read-only mode", npc_names_dir));
-    let npc_names_json: serde_json::Value = serde_json::from_reader(npc_names_file)
-        .expect(&format!("reading json contents from {}", npc_names_dir));
-    let npc_names = npc_names_json
+    let npc_names = NPC_NAMES_JSON
         .get(npc_type.as_str())
         .expect("accessing json using NPC type provided as key")
         .as_array()
