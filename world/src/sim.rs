@@ -182,8 +182,8 @@ impl<'a> Sampler<'a> {
             .mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.05, 0.5, 0.3);
-        let warm_grass = Rgb::new(0.4, 1.0, 0.05);
+        let cold_grass = Rgb::new(0.1, 0.6, 0.3);
+        let warm_grass = Rgb::new(0.25, 0.8, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.33);
