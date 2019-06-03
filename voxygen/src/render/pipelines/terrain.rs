@@ -17,8 +17,8 @@ use vek::*;
 
 gfx_defines! {
     vertex Vertex {
-        pos: u32 = "v_pos",
-        col_norm: u32 = "v_col_norm",
+        pos_norm: u32 = "v_pos_norm",
+        col_light: u32 = "v_col_light",
     }
 
     constant Locals {
@@ -37,19 +37,26 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, light: f32) -> Self {
+        let (norm_axis, norm_dir) = norm
+            .as_slice()
+            .into_iter()
+            .enumerate()
+            .find(|(i, e)| **e != 0.0)
+            .unwrap_or((0, &1.0));
+        let norm_bits = (norm_axis << 1) | if *norm_dir > 0.0 { 1 } else { 0 };
+
         Self {
-            pos: 0
+            pos_norm: 0
                 | ((pos.x as u32) & 0x00FF) << 0
                 | ((pos.y as u32) & 0x00FF) << 8
-                | ((pos.z as u32) & 0xFFFF) << 16,
-            col_norm: 0
+                | ((pos.z as u32) & 0x1FFF) << 16
+                | ((norm_bits as u32) & 0x7) << 29,
+            col_light: 0
                 | ((col.r.mul(255.0) as u32) & 0xFF) << 8
                 | ((col.g.mul(255.0) as u32) & 0xFF) << 16
                 | ((col.b.mul(255.0) as u32) & 0xFF) << 24
-                | ((norm.x.add(1.0) as u32) & 0x3) << 0
-                | ((norm.y.add(1.0) as u32) & 0x3) << 2
-                | ((norm.z.add(1.0) as u32) & 0x3) << 4,
+                | ((light.mul(255.0) as u32) & 0xFF) << 0,
         }
     }
 }

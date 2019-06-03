@@ -25,6 +25,15 @@ impl Block {
             Some(self.color.into())
         }
     }
+
+    pub fn get_opacity(&self) -> f32 {
+        match self.kind {
+            0 => 0.0,
+            1 => 0.3,
+            2 => 1.0,
+            _ => unimplemented!(),
+        }
+    }
 }
 
 impl Vox for Block {
