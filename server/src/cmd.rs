@@ -288,7 +288,7 @@ fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &C
             server
                 .create_npc(
                     pos,
-                    get_npc_name(NpcKind::Wolf),
+                    get_npc_name(NpcKind::Humanoid),
                     comp::Body::Humanoid(comp::HumanoidBody::random()),
                 )
                 .with(comp::Agent::Enemy { target: None })
