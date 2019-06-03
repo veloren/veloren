@@ -507,6 +507,19 @@ impl Server {
                             }
                             _ => client.error_state(RequestStateError::Impossible),
                         },
+                        ClientMsg::Roll => match client.client_state {
+                            ClientState::Character => {
+                                if state
+                                    .ecs()
+                                    .read_storage::<comp::Rolling>()
+                                    .get(entity)
+                                    .is_none()
+                                {
+                                    state.write_component(entity, comp::Rolling::start());
+                                }
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
                         ClientMsg::Respawn => match client.client_state {
                             ClientState::Dead => {
                                 state.write_component(entity, comp::Respawning);
