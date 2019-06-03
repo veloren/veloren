@@ -12,6 +12,7 @@ pub enum ClientMsg {
         body: comp::Body,
     },
     Attack,
+    Roll,
     Respawn,
     RequestState(ClientState),
     SetViewDistance(u32),

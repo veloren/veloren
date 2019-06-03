@@ -168,7 +168,10 @@ impl Client {
         if self.client_state != ClientState::Character {
             return;
         }
-        self.state.write_component(self.entity, comp::Rolling);
+        self.state
+            .write_component(self.entity, comp::Rolling::start());
+        self.postbox.send_message(ClientMsg::Roll);
+
     }
     /// Start to glide locally, animation will be synced
     #[allow(dead_code)]
