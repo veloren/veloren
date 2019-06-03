@@ -55,7 +55,6 @@ impl Rolling {
         }
     }
 }
-impl Component for Rolling {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
