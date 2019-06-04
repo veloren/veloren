@@ -8,6 +8,9 @@ use std::{
     time::Duration,
 };
 
+#[cfg(feature = "discord")]
+use crate::{discord, discord_instance};
+
 #[derive(Debug)]
 pub enum Error {
     // Error parsing input string or error resolving host name.
@@ -54,6 +57,24 @@ impl ClientInit {
                             Ok(mut client) => {
                                 client.register(player);
                                 let _ = tx.send(Ok(client));
+                                
+                                #[cfg(feature = "discord")]
+                                {
+                                    match discord_instance.lock() {
+                                        Ok(mut disc) => {
+                                            if !server_address.eq("127.0.0.1") {
+                                                discord::send_singleplayer(&mut disc);
+                                                disc.tx.send(discord::DiscordUpdate::Details(
+                                                    server_address,
+                                                ));
+                                            }
+                                        }
+                                        Err(e) => {
+                                            log::error!("couldn't send Update to discord: {}", e)
+                                        }
+                                    }
+                                }
+                                
                                 return;
                             }
                             Err(err) => {
