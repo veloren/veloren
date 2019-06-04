@@ -2,9 +2,13 @@ pub mod attack;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
+<<<<<<< HEAD
 pub mod roll;
 pub mod run;
+=======
+>>>>>>> fmt
 pub mod roll;
+pub mod run;
 
 // Reexports
 pub use self::attack::AttackAnimation;
@@ -13,7 +17,6 @@ pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
-pub use self::roll::RollAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;

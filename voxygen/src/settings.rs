@@ -106,6 +106,7 @@ impl Default for Settings {
                 attack: KeyMouse::Mouse(MouseButton::Left),
                 roll: KeyMouse::Mouse(MouseButton::Middle),
 
+
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
