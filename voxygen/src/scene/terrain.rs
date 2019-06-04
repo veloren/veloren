@@ -143,16 +143,16 @@ impl Terrain {
             };
 
             // The region to actually mesh
-            let z_min = volume
+            let min_z = volume
                 .iter()
-                .fold(i32::MAX, |min, (_, chunk)| chunk.get_z_min().min(min));
-            let z_max = volume
+                .fold(i32::MAX, |min, (_, chunk)| chunk.get_min_z().min(min));
+            let max_z = volume
                 .iter()
-                .fold(i32::MIN, |max, (_, chunk)| chunk.get_z_max().max(max));
+                .fold(i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
 
             let aabb = Aabb {
-                min: Vec3::from(aabr.min) + Vec3::unit_z() * (z_min - 1),
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * (z_max + 1),
+                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
+                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 1),
             };
 
             // Clone various things so that they can be moved into the thread.
