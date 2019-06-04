@@ -75,7 +75,7 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 32, 28),
+            tree_gen: StructureGen2d::new(seed, 24, 16),
         }
     }
 
@@ -165,15 +165,14 @@ impl<'a> Sampler<'a> {
 
         let rock = (sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
             .mul(rockiness)
-            .sub(0.2)
+            .sub(0.35)
             .max(0.0)
-            .mul(2.0);
+            .mul(6.0);
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32
                 * chaos.max(0.2)
-                * 64.0
-            + rock * 15.0;
+                * 64.0;
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
@@ -191,7 +190,7 @@ impl<'a> Sampler<'a> {
         let snow = Rgb::broadcast(1.0);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
-        let grassland = Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
+        let grassland = grass; //Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let ground = Rgb::lerp(
@@ -240,9 +239,14 @@ impl<'a> Sampler<'a> {
                     Rgb::lerp(
                         cliff,
                         snow,
-                        (alt - SEA_LEVEL - 350.0 - alt_base - temp * 48.0) / 12.0,
+                        (alt - SEA_LEVEL
+                            - 0.3 * MOUNTAIN_HEIGHT
+                            - alt_base
+                            - temp * 96.0
+                            - marble * 24.0)
+                            / 12.0,
                     ),
-                    (alt - SEA_LEVEL - 150.0) / 180.0,
+                    (alt - SEA_LEVEL - 0.15 * MOUNTAIN_HEIGHT) / 180.0,
                 ),
                 // Beach
                 (alt - SEA_LEVEL - 2.0) / 5.0,
@@ -251,6 +255,7 @@ impl<'a> Sampler<'a> {
             close_trees: sim.tree_gen.sample(wpos),
             cave_xy,
             cave_alt,
+            rock,
         })
     }
 
@@ -275,6 +280,7 @@ impl<'a> Sampler<'a> {
             close_trees,
             cave_xy,
             cave_alt,
+            rock,
         } = *self.sample_2d(wpos2d)?;
 
         // Apply warping
@@ -289,7 +295,6 @@ impl<'a> Sampler<'a> {
             .mul(110.0);
 
         let height = alt + warp;
-        let temp = 0.0;
 
         // Sample blocks
 
@@ -298,6 +303,7 @@ impl<'a> Sampler<'a> {
         let dirt = Block::new(1, Rgb::new(128, 90, 0));
         let sand = Block::new(1, Rgb::new(180, 150, 50));
         let water = Block::new(1, Rgb::new(100, 150, 255));
+        let warm_stone = Block::new(1, Rgb::new(165, 165, 90));
 
         let ground_block = if (wposf.z as f32) < height - 4.0 {
             // Underground
@@ -312,7 +318,8 @@ impl<'a> Sampler<'a> {
             None
         };
 
-        let ground_block = if let Some(block) = ground_block {
+        // Caves
+        let block = ground_block.or_else(|| {
             // Underground
             let cave = cave_xy.powf(2.0)
                 * (wposf.z as f32 - cave_alt)
@@ -325,13 +332,20 @@ impl<'a> Sampler<'a> {
             if cave {
                 None
             } else {
-                Some(block)
+                ground_block
             }
-        } else {
-            None
-        };
+        });
 
-        let block = match ground_block {
+        // Rocks
+        let block = block.or_else(|| {
+            if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
+                Some(warm_stone)
+            } else {
+                None
+            }
+        });
+
+        let block = match block {
             Some(block) => block,
             None => (&close_trees)
                 .iter()
@@ -354,6 +368,114 @@ impl<'a> Sampler<'a> {
         };
 
         Some(Sample3d { block })
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Sample2d {
+    pub alt: f32,
+    pub chaos: f32,
+    pub surface_color: Rgb<f32>,
+    pub tree_density: f32,
+    pub close_trees: [(Vec2<i32>, u32); 9],
+    pub cave_xy: f32,
+    pub cave_alt: f32,
+    pub rock: f32,
+}
+
+#[derive(Copy, Clone)]
+pub struct Sample3d {
+    pub block: Block,
+}
+
+pub const SEA_LEVEL: f32 = 128.0;
+pub const MOUNTAIN_HEIGHT: f32 = 900.0;
+
+const Z_TOLERANCE: (f32, f32) = (64.0, 64.0);
+
+pub struct SimChunk {
+    pub chaos: f32,
+    pub alt_base: f32,
+    pub alt: f32,
+    pub temp: f32,
+    pub rockiness: f32,
+    pub tree_density: f32,
+}
+
+impl SimChunk {
+    fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
+        let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
+
+        let hill = (0.0
+            + gen_ctx
+                .hill_nz
+                .get((wposf.div(3_500.0)).into_array())
+                .mul(1.0) as f32
+            + gen_ctx
+                .hill_nz
+                .get((wposf.div(1_000.0)).into_array())
+                .mul(0.3) as f32)
+            .add(0.3)
+            .max(0.0);
+
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+            .add(1.0)
+            .mul(0.5)
+            .powf(1.5)
+            .add(0.1 * hill);
+
+        let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
+
+        let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
+        let alt_base = alt_base
+            .mul(0.4)
+            .add(alt_base.mul(128.0).sin().mul(0.005))
+            .mul(800.0);
+
+        let alt_main = gen_ctx.alt_nz.get((wposf.div(2_500.0)).into_array()) as f32;
+
+        let alt = SEA_LEVEL
+            + alt_base
+            + (0.0
+                + alt_main
+                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
+                    * alt_main.max(0.05)
+                    * chaos
+                    * 1.6)
+                .add(1.0)
+                .mul(0.5)
+                .mul(chaos)
+                .mul(MOUNTAIN_HEIGHT);
+
+        Self {
+            chaos,
+            alt_base,
+            alt,
+            temp: (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32),
+            rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .sub(0.1)
+                .mul(1.2)
+                .max(0.0),
+            tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .add(1.0)
+                .mul(0.5)
+                .mul(1.0 - chaos * 0.85)
+                .mul(1.25)
+                .add(0.1)
+                .mul(if alt > SEA_LEVEL + 2.0 { 1.0 } else { 0.0 }),
+        }
+    }
+
+    pub fn get_base_z(&self) -> f32 {
+        self.alt
+    }
+
+    pub fn get_min_z(&self) -> f32 {
+        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.5)
+    }
+
+    pub fn get_max_z(&self) -> f32 {
+        (self.alt + Z_TOLERANCE.1).max(SEA_LEVEL + 1.0)
     }
 }
 
@@ -652,108 +774,4 @@ lazy_static! {
         */
 
     ];
-}
-
-#[derive(Copy, Clone)]
-pub struct Sample2d {
-    pub alt: f32,
-    pub chaos: f32,
-    pub surface_color: Rgb<f32>,
-    pub tree_density: f32,
-    pub close_trees: [(Vec2<i32>, u32); 9],
-    pub cave_xy: f32,
-    pub cave_alt: f32,
-}
-
-#[derive(Copy, Clone)]
-pub struct Sample3d {
-    pub block: Block,
-}
-
-const Z_TOLERANCE: (f32, f32) = (126.0, 94.0);
-pub const SEA_LEVEL: f32 = 128.0;
-
-pub struct SimChunk {
-    pub chaos: f32,
-    pub alt_base: f32,
-    pub alt: f32,
-    pub temp: f32,
-    pub rockiness: f32,
-    pub tree_density: f32,
-}
-
-impl SimChunk {
-    fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
-        let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
-
-        let hill = (0.0
-            + gen_ctx
-                .hill_nz
-                .get((wposf.div(3_500.0)).into_array())
-                .mul(1.0) as f32
-            + gen_ctx
-                .hill_nz
-                .get((wposf.div(1_000.0)).into_array())
-                .mul(0.3) as f32)
-            .add(0.3)
-            .max(0.0);
-
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
-            .add(1.0)
-            .mul(0.5)
-            .powf(1.5)
-            .add(0.1 * hill);
-
-        let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
-
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
-        let alt_base = alt_base
-            .mul(0.4)
-            .add(alt_base.mul(128.0).sin().mul(0.004))
-            .mul(600.0);
-
-        let alt_main = gen_ctx.alt_nz.get((wposf.div(1_500.0)).into_array()) as f32;
-
-        let alt = SEA_LEVEL
-            + alt_base
-            + (0.0
-                + alt_main
-                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
-                    * alt_main.max(0.05)
-                    * chaos
-                    * 1.3)
-                .add(1.0)
-                .mul(0.5)
-                .mul(chaos)
-                .mul(1200.0);
-
-        Self {
-            chaos,
-            alt_base,
-            alt,
-            temp: (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32),
-            rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
-                .sub(0.1)
-                .mul(1.2)
-                .max(0.0),
-            tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5)
-                .mul(1.0 - chaos * 0.85)
-                .add(0.1)
-                .mul(if alt > SEA_LEVEL + 3.0 { 1.0 } else { 0.0 }),
-        }
-    }
-
-    pub fn get_base_z(&self) -> f32 {
-        self.alt - 8.0
-    }
-
-    pub fn get_min_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.3)
-    }
-
-    pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1).max(SEA_LEVEL)
-    }
 }
