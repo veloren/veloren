@@ -15,6 +15,27 @@ pub struct Sys;
 
 const GRAVITY: f32 = 9.81 * 4.0;
 
+// Integrates forces, calculates the new velocity based off of the old velocity
+// dt = delta time
+// lv = linear velocity
+// damp = linear damping
+// Friction is a type of damping.
+fn integrate_forces(dt: f32, mut lv: Vec3<f32>, damp: f32) -> Vec3<f32> {
+    lv.z -= (GRAVITY * dt).max(-50.0);
+
+    let mut linear_damp = 1.0 - dt * damp;
+
+    if linear_damp < 0.0
+    // reached zero in the given time
+    {
+        linear_damp = 0.0;
+    }
+
+    lv *= linear_damp;
+
+    lv
+}
+
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadExpect<'a, TerrainMap>,
@@ -38,16 +59,10 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(false)
                 && vel.0.z <= 0.0;
 
-            // Friction
-            // Will never make the character go backwards since it is interpolating towards 0
-            let friction = if on_ground { 0.15 } else { 0.015 };
-            let mul = 50.0;
-            let z = vel.0.z;
-            vel.0 = Vec3::lerp(vel.0, Vec3::new(0.0, 0.0, 0.0), friction * dt.0 * mul);
-            vel.0.z = z;
-
-            // Gravity
-            vel.0.z = (vel.0.z - GRAVITY * dt.0).max(-50.0);
+            // Integrate forces
+            // Friction is assumed to be a constant dependent on location
+            let friction = 50.0 * if on_ground { 0.15 } else { 0.015 };
+            vel.0 = integrate_forces(dt.0, vel.0, friction);
 
             // Movement
             pos.0 += vel.0 * dt.0;
