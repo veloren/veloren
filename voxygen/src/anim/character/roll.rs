@@ -29,7 +29,7 @@ impl Animation for RollAnimation {
         let wave_quicken_double = (1.0 - (anim_time as f32 * 24.0).cos());
         let wave_quick = (anim_time as f32 * 0.5).sin();
         let wave_cos = (anim_time as f32 * 12.0).cos();
-        let wave_slow = (anim_time as f32 * 10.0 + PI).cos();
+        let wave_slow = (anim_time as f32 * 2.0 + PI).cos();
         let wave_slow_cos = (anim_time as f32 * 12.0 + PI).cos();
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
@@ -115,8 +115,8 @@ impl Animation for RollAnimation {
         next.right_equip.ori = Quaternion::rotation_x(0.0);;
         next.right_equip.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, -0.2, 0.1);
-        next.torso.ori = Quaternion::rotation_x(0.0);
+        next.torso.offset = Vec3::new(0.0, -2.2, 1.1)/ 11.0;
+        next.torso.ori = Quaternion::rotation_x(wave_slow * -4.0);
         next.torso.scale = Vec3::one() / 11.0;
         next
 

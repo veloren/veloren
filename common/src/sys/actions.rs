@@ -48,7 +48,7 @@ impl<'a> System<'a> for Sys {
         let finished_rolls = (&entities, &mut rolls)
             .join()
             .filter(|(e, a)| {
-                a.time > 0.25 // TODO: constant
+                a.time > 1.0 // TODO: constant
             })
             .map(|(e, a)| e)
             .collect::<Vec<_>>();
