@@ -54,20 +54,19 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            // Handle held-down control
             let on_ground = terrain
                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                 .map(|vox| !vox.is_empty())
                 .unwrap_or(false)
                 && vel.0.z <= 0.0;
 
+            // Movement
+            pos.0 += vel.0 * dt.0;
+
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0 * if on_ground { FRIC_GROUND } else { FRIC_AIR };
             vel.0 = integrate_forces(dt.0, vel.0, friction);
-
-            // Movement
-            pos.0 += vel.0 * dt.0;
 
             // Basic collision with terrain
             let mut i = 0.0;
