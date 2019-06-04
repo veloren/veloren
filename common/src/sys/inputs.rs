@@ -90,7 +90,7 @@ impl<'a> System<'a> for Sys {
                 && vel.0.z <= 0.0;
 
             let gliding = glides.get(entity).is_some() && vel.0.z < 0.0;
-            let move_dir = if control.move_dir.magnitude() > 0.0 {
+            let move_dir = if control.move_dir.magnitude() > 1.0 {
                 control.move_dir.normalized()
             } else {
                 control.move_dir
