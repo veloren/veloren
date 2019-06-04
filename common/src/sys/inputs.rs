@@ -8,7 +8,6 @@ use crate::{
         phys::{ForceUpdate, Ori, Pos, Vel},
         Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
         Rolling, Stats,
-
     },
     state::{DeltaTime, Time, Uid},
     terrain::TerrainMap,
