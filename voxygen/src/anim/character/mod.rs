@@ -4,14 +4,12 @@ pub mod idle;
 pub mod jump;
 pub mod roll;
 pub mod run;
-pub mod roll;
 
 // Reexports
 pub use self::attack::AttackAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
-pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
 pub use self::roll::RollAnimation;
 
