@@ -109,7 +109,7 @@ impl Asset for DotVoxData {
 
 impl Asset for Value {
     fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(serde_json::from_reader(File::open(specifier)?).unwrap())
+        Ok(serde_json::from_reader(load_from_path(specifier)?).unwrap())
     }
 }
 
