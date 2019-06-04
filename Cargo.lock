@@ -2569,6 +2569,7 @@ dependencies = [
 name = "veloren-client"
 version = "0.2.0"
 dependencies = [
+ "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "threadpool 1.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
