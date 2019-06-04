@@ -746,10 +746,14 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
+        self.alt - 8.0
+    }
+
+    pub fn get_min_z(&self) -> f32 {
         self.alt - Z_TOLERANCE.0 * (self.chaos + 0.3)
     }
 
     pub fn get_max_z(&self) -> f32 {
-        self.alt + Z_TOLERANCE.1
+        (self.alt + Z_TOLERANCE.1).max(SEA_LEVEL)
     }
 }

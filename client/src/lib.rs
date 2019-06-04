@@ -12,17 +12,20 @@ use common::{
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
+    terrain::chonk::ChonkMetrics,
 };
 use std::{
     collections::HashMap,
     net::SocketAddr,
     time::{Duration, Instant},
 };
-
 use threadpool::ThreadPool;
+use log::info;
 use vek::*;
 
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
+
+const DEBUG_METRICS: bool = true;
 
 pub enum Event {
     Chat(String),
@@ -306,6 +309,15 @@ impl Client {
                 self.postbox
                     .send_message(ClientMsg::PlayerAnimation(animation_info.clone()));
             }
+        }
+
+        // Output debug metrics
+        if DEBUG_METRICS && self.tick % 600 == 0 {
+            let metrics = self.state
+                .terrain()
+                .iter()
+                .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
+            info!("{:?}", metrics);
         }
 
         // 7) Finish the tick, pass control back to the frontend.
