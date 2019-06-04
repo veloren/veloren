@@ -20,7 +20,6 @@ pub use inputs::Control;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
 pub use inputs::Respawning;
-pub use inputs::Rolling;
 pub use player::Player;
 pub use stats::Dying;
 pub use stats::HealthSource;
