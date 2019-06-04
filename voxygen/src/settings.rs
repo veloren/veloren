@@ -105,7 +105,6 @@ impl Default for Settings {
                 zoom_sensitivity: 1.0,
                 attack: KeyMouse::Mouse(MouseButton::Left),
                 roll: KeyMouse::Mouse(MouseButton::Right),
-
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
