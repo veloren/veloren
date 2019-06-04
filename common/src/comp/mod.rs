@@ -16,7 +16,6 @@ pub use agent::Agent;
 pub use animation::Animation;
 pub use animation::AnimationInfo;
 pub use inputs::Attacking;
-pub use inputs::Rolling;
 pub use inputs::Control;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
