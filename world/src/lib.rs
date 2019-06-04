@@ -49,16 +49,16 @@ impl World {
 
         let warp_nz = BasicMulti::new().set_octaves(3).set_seed(self.sim.seed + 0);
 
-        let base_z = match self
-            .sim
-            .get(chunk_pos.map(|e| e as u32))
-            .map(|chunk| chunk.get_base_z())
-        {
+        let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
+        let base_z = match self.sim.get_interpolated(
+            chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
+            |chunk| chunk.get_base_z(),
+        ) {
             Some(base_z) => base_z as i32,
             None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
         };
 
-        let mut chunk = TerrainChunk::new(base_z, stone, air, TerrainChunkMeta::void());
+        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, TerrainChunkMeta::void());
 
         let mut world_sampler = self.sim.sampler();
 

@@ -35,11 +35,11 @@ impl Chonk {
         }
     }
 
-    pub fn get_z_min(&self) -> i32 {
+    pub fn get_min_z(&self) -> i32 {
         self.z_offset
     }
 
-    pub fn get_z_max(&self) -> i32 {
+    pub fn get_max_z(&self) -> i32 {
         self.z_offset + (self.sub_chunks.len() as u32 * SUB_CHUNK_HEIGHT) as i32
     }
 
