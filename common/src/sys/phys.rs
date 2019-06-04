@@ -14,6 +14,8 @@ use vek::*;
 pub struct Sys;
 
 const GRAVITY: f32 = 9.81 * 4.0;
+const FRIC_GROUND: f32 = 0.15;
+const FRIC_AIR: f32 = 0.015;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time
@@ -61,7 +63,7 @@ impl<'a> System<'a> for Sys {
 
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
-            let friction = 50.0 * if on_ground { 0.15 } else { 0.015 };
+            let friction = 50.0 * if on_ground { FRIC_GROUND } else { FRIC_AIR };
             vel.0 = integrate_forces(dt.0, vel.0, friction);
 
             // Movement
