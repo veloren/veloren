@@ -49,7 +49,8 @@ impl World {
 
         let warp_nz = BasicMulti::new().set_octaves(3).set_seed(self.sim.seed + 0);
 
-        let base_z = match self.sim
+        let base_z = match self
+            .sim
             .get(chunk_pos.map(|e| e as u32))
             .map(|chunk| chunk.get_base_z())
         {
