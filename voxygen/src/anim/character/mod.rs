@@ -15,6 +15,7 @@ pub use self::attack::AttackAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
+pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
 
 use super::{Bone, Skeleton};
