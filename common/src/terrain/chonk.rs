@@ -4,10 +4,7 @@ use crate::{
     volumes::chunk::{Chunk, ChunkErr},
 };
 use serde_derive::{Deserialize, Serialize};
-use std::{
-    ops::Add,
-    collections::HashMap,
-};
+use std::{collections::HashMap, ops::Add};
 use vek::*;
 
 #[derive(Debug)]
@@ -49,17 +46,29 @@ impl Chonk {
     pub fn get_metrics(&self) -> ChonkMetrics {
         ChonkMetrics {
             chonks: 1,
-            homogeneous: self.sub_chunks
+            homogeneous: self
+                .sub_chunks
                 .iter()
-                .filter(|s| match s { SubChunk::Homogeneous(_) => true, _ => false })
+                .filter(|s| match s {
+                    SubChunk::Homogeneous(_) => true,
+                    _ => false,
+                })
                 .count(),
-            hash: self.sub_chunks
+            hash: self
+                .sub_chunks
                 .iter()
-                .filter(|s| match s { SubChunk::Hash(_, _) => true, _ => false })
+                .filter(|s| match s {
+                    SubChunk::Hash(_, _) => true,
+                    _ => false,
+                })
                 .count(),
-            heterogeneous: self.sub_chunks
+            heterogeneous: self
+                .sub_chunks
                 .iter()
-                .filter(|s| match s { SubChunk::Heterogeneous(_) => true, _ => false })
+                .filter(|s| match s {
+                    SubChunk::Heterogeneous(_) => true,
+                    _ => false,
+                })
                 .count(),
         }
     }
@@ -124,8 +133,8 @@ impl WriteVol for Chonk {
             self.sub_chunks.push(SubChunk::Homogeneous(self.above));
         }
 
-        let rpos = pos
-            - Vec3::unit_z() * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+        let rpos =
+            pos - Vec3::unit_z() * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
 
         match &mut self.sub_chunks[sub_chunk_idx] {
             // Can't fail
@@ -136,23 +145,25 @@ impl WriteVol for Chonk {
 
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
                 Ok(())
-            },
+            }
             SubChunk::Hash(cblock, map) if block == *cblock => Ok(()),
             SubChunk::Hash(cblock, map) if map.len() < 4096 => {
                 map.insert(rpos.map(|e| e as u8), block);
                 Ok(())
-            },
+            }
             SubChunk::Hash(cblock, map) => {
                 let mut new_chunk = Chunk::filled(*cblock, ());
                 new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
 
                 for (map_pos, map_block) in map {
-                    new_chunk.set(map_pos.map(|e| e as i32), *map_block).unwrap(); // Can't fail (I hope!)
+                    new_chunk
+                        .set(map_pos.map(|e| e as i32), *map_block)
+                        .unwrap(); // Can't fail (I hope!)
                 }
 
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
                 Ok(())
-            },
+            }
 
             /*
             SubChunk::Homogeneous(cblock) => {
