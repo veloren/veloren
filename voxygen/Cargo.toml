@@ -7,6 +7,7 @@ default-run = "veloren-voxygen"
 
 [features]
 gl = ["gfx_device_gl"]
+discord = ["discord_game_sdk", "chrono"]
 
 default = ["gl"]
 
@@ -30,6 +31,10 @@ specs = "0.14"
 
 # Mathematics
 vek = "0.9"
+
+# discord
+discord_game_sdk = { version = "0.2.0", optional = true }
+chrono = { version = "0.4.6", optional = true }
 
 # Utility
 glsl-include = "0.3"
