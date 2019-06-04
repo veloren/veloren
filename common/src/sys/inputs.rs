@@ -24,6 +24,8 @@ const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
+// Gravity is 9.81 * 4, so this makes gravity equal to .15
+const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -88,11 +90,16 @@ impl<'a> System<'a> for Sys {
                 && vel.0.z <= 0.0;
 
             let gliding = glides.get(entity).is_some() && vel.0.z < 0.0;
+            let move_dir = if control.move_dir.magnitude() > 0.0 {
+                control.move_dir.normalized()
+            } else {
+                control.move_dir
+            };
 
             if on_ground {
                 // Move player according to move_dir
                 if vel.0.magnitude() < HUMANOID_SPEED {
-                    vel.0 += Vec2::broadcast(dt.0) * control.move_dir * HUMANOID_ACCEL;
+                    vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_ACCEL;
                 }
 
                 // Jump
@@ -101,11 +108,11 @@ impl<'a> System<'a> for Sys {
                     jumps.remove(entity);
                 }
             } else if gliding && vel.0.magnitude() < GLIDE_SPEED {
-                let anti_grav = 9.81 * 3.95 + vel.0.z.powf(2.0) * 0.2;
+                let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
-                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * GLIDE_ACCEL;
+                vel.0 += Vec2::broadcast(dt.0) * move_dir * GLIDE_ACCEL;
             } else if vel.0.magnitude() < HUMANOID_AIR_SPEED {
-                vel.0 += Vec2::broadcast(dt.0) * control.move_dir * HUMANOID_AIR_ACCEL;
+                vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_AIR_ACCEL;
             }
 
             // Set direction based on velocity
