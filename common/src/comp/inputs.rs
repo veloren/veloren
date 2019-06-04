@@ -16,11 +16,7 @@ pub struct Attacking {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-<<<<<<< HEAD
 pub struct Rolling {
-=======
-pub struct Rolling{
->>>>>>> synced roll, allowed for attacking during run and attacking during jump
     pub time: f32,
     pub applied: bool,
 }
