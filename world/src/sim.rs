@@ -49,7 +49,7 @@ impl WorldSim {
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(seed + 2),
             hill_nz: SuperSimplex::new().set_seed(seed + 3),
             alt_nz: HybridMulti::new()
-                .set_octaves(7)
+                .set_octaves(8)
                 .set_persistence(0.1)
                 .set_seed(seed + 4),
             temp_nz: SuperSimplex::new().set_seed(seed + 5),
@@ -432,7 +432,7 @@ impl SimChunk {
             .add(alt_base.mul(128.0).sin().mul(0.005))
             .mul(800.0);
 
-        let alt_main = gen_ctx.alt_nz.get((wposf.div(2_500.0)).into_array()) as f32;
+        let alt_main = gen_ctx.alt_nz.get((wposf.div(3_000.0)).into_array()) as f32;
 
         let alt = SEA_LEVEL
             + alt_base
