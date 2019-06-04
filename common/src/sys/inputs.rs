@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Rolling, Control, Gliding, HealthSource, Jumping, Respawning,
-        Stats,
+        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
+        Rolling, Stats,
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,
@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
             } else if glides.get(entity).is_some() {
                 Animation::Gliding
             } else if attacks.get(entity).is_some() {
-                    Animation::Attack
+                Animation::Attack
             } else {
                 Animation::Jump
             };
