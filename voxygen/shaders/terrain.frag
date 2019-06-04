@@ -3,7 +3,7 @@
 #include <globals.glsl>
 
 in vec3 f_pos;
-in vec3 f_norm;
+flat in uint f_pos_norm;
 in vec3 f_col;
 in float f_light;
 
@@ -15,6 +15,18 @@ uniform u_locals {
 out vec4 tgt_color;
 
 void main() {
+	// Calculate normal from packed data
+	vec3 f_norm;
+	uint norm_axis = (f_pos_norm >> 30) & 0x3u;
+	float norm_dir = float((f_pos_norm >> 29) & 0x1u) * 2.0 - 1.0;
+	if (norm_axis == 0u) {
+		f_norm = vec3(1.0, 0.0, 0.0) * norm_dir;
+	} else if (norm_axis == 1u) {
+		f_norm = vec3(0.0, 1.0, 0.0) * norm_dir;
+	} else {
+		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
+	}
+
 	float glob_ambience = 0.001;
 
 	float sun_ambience = 0.9;
