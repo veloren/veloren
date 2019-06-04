@@ -97,7 +97,7 @@ impl Scene {
                 renderer.get_resolution(),
             )],
         ) {
-            log::error!("Renderer failed to update!\n{:?}", err);
+            log::error!("Renderer failed to update: {:?}", err);
         }
 
         self.figure_model_cache.clean(client.get_tick());

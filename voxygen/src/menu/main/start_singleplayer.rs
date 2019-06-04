@@ -5,7 +5,6 @@ use crate::{
 };
 use client::Client;
 use common::comp;
-use log::warn;
 use std::net::SocketAddr;
 
 pub struct StartSingleplayerState {
@@ -43,7 +42,7 @@ impl PlayState for StartSingleplayerState {
                     match client_init.poll() {
                         Some(Ok(client)) => break client,
                         Some(Err(err)) => {
-                            warn!("Failed to start single-player server: {:?}", err);
+                            log::warn!("Failed to start single-player server: {:?}", err);
                             return PlayStateResult::Pop;
                         }
                         _ => {}

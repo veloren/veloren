@@ -1,5 +1,4 @@
 use common::clock::Clock;
-use log::info;
 use server::{Event, Input, Server};
 use std::time::Duration;
 
@@ -9,7 +8,7 @@ fn main() {
     // Init logging
     pretty_env_logger::init();
 
-    info!("Starting server-cli...");
+    log::info!("Starting server-cli...");
 
     // Set up an fps clock
     let mut clock = Clock::new();
@@ -24,9 +23,9 @@ fn main() {
 
         for event in events {
             match event {
-                Event::ClientConnected { entity: _ } => info!("Client connected!"),
-                Event::ClientDisconnected { entity: _ } => info!("Client disconnected!"),
-                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
+                Event::ClientConnected { entity: _ } => log::info!("Client connected!"),
+                Event::ClientDisconnected { entity: _ } => log::info!("Client disconnected!"),
+                Event::Chat { entity: _, msg } => log::info!("[Client] {}", msg),
             }
         }
 

@@ -1,5 +1,4 @@
 use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
-use log;
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -43,10 +42,7 @@ impl<'a> System<'a> for Sys {
 
                             if tgt_pos.z > pos.0.z + 1.0 {
                                 if let Err(err) = jumps.insert(entity, Jumping) {
-                                    log::error!(
-                                        "Inserting Jumping for an entity failed!\n{:?}",
-                                        err,
-                                    );
+                                    log::warn!("Inserting Jumping for an entity failed: {:?}", err,);
                                 }
                             }
 

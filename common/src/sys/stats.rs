@@ -2,7 +2,6 @@ use crate::{
     comp::{Dying, Stats},
     state::DeltaTime,
 };
-use log;
 use specs::{Entities, Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
@@ -30,7 +29,7 @@ impl<'a> System<'a> for Sys {
                             .2, // Safe because damage is necessary for death
                     },
                 ) {
-                    log::error!("Inserting Dying for an entity failed!\n{:?}", err);
+                    log::warn!("Inserting Dying for an entity failed: {:?}", err);
                 }
                 stat.is_dead = true;
             }

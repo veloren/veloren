@@ -7,7 +7,6 @@ use crate::{
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
-use log;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
@@ -141,7 +140,7 @@ impl<'a> System<'a> for Sys {
                     changed,
                 },
             ) {
-                log::error!("Inserting AnimationInfo for an entity failed!\n{:?}", err);
+                log::warn!("Inserting AnimationInfo for an entity failed!\n{:?}", err);
             }
         }
 
@@ -163,7 +162,7 @@ impl<'a> System<'a> for Sys {
                         vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                         vel_b.0.z = 15.0;
                         if let Err(err) = force_updates.insert(b, ForceUpdate) {
-                            log::error!("Inserting ForceUpdate for an entity failed!\n{:?}", err);
+                            log::warn!("Inserting ForceUpdate for an entity failed: {:?}", err);
                         }
                     }
                 }

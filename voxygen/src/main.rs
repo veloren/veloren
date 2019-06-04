@@ -22,7 +22,6 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log;
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
@@ -227,6 +226,6 @@ fn main() {
     }
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = global_state.settings.save_to_file() {
-        log::error!("Failed to save settings!\n{:?}", err);
+        log::warn!("Failed to save settings: {:?}", err);
     }
 }

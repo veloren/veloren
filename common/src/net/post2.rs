@@ -1,4 +1,3 @@
-use log;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::VecDeque,
@@ -309,7 +308,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
         }
 
         if let Err(err) = stream.shutdown(Shutdown::Both) {
-            log::error!("TCP worker stream shutdown failed!\n{:?}", err);
+            log::warn!("TCP worker stream shutdown failed: {:?}", err);
         }
     }
 }

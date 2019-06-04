@@ -311,7 +311,7 @@ impl Window {
                     let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir(&path) {
-                            log::error!("Couldn't create folder for screenshot: {:?}", err);
+                            log::warn!("Couldn't create folder for screenshot: {:?}", err);
                         }
                     }
                     path.push(format!(
@@ -322,7 +322,7 @@ impl Window {
                             .unwrap_or(0)
                     ));
                     if let Err(err) = img.save(&path) {
-                        log::error!("Couldn't save screenshot: {:?}", err);
+                        log::warn!("Couldn't save screenshot: {:?}", err);
                     }
                 });
             }

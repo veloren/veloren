@@ -705,7 +705,7 @@ impl FigureMgr {
 
                         renderer.render_figure(model, globals, locals, bone_consts);
                     } else {
-                        log::error!("Body has no saved figure");
+                        log::warn!("Body has no saved figure");
                     }
                 }
             }

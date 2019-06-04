@@ -1,6 +1,5 @@
 use client::Client;
 use common::clock::Clock;
-use log::info;
 use portpicker::pick_unused_port;
 use server::{Event, Input, Server};
 use std::{
@@ -62,7 +61,7 @@ impl Drop for Singleplayer {
 }
 
 fn run_server(mut server: Server, rec: Receiver<Msg>) {
-    info!("Starting server-cli...");
+    log::info!("Starting server-cli...");
 
     // Set up an fps clock
     let mut clock = Clock::new();
@@ -74,9 +73,9 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
         for event in events {
             match event {
-                Event::ClientConnected { entity } => info!("Client connected!"),
-                Event::ClientDisconnected { entity } => info!("Client disconnected!"),
-                Event::Chat { entity, msg } => info!("[Client] {}", msg),
+                Event::ClientConnected { entity } => log::info!("Client connected!"),
+                Event::ClientDisconnected { entity } => log::info!("Client disconnected!"),
+                Event::Chat { entity, msg } => log::info!("[Client] {}", msg),
             }
         }
 
