@@ -109,11 +109,7 @@ impl Asset for DotVoxData {
 
 impl Asset for Value {
     fn load(specifier: &str) -> Result<Self, Error> {
-        let file =
-            File::open(specifier).expect(&format!("opening {} in read-only mode", specifier));
-        let json: serde_json::Value = serde_json::from_reader(file)
-            .expect(&format!("reading json contents from {}", specifier));
-        Ok(json)
+        Ok(serde_json::from_reader(File::open(specifier)?).unwrap())
     }
 }
 
