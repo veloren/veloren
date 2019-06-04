@@ -1,6 +1,7 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
+use serde_json::Value;
 use std::{
     any::Any,
     collections::HashMap,
@@ -103,6 +104,12 @@ impl Asset for DotVoxData {
         let mut buf = Vec::new();
         load_from_path(specifier)?.read_to_end(&mut buf)?;
         Ok(dot_vox::load_bytes(&buf).unwrap())
+    }
+}
+
+impl Asset for Value {
+    fn load(specifier: &str) -> Result<Self, Error> {
+        Ok(serde_json::from_reader(File::open(specifier)?).unwrap())
     }
 }
 
