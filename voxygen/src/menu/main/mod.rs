@@ -98,11 +98,9 @@ impl PlayState for MainMenuState {
                         if !net_settings.servers.contains(&server_address) {
                             net_settings.servers.push(server_address.clone());
                         }
-                        // TODO: Handle this result.
-                        global_state
-                            .settings
-                            .save_to_file()
-                            .expect("Failed to save settings!");
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            log::error!("Failed to save settings!\n{:?}", err);
+                        }
                         // Don't try to connect if there is already a connection in progress.
                         client_init = client_init.or(Some(ClientInit::new(
                             (server_address, DEFAULT_PORT, false),

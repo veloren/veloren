@@ -23,7 +23,7 @@ pub trait Ingameable: Widget + Sized {
             // should pass focus to the window if these are clicked
             // (they are not displayed where conrod thinks they are)
             .graphics_for(ui.window)
-            //.parent(parent_id) // is this needed
+            //.parent(parent_id) // TODO: Is this needed?
             .set(id, ui)
     }
     fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> {
@@ -185,7 +185,7 @@ impl Widget for IngameAnchor {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, ui, .. } = args;
+        let widget::UpdateArgs { id: _, state, .. } = args;
         let IngameAnchor { parameters, .. } = self;
 
         // Update pos if it has changed

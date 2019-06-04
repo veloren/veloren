@@ -80,12 +80,10 @@ pub trait PlayState {
 
 fn main() {
     // Set up the global state.
-    let mut settings = Settings::load();
-    let window = Window::new(&settings).expect("Failed to create window!");
-
+    let settings = Settings::load();
     let mut global_state = GlobalState {
         audio: AudioFrontend::new(&settings.audio),
-        window,
+        window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
 
@@ -228,9 +226,7 @@ fn main() {
         }
     }
     // Save settings to add new fields or create the file if it is not already there
-    // TODO: Handle this result.
-    global_state
-        .settings
-        .save_to_file()
-        .expect("Failed to save settings!");
+    if let Err(err) = global_state.settings.save_to_file() {
+        log::error!("Failed to save settings!\n{:?}", err);
+    }
 }

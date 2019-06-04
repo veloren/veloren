@@ -1,5 +1,6 @@
 use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
-use rand::Rng;
+use log;
+use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
 
@@ -41,9 +42,12 @@ impl<'a> System<'a> for Sys {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                jumps
-                                    .insert(entity, Jumping)
-                                    .expect("Inserting jumping for an entity failed!");
+                                if let Err(err) = jumps.insert(entity, Jumping) {
+                                    log::error!(
+                                        "Inserting Jumping for an entity failed!\n{:?}",
+                                        err,
+                                    );
+                                }
                             }
 
                             // Move towards the target.
@@ -104,7 +108,8 @@ impl<'a> System<'a> for Sys {
                             .map(|(e, _)| e)
                             .collect::<Vec<_>>();
 
-                        *target = rand::thread_rng().choose(&entities).cloned();
+                        let mut rng = thread_rng();
+                        *target = (&entities).choose(&mut rng).cloned();
                     }
                 }
             }

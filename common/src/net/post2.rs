@@ -1,3 +1,4 @@
+use log;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::VecDeque,
@@ -51,7 +52,7 @@ pub struct PostOffice<S: PostMsg, R: PostMsg> {
 
 impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
     pub fn bind<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        let mut listener = TcpListener::bind(addr.into())?;
+        let listener = TcpListener::bind(addr.into())?;
         listener.set_nonblocking(true)?;
 
         Ok(Self {
@@ -307,9 +308,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             thread::sleep(Duration::from_millis(10));
         }
 
-        stream
-            .shutdown(Shutdown::Both)
-            .expect("TCP worker stream shutdown call failed!");
+        if let Err(err) = stream.shutdown(Shutdown::Both) {
+            log::error!("TCP worker stream shutdown failed!\n{:?}", err);
+        }
     }
 }
 

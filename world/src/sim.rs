@@ -8,7 +8,7 @@ use lazy_static::lazy_static;
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use std::{
     f32,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
 use vek::*;

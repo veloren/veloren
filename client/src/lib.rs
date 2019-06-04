@@ -408,7 +408,8 @@ impl Client {
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
                     }
-                    ServerMsg::StateAnswer(Err((_error, state))) => {
+                    ServerMsg::StateAnswer(Err((error, state))) => {
+                        log::debug!("{:?}", error);
                         self.client_state = state;
                     }
                     ServerMsg::ForceState(state) => {

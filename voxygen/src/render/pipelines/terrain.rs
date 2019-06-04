@@ -12,7 +12,7 @@ use gfx::{
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
 };
-use std::ops::{Add, Mul};
+use std::ops::Mul;
 use vek::*;
 
 gfx_defines! {

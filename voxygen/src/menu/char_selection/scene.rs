@@ -84,21 +84,21 @@ impl Scene {
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
-        renderer
-            .update_consts(
-                &mut self.globals,
-                &[Globals::new(
-                    view_mat,
-                    proj_mat,
-                    cam_pos,
-                    self.camera.get_focus_pos(),
-                    100.0,
-                    client.state().get_time_of_day(),
-                    client.state().get_time(),
-                    renderer.get_resolution(),
-                )],
-            )
-            .expect("Renderer failed to update!");
+        if let Err(err) = renderer.update_consts(
+            &mut self.globals,
+            &[Globals::new(
+                view_mat,
+                proj_mat,
+                cam_pos,
+                self.camera.get_focus_pos(),
+                100.0,
+                client.state().get_time_of_day(),
+                client.state().get_time(),
+                renderer.get_resolution(),
+            )],
+        ) {
+            log::error!("Renderer failed to update!\n{:?}", err);
+        }
 
         self.figure_model_cache.clean(client.get_tick());
 

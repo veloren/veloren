@@ -9,6 +9,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
+use log;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
@@ -187,28 +188,25 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
-                        global_state
-                            .settings
-                            .save_to_file()
-                            .expect("Failed to save settings!");
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            log::error!("Failed to save settings!\n{:?}", err);
+                        }
                     }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.set_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
-                        global_state
-                            .settings
-                            .save_to_file()
-                            .expect("Failed to save settings!");
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            log::error!("Failed to save settings!\n{:?}", err);
+                        }
                     }
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
-                        global_state
-                            .settings
-                            .save_to_file()
-                            .expect("Failed to save settings!");
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            log::error!("Failed to save settings!\n{:?}", err);
+                        }
                     }
                 }
             }

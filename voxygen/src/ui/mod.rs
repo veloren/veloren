@@ -39,6 +39,7 @@ use conrod_core::{
     Rect, UiBuilder, UiCell,
 };
 use graphic::Id as GraphicId;
+use log;
 use scale::Scale;
 use std::io::Read;
 use std::ops::Range;
@@ -401,9 +402,10 @@ impl Ui {
                         |aabr, data| {
                             let offset = aabr.min.into_array();
                             let size = aabr.size().into_array();
-                            renderer
-                                .update_texture(cache_tex, offset, size, data)
-                                .expect("Failed to update texture!");
+                            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data)
+                            {
+                                log::error!("Failed to update texture:\n{:?}", err);
+                            }
                         },
                     ) {
                         Some(aabr) => Aabr {
@@ -445,9 +447,11 @@ impl Ui {
                                 .map(|x| [255, 255, 255, *x])
                                 .collect::<Vec<[u8; 4]>>();
 
-                            renderer
-                                .update_texture(cache_tex, offset, size, &new_data)
-                                .expect("Failed to update texture!");
+                            if let Err(err) =
+                                renderer.update_texture(cache_tex, offset, size, &new_data)
+                            {
+                                log::error!("Failed to update texture!\n{:?}", err);
+                            }
                         })
                         .unwrap();
 

@@ -750,7 +750,7 @@ impl Hud {
                 _ => false,
             },
             // Else the player is typing in chat
-            WinEvent::InputUpdate(key, _) => self.typing(),
+            WinEvent::InputUpdate(_key, _) => self.typing(),
             WinEvent::Char(_) => self.typing(),
 
             _ => false,

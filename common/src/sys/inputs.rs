@@ -7,6 +7,7 @@ use crate::{
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
+use log;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
@@ -54,7 +55,7 @@ impl<'a> System<'a> for Sys {
             mut animation_infos,
             mut stats,
             controls,
-            jumps,
+            mut jumps,
             glides,
             mut attacks,
             mut force_updates,
@@ -132,23 +133,23 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(AnimationInfo::default());
             let changed = last.animation != animation;
 
-            animation_infos
-                .insert(
-                    entity,
-                    AnimationInfo {
-                        animation,
-                        time: if changed { 0.0 } else { last.time },
-                        changed,
-                    },
-                )
-                .expect("Inserting animation_info for an entity failed!");
+            if let Err(err) = animation_infos.insert(
+                entity,
+                AnimationInfo {
+                    animation,
+                    time: if changed { 0.0 } else { last.time },
+                    changed,
+                },
+            ) {
+                log::error!("Inserting AnimationInfo for an entity failed!\n{:?}", err);
+            }
         }
 
         for (entity, &uid, pos, ori, attacking) in
             (&entities, &uids, &positions, &orientations, &mut attacks).join()
         {
             if !attacking.applied {
-                for (b, pos_b, mut stat_b, mut vel_b) in
+                for (b, pos_b, stat_b, mut vel_b) in
                     (&entities, &positions, &mut stats, &mut velocities).join()
                 {
                     // Check if it is a hit
@@ -161,9 +162,9 @@ impl<'a> System<'a> for Sys {
                         stat_b.hp.change_by(-10, HealthSource::Attack { by: uid }); // TODO: variable damage and weapon
                         vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                         vel_b.0.z = 15.0;
-                        force_updates
-                            .insert(b, ForceUpdate)
-                            .expect("Inserting a forced update for an entity failed!");
+                        if let Err(err) = force_updates.insert(b, ForceUpdate) {
+                            log::error!("Inserting ForceUpdate for an entity failed!\n{:?}", err);
+                        }
                     }
                 }
                 attacking.applied = true;
