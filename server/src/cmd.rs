@@ -3,7 +3,11 @@
 //! and provide a handler function.
 
 use crate::Server;
-use common::{comp, msg::ServerMsg};
+use common::{
+    comp,
+    msg::ServerMsg,
+    npc::{get_npc_name, NpcKind},
+};
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
@@ -228,7 +232,7 @@ fn handle_pet_pig(server: &mut Server, entity: EcsEntity, args: String, action: 
             server
                 .create_npc(
                     pos,
-                    "Bungo".to_owned(),
+                    get_npc_name(NpcKind::Pig),
                     comp::Body::Quadruped(comp::QuadrupedBody::random()),
                 )
                 .with(comp::Agent::Pet {
@@ -256,7 +260,7 @@ fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, args: String, action:
             server
                 .create_npc(
                     pos,
-                    "Tobermory".to_owned(),
+                    get_npc_name(NpcKind::Wolf),
                     comp::Body::QuadrupedMedium(comp::QuadrupedMediumBody::random()),
                 )
                 .with(comp::Agent::Pet {
@@ -284,7 +288,7 @@ fn handle_enemy(server: &mut Server, entity: EcsEntity, args: String, action: &C
             server
                 .create_npc(
                     pos,
-                    "Tobermory".to_owned(),
+                    get_npc_name(NpcKind::Humanoid),
                     comp::Body::Humanoid(comp::HumanoidBody::random()),
                 )
                 .with(comp::Agent::Enemy { target: None })
