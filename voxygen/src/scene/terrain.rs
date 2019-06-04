@@ -151,8 +151,8 @@ impl Terrain {
                 .fold(i32::MIN, |max, (_, chunk)| chunk.get_z_max().max(max));
 
             let aabb = Aabb {
-                min: Vec3::from(aabr.min) + Vec3::unit_z() * z_min,
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * z_max,
+                min: Vec3::from(aabr.min) + Vec3::unit_z() * (z_min - 1),
+                max: Vec3::from(aabr.max) + Vec3::unit_z() * (z_max + 1),
             };
 
             // Clone various things so that they can be moved into the thread.
