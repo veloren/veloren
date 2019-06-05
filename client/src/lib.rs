@@ -14,7 +14,7 @@ use common::{
     state::State,
     terrain::chonk::ChonkMetrics,
 };
-use log::info;
+use log::{info, log_enabled};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -24,8 +24,6 @@ use threadpool::ThreadPool;
 use vek::*;
 
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
-
-const DEBUG_METRICS: bool = true;
 
 pub enum Event {
     Chat(String),
@@ -335,7 +333,7 @@ impl Client {
         }
 
         // Output debug metrics
-        if DEBUG_METRICS && self.tick % 600 == 0 {
+        if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
             let metrics = self
                 .state
                 .terrain()
