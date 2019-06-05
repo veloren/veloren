@@ -203,13 +203,13 @@ impl<'a> Sampler<'a> {
         let cave_at = |wposf: Vec2<f64>| {
             (sim.gen_ctx.cave_0_nz.get(
                 Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0)
-                    .div(1000.0)
+                    .div(800.0)
                     .into_array(),
             ) as f32)
                 .powf(2.0)
                 .neg()
                 .add(1.0)
-                .mul((1.15 - chaos).min(1.0))
+                .mul((1.35 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
         let cave_alt = alt - 32.0
