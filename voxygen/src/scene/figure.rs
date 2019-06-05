@@ -27,6 +27,7 @@ use common::{
     vol::VolSize,
 };
 use dot_vox::DotVoxData;
+use log::warn;
 use specs::{Entity as EcsEntity, Join};
 use std::{collections::HashMap, f32};
 use vek::*;
@@ -705,7 +706,7 @@ impl FigureMgr {
 
                         renderer.render_figure(model, globals, locals, bone_consts);
                     } else {
-                        log::warn!("Body has no saved figure");
+                        warn!("Body has no saved figure");
                     }
                 }
             }

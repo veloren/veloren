@@ -9,6 +9,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
+use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
@@ -144,7 +145,7 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_last_delta()) {
-                log::error!("Failed to tick the scene: {:?}", err);
+                error!("Failed to tick the scene: {:?}", err);
                 return PlayStateResult::Pop;
             }
 
@@ -188,7 +189,7 @@ impl PlayState for SessionState {
 
                         global_state.settings.graphics.view_distance = view_distance;
                         if let Err(err) = global_state.settings.save_to_file() {
-                            log::warn!("Failed to save settings!\n{:?}", err);
+                            warn!("Failed to save settings!\n{:?}", err);
                         }
                     }
                     HudEvent::AdjustVolume(volume) => {
@@ -196,7 +197,7 @@ impl PlayState for SessionState {
 
                         global_state.settings.audio.music_volume = volume;
                         if let Err(err) = global_state.settings.save_to_file() {
-                            log::warn!("Failed to save settings!\n{:?}", err);
+                            warn!("Failed to save settings!\n{:?}", err);
                         }
                     }
                     HudEvent::ChangeAudioDevice(name) => {
@@ -204,7 +205,7 @@ impl PlayState for SessionState {
 
                         global_state.settings.audio.audio_device = Some(name);
                         if let Err(err) = global_state.settings.save_to_file() {
-                            log::warn!("Failed to save settings!\n{:?}", err);
+                            warn!("Failed to save settings!\n{:?}", err);
                         }
                     }
                 }

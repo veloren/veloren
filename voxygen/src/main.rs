@@ -22,6 +22,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
+use log::{error, info, warn};
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
@@ -152,7 +153,7 @@ fn main() {
             settings_clone.log.file, reason, panic_info,
         );
 
-        log::error!(
+        error!(
             "VOXYGEN HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
             msg,
             backtrace::Backtrace::new(),
@@ -171,7 +172,7 @@ fn main() {
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
         .last()
-        .map(|current_state| log::info!("Started game with state '{}'", current_state.name()));
+        .map(|current_state| info!("Started game with state '{}'", current_state.name()));
 
     // What's going on here?
     // ---------------------
@@ -189,10 +190,10 @@ fn main() {
         match state_result {
             PlayStateResult::Shutdown => {
                 direction = Direction::Backwards;
-                log::info!("Shutting down all states...");
+                info!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
-                        log::info!("Popped state '{}'.", old_state.name());
+                        info!("Popped state '{}'.", old_state.name());
                         global_state.on_play_state_changed();
                     });
                 }
@@ -200,20 +201,20 @@ fn main() {
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
-                    log::info!("Popped state '{}'.", old_state.name());
+                    info!("Popped state '{}'.", old_state.name());
                     global_state.on_play_state_changed();
                 });
             }
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
-                log::info!("Pushed state '{}'.", new_state.name());
+                info!("Pushed state '{}'.", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
             }
             PlayStateResult::Switch(mut new_state) => {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
-                    log::info!(
+                    info!(
                         "Switching to state '{}' from state '{}'.",
                         new_state.name(),
                         old_state.name()
@@ -226,6 +227,6 @@ fn main() {
     }
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = global_state.settings.save_to_file() {
-        log::warn!("Failed to save settings: {:?}", err);
+        warn!("Failed to save settings: {:?}", err);
     }
 }

@@ -1,5 +1,6 @@
 use client::{Client, Event};
 use common::{clock::Clock, comp};
+use log::{error, info};
 use std::time::Duration;
 
 const FPS: u64 = 60;
@@ -8,7 +9,7 @@ fn main() {
     // Initialize logging.
     pretty_env_logger::init();
 
-    log::info!("Starting chat-cli...");
+    info!("Starting chat-cli...");
 
     // Set up an fps clock.
     let mut clock = Clock::new();
@@ -31,7 +32,7 @@ fn main() {
         let events = match client.tick(comp::Control::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
-                log::error!("Error: {:?}", err);
+                error!("Error: {:?}", err);
                 break;
             }
         };

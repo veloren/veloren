@@ -8,6 +8,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, msg::ClientState};
+use log::error;
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
@@ -111,7 +112,7 @@ impl PlayState for CharSelectionState {
                 .borrow_mut()
                 .tick(comp::Control::default(), clock.get_last_delta())
             {
-                log::error!("Failed to tick the scene: {:?}", err);
+                error!("Failed to tick the scene: {:?}", err);
                 return PlayStateResult::Pop;
             }
             self.client.borrow_mut().cleanup();

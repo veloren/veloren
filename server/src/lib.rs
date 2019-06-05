@@ -20,6 +20,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
+use log::warn;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
@@ -262,7 +263,7 @@ impl Server {
                 client.force_state(ClientState::Dead);
             } else {
                 if let Err(err) = self.state.ecs_mut().delete_entity_synced(entity) {
-                    log::warn!("Failed to delete client not found in kill list: {:?}", err);
+                    warn!("Failed to delete client not found in kill list: {:?}", err);
                 }
                 continue;
             }
@@ -623,7 +624,7 @@ impl Server {
         // Handle client disconnects.
         for entity in disconnected_clients {
             if let Err(err) = self.state.ecs_mut().delete_entity_synced(entity) {
-                log::warn!("Failed to delete disconnected client: {:?}", err);
+                warn!("Failed to delete disconnected client: {:?}", err);
             }
 
             frontend_events.push(Event::ClientDisconnected { entity });

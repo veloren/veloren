@@ -14,6 +14,7 @@ use crate::{
     },
 };
 use client::Client;
+use log::error;
 use common::comp::{self, HumanoidBody};
 use vek::*;
 
@@ -97,7 +98,7 @@ impl Scene {
                 renderer.get_resolution(),
             )],
         ) {
-            log::error!("Renderer failed to update: {:?}", err);
+            error!("Renderer failed to update: {:?}", err);
         }
 
         self.figure_model_cache.clean(client.get_tick());

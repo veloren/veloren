@@ -6,6 +6,7 @@ use super::char_selection::CharSelectionState;
 use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
+use log::warn;
 use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -99,7 +100,7 @@ impl PlayState for MainMenuState {
                             net_settings.servers.push(server_address.clone());
                         }
                         if let Err(err) = global_state.settings.save_to_file() {
-                            log::warn!("Failed to save settings: {:?}", err);
+                            warn!("Failed to save settings: {:?}", err);
                         }
                         // Don't try to connect if there is already a connection in progress.
                         client_init = client_init.or(Some(ClientInit::new(
