@@ -58,7 +58,7 @@ impl WorldSim {
             warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
-                .set_persistence(0.9)
+                .set_persistence(0.75)
                 .set_seed(seed + 9),
             cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
@@ -461,7 +461,7 @@ impl SimChunk {
                 .add(1.0)
                 .mul(0.5)
                 .mul(1.0 - chaos * 0.85)
-                .mul(1.25)
+                .mul(1.2)
                 .add(0.1)
                 .mul(if alt > SEA_LEVEL + 2.0 { 1.0 } else { 0.0 }),
         }
