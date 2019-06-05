@@ -46,6 +46,7 @@ pub struct Client {
     state: State,
     entity: EcsEntity,
     view_distance: Option<u32>,
+    loaded_distance: Option<u32>,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
@@ -96,6 +97,7 @@ impl Client {
             state,
             entity,
             view_distance,
+            loaded_distance: None,
 
             pending_chunks: HashMap::new(),
         })
@@ -142,6 +144,10 @@ impl Client {
 
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
+    }
+
+    pub fn loaded_distance(&self) -> Option<u32> {
+        self.loaded_distance
     }
 
     /// Send a chat message to the server.
@@ -253,7 +259,7 @@ impl Client {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs() as u32)
                     .reduce_max()
-                    > view_distance
+                    > view_distance + 1
                 {
                     chunks_to_remove.push(key);
                 }
@@ -264,22 +270,29 @@ impl Client {
 
             // Request chunks from the server.
             // TODO: This is really inefficient.
+            let mut all_loaded = true;
             'outer: for dist in 0..=view_distance as i32 {
-                for i in chunk_pos.x - dist..=chunk_pos.x + dist {
-                    for j in chunk_pos.y - dist..=chunk_pos.y + dist {
+                for i in chunk_pos.x - dist..=chunk_pos.x + 1 + dist {
+                    for j in chunk_pos.y - dist..=chunk_pos.y + 1 + dist {
                         let key = Vec2::new(i, j);
-                        if self.state.terrain().get_key(key).is_none()
-                            && !self.pending_chunks.contains_key(&key)
-                        {
-                            if self.pending_chunks.len() < 4 {
-                                self.postbox
-                                    .send_message(ClientMsg::TerrainChunkRequest { key });
-                                self.pending_chunks.insert(key, Instant::now());
-                            } else {
-                                break 'outer;
+                        if self.state.terrain().get_key(key).is_none() {
+                            if !self.pending_chunks.contains_key(&key) {
+                                if self.pending_chunks.len() < 4 {
+                                    self.postbox
+                                        .send_message(ClientMsg::TerrainChunkRequest { key });
+                                    self.pending_chunks.insert(key, Instant::now());
+                                } else {
+                                    break 'outer;
+                                }
                             }
+
+                            all_loaded = false;
                         }
                     }
+                }
+
+                if all_loaded {
+                    self.loaded_distance = Some((dist - 1).max(0) as u32);
                 }
             }
 

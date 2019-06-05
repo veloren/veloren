@@ -40,6 +40,7 @@ pub struct Scene {
     skybox: Skybox,
     postprocess: PostProcess,
     terrain: Terrain,
+    loaded_distance: f32,
 
     figure_mgr: FigureMgr,
 }
@@ -64,6 +65,7 @@ impl Scene {
                     .unwrap(),
             },
             terrain: Terrain::new(),
+            loaded_distance: 0.0,
             figure_mgr: FigureMgr::new(),
         }
     }
@@ -127,6 +129,10 @@ impl Scene {
         // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
+        // Update chunk loaded distance smoothly for nice shader fog
+        let loaded_distance = client.loaded_distance().unwrap_or(1) as f32 * 32.0;
+        self.loaded_distance = 0.98 * self.loaded_distance + 0.02 * loaded_distance;
+
         // Update global constants.
         renderer
             .update_consts(
@@ -136,7 +142,7 @@ impl Scene {
                     proj_mat,
                     cam_pos,
                     self.camera.get_focus_pos(),
-                    client.view_distance().unwrap_or(0) as f32 * 32.0, // TODO: No magic numbers
+                    self.loaded_distance,
                     client.state().get_time_of_day(),
                     client.state().get_time(),
                     renderer.get_resolution(),
