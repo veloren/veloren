@@ -4,11 +4,12 @@ use glutin::{MouseButton, VirtualKeyCode};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 
-/// `Settings` contains everything that can be configured in the Settings.toml file.
+/// `Settings` contains everything that can be configured in the settings.ron file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     pub controls: ControlSettings,
+    pub gameplay: GameplaySettings,
     pub networking: NetworkingSettings,
     pub log: Log,
     pub graphics: GraphicsSettings,
@@ -41,9 +42,14 @@ pub struct ControlSettings {
     pub fullscreen: KeyMouse,
     pub screenshot: KeyMouse,
     pub toggle_ingame_ui: KeyMouse,
+    pub attack: KeyMouse,
+}
+
+/// `GameplaySettings` contains sensitivity and gameplay options.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GameplaySettings {
     pub pan_sensitivity: f32,
     pub zoom_sensitivity: f32,
-    pub attack: KeyMouse,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -100,9 +106,11 @@ impl Default for Settings {
                 fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
                 screenshot: KeyMouse::Key(VirtualKeyCode::F4),
                 toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
+                attack: KeyMouse::Mouse(MouseButton::Left),
+            },
+            gameplay: GameplaySettings {
                 pan_sensitivity: 1.0,
                 zoom_sensitivity: 1.0,
-                attack: KeyMouse::Mouse(MouseButton::Left),
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
