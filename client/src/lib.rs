@@ -76,11 +76,15 @@ impl Client {
 
         postbox.send_message(ClientMsg::Ping);
 
+        let mut thread_pool = threadpool::Builder::new()
+            .thread_name("veloren-worker".into())
+            .build();
+        // We reduce the thread count by 1 to keep rendering smooth
+        thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
+
         Ok(Self {
             client_state,
-            thread_pool: threadpool::Builder::new()
-                .thread_name("veloren-worker".into())
-                .build(),
+            thread_pool,
             server_info,
 
             postbox,
@@ -95,6 +99,12 @@ impl Client {
 
             pending_chunks: HashMap::new(),
         })
+    }
+
+    #[allow(dead_code)]
+    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
+        self.thread_pool = thread_pool;
+        self
     }
 
     /// Request a state transition to `ClientState::Registered`.
@@ -434,7 +444,7 @@ impl Client {
     /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
-    pub fn thread_pool(&self) -> &threadpool::ThreadPool {
+    pub fn thread_pool(&self) -> &ThreadPool {
         &self.thread_pool
     }
 

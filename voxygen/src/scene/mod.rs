@@ -136,7 +136,7 @@ impl Scene {
                     proj_mat,
                     cam_pos,
                     self.camera.get_focus_pos(),
-                    10.0,
+                    client.view_distance().unwrap_or(0) as f32 * 32.0, // TODO: No magic numbers
                     client.state().get_time_of_day(),
                     client.state().get_time(),
                     renderer.get_resolution(),
