@@ -134,7 +134,7 @@ fn main() {
             Ok(disc) => {
                 //great
             }
-            Err(e) => {}
+            Err(e) => { log::error!("Couldn't init discord: {}", e) }
         }
     }
 
