@@ -1,18 +1,14 @@
-// Library
-use vek::*;
-
-// Project
+use crate::{
+    mesh::{vol, Meshable},
+    render::{self, Mesh, Quad, TerrainPipeline},
+};
 use common::{
     terrain::Block,
     vol::{BaseVol, ReadVol, SizedVol, VolSize, Vox},
     volumes::{dyna::Dyna, vol_map_2d::VolMap2d, vol_map_3d::VolMap3d},
 };
-
-// Crate
-use crate::{
-    mesh::{vol, Meshable},
-    render::{self, Mesh, Quad, TerrainPipeline},
-};
+use std::fmt::Debug;
+use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 
@@ -46,7 +42,7 @@ impl<M> Meshable for Dyna<Block, M> {
 }
 */
 
-impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
 
@@ -107,7 +103,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap2
 }
 
 /*
-impl<V: BaseVol<Vox = Block> + ReadVol, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
 

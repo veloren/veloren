@@ -1,6 +1,7 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <sky.glsl>
 
 in vec3 f_pos;
 in vec3 f_norm;
@@ -37,5 +38,11 @@ void main() {
 
 	float sun_diffuse = dot(sun_dir, world_norm) * 0.5;
 
-	tgt_color = model_col * vec4(f_col * (ambient + sun_diffuse), 1.0);
+	vec3 surf_color = model_col.rgb * f_col * (ambient + sun_diffuse);
+
+	float fog_level = fog(f_pos.xy, cam_pos.xy);
+	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
+	vec3 color = mix(surf_color, fog_color, fog_level);
+
+	tgt_color = vec4(color, 1.0);
 }

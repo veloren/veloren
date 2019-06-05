@@ -1,5 +1,5 @@
-use common::clock::Clock;
 use client::Client;
+use common::clock::Clock;
 use log::info;
 use portpicker::pick_unused_port;
 use server::{Event, Input, Server};
@@ -33,8 +33,7 @@ impl Singleplayer {
         ));
 
         // Create server
-        let server = Server::bind(sock.clone())
-            .expect("Failed to create server instance!");
+        let server = Server::bind(sock.clone()).expect("Failed to create server instance!");
 
         let server = match client {
             Some(client) => server.with_thread_pool(client.thread_pool().clone()),
