@@ -19,8 +19,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	return mix(SKY_BOTTOM, SKY_TOP, (dir.z + 1.0) / 2.0) + sun_light;
 }
 
-float fog(vec2 f_pos, vec2 cam_pos) {
-	float dist = distance(f_pos, cam_pos) / view_distance.x;
+float fog(vec2 f_pos, vec2 focus_pos) {
+	float dist = distance(f_pos, focus_pos) / view_distance.x;
 	float min_fog = 0.5;
 	float max_fog = 1.0;
 
