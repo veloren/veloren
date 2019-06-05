@@ -171,5 +171,5 @@ void main() {
 	//hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
 	vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
 
-	tgt_color = vec4(final_color.rgb, 0.5);
+	tgt_color = vec4(final_color.rgb, 1);
 }

@@ -3,6 +3,7 @@ use crate::{
     vol::{BaseVol, ReadVol, VolSize, WriteVol},
     volumes::chunk::{Chunk, ChunkErr},
 };
+use fxhash::FxHashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::{collections::HashMap, ops::Add};
 use vek::*;
@@ -117,6 +118,40 @@ impl ReadVol for Chonk {
             }
         }
     }
+
+    #[inline(always)]
+    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &Block {
+        if pos.z < self.z_offset {
+            // Below the terrain
+            &self.below
+        } else if pos.z >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32 {
+            // Above the terrain
+            &self.above
+        } else {
+            // Within the terrain
+
+            let sub_chunk_idx = self.sub_chunk_idx(pos.z);
+
+            match &self.sub_chunks[sub_chunk_idx] {
+                // Can't fail
+                SubChunk::Homogeneous(block) => block,
+                SubChunk::Hash(cblock, map) => {
+                    let rpos = pos
+                        - Vec3::unit_z()
+                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+
+                    map.get(&rpos.map(|e| e as u8)).unwrap_or(cblock)
+                }
+                SubChunk::Heterogeneous(chunk) => {
+                    let rpos = pos
+                        - Vec3::unit_z()
+                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+
+                    chunk.get_unchecked(rpos)
+                }
+            }
+        }
+    }
 }
 
 impl WriteVol for Chonk {
@@ -140,7 +175,7 @@ impl WriteVol for Chonk {
             // Can't fail
             SubChunk::Homogeneous(cblock) if block == *cblock => Ok(()),
             SubChunk::Homogeneous(cblock) => {
-                let mut map = HashMap::new();
+                let mut map = FxHashMap::default();
                 map.insert(rpos.map(|e| e as u8), block);
 
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
@@ -186,7 +221,7 @@ impl WriteVol for Chonk {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SubChunk {
     Homogeneous(Block),
-    Hash(Block, HashMap<Vec3<u8>, Block>),
+    Hash(Block, FxHashMap<Vec3<u8>, Block>),
     Heterogeneous(Chunk<Block, TerrainChunkSize, ()>),
 }
 

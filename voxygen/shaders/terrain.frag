@@ -1,6 +1,7 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <sky.glsl>
 
 in vec3 f_pos;
 flat in uint f_pos_norm;
@@ -13,11 +14,6 @@ uniform u_locals {
 };
 
 out vec4 tgt_color;
-
-float fog() {
-	float half_vd = 0.95 * view_distance.x / 2.0;
-	return clamp(distance(f_pos, cam_pos.xyz) / half_vd - 1.0, 0.0, 1.0);
-}
 
 void main() {
 	// Calculate normal from packed data
@@ -45,9 +41,11 @@ void main() {
 
 	vec3 light = vec3(static_light);
 
-	vec3 frag_color = f_col * light;
+	vec3 surf_color = f_col * light;
 
-	vec3 fog_color = vec3(0.0, 0.25, 0.55);
+	float fog_level = fog(f_pos.xy, cam_pos.xy);
+	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
+	vec3 color = mix(surf_color, fog_color, fog_level);
 
-	tgt_color = vec4(mix(frag_color, fog_color, fog()), 1.0);
+	tgt_color = vec4(color, 1.0);
 }

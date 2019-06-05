@@ -32,6 +32,13 @@ impl<V: Vox, M> Dyna<V, M> {
             None
         }
     }
+
+    /// Used to transform a voxel position in the volume into its corresponding index
+    /// in the voxel array.
+    #[inline(always)]
+    fn idx_for_unchecked(sz: Vec3<u32>, pos: Vec3<i32>) -> usize {
+        (pos.x * sz.y as i32 * sz.z as i32 + pos.y * sz.z as i32 + pos.z) as usize
+    }
 }
 
 impl<V: Vox, M> BaseVol for Dyna<V, M> {
@@ -52,6 +59,12 @@ impl<V: Vox, M> ReadVol for Dyna<V, M> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get(idx))
             .ok_or(DynaErr::OutOfBounds)
+    }
+
+    #[inline(always)]
+    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V {
+        self.vox
+            .get_unchecked(Self::idx_for_unchecked(self.sz, pos))
     }
 }
 
