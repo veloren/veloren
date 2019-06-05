@@ -31,6 +31,10 @@ widget_ids! {
         interface,
         inventory_test_button,
         inventory_test_button_label,
+        mouse_pan_slider,
+        mouse_pan_text,
+        mouse_zoom_slider,
+        mouse_zoom_text,
         settings_bg,
         sound,
         test,
@@ -92,6 +96,8 @@ pub enum Event {
     ToggleDebug,
     ChangeTab(SettingsTab),
     Close,
+    AdjustMousePan(u32),
+    AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
@@ -160,7 +166,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.settings_title, ui);
 
-        // Interface
+        // 1) Interface Tab -------------------------------
         if Button::image(if let SettingsTab::Interface = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -187,6 +193,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             events.push(Event::ChangeTab(SettingsTab::Interface));
         }
 
+        // Contents
         if let SettingsTab::Interface = self.show.settings_tab {
             // Help
             let show_help =
@@ -255,7 +262,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.debug_button_label, ui);
         }
 
-        // 2 Gameplay
+        // 2) Gameplay Tab --------------------------------
         if Button::image(if let SettingsTab::Gameplay = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -282,7 +289,58 @@ impl<'a> Widget for SettingsWindow<'a> {
             events.push(Event::ChangeTab(SettingsTab::Gameplay));
         }
 
-        // 3 Controls
+        // Contents
+        if let SettingsTab::Gameplay = self.show.settings_tab {
+            Text::new("Pan Sensitivity")
+                .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.mouse_pan_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                (self.global_state.settings.gameplay.pan_sensitivity * 100.0) as u32,
+                1,
+                200,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(208.0, 22.0)
+            .down_from(state.ids.mouse_pan_text, 10.0)
+            .track_breadth(30.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.mouse_pan_slider, ui)
+            {
+                events.push(Event::AdjustMousePan(new_val));
+            }
+
+            Text::new("Zoom Sensitivity")
+                .down_from(state.ids.mouse_pan_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.mouse_zoom_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                (self.global_state.settings.gameplay.zoom_sensitivity * 100.0) as u32,
+                1,
+                200,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(208.0, 22.0)
+            .down_from(state.ids.mouse_zoom_text, 10.0)
+            .track_breadth(30.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.mouse_zoom_slider, ui)
+            {
+                events.push(Event::AdjustMouseZoom(new_val));
+            }
+        }
+
+        // 3) Controls Tab --------------------------------
         if Button::image(if let SettingsTab::Controls = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -308,6 +366,8 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             events.push(Event::ChangeTab(SettingsTab::Controls));
         }
+
+        // Contents
         if let SettingsTab::Controls = self.show.settings_tab {
             Text::new(
                 "Free Cursor\n\
@@ -376,7 +436,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             /tp [Name] - Teleports you to another player    \n\
             /jump <dx> <dy> <dz> - Offset your position \n\
             /goto <x> <y> <z> - Teleport to a position  \n\
-            /tp <name> - Teleport to another player \n\
             /kill - Kill yourself   \n\
             /pig - Spawn pig NPC    \n\
             /wolf - Spawn wolf NPC  \n\
@@ -462,7 +521,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             .font_size(18)
             .set(state.ids.controls_controls, ui);
         }
-        // 4 Video
+
+        // 4) Video Tab -----------------------------------
         if Button::image(if let SettingsTab::Video = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -489,6 +549,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             events.push(Event::ChangeTab(SettingsTab::Video));
         }
+
         // Contents
         if let SettingsTab::Video = self.show.settings_tab {
             Text::new("View Distance")
@@ -515,7 +576,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::AdjustViewDistance(new_val));
             }
         }
-        // 5 Sound
+
+        // 5) Sound Tab -----------------------------------
         if Button::image(if let SettingsTab::Sound = self.show.settings_tab {
             self.imgs.settings_button_pressed
         } else {
@@ -542,6 +604,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         {
             events.push(Event::ChangeTab(SettingsTab::Sound));
         }
+
         // Contents
         if let SettingsTab::Sound = self.show.settings_tab {
             Text::new("Volume")

@@ -54,7 +54,7 @@ pub enum Event {
     InputUpdate(GameInput, bool),
     /// Event that the ui uses.
     Ui(ui::Event),
-    // The view distance has been changed
+    /// The view distance has changed.
     ViewDistanceChanged(u32),
     /// Game settings have changed.
     SettingsChanged,
@@ -140,8 +140,8 @@ impl Window {
             renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
             window,
             cursor_grabbed: false,
-            pan_sensitivity: settings.controls.pan_sensitivity,
-            zoom_sensitivity: settings.controls.zoom_sensitivity,
+            pan_sensitivity: settings.gameplay.pan_sensitivity,
+            zoom_sensitivity: settings.gameplay.zoom_sensitivity,
             fullscreen: false,
             needs_refresh_resize: false,
             key_map,

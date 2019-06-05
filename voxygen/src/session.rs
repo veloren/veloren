@@ -149,10 +149,10 @@ impl PlayState for SessionState {
                 return PlayStateResult::Pop;
             }
 
-            // Maintain global state
+            // Maintain global state.
             global_state.maintain();
 
-            // extract HUD events ensuring the client borrow gets dropped
+            // Extract HUD events ensuring the client borrow gets dropped.
             let hud_events = self.hud.maintain(
                 &self.client.borrow(),
                 global_state,
@@ -170,6 +170,7 @@ impl PlayState for SessionState {
                 },
                 &self.scene.camera(),
             );
+
             // Maintain the UI.
             for event in hud_events {
                 match event {
@@ -183,6 +184,15 @@ impl PlayState for SessionState {
                     HudEvent::Logout => self.client.borrow_mut().request_logout(),
                     HudEvent::Quit => {
                         return PlayStateResult::Shutdown;
+                    }
+                    HudEvent::AdjustMousePan(sensitivity) => {
+                        global_state.settings.gameplay.pan_sensitivity = sensitivity as f32 / 100.0;
+                        global_state.settings.save_to_file();
+                    }
+                    HudEvent::AdjustMouseZoom(sensitivity) => {
+                        global_state.settings.gameplay.zoom_sensitivity =
+                            sensitivity as f32 / 100.0;
+                        global_state.settings.save_to_file();
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
