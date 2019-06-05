@@ -8,6 +8,9 @@ use std::thread::JoinHandle;
 use crate::DEFAULT_PUBLIC_SERVER;
 use chrono::Utc;
 
+/// Connects to the discord application where Images and more resides
+/// can be viewed at https://discordapp.com/developers/applications/583662036194689035/rich-presence/assets
+/// but requires an invitation.
 const DISCORD_APPLICATION_ID: i64 = 583662036194689035;
 
 /// Represents an update of the game which should be reflected in Discord
