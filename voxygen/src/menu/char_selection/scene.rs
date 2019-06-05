@@ -14,8 +14,8 @@ use crate::{
     },
 };
 use client::Client;
-use log::error;
 use common::comp::{self, HumanoidBody};
+use log::error;
 use vek::*;
 
 struct Skybox {
