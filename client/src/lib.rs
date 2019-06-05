@@ -299,7 +299,7 @@ impl Client {
             // If chunks are taking too long, assume they're no longer pending.
             let now = Instant::now();
             self.pending_chunks
-                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
+                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
         }
 
         // Send a ping to the server once every second
