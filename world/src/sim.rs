@@ -305,7 +305,7 @@ impl<'a> Sampler<'a> {
         let water = Block::new(1, Rgb::new(100, 150, 255));
         let warm_stone = Block::new(1, Rgb::new(165, 165, 90));
 
-        let ground_block = if (wposf.z as f32) < height - 4.0 {
+        let block = if (wposf.z as f32) < height - 4.0 {
             // Underground
             Some(stone)
         } else if (wposf.z as f32) < height {
@@ -319,7 +319,7 @@ impl<'a> Sampler<'a> {
         };
 
         // Caves
-        let block = ground_block.or_else(|| {
+        let block = block.and_then(|block| {
             // Underground
             let cave = cave_xy.powf(2.0)
                 * (wposf.z as f32 - cave_alt)
@@ -332,7 +332,7 @@ impl<'a> Sampler<'a> {
             if cave {
                 None
             } else {
-                ground_block
+                Some(block)
             }
         });
 
