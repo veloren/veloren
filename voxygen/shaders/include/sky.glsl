@@ -6,7 +6,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	const vec3 SKY_TOP    = vec3(0.1, 0.5, 1.0);
 	const vec3 SKY_BOTTOM = vec3(0.025, 0.08, 0.2);
 
-	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.7, 0.5);
+	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.7, 0.5) * 0.5;
 	const vec3 SUN_SURF_COLOR = vec3(1.0, 0.9, 0.35) * 200.0;
 
 	float sun_angle_rad = time_of_day * TIME_FACTOR;
