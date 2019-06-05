@@ -122,6 +122,12 @@ impl Server {
         Ok(this)
     }
 
+    #[allow(dead_code)]
+    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
+        self.thread_pool = thread_pool;
+        self
+    }
+
     /// Get a reference to the server's game state.
     #[allow(dead_code)]
     pub fn state(&self) -> &State {

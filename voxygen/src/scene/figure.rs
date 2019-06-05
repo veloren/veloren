@@ -742,7 +742,8 @@ impl<S: Skeleton> FigureState<S> {
     ) {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(pos)
-            * Mat4::rotation_z(-ori.x.atan2(ori.y)); // + f32::consts::PI / 2.0);
+            * Mat4::rotation_z(-ori.x.atan2(ori.y)) // + f32::consts::PI / 2.0);
+            * Mat4::scaling_3d(Vec3::from(0.8));
 
         let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
