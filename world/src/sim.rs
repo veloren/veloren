@@ -468,7 +468,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt
+        self.alt - Z_TOLERANCE.0 * self.chaos
     }
 
     pub fn get_min_z(&self) -> f32 {
