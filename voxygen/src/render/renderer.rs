@@ -85,7 +85,7 @@ impl Renderer {
 
         let mut include_ctx = IncludeContext::new();
         include_ctx.include("globals.glsl", globals);
-        include_ctx.include("sky.glsl", globals);
+        include_ctx.include("sky.glsl", sky);
 
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(
