@@ -22,7 +22,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
@@ -193,7 +193,7 @@ fn main() {
                 info!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
-                        info!("Popped state '{}'.", old_state.name());
+                        debug!("Popped state '{}'.", old_state.name());
                         global_state.on_play_state_changed();
                     });
                 }
@@ -201,20 +201,20 @@ fn main() {
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
-                    info!("Popped state '{}'.", old_state.name());
+                    debug!("Popped state '{}'.", old_state.name());
                     global_state.on_play_state_changed();
                 });
             }
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
-                info!("Pushed state '{}'.", new_state.name());
+                debug!("Pushed state '{}'.", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
             }
             PlayStateResult::Switch(mut new_state) => {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
-                    info!(
+                    debug!(
                         "Switching to state '{}' from state '{}'.",
                         new_state.name(),
                         old_state.name()

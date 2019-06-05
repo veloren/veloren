@@ -404,7 +404,7 @@ impl Ui {
                             let size = aabr.size().into_array();
                             if let Err(err) = renderer.update_texture(cache_tex, offset, size, data)
                             {
-                                warn!("Failed to update texture:\n{:?}", err);
+                                warn!("Failed to update texture: {:?}", err);
                             }
                         },
                     ) {

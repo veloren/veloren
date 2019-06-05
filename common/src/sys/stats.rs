@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Dying, Stats},
+    comp::{Dying, HealthSource, Stats},
     state::DeltaTime,
 };
 use log::warn;
@@ -23,11 +23,13 @@ impl<'a> System<'a> for Sys {
                 if let Err(err) = dyings.insert(
                     entity,
                     Dying {
-                        cause: stat
-                            .hp
-                            .last_change
-                            .expect("Nothing caused the entity to die")
-                            .2, // Safe because damage is necessary for death
+                        cause: match stat.hp.last_change {
+                            Some(change) => change.2,
+                            None => {
+                                warn!("Nothing caused an entity to die!");
+                                HealthSource::Unknown
+                            }
+                        },
                     },
                 ) {
                     warn!("Inserting Dying for an entity failed: {:?}", err);

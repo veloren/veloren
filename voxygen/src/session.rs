@@ -189,7 +189,7 @@ impl PlayState for SessionState {
 
                         global_state.settings.graphics.view_distance = view_distance;
                         if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings!\n{:?}", err);
+                            warn!("Failed to save settings: {:?}", err);
                         }
                     }
                     HudEvent::AdjustVolume(volume) => {
@@ -197,7 +197,7 @@ impl PlayState for SessionState {
 
                         global_state.settings.audio.music_volume = volume;
                         if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings!\n{:?}", err);
+                            warn!("Failed to save settings: {:?}", err);
                         }
                     }
                     HudEvent::ChangeAudioDevice(name) => {

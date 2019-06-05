@@ -5,6 +5,7 @@ use specs::{Component, FlaggedStorage, VecStorage};
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
+    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
                     changed,
                 },
             ) {
-                warn!("Inserting AnimationInfo for an entity failed!\n{:?}", err);
+                warn!("Inserting AnimationInfo for an entity failed: {:?}", err);
             }
         }
 
