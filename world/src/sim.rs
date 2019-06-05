@@ -209,7 +209,7 @@ impl<'a> Sampler<'a> {
                 .powf(2.0)
                 .neg()
                 .add(1.0)
-                .mul((1.35 - chaos).min(1.0))
+                .mul((1.15 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
         let cave_alt = alt - 32.0
