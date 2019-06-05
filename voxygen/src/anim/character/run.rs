@@ -38,7 +38,7 @@ impl Animation for RunAnimation {
 
         next.head.offset = Vec3::new(0.0, 3.0, 12.0 + wave_cos * 1.3);
         next.head.ori =
-            Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y + 0.35);
+            Quaternion::rotation_z(head_look.x + wave * 0.1) * Quaternion::rotation_x(head_look.y + 0.35);
         next.head.scale = Vec3::one();
 
         next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_cos * 1.1);
@@ -53,20 +53,20 @@ impl Animation for RunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-8.0, 3.0 + wave_cos * 5.0, 9.0 - wave * 2.0) / 11.0;
+        next.l_hand.offset = Vec3::new(-9.0, 3.0 + wave_cos * 8.0, 12.0 - wave * 1.0) / 11.0;
         next.l_hand.ori = Quaternion::rotation_x(wave_cos * 1.1);
         next.l_hand.scale = Vec3::one() / 11.0;
 
-        next.r_hand.offset = Vec3::new(8.0, 3.0 - wave_cos * 5.0, 9.0 + wave * 2.0) / 11.0;
+        next.r_hand.offset = Vec3::new(9.0, 3.0 - wave_cos * 8.0, 12.0 + wave * 1.0) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(wave_cos * -1.1);
         next.r_hand.scale = Vec3::one() / 11.0;
 
-        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave * 1.0, 6.0);
-        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave * 1.5);
+        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0);
+        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.5);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave * 1.0, 6.0);
-        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave * 1.5);
+        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0);
+        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);

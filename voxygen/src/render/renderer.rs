@@ -230,9 +230,9 @@ impl Renderer {
     /// Queue the clearing of the color and depth targets ready for a new frame to be rendered.
     /// TODO: Make a version of this that doesn't clear the colour target for speed.
     pub fn clear(&mut self, col: Rgba<f32>) {
-        self.encoder.clear(&self.tgt_color_view, col.into_array());
+        //self.encoder.clear(&self.tgt_color_view, col.into_array());
         self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
-        self.encoder.clear(&self.win_color_view, col.into_array());
+        //self.encoder.clear(&self.win_color_view, col.into_array());
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
     }
 

@@ -14,6 +14,11 @@ uniform u_locals {
 
 out vec4 tgt_color;
 
+float fog() {
+	float half_vd = 0.95 * view_distance.x / 2.0;
+	return clamp(distance(f_pos, cam_pos.xyz) / half_vd - 1.0, 0.0, 1.0);
+}
+
 void main() {
 	// Calculate normal from packed data
 	vec3 f_norm;
@@ -40,5 +45,9 @@ void main() {
 
 	vec3 light = vec3(static_light);
 
-	tgt_color = vec4(f_col * light, 1.0);
+	vec3 frag_color = f_col * light;
+
+	vec3 fog_color = vec3(0.0, 0.25, 0.55);
+
+	tgt_color = vec4(mix(frag_color, fog_color, fog()), 1.0);
 }

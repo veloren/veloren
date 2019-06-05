@@ -57,8 +57,8 @@ impl WorldSim {
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
             warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
             tree_nz: BasicMulti::new()
-                .set_octaves(8)
-                .set_persistence(0.75)
+                .set_octaves(12)
+                .set_persistence(0.9)
                 .set_seed(seed + 9),
             cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
@@ -357,8 +357,9 @@ impl<'a> Sampler<'a> {
                         {
                             let tree_pos3d =
                                 Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
+                            let rpos = wpos - tree_pos3d;
                             block.or(TREES[*tree_seed as usize % TREES.len()]
-                                .get(wpos - tree_pos3d)
+                                .get((rpos * 160) / 128) // Scaling
                                 .map(|b| b.clone())
                                 .unwrap_or(Block::empty()))
                         }
