@@ -4,7 +4,7 @@ pub mod skybox;
 pub mod terrain;
 pub mod ui;
 
-// Library
+use super::util::arr_to_mat;
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -13,9 +13,6 @@ use gfx::{
     gfx_impl_struct_meta,
 };
 use vek::*;
-
-// Local
-use super::util::arr_to_mat;
 
 gfx_defines! {
     constant Globals {

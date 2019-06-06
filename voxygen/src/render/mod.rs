@@ -31,7 +31,6 @@ pub use self::{
 #[cfg(feature = "gl")]
 use gfx_device_gl as gfx_backend;
 
-// Library
 use gfx;
 
 /// Used to represent one of many possible errors that may be omitted by the rendering subsystem.

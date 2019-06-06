@@ -8,7 +8,6 @@ use std::{
     fs::File,
     io::BufReader,
     io::Read,
-    path::PathBuf,
     sync::{Arc, RwLock},
 };
 
@@ -141,7 +140,7 @@ fn try_open_with_path(name: &str) -> Option<File> {
 
 pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
     match try_open_with_path(name) {
-        Some(mut f) => Ok(BufReader::new(f)),
+        Some(f) => Ok(BufReader::new(f)),
         None => Err(Error::NotFound(name.to_owned())),
     }
 }

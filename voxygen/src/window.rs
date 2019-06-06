@@ -3,6 +3,7 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use vek::*;
@@ -311,7 +312,7 @@ impl Window {
                     let mut path = PathBuf::from("./screenshots");
                     if !path.exists() {
                         if let Err(err) = std::fs::create_dir(&path) {
-                            log::error!("Couldn't create folder for screenshot: {:?}", err);
+                            warn!("Couldn't create folder for screenshot: {:?}", err);
                         }
                     }
                     path.push(format!(
@@ -322,11 +323,11 @@ impl Window {
                             .unwrap_or(0)
                     ));
                     if let Err(err) = img.save(&path) {
-                        log::error!("Couldn't save screenshot: {:?}", err);
+                        warn!("Couldn't save screenshot: {:?}", err);
                     }
                 });
             }
-            Err(err) => log::error!(
+            Err(err) => error!(
                 "Couldn't create screenshot due to renderer error: {:?}",
                 err
             ),

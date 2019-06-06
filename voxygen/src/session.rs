@@ -9,8 +9,8 @@ use crate::{
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
-use glutin::MouseButton;
-use std::{cell::RefCell, mem, rc::Rc, time::Duration};
+use log::{error, warn};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
 const FPS: u64 = 60;
@@ -110,8 +110,6 @@ impl PlayState for SessionState {
         while let ClientState::Pending | ClientState::Character | ClientState::Dead =
             current_client_state
         {
-            let alive = self.client.borrow().get_client_state() == ClientState::Character;
-
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -147,7 +145,7 @@ impl PlayState for SessionState {
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_last_delta()) {
-                log::error!("Failed to tick the scene: {:?}", err);
+                error!("Failed to tick the scene: {:?}", err);
                 return PlayStateResult::Pop;
             }
 
@@ -190,19 +188,25 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
-                        global_state.settings.save_to_file();
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings: {:?}", err);
+                        }
                     }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.set_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
-                        global_state.settings.save_to_file();
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings: {:?}", err);
+                        }
                     }
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.set_device(name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
-                        global_state.settings.save_to_file();
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings!\n{:?}", err);
+                        }
                     }
                 }
             }

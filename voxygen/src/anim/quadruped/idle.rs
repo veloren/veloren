@@ -1,11 +1,6 @@
-// Standard
+use super::{super::Animation, QuadrupedSkeleton};
 use std::{f32::consts::PI, ops::Mul};
-
-// Library
 use vek::*;
-
-// Local
-use super::{super::Animation, QuadrupedSkeleton, SCALE};
 
 pub struct IdleAnimation;
 
@@ -21,7 +16,7 @@ impl Animation for IdleAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
-        let wave_test = (wave.cbrt());
+        let wave_test = wave.cbrt();
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
         let fuzz_wave = (anim_time as f32 * 12.0).sin();

@@ -22,12 +22,9 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use log;
+use log::{debug, error, info, warn};
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
-use std::{fs::File, mem, panic, str::FromStr, thread};
-
-/// The URL of the default public server that Voxygen will connect to.
-const DEFAULT_PUBLIC_SERVER: &'static str = "server.veloren.net";
+use std::{fs::File, mem, panic, str::FromStr};
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
@@ -80,12 +77,10 @@ pub trait PlayState {
 
 fn main() {
     // Set up the global state.
-    let mut settings = Settings::load();
-    let window = Window::new(&settings).expect("Failed to create window!");
-
+    let settings = Settings::load();
     let mut global_state = GlobalState {
         audio: AudioFrontend::new(&settings.audio),
-        window,
+        window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
 
@@ -155,7 +150,7 @@ fn main() {
             settings_clone.log.file, reason, panic_info,
         );
 
-        log::error!(
+        error!(
             "VOXYGEN HAS PANICKED\n\n{}\n\nBacktrace:\n{:?}",
             msg,
             backtrace::Backtrace::new(),
@@ -174,7 +169,7 @@ fn main() {
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states
         .last()
-        .map(|current_state| log::info!("Started game with state '{}'", current_state.name()));
+        .map(|current_state| info!("Started game with state '{}'", current_state.name()));
 
     // What's going on here?
     // ---------------------
@@ -192,10 +187,10 @@ fn main() {
         match state_result {
             PlayStateResult::Shutdown => {
                 direction = Direction::Backwards;
-                log::info!("Shutting down all states...");
+                info!("Shutting down all states...");
                 while states.last().is_some() {
                     states.pop().map(|old_state| {
-                        log::info!("Popped state '{}'.", old_state.name());
+                        debug!("Popped state '{}'.", old_state.name());
                         global_state.on_play_state_changed();
                     });
                 }
@@ -203,20 +198,20 @@ fn main() {
             PlayStateResult::Pop => {
                 direction = Direction::Backwards;
                 states.pop().map(|old_state| {
-                    log::info!("Popped state '{}'.", old_state.name());
+                    debug!("Popped state '{}'.", old_state.name());
                     global_state.on_play_state_changed();
                 });
             }
             PlayStateResult::Push(new_state) => {
                 direction = Direction::Forwards;
-                log::info!("Pushed state '{}'.", new_state.name());
+                debug!("Pushed state '{}'.", new_state.name());
                 states.push(new_state);
                 global_state.on_play_state_changed();
             }
             PlayStateResult::Switch(mut new_state) => {
                 direction = Direction::Forwards;
                 states.last_mut().map(|old_state| {
-                    log::info!(
+                    debug!(
                         "Switching to state '{}' from state '{}'.",
                         new_state.name(),
                         old_state.name()
@@ -228,6 +223,7 @@ fn main() {
         }
     }
     // Save settings to add new fields or create the file if it is not already there
-    // TODO: Handle this result.
-    global_state.settings.save_to_file();
+    if let Err(err) = global_state.settings.save_to_file() {
+        warn!("Failed to save settings: {:?}", err);
+    }
 }

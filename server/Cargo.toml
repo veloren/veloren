@@ -8,6 +8,7 @@ edition = "2018"
 common = { package = "veloren-common", path = "../common" }
 world = { package = "veloren-world", path = "../world" }
 
+log = "0.4"
 specs = "0.14"
 vek = "0.9"
 threadpool = "1.7"

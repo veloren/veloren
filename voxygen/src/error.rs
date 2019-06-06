@@ -1,11 +1,6 @@
-// Standard
-use std::any;
-
-// Project
-use client;
-
-// Crate
 use crate::render::RenderError;
+use client;
+use std::any;
 
 /// Represents any error that may be triggered by Voxygen.
 #[derive(Debug)]

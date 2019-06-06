@@ -5,10 +5,7 @@ use common::{
     vol::{ReadVol, VolSize, Vox},
 };
 use lazy_static::lazy_static;
-use noise::{
-    BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
-    SuperSimplex,
-};
+use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},

@@ -1,11 +1,6 @@
-// Standard
-use std::{f32::consts::PI, ops::Mul};
-
-// Library
+use super::{super::Animation, CharacterSkeleton};
+use std::ops::Mul;
 use vek::*;
-
-// Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
 
 pub struct RunAnimation;
 
