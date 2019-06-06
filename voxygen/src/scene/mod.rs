@@ -151,7 +151,14 @@ impl Scene {
             .expect("Failed to update global constants");
 
         // Maintain the terrain.
-        self.terrain.maintain(renderer, client);
+        self.terrain.maintain(
+            renderer,
+            client,
+            self.camera.get_focus_pos(),
+            self.loaded_distance,
+            view_mat,
+            proj_mat,
+        );
 
         // Maintain the figures.
         self.figure_mgr.maintain(renderer, client);
@@ -166,12 +173,7 @@ impl Scene {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         // Render terrain and figures.
-        self.terrain.render(
-            renderer,
-            &self.globals,
-            self.camera.get_focus_pos(),
-            self.loaded_distance,
-        );
+        self.terrain.render(renderer, &self.globals);
         self.figure_mgr.render(renderer, client, &self.globals);
 
         renderer.render_post_process(

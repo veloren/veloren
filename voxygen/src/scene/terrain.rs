@@ -8,13 +8,16 @@ use common::{
     vol::{SampleVol, VolSize},
     volumes::vol_map_2d::VolMap2dErr,
 };
-use std::{collections::HashMap, i32, sync::mpsc, time::Duration};
+use frustum_query::frustum::Frustum;
+use std::{collections::HashMap, i32, ops::Mul, sync::mpsc, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
     // GPU data
     model: Model<TerrainPipeline>,
     locals: Consts<TerrainLocals>,
+    visible: bool,
+    z_bounds: (f32, f32),
 }
 
 struct ChunkMeshState {
@@ -26,6 +29,7 @@ struct ChunkMeshState {
 /// A type produced by mesh worker threads corresponding to the position and mesh of a chunk.
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
+    z_bounds: (f32, f32),
     mesh: Mesh<TerrainPipeline>,
     started_tick: u64,
 }
@@ -33,12 +37,14 @@ struct MeshWorkerResponse {
 /// Function executed by worker threads dedicated to chunk meshing.
 fn mesh_worker(
     pos: Vec2<i32>,
+    z_bounds: (f32, f32),
     started_tick: u64,
     volume: <TerrainMap as SampleVol<Aabr<i32>>>::Sample,
     range: Aabb<i32>,
 ) -> MeshWorkerResponse {
     MeshWorkerResponse {
         pos,
+        z_bounds,
         mesh: volume.generate_mesh(range),
         started_tick,
     }
@@ -70,7 +76,15 @@ impl Terrain {
     }
 
     /// Maintain terrain data. To be called once per tick.
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        client: &Client,
+        focus_pos: Vec3<f32>,
+        loaded_distance: f32,
+        view_mat: Mat4<f32>,
+        proj_mat: Mat4<f32>,
+    ) {
         let current_tick = client.get_tick();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed.
@@ -165,7 +179,13 @@ impl Terrain {
 
             // Queue the worker thread.
             client.thread_pool().execute(move || {
-                let _ = send.send(mesh_worker(pos, current_tick, volume, aabb));
+                let _ = send.send(mesh_worker(
+                    pos,
+                    (min_z as f32, max_z as f32),
+                    current_tick,
+                    volume,
+                    aabb,
+                ));
             });
             todo.active_worker = true;
         }
@@ -194,6 +214,8 @@ impl Terrain {
                                     .into_array(),
                                 }])
                                 .expect("Failed to upload chunk locals to the GPU!"),
+                            visible: false,
+                            z_bounds: response.z_bounds,
                         },
                     );
                 }
@@ -202,28 +224,48 @@ impl Terrain {
                 _ => {}
             }
         }
-    }
 
-    pub fn render(
-        &self,
-        renderer: &mut Renderer,
-        globals: &Consts<Globals>,
-        focus_pos: Vec3<f32>,
-        loaded_distance: f32,
-    ) {
-        for (pos, chunk) in &self.chunks {
-            // Limit focus_pos to chunk bounds
-            let chunk_pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
-                e as f32 * sz as f32
-            });
-            let nearest_in_chunk = Vec2::from(focus_pos).clamped(
-                chunk_pos,
-                chunk_pos + Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as f32),
+        // Construct view frustum
+        let frustum = Frustum::from_modelview_and_projection(
+            &view_mat.into_col_array(),
+            &proj_mat.into_col_array(),
+        );
+
+        // Update chunk visibility
+        let chunk_sz = TerrainChunkSize::SIZE.x as f32;
+        for (pos, chunk) in &mut self.chunks {
+            let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
+
+            // Limit focus_pos to chunk bounds and ensure the chunk is within the fog boundary
+            let nearest_in_chunk = Vec2::from(focus_pos).clamped(chunk_pos, chunk_pos + chunk_sz);
+            let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
+                < loaded_distance.powf(2.0);
+
+            // Ensure the chunk is within the view frustrum
+            let chunk_mid = Vec3::new(
+                chunk_pos.x + chunk_sz / 2.0,
+                chunk_pos.y + chunk_sz / 2.0,
+                (chunk.z_bounds.0 + chunk.z_bounds.1) * 0.5,
+            );
+            let chunk_radius = (chunk.z_bounds.1 - chunk.z_bounds.0)
+                .max(chunk_sz / 2.0)
+                .powf(2.0)
+                .mul(2.0)
+                .sqrt();
+            let in_frustum = frustum.sphere_intersecting(
+                &chunk_mid.x,
+                &chunk_mid.y,
+                &chunk_mid.z,
+                &chunk_radius,
             );
 
-            if Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
-                < loaded_distance.powf(2.0)
-            {
+            chunk.visible = in_range && in_frustum;
+        }
+    }
+
+    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+        for (pos, chunk) in &self.chunks {
+            if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
             }
         }
