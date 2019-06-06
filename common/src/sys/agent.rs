@@ -1,20 +1,14 @@
-// Library
-use rand::Rng;
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
+use log::warn;
+use rand::{seq::SliceRandom, thread_rng};
+use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
-
-// Crate
-use crate::{
-    comp::{phys::Pos, Agent, Attacking, Control, Jumping},
-    state::Time,
-};
 
 // Basic ECS AI agent system
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Read<'a, Time>,
         Entities<'a>,
         WriteStorage<'a, Agent>,
         ReadStorage<'a, Pos>,
@@ -25,7 +19,7 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (time, entities, mut agents, positions, mut controls, mut jumps, mut attacks): Self::SystemData,
+        (entities, mut agents, positions, mut controls, mut jumps, mut attacks): Self::SystemData,
     ) {
         for (entity, agent, pos, control) in
             (&entities, &mut agents, &positions, &mut controls).join()
@@ -48,7 +42,9 @@ impl<'a> System<'a> for Sys {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                jumps.insert(entity, Jumping);
+                                if let Err(err) = jumps.insert(entity, Jumping) {
+                                    warn!("Inserting Jumping for an entity failed: {:?}", err,);
+                                }
                             }
 
                             // Move towards the target.
@@ -79,7 +75,9 @@ impl<'a> System<'a> for Sys {
                                 control.move_dir = Vec2::zero();
 
                                 if rand::random::<f32>() < 0.2 {
-                                    attacks.insert(entity, Attacking::start());
+                                    attacks
+                                        .insert(entity, Attacking::start())
+                                        .expect("Inserting attacking for an entity failed!");
                                 }
 
                                 false
@@ -107,7 +105,8 @@ impl<'a> System<'a> for Sys {
                             .map(|(e, _)| e)
                             .collect::<Vec<_>>();
 
-                        *target = rand::thread_rng().choose(&entities).cloned();
+                        let mut rng = thread_rng();
+                        *target = (&entities).choose(&mut rng).cloned();
                     }
                 }
             }

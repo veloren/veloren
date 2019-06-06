@@ -1,4 +1,4 @@
-use crate::ray::{Ray, RayUntil};
+use crate::ray::Ray;
 use std::fmt::Debug;
 use vek::*;
 

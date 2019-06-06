@@ -2,8 +2,6 @@ use crate::assets;
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 use serde_json;
-use std::fs::File;
-use std::io::Error;
 use std::sync::Arc;
 
 pub enum NpcKind {

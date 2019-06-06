@@ -10,10 +10,9 @@ use crate::{
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
 use specs::{
-    saveload::{MarkedBuilder, MarkerAllocator},
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Builder, Component, DispatcherBuilder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
+    Component, DispatcherBuilder, Entity as EcsEntity,
 };
 use sphynx;
 use std::{collections::HashSet, sync::Arc, time::Duration};

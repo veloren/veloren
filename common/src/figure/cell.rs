@@ -1,8 +1,5 @@
-// Library
-use vek::*;
-
-// Crate
 use crate::vol::Vox;
+use vek::*;
 
 /// A type representing a single voxel in a figure.
 #[derive(Copy, Clone, Debug)]

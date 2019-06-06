@@ -1,18 +1,15 @@
-// Library
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
-
-// Crate
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
-        Stats,
+        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Stats,
     },
-    state::{DeltaTime, Time, Uid},
+    state::{DeltaTime, Uid},
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
+use log::warn;
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use vek::*;
 
 // Basic ECS AI agent system
 pub struct Sys;
@@ -31,7 +28,6 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Uid>,
-        Read<'a, Time>,
         Read<'a, DeltaTime>,
         ReadExpect<'a, TerrainMap>,
         ReadStorage<'a, Pos>,
@@ -41,7 +37,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Stats>,
         ReadStorage<'a, Control>,
         WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, ForceUpdate>,
@@ -52,7 +47,6 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             uids,
-            time,
             dt,
             terrain,
             positions,
@@ -60,10 +54,9 @@ impl<'a> System<'a> for Sys {
             mut orientations,
             mut animation_infos,
             mut stats,
-            mut controls,
+            controls,
             mut jumps,
-            mut respawns,
-            mut glides,
+            glides,
             mut attacks,
             mut force_updates,
         ): Self::SystemData,
@@ -140,21 +133,23 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(AnimationInfo::default());
             let changed = last.animation != animation;
 
-            animation_infos.insert(
+            if let Err(err) = animation_infos.insert(
                 entity,
                 AnimationInfo {
                     animation,
                     time: if changed { 0.0 } else { last.time },
                     changed,
                 },
-            );
+            ) {
+                warn!("Inserting AnimationInfo for an entity failed: {:?}", err);
+            }
         }
 
         for (entity, &uid, pos, ori, attacking) in
             (&entities, &uids, &positions, &orientations, &mut attacks).join()
         {
             if !attacking.applied {
-                for (b, pos_b, mut stat_b, mut vel_b) in
+                for (b, pos_b, stat_b, mut vel_b) in
                     (&entities, &positions, &mut stats, &mut velocities).join()
                 {
                     // Check if it is a hit
@@ -167,7 +162,9 @@ impl<'a> System<'a> for Sys {
                         stat_b.hp.change_by(-10, HealthSource::Attack { by: uid }); // TODO: variable damage and weapon
                         vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                         vel_b.0.z = 15.0;
-                        force_updates.insert(b, ForceUpdate);
+                        if let Err(err) = force_updates.insert(b, ForceUpdate) {
+                            warn!("Inserting ForceUpdate for an entity failed: {:?}", err);
+                        }
                     }
                 }
                 attacking.applied = true;

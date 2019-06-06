@@ -1,4 +1,7 @@
-// Library
+use super::{
+    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthFmt},
+    Globals,
+};
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -10,12 +13,6 @@ use gfx::{
     gfx_vertex_struct_meta,
 };
 use vek::*;
-
-// Local
-use super::{
-    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthFmt},
-    Globals,
-};
 
 gfx_defines! {
     vertex Vertex {

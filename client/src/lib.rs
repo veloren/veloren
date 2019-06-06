@@ -14,7 +14,7 @@ use common::{
     state::State,
     terrain::chonk::ChonkMetrics,
 };
-use log::{info, log_enabled};
+use log::{debug, info, log_enabled};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -53,17 +53,17 @@ impl Client {
     /// Create a new `Client`.
     #[allow(dead_code)]
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
-        let mut client_state = ClientState::Connected;
+        let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (mut state, entity, server_info) = match postbox.next_message() {
+        let (state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
                 server_info,
             }) => {
-                let mut state = State::from_state_package(ecs_state);
+                let state = State::from_state_package(ecs_state);
                 let entity = state
                     .ecs()
                     .entity_from_uid(entity_uid)
@@ -320,7 +320,7 @@ impl Client {
         }
 
         // Update the server about the player's current animation.
-        if let Some(mut animation_info) = self
+        if let Some(animation_info) = self
             .state
             .ecs_mut()
             .write_storage::<comp::AnimationInfo>()
@@ -409,6 +409,7 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
+                        debug!("{:?}", error);
                         self.client_state = state;
                     }
                     ServerMsg::ForceState(state) => {

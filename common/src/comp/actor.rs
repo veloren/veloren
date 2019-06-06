@@ -1,7 +1,5 @@
-use crate::inventory::Inventory;
-use rand::prelude::*;
+use rand::{seq::SliceRandom, thread_rng};
 use specs::{Component, FlaggedStorage, VecStorage};
-use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Race {
@@ -219,18 +217,19 @@ pub struct HumanoidBody {
 
 impl HumanoidBody {
     pub fn random() -> Self {
+        let mut rng = thread_rng();
         Self {
-            race: *thread_rng().choose(&ALL_RACES).unwrap(),
-            body_type: *thread_rng().choose(&ALL_BODY_TYPES).unwrap(),
-            head: *thread_rng().choose(&ALL_HEADS).unwrap(),
-            chest: *thread_rng().choose(&ALL_CHESTS).unwrap(),
-            belt: *thread_rng().choose(&ALL_BELTS).unwrap(),
-            pants: *thread_rng().choose(&ALL_PANTS).unwrap(),
-            hand: *thread_rng().choose(&ALL_HANDS).unwrap(),
-            foot: *thread_rng().choose(&ALL_FEET).unwrap(),
-            weapon: *thread_rng().choose(&ALL_WEAPONS).unwrap(),
-            shoulder: *thread_rng().choose(&ALL_SHOULDERS).unwrap(),
-            draw: *thread_rng().choose(&ALL_DRAW).unwrap(),
+            race: *(&ALL_RACES).choose(&mut rng).unwrap(),
+            body_type: *(&ALL_BODY_TYPES).choose(&mut rng).unwrap(),
+            head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
+            chest: *(&ALL_CHESTS).choose(&mut rng).unwrap(),
+            belt: *(&ALL_BELTS).choose(&mut rng).unwrap(),
+            pants: *(&ALL_PANTS).choose(&mut rng).unwrap(),
+            hand: *(&ALL_HANDS).choose(&mut rng).unwrap(),
+            foot: *(&ALL_FEET).choose(&mut rng).unwrap(),
+            weapon: *(&ALL_WEAPONS).choose(&mut rng).unwrap(),
+            shoulder: *(&ALL_SHOULDERS).choose(&mut rng).unwrap(),
+            draw: *(&ALL_DRAW).choose(&mut rng).unwrap(),
         }
     }
 }
@@ -261,13 +260,14 @@ pub struct QuadrupedBody {
 
 impl QuadrupedBody {
     pub fn random() -> Self {
+        let mut rng = thread_rng();
         Self {
-            race: *thread_rng().choose(&ALL_QRACES).unwrap(),
-            body_type: *thread_rng().choose(&ALL_QBODY_TYPES).unwrap(),
-            pig_head: *thread_rng().choose(&ALL_QPIG_HEADS).unwrap(),
-            pig_chest: *thread_rng().choose(&ALL_QPIG_CHESTS).unwrap(),
-            pig_leg_l: *thread_rng().choose(&ALL_QPIG_LEG_LS).unwrap(),
-            pig_leg_r: *thread_rng().choose(&ALL_QPIG_LEG_RS).unwrap(),
+            race: *(&ALL_QRACES).choose(&mut rng).unwrap(),
+            body_type: *(&ALL_QBODY_TYPES).choose(&mut rng).unwrap(),
+            pig_head: *(&ALL_QPIG_HEADS).choose(&mut rng).unwrap(),
+            pig_chest: *(&ALL_QPIG_CHESTS).choose(&mut rng).unwrap(),
+            pig_leg_l: *(&ALL_QPIG_LEG_LS).choose(&mut rng).unwrap(),
+            pig_leg_r: *(&ALL_QPIG_LEG_RS).choose(&mut rng).unwrap(),
         }
     }
 }
@@ -312,20 +312,21 @@ pub struct QuadrupedMediumBody {
 
 impl QuadrupedMediumBody {
     pub fn random() -> Self {
+        let mut rng = thread_rng();
         Self {
-            race: *thread_rng().choose(&ALL_QMRACES).unwrap(),
-            body_type: *thread_rng().choose(&ALL_QMBODY_TYPES).unwrap(),
-            wolf_head_upper: *thread_rng().choose(&ALL_QMWOLF_HEADS_UPPER).unwrap(),
-            wolf_jaw: *thread_rng().choose(&ALL_QMWOLF_JAWS).unwrap(),
-            wolf_head_lower: *thread_rng().choose(&ALL_QMWOLF_HEADS_LOWER).unwrap(),
-            wolf_tail: *thread_rng().choose(&ALL_QMWOLF_TAILS).unwrap(),
-            wolf_torso_back: *thread_rng().choose(&ALL_QMWOLF_TORSOS_BACK).unwrap(),
-            wolf_torso_mid: *thread_rng().choose(&ALL_QMWOLF_TORSOS_MID).unwrap(),
-            wolf_ears: *thread_rng().choose(&ALL_QMWOLF_EARS).unwrap(),
-            wolf_foot_lf: *thread_rng().choose(&ALL_QMWOLF_FEET_LF).unwrap(),
-            wolf_foot_rf: *thread_rng().choose(&ALL_QMWOLF_FEET_RF).unwrap(),
-            wolf_foot_lb: *thread_rng().choose(&ALL_QMWOLF_FEET_LB).unwrap(),
-            wolf_foot_rb: *thread_rng().choose(&ALL_QMWOLF_FEET_RB).unwrap(),
+            race: *(&ALL_QMRACES).choose(&mut rng).unwrap(),
+            body_type: *(&ALL_QMBODY_TYPES).choose(&mut rng).unwrap(),
+            wolf_head_upper: *(&ALL_QMWOLF_HEADS_UPPER).choose(&mut rng).unwrap(),
+            wolf_jaw: *(&ALL_QMWOLF_JAWS).choose(&mut rng).unwrap(),
+            wolf_head_lower: *(&ALL_QMWOLF_HEADS_LOWER).choose(&mut rng).unwrap(),
+            wolf_tail: *(&ALL_QMWOLF_TAILS).choose(&mut rng).unwrap(),
+            wolf_torso_back: *(&ALL_QMWOLF_TORSOS_BACK).choose(&mut rng).unwrap(),
+            wolf_torso_mid: *(&ALL_QMWOLF_TORSOS_MID).choose(&mut rng).unwrap(),
+            wolf_ears: *(&ALL_QMWOLF_EARS).choose(&mut rng).unwrap(),
+            wolf_foot_lf: *(&ALL_QMWOLF_FEET_LF).choose(&mut rng).unwrap(),
+            wolf_foot_rf: *(&ALL_QMWOLF_FEET_RF).choose(&mut rng).unwrap(),
+            wolf_foot_lb: *(&ALL_QMWOLF_FEET_LB).choose(&mut rng).unwrap(),
+            wolf_foot_rb: *(&ALL_QMWOLF_FEET_RB).choose(&mut rng).unwrap(),
         }
     }
 }

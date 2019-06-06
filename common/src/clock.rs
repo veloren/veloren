@@ -1,4 +1,3 @@
-// Standard
 use std::{
     thread,
     time::{Duration, SystemTime},

@@ -4,7 +4,7 @@ use log::info;
 use std::{
     net::ToSocketAddrs,
     sync::mpsc::{channel, Receiver, TryRecvError},
-    thread::{self, JoinHandle},
+    thread,
     time::Duration,
 };
 

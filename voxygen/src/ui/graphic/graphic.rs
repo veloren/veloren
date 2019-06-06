@@ -69,7 +69,7 @@ impl GraphicCache {
                         .atlas
                         .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
                     {
-                        Some(Allocation { id, rectangle }) => {
+                        Some(Allocation { id: _, rectangle }) => {
                             let (min, max) = (rectangle.min, rectangle.max);
                             Aabr {
                                 min: Vec2::new(min.x as u16, min.y as u16),
