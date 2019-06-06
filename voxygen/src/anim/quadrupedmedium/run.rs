@@ -1,11 +1,6 @@
-// Standard
+use super::{super::Animation, QuadrupedMediumSkeleton};
 use std::{f32::consts::PI, ops::Mul};
-
-// Library
 use vek::*;
-
-// Local
-use super::{super::Animation, QuadrupedMediumSkeleton, SCALE};
 
 pub struct RunAnimation;
 

@@ -1,17 +1,12 @@
-// Library
-use vek::*;
-
-// Project
-use common::{
-    figure::Segment,
-    vol::{ReadVol, SizedVol, Vox},
-};
-
-// Crate
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, FigurePipeline, Mesh, Quad},
+    render::{self, FigurePipeline, Mesh},
 };
+use common::{
+    figure::Segment,
+    vol::{ReadVol, SizedVol},
+};
+use vek::*;
 
 type FigureVertex = <FigurePipeline as render::Pipeline>::Vertex;
 

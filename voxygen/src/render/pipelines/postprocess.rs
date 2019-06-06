@@ -1,4 +1,7 @@
-// Library
+use super::{
+    super::{Mesh, Pipeline, Tri, WinColorFmt, WinDepthFmt},
+    Globals,
+};
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -8,12 +11,6 @@ use gfx::{
     gfx_pipeline,
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
-};
-
-// Local
-use super::{
-    super::{Mesh, Pipeline, Tri, WinColorFmt, WinDepthFmt},
-    Globals,
 };
 
 gfx_defines! {

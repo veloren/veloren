@@ -1,4 +1,3 @@
-// Local
 use super::Pipeline;
 
 /// A `Vec`-based mesh structure used to store mesh data on the CPU.

@@ -12,7 +12,7 @@ use gfx::{
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
 };
-use std::ops::{Add, Div, Mul};
+use std::ops::Mul;
 use vek::*;
 
 gfx_defines! {
@@ -42,7 +42,7 @@ impl Vertex {
             .as_slice()
             .into_iter()
             .enumerate()
-            .find(|(i, e)| **e != 0.0)
+            .find(|(_i, e)| **e != 0.0)
             .unwrap_or((0, &1.0));
         let norm_bits = (norm_axis << 1) | if *norm_dir > 0.0 { 1 } else { 0 };
 

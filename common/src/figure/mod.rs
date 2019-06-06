@@ -1,17 +1,12 @@
 pub mod cell;
 
-// Library
-use dot_vox::DotVoxData;
-use vek::*;
-
-// Crate
+use self::cell::Cell;
 use crate::{
     vol::{Vox, WriteVol},
     volumes::dyna::Dyna,
 };
-
-// Local
-use self::cell::Cell;
+use dot_vox::DotVoxData;
+use vek::*;
 
 /// A type representing a volume that may be part of an animated figure.
 ///

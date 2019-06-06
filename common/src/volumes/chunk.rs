@@ -1,12 +1,7 @@
-// Standard
-use std::marker::PhantomData;
-
-// Library
-use serde_derive::{Deserialize, Serialize};
-use vek::*;
-
-// Local
 use crate::vol::{BaseVol, ReadVol, SizedVol, VolSize, Vox, WriteVol};
+use serde_derive::{Deserialize, Serialize};
+use std::marker::PhantomData;
+use vek::*;
 
 #[derive(Debug)]
 pub enum ChunkErr {

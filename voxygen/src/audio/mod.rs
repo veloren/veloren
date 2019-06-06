@@ -1,19 +1,7 @@
 use crate::settings::AudioSettings;
 use common::assets;
-use rand::prelude::*;
-use rodio::{Decoder, Device, Source, SpatialSink};
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::BufReader,
-    iter::{Filter, Iterator},
-    path::PathBuf,
-    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
-    thread,
-    thread::{sleep, JoinHandle},
-    time::Duration,
-};
-use vek::*;
+use rodio::{Decoder, Device, SpatialSink};
+use std::iter::Iterator;
 
 pub struct AudioFrontend {
     device: Device,
@@ -25,7 +13,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     pub fn new(settings: &AudioSettings) -> Self {
-        let mut device = match &settings.audio_device {
+        let device = match &settings.audio_device {
             Some(dev) => rodio::output_devices()
                 .find(|x| &x.name() == dev)
                 .or_else(rodio::default_output_device)
@@ -33,7 +21,7 @@ impl AudioFrontend {
             None => rodio::default_output_device().expect("No audio devices found"),
         };
 
-        let mut sink =
+        let sink =
             rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
         sink.set_volume(settings.music_volume);
 
