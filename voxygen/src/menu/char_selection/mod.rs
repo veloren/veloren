@@ -14,8 +14,6 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
 use vek::*;
 
-const FPS: u64 = 60;
-
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
     client: Rc<RefCell<Client>>,
@@ -125,7 +123,9 @@ impl PlayState for CharSelectionState {
                 .expect("Failed to swap window buffers");
 
             // Wait for the next tick.
-            clock.tick(Duration::from_millis(1000 / FPS));
+            clock.tick(Duration::from_millis(
+                1000 / (global_state.settings.graphics.max_fps as u64),
+            ));
 
             current_client_state = self.client.borrow().get_client_state();
         }
