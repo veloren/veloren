@@ -32,13 +32,17 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         if pos.map(|e| e >= 0).reduce_and()
             && pos.map2(S::SIZE, |e, lim| e < lim as i32).reduce_and()
         {
-            Some(
-                (pos.x * S::SIZE.y as i32 * S::SIZE.z as i32 + pos.y * S::SIZE.z as i32 + pos.z)
-                    as usize,
-            )
+            Some(Self::idx_for_unchecked(pos))
         } else {
             None
         }
+    }
+
+    /// Used to transform a voxel position in the volume into its corresponding index
+    /// in the voxel array.
+    #[inline(always)]
+    fn idx_for_unchecked(pos: Vec3<i32>) -> usize {
+        (pos.x * S::SIZE.y as i32 * S::SIZE.z as i32 + pos.y * S::SIZE.z as i32 + pos.z) as usize
     }
 }
 
@@ -60,6 +64,11 @@ impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
         Self::idx_for(pos)
             .and_then(|idx| self.vox.get(idx))
             .ok_or(ChunkErr::OutOfBounds)
+    }
+
+    #[inline(always)]
+    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V {
+        self.vox.get_unchecked(Self::idx_for_unchecked(pos))
     }
 }
 

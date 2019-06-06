@@ -12,13 +12,14 @@ use common::{
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
+    terrain::chonk::ChonkMetrics,
 };
+use log::{info, log_enabled};
 use std::{
     collections::HashMap,
     net::SocketAddr,
     time::{Duration, Instant},
 };
-
 use threadpool::ThreadPool;
 use vek::*;
 
@@ -43,6 +44,7 @@ pub struct Client {
     state: State,
     entity: EcsEntity,
     view_distance: Option<u32>,
+    loaded_distance: Option<u32>,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
 }
@@ -73,11 +75,15 @@ impl Client {
 
         postbox.send_message(ClientMsg::Ping);
 
+        let mut thread_pool = threadpool::Builder::new()
+            .thread_name("veloren-worker".into())
+            .build();
+        // We reduce the thread count by 1 to keep rendering smooth
+        thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
+
         Ok(Self {
             client_state,
-            thread_pool: threadpool::Builder::new()
-                .thread_name("veloren-worker".into())
-                .build(),
+            thread_pool,
             server_info,
 
             postbox,
@@ -89,9 +95,16 @@ impl Client {
             state,
             entity,
             view_distance,
+            loaded_distance: None,
 
             pending_chunks: HashMap::new(),
         })
+    }
+
+    #[allow(dead_code)]
+    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
+        self.thread_pool = thread_pool;
+        self
     }
 
     /// Request a state transition to `ClientState::Registered`.
@@ -129,6 +142,10 @@ impl Client {
 
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
+    }
+
+    pub fn loaded_distance(&self) -> Option<u32> {
+        self.loaded_distance
     }
 
     /// Send a chat message to the server.
@@ -240,7 +257,7 @@ impl Client {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| e.abs() as u32)
                     .reduce_max()
-                    > view_distance
+                    > view_distance + 1
                 {
                     chunks_to_remove.push(key);
                 }
@@ -251,29 +268,36 @@ impl Client {
 
             // Request chunks from the server.
             // TODO: This is really inefficient.
+            let mut all_loaded = true;
             'outer: for dist in 0..=view_distance as i32 {
-                for i in chunk_pos.x - dist..=chunk_pos.x + dist {
-                    for j in chunk_pos.y - dist..=chunk_pos.y + dist {
+                for i in chunk_pos.x - dist..=chunk_pos.x + 1 + dist {
+                    for j in chunk_pos.y - dist..=chunk_pos.y + 1 + dist {
                         let key = Vec2::new(i, j);
-                        if self.state.terrain().get_key(key).is_none()
-                            && !self.pending_chunks.contains_key(&key)
-                        {
-                            if self.pending_chunks.len() < 4 {
-                                self.postbox
-                                    .send_message(ClientMsg::TerrainChunkRequest { key });
-                                self.pending_chunks.insert(key, Instant::now());
-                            } else {
-                                break 'outer;
+                        if self.state.terrain().get_key(key).is_none() {
+                            if !self.pending_chunks.contains_key(&key) {
+                                if self.pending_chunks.len() < 4 {
+                                    self.postbox
+                                        .send_message(ClientMsg::TerrainChunkRequest { key });
+                                    self.pending_chunks.insert(key, Instant::now());
+                                } else {
+                                    break 'outer;
+                                }
                             }
+
+                            all_loaded = false;
                         }
                     }
+                }
+
+                if all_loaded {
+                    self.loaded_distance = Some((dist - 1).max(0) as u32);
                 }
             }
 
             // If chunks are taking too long, assume they're no longer pending.
             let now = Instant::now();
             self.pending_chunks
-                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(10));
+                .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
         }
 
         // Send a ping to the server once every second
@@ -306,6 +330,16 @@ impl Client {
                 self.postbox
                     .send_message(ClientMsg::PlayerAnimation(animation_info.clone()));
             }
+        }
+
+        // Output debug metrics
+        if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
+            let metrics = self
+                .state
+                .terrain()
+                .iter()
+                .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
+            info!("{:?}", metrics);
         }
 
         // 7) Finish the tick, pass control back to the frontend.
@@ -421,7 +455,7 @@ impl Client {
     /// computationally expensive operations that run outside of the main thread (i.e., threads that
     /// block on I/O operations are exempt).
     #[allow(dead_code)]
-    pub fn thread_pool(&self) -> &threadpool::ThreadPool {
+    pub fn thread_pool(&self) -> &ThreadPool {
         &self.thread_pool
     }
 

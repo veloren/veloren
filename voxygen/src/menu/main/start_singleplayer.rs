@@ -3,6 +3,7 @@ use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
     PlayState, PlayStateResult,
 };
+use client::Client;
 use common::comp;
 use log::warn;
 use std::net::SocketAddr;
@@ -15,7 +16,7 @@ pub struct StartSingleplayerState {
 impl StartSingleplayerState {
     /// Create a new `MainMenuState`.
     pub fn new() -> Self {
-        let (singleplayer, sock) = Singleplayer::new();
+        let (singleplayer, sock) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
         Self { singleplayer, sock }
     }

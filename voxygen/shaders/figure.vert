@@ -28,15 +28,12 @@ out vec3 f_col;
 flat out uint f_bone_idx;
 
 void main() {
-	f_pos = v_pos;
+	f_pos = (model_mat *
+		bones[v_bone_idx].bone_mat *
+		vec4(v_pos, 1)).xyz;
 	f_norm = v_norm;
 	f_col = v_col;
 	f_bone_idx = v_bone_idx;
 
-	gl_Position =
-		proj_mat *
-		view_mat *
-		model_mat *
-		bones[v_bone_idx].bone_mat *
-		vec4(v_pos, 1);
+	gl_Position = proj_mat * view_mat * vec4(f_pos, 1);
 }

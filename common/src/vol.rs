@@ -1,4 +1,5 @@
 use crate::ray::{Ray, RayUntil};
+use std::fmt::Debug;
 use vek::*;
 
 /// A voxel.
@@ -18,7 +19,7 @@ pub trait Vox: Sized {
 /// A volume that contains voxel data.
 pub trait BaseVol {
     type Vox: Vox;
-    type Err;
+    type Err: Debug;
 }
 
 // Utility types
@@ -72,6 +73,11 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
+
+    #[inline(always)]
+    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox {
+        self.get(pos).unwrap()
+    }
 
     fn ray(&self, from: Vec3<f32>, to: Vec3<f32>) -> Ray<Self, fn(&Self::Vox) -> bool>
     where
