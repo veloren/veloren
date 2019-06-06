@@ -11,7 +11,7 @@ uniform u_locals {
 };
 
 out vec3 f_pos;
-out vec3 f_norm;
+flat out uint f_pos_norm;
 out vec3 f_col;
 out float f_light;
 
@@ -22,21 +22,13 @@ void main() {
 		float((v_pos_norm >> 16) & 0x1FFFu)
 	) + model_offs;
 
+	f_pos_norm = v_pos_norm;
+
 	f_col = vec3(
 		float((v_col_light >>  8) & 0xFFu),
 		float((v_col_light >> 16) & 0xFFu),
 		float((v_col_light >> 24) & 0xFFu)
 	) / 255.0;
-
-	uint norm_axis = (v_pos_norm >> 30) & 0x3u;
-	float norm_dir = float((v_pos_norm >> 29) & 0x1u) * 2.0 - 1.0;
-	if (norm_axis == 0u) {
-		f_norm = vec3(1.0, 0.0, 0.0) * norm_dir;
-	} else if (norm_axis == 1u) {
-		f_norm = vec3(0.0, 1.0, 0.0) * norm_dir;
-	} else {
-		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
-	}
 
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 

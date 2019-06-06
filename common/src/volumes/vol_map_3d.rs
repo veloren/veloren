@@ -6,7 +6,7 @@ use crate::{
         dyna::{Dyna, DynaErr},
     },
 };
-use std::{collections::HashMap, marker::PhantomData, sync::Arc};
+use std::{collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]
@@ -45,12 +45,12 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
     }
 }
 
-impl<V: BaseVol, S: VolSize> BaseVol for VolMap3d<V, S> {
+impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap3d<V, S> {
     type Vox = V::Vox;
     type Err = VolMap3dErr<V>;
 }
 
-impl<V: BaseVol + ReadVol, S: VolSize> ReadVol for VolMap3d<V, S> {
+impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap3d<V, S> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap3dErr<V>> {
         let ck = Self::chunk_key(pos);
@@ -66,7 +66,7 @@ impl<V: BaseVol + ReadVol, S: VolSize> ReadVol for VolMap3d<V, S> {
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
 // TODO: Should this be changed, perhaps?
-impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol, S: VolSize> SampleVol<I> for VolMap3d<V, S> {
+impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolMap3d<V, S> {
     type Sample = VolMap3d<V, S>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
@@ -95,7 +95,7 @@ impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol, S: VolSize> SampleVol<I> for VolM
     }
 }
 
-impl<V: BaseVol + WriteVol + Clone, S: VolSize + Clone> WriteVol for VolMap3d<V, S> {
+impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap3d<V, S> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap3dErr<V>> {
         let ck = Self::chunk_key(pos);

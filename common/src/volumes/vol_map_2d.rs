@@ -6,8 +6,10 @@ use crate::{
         dyna::{Dyna, DynaErr},
     },
 };
+use fxhash::FxHashMap;
 use std::{
     collections::{hash_map, HashMap},
+    fmt::Debug,
     marker::PhantomData,
     sync::Arc,
 };
@@ -26,7 +28,7 @@ pub enum VolMap2dErr<V: BaseVol> {
 // M = Chunk metadata
 #[derive(Clone)]
 pub struct VolMap2d<V: BaseVol, S: VolSize> {
-    chunks: HashMap<Vec2<i32>, Arc<V>>,
+    chunks: FxHashMap<Vec2<i32>, Arc<V>>,
     phantom: PhantomData<S>,
 }
 
@@ -50,12 +52,12 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
     }
 }
 
-impl<V: BaseVol, S: VolSize> BaseVol for VolMap2d<V, S> {
+impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap2d<V, S> {
     type Vox = V::Vox;
     type Err = VolMap2dErr<V>;
 }
 
-impl<V: BaseVol + ReadVol, S: VolSize> ReadVol for VolMap2d<V, S> {
+impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap2d<V, S> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap2dErr<V>> {
         let ck = Self::chunk_key(pos);
@@ -67,11 +69,18 @@ impl<V: BaseVol + ReadVol, S: VolSize> ReadVol for VolMap2d<V, S> {
                 chunk.get(co).map_err(|err| VolMap2dErr::ChunkErr(err))
             })
     }
+
+    #[inline(always)]
+    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V::Vox {
+        let ck = Self::chunk_key(pos);
+        let co = Self::chunk_offs(pos);
+        self.chunks.get(&ck).unwrap().get_unchecked(co)
+    }
 }
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
 // TODO: Should this be changed, perhaps?
-impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol, S: VolSize> SampleVol<I> for VolMap2d<V, S> {
+impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolMap2d<V, S> {
     type Sample = VolMap2d<V, S>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
@@ -99,7 +108,7 @@ impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol, S: VolSize> SampleVol<I> for VolM
     }
 }
 
-impl<V: BaseVol + WriteVol + Clone, S: VolSize + Clone> WriteVol for VolMap2d<V, S> {
+impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap2d<V, S> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap2dErr<V>> {
         let ck = Self::chunk_key(pos);
@@ -122,7 +131,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
             .reduce_and()
         {
             Ok(Self {
-                chunks: HashMap::new(),
+                chunks: FxHashMap::default(),
                 phantom: PhantomData,
             })
         } else {
