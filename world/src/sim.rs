@@ -181,7 +181,7 @@ impl<'a> Sampler<'a> {
             .mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.1, 0.6, 0.3);
+        let cold_grass = Rgb::new(0.0, 0.55, 0.15);
         let warm_grass = Rgb::new(0.25, 0.8, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
@@ -461,7 +461,6 @@ impl SimChunk {
                 .add(1.0)
                 .mul(0.5)
                 .mul(1.0 - chaos * 0.85)
-                .mul(1.2)
                 .add(0.1)
                 .mul(if alt > SEA_LEVEL + 2.0 { 1.0 } else { 0.0 }),
         }
