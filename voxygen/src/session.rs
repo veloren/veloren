@@ -13,8 +13,6 @@ use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
-const FPS: u64 = 1000;
-
 pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
@@ -188,12 +186,16 @@ impl PlayState for SessionState {
                     HudEvent::AdjustMousePan(sensitivity) => {
                         global_state.window.pan_sensitivity = sensitivity;
                         global_state.settings.gameplay.pan_sensitivity = sensitivity;
-                        global_state.settings.save_to_file();
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings: {:?}", err);
+                        }
                     }
                     HudEvent::AdjustMouseZoom(sensitivity) => {
                         global_state.window.zoom_sensitivity = sensitivity;
                         global_state.settings.gameplay.zoom_sensitivity = sensitivity;
-                        global_state.settings.save_to_file();
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings: {:?}", err);
+                        }
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
@@ -219,6 +221,12 @@ impl PlayState for SessionState {
                             warn!("Failed to save settings!\n{:?}", err);
                         }
                     }
+                    HudEvent::ChangeMaxFPS(fps) => {
+                        global_state.settings.graphics.max_fps = fps;
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings!\n{:?}", err);
+                        }
+                    }
                 }
             }
 
@@ -236,7 +244,9 @@ impl PlayState for SessionState {
                 .expect("Failed to swap window buffers!");
 
             // Wait for the next tick.
-            clock.tick(Duration::from_millis(1000 / FPS));
+            clock.tick(Duration::from_millis(
+                1000 / global_state.settings.graphics.max_fps as u64,
+            ));
 
             // Clean things up after the tick.
             self.cleanup();
