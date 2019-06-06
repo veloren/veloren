@@ -52,7 +52,7 @@ impl FigureModelCache {
         tick: u64,
     ) -> &Model<FigurePipeline> {
         match self.models.get_mut(&body) {
-            Some((model, last_used)) => {
+            Some((_model, last_used)) => {
                 *last_used = tick;
             }
             None => {

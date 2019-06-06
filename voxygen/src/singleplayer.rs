@@ -84,7 +84,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
         server.cleanup();
 
         match rec.try_recv() {
-            Ok(msg) => break,
+            Ok(_msg) => break,
             Err(err) => match err {
                 TryRecvError::Empty => (),
                 TryRecvError::Disconnected => break,

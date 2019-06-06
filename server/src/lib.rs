@@ -85,7 +85,7 @@ impl Server {
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 280.0)));
 
-        let mut this = Self {
+        let this = Self {
             state,
             world: Arc::new(World::generate(DEFAULT_WORLD_SEED)),
 
@@ -104,18 +104,6 @@ impl Server {
                 description: "This is the best Veloren server.".to_owned(),
             },
         };
-
-        /*
-        for i in 0..4 {
-            this.create_npc(
-                "Tobermory".to_owned(),
-                comp::Body::Humanoid(comp::HumanoidBody::random()),
-            )
-            .with(comp::Actions::default())
-            .with(comp::Agent::Wanderer(Vec2::zero()))
-            .build();
-        }
-        */
 
         Ok(this)
     }

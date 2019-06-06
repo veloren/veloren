@@ -5,7 +5,7 @@ use crate::{
         img_ids::{ImageGraphic, VoxelGraphic},
         ScaleMode, Ui,
     },
-    GlobalState, DEFAULT_PUBLIC_SERVER,
+    GlobalState,
 };
 use conrod_core::{
     color,
@@ -308,7 +308,7 @@ impl MainMenuUi {
                 let net_settings = &global_state.settings.networking;
 
                 // TODO: Draw scroll bar or remove it.
-                let (mut items, scrollbar) = List::flow_down(net_settings.servers.len())
+                let (mut items, _scrollbar) = List::flow_down(net_settings.servers.len())
                     .top_left_with_margins_on(self.ids.servers_frame, 0.0, 5.0)
                     .w_h(400.0, 300.0)
                     .scrollbar_next_to()

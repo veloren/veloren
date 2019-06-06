@@ -3,12 +3,7 @@ use crate::{
     volumes::dyna::DynaErr,
 };
 use fxhash::FxHashMap;
-use std::{
-    collections::{hash_map, HashMap},
-    fmt::Debug,
-    marker::PhantomData,
-    sync::Arc,
-};
+use std::{collections::hash_map, fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]

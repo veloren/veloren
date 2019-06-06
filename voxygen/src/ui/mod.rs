@@ -110,7 +110,7 @@ impl Ui {
         let scale = Scale::new(window, ScaleMode::Absolute(1.0));
         let win_dims = scale.scaled_window_size().into_array();
 
-        let mut renderer = window.renderer_mut();
+        let renderer = window.renderer_mut();
 
         Ok(Self {
             ui: UiBuilder::new(win_dims).build(),

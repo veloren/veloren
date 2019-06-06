@@ -3,7 +3,6 @@ use crate::{
     menu::char_selection::CharSelectionState, singleplayer::Singleplayer, Direction, GlobalState,
     PlayState, PlayStateResult,
 };
-use client::Client;
 use common::comp;
 use log::warn;
 use std::net::SocketAddr;

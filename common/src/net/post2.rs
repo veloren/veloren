@@ -420,8 +420,6 @@ mod tests {
     #[test]
     fn send_recv_both() {
         let (mut postoffice, sock) = create_postoffice::<u32, u32>(4).unwrap();
-        let test_msgs = vec![1, 1337, 42, -48];
-
         let mut client = PostBox::<u32, u32>::to(sock).unwrap();
         loop_for(Duration::from_millis(250), || ());
         let mut server = postoffice.new_postboxes().next().unwrap();
