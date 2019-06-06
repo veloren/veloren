@@ -43,16 +43,16 @@ impl<'a> Sampler<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
 
-        let rock = (sim.gen_ctx.small_nz.get((wposf.div(100.0)).into_array()) as f32)
-            .mul(rockiness)
-            .sub(0.35)
-            .max(0.0)
-            .mul(6.0);
-
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32
                 * chaos.max(0.2)
                 * 64.0;
+
+        let rock = (sim.gen_ctx.small_nz.get(Vec3::new(wposf.x, wposf.y, alt as f64).div(100.0).into_array()) as f32)
+            .mul(rockiness)
+            .sub(0.35)
+            .max(0.0)
+            .mul(6.0);
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
