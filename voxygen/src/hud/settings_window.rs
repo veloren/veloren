@@ -9,7 +9,7 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-const FPS_CHOICES: [u32; 11] = [1, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
+const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
 
 widget_ids! {
     struct Ids {
