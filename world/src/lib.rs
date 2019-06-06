@@ -1,6 +1,7 @@
 #![feature(euclidean_division)]
 
 mod sim;
+mod sampler;
 mod structure;
 
 use common::{
@@ -79,12 +80,11 @@ impl World {
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                    let sim::Sample3d { block } =
-                        if let Some(sample) = world_sampler.sample_3d(wpos) {
-                            sample
-                        } else {
-                            continue;
-                        };
+                    let block = if let Some(sample) = world_sampler.sample_3d(wpos) {
+                        sample.block
+                    } else {
+                        continue;
+                    };
 
                     let _ = chunk.set(lpos, block);
                 }
