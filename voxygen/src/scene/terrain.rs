@@ -3,7 +3,11 @@ use crate::{
     render::{Consts, Globals, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
 };
 use client::Client;
-use common::{terrain::TerrainMap, vol::SampleVol, volumes::vol_map_2d::VolMap2dErr};
+use common::{
+    terrain::{TerrainChunkSize, TerrainMap},
+    vol::{SampleVol, VolSize},
+    volumes::vol_map_2d::VolMap2dErr,
+};
 use std::{collections::HashMap, i32, sync::mpsc, time::Duration};
 use vek::*;
 
@@ -200,9 +204,28 @@ impl Terrain {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
-        for (_, chunk) in &self.chunks {
-            renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
+    pub fn render(
+        &self,
+        renderer: &mut Renderer,
+        globals: &Consts<Globals>,
+        focus_pos: Vec3<f32>,
+        loaded_distance: f32,
+    ) {
+        for (pos, chunk) in &self.chunks {
+            // Limit focus_pos to chunk bounds
+            let chunk_pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
+                e as f32 * sz as f32
+            });
+            let nearest_in_chunk = Vec2::from(focus_pos).clamped(
+                chunk_pos,
+                chunk_pos + Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as f32),
+            );
+
+            if Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
+                < loaded_distance.powf(2.0)
+            {
+                renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
+            }
         }
     }
 }
