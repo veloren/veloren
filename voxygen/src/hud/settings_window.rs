@@ -32,9 +32,11 @@ widget_ids! {
         inventory_test_button,
         inventory_test_button_label,
         mouse_pan_slider,
-        mouse_pan_text,
+        mouse_pan_label,
+        mouse_pan_value,
         mouse_zoom_slider,
-        mouse_zoom_text,
+        mouse_zoom_label,
+        mouse_zoom_value,
         settings_bg,
         sound,
         test,
@@ -291,22 +293,25 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Gameplay = self.show.settings_tab {
+            let display_pan = self.global_state.settings.gameplay.pan_sensitivity;
+            let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
+
             Text::new("Pan Sensitivity")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
-                .set(state.ids.mouse_pan_text, ui);
+                .set(state.ids.mouse_pan_label, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                (self.global_state.settings.gameplay.pan_sensitivity * 100.0) as u32,
+                display_pan,
                 1,
                 200,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
-            .w_h(208.0, 22.0)
-            .down_from(state.ids.mouse_pan_text, 10.0)
+            .w_h(550.0, 22.0)
+            .down_from(state.ids.mouse_pan_label, 10.0)
             .track_breadth(30.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
@@ -315,22 +320,29 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::AdjustMousePan(new_val));
             }
 
+            Text::new(&format!("{}", display_pan))
+                .right_from(state.ids.mouse_pan_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.mouse_pan_value, ui);
+
             Text::new("Zoom Sensitivity")
                 .down_from(state.ids.mouse_pan_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
-                .set(state.ids.mouse_zoom_text, ui);
+                .set(state.ids.mouse_zoom_label, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
-                (self.global_state.settings.gameplay.zoom_sensitivity * 100.0) as u32,
+                display_zoom,
                 1,
                 200,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
-            .w_h(208.0, 22.0)
-            .down_from(state.ids.mouse_zoom_text, 10.0)
+            .w_h(550.0, 22.0)
+            .down_from(state.ids.mouse_zoom_label, 10.0)
             .track_breadth(30.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
@@ -338,6 +350,13 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::AdjustMouseZoom(new_val));
             }
+
+            Text::new(&format!("{}", display_zoom))
+                .right_from(state.ids.mouse_zoom_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.mouse_zoom_value, ui);
         }
 
         // 3) Controls Tab --------------------------------
