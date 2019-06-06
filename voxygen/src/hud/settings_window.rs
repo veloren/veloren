@@ -628,7 +628,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 FPS_CHOICES
                     .iter()
                     .position(|&x| x == self.global_state.settings.graphics.max_fps)
-                    .unwrap_or(0),
+                    .unwrap_or(5),
                 0,
                 10,
                 self.imgs.slider_indicator,
