@@ -1,11 +1,11 @@
 use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{BaseVol, ReadVol, VolSize, WriteVol},
+    vol::{BaseVol, ReadVol, WriteVol},
     volumes::chunk::{Chunk, ChunkErr},
 };
 use fxhash::FxHashMap;
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::HashMap, ops::Add};
+use std::ops::Add;
 use vek::*;
 
 #[derive(Debug)]
@@ -181,8 +181,8 @@ impl WriteVol for Chonk {
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
                 Ok(())
             }
-            SubChunk::Hash(cblock, map) if block == *cblock => Ok(()),
-            SubChunk::Hash(cblock, map) if map.len() < 4096 => {
+            SubChunk::Hash(cblock, _map) if block == *cblock => Ok(()),
+            SubChunk::Hash(_cblock, map) if map.len() < 4096 => {
                 map.insert(rpos.map(|e| e as u8), block);
                 Ok(())
             }

@@ -1,4 +1,7 @@
-// Library
+use super::{
+    super::{Mesh, Pipeline, Quad, TgtColorFmt, TgtDepthFmt},
+    Globals,
+};
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -8,12 +11,6 @@ use gfx::{
     gfx_pipeline,
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
-};
-
-// Local
-use super::{
-    super::{Mesh, Pipeline, Quad, TgtColorFmt, TgtDepthFmt},
-    Globals,
 };
 
 gfx_defines! {

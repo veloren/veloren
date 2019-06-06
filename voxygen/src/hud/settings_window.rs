@@ -1,17 +1,11 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use crate::{
-    render::Renderer,
-    ui::{
-        self,
-        img_ids::{ImageGraphic, VoxelGraphic},
-        ImageSlider, ScaleMode, ToggleButton, Ui,
-    },
-    window::Window,
-    AudioFrontend, GlobalState,
+    ui::{ImageSlider, ToggleButton},
+    GlobalState,
 };
 use conrod_core::{
     color,
-    widget::{self, Button, DropDownList, Image, List, Rectangle, Scrollbar, Text},
+    widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 widget_ids! {

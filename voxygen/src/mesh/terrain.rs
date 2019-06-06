@@ -1,11 +1,11 @@
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, Mesh, Quad, TerrainPipeline},
+    render::{self, Mesh, TerrainPipeline},
 };
 use common::{
     terrain::Block,
-    vol::{BaseVol, ReadVol, SizedVol, VolSize, Vox},
-    volumes::{dyna::Dyna, vol_map_2d::VolMap2d, vol_map_3d::VolMap3d},
+    vol::{BaseVol, ReadVol, VolSize},
+    volumes::vol_map_2d::VolMap2d,
 };
 use std::fmt::Debug;
 use vek::*;
