@@ -48,8 +48,8 @@ pub struct ControlSettings {
 /// `GameplaySettings` contains sensitivity and gameplay options.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GameplaySettings {
-    pub pan_sensitivity: f32,
-    pub zoom_sensitivity: f32,
+    pub pan_sensitivity: u32,
+    pub zoom_sensitivity: u32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -109,8 +109,8 @@ impl Default for Settings {
                 attack: KeyMouse::Mouse(MouseButton::Left),
             },
             gameplay: GameplaySettings {
-                pan_sensitivity: 1.0,
-                zoom_sensitivity: 1.0,
+                pan_sensitivity: 100,
+                zoom_sensitivity: 100,
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),
