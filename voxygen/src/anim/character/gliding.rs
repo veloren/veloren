@@ -1,11 +1,6 @@
-// Standard
+use super::{super::Animation, CharacterSkeleton};
 use std::{f32::consts::PI, ops::Mul};
-
-// Library
 use vek::*;
-
-// Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
 
 pub struct GlidingAnimation;
 
@@ -23,7 +18,7 @@ impl Animation for GlidingAnimation {
         let wave_slow = (anim_time as f32 * 7.0).sin();
         let wave_slow_cos = (anim_time as f32 * 7.0).cos();
         let arc_wave = (1.0f32.ln_1p() - 1.5).abs();
-        let wave_test = (wave.cbrt());
+        let wave_test = wave.cbrt();
         let fuzz_wave = (anim_time as f32 * 12.0).sin();
         let wave_cos = (anim_time as f32 * 14.0).cos();
         let wave_stop = (anim_time as f32 * 1.5).min(PI / 2.0).sin();

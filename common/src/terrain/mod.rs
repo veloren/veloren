@@ -6,10 +6,7 @@ pub mod structure;
 // Reexports
 pub use self::{biome::BiomeKind, block::Block, structure::Structure};
 
-use crate::{
-    vol::VolSize,
-    volumes::{chunk::Chunk, vol_map_2d::VolMap2d},
-};
+use crate::{vol::VolSize, volumes::vol_map_2d::VolMap2d};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 

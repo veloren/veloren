@@ -1,5 +1,4 @@
 use specs::{Component, FlaggedStorage, VecStorage};
-use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Animation {

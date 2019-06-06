@@ -1,6 +1,4 @@
-use crate::Error;
 use common::{
-    comp,
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostBox,
 };
@@ -84,7 +82,7 @@ impl Clients {
     }
 
     pub fn notify_ingame_if<F: FnMut(EcsEntity) -> bool>(&mut self, msg: ServerMsg, mut f: F) {
-        for (entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
+        for (_entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
             if client.client_state == ClientState::Spectator
                 || client.client_state == ClientState::Character
             {

@@ -4,20 +4,14 @@ pub mod terrain;
 
 use self::{camera::Camera, figure::FigureMgr, terrain::Terrain};
 use crate::{
-    anim::{
-        character::{CharacterSkeleton, RunAnimation},
-        Animation,
-    },
-    mesh::Meshable,
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, FigureLocals, Globals, Model,
-        PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
+        create_pp_mesh, create_skybox_mesh, Consts, Globals, Model, PostProcessLocals,
+        PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     window::Event,
 };
 use client::Client;
-use common::{comp, figure::Segment};
-use dot_vox;
+use common::comp;
 use vek::*;
 
 // TODO: Don't hard-code this.

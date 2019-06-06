@@ -11,11 +11,8 @@ pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::run::RunAnimation;
 
-// Crate
-use crate::render::FigureBoneData;
-
-// Local
 use super::{Bone, Skeleton};
+use crate::render::FigureBoneData;
 
 const SCALE: f32 = 11.0;
 

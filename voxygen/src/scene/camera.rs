@@ -1,11 +1,6 @@
 use client::Client;
-
-use common::vol::{ReadVol, SampleVol};
-
-// Standard
+use common::vol::ReadVol;
 use std::f32::consts::PI;
-
-// Library
 use vek::*;
 
 const NEAR_PLANE: f32 = 0.1;

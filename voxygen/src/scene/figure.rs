@@ -9,7 +9,6 @@ use crate::{
     render::{
         Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Mesh, Model, Renderer,
     },
-    Error,
 };
 use client::Client;
 use common::{
@@ -21,16 +20,15 @@ use common::{
             Shoulder, Weapon, WolfEars, WolfFootLB, WolfFootLF, WolfFootRB, WolfFootRF,
             WolfHeadLower, WolfHeadUpper, WolfJaw, WolfTail, WolfTorsoBack, WolfTorsoMid,
         },
-        Body, HumanoidBody, QuadrupedBody, QuadrupedMediumBody,
+        Body,
     },
     figure::Segment,
-    msg,
-    msg::ClientState,
     terrain::TerrainChunkSize,
     vol::VolSize,
 };
 use dot_vox::DotVoxData;
-use specs::{Component, Entity as EcsEntity, Join, VecStorage};
+use log::warn;
+use specs::{Entity as EcsEntity, Join};
 use std::{collections::HashMap, f32};
 use vek::*;
 
@@ -54,7 +52,7 @@ impl FigureModelCache {
         tick: u64,
     ) -> &Model<FigurePipeline> {
         match self.models.get_mut(&body) {
-            Some((model, last_used)) => {
+            Some((_model, last_used)) => {
                 *last_used = tick;
             }
             None => {
@@ -523,7 +521,7 @@ impl FigureMgr {
             // Change in health as color!
             let col = stats
                 .and_then(|stats| stats.hp.last_change)
-                .map(|(change_by, time, _)| {
+                .map(|(_, time, _)| {
                     Rgba::broadcast(1.0)
                         + Rgba::new(0.0, -1.0, -1.0, 0.0)
                             .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
@@ -532,7 +530,7 @@ impl FigureMgr {
 
             match actor {
                 comp::Actor::Character { body, .. } => match body {
-                    Body::Humanoid(body) => {
+                    Body::Humanoid(_) => {
                         let state = self.character_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, CharacterSkeleton::new())
                         });
@@ -570,7 +568,7 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
                         state.update(renderer, pos.0, ori.0, col);
                     }
-                    Body::Quadruped(body) => {
+                    Body::Quadruped(_) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
                             FigureState::new(renderer, QuadrupedSkeleton::new())
                         });
@@ -599,7 +597,7 @@ impl FigureMgr {
                         state.skeleton.interpolate(&target_skeleton);
                         state.update(renderer, pos.0, ori.0, col);
                     }
-                    Body::QuadrupedMedium(body) => {
+                    Body::QuadrupedMedium(_) => {
                         let state =
                             self.quadruped_medium_states
                                 .entry(entity)
@@ -686,7 +684,7 @@ impl FigureMgr {
                     .reduce_and()
             })
             // Don't render dead entities
-            .filter(|(e, _, _, _, a, _, stats)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
         {
             match actor {
                 comp::Actor::Character { body, .. } => {
@@ -708,7 +706,7 @@ impl FigureMgr {
 
                         renderer.render_figure(model, globals, locals, bone_consts);
                     } else {
-                        log::error!("Body has no saved figure");
+                        warn!("Body has no saved figure");
                     }
                 }
             }

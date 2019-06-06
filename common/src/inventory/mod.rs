@@ -1,4 +1,3 @@
-//Library
 use specs::{Component, VecStorage};
 
 //Re-Exports

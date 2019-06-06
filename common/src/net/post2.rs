@@ -1,3 +1,4 @@
+use log::warn;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
     collections::VecDeque,
@@ -10,7 +11,7 @@ use std::{
         mpsc, Arc,
     },
     thread,
-    time::{Duration, Instant},
+    time::Duration,
 };
 
 #[derive(Clone, Debug)]
@@ -34,7 +35,7 @@ impl From<bincode::Error> for Error {
 }
 
 impl From<mpsc::TryRecvError> for Error {
-    fn from(error: mpsc::TryRecvError) -> Self {
+    fn from(_error: mpsc::TryRecvError) -> Self {
         Error::ChannelFailure
     }
 }
@@ -51,7 +52,7 @@ pub struct PostOffice<S: PostMsg, R: PostMsg> {
 
 impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
     pub fn bind<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
-        let mut listener = TcpListener::bind(addr.into())?;
+        let listener = TcpListener::bind(addr.into())?;
         listener.set_nonblocking(true)?;
 
         Ok(Self {
@@ -74,7 +75,7 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
 
         loop {
             match self.listener.accept() {
-                Ok((stream, sock)) => new.push(PostBox::from_stream(stream).unwrap()),
+                Ok((stream, _sock)) => new.push(PostBox::from_stream(stream).unwrap()),
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
                 Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
                 Err(e) => {
@@ -179,7 +180,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
         'work: while running.load(Ordering::Relaxed) {
             for _ in 0..30 {
-                // Get stream errors
+                // Get stream errors.
                 match stream.take_error() {
                     Ok(Some(e)) | Err(e) => {
                         recv_tx.send(Err(e.into())).unwrap();
@@ -307,7 +308,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
             thread::sleep(Duration::from_millis(10));
         }
 
-        stream.shutdown(Shutdown::Both);
+        if let Err(err) = stream.shutdown(Shutdown::Both) {
+            warn!("TCP worker stream shutdown failed: {:?}", err);
+        }
     }
 }
 
@@ -321,6 +324,7 @@ impl<S: PostMsg, R: PostMsg> Drop for PostBox<S, R> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
 
     fn create_postoffice<S: PostMsg, R: PostMsg>(
         id: u16,
@@ -416,8 +420,6 @@ mod tests {
     #[test]
     fn send_recv_both() {
         let (mut postoffice, sock) = create_postoffice::<u32, u32>(4).unwrap();
-        let test_msgs = vec![1, 1337, 42, -48];
-
         let mut client = PostBox::<u32, u32>::to(sock).unwrap();
         loop_for(Duration::from_millis(250), || ());
         let mut server = postoffice.new_postboxes().next().unwrap();
