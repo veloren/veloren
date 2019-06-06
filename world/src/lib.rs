@@ -49,12 +49,16 @@ impl World {
 
         let warp_nz = BasicMulti::new().set_octaves(3).set_seed(self.sim.seed + 0);
 
-        let base_z = match self.sim.get_base_z(chunk_pos.map(|e| e as u32)) {
+        let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
+        let base_z = match self.sim.get_interpolated(
+            chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
+            |chunk| chunk.get_base_z(),
+        ) {
             Some(base_z) => base_z as i32,
             None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
         };
 
-        let mut chunk = TerrainChunk::new(base_z, stone, air, TerrainChunkMeta::void());
+        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, TerrainChunkMeta::void());
 
         let mut world_sampler = self.sim.sampler();
 
@@ -64,12 +68,17 @@ impl World {
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
                 let wposf2d = wpos2d.map(|e| e as f64);
 
+                let min_z = self
+                    .sim
+                    .get_interpolated(wpos2d, |chunk| chunk.get_min_z())
+                    .unwrap_or(0.0) as i32;
+
                 let max_z = self
                     .sim
                     .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
                     .unwrap_or(0.0) as i32;
 
-                for z in base_z..max_z.max(sim::SEA_LEVEL as i32) {
+                for z in min_z..max_z {
                     let lpos = Vec3::new(x, y, z);
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);

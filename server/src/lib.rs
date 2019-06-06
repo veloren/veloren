@@ -122,6 +122,12 @@ impl Server {
         Ok(this)
     }
 
+    #[allow(dead_code)]
+    pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
+        self.thread_pool = thread_pool;
+        self
+    }
+
     /// Get a reference to the server's game state.
     #[allow(dead_code)]
     pub fn state(&self) -> &State {
@@ -306,7 +312,7 @@ impl Server {
                     .map(|e: i32| e.abs())
                     .reduce_max() as u32;
 
-                if dist <= view_distance {
+                if dist <= view_distance + 1 {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -338,7 +344,11 @@ impl Server {
                     .map(|e: i32| e.abs() as u32)
                     .reduce_max();
 
-                if player.view_distance.map(|vd| dist <= vd).unwrap_or(false) {
+                if player
+                    .view_distance
+                    .map(|vd| dist <= vd + 1)
+                    .unwrap_or(false)
+                {
                     should_drop = false;
                     break;
                 }

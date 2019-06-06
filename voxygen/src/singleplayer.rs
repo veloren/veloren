@@ -1,3 +1,4 @@
+use client::Client;
 use common::clock::Clock;
 use log::info;
 use portpicker::pick_unused_port;
@@ -23,7 +24,7 @@ pub struct Singleplayer {
 }
 
 impl Singleplayer {
-    pub fn new() -> (Self, SocketAddr) {
+    pub fn new(client: Option<&Client>) -> (Self, SocketAddr) {
         let (sender, receiver) = channel();
 
         let sock = SocketAddr::from((
@@ -33,6 +34,11 @@ impl Singleplayer {
 
         // Create server
         let server = Server::bind(sock.clone()).expect("Failed to create server instance!");
+
+        let server = match client {
+            Some(client) => server.with_thread_pool(client.thread_pool().clone()),
+            None => server,
+        };
 
         let thread = thread::spawn(move || {
             run_server(server, receiver);
