@@ -28,8 +28,7 @@ impl Block {
         match self.kind {
             0 => None,
             1 => Some(0.85),
-            2 => Some(1.0),
-            _ => unimplemented!(),
+            _ => Some(1.0),
         }
     }
 }
