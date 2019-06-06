@@ -27,7 +27,7 @@ impl<V: Vox, M> Dyna<V, M> {
     #[inline(always)]
     fn idx_for(sz: Vec3<u32>, pos: Vec3<i32>) -> Option<usize> {
         if pos.map(|e| e >= 0).reduce_and() && pos.map2(sz, |e, lim| e < lim as i32).reduce_and() {
-            Some((pos.x * sz.y as i32 * sz.z as i32 + pos.y * sz.z as i32 + pos.z) as usize)
+            Some(Self::idx_for_unchecked(sz, pos))
         } else {
             None
         }

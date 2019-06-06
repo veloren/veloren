@@ -32,10 +32,7 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         if pos.map(|e| e >= 0).reduce_and()
             && pos.map2(S::SIZE, |e, lim| e < lim as i32).reduce_and()
         {
-            Some(
-                (pos.x * S::SIZE.y as i32 * S::SIZE.z as i32 + pos.y * S::SIZE.z as i32 + pos.z)
-                    as usize,
-            )
+            Some(Self::idx_for_unchecked(pos))
         } else {
             None
         }
