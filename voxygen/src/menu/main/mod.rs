@@ -12,8 +12,6 @@ use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
 use vek::*;
 
-const FPS: u64 = 60;
-
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
 }
@@ -133,7 +131,9 @@ impl PlayState for MainMenuState {
                 .expect("Failed to swap window buffers!");
 
             // Wait for the next tick
-            clock.tick(Duration::from_millis(1000 / FPS));
+            clock.tick(Duration::from_millis(
+                1000 / (global_state.settings.graphics.max_fps as u64),
+            ));
         }
     }
 

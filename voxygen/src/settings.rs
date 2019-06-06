@@ -64,12 +64,14 @@ pub struct Log {
     pub file: PathBuf,
 }
 
+/// `GraphicsSettings` contains settings related to framerate and in-game visuals.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GraphicsSettings {
     pub view_distance: u32,
+    pub max_fps: u32,
 }
 
-/// AudioSettings controls the volume of different audio subsystems and which
+/// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AudioSettings {
@@ -120,7 +122,10 @@ impl Default for Settings {
             log: Log {
                 file: "voxygen.log".into(),
             },
-            graphics: GraphicsSettings { view_distance: 5 },
+            graphics: GraphicsSettings {
+                view_distance: 5,
+                max_fps: 60,
+            },
             audio: AudioSettings {
                 music_volume: 0.5,
                 sfx_volume: 0.5,

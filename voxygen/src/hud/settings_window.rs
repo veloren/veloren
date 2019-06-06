@@ -8,6 +8,9 @@ use conrod_core::{
     widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
+
+const FPS_CHOICES: [u32; 11] = [1, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
+
 widget_ids! {
     struct Ids {
         settings_content,
@@ -42,7 +45,8 @@ widget_ids! {
         test,
         video,
         vd_slider,
-        vd_slider_text,
+        vd_text,
+        vd_value,
         max_fps_slider,
         max_fps_text,
         max_fps_value,
@@ -300,6 +304,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let display_pan = self.global_state.settings.gameplay.pan_sensitivity;
             let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
 
+            // Mouse Pan Sensitivity
             Text::new("Pan Sensitivity")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
@@ -331,6 +336,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_pan_value, ui);
 
+            // Mouse Zoom Sensitivity
             Text::new("Zoom Sensitivity")
                 .down_from(state.ids.mouse_pan_slider, 10.0)
                 .font_size(14)
@@ -575,12 +581,13 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Video = self.show.settings_tab {
+            // View Distance
             Text::new("View Distance")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
-                .set(state.ids.vd_slider_text, ui);
+                .set(state.ids.vd_text, ui);
 
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.view_distance,
@@ -590,7 +597,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.slider,
             )
             .w_h(104.0, 22.0)
-            .down_from(state.ids.vd_slider_text, 8.0)
+            .down_from(state.ids.vd_text, 8.0)
             .track_breadth(12.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
@@ -598,17 +605,32 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::AdjustViewDistance(new_val));
             }
+
+            Text::new(&format!(
+                "{}",
+                self.global_state.settings.graphics.view_distance
+            ))
+            .right_from(state.ids.vd_slider, 8.0)
+            .font_size(14)
+            .font_id(self.fonts.opensans)
+            .color(TEXT_COLOR)
+            .set(state.ids.vd_value, ui);
+
+            // Max FPS
             Text::new("Maximum FPS")
-                .top_left_with_margins_on(state.ids.settings_content, 60.0, 10.0)
+                .down_from(state.ids.vd_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_text, ui);
 
-            if let Some(new_val) = ImageSlider::discrete(
-                self.global_state.settings.graphics.view_distance,
-                50,
-                150,
+            if let Some(which) = ImageSlider::discrete(
+                FPS_CHOICES
+                    .iter()
+                    .position(|&x| x == self.global_state.settings.graphics.max_fps)
+                    .unwrap_or(0),
+                1,
+                10,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -619,8 +641,15 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.max_fps_slider, ui)
             {
-                events.push(Event::MaximumFPS(new_val));
+                events.push(Event::MaximumFPS(FPS_CHOICES[which]));
             }
+
+            Text::new(&format!("{}", self.global_state.settings.graphics.max_fps))
+                .right_from(state.ids.max_fps_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.max_fps_value, ui);
         }
 
         // 5) Sound Tab -----------------------------------
