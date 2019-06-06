@@ -98,6 +98,7 @@ pub enum Event {
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
+    MaximumFPS(u32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -526,8 +527,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.view_distance,
-                1,
-                25,
+                50,
+                150,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
@@ -538,7 +539,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.max_fps_slider, ui)
             {
-                events.push(Event::AdjustViewDistance(new_val));
+                events.push(Event::MaximumFPS(new_val));
             }
         }
         // 5 Sound
