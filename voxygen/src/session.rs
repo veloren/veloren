@@ -186,12 +186,13 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     HudEvent::AdjustMousePan(sensitivity) => {
-                        global_state.settings.gameplay.pan_sensitivity = sensitivity as f32 / 100.0;
+                        global_state.window.pan_sensitivity = sensitivity;
+                        global_state.settings.gameplay.pan_sensitivity = sensitivity;
                         global_state.settings.save_to_file();
                     }
                     HudEvent::AdjustMouseZoom(sensitivity) => {
-                        global_state.settings.gameplay.zoom_sensitivity =
-                            sensitivity as f32 / 100.0;
+                        global_state.window.zoom_sensitivity = sensitivity;
+                        global_state.settings.gameplay.zoom_sensitivity = sensitivity;
                         global_state.settings.save_to_file();
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {

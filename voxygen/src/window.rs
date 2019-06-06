@@ -71,8 +71,8 @@ pub struct Window {
     renderer: Renderer,
     window: glutin::GlWindow,
     cursor_grabbed: bool,
-    pub pan_sensitivity: f32,
-    pub zoom_sensitivity: f32,
+    pub pan_sensitivity: u32,
+    pub zoom_sensitivity: u32,
     fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<KeyMouse, GameInput>,
@@ -230,14 +230,14 @@ impl Window {
                     glutin::DeviceEvent::MouseMotion {
                         delta: (dx, dy), ..
                     } if cursor_grabbed && *focused => events.push(Event::CursorPan(Vec2::new(
-                        dx as f32 * pan_sensitivity,
-                        dy as f32 * pan_sensitivity,
+                        dx as f32 * (pan_sensitivity as f32 / 100.0),
+                        dy as f32 * (pan_sensitivity as f32 / 100.0),
                     ))),
                     glutin::DeviceEvent::MouseWheel {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..
                     } if cursor_grabbed && *focused => {
-                        events.push(Event::Zoom(y as f32 * zoom_sensitivity))
+                        events.push(Event::Zoom(y * (zoom_sensitivity as f32 / 100.0)))
                     }
                     _ => {}
                 },
