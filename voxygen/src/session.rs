@@ -13,7 +13,7 @@ use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
-const FPS: u64 = 60;
+const FPS: u64 = 1000;
 
 pub struct SessionState {
     scene: Scene,
