@@ -113,6 +113,7 @@ pub enum Event {
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
+    MaximumFPS(u32),
     CharacterSelection,
     Logout,
     Quit,
@@ -580,6 +581,9 @@ impl Hud {
                     }
                     settings_window::Event::AdjustVolume(volume) => {
                         events.push(Event::AdjustVolume(volume));
+                    }
+                    settings_window::Event::MaximumFPS(max_fps) => {
+                        events.push(Event::MaximumFPS(max_fps));
                     }
                     settings_window::Event::ChangeAudioDevice(name) => {
                         events.push(Event::ChangeAudioDevice(name));

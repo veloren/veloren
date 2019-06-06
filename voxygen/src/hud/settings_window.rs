@@ -43,6 +43,9 @@ widget_ids! {
         video,
         vd_slider,
         vd_slider_text,
+        max_fps_slider,
+        max_fps_text,
+        max_fps_value,
         audio_volume_slider,
         audio_volume_text,
         audio_device_list,
@@ -103,6 +106,7 @@ pub enum Event {
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
+    MaximumFPS(u32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -586,13 +590,36 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.slider,
             )
             .w_h(104.0, 22.0)
-            .down_from(state.ids.vd_slider_text, 10.0)
+            .down_from(state.ids.vd_slider_text, 8.0)
             .track_breadth(12.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
             .set(state.ids.vd_slider, ui)
             {
                 events.push(Event::AdjustViewDistance(new_val));
+            }
+            Text::new("Maximum FPS")
+                .top_left_with_margins_on(state.ids.settings_content, 60.0, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.max_fps_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                self.global_state.settings.graphics.view_distance,
+                50,
+                150,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.max_fps_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.max_fps_slider, ui)
+            {
+                events.push(Event::MaximumFPS(new_val));
             }
         }
 
