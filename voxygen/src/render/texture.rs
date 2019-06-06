@@ -1,13 +1,8 @@
-// Standard
-use std::marker::PhantomData;
-
-// Library
+use super::{gfx_backend, Pipeline, RenderError};
 use gfx::{self, traits::Factory};
 use image::{DynamicImage, GenericImageView};
+use std::marker::PhantomData;
 use vek::Vec2;
-
-// Local
-use super::{gfx_backend, Pipeline, RenderError};
 
 type ShaderFormat = (gfx::format::R8_G8_B8_A8, gfx::format::Srgb);
 

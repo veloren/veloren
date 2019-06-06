@@ -5,15 +5,11 @@ mod structure;
 
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
-    vol::{SizedVol, VolSize, Vox, WriteVol},
+    vol::{VolSize, Vox, WriteVol},
 };
 use fxhash::FxHashMap;
-use noise::{BasicMulti, MultiFractal, NoiseFn, Perlin, Seedable};
-use std::{
-    hash::Hash,
-    ops::{Add, Div, Mul, Neg, Sub},
-    time::Duration,
-};
+use noise::{BasicMulti, MultiFractal, Seedable};
+use std::{hash::Hash, time::Duration};
 use vek::*;
 
 #[derive(Debug)]
@@ -120,7 +116,7 @@ impl<K: Hash + Eq + Copy, V> Cache<K, V> {
     }
 
     pub fn get<F: FnOnce(K) -> V>(&mut self, k: K, f: F) -> &V {
-        let mut counter = &mut self.counter;
+        let counter = &mut self.counter;
         &self
             .map
             .entry(k)

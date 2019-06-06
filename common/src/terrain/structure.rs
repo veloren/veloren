@@ -1,6 +1,6 @@
 use super::Block;
 use crate::{
-    assets::{self, load_from_path, Asset},
+    assets::{self, Asset},
     vol::{BaseVol, ReadVol, Vox, WriteVol},
     volumes::dyna::{Dyna, DynaErr},
 };

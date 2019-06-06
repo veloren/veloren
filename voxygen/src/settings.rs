@@ -125,8 +125,6 @@ impl Default for Settings {
 
 impl Settings {
     pub fn load() -> Self {
-        let default_settings = Settings::default();
-
         let path = Settings::get_settings_path();
 
         // If file doesn't exist, use the default settings.

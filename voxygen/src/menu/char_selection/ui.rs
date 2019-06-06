@@ -8,18 +8,15 @@ use crate::{
     window::Window,
 };
 use common::comp::{
-    actor::{Belt, BodyType, Chest, Foot, Hand, Head, Pants, Race, Weapon, ALL_CHESTS},
+    actor::{BodyType, Race, Weapon, ALL_CHESTS},
     HumanoidBody,
 };
 use conrod_core::{
     color,
     color::TRANSPARENT,
-    graph,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
-    WidgetCommon,
 };
-use std::sync::Arc;
 
 widget_ids! {
     struct Ids {

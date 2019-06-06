@@ -3,11 +3,8 @@ pub mod fixture;
 pub mod quadruped;
 pub mod quadrupedmedium;
 
-// Library
-use vek::*;
-
-// Crate
 use crate::render::FigureBoneData;
+use vek::*;
 
 #[derive(Copy, Clone)]
 pub struct Bone {

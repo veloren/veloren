@@ -40,7 +40,7 @@ impl<'a> Pipeline for Voxel {
         Vert {
             pos,
             col,
-            norm,
+            norm: _,
             ao_level,
         }: &Self::Vertex,
     ) -> ([f32; 3], Self::VsOut) {

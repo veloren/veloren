@@ -1,11 +1,6 @@
-// Standard
+use super::{super::Animation, CharacterSkeleton};
 use std::f32::consts::PI;
-
-// Library
 use vek::*;
-
-// Local
-use super::{super::Animation, CharacterSkeleton, SCALE};
 
 pub struct JumpAnimation;
 

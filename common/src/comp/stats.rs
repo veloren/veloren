@@ -1,10 +1,11 @@
-use crate::state::{Time, Uid};
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use crate::state::Uid;
+use specs::{Component, FlaggedStorage, VecStorage};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
+    Unknown,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
