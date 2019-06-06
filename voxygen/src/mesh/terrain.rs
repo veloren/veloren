@@ -51,7 +51,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
-                let mut neighbour_light = [[1.0f32; 3]; 3];
+                let mut neighbour_light = [[(1.0f32, 0.0); 3]; 3];
 
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
@@ -62,7 +62,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             .iter()
                             .map(|col| col.iter())
                             .flatten()
-                            .fold(0.0, |a, x| a + x)
+                            .fold(0.0, |a, (x, _)| a + x)
                             / 9.0;
                         let light = avg_light;
 
@@ -85,13 +85,19 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                     // Accumulate shade under opaque blocks
                     for i in 0..3 {
                         for j in 0..3 {
-                            neighbour_light[i][j] = if let Ok(opacity) = self
+                            let max_opacity = neighbour_light[i][j].1;
+                            neighbour_light[i][j] = if let Some(opacity) = self
                                 .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, 0))
-                                .map(|vox| vox.get_opacity())
+                                .ok()
+                                .and_then(|vox| vox.get_opacity())
                             {
-                                neighbour_light[i][j] * (1.0 - opacity * 0.5)
+                                (
+                                    (neighbour_light[i][j].0 * (1.0 - max_opacity * 0.3))
+                                        .max(1.0 - max_opacity * 0.999),
+                                    max_opacity.max(opacity),
+                                )
                             } else {
-                                (neighbour_light[i][j] * 1.05).min(1.0)
+                                ((neighbour_light[i][j].0 * 1.02).min(1.0), max_opacity)
                             };
                         }
                     }
