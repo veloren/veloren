@@ -50,11 +50,19 @@ impl Animation for RunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-8.0 + wave_double * 1.0, 3.0 + wave_cos * 8.0, 12.0 - wave * 1.0) / 11.0;
+        next.l_hand.offset = Vec3::new(
+            -8.0 + wave_double * 1.0,
+            3.0 + wave_cos * 8.0,
+            12.0 - wave * 1.0,
+        ) / 11.0;
         next.l_hand.ori = Quaternion::rotation_x(wave_cos * 1.1);
         next.l_hand.scale = Vec3::one() / 11.0;
 
-        next.r_hand.offset = Vec3::new(8.0 + wave_double * -1.0, 3.0 - wave_cos * 8.0, 12.0 + wave * 1.0) / 11.0;
+        next.r_hand.offset = Vec3::new(
+            8.0 + wave_double * -1.0,
+            3.0 - wave_cos * 8.0,
+            12.0 + wave * 1.0,
+        ) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(wave_cos * -1.1);
         next.r_hand.scale = Vec3::one() / 11.0;
 
