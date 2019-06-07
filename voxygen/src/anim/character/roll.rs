@@ -28,7 +28,7 @@ impl Animation for RollAnimation {
         let wave_cos = (anim_time as f32 * 3.0).cos();
         let wave_slow = (anim_time as f32 * 2.0 + PI).sin();
 
-        next.head.offset = Vec3::new(0.0, 2.0, 11.0 - 8.0);
+        next.head.offset = Vec3::new(0.0, 2.0, 11.0 - 8.0 + wave * -2.0);
         next.head.ori = Quaternion::rotation_x(-0.4);
         next.head.scale = Vec3::one();
 

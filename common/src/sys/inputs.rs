@@ -104,6 +104,12 @@ impl<'a> System<'a> for Sys {
                     vel.0.z = HUMANOID_JUMP_ACCEL;
                     jumps.remove(entity);
                 }
+                // Roll
+                if rolls.get(entity).is_some() {
+                    vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_ACCEL * 0.7;
+                    let move_dir = 0.0;
+
+                }
             } else if gliding && vel.0.magnitude() < GLIDE_SPEED {
                 let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);

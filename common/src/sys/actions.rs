@@ -1,5 +1,4 @@
-use crate::{comp::Attacking, state::DeltaTime};
-use crate::{comp::Rolling, state::DeltaTime};
+use crate::{comp::Attacking, comp::Rolling, state::DeltaTime};
 use specs::{Entities, Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
@@ -45,5 +44,3 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-
-}

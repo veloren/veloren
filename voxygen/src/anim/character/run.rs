@@ -16,6 +16,8 @@ impl Animation for RunAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
+        let wave_double = (anim_time as f32 * 28.0).sin();
+        let wave_cos_double = (anim_time as f32 * 28.0).cos();
         let wave_cos = (anim_time as f32 * 14.0).cos();
 
         let head_look = Vec2::new(
@@ -48,11 +50,11 @@ impl Animation for RunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-9.0, 3.0 + wave_cos * 8.0, 12.0 - wave * 1.0) / 11.0;
+        next.l_hand.offset = Vec3::new(-8.0 + wave_double * 1.0, 3.0 + wave_cos * 8.0, 12.0 - wave * 1.0) / 11.0;
         next.l_hand.ori = Quaternion::rotation_x(wave_cos * 1.1);
         next.l_hand.scale = Vec3::one() / 11.0;
 
-        next.r_hand.offset = Vec3::new(9.0, 3.0 - wave_cos * 8.0, 12.0 + wave * 1.0) / 11.0;
+        next.r_hand.offset = Vec3::new(8.0 + wave_double * -1.0, 3.0 - wave_cos * 8.0, 12.0 + wave * 1.0) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(wave_cos * -1.1);
         next.r_hand.scale = Vec3::one() / 11.0;
 
