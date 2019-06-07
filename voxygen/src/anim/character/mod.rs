@@ -2,11 +2,6 @@ pub mod attack;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
-<<<<<<< HEAD
-pub mod roll;
-pub mod run;
-=======
->>>>>>> fmt
 pub mod roll;
 pub mod run;
 
