@@ -566,7 +566,7 @@ impl Hud {
                     }
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
-                    settings_window::Event::Close => self.show.open_windows = Windows::None,
+                    settings_window::Event::Close => self.show.settings(false),
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
