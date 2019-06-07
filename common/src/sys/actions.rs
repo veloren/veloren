@@ -1,7 +1,6 @@
 use crate::{comp::Attacking, comp::Rolling, state::DeltaTime};
 use specs::{Entities, Join, Read, System, WriteStorage};
 
-
 // Basic ECS AI agent system
 pub struct Sys;
 
