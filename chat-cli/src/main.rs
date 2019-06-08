@@ -3,7 +3,7 @@ use common::{clock::Clock, comp};
 use log::{error, info};
 use std::time::Duration;
 
-const TICK_RATE: u64 = 10; // Low value is okay, just reading messages.
+const TPS: u64 = 10; // Low value is okay, just reading messages.
 
 fn main() {
     // Initialize logging.
@@ -48,6 +48,6 @@ fn main() {
         client.cleanup();
 
         // Wait for the next tick.
-        clock.tick(Duration::from_millis(1000 / TICK_RATE));
+        clock.tick(Duration::from_millis(1000 / TPS));
     }
 }
