@@ -117,6 +117,11 @@ impl<K: Hash + Eq + Copy, V> Cache<K, V> {
 
     pub fn get<F: FnOnce(K) -> V>(&mut self, k: K, f: F) -> &V {
         let counter = &mut self.counter;
+
+        if self.map.len() > self.capacity {
+            self.map.clear();
+        }
+
         &self
             .map
             .entry(k)
