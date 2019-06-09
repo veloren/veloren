@@ -140,7 +140,7 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (128.0, 64.0);
+const Z_TOLERANCE: (f32, f32) = (128.0, 128.0);
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -179,7 +179,7 @@ impl SimChunk {
         let alt_base = alt_base
             .mul(0.4)
             .add(alt_base.mul(128.0).sin().mul(0.005))
-            .mul(800.0);
+            .mul(400.0);
 
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(1_000.0)).into_array()) as f32)
             .abs()

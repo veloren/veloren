@@ -66,7 +66,21 @@ impl<'a> Sampler for BlockGen<'a> {
             .mul((chaos - 0.1).max(0.0))
             .mul(90.0);
 
-        let height = alt + warp;
+        let cliff = (self.world.sim()
+            .gen_ctx
+            .warp_nz
+            .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
+            as f32)
+            //.add(0.6)
+            .mul(130.0);
+
+        let is_cliff = (self.world.sim()
+            .gen_ctx
+            .warp_nz
+            .get((wposf.div(Vec3::new(100.0, 100.0, 100.0))).into_array())
+            as f32) > 0.0;//4;
+
+        let height = alt + warp + if is_cliff { cliff } else { 0.0 };
 
         // Sample blocks
 
