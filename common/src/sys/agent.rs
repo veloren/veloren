@@ -4,9 +4,8 @@ use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
 
-// Basic ECS AI agent system
+/// This system will allow NPCs to modify their controller
 pub struct Sys;
-
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
