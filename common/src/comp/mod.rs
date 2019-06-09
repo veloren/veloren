@@ -20,6 +20,8 @@ pub use controller::Controller;
 pub use inputs::Attacking;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
+pub use inputs::MoveDir;
+pub use inputs::OnGround;
 pub use inputs::Respawning;
 pub use player::Player;
 pub use stats::Dying;
