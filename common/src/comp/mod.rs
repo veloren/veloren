@@ -1,6 +1,7 @@
 pub mod actor;
 pub mod agent;
 pub mod animation;
+pub mod controller;
 pub mod inputs;
 pub mod phys;
 pub mod player;
@@ -15,8 +16,8 @@ pub use actor::QuadrupedMediumBody;
 pub use agent::Agent;
 pub use animation::Animation;
 pub use animation::AnimationInfo;
+pub use controller::Controller;
 pub use inputs::Attacking;
-pub use inputs::Control;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
 pub use inputs::Respawning;
