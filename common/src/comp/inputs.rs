@@ -22,6 +22,7 @@ pub struct Cidling {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+
 pub struct Rolling {
     pub time: f32,
     pub applied: bool,
@@ -73,6 +74,7 @@ impl Rolling {
         }
     }
 }
+
 impl Component for Rolling {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }

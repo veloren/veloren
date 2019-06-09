@@ -24,6 +24,7 @@ impl<'a> System<'a> for Sys {
                 a.time > 0.25 // TODO: constant
             })
             .map(|(e, _)| e)
+
             .collect::<Vec<_>>();
 
         for entity in finished_attacks {

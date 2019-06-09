@@ -52,6 +52,7 @@ impl Animation for RunAnimation {
 
         next.l_hand.offset = Vec3::new(
             -7.5 + wave_double * 1.5,
+
             3.0 + wave_cos * 8.0,
             12.0 - wave * 1.0,
         ) / 11.0;
@@ -60,6 +61,7 @@ impl Animation for RunAnimation {
 
         next.r_hand.offset = Vec3::new(
             7.5 + wave_double * -1.5,
+
             3.0 - wave_cos * 8.0,
             12.0 + wave * 1.0,
         ) / 11.0;
