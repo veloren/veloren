@@ -1,0 +1,578 @@
+diff --git a/chat-cli/src/main.rs b/chat-cli/src/main.rs
+index f68a5b4..8ebd46f 100644
+--- a/chat-cli/src/main.rs
++++ b/chat-cli/src/main.rs
+@@ -29,7 +29,7 @@ fn main() {
+     client.send_chat("Hello!".to_string());
+ 
+     loop {
+-        let events = match client.tick(comp::Control::default(), clock.get_last_delta()) {
++        let events = match client.tick(comp::Controller::default(), clock.get_last_delta()) {
+             Ok(events) => events,
+             Err(err) => {
+                 error!("Error: {:?}", err);
+diff --git a/client/src/lib.rs b/client/src/lib.rs
+index f491359..ee3b62e 100644
+--- a/client/src/lib.rs
++++ b/client/src/lib.rs
+@@ -154,52 +154,6 @@ impl Client {
+         self.postbox.send_message(ClientMsg::Chat(msg))
+     }
+ 
+-    /// Jump locally, the new positions will be synced to the server
+-    #[allow(dead_code)]
+-    pub fn jump(&mut self) {
+-        if self.client_state != ClientState::Character {
+-            return;
+-        }
+-        self.state.write_component(self.entity, comp::Jumping);
+-    }
+-
+-    /// Start to glide locally, animation will be synced
+-    #[allow(dead_code)]
+-    pub fn glide(&mut self, state: bool) {
+-        if self.client_state != ClientState::Character {
+-            return;
+-        }
+-        if state {
+-            self.state.write_component(self.entity, comp::Gliding);
+-        } else {
+-            self.state
+-                .ecs_mut()
+-                .write_storage::<comp::Gliding>()
+-                .remove(self.entity);
+-        }
+-    }
+-
+-    /// Start to attack
+-    #[allow(dead_code)]
+-    pub fn attack(&mut self) {
+-        if self.client_state != ClientState::Character {
+-            return;
+-        }
+-        // TODO: Test if attack is possible using timeout
+-        self.state
+-            .write_component(self.entity, comp::Attacking::start());
+-        self.postbox.send_message(ClientMsg::Attack);
+-    }
+-
+-    /// Tell the server the client wants to respawn.
+-    #[allow(dead_code)]
+-    pub fn respawn(&mut self) {
+-        if self.client_state != ClientState::Dead {
+-            return;
+-        }
+-        self.postbox.send_message(ClientMsg::Respawn)
+-    }
+-
+     /// Remove all cached terrain
+     #[allow(dead_code)]
+     pub fn clear_terrain(&mut self) {
+@@ -209,7 +163,7 @@ impl Client {
+ 
+     /// Execute a single client tick, handle input and update the game state by the given duration.
+     #[allow(dead_code)]
+-    pub fn tick(&mut self, control: comp::Control, dt: Duration) -> Result<Vec<Event>, Error> {
++    pub fn tick(&mut self, controller: comp::Controller, dt: Duration) -> Result<Vec<Event>, Error> {
+         // This tick function is the centre of the Veloren universe. Most client-side things are
+         // managed from here, and as such it's important that it stays organised. Please consult
+         // the core developers before making significant changes to this code. Here is the
+@@ -226,10 +180,8 @@ impl Client {
+ 
+         // 1) Handle input from frontend.
+         // Pass character actions from frontend input to the player's entity.
+-        // TODO: Only do this if the entity already has a Inputs component!
+-        if self.client_state == ClientState::Character {
+-            self.state.write_component(self.entity, control.clone());
+-        }
++        self.state.write_component(self.entity, controller.clone());
++        self.postbox.send_message(ClientMsg::Controller(controller));
+ 
+         // 2) Build up a list of events for this frame, to be passed to the frontend.
+         let mut frontend_events = Vec::new();
+diff --git a/common/src/comp/inputs.rs b/common/src/comp/inputs.rs
+index ce55110..27b7b75 100644
+--- a/common/src/comp/inputs.rs
++++ b/common/src/comp/inputs.rs
+@@ -1,11 +1,6 @@
+ use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+ use vek::*;
+ 
+-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+-pub struct Control {
+-    pub move_dir: Vec2<f32>,
+-}
+-
+ #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+ pub struct Respawning;
+ 
+@@ -14,16 +9,13 @@ pub struct Attacking {
+     pub time: f32,
+     pub applied: bool,
+ }
++
+ #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+ pub struct Jumping;
+ 
+ #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+ pub struct Gliding;
+ 
+-impl Component for Control {
+-    type Storage = VecStorage<Self>;
+-}
+-
+ impl Component for Respawning {
+     type Storage = NullStorage<Self>;
+ }
+@@ -36,6 +28,7 @@ impl Attacking {
+         }
+     }
+ }
++
+ impl Component for Attacking {
+     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+ }
+diff --git a/common/src/comp/mod.rs b/common/src/comp/mod.rs
+index ee351db..2ca2e12 100644
+--- a/common/src/comp/mod.rs
++++ b/common/src/comp/mod.rs
+@@ -2,6 +2,7 @@ pub mod actor;
+ pub mod agent;
+ pub mod animation;
+ pub mod inputs;
++pub mod controller;
+ pub mod phys;
+ pub mod player;
+ pub mod stats;
+@@ -15,8 +16,8 @@ pub use actor::QuadrupedMediumBody;
+ pub use agent::Agent;
+ pub use animation::Animation;
+ pub use animation::AnimationInfo;
++pub use controller::Controller;
+ pub use inputs::Attacking;
+-pub use inputs::Control;
+ pub use inputs::Gliding;
+ pub use inputs::Jumping;
+ pub use inputs::Respawning;
+diff --git a/common/src/msg/client.rs b/common/src/msg/client.rs
+index aa765d0..1187831 100644
+--- a/common/src/msg/client.rs
++++ b/common/src/msg/client.rs
+@@ -11,8 +11,7 @@ pub enum ClientMsg {
+         name: String,
+         body: comp::Body,
+     },
+-    Attack,
+-    Respawn,
++    Controller(comp::Controller),
+     RequestState(ClientState),
+     SetViewDistance(u32),
+     Ping,
+diff --git a/common/src/state.rs b/common/src/state.rs
+index 9357c60..630f7c8 100644
+--- a/common/src/state.rs
++++ b/common/src/state.rs
+@@ -110,9 +110,9 @@ impl State {
+         ecs.register::<comp::phys::Vel>();
+         ecs.register::<comp::phys::Ori>();
+         ecs.register::<comp::AnimationInfo>();
++        ecs.register::<comp::Controller>();
+ 
+         // Register client-local components
+-        ecs.register::<comp::Control>();
+         ecs.register::<comp::Jumping>();
+ 
+         // Register server-local components
+diff --git a/common/src/sys/agent.rs b/common/src/sys/agent.rs
+index 55e845c..0e5e2f8 100644
+--- a/common/src/sys/agent.rs
++++ b/common/src/sys/agent.rs
+@@ -1,4 +1,4 @@
+-use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
++use crate::comp::{phys::Pos, Agent, Attacking, Controller, Jumping};
+ use log::warn;
+ use rand::{seq::SliceRandom, thread_rng};
+ use specs::{Entities, Join, ReadStorage, System, WriteStorage};
+@@ -12,17 +12,17 @@ impl<'a> System<'a> for Sys {
+         Entities<'a>,
+         WriteStorage<'a, Agent>,
+         ReadStorage<'a, Pos>,
+-        WriteStorage<'a, Control>,
++        WriteStorage<'a, Controller>,
+         WriteStorage<'a, Jumping>,
+         WriteStorage<'a, Attacking>,
+     );
+ 
+     fn run(
+         &mut self,
+-        (entities, mut agents, positions, mut controls, mut jumps, mut attacks): Self::SystemData,
++        (entities, mut agents, positions, mut controllers, mut jumps, mut attacks): Self::SystemData,
+     ) {
+-        for (entity, agent, pos, control) in
+-            (&entities, &mut agents, &positions, &mut controls).join()
++        for (entity, agent, pos, controller) in
++            (&entities, &mut agents, &positions, &mut controllers).join()
+         {
+             match agent {
+                 Agent::Wanderer(bearing) => {
+@@ -32,7 +32,7 @@ impl<'a> System<'a> for Sys {
+                         - pos.0 * 0.0002;
+ 
+                     if bearing.magnitude_squared() != 0.0 {
+-                        control.move_dir = bearing.normalized();
++                        controller.move_dir = bearing.normalized();
+                     }
+                 }
+                 Agent::Pet { target, offset } => {
+@@ -49,7 +49,7 @@ impl<'a> System<'a> for Sys {
+ 
+                             // Move towards the target.
+                             let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
+-                            control.move_dir = if dist > 5.0 {
++                            controller.move_dir = if dist > 5.0 {
+                                 Vec2::from(tgt_pos - pos.0).normalized()
+                             } else if dist < 1.5 && dist > 0.0 {
+                                 Vec2::from(pos.0 - tgt_pos).normalized()
+@@ -57,7 +57,7 @@ impl<'a> System<'a> for Sys {
+                                 Vec2::zero()
+                             };
+                         }
+-                        _ => control.move_dir = Vec2::zero(),
++                        _ => controller.move_dir = Vec2::zero(),
+                     }
+ 
+                     // Change offset occasionally.
+@@ -72,7 +72,7 @@ impl<'a> System<'a> for Sys {
+                         Some(tgt_pos) => {
+                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
+                             if dist < 2.0 {
+-                                control.move_dir = Vec2::zero();
++                                controller.move_dir = Vec2::zero();
+ 
+                                 if rand::random::<f32>() < 0.2 {
+                                     attacks
+@@ -82,7 +82,7 @@ impl<'a> System<'a> for Sys {
+ 
+                                 false
+                             } else if dist < 60.0 {
+-                                control.move_dir =
++                                controller.move_dir =
+                                     Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
+ 
+                                 false
+@@ -91,7 +91,7 @@ impl<'a> System<'a> for Sys {
+                             }
+                         }
+                         None => {
+-                            control.move_dir = Vec2::one();
++                            controller.move_dir = Vec2::one();
+                             true
+                         }
+                     };
+diff --git a/common/src/sys/inputs.rs b/common/src/sys/inputs.rs
+index 288a0e0..6cadba5 100644
+--- a/common/src/sys/inputs.rs
++++ b/common/src/sys/inputs.rs
+@@ -1,7 +1,7 @@
+ use crate::{
+     comp::{
+         phys::{ForceUpdate, Ori, Pos, Vel},
+-        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Stats,
++        Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource, Jumping, Stats,
+     },
+     state::{DeltaTime, Uid},
+     terrain::TerrainMap,
+@@ -13,17 +13,6 @@ use vek::*;
+ 
+ // Basic ECS AI agent system
+ pub struct Sys;
+-
+-const HUMANOID_ACCEL: f32 = 100.0;
+-const HUMANOID_SPEED: f32 = 500.0;
+-const HUMANOID_AIR_ACCEL: f32 = 10.0;
+-const HUMANOID_AIR_SPEED: f32 = 100.0;
+-const HUMANOID_JUMP_ACCEL: f32 = 16.0;
+-const GLIDE_ACCEL: f32 = 15.0;
+-const GLIDE_SPEED: f32 = 45.0;
+-// Gravity is 9.81 * 4, so this makes gravity equal to .15
+-const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
+-
+ impl<'a> System<'a> for Sys {
+     type SystemData = (
+         Entities<'a>,
+@@ -35,7 +24,7 @@ impl<'a> System<'a> for Sys {
+         WriteStorage<'a, Ori>,
+         WriteStorage<'a, AnimationInfo>,
+         WriteStorage<'a, Stats>,
+-        ReadStorage<'a, Control>,
++        ReadStorage<'a, Controller>,
+         WriteStorage<'a, Jumping>,
+         WriteStorage<'a, Gliding>,
+         WriteStorage<'a, Attacking>,
+@@ -54,67 +43,31 @@ impl<'a> System<'a> for Sys {
+             mut orientations,
+             mut animation_infos,
+             mut stats,
+-            controls,
++            controllers,
+             mut jumps,
+             glides,
+             mut attacks,
+             mut force_updates,
+         ): Self::SystemData,
+     ) {
+-        for (entity, pos, control, stats, mut ori, mut vel) in (
++        for (entity, pos, controller, stats, mut ori, mut vel) in (
+             &entities,
+             &positions,
+-            &controls,
++            &controllers,
+             &stats,
+             &mut orientations,
+             &mut velocities,
+         )
+             .join()
+         {
+-            // Disable while dead TODO: Replace with client states
+-            if stats.is_dead {
+-                continue;
+-            }
+-
+             let on_ground = terrain
+                 .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
+                 .map(|vox| !vox.is_empty())
+                 .unwrap_or(false)
+                 && vel.0.z <= 0.0;
+ 
+-            let gliding = glides.get(entity).is_some() && vel.0.z < 0.0;
+-            let move_dir = if control.move_dir.magnitude() > 1.0 {
+-                control.move_dir.normalized()
+-            } else {
+-                control.move_dir
+-            };
+-
+-            if on_ground {
+-                // Move player according to move_dir
+-                if vel.0.magnitude() < HUMANOID_SPEED {
+-                    vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_ACCEL;
+-                }
+-
+-                // Jump
+-                if jumps.get(entity).is_some() && vel.0.z <= 0.0 {
+-                    vel.0.z = HUMANOID_JUMP_ACCEL;
+-                    jumps.remove(entity);
+-                }
+-            } else if gliding && vel.0.magnitude() < GLIDE_SPEED {
+-                let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
+-                vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
+-                vel.0 += Vec2::broadcast(dt.0) * move_dir * GLIDE_ACCEL;
+-            } else if vel.0.magnitude() < HUMANOID_AIR_SPEED {
+-                vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_AIR_ACCEL;
+-            }
+-
+-            // Set direction based on velocity
+-            if vel.0.magnitude_squared() != 0.0 {
+-                ori.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
+-            }
+-
+             let animation = if on_ground {
+-                if control.move_dir.magnitude() > 0.01 {
++                if controller.move_dir.magnitude() > 0.01 {
+                     Animation::Run
+                 } else if attacks.get(entity).is_some() {
+                     Animation::Attack
+@@ -149,6 +102,7 @@ impl<'a> System<'a> for Sys {
+             (&entities, &uids, &positions, &orientations, &mut attacks).join()
+         {
+             if !attacking.applied {
++                dbg!();
+                 for (b, pos_b, stat_b, mut vel_b) in
+                     (&entities, &positions, &mut stats, &mut velocities).join()
+                 {
+diff --git a/common/src/sys/mod.rs b/common/src/sys/mod.rs
+index da6f629..e6a5917 100644
+--- a/common/src/sys/mod.rs
++++ b/common/src/sys/mod.rs
+@@ -1,6 +1,7 @@
+ pub mod actions;
+ pub mod agent;
+ pub mod animation;
++pub mod controller;
+ pub mod inputs;
+ pub mod phys;
+ mod stats;
+@@ -10,6 +11,7 @@ use specs::DispatcherBuilder;
+ 
+ // System names
+ const AGENT_SYS: &str = "agent_sys";
++const CONTROLLER_SYS: &str = "controller_sys";
+ const INPUTS_SYS: &str = "inputs_sys";
+ const ACTIONS_SYS: &str = "actions_sys";
+ const PHYS_SYS: &str = "phys_sys";
+@@ -20,6 +22,7 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
+     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
+     dispatch_builder.add(phys::Sys, PHYS_SYS, &[]);
+     dispatch_builder.add(actions::Sys, ACTIONS_SYS, &[]);
++    dispatch_builder.add(controller::Sys, CONTROLLER_SYS, &[]);
+     dispatch_builder.add(inputs::Sys, INPUTS_SYS, &[]);
+     dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[]);
+     dispatch_builder.add(stats::Sys, STATS_SYS, &[INPUTS_SYS]);
+diff --git a/server/src/lib.rs b/server/src/lib.rs
+index ead806c..6260f0a 100644
+--- a/server/src/lib.rs
++++ b/server/src/lib.rs
+@@ -145,7 +145,7 @@ impl Server {
+             .with(pos)
+             .with(comp::phys::Vel(Vec3::zero()))
+             .with(comp::phys::Ori(Vec3::unit_y()))
+-            .with(comp::Control::default())
++            .with(comp::Controller::default())
+             .with(comp::AnimationInfo::default())
+             .with(comp::Actor::Character { name, body })
+             .with(comp::Stats::default())
+@@ -164,6 +164,7 @@ impl Server {
+         state.write_component(entity, comp::Actor::Character { name, body });
+         state.write_component(entity, comp::Stats::default());
+         state.write_component(entity, comp::AnimationInfo::default());
++        state.write_component(entity, comp::Controller::default());
+         state.write_component(entity, comp::phys::Pos(spawn_point));
+         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
+         state.write_component(entity, comp::phys::Ori(Vec3::unit_y()));
+@@ -492,25 +493,16 @@ impl Server {
+                             }
+                             ClientState::Pending => {}
+                         },
+-                        ClientMsg::Attack => match client.client_state {
+-                            ClientState::Character => {
+-                                if state
+-                                    .ecs()
+-                                    .read_storage::<comp::Attacking>()
+-                                    .get(entity)
+-                                    .is_none()
+-                                {
+-                                    state.write_component(entity, comp::Attacking::start());
+-                                }
++                        ClientMsg::Controller(controller) => match client.client_state {
++                            ClientState::Connected | ClientState::Registered | ClientState::Spectator => {
++                                client.error_state(RequestStateError::Impossible)
+                             }
+-                            _ => client.error_state(RequestStateError::Impossible),
+-                        },
+-                        ClientMsg::Respawn => match client.client_state {
+-                            ClientState::Dead => {
+-                                state.write_component(entity, comp::Respawning);
++                            ClientState::Dead
++                            | ClientState::Character => {
++                                state.write_component(entity, controller);
+                             }
+-                            _ => client.error_state(RequestStateError::Impossible),
+-                        },
++                            ClientState::Pending => {}
++                        }
+                         ClientMsg::Chat(msg) => match client.client_state {
+                             ClientState::Connected => {
+                                 client.error_state(RequestStateError::Impossible)
+diff --git a/voxygen/src/menu/char_selection/mod.rs b/voxygen/src/menu/char_selection/mod.rs
+index 2192ce7..1a3e3e3 100644
+--- a/voxygen/src/menu/char_selection/mod.rs
++++ b/voxygen/src/menu/char_selection/mod.rs
+@@ -110,7 +110,7 @@ impl PlayState for CharSelectionState {
+             if let Err(err) = self
+                 .client
+                 .borrow_mut()
+-                .tick(comp::Control::default(), clock.get_last_delta())
++                .tick(comp::Controller::default(), clock.get_last_delta())
+             {
+                 error!("Failed to tick the scene: {:?}", err);
+                 return PlayStateResult::Pop;
+diff --git a/voxygen/src/session.rs b/voxygen/src/session.rs
+index 913e421..bd5d876 100644
+--- a/voxygen/src/session.rs
++++ b/voxygen/src/session.rs
+@@ -18,8 +18,9 @@ const FPS: u64 = 60;
+ pub struct SessionState {
+     scene: Scene,
+     client: Rc<RefCell<Client>>,
+-    key_state: KeyState,
+     hud: Hud,
++    key_state: KeyState,
++    controller: comp::Controller,
+ }
+ 
+ /// Represents an active game session (i.e., the one being played).
+@@ -32,6 +33,7 @@ impl SessionState {
+             scene,
+             client,
+             key_state: KeyState::new(),
++            controller: comp::Controller::default(),
+             hud: Hud::new(window),
+         }
+     }
+@@ -47,21 +49,11 @@ const BG_COLOR: Rgba<f32> = Rgba {
+ 
+ impl SessionState {
+     /// Tick the session (and the client attached to it).
+-    pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+-        // Calculate the movement input vector of the player from the current key presses
+-        // and the camera direction.
+-        let ori = self.scene.camera().get_orientation();
+-        let unit_vecs = (
+-            Vec2::new(ori[0].cos(), -ori[0].sin()),
+-            Vec2::new(ori[0].sin(), ori[0].cos()),
+-        );
+-        let dir_vec = self.key_state.dir_vec();
+-        let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+-
++    fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+         for event in self
+             .client
+             .borrow_mut()
+-            .tick(comp::Control { move_dir }, dt)?
++            .tick(self.controller.clone(), dt)?
+         {
+             match event {
+                 client::Event::Chat(msg) => {
+@@ -121,19 +113,19 @@ impl PlayState for SessionState {
+                     Event::Close => {
+                         return PlayStateResult::Shutdown;
+                     }
+-                    Event::InputUpdate(GameInput::Attack, true) => {
+-                        self.client.borrow_mut().attack();
+-                        self.client.borrow_mut().respawn();
++                    Event::InputUpdate(GameInput::Attack, state) => {
++                        self.controller.attack = state;
++                        self.controller.respawn = state; // TODO: Don't do both
+                     }
+-                    Event::InputUpdate(GameInput::Jump, true) => {
+-                        self.client.borrow_mut().jump();
++                    Event::InputUpdate(GameInput::Jump, state) => {
++                        self.controller.jump = state;
+                     }
+                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
+                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
+                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
+                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
+                     Event::InputUpdate(GameInput::Glide, state) => {
+-                        self.client.borrow_mut().glide(state)
++                        self.controller.glide = state;
+                     }
+ 
+                     // Pass all other events to the scene
+@@ -143,6 +135,17 @@ impl PlayState for SessionState {
+                 }
+             }
+ 
++            // Calculate the movement input vector of the player from the current key presses
++            // and the camera direction.
++            let ori = self.scene.camera().get_orientation();
++            let unit_vecs = (
++                Vec2::new(ori[0].cos(), -ori[0].sin()),
++                Vec2::new(ori[0].sin(), ori[0].cos()),
++            );
++            let dir_vec = self.key_state.dir_vec();
++            self.controller.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
++
++
+             // Perform an in-game tick.
+             if let Err(err) = self.tick(clock.get_last_delta()) {
+                 error!("Failed to tick the scene: {:?}", err);

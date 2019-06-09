@@ -1,4 +1,4 @@
-use crate::comp::{phys::Pos, Agent, Attacking, Control, Jumping};
+use crate::comp::{phys::Pos, Agent, Attacking, Controller, Jumping};
 use log::warn;
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
@@ -12,17 +12,17 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, Agent>,
         ReadStorage<'a, Pos>,
-        WriteStorage<'a, Control>,
+        WriteStorage<'a, Controller>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
     );
 
     fn run(
         &mut self,
-        (entities, mut agents, positions, mut controls, mut jumps, mut attacks): Self::SystemData,
+        (entities, mut agents, positions, mut controllers, mut jumps, mut attacks): Self::SystemData,
     ) {
-        for (entity, agent, pos, control) in
-            (&entities, &mut agents, &positions, &mut controls).join()
+        for (entity, agent, pos, controller) in
+            (&entities, &mut agents, &positions, &mut controllers).join()
         {
             match agent {
                 Agent::Wanderer(bearing) => {
@@ -32,7 +32,7 @@ impl<'a> System<'a> for Sys {
                         - pos.0 * 0.0002;
 
                     if bearing.magnitude_squared() != 0.0 {
-                        control.move_dir = bearing.normalized();
+                        controller.move_dir = bearing.normalized();
                     }
                 }
                 Agent::Pet { target, offset } => {
@@ -49,7 +49,7 @@ impl<'a> System<'a> for Sys {
 
                             // Move towards the target.
                             let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
-                            control.move_dir = if dist > 5.0 {
+                            controller.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
                             } else if dist < 1.5 && dist > 0.0 {
                                 Vec2::from(pos.0 - tgt_pos).normalized()
@@ -57,7 +57,7 @@ impl<'a> System<'a> for Sys {
                                 Vec2::zero()
                             };
                         }
-                        _ => control.move_dir = Vec2::zero(),
+                        _ => controller.move_dir = Vec2::zero(),
                     }
 
                     // Change offset occasionally.
@@ -72,7 +72,7 @@ impl<'a> System<'a> for Sys {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
                             if dist < 2.0 {
-                                control.move_dir = Vec2::zero();
+                                controller.move_dir = Vec2::zero();
 
                                 if rand::random::<f32>() < 0.2 {
                                     attacks
@@ -82,7 +82,7 @@ impl<'a> System<'a> for Sys {
 
                                 false
                             } else if dist < 60.0 {
-                                control.move_dir =
+                                controller.move_dir =
                                     Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
 
                                 false
@@ -91,7 +91,7 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                         None => {
-                            control.move_dir = Vec2::one();
+                            controller.move_dir = Vec2::one();
                             true
                         }
                     };
