@@ -110,9 +110,9 @@ impl State {
         ecs.register::<comp::phys::Vel>();
         ecs.register::<comp::phys::Ori>();
         ecs.register::<comp::AnimationInfo>();
+        ecs.register::<comp::Controller>();
 
         // Register client-local components
-        ecs.register::<comp::Control>();
         ecs.register::<comp::Jumping>();
 
         // Register server-local components

@@ -145,7 +145,7 @@ impl Server {
             .with(pos)
             .with(comp::phys::Vel(Vec3::zero()))
             .with(comp::phys::Ori(Vec3::unit_y()))
-            .with(comp::Control::default())
+            .with(comp::Controller::default())
             .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
@@ -164,6 +164,7 @@ impl Server {
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
         state.write_component(entity, comp::AnimationInfo::default());
+        state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::phys::Pos(spawn_point));
         state.write_component(entity, comp::phys::Vel(Vec3::zero()));
         state.write_component(entity, comp::phys::Ori(Vec3::unit_y()));
@@ -492,24 +493,16 @@ impl Server {
                             }
                             ClientState::Pending => {}
                         },
-                        ClientMsg::Attack => match client.client_state {
-                            ClientState::Character => {
-                                if state
-                                    .ecs()
-                                    .read_storage::<comp::Attacking>()
-                                    .get(entity)
-                                    .is_none()
-                                {
-                                    state.write_component(entity, comp::Attacking::start());
-                                }
+                        ClientMsg::Controller(controller) => match client.client_state {
+                            ClientState::Connected
+                            | ClientState::Registered
+                            | ClientState::Spectator => {
+                                client.error_state(RequestStateError::Impossible)
                             }
-                            _ => client.error_state(RequestStateError::Impossible),
-                        },
-                        ClientMsg::Respawn => match client.client_state {
-                            ClientState::Dead => {
-                                state.write_component(entity, comp::Respawning);
+                            ClientState::Dead | ClientState::Character => {
+                                state.write_component(entity, controller);
                             }
-                            _ => client.error_state(RequestStateError::Impossible),
+                            ClientState::Pending => {}
                         },
                         ClientMsg::Chat(msg) => match client.client_state {
                             ClientState::Connected => {
