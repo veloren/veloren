@@ -115,7 +115,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                         cliff,
                         snow,
                         (alt - CONFIG.sea_level
-                            - 0.3 * CONFIG.mountain_scale
+                            - 0.35 * CONFIG.mountain_scale
                             - alt_base
                             - temp * 96.0
                             - marble * 24.0)
