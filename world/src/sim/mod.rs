@@ -158,20 +158,20 @@ impl SimChunk {
         let hill = (0.0
             + gen_ctx
                 .hill_nz
-                .get((wposf.div(3_500.0)).into_array())
+                .get((wposf.div(1_500.0)).into_array())
                 .mul(1.0) as f32
             + gen_ctx
                 .hill_nz
-                .get((wposf.div(1_000.0)).into_array())
+                .get((wposf.div(500.0)).into_array())
                 .mul(0.3) as f32)
             .add(0.3)
             .max(0.0);
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(5_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .powf(1.6)
-            .add(0.1 * hill);
+            .powf(1.4)
+            .add(0.05 * hill);
 
         let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
 
@@ -181,9 +181,9 @@ impl SimChunk {
             .add(alt_base.mul(128.0).sin().mul(0.005))
             .mul(800.0);
 
-        let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+        let alt_main = (gen_ctx.alt_nz.get((wposf.div(1_200.0)).into_array()) as f32)
             .abs()
-            .powf(1.4);
+            .powf(1.5);
 
         let alt = CONFIG.sea_level
             + alt_base

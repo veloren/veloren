@@ -64,7 +64,7 @@ impl<'a> Sampler for BlockGen<'a> {
             .get((wposf.div(Vec3::new(120.0, 120.0, 140.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
-            .mul(100.0);
+            .mul(90.0);
 
         let height = alt + warp;
 
