@@ -5,10 +5,16 @@ use vek::*;
 pub struct Respawning;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct MoveDir(pub Vec2<f32>);
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Attacking {
     pub time: f32,
     pub applied: bool,
 }
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct OnGround;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Jumping;
@@ -29,8 +35,16 @@ impl Attacking {
     }
 }
 
+impl Component for MoveDir {
+    type Storage = VecStorage<Self>;
+}
+
 impl Component for Attacking {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Component for OnGround {
+    type Storage = NullStorage<Self>;
 }
 
 impl Component for Jumping {
