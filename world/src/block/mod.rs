@@ -61,10 +61,10 @@ impl<'a> Sampler for BlockGen<'a> {
         let warp = (self.world.sim()
             .gen_ctx
             .warp_nz
-            .get((wposf.div(Vec3::new(120.0, 120.0, 150.0))).into_array())
+            .get((wposf.div(Vec3::new(120.0, 120.0, 140.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
-            .mul(110.0);
+            .mul(100.0);
 
         let height = alt + warp;
 

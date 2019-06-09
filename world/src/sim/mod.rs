@@ -8,7 +8,10 @@ use common::{
     terrain::TerrainChunkSize,
     vol::VolSize,
 };
-use crate::util::StructureGen2d;
+use crate::{
+    CONFIG,
+    util::StructureGen2d,
+};
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -137,9 +140,6 @@ impl WorldSim {
     }
 }
 
-pub const SEA_LEVEL: f32 = 128.0;
-pub const MOUNTAIN_HEIGHT: f32 = 900.0;
-
 const Z_TOLERANCE: (f32, f32) = (128.0, 64.0);
 
 pub struct SimChunk {
@@ -167,10 +167,10 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(5_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .powf(1.5)
+            .powf(1.6)
             .add(0.1 * hill);
 
         let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
@@ -181,9 +181,11 @@ impl SimChunk {
             .add(alt_base.mul(128.0).sin().mul(0.005))
             .mul(800.0);
 
-        let alt_main = gen_ctx.alt_nz.get((wposf.div(3_000.0)).into_array()) as f32;
+        let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+            .abs()
+            .powf(1.4);
 
-        let alt = SEA_LEVEL
+        let alt = CONFIG.sea_level
             + alt_base
             + (0.0
                 + alt_main
@@ -194,7 +196,7 @@ impl SimChunk {
                 .add(1.0)
                 .mul(0.5)
                 .mul(chaos)
-                .mul(MOUNTAIN_HEIGHT);
+                .mul(CONFIG.mountain_scale);
 
         Self {
             chaos,
@@ -210,7 +212,7 @@ impl SimChunk {
                 .mul(0.5)
                 .mul(1.0 - chaos * 0.85)
                 .add(0.1)
-                .mul(if alt > SEA_LEVEL + 2.0 { 1.0 } else { 0.0 }),
+                .mul(if alt > CONFIG.sea_level + 2.0 { 1.0 } else { 0.0 }),
         }
     }
 
@@ -223,6 +225,6 @@ impl SimChunk {
     }
 
     pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1).max(SEA_LEVEL + 1.0)
+        (self.alt + Z_TOLERANCE.1).max(CONFIG.sea_level + 1.0)
     }
 }
