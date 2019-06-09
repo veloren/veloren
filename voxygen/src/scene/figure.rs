@@ -155,16 +155,16 @@ impl FigureModelCache {
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
-                Head::Default => "figure/head.vox",
+                Head::Default => "figure/head_female.vox",
             },
-            Vec3::new(-7.0, -5.5, -6.0),
+            Vec3::new(-7.0, -7.5, -6.0),
         )
     }
 
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match chest {
-                Chest::Default => "figure/body/chest_male.vox",
+                Chest::Default => "figure/body/chest_female.vox",
                 Chest::Blue => "armor/chest/chest_blue.vox",
                 Chest::Brown => "armor/chest/chest_brown.vox",
                 Chest::Dark => "armor/chest/chest_dark.vox",
@@ -240,11 +240,11 @@ impl FigureModelCache {
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
+                Weapon::Hammer => "weapon/hammer/hammer_rusty_2h.vox",
                 // TODO actually match against other weapons and set the right model
-                _ => "weapon/sword/sword_rusty_2h.vox",
+                _ => "weapon/hammer/hammer_rusty_2h.vox",
             },
-            Vec3::new(-1.5, -6.5, -4.0),
+            Vec3::new(-3.5, -6.5, -4.0),
         )
     }
 
@@ -278,10 +278,10 @@ impl FigureModelCache {
     fn load_left_equip(weapon: Weapon) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match weapon {
-                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
-                _ => "weapon/sword/sword_rusty_2h.vox",
+                Weapon::Hammer => "weapon/hammer/hammer_rusty_2h.vox",
+                _ => "weapon/hammer/hammer_rusty_2h.vox",
             },
-            Vec3::new(-1.5, -6.5, -4.5),
+            Vec3::new(-3.5, -6.5, -4.5),
         )
     }
 
@@ -557,6 +557,11 @@ impl FigureMgr {
                                 animation_info.time,
                             ),
                             comp::Animation::Roll => character::RollAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                            ),
+                            comp::Animation::Cidle => character::CidleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,

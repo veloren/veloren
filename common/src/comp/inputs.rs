@@ -16,6 +16,12 @@ pub struct Attacking {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Cidling {
+    pub time: f32,
+    pub applied: bool,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Rolling {
     pub time: f32,
     pub applied: bool,
@@ -44,6 +50,18 @@ impl Attacking {
     }
 }
 impl Component for Attacking {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Cidling {
+    pub fn start() -> Self {
+        Self {
+            time: 0.0,
+            applied: false,
+        }
+    }
+}
+impl Component for Cidling {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 

@@ -41,7 +41,7 @@ impl Animation for GlidingAnimation {
                 .sin()
                 * 0.25,
         );
-        next.head.offset = Vec3::new(0.0, 2.0, 12.0);
+        next.head.offset = Vec3::new(0.0, -1.0, 16.0);
         next.head.ori = Quaternion::rotation_x(0.35 - wave_very_slow * 0.10 + head_look.y)
             * Quaternion::rotation_z(head_look.x + wave_very_slow_cos * 0.15);
         next.head.scale = Vec3::one();
@@ -86,7 +86,7 @@ impl Animation for GlidingAnimation {
         );
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(-7.0, -7.0, 18.0);
         next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.weapon.scale = Vec3::one();
 

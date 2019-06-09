@@ -33,7 +33,7 @@ impl Animation for IdleAnimation {
                 .sin()
                 * 0.25,
         );
-        next.head.offset = Vec3::new(0.0, 2.0, 11.0 + wave_ultra_slow * 0.3);
+        next.head.offset = Vec3::new(0.0, -1.0, 16.0 + wave_ultra_slow * 0.3);
         next.head.ori = Quaternion::rotation_z(head_look.x) * Quaternion::rotation_x(head_look.y);
         next.head.scale = Vec3::one();
 
@@ -74,7 +74,7 @@ impl Animation for IdleAnimation {
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(-7.0, -7.0, 18.0);
         next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.weapon.scale = Vec3::one();
 

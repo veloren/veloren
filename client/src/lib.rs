@@ -165,12 +165,20 @@ impl Client {
     /// Start to roll
     #[allow(dead_code)]
     pub fn roll(&mut self) {
-        if self.client_state != ClientState::Character {
-            return;
-        }
+        if self.client_state == ClientState::Character {
         self.state
             .write_component(self.entity, comp::Rolling::start());
         self.postbox.send_message(ClientMsg::Roll);
+        }
+    }
+    /// Start to cidle
+    #[allow(dead_code)]
+    pub fn cidle(&mut self) {
+        if self.client_state == ClientState::Character {
+        self.state
+            .write_component(self.entity, comp::Cidling::start());
+        self.postbox.send_message(ClientMsg::Cidle);
+        }
     }
     /// Start to glide locally, animation will be synced
     #[allow(dead_code)]

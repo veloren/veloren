@@ -103,6 +103,8 @@ impl State {
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
         ecs.register_synced::<comp::Attacking>(); // TODO: Don't send this to the client?
+        ecs.register::<comp::Rolling>();
+        ecs.register::<comp::Cidling>();
         ecs.register::<comp::phys::ForceUpdate>();
 
         // Register components synced by other means
@@ -114,7 +116,6 @@ impl State {
         // Register client-local components
         ecs.register::<comp::Control>();
         ecs.register::<comp::Jumping>();
-        ecs.register::<comp::Rolling>();
 
         // Register server-local components
         ecs.register::<comp::Agent>();

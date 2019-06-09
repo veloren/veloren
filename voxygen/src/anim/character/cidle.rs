@@ -5,9 +5,9 @@ use vek::*;
 pub struct Input {
     pub attack: bool,
 }
-pub struct AttackAnimation;
+pub struct CidleAnimation;
 
-impl Animation for AttackAnimation {
+impl Animation for CidleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -131,7 +131,7 @@ impl Animation for AttackAnimation {
 
         next.torso.offset = Vec3::new(0.0, -0.2, 0.1);
         next.torso.ori = Quaternion::rotation_z(wave_stop_quick * -0.2)
-            * Quaternion::rotation_x(0.0 + wave_stop_quick * -0.2)
+            * Quaternion::rotation_x(0.0 + wave_stop_quick * -100.2)
             * Quaternion::rotation_y(wave_stop_quick * 0.2);
         next.torso.scale = Vec3::one() / 11.0;
         next

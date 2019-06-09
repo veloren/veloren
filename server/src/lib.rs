@@ -505,6 +505,19 @@ impl Server {
                             }
                             _ => client.error_state(RequestStateError::Impossible),
                         },
+                        ClientMsg::Cidle => match client.client_state {
+                            ClientState::Character => {
+                                if state
+                                    .ecs()
+                                    .read_storage::<comp::Cidling>()
+                                    .get(entity)
+                                    .is_none()
+                                {
+                                    state.write_component(entity, comp::Cidling::start());
+                                }
+                            }
+                            _ => client.error_state(RequestStateError::Impossible),
+                        },
                         ClientMsg::Roll => match client.client_state {
                             ClientState::Character => {
                                 if state

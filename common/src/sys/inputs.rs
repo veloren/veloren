@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Control, Gliding, HealthSource, Jumping, Respawning,
-        Rolling, Stats,
+        Animation, AnimationInfo, Attacking, Rolling, Cidling, Control, Gliding, HealthSource, Jumping, Respawning,
+        Stats,
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,
@@ -22,6 +22,9 @@ const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
+const ROLL_SPEED: f32 = 700.0;
+const ROLL_ACCEL: f32 = 50.0;
+
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 
@@ -41,6 +44,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, Rolling>,
+        WriteStorage<'a, Cidling>,
         WriteStorage<'a, ForceUpdate>,
     );
 
@@ -61,6 +65,7 @@ impl<'a> System<'a> for Sys {
             glides,
             mut attacks,
             mut rolls,
+            mut cidles,
             mut force_updates,
         ): Self::SystemData,
     ) {
@@ -104,9 +109,8 @@ impl<'a> System<'a> for Sys {
                     jumps.remove(entity);
                 }
                 // Roll
-                if rolls.get(entity).is_some() {
-                    vel.0 += Vec2::broadcast(dt.0) * move_dir * HUMANOID_ACCEL * 0.7;
-                    let move_dir = 0.0;
+                if rolls.get(entity).is_some() && vel.0.magnitude() < ROLL_SPEED{
+                    vel.0 += Vec2::broadcast(dt.0) * move_dir * ROLL_ACCEL;
                 }
             } else if gliding && vel.0.magnitude() < GLIDE_SPEED {
                 let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
@@ -124,10 +128,12 @@ impl<'a> System<'a> for Sys {
             let animation = if on_ground {
                 if attacks.get(entity).is_some() {
                     Animation::Attack
-                } else if rolls.get(entity).is_some() {
+                } else if rolls.get(entity).is_some() && vel.0.magnitude() > 0.6 {
                     Animation::Roll
                 } else if control.move_dir.magnitude() > 0.01 {
                     Animation::Run
+                } else if cidles.get(entity).is_some() {
+                    Animation::Cidle //TODO: figure out why this won't trigger
                 } else {
                     Animation::Idle
                 }

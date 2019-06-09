@@ -19,7 +19,7 @@ impl Animation for JumpAnimation {
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
         let wave_stop_alt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
-        next.head.offset = Vec3::new(0.0, 3.0, 13.0);
+        next.head.offset = Vec3::new(0.0, -1.0, 16.0);
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
         next.head.scale = Vec3::one();
 
@@ -59,7 +59,7 @@ impl Animation for JumpAnimation {
         next.r_foot.ori = Quaternion::rotation_x(wave_stop * 1.2 + wave_slow * 0.2);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(-7.0, -7.0, 18.0);
         next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.weapon.scale = Vec3::one();
 

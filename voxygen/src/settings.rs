@@ -45,6 +45,7 @@ pub struct ControlSettings {
     pub zoom_sensitivity: f32,
     pub attack: KeyMouse,
     pub roll: KeyMouse,
+    pub cidle: KeyMouse,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -105,6 +106,8 @@ impl Default for Settings {
                 zoom_sensitivity: 1.0,
                 attack: KeyMouse::Mouse(MouseButton::Left),
                 roll: KeyMouse::Mouse(MouseButton::Middle),
+                cidle: KeyMouse::Mouse(MouseButton::Right),
+
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),

@@ -13,6 +13,7 @@ pub enum ClientMsg {
     },
     Attack,
     Roll,
+    Cidle,
     Respawn,
     RequestState(ClientState),
     SetViewDistance(u32),
