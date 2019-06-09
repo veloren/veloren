@@ -23,13 +23,14 @@ impl<'a> System<'a> for Sys {
         let finished_attacks = (&entities, &mut attacks)
             .join()
             .filter(|(_, a)| {
-                a.time > 0.25 // TODO: constant
+                a.time > 1.0 // TODO: constant
             })
             .map(|(e, _)| e)
             .collect::<Vec<_>>();
 
         for entity in finished_attacks {
             attacks.remove(entity);
+
         }
         for (entity, roll) in (&entities, &mut rolls).join() {
             roll.time += dt.0;
@@ -44,6 +45,8 @@ impl<'a> System<'a> for Sys {
 
         for entity in finished_rolls {
             rolls.remove(entity);
+            dbg!();
+
         }
         for (entity, cidle) in (&entities, &mut cidles).join() {
             cidle.time += dt.0;
