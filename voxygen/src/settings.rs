@@ -46,7 +46,6 @@ pub struct ControlSettings {
     pub attack: KeyMouse,
     pub roll: KeyMouse,
     pub cidle: KeyMouse,
-
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -108,8 +107,6 @@ impl Default for Settings {
                 attack: KeyMouse::Mouse(MouseButton::Left),
                 roll: KeyMouse::Mouse(MouseButton::Middle),
                 cidle: KeyMouse::Mouse(MouseButton::Right),
-
-
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),

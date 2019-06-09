@@ -1,19 +1,19 @@
 pub mod attack;
+pub mod cidle;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod roll;
 pub mod run;
-pub mod cidle;
 
 // Reexports
 pub use self::attack::AttackAnimation;
+pub use self::cidle::CidleAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
-pub use self::cidle::CidleAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;

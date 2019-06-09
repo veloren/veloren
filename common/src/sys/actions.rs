@@ -1,4 +1,7 @@
-use crate::{comp::{Attacking, Rolling, Cidling}, state::DeltaTime};
+use crate::{
+    comp::{Attacking, Cidling, Rolling},
+    state::DeltaTime,
+};
 use specs::{Entities, Join, Read, System, WriteStorage};
 
 // Basic ECS AI agent system
@@ -11,7 +14,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, Rolling>,
         WriteStorage<'a, Cidling>,
-
     );
 
     fn run(&mut self, (entities, dt, mut attacks, mut rolls, mut cidles): Self::SystemData) {
@@ -24,7 +26,6 @@ impl<'a> System<'a> for Sys {
                 a.time > 0.25 // TODO: constant
             })
             .map(|(e, _)| e)
-
             .collect::<Vec<_>>();
 
         for entity in finished_attacks {

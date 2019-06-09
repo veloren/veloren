@@ -1,9 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Rolling, Cidling, Control, Gliding, HealthSource, Jumping, Respawning,
-        Stats,
-
+        Animation, AnimationInfo, Attacking, Cidling, Control, Gliding, HealthSource, Jumping,
+        Respawning, Rolling, Stats,
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,
@@ -110,9 +109,8 @@ impl<'a> System<'a> for Sys {
                     jumps.remove(entity);
                 }
                 // Roll
-                if rolls.get(entity).is_some() && vel.0.magnitude() < ROLL_SPEED{
+                if rolls.get(entity).is_some() && vel.0.magnitude() < ROLL_SPEED {
                     vel.0 += Vec2::broadcast(dt.0) * move_dir * ROLL_ACCEL;
-
                 }
             } else if gliding && vel.0.magnitude() < GLIDE_SPEED {
                 let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
