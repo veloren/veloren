@@ -70,6 +70,7 @@ image_ids! {
         <ImageGraphic>
         bg: "voxygen/background/bg_main.png",
         error_frame: "voxygen/element/frames/window_2.png",
+        nothing: "voxygen/element/nothing.png",
     }
 }
 
@@ -137,6 +138,7 @@ impl MainMenuUi {
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+        const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
@@ -302,8 +304,8 @@ impl MainMenuUi {
             }
             if self.show_servers {
                 Image::new(self.imgs.error_frame)
-                    .top_left_with_margins_on(ui_widgets.window, 3.0, 3.0)
-                    .w_h(400.0, 400.0)
+                    .mid_top_with_margin_on(self.ids.username_bg, -320.0)
+                    .w_h(400.0, 300.0)
                     .set(self.ids.servers_frame, ui_widgets);
 
                 let net_settings = &global_state.settings.networking;
@@ -320,7 +322,7 @@ impl MainMenuUi {
                 while let Some(item) = items.next(ui_widgets) {
                     let mut text = "".to_string();
                     if &net_settings.servers[item.i] == &self.server_address {
-                        text.push_str("* ")
+                        text.push_str("-> ")
                     } else {
                         text.push_str("  ")
                     }
@@ -328,11 +330,11 @@ impl MainMenuUi {
 
                     if item
                         .set(
-                            Button::image(self.imgs.button)
-                                .w_h(100.0, 53.0)
-                                .mid_bottom_with_margin_on(self.ids.servers_frame, 5.0)
-                                .hover_image(self.imgs.button_hover)
-                                .press_image(self.imgs.button_press)
+                            Button::image(self.imgs.nothing)
+                                .w_h(100.0, 50.0)
+                                .mid_top_with_margin_on(self.ids.servers_frame, 10.0)
+                                //.hover_image(self.imgs.button_hover)
+                                //.press_image(self.imgs.button_press)
                                 .label_y(Relative::Scalar(2.0))
                                 .label(&text)
                                 .label_font_size(20)
@@ -465,10 +467,10 @@ impl MainMenuUi {
             if Button::image(self.imgs.button)
                 .w_h(190.0, 40.0)
                 .up_from(self.ids.quit_button, 8.0)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
+                //.hover_image(self.imgs.button_hover)
+                //.press_image(self.imgs.button_press)
                 .label("Settings")
-                .label_color(TEXT_COLOR)
+                .label_color(TEXT_COLOR_2)
                 .label_font_size(20)
                 .label_y(Relative::Scalar(3.0))
                 .set(self.ids.settings_button, ui_widgets)
@@ -490,7 +492,7 @@ impl MainMenuUi {
                 .set(self.ids.servers_button, ui_widgets)
                 .was_clicked()
             {
-                self.show_servers = true;
+                self.show_servers = !self.show_servers;
             };
         }
 
