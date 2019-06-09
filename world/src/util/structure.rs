@@ -32,7 +32,7 @@ impl StructureGen2d {
         next
     }
 
-    pub fn sample(&self, sample_pos: Vec2<i32>) -> [(Vec2<i32>, u32); 9] {
+    pub fn get(&self, sample_pos: Vec2<i32>) -> [(Vec2<i32>, u32); 9] {
         let mut samples = [(Vec2::zero(), 0); 9];
 
         let sample_closest = sample_pos.map(|e| e - e.rem_euclid(self.freq as i32));
