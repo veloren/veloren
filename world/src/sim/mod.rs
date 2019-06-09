@@ -1,19 +1,14 @@
-use crate::{
-    structure::StructureGen2d,
-    Cache,
-    sampler::Sampler,
+use std::ops::{Add, Div, Mul, Neg, Sub};
+use vek::*;
+use noise::{
+    BasicMulti, RidgedMulti, SuperSimplex, HybridMulti,
+    MultiFractal, NoiseFn, Seedable,
 };
 use common::{
-    terrain::{Block, Structure, TerrainChunkSize},
-    vol::{ReadVol, VolSize, Vox},
+    terrain::TerrainChunkSize,
+    vol::VolSize,
 };
-use lazy_static::lazy_static;
-use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
-use std::{
-    f32,
-    ops::{Add, Div, Mul, Neg, Sub},
-};
-use vek::*;
+use crate::util::StructureGen2d;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -31,13 +26,14 @@ pub(crate) struct GenCtx {
 
     pub cave_0_nz: SuperSimplex,
     pub cave_1_nz: SuperSimplex,
+
+    pub tree_gen: StructureGen2d,
 }
 
 pub struct WorldSim {
     pub seed: u32,
     pub(crate) chunks: Vec<SimChunk>,
     pub(crate) gen_ctx: GenCtx,
-    pub(crate) tree_gen: StructureGen2d,
 }
 
 impl WorldSim {
@@ -61,6 +57,8 @@ impl WorldSim {
                 .set_seed(seed + 9),
             cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
+
+            tree_gen: StructureGen2d::new(seed, 24, 16),
         };
 
         let mut chunks = Vec::new();
@@ -74,7 +72,6 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
-            tree_gen: StructureGen2d::new(seed, 24, 16),
         }
     }
 
@@ -138,16 +135,12 @@ impl WorldSim {
 
         Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
-
-    pub fn sampler(&self) -> Sampler {
-        Sampler::new(self)
-    }
 }
 
 pub const SEA_LEVEL: f32 = 128.0;
 pub const MOUNTAIN_HEIGHT: f32 = 900.0;
 
-const Z_TOLERANCE: (f32, f32) = (64.0, 64.0);
+const Z_TOLERANCE: (f32, f32) = (128.0, 64.0);
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -226,7 +219,7 @@ impl SimChunk {
     }
 
     pub fn get_min_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.5)
+        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.3)
     }
 
     pub fn get_max_z(&self) -> f32 {
