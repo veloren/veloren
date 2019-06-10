@@ -165,7 +165,7 @@ impl<'a> Sampler for BlockGen<'a> {
                                 Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
                             let rpos = wpos - tree_pos3d;
                             block.or(TREES[*tree_seed as usize % TREES.len()]
-                                .get((rpos * 160) / 128) // Scaling
+                                .get((rpos * 160) / 160) // Scaling
                                 .map(|b| b.clone())
                                 .unwrap_or(Block::empty()))
                         }
