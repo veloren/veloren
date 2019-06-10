@@ -4,7 +4,7 @@ use std::sync::Arc;
 use vek::*;
 
 lazy_static! {
-    pub static ref TREES: [Arc<Structure>; 81] = [
+    pub static ref TREES: [Arc<Structure>; 90] = [
         // green oaks
         assets::load_map("world/tree/oak_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
@@ -32,6 +32,34 @@ lazy_static! {
         .unwrap(),
         assets::load_map("world/tree/oak_green/9.vox", |s: Structure| s
             .with_center(Vec3::new(26, 26, 14)))
+        .unwrap(),
+        // oak stumps
+        assets::load_map("world/tree/oak_stump/1.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/2.vox", |s: Structure| s
+            .with_center(Vec3::new(15, 18, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/3.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 20, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/4.vox", |s: Structure| s
+            .with_center(Vec3::new(18, 21, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/5.vox", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/6.vox", |s: Structure| s
+            .with_center(Vec3::new(16, 21, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/7.vox", |s: Structure| s
+            .with_center(Vec3::new(20, 19, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/8.vox", |s: Structure| s
+            .with_center(Vec3::new(22, 20, 10)))
+        .unwrap(),
+        assets::load_map("world/tree/oak_stump/9.vox", |s: Structure| s
+            .with_center(Vec3::new(26, 26, 10)))
         .unwrap(),
         // green pines
         assets::load_map("world/tree/pine_green/1.vox", |s: Structure| s
