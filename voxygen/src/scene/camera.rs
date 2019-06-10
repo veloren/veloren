@@ -106,6 +106,11 @@ impl Camera {
         self.tgt_dist = (self.tgt_dist + delta).max(0.0);
     }
 
+    /// Get the distance of the camera from the target
+    pub fn get_distance(&self) -> f32 {
+        self.tgt_dist
+    }
+
     /// Set the distance of the camera from the target (i.e., zoom).
     pub fn set_distance(&mut self, dist: f32) {
         self.tgt_dist = dist;
