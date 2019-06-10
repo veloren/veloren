@@ -4,9 +4,8 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
-// Basic ECS AI agent system
+/// This system will apply the animation that fits best to the users actions
 pub struct Sys;
-
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
@@ -35,19 +34,25 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             animation_info.time += dt.0 as f64;
+            let moving = vel.0.magnitude() > 3.0;
 
-            let animation = if on_ground.is_some() {
-                if vel.0.magnitude() > 3.0 {
-                    Animation::Run
-                } else if attacking.is_some() {
-                    Animation::Attack
-                } else {
-                    Animation::Idle
-                }
-            } else if gliding.is_some() {
-                Animation::Gliding
-            } else {
-                Animation::Jump
+            fn impossible_animation() -> Animation {
+                warn!("Impossible animation");
+                Animation::Idle
+            }
+
+            let animation = match (
+                on_ground.is_some(),
+                moving,
+                attacking.is_some(),
+                gliding.is_some(),
+            ) {
+                (true, false, false, false) => Animation::Idle,
+                (true, true, false, false) => Animation::Run,
+                (false, _, false, false) => Animation::Jump,
+                (_, _, false, true) => Animation::Gliding,
+                (_, _, true, false) => Animation::Attack,
+                (_, _, true, true) => impossible_animation(),
             };
 
             let last = animation_info.clone();
