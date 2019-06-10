@@ -1,23 +1,25 @@
 use std::{
     thread,
-    time::{Duration, SystemTime},
+    time::{Duration, Instant},
 };
 
 const CLOCK_SMOOTHING: f64 = 0.9;
 
 pub struct Clock {
-    last_sys_time: SystemTime,
+    last_sys_time: Instant,
     last_delta: Option<Duration>,
     running_tps_average: f64,
+    compensation: f64,
 }
 
 impl Clock {
     #[allow(dead_code)]
     pub fn new() -> Self {
         Self {
-            last_sys_time: SystemTime::now(),
+            last_sys_time: Instant::now(),
             last_delta: None,
             running_tps_average: 0.0,
+            compensation: 1.0,
         }
     }
 
@@ -38,27 +40,25 @@ impl Clock {
 
     #[allow(dead_code)]
     pub fn tick(&mut self, tgt: Duration) {
-        let delta = SystemTime::now()
-            .duration_since(self.last_sys_time)
-            .expect("Time went backwards!");
+        let delta = Instant::now().duration_since(self.last_sys_time);
 
         // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = tgt.checked_sub(delta) {
-            let adjustment = if self.running_tps_average == 0.0 {
-                1.0
-            } else {
-                tgt.as_secs_f64() / self.running_tps_average
-            };
-            thread::sleep(Duration::from_secs_f64(
-                sleep_dur.as_secs_f64() * adjustment,
-            ));
+            if self.running_tps_average != 0.0 {
+                self.compensation =
+                    (self.compensation + (tgt.as_secs_f64() / self.running_tps_average) - 1.0)
+                        .max(0.0)
+            }
+
+            let sleep_secs = sleep_dur.as_secs_f64() * self.compensation;
+            if sleep_secs > 0.0 {
+                thread::sleep(Duration::from_secs_f64(sleep_secs));
+            }
         }
 
-        let delta = SystemTime::now()
-            .duration_since(self.last_sys_time)
-            .expect("Time went backwards!");
+        let delta = Instant::now().duration_since(self.last_sys_time);
 
-        self.last_sys_time = SystemTime::now();
+        self.last_sys_time = Instant::now();
         self.last_delta = Some(delta);
         self.running_tps_average = if self.running_tps_average == 0.0 {
             delta.as_secs_f64()
