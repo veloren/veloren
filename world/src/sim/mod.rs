@@ -24,6 +24,7 @@ pub(crate) struct GenCtx {
     pub temp_nz: SuperSimplex,
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
+    pub cliff_nz: HybridMulti,
     pub warp_nz: BasicMulti,
     pub tree_nz: BasicMulti,
 
@@ -53,6 +54,7 @@ impl WorldSim {
             temp_nz: SuperSimplex::new().set_seed(seed + 5),
             small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 6),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
             warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
@@ -140,7 +142,7 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (128.0, 128.0);
+const Z_TOLERANCE: (f32, f32) = (128.0, 96.0);
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -148,6 +150,7 @@ pub struct SimChunk {
     pub alt: f32,
     pub temp: f32,
     pub rockiness: f32,
+    pub cliffiness: f32,
     pub tree_density: f32,
 }
 
@@ -207,6 +210,12 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.2)
                 .max(0.0),
+            cliffiness: (gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32)
+                .sub(0.15)
+                .mul(3.0)
+                .mul(1.1 - chaos)
+                .max(0.0)
+                .min(1.0),
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)

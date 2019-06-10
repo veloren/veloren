@@ -52,6 +52,7 @@ impl<'a> Sampler for BlockGen<'a> {
             cave_xy,
             cave_alt,
             rock,
+            cliff,
         } = self.sample_column(Vec2::from(wpos))?;
 
         let wposf = wpos.map(|e| e as f64);
@@ -64,9 +65,20 @@ impl<'a> Sampler for BlockGen<'a> {
             .get((wposf.div(Vec3::new(120.0, 120.0, 140.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
-            .mul(90.0);
+            .mul(120.0);
 
-        let cliff = (0.0
+        let is_cliff = if cliff > 0.0 {
+            (self.world.sim()
+            .gen_ctx
+            .warp_nz
+            .get((wposf.div(Vec3::new(300.0, 300.0, 800.0))).into_array())
+            as f32) * cliff > 0.3
+        } else {
+            false
+        };
+
+        let cliff = if is_cliff {
+            (0.0
             + (self.world.sim()
                 .gen_ctx
                 .warp_nz
@@ -75,18 +87,15 @@ impl<'a> Sampler for BlockGen<'a> {
             + (self.world.sim()
                 .gen_ctx
                 .warp_nz
-                .get((wposf.div(Vec3::new(100.0, 100.0, 100.0))).into_array())
-                as f32) * 0.2)
-            .add(0.6)
-            .mul(64.0);
+                .get((wposf.div(Vec3::new(100.0, 100.0, 70.0))).into_array())
+                as f32) * 0.3)
+            .add(0.4)
+            .mul(64.0)
+        } else {
+            0.0
+        };
 
-        let is_cliff = (self.world.sim()
-            .gen_ctx
-            .warp_nz
-            .get((wposf.div(Vec3::new(300.0, 300.0, 800.0))).into_array())
-            as f32) > 0.25;//4;
-
-        let height = alt + warp + if is_cliff { cliff } else { 0.0 };
+        let height = alt + warp + cliff;
 
         // Sample blocks
 
@@ -98,7 +107,7 @@ impl<'a> Sampler for BlockGen<'a> {
         let water = Block::new(1, Rgb::new(100, 150, 255));
         let warm_stone = Block::new(1, Rgb::new(165, 165, 90));
 
-        let block = if (wposf.z as f32) < height - 4.0 {
+        let block = if (wposf.z as f32) < height - 2.0 {
             // Underground
             if (wposf.z as f32) > alt {
                 Some(surface_stone)
