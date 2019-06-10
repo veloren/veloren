@@ -62,16 +62,16 @@ impl<'a> Sampler for BlockGen<'a> {
         let warp = (self.world.sim()
             .gen_ctx
             .warp_nz
-            .get((wposf.div(Vec3::new(120.0, 120.0, 140.0))).into_array())
+            .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
-            .mul(120.0);
+            .mul(130.0);
 
         let is_cliff = if cliff > 0.0 {
             (self.world.sim()
             .gen_ctx
             .warp_nz
-            .get((wposf.div(Vec3::new(300.0, 300.0, 800.0))).into_array())
+            .get((wposf.div(Vec3::new(300.0, 300.0, 1500.0))).into_array())
             as f32) * cliff > 0.3
         } else {
             false
@@ -105,7 +105,7 @@ impl<'a> Sampler for BlockGen<'a> {
         let dirt = Block::new(1, Rgb::new(128, 90, 0));
         let sand = Block::new(1, Rgb::new(180, 150, 50));
         let water = Block::new(1, Rgb::new(100, 150, 255));
-        let warm_stone = Block::new(1, Rgb::new(165, 165, 90));
+        let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
         let block = if (wposf.z as f32) < height - 2.0 {
             // Underground
