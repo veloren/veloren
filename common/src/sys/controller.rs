@@ -12,6 +12,7 @@ use log::warn;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
+/// This system is responsible for validating controller inputs
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
@@ -52,13 +53,14 @@ impl<'a> System<'a> for Sys {
             mut force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, mut vel, mut ori) in (
+        for (entity, controller, stats, pos, mut vel, mut ori, on_ground) in (
             &entities,
             &controllers,
             &stats,
             &positions,
             &mut velocities,
             &mut orientations,
+            on_grounds.maybe(),
         )
             .join()
         {
@@ -71,7 +73,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide && vel.0.z < 0.0 {
+            if controller.glide && on_ground.is_none() && attackings.get(entity).is_none() {
                 glidings.insert(entity, Gliding);
             } else {
                 glidings.remove(entity);
@@ -88,7 +90,10 @@ impl<'a> System<'a> for Sys {
             );
 
             // Attack
-            if controller.attack && attackings.get(entity).is_none() {
+            if controller.attack
+                && attackings.get(entity).is_none()
+                && glidings.get(entity).is_none()
+            {
                 attackings.insert(entity, Attacking::start());
             }
 

@@ -65,51 +65,52 @@ impl<'a> System<'a> for Sys {
             mut force_updates,
         ): Self::SystemData,
     ) {
-        let finished_attacks: Vec<_> =
-            (&entities, &uids, &positions, &orientations, &mut attackings)
-                .join()
-                .filter_map(|(entity, uid, pos, ori, mut attacking)| {
-                    if !attacking.applied {
-                        // Go through all other entities
-                        for (b, pos_b, stat_b, mut vel_b) in
-                            (&entities, &positions, &mut stats, &mut velocities).join()
+        // Attacks
+        (&entities, &uids, &positions, &orientations, &mut attackings)
+            .join()
+            .filter_map(|(entity, uid, pos, ori, mut attacking)| {
+                if !attacking.applied {
+                    // Go through all other entities
+                    for (b, pos_b, stat_b, mut vel_b) in
+                        (&entities, &positions, &mut stats, &mut velocities).join()
+                    {
+                        // Check if it is a hit
+                        if entity != b
+                            && !stat_b.is_dead
+                            && pos.0.distance_squared(pos_b.0) < 50.0
+                            && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                         {
-                            // Check if it is a hit
-                            if entity != b
-                                && !stat_b.is_dead
-                                && pos.0.distance_squared(pos_b.0) < 50.0
-                                && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
-                            {
-                                // Deal damage
-                                stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                                vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
-                                vel_b.0.z = 15.0;
-                                if let Err(err) = force_updates.insert(b, ForceUpdate) {
-                                    warn!("Inserting ForceUpdate for an entity failed: {:?}", err);
-                                }
+                            // Deal damage
+                            stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
+                            vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
+                            vel_b.0.z = 15.0;
+                            if let Err(err) = force_updates.insert(b, ForceUpdate) {
+                                warn!("Inserting ForceUpdate for an entity failed: {:?}", err);
                             }
                         }
-                        attacking.applied = true;
                     }
+                    attacking.applied = true;
+                }
 
+                if attacking.time > 0.5 {
+                    Some(entity)
+                } else {
                     attacking.time += dt.0;
-                    if attacking.time > 0.5 {
-                        Some(entity)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
+                    None
+                }
+            })
+            .collect::<Vec<_>>()
+            .into_iter()
+            .for_each(|e| {
+                attackings.remove(e);
+            });
 
-        // Finish attack
-        for entity in finished_attacks {
-            attackings.remove(entity);
-        }
-
-        for (entity, mut vel, mut ori, move_dir, jumping, gliding) in (
+        // Apply movement inputs
+        for (entity, mut vel, mut ori, on_ground, move_dir, jumping, gliding) in (
             &entities,
             &mut velocities,
             &mut orientations,
+            on_grounds.maybe(),
             move_dirs.maybe(),
             jumpings.maybe(),
             glidings.maybe(),
@@ -118,13 +119,16 @@ impl<'a> System<'a> for Sys {
         {
             // Move player according to move_dir
             if let Some(move_dir) = move_dir {
-                if on_grounds.get(entity).is_some() && vel.0.magnitude() < HUMANOID_SPEED {
-                    vel.0 += Vec2::broadcast(dt.0) * move_dir.0 * HUMANOID_ACCEL;
-                } else if glidings.get(entity).is_some() && vel.0.magnitude() < GLIDE_SPEED {
-                    vel.0 += Vec2::broadcast(dt.0) * move_dir.0 * GLIDE_ACCEL;
-                } else if vel.0.magnitude() < HUMANOID_AIR_SPEED {
-                    vel.0 += Vec2::broadcast(dt.0) * move_dir.0 * HUMANOID_AIR_ACCEL;
-                }
+                vel.0 += Vec2::broadcast(dt.0)
+                    * move_dir.0
+                    * match (on_ground.is_some(), gliding.is_some()) {
+                        (true, false) if vel.0.magnitude() < HUMANOID_SPEED => HUMANOID_ACCEL,
+                        (false, true) if vel.0.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
+                        (false, false) if vel.0.magnitude() < HUMANOID_AIR_SPEED => {
+                            HUMANOID_AIR_ACCEL
+                        }
+                        _ => 0.0,
+                    };
             }
 
             // Jump
@@ -133,7 +137,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if gliding.is_some() && vel.0.magnitude() < GLIDE_SPEED {
+            if gliding.is_some() && vel.0.magnitude() < GLIDE_SPEED && vel.0.z < 0.0 {
                 let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
