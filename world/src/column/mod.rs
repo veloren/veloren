@@ -65,7 +65,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.4);
         let desert_sand = Rgb::new(0.98, 0.8, 0.15);
-        let snow = Rgb::broadcast(1.0);
+        let snow = Rgb::new(0.9, 0.9, 1.3);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
