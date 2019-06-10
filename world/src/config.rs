@@ -4,6 +4,6 @@ pub struct Config {
 }
 
 pub const CONFIG: Config = Config {
-    sea_level: 128.0,
+    sea_level: 140.0,
     mountain_scale: 1200.0,
 };

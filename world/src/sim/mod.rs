@@ -1,4 +1,9 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+mod location;
+
+use std::{
+    ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
+};
 use vek::*;
 use noise::{
     BasicMulti, RidgedMulti, SuperSimplex, HybridMulti,
@@ -12,6 +17,7 @@ use crate::{
     CONFIG,
     util::StructureGen2d,
 };
+use self::location::Location;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -73,11 +79,19 @@ impl WorldSim {
             }
         }
 
-        Self {
+        let mut this = Self {
             seed,
             chunks,
             gen_ctx,
-        }
+        };
+
+        this.simulate(100);
+
+        this
+    }
+
+    pub fn simulate(&mut self, cycles: usize) {
+        // TODO
     }
 
     pub fn get(&self, chunk_pos: Vec2<u32>) -> Option<&SimChunk> {
@@ -152,6 +166,7 @@ pub struct SimChunk {
     pub rockiness: f32,
     pub cliffiness: f32,
     pub tree_density: f32,
+    pub location: Option<Arc<Location>>,
 }
 
 impl SimChunk {
@@ -222,6 +237,7 @@ impl SimChunk {
                 .mul(1.0 - chaos * 0.85)
                 .add(0.1)
                 .mul(if alt > CONFIG.sea_level + 2.0 { 1.0 } else { 0.0 }),
+            location: None,
         }
     }
 
