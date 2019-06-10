@@ -66,19 +66,25 @@ impl<'a> Sampler for BlockGen<'a> {
             .mul((chaos - 0.1).max(0.0))
             .mul(90.0);
 
-        let cliff = (self.world.sim()
-            .gen_ctx
-            .warp_nz
-            .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
-            as f32)
-            //.add(0.6)
-            .mul(130.0);
+        let cliff = (0.0
+            + (self.world.sim()
+                .gen_ctx
+                .warp_nz
+                .get((wposf.div(Vec3::new(350.0, 350.0, 800.0))).into_array())
+                as f32) * 0.8
+            + (self.world.sim()
+                .gen_ctx
+                .warp_nz
+                .get((wposf.div(Vec3::new(100.0, 100.0, 100.0))).into_array())
+                as f32) * 0.2)
+            .add(0.6)
+            .mul(64.0);
 
         let is_cliff = (self.world.sim()
             .gen_ctx
             .warp_nz
-            .get((wposf.div(Vec3::new(100.0, 100.0, 100.0))).into_array())
-            as f32) > 0.0;//4;
+            .get((wposf.div(Vec3::new(300.0, 300.0, 800.0))).into_array())
+            as f32) > 0.25;//4;
 
         let height = alt + warp + if is_cliff { cliff } else { 0.0 };
 
@@ -86,6 +92,7 @@ impl<'a> Sampler for BlockGen<'a> {
 
         let air = Block::empty();
         let stone = Block::new(2, Rgb::new(200, 220, 255));
+        let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
         let dirt = Block::new(1, Rgb::new(128, 90, 0));
         let sand = Block::new(1, Rgb::new(180, 150, 50));
         let water = Block::new(1, Rgb::new(100, 150, 255));
@@ -93,7 +100,11 @@ impl<'a> Sampler for BlockGen<'a> {
 
         let block = if (wposf.z as f32) < height - 4.0 {
             // Underground
-            Some(stone)
+            if (wposf.z as f32) > alt {
+                Some(surface_stone)
+            } else {
+                Some(stone)
+            }
         } else if (wposf.z as f32) < height {
             // Surface
             Some(Block::new(1, surface_color.map(|e| (e * 255.0) as u8)))

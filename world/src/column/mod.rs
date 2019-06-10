@@ -45,13 +45,15 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let rock = (sim.gen_ctx.small_nz.get(Vec3::new(wposf.x, wposf.y, alt as f64).div(100.0).into_array()) as f32)
             .mul(rockiness)
-            .sub(0.35)
+            .sub(0.4)
             .max(0.0)
-            .mul(6.0);
+            .mul(8.0);
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
-        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
+        let marble = (0.0
+            + (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
+            + (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32).mul(0.5))
             .add(1.0)
             .mul(0.5);
 

@@ -4,7 +4,7 @@ use std::sync::Arc;
 use vek::*;
 
 lazy_static! {
-    pub static ref TREES: [Arc<Structure>; 61] = [
+    pub static ref TREES: [Arc<Structure>; 9] = [
         // green oaks
         assets::load_map("world/tree/oak_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 14)))
@@ -34,7 +34,7 @@ lazy_static! {
             .with_center(Vec3::new(26, 26, 14)))
         .unwrap(),
         // green pines
-        assets::load_map("world/tree/pine_green/1.vox", |s: Structure| s
+        /*assets::load_map("world/tree/pine_green/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
         .unwrap(),
         assets::load_map("world/tree/pine_green/2.vox", |s: Structure| s
@@ -196,7 +196,7 @@ lazy_static! {
             .with_center(Vec3::new(7, 7, 10)))
         .unwrap(),
         // palm trees
-        /*assets::load_map("world/tree/desert_palm/1.vox", |s: Structure| s
+        assets::load_map("world/tree/desert_palm/1.vox", |s: Structure| s
             .with_center(Vec3::new(12, 12, 10)))
         .unwrap(),
         assets::load_map("world/tree/desert_palm/2.vox", |s: Structure| s
