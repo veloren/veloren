@@ -36,6 +36,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+        let cliffiness = sim.get_interpolated(wpos, |chunk| chunk.cliffiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
@@ -53,26 +54,30 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let marble = (0.0
             + (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
-            + (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32).mul(0.5))
+            + (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32).mul(0.25))
             .add(1.0)
             .mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.4, 0.1);
-        let warm_grass = Rgb::new(0.25, 0.8, 0.05);
+        let cold_grass = Rgb::new(0.0, 0.3, 0.1);
+        let warm_grass = Rgb::new(0.25, 0.9, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
-        let beach_sand = Rgb::new(0.93, 0.84, 0.33);
-        let desert_sand = Rgb::new(0.97, 0.84, 0.23);
+        let beach_sand = Rgb::new(0.93, 0.84, 0.4);
+        let desert_sand = Rgb::new(0.98, 0.8, 0.15);
         let snow = Rgb::broadcast(1.0);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
-        let grassland = grass; //Rgb::lerp(grass, warm_stone, rock.mul(5.0).min(0.8));
+        let sand = Rgb::lerp(beach_sand, desert_sand, marble);
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let ground = Rgb::lerp(
-            Rgb::lerp(snow, grassland, temp.add(0.4).mul(32.0).sub(0.4)),
-            desert_sand,
+            Rgb::lerp(
+                snow,
+                grass,
+                temp.add(0.4).add(marble * 0.05).mul(256.0).sub(0.4),
+            ),
+            sand,
             temp.sub(0.4).mul(32.0).add(0.4),
         );
 
@@ -108,7 +113,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             alt,
             chaos,
             surface_color: Rgb::lerp(
-                beach_sand,
+                sand,
                 // Land
                 Rgb::lerp(
                     ground,
@@ -133,6 +138,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             cave_xy,
             cave_alt,
             rock,
+            cliff: cliffiness,
         })
     }
 }
@@ -147,4 +153,5 @@ pub struct ColumnSample {
     pub cave_xy: f32,
     pub cave_alt: f32,
     pub rock: f32,
+    pub cliff: f32,
 }
