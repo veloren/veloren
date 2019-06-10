@@ -107,7 +107,7 @@ impl<'a> Sampler for BlockGen<'a> {
         let water = Block::new(1, Rgb::new(100, 150, 255));
         let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
-        let block = if (wposf.z as f32) < height - 2.0 {
+        let block = if (wposf.z as f32) < height - 3.0 {
             // Underground
             if (wposf.z as f32) > alt {
                 Some(surface_stone)
