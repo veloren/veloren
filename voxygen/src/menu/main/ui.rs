@@ -87,6 +87,7 @@ pub enum Event {
     },
     StartSingleplayer,
     Quit,
+    Settings,
     DisclaimerClosed,
 }
 
@@ -458,7 +459,8 @@ impl MainMenuUi {
                 .was_clicked()
             {
                 events.push(Event::Quit);
-            };
+            }
+
             // Settings
             if Button::image(self.imgs.button)
                 .w_h(190.0, 40.0)
@@ -471,7 +473,10 @@ impl MainMenuUi {
                 .label_y(Relative::Scalar(3.0))
                 .set(self.ids.settings_button, ui_widgets)
                 .was_clicked()
-            {};
+            {
+                events.push(Event::Settings);
+            }
+
             // Servers
             if Button::image(self.imgs.button)
                 .w_h(190.0, 40.0)
