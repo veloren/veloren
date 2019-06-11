@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Gliding, HealthSource, Jumping, MoveDir, OnGround,
-        Respawning, Stats,
+        Animation, AnimationInfo, Attacking, Cidling, Crunning, Gliding, HealthSource, Jumping,
+        MoveDir, OnGround, Respawning, Rolling, Stats,
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,
@@ -151,8 +151,7 @@ impl<'a> System<'a> for Sys {
                 vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
             // Roll
-            if rolling.is_some() {
-            }
+            if rolling.is_some() {}
 
             // Set direction based on velocity
             if vel.0.magnitude_squared() != 0.0 {

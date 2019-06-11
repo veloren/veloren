@@ -47,8 +47,6 @@ pub struct ControlSettings {
     pub roll: KeyMouse,
     pub crun: KeyMouse,
     pub cidle: KeyMouse,
-
-
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -111,8 +109,6 @@ impl Default for Settings {
                 roll: KeyMouse::Mouse(MouseButton::Middle),
                 crun: KeyMouse::Key(VirtualKeyCode::K),
                 cidle: KeyMouse::Key(VirtualKeyCode::J),
-
-
             },
             networking: NetworkingSettings {
                 username: "Username".to_string(),

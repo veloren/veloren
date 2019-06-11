@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Controller, Gliding, HealthSource, Jumping, MoveDir,
-        OnGround, Respawning, Stats,
+        Animation, AnimationInfo, Attacking, Cidling, Controller, Crunning, Gliding, HealthSource,
+        Jumping, MoveDir, OnGround, Respawning, Rolling, Stats,
     },
     state::{DeltaTime, Uid},
     terrain::TerrainMap,

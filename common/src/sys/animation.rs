@@ -1,5 +1,8 @@
 use crate::{
-    comp::{phys, Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Gliding, Jumping, OnGround},
+    comp::{
+        phys, Animation, AnimationInfo, Attacking, Cidling, Crunning, Gliding, Jumping, OnGround,
+        Rolling,
+    },
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -23,9 +26,32 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, velocities, on_grounds, jumpings, glidings, attackings, rollings, crunnings, cidlings, mut animation_infos): Self::SystemData,
+        (
+            entities,
+            dt,
+            velocities,
+            on_grounds,
+            jumpings,
+            glidings,
+            attackings,
+            rollings,
+            crunnings,
+            cidlings,
+            mut animation_infos,
+        ): Self::SystemData,
     ) {
-        for (entity, vel, on_ground, jumping, gliding, attacking, rolling, crunning, cidling, mut animation_info) in (
+        for (
+            entity,
+            vel,
+            on_ground,
+            jumping,
+            gliding,
+            attacking,
+            rolling,
+            crunning,
+            cidling,
+            mut animation_info,
+        ) in (
             &entities,
             &velocities,
             on_grounds.maybe(),
