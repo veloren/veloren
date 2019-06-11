@@ -78,7 +78,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, mut pos, mut vel, mut ori, on_ground, move_dir, jumping, gliding, stats) in (
+        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, stats) in (
             &entities,
             &mut positions,
             &mut velocities,
@@ -136,9 +136,9 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(false)
                 && vel.0.z <= 0.0
             {
-                on_grounds.insert(entity, OnGround);
+                on_ground = Some(&OnGround);
             } else {
-                on_grounds.remove(entity);
+                on_ground = None;
             }
 
             // Integrate forces

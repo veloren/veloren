@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
             force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, mut vel, mut ori, on_ground, attacking, jumping, gliding) in (
+        for (entity, controller, stats, pos, mut vel, mut ori, on_ground, mut attacking, mut jumping, mut gliding) in (
             &entities,
             &controllers,
             &stats,
@@ -70,9 +70,9 @@ impl<'a> System<'a> for Sys {
 
             // Glide
             if controller.glide && on_ground.is_none() && attacking.is_none() {
-                glidings.insert(entity, Gliding);
+                gliding = Some(&Gliding);
             } else {
-                glidings.remove(entity);
+                gliding = None
             }
 
             // Move dir
@@ -87,14 +87,14 @@ impl<'a> System<'a> for Sys {
 
             // Attack
             if controller.attack && attacking.is_none() && gliding.is_none() {
-                attackings.insert(entity, Attacking::start());
+                attacking = Some(&Attacking::start());
             }
 
             // Jump
             if on_ground.is_some() && controller.jump && vel.0.z <= 0.0 {
-                jumpings.insert(entity, Jumping);
+                jumping = Some(&Jumping);
             } else {
-                jumpings.remove(entity);
+                jumping = None;
             }
         }
     }
