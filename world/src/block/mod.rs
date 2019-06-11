@@ -13,7 +13,6 @@ use crate::{
     CONFIG,
     World,
 };
-use self::tree::TREES;
 
 pub struct BlockGen<'a> {
     world: &'a World,
@@ -48,6 +47,7 @@ impl<'a> Sampler for BlockGen<'a> {
             chaos,
             surface_color,
             tree_density,
+            forest_kind,
             close_trees,
             cave_xy,
             cave_alt,
@@ -164,8 +164,11 @@ impl<'a> Sampler for BlockGen<'a> {
                             let tree_pos3d =
                                 Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
                             let rpos = wpos - tree_pos3d;
-                            block.or(TREES[*tree_seed as usize % TREES.len()]
-                                .get((rpos * 160) / 160) // Scaling
+
+                            let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
+
+                            block.or(trees[*tree_seed as usize % trees.len()]
+                                .get((rpos * 128) / 128) // Scaling
                                 .map(|b| b.clone())
                                 .unwrap_or(Block::empty()))
                         }
