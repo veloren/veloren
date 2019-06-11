@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         phys::{Ori, Pos, Vel},
-        Gliding, Jumping, MoveDir, OnGround, Stats,
+        Gliding, Jumping, MoveDir, OnGround, Stats, Rolling, Cidling, Crunning,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -58,7 +58,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, MoveDir>,
         ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
-        WriteStorage<'a, Stats>,
+        ReadStorage<'a, Rolling>,
+        ReadStorage<'a, Crunning>,
+        ReadStorage<'a, Cidling>,
+        ReadStorage<'a, Stats>,
     );
 
     fn run(
@@ -74,11 +77,14 @@ impl<'a> System<'a> for Sys {
             move_dirs,
             jumpings,
             glidings,
+            rollings,
+            crunnings,
+            cidlings,
             stats,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, stats) in
+        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, rolling, crunning, cidling, stats) in
             (
                 &entities,
                 &mut positions,
@@ -88,6 +94,9 @@ impl<'a> System<'a> for Sys {
                 move_dirs.maybe(),
                 jumpings.maybe(),
                 glidings.maybe(),
+                rollings.maybe(),
+                crunnings.maybe(),
+                cidlings.maybe(),
                 &stats,
             )
                 .join()
@@ -121,6 +130,11 @@ impl<'a> System<'a> for Sys {
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
+
+            // TODO:
+            if rolling.is_some() {}
+            if crunning.is_some() {}
+            if cidling.is_some() {}
 
             // Set direction based on velocity
             if vel.0.magnitude_squared() != 0.0 {
