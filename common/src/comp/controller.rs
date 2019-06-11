@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use specs::{Component, FlaggedStorage, VecStorage};
 use vek::*;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
