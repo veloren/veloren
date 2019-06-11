@@ -1,16 +1,11 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource, Jumping, MoveDir,
-        OnGround, Respawning, Stats,
+        Attacking, Controller, Gliding, Jumping, MoveDir, OnGround, Respawning, Stats,
     },
-    state::{DeltaTime, Uid},
-    terrain::TerrainMap,
-    vol::{ReadVol, Vox},
+    state::DeltaTime,
 };
-use log::warn;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 /// This system is responsible for validating controller inputs
 pub struct Sys;
@@ -20,7 +15,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
-        ReadExpect<'a, TerrainMap>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -40,7 +34,6 @@ impl<'a> System<'a> for Sys {
             dt,
             controllers,
             stats,
-            terrain,
             positions,
             mut velocities,
             mut orientations,
@@ -50,10 +43,10 @@ impl<'a> System<'a> for Sys {
             mut attackings,
             mut respawns,
             mut glidings,
-            mut force_updates,
+            force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, mut vel, mut ori, on_ground) in (
+        for (entity, controller, stats, pos, mut vel, mut ori, on_ground, attacking, jumping, gliding) in (
             &entities,
             &controllers,
             &stats,
@@ -61,6 +54,9 @@ impl<'a> System<'a> for Sys {
             &mut velocities,
             &mut orientations,
             on_grounds.maybe(),
+            attackings.maybe(),
+            jumpings.maybe(),
+            glidings.maybe(),
         )
             .join()
         {
@@ -73,7 +69,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide && on_ground.is_none() && attackings.get(entity).is_none() {
+            if controller.glide && on_ground.is_none() && attacking.is_none() {
                 glidings.insert(entity, Gliding);
             } else {
                 glidings.remove(entity);
@@ -90,15 +86,12 @@ impl<'a> System<'a> for Sys {
             );
 
             // Attack
-            if controller.attack
-                && attackings.get(entity).is_none()
-                && glidings.get(entity).is_none()
-            {
+            if controller.attack && attacking.is_none() && gliding.is_none() {
                 attackings.insert(entity, Attacking::start());
             }
 
             // Jump
-            if on_grounds.get(entity).is_some() && controller.jump && vel.0.z <= 0.0 {
+            if on_ground.is_some() && controller.jump && vel.0.z <= 0.0 {
                 jumpings.insert(entity, Jumping);
             } else {
                 jumpings.remove(entity);
