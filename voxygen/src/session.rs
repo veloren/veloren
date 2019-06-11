@@ -119,6 +119,15 @@ impl PlayState for SessionState {
                         self.controller.attack = state;
                         self.controller.respawn = state; // TODO: Don't do both
                     }
+                    Event::InputUpdate(GameInput::Roll, state) => {
+                        self.controller.roll = state;
+                    }
+                    Event::InputUpdate(GameInput::Crun, state) => {
+                        self.controller.crun = state;
+                    }
+                    Event::InputUpdate(GameInput::Cidle, state) => {
+                        self.controller.cidle = state;
+                    }
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.controller.jump = state;
                     }

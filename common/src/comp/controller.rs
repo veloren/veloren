@@ -5,8 +5,11 @@ use vek::*;
 pub struct Controller {
     pub move_dir: Vec2<f32>,
     pub jump: bool,
-    pub glide: bool,
     pub attack: bool,
+    pub roll: bool,
+    pub crun: bool,
+    pub cidle: bool,
+    pub glide: bool,
     pub respawn: bool,
 }
 
