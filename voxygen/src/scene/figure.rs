@@ -556,6 +556,21 @@ impl FigureMgr {
                                 time,
                                 animation_info.time,
                             ),
+                            comp::Animation::Roll => character::RollAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                            ),
+                            comp::Animation::Crun => character::CrunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                            ),
+                            comp::Animation::Cidle => character::CidleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                            ),
                             comp::Animation::Gliding => {
                                 character::GlidingAnimation::update_skeleton(
                                     state.skeleton_mut(),

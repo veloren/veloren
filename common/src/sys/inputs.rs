@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Gliding, HealthSource, Jumping, MoveDir, OnGround,
+        Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Gliding, HealthSource, Jumping, MoveDir, OnGround,
         Respawning, Stats,
     },
     state::{DeltaTime, Uid},
@@ -17,6 +17,8 @@ const HUMANOID_SPEED: f32 = 500.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
+const ROLL_ACCEL: f32 = 15.0;
+const ROLL_SPEED: f32 = 45.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -41,6 +43,9 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Rolling>,
+        WriteStorage<'a, Crunning>,
+        WriteStorage<'a, Cidling>,
         WriteStorage<'a, ForceUpdate>,
     );
 
@@ -62,6 +67,9 @@ impl<'a> System<'a> for Sys {
             mut jumpings,
             glidings,
             mut attackings,
+            mut rollings,
+            mut crunnings,
+            mut cidlings,
             mut force_updates,
         ): Self::SystemData,
     ) {
@@ -92,7 +100,7 @@ impl<'a> System<'a> for Sys {
                     attacking.applied = true;
                 }
 
-                if attacking.time > 0.5 {
+                if attacking.time > 0.25 {
                     Some(entity)
                 } else {
                     attacking.time += dt.0;
@@ -106,7 +114,7 @@ impl<'a> System<'a> for Sys {
             });
 
         // Apply movement inputs
-        for (entity, mut vel, mut ori, on_ground, move_dir, jumping, gliding) in (
+        for (entity, mut vel, mut ori, on_ground, move_dir, jumping, gliding, rolling) in (
             &entities,
             &mut velocities,
             &mut orientations,
@@ -114,6 +122,7 @@ impl<'a> System<'a> for Sys {
             move_dirs.maybe(),
             jumpings.maybe(),
             glidings.maybe(),
+            rollings.maybe(),
         )
             .join()
         {
@@ -140,6 +149,9 @@ impl<'a> System<'a> for Sys {
             if gliding.is_some() && vel.0.magnitude() < GLIDE_SPEED && vel.0.z < 0.0 {
                 let anti_grav = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * anti_grav * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
+            }
+            // Roll
+            if rolling.is_some() {
             }
 
             // Set direction based on velocity
