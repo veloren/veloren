@@ -2,11 +2,12 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 use noise::NoiseFn;
 use common::{
-    terrain::Block,
-    vol::Vox,
+    terrain::{Block, TerrainChunkSize},
+    vol::{Vox, VolSize},
 };
 use crate::{
     CONFIG,
+    all::ForestKind,
     util::Sampler,
     World,
 };
@@ -29,6 +30,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
     fn get(&mut self, wpos: Vec2<i32>) -> Option<ColumnSample> {
         let wposf = wpos.map(|e| e as f64);
+        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as u32 / sz);
 
         let sim = self.world.sim();
 
@@ -38,6 +40,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let cliffiness = sim.get_interpolated(wpos, |chunk| chunk.cliffiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
+
+        let forest_kind = sim.get(chunk_pos)?.forest_kind;
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32
@@ -60,12 +64,12 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         // Colours
         let cold_grass = Rgb::new(0.0, 0.3, 0.1);
-        let warm_grass = Rgb::new(0.25, 0.9, 0.05);
+        let warm_grass = Rgb::new(0.35, 1.0, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.4);
         let desert_sand = Rgb::new(0.98, 0.8, 0.15);
-        let snow = Rgb::new(0.9, 0.9, 1.3);
+        let snow = Rgb::broadcast(1.0);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
@@ -75,10 +79,10 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::lerp(
                 snow,
                 grass,
-                temp.add(0.4).add(marble * 0.05).mul(256.0).sub(0.4),
+                temp.sub(CONFIG.snow_temp).sub(marble * 0.05).mul(256.0),
             ),
             sand,
-            temp.sub(0.4).mul(32.0).add(0.4),
+            temp.sub(CONFIG.desert_temp).mul(32.0),
         );
 
         // Caves
@@ -134,6 +138,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 (alt - CONFIG.sea_level - 2.0) / 5.0,
             ),
             tree_density,
+            forest_kind,
             close_trees: sim.gen_ctx.tree_gen.get(wpos),
             cave_xy,
             cave_alt,
@@ -149,6 +154,7 @@ pub struct ColumnSample {
     pub chaos: f32,
     pub surface_color: Rgb<f32>,
     pub tree_density: f32,
+    pub forest_kind: ForestKind,
     pub close_trees: [(Vec2<i32>, u32); 9],
     pub cave_xy: f32,
     pub cave_alt: f32,
