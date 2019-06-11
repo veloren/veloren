@@ -1,7 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Attacking, Controller, Gliding, Jumping, MoveDir, OnGround, Respawning, Stats,
+        Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Controller, Gliding, HealthSource, Jumping, MoveDir,
+        OnGround, Respawning, Stats,
     },
     state::DeltaTime,
 };
@@ -22,6 +23,9 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Rolling>,
+        WriteStorage<'a, Crunning>,
+        WriteStorage<'a, Cidling>,
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
         WriteStorage<'a, ForceUpdate>,
@@ -41,6 +45,9 @@ impl<'a> System<'a> for Sys {
             mut on_grounds,
             mut jumpings,
             mut attackings,
+            mut rollings,
+            mut crunnings,
+            mut cidlings,
             mut respawns,
             mut glidings,
             force_updates,
@@ -106,6 +113,13 @@ impl<'a> System<'a> for Sys {
                 jumping = Some(&Jumping);
             } else {
                 jumping = None;
+            }
+
+            // Roll
+            if on_grounds.get(entity).is_some() && controller.roll {
+                rollings.insert(entity, Rolling::start());
+            } else {
+                rollings.remove(entity);
             }
         }
     }
