@@ -1,6 +1,7 @@
 #![feature(euclidean_division, bind_by_move_pattern_guards)]
 
 mod config;
+mod all;
 mod util;
 mod block;
 mod column;

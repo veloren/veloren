@@ -15,6 +15,7 @@ use common::{
 };
 use crate::{
     CONFIG,
+    all::ForestKind,
     util::StructureGen2d,
 };
 use self::location::Location;
@@ -69,7 +70,7 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
 
-            tree_gen: StructureGen2d::new(seed, 24, 16),
+            tree_gen: StructureGen2d::new(seed, 32, 24),
         };
 
         let mut chunks = Vec::new();
@@ -166,6 +167,7 @@ pub struct SimChunk {
     pub rockiness: f32,
     pub cliffiness: f32,
     pub tree_density: f32,
+    pub forest_kind: ForestKind,
     pub location: Option<Arc<Location>>,
 }
 
@@ -208,7 +210,7 @@ impl SimChunk {
             + (0.0
                 + alt_main
                 + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
-                    * alt_main.max(0.05)
+                    * alt_main.max(0.1)
                     * chaos
                     * 1.6)
                 .add(1.0)
@@ -216,14 +218,16 @@ impl SimChunk {
                 .mul(chaos)
                 .mul(CONFIG.mountain_scale);
 
+        let temp = (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32);
+
         Self {
             chaos,
             alt_base,
             alt,
-            temp: (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32),
+            temp,
             rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .sub(0.1)
-                .mul(1.2)
+                .mul(1.3)
                 .max(0.0),
             cliffiness: (gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32)
                 .sub(0.15)
@@ -237,6 +241,19 @@ impl SimChunk {
                 .mul(1.0 - chaos * 0.85)
                 .add(0.1)
                 .mul(if alt > CONFIG.sea_level + 2.0 { 1.0 } else { 0.0 }),
+            forest_kind: if temp > 0.0 {
+                if temp > CONFIG.desert_temp {
+                    ForestKind::Palm
+                } else {
+                    ForestKind::Oak
+                }
+            } else {
+                if temp > CONFIG.snow_temp {
+                    ForestKind::Pine
+                } else {
+                    ForestKind::SnowPine
+                }
+            },
             location: None,
         }
     }

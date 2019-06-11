@@ -69,6 +69,12 @@ impl SessionState {
             }
         }
 
+        // TODO: Get rid of this
+        match self.client.borrow().current_chunk() {
+            Some(chunk) => println!("Chunk location: {:?}", chunk.meta().name()),
+            None => {},
+        }
+
         Ok(())
     }
 
