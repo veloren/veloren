@@ -65,7 +65,7 @@ impl<'a> Sampler for BlockGen<'a> {
             .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
             as f32)
             .mul((chaos - 0.1).max(0.0))
-            .mul(130.0);
+            .mul(115.0);
 
         let is_cliff = if cliff > 0.0 {
             (self.world.sim()
@@ -99,20 +99,25 @@ impl<'a> Sampler for BlockGen<'a> {
 
         // Sample blocks
 
+        let stone_col = Rgb::new(200, 220, 255);
+        let dirt_col = Rgb::new(79, 67, 60);
+
         let air = Block::empty();
-        let stone = Block::new(2, Rgb::new(200, 220, 255));
+        let stone = Block::new(2, stone_col);
         let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
-        let dirt = Block::new(1, Rgb::new(128, 90, 0));
+        let dirt = Block::new(1, dirt_col);
         let sand = Block::new(1, Rgb::new(180, 150, 50));
         let water = Block::new(1, Rgb::new(100, 150, 255));
         let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
         let block = if (wposf.z as f32) < height - 3.0 {
+            let col = Lerp::lerp(dirt_col, stone_col, (height - 4.0 - wposf.z as f32) * 0.15);
+
             // Underground
-            if (wposf.z as f32) > alt {
-                Some(surface_stone)
+            if (wposf.z as f32) > alt - 32.0 * chaos {
+                Some(Block::new(1, col))
             } else {
-                Some(stone)
+                Some(Block::new(2, col))
             }
         } else if (wposf.z as f32) < height {
             // Surface

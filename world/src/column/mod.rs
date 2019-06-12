@@ -79,7 +79,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::lerp(
                 snow,
                 grass,
-                temp.sub(CONFIG.snow_temp).sub(marble * 0.05).mul(256.0),
+                temp.sub(CONFIG.snow_temp).sub((marble - 0.5) * 0.05).mul(256.0),
             ),
             sand,
             temp.sub(CONFIG.desert_temp).mul(32.0),
