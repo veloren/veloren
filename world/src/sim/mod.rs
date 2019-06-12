@@ -238,7 +238,7 @@ impl SimChunk {
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.0 - chaos * 0.85)
+                .mul(1.2 - chaos * 0.85)
                 .add(0.1)
                 .mul(if alt > CONFIG.sea_level + 2.0 { 1.0 } else { 0.0 }),
             forest_kind: if temp > 0.0 {
