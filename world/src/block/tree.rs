@@ -99,6 +99,7 @@ lazy_static! {
         assets::load_map("world/tree/pine_green/8.vox", |s: Structure| s
             .with_center(Vec3::new(12, 10, 12)))
         .unwrap(),
+        /*
         // green pines 2
          assets::load_map("world/tree/pine_green_2/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 15, 14)))
@@ -149,6 +150,7 @@ lazy_static! {
         assets::load_map("world/tree/pine_blue/8.vox", |s: Structure| s
             .with_center(Vec3::new(12, 10, 12)))
         .unwrap(),
+        */
     ];
       /*
         // temperate small
