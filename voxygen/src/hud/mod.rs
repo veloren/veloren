@@ -108,9 +108,12 @@ pub struct DebugInfo {
 
 pub enum Event {
     SendMessage(String),
+    AdjustMousePan(u32),
+    AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
+    ChangeMaxFPS(u32),
     CharacterSelection,
     Logout,
     Quit,
@@ -567,11 +570,20 @@ impl Hud {
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => self.show.settings(false),
+                    settings_window::Event::AdjustMousePan(sensitivity) => {
+                        events.push(Event::AdjustMousePan(sensitivity));
+                    }
+                    settings_window::Event::AdjustMouseZoom(sensitivity) => {
+                        events.push(Event::AdjustMouseZoom(sensitivity));
+                    }
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
                     }
                     settings_window::Event::AdjustVolume(volume) => {
                         events.push(Event::AdjustVolume(volume));
+                    }
+                    settings_window::Event::MaximumFPS(max_fps) => {
+                        events.push(Event::ChangeMaxFPS(max_fps));
                     }
                     settings_window::Event::ChangeAudioDevice(name) => {
                         events.push(Event::ChangeAudioDevice(name));

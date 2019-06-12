@@ -4,20 +4,9 @@ use glutin::{MouseButton, VirtualKeyCode};
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 
-/// `Settings` contains everything that can be configured in the Settings.toml file.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(default)]
-pub struct Settings {
-    pub controls: ControlSettings,
-    pub networking: NetworkingSettings,
-    pub log: Log,
-    pub graphics: GraphicsSettings,
-    pub audio: AudioSettings,
-    pub show_disclaimer: bool,
-}
-
 /// `ControlSettings` contains keybindings.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct ControlSettings {
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
@@ -41,31 +30,111 @@ pub struct ControlSettings {
     pub fullscreen: KeyMouse,
     pub screenshot: KeyMouse,
     pub toggle_ingame_ui: KeyMouse,
-    pub pan_sensitivity: f32,
-    pub zoom_sensitivity: f32,
     pub attack: KeyMouse,
 }
 
+impl Default for ControlSettings {
+    fn default() -> Self {
+        Self {
+            toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
+            escape: KeyMouse::Key(VirtualKeyCode::Escape),
+            enter: KeyMouse::Key(VirtualKeyCode::Return),
+            move_forward: KeyMouse::Key(VirtualKeyCode::W),
+            move_left: KeyMouse::Key(VirtualKeyCode::A),
+            move_back: KeyMouse::Key(VirtualKeyCode::S),
+            move_right: KeyMouse::Key(VirtualKeyCode::D),
+            jump: KeyMouse::Key(VirtualKeyCode::Space),
+            glide: KeyMouse::Key(VirtualKeyCode::LShift),
+            map: KeyMouse::Key(VirtualKeyCode::M),
+            bag: KeyMouse::Key(VirtualKeyCode::B),
+            quest_log: KeyMouse::Key(VirtualKeyCode::L),
+            character_window: KeyMouse::Key(VirtualKeyCode::C),
+            social: KeyMouse::Key(VirtualKeyCode::O),
+            spellbook: KeyMouse::Key(VirtualKeyCode::P),
+            settings: KeyMouse::Key(VirtualKeyCode::N),
+            help: KeyMouse::Key(VirtualKeyCode::F1),
+            toggle_interface: KeyMouse::Key(VirtualKeyCode::F2),
+            toggle_debug: KeyMouse::Key(VirtualKeyCode::F3),
+            fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
+            screenshot: KeyMouse::Key(VirtualKeyCode::F4),
+            toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
+            attack: KeyMouse::Mouse(MouseButton::Left),
+        }
+    }
+}
+
+/// `GameplaySettings` contains sensitivity and gameplay options.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GameplaySettings {
+    pub pan_sensitivity: u32,
+    pub zoom_sensitivity: u32,
+}
+
+impl Default for GameplaySettings {
+    fn default() -> Self {
+        Self {
+            pan_sensitivity: 100,
+            zoom_sensitivity: 100,
+        }
+    }
+}
+
+/// `NetworkingSettings` stores server and networking settings.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct NetworkingSettings {
     pub username: String,
     pub servers: Vec<String>,
     pub default_server: usize,
 }
 
+impl Default for NetworkingSettings {
+    fn default() -> Self {
+        Self {
+            username: "Username".to_string(),
+            servers: vec!["server.veloren.net".to_string()],
+            default_server: 0,
+        }
+    }
+}
+
+/// `Log` stores the name to the log file.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Log {
     pub file: PathBuf,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct GraphicsSettings {
-    pub view_distance: u32,
+impl Default for Log {
+    fn default() -> Self {
+        Self {
+            file: "voxygen.log".into(),
+        }
+    }
 }
 
-/// AudioSettings controls the volume of different audio subsystems and which
+/// `GraphicsSettings` contains settings related to framerate and in-game visuals.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct GraphicsSettings {
+    pub view_distance: u32,
+    pub max_fps: u32,
+}
+
+impl Default for GraphicsSettings {
+    fn default() -> Self {
+        Self {
+            view_distance: 5,
+            max_fps: 60,
+        }
+    }
+}
+
+/// `AudioSettings` controls the volume of different audio subsystems and which
 /// device is used.
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
 pub struct AudioSettings {
     pub music_volume: f32,
     pub sfx_volume: f32,
@@ -74,50 +143,38 @@ pub struct AudioSettings {
     pub audio_device: Option<String>,
 }
 
+impl Default for AudioSettings {
+    fn default() -> Self {
+        Self {
+            music_volume: 0.5,
+            sfx_volume: 0.5,
+            audio_device: None,
+        }
+    }
+}
+
+/// `Settings` contains everything that can be configured in the settings.ron file.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Settings {
+    pub controls: ControlSettings,
+    pub gameplay: GameplaySettings,
+    pub networking: NetworkingSettings,
+    pub log: Log,
+    pub graphics: GraphicsSettings,
+    pub audio: AudioSettings,
+    pub show_disclaimer: bool,
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Settings {
-            controls: ControlSettings {
-                toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
-                escape: KeyMouse::Key(VirtualKeyCode::Escape),
-                enter: KeyMouse::Key(VirtualKeyCode::Return),
-                move_forward: KeyMouse::Key(VirtualKeyCode::W),
-                move_left: KeyMouse::Key(VirtualKeyCode::A),
-                move_back: KeyMouse::Key(VirtualKeyCode::S),
-                move_right: KeyMouse::Key(VirtualKeyCode::D),
-                jump: KeyMouse::Key(VirtualKeyCode::Space),
-                glide: KeyMouse::Key(VirtualKeyCode::LShift),
-                map: KeyMouse::Key(VirtualKeyCode::M),
-                bag: KeyMouse::Key(VirtualKeyCode::B),
-                quest_log: KeyMouse::Key(VirtualKeyCode::L),
-                character_window: KeyMouse::Key(VirtualKeyCode::C),
-                social: KeyMouse::Key(VirtualKeyCode::O),
-                spellbook: KeyMouse::Key(VirtualKeyCode::P),
-                settings: KeyMouse::Key(VirtualKeyCode::N),
-                help: KeyMouse::Key(VirtualKeyCode::F1),
-                toggle_interface: KeyMouse::Key(VirtualKeyCode::F2),
-                toggle_debug: KeyMouse::Key(VirtualKeyCode::F3),
-                fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
-                screenshot: KeyMouse::Key(VirtualKeyCode::F4),
-                toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
-                pan_sensitivity: 1.0,
-                zoom_sensitivity: 1.0,
-                attack: KeyMouse::Mouse(MouseButton::Left),
-            },
-            networking: NetworkingSettings {
-                username: "Username".to_string(),
-                servers: vec!["server.veloren.net".to_string()],
-                default_server: 0,
-            },
-            log: Log {
-                file: "voxygen.log".into(),
-            },
-            graphics: GraphicsSettings { view_distance: 5 },
-            audio: AudioSettings {
-                music_volume: 0.5,
-                sfx_volume: 0.5,
-                audio_device: None,
-            },
+            controls: ControlSettings::default(),
+            gameplay: GameplaySettings::default(),
+            networking: NetworkingSettings::default(),
+            log: Log::default(),
+            graphics: GraphicsSettings::default(),
+            audio: AudioSettings::default(),
             show_disclaimer: true,
         }
     }
@@ -137,23 +194,22 @@ impl Settings {
 
     pub fn save_to_file(&self) -> std::io::Result<()> {
         let path = Settings::get_settings_path();
-
         if let Some(dir) = path.parent() {
             fs::create_dir_all(dir)?;
         }
-
         let mut config_file = fs::File::create(path)?;
+
         let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
         config_file.write_all(s.as_bytes()).unwrap();
         Ok(())
     }
 
     fn get_settings_path() -> PathBuf {
-        let proj_dirs =
-            ProjectDirs::from("net", "veloren", "voxygen").expect("No home directory defined!");
-        let path = proj_dirs.config_dir();
-        path.join("settings");
-        let path = path.with_extension("ron");
-        path
+        let proj_dirs = ProjectDirs::from("net", "veloren", "voxygen")
+            .expect("System's $HOME directory path not found!");
+        proj_dirs
+            .config_dir()
+            .join("settings")
+            .with_extension("ron")
     }
 }
