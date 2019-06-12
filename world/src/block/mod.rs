@@ -4,7 +4,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 use noise::NoiseFn;
 use vek::*;
 use common::{
-    terrain::Block,
+    terrain::{Block, structure::StructureBlock},
     vol::{Vox, ReadVol},
 };
 use crate::{
@@ -53,6 +53,7 @@ impl<'a> Sampler for BlockGen<'a> {
             cave_alt,
             rock,
             cliff,
+            temp,
         } = self.sample_column(Vec2::from(wpos))?;
 
         let wposf = wpos.map(|e| e as f64);
@@ -161,6 +162,28 @@ impl<'a> Sampler for BlockGen<'a> {
             }
         });
 
+        fn block_from_structure(sblock: StructureBlock, structure_pos: Vec2<i32>, sample: &ColumnSample) -> Block {
+            let temp_lerp = sample.temp * 4.0;
+            match sblock {
+                StructureBlock::TemperateLeaves => Block::new(1, Lerp::lerp(
+                        Rgb::new(0.0, 150.0, 50.0),
+                        Rgb::new(200.0, 255.0, 0.0),
+                        temp_lerp,
+                    ).map(|e| e as u8)),
+                StructureBlock::PineLeaves => Block::new(1, Lerp::lerp(
+                        Rgb::new(0.0, 100.0, 90.0),
+                        Rgb::new(50.0, 150.0, 50.0),
+                        temp_lerp,
+                    ).map(|e| e as u8)),
+                StructureBlock::PalmLeaves => Block::new(1, Lerp::lerp(
+                        Rgb::new(80.0, 150.0, 0.0),
+                        Rgb::new(180.0, 255.0, 0.0),
+                        temp_lerp,
+                    ).map(|e| e as u8)),
+                StructureBlock::Block(block) => block,
+            }
+        }
+
         let block = match block {
             Some(block) => block,
             None => (&close_trees)
@@ -179,7 +202,7 @@ impl<'a> Sampler for BlockGen<'a> {
 
                             block.or(trees[*tree_seed as usize % trees.len()]
                                 .get((rpos * 128) / 128) // Scaling
-                                .map(|b| b.clone())
+                                .map(|b| block_from_structure(*b, *tree_pos, &tree_sample))
                                 .unwrap_or(Block::empty()))
                         }
                         _ => block,
