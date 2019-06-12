@@ -120,8 +120,13 @@ impl<'a> Sampler for BlockGen<'a> {
                 Some(Block::new(2, col))
             }
         } else if (wposf.z as f32) < height {
+            let col = Lerp::lerp(
+                dirt_col.map(|e| e as f32 / 255.0),
+                surface_color,
+                (wposf.z as f32 - (height - 4.0)) * 0.25,
+            );
             // Surface
-            Some(Block::new(1, surface_color.map(|e| (e * 255.0) as u8)))
+            Some(Block::new(1, col.map(|e| (e * 255.0) as u8)))
         } else if (wposf.z as f32) < CONFIG.sea_level {
             // Ocean
             Some(water)
