@@ -7,14 +7,35 @@ use crate::{
 use dot_vox::DotVoxData;
 use vek::*;
 
+#[derive(Copy, Clone)]
+pub enum StructureBlock {
+    TemperateLeaves,
+    PineLeaves,
+    PalmLeaves,
+    Block(Block),
+}
+
+impl Vox for StructureBlock {
+    fn empty() -> Self {
+        StructureBlock::Block(Block::empty())
+    }
+
+    fn is_empty(&self) -> bool {
+        match self {
+            StructureBlock::Block(block) => block.is_empty(),
+            _ => false,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum StructureError {}
 
 #[derive(Clone)]
 pub struct Structure {
     center: Vec3<i32>,
-    vol: Dyna<Block, ()>,
-    empty: Block,
+    vol: Dyna<StructureBlock, ()>,
+    empty: StructureBlock,
 }
 
 impl Structure {
@@ -25,13 +46,13 @@ impl Structure {
 }
 
 impl BaseVol for Structure {
-    type Vox = Block;
+    type Vox = StructureBlock;
     type Err = StructureError;
 }
 
 impl ReadVol for Structure {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Block, StructureError> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
         match self.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
             Err(DynaErr::OutOfBounds) => Ok(&self.empty),
@@ -52,29 +73,37 @@ impl Asset for Structure {
 
             let mut vol = Dyna::filled(
                 Vec3::new(model.size.x, model.size.y, model.size.z),
-                Block::empty(),
+                StructureBlock::empty(),
                 (),
             );
 
             for voxel in &model.voxels {
-                if let Some(&color) = palette.get(voxel.i as usize) {
-                    let _ = vol.set(
-                        Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| e as i32),
-                        Block::new(1, color),
-                    );
-                }
+                let block = match voxel.i {
+                    0 => StructureBlock::TemperateLeaves,
+                    1 => StructureBlock::PineLeaves,
+                    2 => StructureBlock::PalmLeaves,
+                    index => {
+                        let color = palette.get(index as usize).copied().unwrap_or(Rgb::broadcast(0));
+                        StructureBlock::Block(Block::new(1, color))
+                    }
+                };
+
+                let _ = vol.set(
+                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| e as i32),
+                    block
+                );
             }
 
             Ok(Structure {
                 center: Vec3::zero(),
                 vol,
-                empty: Block::empty(),
+                empty: StructureBlock::empty(),
             })
         } else {
             Ok(Self {
                 center: Vec3::zero(),
-                vol: Dyna::filled(Vec3::zero(), Block::empty(), ()),
-                empty: Block::empty(),
+                vol: Dyna::filled(Vec3::zero(), StructureBlock::empty(), ()),
+                empty: StructureBlock::empty(),
             })
         }
     }

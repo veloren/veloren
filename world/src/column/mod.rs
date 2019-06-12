@@ -144,6 +144,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             cave_alt,
             rock,
             cliff: cliffiness,
+            temp,
         })
     }
 }
@@ -160,4 +161,5 @@ pub struct ColumnSample {
     pub cave_alt: f32,
     pub rock: f32,
     pub cliff: f32,
+    pub temp: f32,
 }
