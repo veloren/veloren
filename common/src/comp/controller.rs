@@ -7,8 +7,6 @@ pub struct Controller {
     pub jump: bool,
     pub attack: bool,
     pub roll: bool,
-    pub crun: bool,
-    pub cidle: bool,
     pub glide: bool,
     pub respawn: bool,
 }

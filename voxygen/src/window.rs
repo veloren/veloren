@@ -35,8 +35,6 @@ pub enum GameInput {
     ToggleIngameUi,
     Attack,
     Roll,
-    Crun,
-    Cidle,
     Respawn,
 }
 
@@ -138,8 +136,6 @@ impl Window {
         );
         key_map.insert(settings.controls.attack, GameInput::Attack);
         key_map.insert(settings.controls.roll, GameInput::Roll);
-        key_map.insert(settings.controls.crun, GameInput::Crun);
-        key_map.insert(settings.controls.cidle, GameInput::Cidle);
 
         Ok(Self {
             events_loop,
