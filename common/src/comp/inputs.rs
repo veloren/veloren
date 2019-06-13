@@ -20,18 +20,6 @@ pub struct Rolling {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Crunning {
-    pub time: f32,
-    pub applied: bool,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Cidling {
-    pub time: f32,
-    pub applied: bool,
-}
-
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct OnGround;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -62,23 +50,6 @@ impl Rolling {
     }
 }
 
-impl Crunning {
-    pub fn start() -> Self {
-        Self {
-            time: 0.0,
-            applied: false,
-        }
-    }
-}
-impl Cidling {
-    pub fn start() -> Self {
-        Self {
-            time: 0.0,
-            applied: false,
-        }
-    }
-}
-
 impl Component for MoveDir {
     type Storage = VecStorage<Self>;
 }
@@ -90,12 +61,7 @@ impl Component for Attacking {
 impl Component for Rolling {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
-impl Component for Crunning {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
-}
-impl Component for Cidling {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
-}
+
 impl Component for OnGround {
     type Storage = NullStorage<Self>;
 }

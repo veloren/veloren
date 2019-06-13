@@ -18,8 +18,6 @@ pub use animation::Animation;
 pub use animation::AnimationInfo;
 pub use controller::Controller;
 pub use inputs::Attacking;
-pub use inputs::Cidling;
-pub use inputs::Crunning;
 pub use inputs::Gliding;
 pub use inputs::Jumping;
 pub use inputs::MoveDir;

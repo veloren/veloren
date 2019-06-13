@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        phys, Animation, AnimationInfo, Attacking, Cidling, Crunning, Gliding, Jumping, OnGround,
-        Rolling,
-    },
+    comp::{phys, Animation, AnimationInfo, Attacking, Gliding, Jumping, OnGround, Rolling},
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -19,8 +16,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Gliding>,
         ReadStorage<'a, Attacking>,
         ReadStorage<'a, Rolling>,
-        ReadStorage<'a, Crunning>,
-        ReadStorage<'a, Cidling>,
         WriteStorage<'a, AnimationInfo>,
     );
 
@@ -35,23 +30,10 @@ impl<'a> System<'a> for Sys {
             glidings,
             attackings,
             rollings,
-            crunnings,
-            cidlings,
             mut animation_infos,
         ): Self::SystemData,
     ) {
-        for (
-            entity,
-            vel,
-            on_ground,
-            jumping,
-            gliding,
-            attacking,
-            rolling,
-            crunning,
-            cidling,
-            mut animation_info,
-        ) in (
+        for (entity, vel, on_ground, jumping, gliding, attacking, rolling, mut animation_info) in (
             &entities,
             &velocities,
             on_grounds.maybe(),
@@ -59,8 +41,6 @@ impl<'a> System<'a> for Sys {
             glidings.maybe(),
             attackings.maybe(),
             rollings.maybe(),
-            crunnings.maybe(),
-            cidlings.maybe(),
             &mut animation_infos,
         )
             .join()
@@ -68,8 +48,8 @@ impl<'a> System<'a> for Sys {
             animation_info.time += dt.0 as f64;
             let moving = vel.0.magnitude() > 3.0;
 
-            fn impossible_animation() -> Animation {
-                warn!("Impossible animation");
+            fn impossible_animation(message: &str) -> Animation {
+                warn!("{}", message);
                 Animation::Idle
             }
 
@@ -80,21 +60,16 @@ impl<'a> System<'a> for Sys {
                 gliding.is_some(),
                 rolling.is_some(),
             ) {
+                (_, _, true, true, _) => impossible_animation("Attack while gliding"),
+                (_, _, true, _, true) => impossible_animation("Roll while attacking"),
+                (_, _, _, true, true) => impossible_animation("Roll while gliding"),
+                (_, false, _, _, true) => impossible_animation("Roll without moving"),
+                (_, true, false, false, true) => Animation::Roll,
                 (true, false, false, false, false) => Animation::Idle,
                 (true, true, false, false, false) => Animation::Run,
                 (false, _, false, false, false) => Animation::Jump,
                 (_, _, false, true, false) => Animation::Gliding,
                 (_, _, true, false, false) => Animation::Attack,
-                (_, true, false, false, true) => {
-                    dbg!("roll");
-                    Animation::Roll
-                }
-                //(_, true, false, false, false) => Animation::Crun,
-                //(true, false, false, false, false) => Animation::Cidle,
-                (_, _, true, true, _) => impossible_animation(), // Attack while gliding
-                (_, _, true, _, true) => impossible_animation(), // Roll while attacking
-                (_, _, _, true, true) => impossible_animation(), // Roll while gliding
-                (_, false, _, _, true) => impossible_animation(), // Roll without moving
             };
 
             let last = animation_info.clone();
