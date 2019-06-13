@@ -15,13 +15,10 @@ impl Animation for IdleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 14.0).sin();
         let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
-        let wave_cos = (anim_time as f32 * 14.0).cos();
         let wave_slow = (anim_time as f32 * 3.5 + PI).sin();
         let wave_slow_cos = (anim_time as f32 * 3.5 + PI).cos();
-        let wave_dip = (wave_slow.abs() - 0.5).abs();
 
         let wolf_look = Vec2::new(
             ((global_time + anim_time) as f32 / 8.0)

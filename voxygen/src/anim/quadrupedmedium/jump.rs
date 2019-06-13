@@ -16,11 +16,7 @@ impl Animation for JumpAnimation {
         let mut next = (*skeleton).clone();
 
         let wave = (anim_time as f32 * 14.0).sin();
-        let wave_ultra_slow = (anim_time as f32 * 1.0 + PI).sin();
-        let wave_ultra_slow_cos = (anim_time as f32 * 1.0 + PI).cos();
-        let wave_cos = (anim_time as f32 * 14.0).cos();
         let wave_slow = (anim_time as f32 * 3.5 + PI).sin();
-        let wave_slow_cos = (anim_time as f32 * 3.5 + PI).cos();
         let wave_stop = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
         next.wolf_head_upper.offset = Vec3::new(0.0, 7.5, 15.0 + wave_stop * 4.8) / 11.0;
