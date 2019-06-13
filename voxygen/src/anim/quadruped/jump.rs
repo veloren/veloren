@@ -15,13 +15,7 @@ impl Animation for JumpAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 14.0).sin();
-        let wave_test = wave.cbrt();
-        let fuzz_wave = (anim_time as f32 * 12.0).sin();
-        let wave_cos = (anim_time as f32 * 14.0).cos();
         let wave_slow = (anim_time as f32 * 7.0 + PI).sin();
-        let wave_slow_cos = (anim_time as f32 * 8.0 + PI).cos();
-        let wave_dip = (wave_slow.abs() - 0.5).abs();
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
 
         next.pig_head.offset = Vec3::new(0.0, 0.0, -1.5) / 11.0;
