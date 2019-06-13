@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Rolling, Crunning, Cidling, Controller, Gliding, HealthSource, Jumping, MoveDir,
-        OnGround, Respawning, Stats,
+        Animation, AnimationInfo, Attacking, Cidling, Controller, Crunning, Gliding, HealthSource,
+        Jumping, MoveDir, OnGround, Respawning, Rolling, Stats,
     },
     state::DeltaTime,
 };
@@ -17,10 +17,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Pos>,
-        WriteStorage<'a, Vel>,
-        WriteStorage<'a, Ori>,
+        ReadStorage<'a, Vel>,
+        ReadStorage<'a, Ori>,
+        ReadStorage<'a, OnGround>,
         WriteStorage<'a, MoveDir>,
-        WriteStorage<'a, OnGround>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, Rolling>,
@@ -28,7 +28,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Cidling>,
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
-        WriteStorage<'a, ForceUpdate>,
     );
 
     fn run(
@@ -39,10 +38,10 @@ impl<'a> System<'a> for Sys {
             controllers,
             stats,
             positions,
-            mut velocities,
-            mut orientations,
+            velocities,
+            orientations,
+            on_grounds,
             mut move_dirs,
-            mut on_grounds,
             mut jumpings,
             mut attackings,
             mut rollings,
@@ -50,31 +49,16 @@ impl<'a> System<'a> for Sys {
             mut cidlings,
             mut respawns,
             mut glidings,
-            force_updates,
         ): Self::SystemData,
     ) {
-        for (
-            entity,
-            controller,
-            stats,
-            pos,
-            mut vel,
-            mut ori,
-            on_ground,
-            mut attacking,
-            mut jumping,
-            mut gliding,
-        ) in (
+        for (entity, controller, stats, pos, vel, ori, on_ground) in (
             &entities,
             &controllers,
             &stats,
             &positions,
-            &mut velocities,
-            &mut orientations,
+            &velocities,
+            &orientations,
             on_grounds.maybe(),
-            attackings.maybe(),
-            jumpings.maybe(),
-            glidings.maybe(),
         )
             .join()
         {
@@ -87,10 +71,10 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide && on_ground.is_none() && attacking.is_none() {
-                gliding = Some(&Gliding);
+            if controller.glide && on_ground.is_none() && attackings.get(entity).is_none() {
+                glidings.insert(entity, Gliding);
             } else {
-                gliding = None
+                glidings.remove(entity);
             }
 
             // Move dir
@@ -104,19 +88,22 @@ impl<'a> System<'a> for Sys {
             );
 
             // Attack
-            if controller.attack && attacking.is_none() && gliding.is_none() {
-                attacking = Some(&Attacking::start());
+            if controller.attack
+                && attackings.get(entity).is_none()
+                && glidings.get(entity).is_none()
+            {
+                attackings.insert(entity, Attacking::start());
             }
 
             // Jump
             if on_ground.is_some() && controller.jump && vel.0.z <= 0.0 {
-                jumping = Some(&Jumping);
+                jumpings.insert(entity, Jumping);
             } else {
-                jumping = None;
+                jumpings.remove(entity);
             }
 
             // Roll
-            if on_grounds.get(entity).is_some() && controller.roll {
+            if on_ground.is_some() && controller.roll {
                 rollings.insert(entity, Rolling::start());
             } else {
                 rollings.remove(entity);
