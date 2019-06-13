@@ -1,8 +1,8 @@
 use crate::{
     comp::{
         phys::{ForceUpdate, Ori, Pos, Vel},
-        Animation, AnimationInfo, Attacking, Cidling, Controller, Crunning, Gliding, HealthSource,
-        Jumping, MoveDir, OnGround, Respawning, Rolling, Stats,
+        Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource, Jumping, MoveDir,
+        OnGround, Respawning, Rolling, Stats,
     },
     state::DeltaTime,
 };
@@ -24,8 +24,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
         WriteStorage<'a, Rolling>,
-        WriteStorage<'a, Crunning>,
-        WriteStorage<'a, Cidling>,
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
     );
@@ -45,8 +43,6 @@ impl<'a> System<'a> for Sys {
             mut jumpings,
             mut attackings,
             mut rollings,
-            mut crunnings,
-            mut cidlings,
             mut respawns,
             mut glidings,
         ): Self::SystemData,

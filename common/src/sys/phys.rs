@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         phys::{Ori, Pos, Vel},
-        Cidling, Crunning, Gliding, Jumping, MoveDir, OnGround, Rolling, Stats,
+        Gliding, Jumping, MoveDir, OnGround, Rolling, Stats,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -55,8 +55,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
         ReadStorage<'a, Rolling>,
-        ReadStorage<'a, Crunning>,
-        ReadStorage<'a, Cidling>,
         ReadStorage<'a, Stats>,
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Pos>,
@@ -74,8 +72,6 @@ impl<'a> System<'a> for Sys {
             jumpings,
             glidings,
             rollings,
-            crunnings,
-            cidlings,
             stats,
             mut on_grounds,
             mut positions,
@@ -84,27 +80,13 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (
-            entity,
-            stats,
-            move_dir,
-            jumping,
-            gliding,
-            rolling,
-            crunning,
-            cidling,
-            mut pos,
-            mut vel,
-            mut ori,
-        ) in (
+        for (entity, stats, move_dir, jumping, gliding, rolling, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
             move_dirs.maybe(),
             jumpings.maybe(),
             glidings.maybe(),
             rollings.maybe(),
-            crunnings.maybe(),
-            cidlings.maybe(),
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -146,8 +128,6 @@ impl<'a> System<'a> for Sys {
 
             // TODO:
             if rolling.is_some() {}
-            if crunning.is_some() {}
-            if cidling.is_some() {}
 
             // Set direction based on velocity
             if vel.0.magnitude_squared() != 0.0 {
