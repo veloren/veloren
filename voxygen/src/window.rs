@@ -141,7 +141,6 @@ impl Window {
         key_map.insert(settings.controls.crun, GameInput::Crun);
         key_map.insert(settings.controls.cidle, GameInput::Cidle);
 
-
         Ok(Self {
             events_loop,
             renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
