@@ -34,8 +34,6 @@ pub struct ControlSettings {
     pub roll: KeyMouse,
     pub crun: KeyMouse,
     pub cidle: KeyMouse,
-
-
 }
 
 impl Default for ControlSettings {

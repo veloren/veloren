@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         phys::{Ori, Pos, Vel},
-        Gliding, Jumping, MoveDir, OnGround, Stats, Rolling, Cidling, Crunning,
+        Cidling, Crunning, Gliding, Jumping, MoveDir, OnGround, Rolling, Stats,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -51,10 +51,6 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
-        WriteStorage<'a, OnGround>,
-        WriteStorage<'a, Pos>,
-        WriteStorage<'a, Vel>,
-        WriteStorage<'a, Ori>,
         ReadStorage<'a, MoveDir>,
         ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
@@ -62,6 +58,10 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Crunning>,
         ReadStorage<'a, Cidling>,
         ReadStorage<'a, Stats>,
+        WriteStorage<'a, OnGround>,
+        WriteStorage<'a, Pos>,
+        WriteStorage<'a, Vel>,
+        WriteStorage<'a, Ori>,
     );
 
     fn run(
@@ -70,10 +70,6 @@ impl<'a> System<'a> for Sys {
             entities,
             terrain,
             dt,
-            mut on_grounds,
-            mut positions,
-            mut velocities,
-            mut orientations,
             move_dirs,
             jumpings,
             glidings,
@@ -81,25 +77,39 @@ impl<'a> System<'a> for Sys {
             crunnings,
             cidlings,
             stats,
+            mut on_grounds,
+            mut positions,
+            mut velocities,
+            mut orientations,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, rolling, crunning, cidling, stats) in
-            (
-                &entities,
-                &mut positions,
-                &mut velocities,
-                &mut orientations,
-                on_grounds.maybe(),
-                move_dirs.maybe(),
-                jumpings.maybe(),
-                glidings.maybe(),
-                rollings.maybe(),
-                crunnings.maybe(),
-                cidlings.maybe(),
-                &stats,
-            )
-                .join()
+        for (
+            entity,
+            stats,
+            move_dir,
+            jumping,
+            gliding,
+            rolling,
+            crunning,
+            cidling,
+            mut pos,
+            mut vel,
+            mut ori,
+        ) in (
+            &entities,
+            &stats,
+            move_dirs.maybe(),
+            jumpings.maybe(),
+            glidings.maybe(),
+            rollings.maybe(),
+            crunnings.maybe(),
+            cidlings.maybe(),
+            &mut positions,
+            &mut velocities,
+            &mut orientations,
+        )
+            .join()
         {
             // Disable while dead TODO: Replace with client states?
             if stats.is_dead {
@@ -110,7 +120,10 @@ impl<'a> System<'a> for Sys {
             if let Some(move_dir) = move_dir {
                 vel.0 += Vec2::broadcast(dt.0)
                     * move_dir.0
-                    * match (on_ground.is_some(), gliding.is_some()) {
+                    * match (
+                        on_grounds.get(entity).is_some(),
+                        glidings.get(entity).is_some(),
+                    ) {
                         (true, false) if vel.0.magnitude() < HUMANOID_SPEED => HUMANOID_ACCEL,
                         (false, true) if vel.0.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
                         (false, false) if vel.0.magnitude() < HUMANOID_AIR_SPEED => {
@@ -151,15 +164,15 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(false)
                 && vel.0.z <= 0.0
             {
-                on_ground = Some(&OnGround);
+                on_grounds.insert(entity, OnGround);
             } else {
-                on_ground = None;
+                on_grounds.remove(entity);
             }
 
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
-                * if on_ground.is_some() {
+                * if on_grounds.get(entity).is_some() {
                     FRIC_GROUND
                 } else {
                     FRIC_AIR
