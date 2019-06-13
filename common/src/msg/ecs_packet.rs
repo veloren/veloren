@@ -25,8 +25,6 @@ sphynx::sum_type! {
         Stats(comp::Stats),
         Attacking(comp::Attacking),
         Rolling(comp::Rolling),
-        Crunning(comp::Crunning),
-        Cidling(comp::Cidling),
 
     }
 }
@@ -43,8 +41,6 @@ sphynx::sum_type! {
         Stats(PhantomData<comp::Stats>),
         Attacking(PhantomData<comp::Attacking>),
         Rolling(PhantomData<comp::Rolling>),
-        Crunning(PhantomData<comp::Crunning>),
-        Cidling(PhantomData<comp::Cidling>),
 
     }
 }
