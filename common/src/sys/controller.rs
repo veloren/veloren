@@ -46,7 +46,18 @@ impl<'a> System<'a> for Sys {
             force_updates,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, mut vel, mut ori, on_ground, mut attacking, mut jumping, mut gliding) in (
+        for (
+            entity,
+            controller,
+            stats,
+            pos,
+            mut vel,
+            mut ori,
+            on_ground,
+            mut attacking,
+            mut jumping,
+            mut gliding,
+        ) in (
             &entities,
             &controllers,
             &stats,

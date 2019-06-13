@@ -78,18 +78,19 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, stats) in (
-            &entities,
-            &mut positions,
-            &mut velocities,
-            &mut orientations,
-            on_grounds.maybe(),
-            move_dirs.maybe(),
-            jumpings.maybe(),
-            glidings.maybe(),
-            &stats,
-        )
-            .join()
+        for (entity, mut pos, mut vel, mut ori, mut on_ground, move_dir, jumping, gliding, stats) in
+            (
+                &entities,
+                &mut positions,
+                &mut velocities,
+                &mut orientations,
+                on_grounds.maybe(),
+                move_dirs.maybe(),
+                jumpings.maybe(),
+                glidings.maybe(),
+                &stats,
+            )
+                .join()
         {
             // Disable while dead TODO: Replace with client states?
             if stats.is_dead {
