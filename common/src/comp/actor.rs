@@ -20,12 +20,25 @@ pub enum BodyType {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Head {
-    Default,
+    Human,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Hair {
+    HumanMale1,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Eyes {
+    Eyes1,
+}
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Beard {
+    None,
+    Human1,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
-    Default,
+    None,
     Blue,
     Brown,
     Dark,
@@ -34,14 +47,23 @@ pub enum Chest {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Cape {
+    None,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Tabard {
+    None,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Belt {
-    //Default,
     Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Pants {
-    Default,
+    None,
     Blue,
     Brown,
     Dark,
@@ -56,13 +78,14 @@ pub enum Hand {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Foot {
-    Default,
+    None,
     Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Shoulder {
-    Default,
+    None,
+    Brown1,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -165,21 +188,29 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Undead,
 ];
 pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-pub const ALL_HEADS: [Head; 1] = [Head::Default];
+pub const ALL_HEADS: [Head; 1] = [Head::Human];
+pub const ALL_HAIR: [Hair; 1] = [Hair::HumanMale1];
+pub const ALL_BEARD: [Beard; 2] = [
+    Beard::None, 
+    Beard::Human1
+    ];
+pub const ALL_EYES: [Eyes; 1] = [Eyes::Eyes1];
 pub const ALL_CHESTS: [Chest; 6] = [
-    Chest::Default,
+    Chest::None,
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
     Chest::Green,
     Chest::Orange,
 ];
+pub const ALL_CAPE: [Cape; 1] = [Cape::None];
+pub const ALL_TABARD: [Tabard; 1] = [Tabard::None];
 pub const ALL_BELTS: [Belt; 1] = [
     //Belt::Default,
     Belt::Dark,
 ];
 pub const ALL_PANTS: [Pants; 6] = [
-    Pants::Default,
+    Pants::None,
     Pants::Blue,
     Pants::Brown,
     Pants::Dark,
@@ -187,7 +218,7 @@ pub const ALL_PANTS: [Pants; 6] = [
     Pants::Orange,
 ];
 pub const ALL_HANDS: [Hand; 1] = [Hand::Default];
-pub const ALL_FEET: [Foot; 2] = [Foot::Default, Foot::Dark];
+pub const ALL_FEET: [Foot; 2] = [Foot::None, Foot::Dark];
 pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Daggers,
     Weapon::SwordShield,
@@ -197,7 +228,10 @@ pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Bow,
     Weapon::Staff,
 ];
-pub const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
+pub const ALL_SHOULDERS: [Shoulder; 2] = [
+    Shoulder::None,
+    Shoulder::Brown1,
+    ];
 pub const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -205,7 +239,12 @@ pub struct HumanoidBody {
     pub race: Race,
     pub body_type: BodyType,
     pub head: Head,
+    pub hair: Hair,
+    pub eyes: Eyes,
+    pub beard: Beard,
     pub chest: Chest,
+    pub cape: Cape,
+    pub tabard: Tabard,
     pub belt: Belt,
     pub pants: Pants,
     pub hand: Hand,
@@ -222,7 +261,12 @@ impl HumanoidBody {
             race: *(&ALL_RACES).choose(&mut rng).unwrap(),
             body_type: *(&ALL_BODY_TYPES).choose(&mut rng).unwrap(),
             head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
+            hair: *(&ALL_HAIR).choose(&mut rng).unwrap(),
+            eyes: *(&ALL_EYES).choose(&mut rng).unwrap(),
+            beard: *(&ALL_BEARD).choose(&mut rng).unwrap(),
             chest: *(&ALL_CHESTS).choose(&mut rng).unwrap(),
+            cape: *(&ALL_CAPE).choose(&mut rng).unwrap(),
+            tabard: *(&ALL_TABARD).choose(&mut rng).unwrap(),
             belt: *(&ALL_BELTS).choose(&mut rng).unwrap(),
             pants: *(&ALL_PANTS).choose(&mut rng).unwrap(),
             hand: *(&ALL_HANDS).choose(&mut rng).unwrap(),
