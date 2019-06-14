@@ -477,15 +477,15 @@ impl FigureMgr {
         let player_pos = client
             .state()
             .ecs()
-            .read_storage::<comp::phys::Pos>()
+            .read_storage::<comp::Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (entity, pos, vel, ori, actor, animation_info, stats) in (
             &ecs.entities(),
-            &ecs.read_storage::<comp::phys::Pos>(),
-            &ecs.read_storage::<comp::phys::Vel>(),
-            &ecs.read_storage::<comp::phys::Ori>(),
+            &ecs.read_storage::<comp::Pos>(),
+            &ecs.read_storage::<comp::Vel>(),
+            &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
@@ -676,15 +676,15 @@ impl FigureMgr {
         let player_pos = client
             .state()
             .ecs()
-            .read_storage::<comp::phys::Pos>()
+            .read_storage::<comp::Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
         for (entity, _, _, _, actor, _, _) in (
             &ecs.entities(),
-            &ecs.read_storage::<comp::phys::Pos>(),
-            &ecs.read_storage::<comp::phys::Vel>(),
-            &ecs.read_storage::<comp::phys::Ori>(),
+            &ecs.read_storage::<comp::Pos>(),
+            &ecs.read_storage::<comp::Vel>(),
+            &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Actor>(),
             &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),

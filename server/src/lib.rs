@@ -135,7 +135,7 @@ impl Server {
     #[allow(dead_code)]
     pub fn create_npc(
         &mut self,
-        pos: comp::phys::Pos,
+        pos: comp::Pos,
         name: String,
         body: comp::Body,
     ) -> EcsEntityBuilder {
@@ -143,13 +143,13 @@ impl Server {
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(comp::phys::Vel(Vec3::zero()))
-            .with(comp::phys::Ori(Vec3::unit_y()))
+            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
             .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
-            .with(comp::phys::ForceUpdate)
+            .with(comp::ForceUpdate)
     }
 
     pub fn create_player_character(
@@ -165,11 +165,11 @@ impl Server {
         state.write_component(entity, comp::Stats::default());
         state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::Controller::default());
-        state.write_component(entity, comp::phys::Pos(spawn_point));
-        state.write_component(entity, comp::phys::Vel(Vec3::zero()));
-        state.write_component(entity, comp::phys::Ori(Vec3::unit_y()));
+        state.write_component(entity, comp::Pos(spawn_point));
+        state.write_component(entity, comp::Vel(Vec3::zero()));
+        state.write_component(entity, comp::Ori(Vec3::unit_y()));
         // Make sure physics are accepted.
-        state.write_component(entity, comp::phys::ForceUpdate);
+        state.write_component(entity, comp::ForceUpdate);
 
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
@@ -246,9 +246,8 @@ impl Server {
         // Actually kill them
         for entity in todo_kill {
             if let Some(client) = self.clients.get_mut(&entity) {
-                self.state
-                    .write_component(entity, comp::phys::Vel(Vec3::zero()));
-                self.state.write_component(entity, comp::phys::ForceUpdate);
+                self.state.write_component(entity, comp::Vel(Vec3::zero()));
+                self.state.write_component(entity, comp::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
                 if let Err(err) = self.state.ecs_mut().delete_entity_synced(entity) {
@@ -273,12 +272,11 @@ impl Server {
                 self.state.write_component(entity, comp::Stats::default());
                 self.state
                     .ecs_mut()
-                    .write_storage::<comp::phys::Pos>()
+                    .write_storage::<comp::Pos>()
                     .get_mut(entity)
                     .map(|pos| pos.0.z += 100.0);
-                self.state
-                    .write_component(entity, comp::phys::Vel(Vec3::zero()));
-                self.state.write_component(entity, comp::phys::ForceUpdate);
+                self.state.write_component(entity, comp::Vel(Vec3::zero()));
+                self.state.write_component(entity, comp::ForceUpdate);
             }
         }
 
@@ -289,7 +287,7 @@ impl Server {
             for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::phys::Pos>(),
+                &self.state.ecs().read_storage::<comp::Pos>(),
             )
                 .join()
                 .filter_map(|(entity, player, pos)| {
@@ -324,7 +322,7 @@ impl Server {
             // For each player with a position, calculate the distance.
             for (player, pos) in (
                 &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::phys::Pos>(),
+                &self.state.ecs().read_storage::<comp::Pos>(),
             )
                 .join()
             {
@@ -632,9 +630,9 @@ impl Server {
         // Sync physics
         for (&uid, &pos, &vel, &ori) in (
             &state.ecs().read_storage::<Uid>(),
-            &state.ecs().read_storage::<comp::phys::Pos>(),
-            &state.ecs().read_storage::<comp::phys::Vel>(),
-            &state.ecs().read_storage::<comp::phys::Ori>(),
+            &state.ecs().read_storage::<comp::Pos>(),
+            &state.ecs().read_storage::<comp::Vel>(),
+            &state.ecs().read_storage::<comp::Ori>(),
         )
             .join()
         {
@@ -673,13 +671,10 @@ impl Server {
         for (entity, &uid, &pos, &vel, &ori, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::phys::Pos>(),
-            &self.state.ecs().read_storage::<comp::phys::Vel>(),
-            &self.state.ecs().read_storage::<comp::phys::Ori>(),
-            self.state
-                .ecs()
-                .read_storage::<comp::phys::ForceUpdate>()
-                .maybe(),
+            &self.state.ecs().read_storage::<comp::Pos>(),
+            &self.state.ecs().read_storage::<comp::Vel>(),
+            &self.state.ecs().read_storage::<comp::Ori>(),
+            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
         )
             .join()
         {
@@ -695,7 +690,7 @@ impl Server {
 
             let in_vd = |entity| {
                 // Get client position.
-                let client_pos = match state.ecs().read_storage::<comp::phys::Pos>().get(entity) {
+                let client_pos = match state.ecs().read_storage::<comp::Pos>().get(entity) {
                     Some(pos) => pos.0,
                     None => return false,
                 };
@@ -726,10 +721,7 @@ impl Server {
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::AnimationInfo>(),
-            self.state
-                .ecs()
-                .read_storage::<comp::phys::ForceUpdate>()
-                .maybe(),
+            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
         )
             .join()
         {
@@ -748,7 +740,7 @@ impl Server {
         // Remove all force flags.
         self.state
             .ecs_mut()
-            .write_storage::<comp::phys::ForceUpdate>()
+            .write_storage::<comp::ForceUpdate>()
             .clear();
     }
 
