@@ -1,4 +1,4 @@
-use crate::comp::{phys::Pos, Agent, Attacking, Controller, Jumping};
+use crate::comp::{Agent, Attacking, Controller, Jumping, Pos};
 use log::warn;
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};

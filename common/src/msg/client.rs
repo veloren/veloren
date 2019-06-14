@@ -19,9 +19,9 @@ pub enum ClientMsg {
     Chat(String),
     PlayerAnimation(comp::AnimationInfo),
     PlayerPhysics {
-        pos: comp::phys::Pos,
-        vel: comp::phys::Vel,
-        ori: comp::phys::Ori,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        ori: comp::Ori,
     },
     TerrainChunkRequest {
         key: Vec2<i32>,

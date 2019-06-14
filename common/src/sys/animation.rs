@@ -1,5 +1,8 @@
 use crate::{
-    comp::{phys, Animation, AnimationInfo, Attacking, Gliding, Jumping, OnGround, Rolling},
+    comp::{
+        Animation, AnimationInfo, Attacking, ForceUpdate, Gliding, Jumping, OnGround, Ori, Pos,
+        Rolling, Vel,
+    },
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -10,7 +13,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, phys::Vel>,
+        ReadStorage<'a, Vel>,
         ReadStorage<'a, OnGround>,
         ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,

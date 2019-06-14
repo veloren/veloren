@@ -32,9 +32,9 @@ pub enum ServerMsg {
     EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
     EntityPhysics {
         entity: u64,
-        pos: comp::phys::Pos,
-        vel: comp::phys::Vel,
-        ori: comp::phys::Ori,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        ori: comp::Ori,
     },
     EntityAnimation {
         entity: u64,
