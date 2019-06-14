@@ -1,8 +1,7 @@
 use crate::{
     comp::{
-        phys::{ForceUpdate, Ori, Pos, Vel},
         Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource, Jumping, MoveDir,
-        OnGround, Respawning, Rolling, Stats,
+        OnGround, Respawning, Rolling, Stats, {ForceUpdate, Ori, Pos, Vel},
     },
     state::DeltaTime,
 };

@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
+use common::{clock::Clock, comp, comp::Pos, msg::ClientState};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;

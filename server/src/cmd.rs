@@ -112,18 +112,12 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
     match (opt_x, opt_y, opt_z) {
         (Some(x), Some(y), Some(z)) => {
-            match server
-                .state
-                .read_component_cloned::<comp::phys::Pos>(entity)
-            {
+            match server.state.read_component_cloned::<comp::Pos>(entity) {
                 Some(current_pos) => {
-                    server.state.write_component(
-                        entity,
-                        comp::phys::Pos(current_pos.0 + Vec3::new(x, y, z)),
-                    );
                     server
                         .state
-                        .write_component(entity, comp::phys::ForceUpdate);
+                        .write_component(entity, comp::Pos(current_pos.0 + Vec3::new(x, y, z)));
+                    server.state.write_component(entity, comp::ForceUpdate);
                 }
                 None => server.clients.notify(
                     entity,
@@ -143,10 +137,8 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         (Some(x), Some(y), Some(z)) => {
             server
                 .state
-                .write_component(entity, comp::phys::Pos(Vec3::new(x, y, z)));
-            server
-                .state
-                .write_component(entity, comp::phys::ForceUpdate);
+                .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
+            server.state.write_component(entity, comp::ForceUpdate);
         }
         _ => server
             .clients
@@ -185,20 +177,15 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     match opt_alias {
         Some(alias) => {
             let ecs = server.state.ecs();
-            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::player::Player>())
+            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
                 .find(|(_, player)| player.alias == alias)
                 .map(|(entity, _)| entity);
             match opt_player {
-                Some(player) => match server
-                    .state
-                    .read_component_cloned::<comp::phys::Pos>(player)
-                {
+                Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
                     Some(pos) => {
                         server.state.write_component(entity, pos);
-                        server
-                            .state
-                            .write_component(entity, comp::phys::ForceUpdate);
+                        server.state.write_component(entity, comp::ForceUpdate);
                     }
                     None => server.clients.notify(
                         entity,
@@ -223,10 +210,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 }
 
 fn handle_pet_pig(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(mut pos) => {
             pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server
@@ -251,10 +235,7 @@ fn handle_pet_pig(server: &mut Server, entity: EcsEntity, _args: String, _action
 }
 
 fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(mut pos) => {
             pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server
@@ -279,10 +260,7 @@ fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, _args: String, _actio
 }
 
 fn handle_enemy(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(mut pos) => {
             pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
             server

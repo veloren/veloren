@@ -104,12 +104,12 @@ impl State {
         ecs.register_synced::<comp::Stats>();
         ecs.register_synced::<comp::Attacking>(); // TODO: Don't send this to the client?
         ecs.register_synced::<comp::Rolling>(); // TODO: Don't send this to the client?
-        ecs.register::<comp::phys::ForceUpdate>();
+        ecs.register::<comp::ForceUpdate>();
 
         // Register components synced by other means
-        ecs.register::<comp::phys::Pos>();
-        ecs.register::<comp::phys::Vel>();
-        ecs.register::<comp::phys::Ori>();
+        ecs.register::<comp::Pos>();
+        ecs.register::<comp::Vel>();
+        ecs.register::<comp::Ori>();
         ecs.register::<comp::MoveDir>();
         ecs.register::<comp::OnGround>();
         ecs.register::<comp::AnimationInfo>();
