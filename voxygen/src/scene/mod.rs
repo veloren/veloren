@@ -110,7 +110,7 @@ impl Scene {
         let player_pos = client
             .state()
             .ecs()
-            .read_storage::<comp::phys::Pos>()
+            .read_storage::<comp::Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 

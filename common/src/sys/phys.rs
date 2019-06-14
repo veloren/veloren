@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        phys::{Ori, Pos, Vel},
-        Gliding, Jumping, MoveDir, OnGround, Rolling, Stats,
-    },
+    comp::{Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},

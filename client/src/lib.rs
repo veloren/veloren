@@ -153,7 +153,7 @@ impl Client {
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(
             self.state
-                .read_storage::<comp::phys::Pos>()
+                .read_storage::<comp::Pos>()
                 .get(self.entity)
                 .cloned()?
                 .0,
@@ -218,7 +218,7 @@ impl Client {
         // 5) Terrain
         let pos = self
             .state
-            .read_storage::<comp::phys::Pos>()
+            .read_storage::<comp::Pos>()
             .get(self.entity)
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
