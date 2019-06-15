@@ -216,14 +216,10 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
 
     // Make sure the amount is either not provided or a valid value
-    let opt_amount: Option<u32> = if let Some(amount) = opt_amount {
-        match amount.parse().ok() {
-            Some(x) if x == 0 => None,
-            x => x,
-        }
-    } else {
-        Some(1)
-    };
+    let opt_amount = opt_amount
+        .and_then(|a| a.parse().ok())
+        .or(Some(1))
+        .and_then(|a| if a > 0 { Some(a) } else { None });
 
     match (opt_agent, opt_id, opt_amount) {
         (Some(agent), Some(id), Some(amount)) => {
