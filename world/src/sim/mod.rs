@@ -1,24 +1,14 @@
 mod location;
 
+use self::location::Location;
+use crate::{all::ForestKind, util::StructureGen2d, CONFIG};
+use common::{terrain::TerrainChunkSize, vol::VolSize};
+use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
 use vek::*;
-use noise::{
-    BasicMulti, RidgedMulti, SuperSimplex, HybridMulti,
-    MultiFractal, NoiseFn, Seedable,
-};
-use common::{
-    terrain::TerrainChunkSize,
-    vol::VolSize,
-};
-use crate::{
-    CONFIG,
-    all::ForestKind,
-    util::StructureGen2d,
-};
-use self::location::Location;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -240,7 +230,11 @@ impl SimChunk {
                 .mul(0.5)
                 .mul(1.2 - chaos * 0.85)
                 .add(0.1)
-                .mul(if alt > CONFIG.sea_level + 2.0 { 1.0 } else { 0.0 }),
+                .mul(if alt > CONFIG.sea_level + 5.0 {
+                    1.0
+                } else {
+                    0.0
+                }),
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
                     ForestKind::Palm

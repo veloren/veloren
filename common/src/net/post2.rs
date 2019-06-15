@@ -267,9 +267,9 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 for _ in 0..100 {
                     match incoming_buf.get(0..9) {
                         Some(len_bytes) => {
-                            let len = u64::from_le_bytes(
-                                <[u8; 8]>::try_from(&len_bytes[0..8]).unwrap(),
-                            ) as usize; // Can't fail
+                            let len =
+                                u64::from_le_bytes(<[u8; 8]>::try_from(&len_bytes[0..8]).unwrap())
+                                    as usize; // Can't fail
 
                             if len > MAX_MSG_SIZE {
                                 recv_tx.send(Err(Error::InvalidMessage)).unwrap();

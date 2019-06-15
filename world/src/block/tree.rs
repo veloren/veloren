@@ -1,8 +1,8 @@
+use crate::all::ForestKind;
 use common::{assets, terrain::Structure};
 use lazy_static::lazy_static;
 use std::sync::Arc;
 use vek::*;
-use crate::all::ForestKind;
 
 pub fn kinds(forest_kind: ForestKind) -> &'static [Arc<Structure>] {
     match forest_kind {

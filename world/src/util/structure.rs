@@ -1,38 +1,31 @@
+use super::{RandomField, Sampler};
 use vek::*;
 
 pub struct StructureGen2d {
-    seed: u32,
     freq: u32,
     spread: u32,
+    x_field: RandomField,
+    y_field: RandomField,
+    seed_field: RandomField,
 }
 
 impl StructureGen2d {
     pub fn new(seed: u32, freq: u32, spread: u32) -> Self {
-        Self { seed, freq, spread }
+        Self {
+            freq,
+            spread,
+            x_field: RandomField::new(seed + 0),
+            y_field: RandomField::new(seed + 1),
+            seed_field: RandomField::new(seed + 2),
+        }
     }
+}
 
-    fn random(&self, seed: u32, pos: Vec2<i32>) -> u32 {
-        let pos = pos.map(|e| (e * 13 + (1 << 31)) as u32);
+impl Sampler for StructureGen2d {
+    type Index = Vec2<i32>;
+    type Sample = [(Vec2<i32>, u32); 9];
 
-        let next = (self.seed + seed)
-            .wrapping_mul(0x168E3D1F)
-            .wrapping_add(0xDEADBEAD);
-        let next = next
-            .rotate_left(13)
-            .wrapping_mul(133227)
-            .wrapping_add(pos.x);
-        let next = next.rotate_left(13).wrapping_mul(318912) ^ 0x42133742;
-        let next = next
-            .rotate_left(13)
-            .wrapping_mul(938219)
-            .wrapping_add(pos.y);
-        let next = next.rotate_left(13).wrapping_mul(313322) ^ 0xDEADBEEF;
-        let next = next.rotate_left(13).wrapping_mul(929009) ^ 0xFF329DE3;
-        let next = next.rotate_left(13).wrapping_mul(422671) ^ 0x42892942;
-        next
-    }
-
-    pub fn get(&self, sample_pos: Vec2<i32>) -> [(Vec2<i32>, u32); 9] {
+    fn get(&self, sample_pos: Self::Index) -> Self::Sample {
         let mut samples = [(Vec2::zero(), 0); 9];
 
         let sample_closest = sample_pos.map(|e| e - e.rem_euclid(self.freq as i32));
@@ -45,12 +38,12 @@ impl StructureGen2d {
                 samples[i * 3 + j] = (
                     center
                         + Vec2::new(
-                            (self.random(1, center) % (self.spread * 2)) as i32
+                            (self.x_field.get(Vec3::from(center)) % (self.spread * 2)) as i32
                                 - self.spread as i32,
-                            (self.random(2, center) % (self.spread * 2)) as i32
+                            (self.y_field.get(Vec3::from(center)) % (self.spread * 2)) as i32
                                 - self.spread as i32,
                         ),
-                    self.random(3, center),
+                    self.seed_field.get(Vec3::from(center)),
                 );
             }
         }

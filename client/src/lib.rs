@@ -12,19 +12,15 @@ use common::{
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
-    terrain::{
-        TerrainChunk,
-        TerrainChunkSize,
-        chonk::ChonkMetrics,
-    },
+    terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
 use log::{debug, info, log_enabled};
 use std::{
     collections::HashMap,
     net::SocketAddr,
-    time::{Duration, Instant},
     sync::Arc,
+    time::{Duration, Instant},
 };
 use threadpool::ThreadPool;
 use vek::*;
@@ -155,11 +151,16 @@ impl Client {
     }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
-        let chunk_pos = Vec2::from(self
-            .state
-            .read_storage::<comp::phys::Pos>()
-            .get(self.entity)
-            .cloned()?.0).map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| (e as u32).div_euclid(sz) as i32);
+        let chunk_pos = Vec2::from(
+            self.state
+                .read_storage::<comp::phys::Pos>()
+                .get(self.entity)
+                .cloned()?
+                .0,
+        )
+        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| {
+            (e as u32).div_euclid(sz) as i32
+        });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
     }

@@ -21,20 +21,17 @@ pub struct Kingdom {
 
 fn generate_name() -> String {
     let consts = [
-        "st", "tr", "b",  "n",  "p",  "ph", "cr",   "g",  "c",
-        "d",  "k",  "kr", "kl", "gh", "sl", "st",   "cr", "sp",
-        "th", "dr", "pr", "dr", "gr", "br", "ryth", "rh", "sl",
-        "f",  "fr", "p",  "pr", "qu", "s",  "sh",   "z",  "k",
-        "br", "wh", "tr", "h",  "bl", "sl", "r",    "kl", "sl",
-        "w",  "v",  "vr", "kr",
+        "st", "tr", "b", "n", "p", "ph", "cr", "g", "c", "d", "k", "kr", "kl", "gh", "sl", "st",
+        "cr", "sp", "th", "dr", "pr", "dr", "gr", "br", "ryth", "rh", "sl", "f", "fr", "p", "pr",
+        "qu", "s", "sh", "z", "k", "br", "wh", "tr", "h", "bl", "sl", "r", "kl", "sl", "w", "v",
+        "vr", "kr",
     ];
-    let vowels = ["oo", "o", "oa", "au", "e", "ee", "ea", "ou", "u", "a", "i", "ie"];
+    let vowels = [
+        "oo", "o", "oa", "au", "e", "ee", "ea", "ou", "u", "a", "i", "ie",
+    ];
     let tails = [
-        "er",  "in",  "o",   "on",  "an",
-        "ar",  "is",  "oon", "er",  "aru",
-        "ab",  "um",  "id",  "and", "eld",
-        "ald", "oft", "aft", "ift", "ity",
-        "ell", "oll", "ill", "all",
+        "er", "in", "o", "on", "an", "ar", "is", "oon", "er", "aru", "ab", "um", "id", "and",
+        "eld", "ald", "oft", "aft", "ift", "ity", "ell", "oll", "ill", "all",
     ];
 
     let mut name = String::new();
