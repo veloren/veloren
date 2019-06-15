@@ -17,7 +17,7 @@ fn main() {
     let mut gain = 1.0;
 
     while win.is_open() {
-        let mut buf = [0; W * H];
+        let mut buf = vec![0; W * H];
 
         for i in 0..W {
             for j in 0..H {
