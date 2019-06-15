@@ -1,16 +1,11 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
-use vek::*;
-use noise::NoiseFn;
+use crate::{all::ForestKind, util::Sampler, World, CONFIG};
 use common::{
     terrain::{Block, TerrainChunkSize},
-    vol::{Vox, VolSize},
+    vol::{VolSize, Vox},
 };
-use crate::{
-    CONFIG,
-    all::ForestKind,
-    util::Sampler,
-    World,
-};
+use noise::NoiseFn;
+use std::ops::{Add, Div, Mul, Neg, Sub};
+use vek::*;
 
 pub struct ColumnGen<'a> {
     world: &'a World,
@@ -18,9 +13,7 @@ pub struct ColumnGen<'a> {
 
 impl<'a> ColumnGen<'a> {
     pub fn new(world: &'a World) -> Self {
-        Self {
-            world,
-        }
+        Self { world }
     }
 }
 
@@ -28,9 +21,11 @@ impl<'a> Sampler for ColumnGen<'a> {
     type Index = Vec2<i32>;
     type Sample = Option<ColumnSample>;
 
-    fn get(&mut self, wpos: Vec2<i32>) -> Option<ColumnSample> {
+    fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample> {
         let wposf = wpos.map(|e| e as f64);
-        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as u32 / sz);
+        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            e as u32 / sz
+        });
 
         let sim = self.world.sim();
 
@@ -48,7 +43,11 @@ impl<'a> Sampler for ColumnGen<'a> {
                 * chaos.max(0.2)
                 * 64.0;
 
-        let rock = (sim.gen_ctx.small_nz.get(Vec3::new(wposf.x, wposf.y, alt as f64).div(100.0).into_array()) as f32)
+        let rock = (sim.gen_ctx.small_nz.get(
+            Vec3::new(wposf.x, wposf.y, alt as f64)
+                .div(100.0)
+                .into_array(),
+        ) as f32)
             .mul(rockiness)
             .sub(0.4)
             .max(0.0)
@@ -59,8 +58,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let marble = (0.0
             + (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
             + (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32).mul(0.25))
-            .add(1.0)
-            .mul(0.5);
+        .add(1.0)
+        .mul(0.5);
 
         // Colours
         let cold_grass = Rgb::new(0.0, 0.3, 0.1);
@@ -79,7 +78,9 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::lerp(
                 snow,
                 grass,
-                temp.sub(CONFIG.snow_temp).sub((marble - 0.5) * 0.05).mul(256.0),
+                temp.sub(CONFIG.snow_temp)
+                    .sub((marble - 0.5) * 0.05)
+                    .mul(256.0),
             ),
             sand,
             temp.sub(CONFIG.desert_temp).mul(32.0),

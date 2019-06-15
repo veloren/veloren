@@ -1,5 +1,5 @@
-use std::hash::Hash;
 use fxhash::FxHashMap;
+use std::hash::Hash;
 
 pub struct HashCache<K: Hash + Eq + Clone, V> {
     capacity: usize,

@@ -1,18 +1,17 @@
 mod tree;
 
-use std::ops::{Add, Div, Mul, Neg, Sub};
-use noise::NoiseFn;
-use vek::*;
-use common::{
-    terrain::{Block, structure::StructureBlock},
-    vol::{Vox, ReadVol},
-};
 use crate::{
-    util::{Sampler, HashCache},
     column::{ColumnGen, ColumnSample},
-    CONFIG,
-    World,
+    util::{HashCache, RandomField, Sampler, SamplerMut},
+    World, CONFIG,
 };
+use common::{
+    terrain::{structure::StructureBlock, Block},
+    vol::{ReadVol, Vox},
+};
+use noise::NoiseFn;
+use std::ops::{Add, Div, Mul, Neg, Sub};
+use vek::*;
 
 pub struct BlockGen<'a> {
     world: &'a World,
@@ -37,7 +36,7 @@ impl<'a> BlockGen<'a> {
     }
 }
 
-impl<'a> Sampler for BlockGen<'a> {
+impl<'a> SamplerMut for BlockGen<'a> {
     type Index = Vec3<i32>;
     type Sample = Option<Block>;
 
@@ -60,7 +59,9 @@ impl<'a> Sampler for BlockGen<'a> {
 
         // Apply warping
 
-        let warp = (self.world.sim()
+        let warp = (self
+            .world
+            .sim()
             .gen_ctx
             .warp_nz
             .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
@@ -69,29 +70,37 @@ impl<'a> Sampler for BlockGen<'a> {
             .mul(115.0);
 
         let is_cliff = if cliff > 0.0 {
-            (self.world.sim()
-            .gen_ctx
-            .warp_nz
-            .get((wposf.div(Vec3::new(300.0, 300.0, 1500.0))).into_array())
-            as f32) * cliff > 0.3
+            (self
+                .world
+                .sim()
+                .gen_ctx
+                .warp_nz
+                .get((wposf.div(Vec3::new(300.0, 300.0, 1500.0))).into_array()) as f32)
+                * cliff
+                > 0.3
         } else {
             false
         };
 
         let cliff = if is_cliff {
-            (0.0
-            + (self.world.sim()
+            (0.0 + (self
+                .world
+                .sim()
                 .gen_ctx
                 .warp_nz
                 .get((wposf.div(Vec3::new(350.0, 350.0, 800.0))).into_array())
-                as f32) * 0.8
-            + (self.world.sim()
-                .gen_ctx
-                .warp_nz
-                .get((wposf.div(Vec3::new(100.0, 100.0, 70.0))).into_array())
-                as f32) * 0.3)
-            .add(0.4)
-            .mul(64.0)
+                as f32)
+                * 0.8
+                + (self
+                    .world
+                    .sim()
+                    .gen_ctx
+                    .warp_nz
+                    .get((wposf.div(Vec3::new(100.0, 100.0, 70.0))).into_array())
+                    as f32)
+                    * 0.3)
+                .add(0.4)
+                .mul(75.0)
         } else {
             0.0
         };
@@ -162,24 +171,43 @@ impl<'a> Sampler for BlockGen<'a> {
             }
         });
 
-        fn block_from_structure(sblock: StructureBlock, structure_pos: Vec2<i32>, sample: &ColumnSample) -> Block {
-            let temp_lerp = sample.temp * 4.0;
+        fn block_from_structure(
+            sblock: StructureBlock,
+            pos: Vec3<i32>,
+            structure_pos: Vec2<i32>,
+            structure_seed: u32,
+            sample: &ColumnSample,
+        ) -> Block {
+            let field = RandomField::new(structure_seed + 0);
+
+            let lerp = 0.5
+                + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.75
+                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.2;
+
             match sblock {
-                StructureBlock::TemperateLeaves => Block::new(1, Lerp::lerp(
-                        Rgb::new(0.0, 150.0, 50.0),
-                        Rgb::new(200.0, 255.0, 0.0),
-                        temp_lerp,
-                    ).map(|e| e as u8)),
-                StructureBlock::PineLeaves => Block::new(1, Lerp::lerp(
-                        Rgb::new(0.0, 100.0, 90.0),
-                        Rgb::new(50.0, 150.0, 50.0),
-                        temp_lerp,
-                    ).map(|e| e as u8)),
-                StructureBlock::PalmLeaves => Block::new(1, Lerp::lerp(
-                        Rgb::new(80.0, 150.0, 0.0),
-                        Rgb::new(180.0, 255.0, 0.0),
-                        temp_lerp,
-                    ).map(|e| e as u8)),
+                StructureBlock::TemperateLeaves => Block::new(
+                    1,
+                    Lerp::lerp(
+                        Rgb::new(0.0, 80.0, 40.0),
+                        Rgb::new(120.0, 255.0, 10.0),
+                        lerp,
+                    )
+                    .map(|e| e as u8),
+                ),
+                StructureBlock::PineLeaves => Block::new(
+                    1,
+                    Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
+                        .map(|e| e as u8),
+                ),
+                StructureBlock::PalmLeaves => Block::new(
+                    1,
+                    Lerp::lerp(
+                        Rgb::new(30.0, 100.0, 30.0),
+                        Rgb::new(120.0, 255.0, 0.0),
+                        lerp,
+                    )
+                    .map(|e| e as u8),
+                ),
                 StructureBlock::Block(block) => block,
             }
         }
@@ -202,7 +230,15 @@ impl<'a> Sampler for BlockGen<'a> {
 
                             block.or(trees[*tree_seed as usize % trees.len()]
                                 .get((rpos * 128) / 128) // Scaling
-                                .map(|b| block_from_structure(*b, *tree_pos, &tree_sample))
+                                .map(|b| {
+                                    block_from_structure(
+                                        *b,
+                                        rpos,
+                                        *tree_pos,
+                                        *tree_seed,
+                                        &tree_sample,
+                                    )
+                                })
                                 .unwrap_or(Block::empty()))
                         }
                         _ => block,

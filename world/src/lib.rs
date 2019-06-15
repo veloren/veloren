@@ -1,26 +1,26 @@
 #![feature(euclidean_division, bind_by_move_pattern_guards)]
 
-mod config;
 mod all;
-mod util;
 mod block;
 mod column;
+mod config;
 mod sim;
+mod util;
 
 // Reexports
 pub use crate::config::CONFIG;
 
+use crate::{
+    block::BlockGen,
+    column::ColumnGen,
+    util::{HashCache, Sampler, SamplerMut},
+};
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{VolSize, Vox, WriteVol},
 };
 use std::time::Duration;
 use vek::*;
-use crate::{
-    util::{Sampler, HashCache},
-    column::ColumnGen,
-    block::BlockGen,
-};
 
 #[derive(Debug)]
 pub enum Error {
@@ -46,7 +46,7 @@ impl World {
         // TODO
     }
 
-    pub fn sample(&self) -> impl Sampler<Index=Vec3<i32>, Sample=Option<Block>> + '_ {
+    pub fn sample(&self) -> impl SamplerMut<Index = Vec3<i32>, Sample = Option<Block>> + '_ {
         BlockGen::new(self, ColumnGen::new(self))
     }
 
