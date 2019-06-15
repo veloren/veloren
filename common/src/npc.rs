@@ -2,8 +2,8 @@ use crate::assets;
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 use serde_json;
-use std::sync::Arc;
 use std::str::FromStr;
+use std::sync::Arc;
 
 #[derive(Clone, Copy)]
 pub enum NpcKind {
@@ -30,7 +30,7 @@ impl FromStr for NpcKind {
             "humanoid" => Ok(NpcKind::Humanoid),
             "wolf" => Ok(NpcKind::Wolf),
             "pig" => Ok(NpcKind::Pig),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
