@@ -33,10 +33,7 @@ pub struct TerrainChunkMeta {
 
 impl TerrainChunkMeta {
     pub fn new(name: Option<String>, biome: BiomeKind) -> Self {
-        Self {
-            name,
-            biome,
-        }
+        Self { name, biome }
     }
 
     pub fn void() -> Self {

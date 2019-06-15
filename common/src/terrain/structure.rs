@@ -83,14 +83,17 @@ impl Asset for Structure {
                     1 => StructureBlock::PineLeaves,
                     2 => StructureBlock::PalmLeaves,
                     index => {
-                        let color = palette.get(index as usize).copied().unwrap_or(Rgb::broadcast(0));
+                        let color = palette
+                            .get(index as usize)
+                            .copied()
+                            .unwrap_or(Rgb::broadcast(0));
                         StructureBlock::Block(Block::new(1, color))
                     }
                 };
 
                 let _ = vol.set(
                     Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| e as i32),
-                    block
+                    block,
                 );
             }
 
