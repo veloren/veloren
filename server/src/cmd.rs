@@ -218,7 +218,9 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     // Make sure the amount is either not provided or a valid value
     let opt_amount: Option<u32> = if let Some(amount) = opt_amount {
         amount.parse().ok()
-    } else { Some(1) };
+    } else {
+        Some(1)
+    };
 
     match (opt_agent, opt_id, opt_amount) {
         (Some(agent), Some(id), Some(amount)) => {
@@ -231,23 +233,20 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                     let body = kind_to_body(id);
                     for _ in 0..amount {
                         server
-                            .create_npc(
-                                pos,
-                                get_npc_name(id),
-                                body,
-                            )
+                            .create_npc(pos, get_npc_name(id), body)
                             .with(agent)
                             .build();
                     }
-                    server
-                        .clients
-                        .notify(entity, ServerMsg::Chat(format!("Spawned {} entities", amount).to_owned()));
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::Chat(format!("Spawned {} entities", amount).to_owned()),
+                    );
                 }
                 None => server
                     .clients
                     .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
             }
-        },
+        }
         _ => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
@@ -265,12 +264,12 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
     match alignment {
         "hostile" => Some(comp::Agent::Enemy { target: None }),
-        "friendly" => Some ( comp::Agent::Pet {
-                        target,
-                        offset: Vec2::zero() }
-            ),
+        "friendly" => Some(comp::Agent::Pet {
+            target,
+            offset: Vec2::zero(),
+        }),
         // passive?
-        _ => None
+        _ => None,
     }
 }
 
