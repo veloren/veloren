@@ -170,7 +170,12 @@ impl FigureModelCache {
             Vec3::new(-7.0, -5.5, 0.0),
         )
     }
-
+    fn load_eyes(eyes: Eyes) -> Mesh<FigurePipeline> {
+        let (name, offset) = match eyes {
+            Eyes::Eyes1 => ("figure/eyes/human/male_1.vox", Vec3::new(-5.0, -5.0, 0.0)),
+        };
+        Self::load_mesh(name, offset)
+    }
     fn load_hair(hair: Hair) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hair {
@@ -180,14 +185,6 @@ impl FigureModelCache {
         )
     }
 
-    fn load_eyes(eyes: Eyes) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match eyes {
-                Eyes::Eyes1 => "figure/eyes/human/male_1.vox",
-            },
-            Vec3::new(-7.0, -5.5, 0.0),
-        )
-    }
     // loads models with different offsets
     fn load_beard(beard: Beard) -> Mesh<FigurePipeline> {
         let (name, offset) = match beard {
@@ -292,14 +289,13 @@ impl FigureModelCache {
     }
 
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match weapon {
-                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
-                // TODO actually match against other weapons and set the right model
-                _ => "weapon/sword/sword_rusty_2h.vox",
-            },
-            Vec3::new(-1.5, -6.5, -4.0),
-        )
+        let (name, offset) = match weapon {
+            Weapon::Sword => ("weapon/sword/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+            Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+            Weapon::Axe => ("weapon/axe/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+            _ => ("weapon/sword/wood_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+        };
+        Self::load_mesh(name, offset)
     }
 
     fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
@@ -332,13 +328,13 @@ impl FigureModelCache {
     }
 
     fn load_left_equip(weapon: Weapon) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match weapon {
-                Weapon::Sword => "weapon/sword/sword_rusty_2h.vox",
-                _ => "weapon/sword/sword_rusty_2h.vox",
-            },
-            Vec3::new(-1.5, -6.5, -4.5),
-        )
+        let (name, offset) = match weapon {
+            Weapon::Sword => ("weapon/sword/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+            Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-1.5, -7.5, -4.0)),
+            Weapon::Axe => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -2.0)),
+            _ => ("weapon/sword/wood_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+        };
+        Self::load_mesh(name, offset)
     }
 
     fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
