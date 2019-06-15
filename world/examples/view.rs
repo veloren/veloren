@@ -1,12 +1,14 @@
 use std::ops::{Add, Mul, Sub};
 use vek::*;
-use veloren_world::World;
+use veloren_world::{util::Sampler, World};
 
 const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
     let world = World::generate(0);
+
+    let sampler = world.sample_columns();
 
     let mut win =
         minifb::Window::new("World Viewer", W, H, minifb::WindowOptions::default()).unwrap();
@@ -21,10 +23,8 @@ fn main() {
             for j in 0..H {
                 let pos = focus + Vec2::new(i as i32, j as i32) * 4;
 
-                let alt = world
-                    .sim()
-                    .sampler()
-                    .sample_2d(pos)
+                let alt = sampler
+                    .get(pos)
                     .map(|sample| sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8)
                     .unwrap_or(0);
 
