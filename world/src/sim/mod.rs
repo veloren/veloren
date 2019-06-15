@@ -177,7 +177,7 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .powf(1.4)

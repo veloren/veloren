@@ -3,16 +3,16 @@
 mod all;
 mod block;
 mod column;
-mod config;
+pub mod config;
 mod sim;
-mod util;
+pub mod util;
 
 // Reexports
 pub use crate::config::CONFIG;
 
 use crate::{
     block::BlockGen,
-    column::ColumnGen,
+    column::{ColumnGen, ColumnSample},
     util::{HashCache, Sampler, SamplerMut},
 };
 use common::{
@@ -46,7 +46,13 @@ impl World {
         // TODO
     }
 
-    pub fn sample(&self) -> impl SamplerMut<Index = Vec3<i32>, Sample = Option<Block>> + '_ {
+    pub fn sample_columns(
+        &self,
+    ) -> impl Sampler<Index = Vec2<i32>, Sample = Option<ColumnSample>> + '_ {
+        ColumnGen::new(self)
+    }
+
+    pub fn sample_blocks(&self) -> impl SamplerMut<Index = Vec3<i32>, Sample = Option<Block>> + '_ {
         BlockGen::new(self, ColumnGen::new(self))
     }
 
@@ -66,7 +72,7 @@ impl World {
 
         let mut chunk = TerrainChunk::new(base_z - 8, stone, air, TerrainChunkMeta::void());
 
-        let mut sampler = self.sample();
+        let mut sampler = self.sample_blocks();
 
         for x in 0..TerrainChunkSize::SIZE.x as i32 {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
