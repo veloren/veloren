@@ -16,8 +16,8 @@ use common::{
     comp::{
         self,
         actor::{
-            Beard, Belt, Cape, Chest, Draw, Eyes, Foot, Hair, Hand, Head, Pants, PigChest, PigHead,
-            PigLegL, PigLegR, Shoulder, Tabard, Weapon, WolfEars, WolfFootLB, WolfFootLF,
+            Belt, Chest, Draw, Foot, Hair, Hand, Head, Pants, PigChest, PigHead,
+            PigLegL, PigLegR, Shoulder, Weapon, WolfEars, WolfFootLB, WolfFootLF,
             WolfFootRB, WolfFootRF, WolfHeadLower, WolfHeadUpper, WolfJaw, WolfTail, WolfTorsoBack,
             WolfTorsoMid,
         },
@@ -78,10 +78,7 @@ impl FigureModelCache {
                                     Some(Self::load_left_equip(body.weapon)),
                                     Some(Self::load_right_equip(body.hand)),
                                     Some(Self::load_hair(body.hair)),
-                                    Some(Self::load_beard(body.beard)),
-                                    Some(Self::load_eyes(body.eyes)),
-                                    Some(Self::load_cape(body.cape)),
-                                    Some(Self::load_tabard(body.tabard)),
+                                    None,
                                 ],
                                 Body::Quadruped(body) => [
                                     Some(Self::load_pig_head(body.pig_head)),
@@ -90,9 +87,6 @@ impl FigureModelCache {
                                     Some(Self::load_pig_leg_rf(body.pig_leg_r)),
                                     Some(Self::load_pig_leg_lb(body.pig_leg_l)),
                                     Some(Self::load_pig_leg_rb(body.pig_leg_r)),
-                                    None,
-                                    None,
-                                    None,
                                     None,
                                     None,
                                     None,
@@ -116,9 +110,6 @@ impl FigureModelCache {
                                     Some(Self::load_wolf_foot_rf(body.wolf_foot_rf)),
                                     Some(Self::load_wolf_foot_lb(body.wolf_foot_lb)),
                                     Some(Self::load_wolf_foot_rb(body.wolf_foot_rb)),
-                                    None,
-                                    None,
-                                    None,
                                     None,
                                     None,
                                     None,
@@ -163,36 +154,23 @@ impl FigureModelCache {
     }
 
     fn load_head(head: Head) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match head {
-                Head::Human => "figure/head/human/1.vox",
-            },
-            Vec3::new(-7.0, -5.5, 8.0),
-        )
-    }
-    fn load_eyes(eyes: Eyes) -> Mesh<FigurePipeline> {
-        let (name, offset) = match eyes {
-            Eyes::Eyes1 => ("figure/eyes/human/male_1.vox", Vec3::new(-5.0, -0.5, -6.0)),
-        };
-        Self::load_mesh(name, offset)
-    }
-    fn load_hair(hair: Hair) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match hair {
-                Hair::HumanMale1 => "figure/hair/human/male_1.vox",
-            },
-            Vec3::new(-6.0, -1.5, 8.0),
-        )
-    }
+        let (name, offset) = match head {
+            //Head::Human => ("figure/head/human/1.vox", Vec3::new(-7.0, -4.0, -4.5)),
+            Head::Elf => ("figure/head_elf_female.vox", Vec3::new(-8.0, -5.5, -8.25)),
+            Head::Dwarf => ("figure/head_dwarf_female.vox", Vec3::new(-6.0, -6.0, -7.5)),
+            Head::Human => ("figure/head_test1.vox", Vec3::new(-7.0, -7.0, -6.75)),
 
-    // loads models with different offsets
-    fn load_beard(beard: Beard) -> Mesh<FigurePipeline> {
-        let (name, offset) = match beard {
-            Beard::None => ("figure/body/empty.vox", Vec3::new(0.0, 0.0, 0.0)),
-            Beard::Human1 => ("figure/empty.vox", Vec3::new(0.0, 0.0, 0.0)),
-        };
-        Self::load_mesh(name, offset)
+            };
+            Self::load_mesh(name, offset)
     }
+    // loads models with different offsets
+//    fn load_beard(beard: Beard) -> Mesh<FigurePipeline> {
+//        let (name, offset) = match beard {
+//            Beard::None => ("figure/body/empty.vox", Vec3::new(0.0, 0.0, 0.0)),
+//            Beard::Human1 => ("figure/empty.vox", Vec3::new(0.0, 0.0, 0.0)),
+//        };
+//        Self::load_mesh(name, offset)
+//    }
 
     fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Self::load_mesh(
@@ -208,23 +186,6 @@ impl FigureModelCache {
         )
     }
 
-    fn load_cape(cape: Cape) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match cape {
-                Cape::None => "figure/empty.vox",
-            },
-            Vec3::new(0.0, 0.0, 0.0),
-        )
-    }
-
-    fn load_tabard(tabard: Tabard) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match tabard {
-                Tabard::None => "figure/empty.vox",
-            },
-            Vec3::new(0.0, 0.0, 0.0),
-        )
-    }
 
     fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
         Self::load_mesh(
@@ -345,6 +306,15 @@ impl FigureModelCache {
             Vec3::new(-2.0, -2.5, -5.0),
         )
     }
+    fn load_hair(hair: Hair) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match hair {
+                Hair::HumanMale1 => "figure/hair/human/male_1.vox",
+            },
+            Vec3::new(-6.0, -6.0, -4.0),
+        )
+    }
+
     /////////
     fn load_pig_head(pig_head: PigHead) -> Mesh<FigurePipeline> {
         Self::load_mesh(

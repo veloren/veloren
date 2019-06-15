@@ -21,6 +21,8 @@ pub enum BodyType {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Head {
     Human,
+    Elf,
+    Dwarf,
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hair {
@@ -188,7 +190,7 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Undead,
 ];
 pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-pub const ALL_HEADS: [Head; 1] = [Head::Human];
+pub const ALL_HEADS: [Head; 3] = [Head::Human, Head::Elf, Head::Dwarf];
 pub const ALL_HAIR: [Hair; 1] = [Hair::HumanMale1];
 pub const ALL_BEARD: [Beard; 2] = [
     Beard::None, 

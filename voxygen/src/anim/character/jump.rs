@@ -19,7 +19,7 @@ impl Animation for JumpAnimation {
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
         let wave_stop_alt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
-        next.head.offset = Vec3::new(0.0, 3.0, 13.0);
+        next.head.offset = Vec3::new(0.0, 0.0, 15.0);
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
         next.head.scale = Vec3::one();
 
