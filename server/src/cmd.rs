@@ -212,13 +212,12 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
-    // This should be just an enum and be handled with scan_fmt!
+    // This should be just an enum handled with scan_fmt!
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
 
     // Make sure the amount is either not provided or a valid value
     let opt_amount = opt_amount
-        .and_then(|a| a.parse().ok())
-        .or(Some(1))
+        .map_or(Some(1), |a| a.parse().ok())
         .and_then(|a| if a > 0 { Some(a) } else { None });
 
     match (opt_agent, opt_id, opt_amount) {
