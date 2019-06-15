@@ -216,7 +216,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
 
     // Make sure the amount is either not provided or a valid value
-    let opt_amount = if let Some(amount) = opt_amount {
+    let opt_amount: Option<u32> = if let Some(amount) = opt_amount {
         amount.parse().ok()
     } else { Some(1) };
 
@@ -269,6 +269,7 @@ fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent>
                         target,
                         offset: Vec2::zero() }
             ),
+        // passive?
         _ => None
     }
 }
