@@ -86,22 +86,10 @@ lazy_static! {
             handle_kill
         ),
         ChatCommand::new(
-            "pig",
-            "{}",
-            "/pig : Spawn a test pig NPC",
-            handle_pet_pig
-        ),
-        ChatCommand::new(
-            "wolf",
-            "{}",
-            "/wolf : Spawn a test wolf NPC",
-            handle_pet_wolf
-        ),
-        ChatCommand::new(
-            "enemy",
-            "{}",
-            "/enemy : Spawn a test enemy NPC",
-            handle_enemy
+            "spawn",
+            "{} {} {d}",
+            "/spawn <alignment> <entity> <amount> : Spawn a test entity",
+            handle_spawn
         ),
         ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
@@ -222,84 +210,41 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     }
 }
 
-fn handle_pet_pig(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
-        Some(mut pos) => {
-            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
-            server
-                .create_npc(
-                    pos,
-                    get_npc_name(NpcKind::Pig),
-                    comp::Body::Quadruped(comp::QuadrupedBody::random()),
-                )
-                .with(comp::Agent::Pet {
-                    target: entity,
-                    offset: Vec2::zero(),
-                })
-                .build();
-            server
-                .clients
-                .notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
-        }
-        None => server
+fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, u32);
+    // This should probably be just an enum and be handled with scan_fmt!
+    let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
+    match (opt_agent, opt_id, opt_amount) {
+        (Some(agent), Some(id), Some(amount)) => {
+            match server
+                .state
+                .read_component_cloned::<comp::phys::Pos>(entity)
+            {
+                Some(mut pos) => {
+                    pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
+                    let body = kind_to_body(id);
+                    for _ in 0..amount {
+                        server
+                            .create_npc(
+                                pos,
+                                get_npc_name(id),
+                                body,
+                            )
+                            .with(agent)
+                            .build();
+                    }
+                    server
+                        .clients
+                        .notify(entity, ServerMsg::Chat(format!("Spawned {} entities", amount).to_owned()));
+                }
+                None => server
+                    .clients
+                    .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+            }
+        },
+        _ => server
             .clients
-            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
-    }
-}
-
-fn handle_pet_wolf(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
-        Some(mut pos) => {
-            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
-            server
-                .create_npc(
-                    pos,
-                    get_npc_name(NpcKind::Wolf),
-                    comp::Body::QuadrupedMedium(comp::QuadrupedMediumBody::random()),
-                )
-                .with(comp::Agent::Pet {
-                    target: entity,
-                    offset: Vec2::zero(),
-                })
-                .build();
-            server
-                .clients
-                .notify(entity, ServerMsg::Chat("Spawned pet!".to_owned()));
-        }
-        None => server
-            .clients
-            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
-    }
-}
-
-fn handle_enemy(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server
-        .state
-        .read_component_cloned::<comp::phys::Pos>(entity)
-    {
-        Some(mut pos) => {
-            pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
-            server
-                .create_npc(
-                    pos,
-                    get_npc_name(NpcKind::Humanoid),
-                    comp::Body::Humanoid(comp::HumanoidBody::random()),
-                )
-                .with(comp::Agent::Enemy { target: None })
-                .build();
-            server
-                .clients
-                .notify(entity, ServerMsg::Chat("Spawned enemy!".to_owned()));
-        }
-        None => server
-            .clients
-            .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
 }
 
@@ -308,5 +253,24 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
         server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(cmd.help_string)));
+    }
+}
+
+fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
+    match alignment {
+        "hostile" => Some(comp::Agent::Enemy { target: None }),
+        "friendly" => Some ( comp::Agent::Pet {
+                        target,
+                        offset: Vec2::zero() }
+            ),
+        _ => None
+    }
+}
+
+fn kind_to_body(kind: NpcKind) -> comp::Body {
+    match kind {
+        NpcKind::Humanoid => comp::Body::Humanoid(comp::HumanoidBody::random()),
+        NpcKind::Pig => comp::Body::Quadruped(comp::QuadrupedBody::random()),
+        NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::QuadrupedMediumBody::random()),
     }
 }
