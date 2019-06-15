@@ -167,21 +167,21 @@ impl FigureModelCache {
             match head {
                 Head::Human => "figure/head/human/1.vox",
             },
-            Vec3::new(-7.0, -5.5, 0.0),
+            Vec3::new(-7.0, -5.5, 8.0),
         )
     }
     fn load_eyes(eyes: Eyes) -> Mesh<FigurePipeline> {
         let (name, offset) = match eyes {
-            Eyes::Eyes1 => ("figure/eyes/human/male_1.vox", Vec3::new(-5.0, -5.0, 0.0)),
+            Eyes::Eyes1 => ("figure/eyes/human/male_1.vox", Vec3::new(-5.0, -0.5, -6.0)),
         };
         Self::load_mesh(name, offset)
     }
     fn load_hair(hair: Hair) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match hair {
-                Hair::HumanMale1 => "figure/empty.vox",
+                Hair::HumanMale1 => "figure/hair/human/male_1.vox",
             },
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::new(-6.0, -1.5, 8.0),
         )
     }
 

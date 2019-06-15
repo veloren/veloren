@@ -19,7 +19,11 @@ const SCALE: f32 = 11.0;
 #[derive(Clone)]
 pub struct CharacterSkeleton {
     head: Bone,
+    eyes: Bone,
+    hair: Bone,
     chest: Bone,
+    tabard: Bone,
+    cape: Bone,
     belt: Bone,
     shorts: Bone,
     l_hand: Bone,
@@ -53,6 +57,10 @@ impl CharacterSkeleton {
             left_equip: Bone::default(),
             right_equip: Bone::default(),
             torso: Bone::default(),
+            hair: Bone::default(),
+            eyes: Bone::default(),
+            tabard: Bone::default(),
+            cape: Bone::default(),
         }
     }
 }
@@ -63,8 +71,9 @@ impl Skeleton for CharacterSkeleton {
         let torso_mat = self.torso.compute_base_matrix();
         let l_hand_mat = self.l_hand.compute_base_matrix();
         let weapon_mat = self.weapon.compute_base_matrix();
+        let head_mat = self.head.compute_base_matrix();
         [
-            FigureBoneData::new(torso_mat * self.head.compute_base_matrix()),
+            FigureBoneData::new(head_mat * self.head.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat),
             FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
@@ -79,7 +88,7 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(self.left_equip.compute_base_matrix()),
             FigureBoneData::new(self.right_equip.compute_base_matrix()),
             FigureBoneData::new(torso_mat),
-            FigureBoneData::default(),
+            FigureBoneData::new(torso_mat * head_mat * self.hair.compute_base_matrix()),
         ]
     }
 
