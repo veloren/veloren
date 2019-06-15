@@ -219,7 +219,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let opt_amount: Option<u32> = if let Some(amount) = opt_amount {
         match amount.parse().ok() {
             Some(x) if x == 0 => None,
-            x => x
+            x => x,
         }
     } else {
         Some(1)
