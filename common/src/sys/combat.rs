@@ -55,9 +55,7 @@ impl<'a> System<'a> for Sys {
                             stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
                             vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                             vel_b.0.z = 15.0;
-                            if let Err(err) = force_updates.insert(b, ForceUpdate) {
-                                warn!("Inserting ForceUpdate for an entity failed: {:?}", err);
-                            }
+                            let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }
                     attacking.applied = true;
