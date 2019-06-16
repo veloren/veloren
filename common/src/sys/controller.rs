@@ -98,10 +98,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if controller.jump
-                && on_ground.is_some()
-                && vel.0.z <= 0.0
-            {
+            if controller.jump && on_ground.is_some() && vel.0.z <= 0.0 {
                 jumpings.insert(entity, Jumping);
             }
 
