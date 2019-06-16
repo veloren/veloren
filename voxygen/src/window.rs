@@ -34,6 +34,7 @@ pub enum GameInput {
     Screenshot,
     ToggleIngameUi,
     Attack,
+    Roll,
     Respawn,
 }
 
@@ -134,6 +135,7 @@ impl Window {
             GameInput::ToggleIngameUi,
         );
         key_map.insert(settings.controls.attack, GameInput::Attack);
+        key_map.insert(settings.controls.roll, GameInput::Roll);
 
         Ok(Self {
             events_loop,

@@ -103,7 +103,7 @@ font_ids! {
 pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
-    pub coordinates: Option<comp::phys::Pos>,
+    pub coordinates: Option<comp::Pos>,
 }
 
 pub enum Event {
@@ -312,7 +312,7 @@ impl Hud {
         if self.show.ingame {
             let ecs = client.state().ecs();
             let actor = ecs.read_storage::<comp::Actor>();
-            let pos = ecs.read_storage::<comp::phys::Pos>();
+            let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
             let player = ecs.read_storage::<comp::Player>();
             let entities = ecs.entities();
@@ -322,7 +322,7 @@ impl Hud {
             let player_pos = client
                 .state()
                 .ecs()
-                .read_storage::<comp::phys::Pos>()
+                .read_storage::<comp::Pos>()
                 .get(client.entity())
                 .map_or(Vec3::zero(), |pos| pos.0);
             let mut name_id_walker = self.ids.name_tags.walk();

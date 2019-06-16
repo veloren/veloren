@@ -1,14 +1,20 @@
 pub mod attack;
+pub mod cidle;
+pub mod crun;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
+pub mod roll;
 pub mod run;
 
 // Reexports
 pub use self::attack::AttackAnimation;
+pub use self::cidle::CidleAnimation;
+pub use self::crun::CrunAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
+pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
 
 use super::{Bone, Skeleton};
@@ -68,8 +74,8 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::new(torso_mat * chest_mat),
             FigureBoneData::new(torso_mat * self.belt.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.shorts.compute_base_matrix()),
-            FigureBoneData::new(l_hand_mat),
-            FigureBoneData::new(self.r_hand.compute_base_matrix()),
+            FigureBoneData::new(torso_mat * l_hand_mat),
+            FigureBoneData::new(torso_mat * self.r_hand.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.l_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * self.r_foot.compute_base_matrix()),
             FigureBoneData::new(torso_mat * chest_mat * weapon_mat),

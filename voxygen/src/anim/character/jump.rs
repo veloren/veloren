@@ -39,17 +39,17 @@ impl Animation for JumpAnimation {
             -8.0,
             0.0 + wave_stop * 3.8,
             7.0 + wave_stop * 3.2 - wave * 0.4,
-        ) / 11.0;
+        );
         next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
-        next.l_hand.scale = Vec3::one() / 11.0;
+        next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
             8.0,
             0.0 + wave_stop * -3.8,
             7.0 + wave_stop * 3.2 - wave * 0.4,
-        ) / 11.0;
+        );
         next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
-        next.r_hand.scale = Vec3::one() / 11.0;
+        next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 6.0);
         next.l_foot.ori = Quaternion::rotation_x(wave_stop * -1.2 - wave_slow * 0.2);

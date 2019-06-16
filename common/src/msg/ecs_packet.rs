@@ -17,13 +17,15 @@ impl sphynx::ResPacket for EcsResPacket {}
 sphynx::sum_type! {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsCompPacket {
-        Pos(comp::phys::Pos),
-        Vel(comp::phys::Vel),
-        Ori(comp::phys::Ori),
+        Pos(comp::Pos),
+        Vel(comp::Vel),
+        Ori(comp::Ori),
         Actor(comp::Actor),
         Player(comp::Player),
         Stats(comp::Stats),
         Attacking(comp::Attacking),
+        Rolling(comp::Rolling),
+        Gliding(comp::Gliding),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -31,13 +33,15 @@ sphynx::sum_type! {
 sphynx::sum_type! {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum EcsCompPhantom {
-        Pos(PhantomData<comp::phys::Pos>),
-        Vel(PhantomData<comp::phys::Vel>),
-        Ori(PhantomData<comp::phys::Ori>),
+        Pos(PhantomData<comp::Pos>),
+        Vel(PhantomData<comp::Vel>),
+        Ori(PhantomData<comp::Ori>),
         Actor(PhantomData<comp::Actor>),
         Player(PhantomData<comp::Player>),
         Stats(PhantomData<comp::Stats>),
         Attacking(PhantomData<comp::Attacking>),
+        Rolling(PhantomData<comp::Rolling>),
+        Gliding(PhantomData<comp::Gliding>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {
