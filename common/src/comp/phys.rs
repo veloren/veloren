@@ -2,7 +2,6 @@ use specs::{Component, NullStorage, VecStorage};
 use vek::*;
 
 // Position
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
 
@@ -11,7 +10,6 @@ impl Component for Pos {
 }
 
 // Velocity
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Vel(pub Vec3<f32>);
 
@@ -20,7 +18,6 @@ impl Component for Vel {
 }
 
 // Orientation
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Ori(pub Vec3<f32>);
 
@@ -29,7 +26,6 @@ impl Component for Ori {
 }
 
 // ForceUpdate
-
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct ForceUpdate;
 

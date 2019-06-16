@@ -98,28 +98,31 @@ impl State {
 
     // Create a new Sphynx ECS world.
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
-        // Register synced components.
+        // Register server->client synced components.
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::Attacking>(); // TODO: Don't send this to the client?
-        ecs.register::<comp::phys::ForceUpdate>();
+        ecs.register_synced::<comp::Attacking>();
+        ecs.register_synced::<comp::Rolling>();
+        ecs.register_synced::<comp::Gliding>();
 
         // Register components synced by other means
-        ecs.register::<comp::phys::Pos>();
-        ecs.register::<comp::phys::Vel>();
-        ecs.register::<comp::phys::Ori>();
+        ecs.register::<comp::Pos>();
+        ecs.register::<comp::Vel>();
+        ecs.register::<comp::Ori>();
+        ecs.register::<comp::MoveDir>();
+        ecs.register::<comp::OnGround>();
         ecs.register::<comp::AnimationInfo>();
+        ecs.register::<comp::Controller>();
 
         // Register client-local components
-        ecs.register::<comp::Control>();
         ecs.register::<comp::Jumping>();
 
         // Register server-local components
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Respawning>();
-        ecs.register::<comp::Gliding>();
         ecs.register::<comp::Dying>();
+        ecs.register::<comp::ForceUpdate>();
         ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.

@@ -2,12 +2,9 @@ use super::{super::Animation, CharacterSkeleton};
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
-pub struct Input {
-    pub attack: bool,
-}
-pub struct IdleAnimation;
+pub struct CidleAnimation;
 
-impl Animation for IdleAnimation {
+impl Animation for CidleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -51,20 +48,20 @@ impl Animation for IdleAnimation {
 
         next.l_hand.offset = Vec3::new(
             -7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            7.0 + wave_ultra_slow * 0.5,
-        );
+            -2.0 + wave_ultra_slow_cos * 0.15,
+            8.0 + wave_ultra_slow * 0.5,
+        ) / 11.0;
 
-        next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.l_hand.scale = Vec3::one();
+        next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.06);
+        next.l_hand.scale = Vec3::one() / 11.0;
 
         next.r_hand.offset = Vec3::new(
             7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            7.0 + wave_ultra_slow * 0.5,
-        );
-        next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.r_hand.scale = Vec3::one();
+            -2.0 + wave_ultra_slow_cos * 0.15,
+            8.0 + wave_ultra_slow * 0.5,
+        ) / 11.0;
+        next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * 0.06);
+        next.r_hand.scale = Vec3::one() / 11.;
 
         next.l_foot.offset = Vec3::new(-3.4, -0.1, 8.0);
         next.l_foot.ori = Quaternion::identity();
@@ -76,7 +73,7 @@ impl Animation for IdleAnimation {
 
         next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
         next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-        next.weapon.scale = Vec3::one();
+        next.weapon.scale = Vec3::one() * 0.0;
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);

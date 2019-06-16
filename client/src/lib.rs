@@ -153,7 +153,7 @@ impl Client {
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(
             self.state
-                .read_storage::<comp::phys::Pos>()
+                .read_storage::<comp::Pos>()
                 .get(self.entity)
                 .cloned()?
                 .0,
@@ -171,52 +171,6 @@ impl Client {
         self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
-    /// Jump locally, the new positions will be synced to the server
-    #[allow(dead_code)]
-    pub fn jump(&mut self) {
-        if self.client_state != ClientState::Character {
-            return;
-        }
-        self.state.write_component(self.entity, comp::Jumping);
-    }
-
-    /// Start to glide locally, animation will be synced
-    #[allow(dead_code)]
-    pub fn glide(&mut self, state: bool) {
-        if self.client_state != ClientState::Character {
-            return;
-        }
-        if state {
-            self.state.write_component(self.entity, comp::Gliding);
-        } else {
-            self.state
-                .ecs_mut()
-                .write_storage::<comp::Gliding>()
-                .remove(self.entity);
-        }
-    }
-
-    /// Start to attack
-    #[allow(dead_code)]
-    pub fn attack(&mut self) {
-        if self.client_state != ClientState::Character {
-            return;
-        }
-        // TODO: Test if attack is possible using timeout
-        self.state
-            .write_component(self.entity, comp::Attacking::start());
-        self.postbox.send_message(ClientMsg::Attack);
-    }
-
-    /// Tell the server the client wants to respawn.
-    #[allow(dead_code)]
-    pub fn respawn(&mut self) {
-        if self.client_state != ClientState::Dead {
-            return;
-        }
-        self.postbox.send_message(ClientMsg::Respawn)
-    }
-
     /// Remove all cached terrain
     #[allow(dead_code)]
     pub fn clear_terrain(&mut self) {
@@ -226,7 +180,11 @@ impl Client {
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(&mut self, control: comp::Control, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(
+        &mut self,
+        controller: comp::Controller,
+        dt: Duration,
+    ) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most client-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -243,10 +201,8 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        // TODO: Only do this if the entity already has a Inputs component!
-        if self.client_state == ClientState::Character {
-            self.state.write_component(self.entity, control.clone());
-        }
+        self.state.write_component(self.entity, controller.clone());
+        self.postbox.send_message(ClientMsg::Controller(controller));
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
@@ -262,7 +218,7 @@ impl Client {
         // 5) Terrain
         let pos = self
             .state
-            .read_storage::<comp::phys::Pos>()
+            .read_storage::<comp::Pos>()
             .get(self.entity)
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
@@ -334,19 +290,6 @@ impl Client {
                     .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
             }
             _ => {}
-        }
-
-        // Update the server about the player's current animation.
-        if let Some(animation_info) = self
-            .state
-            .ecs_mut()
-            .write_storage::<comp::AnimationInfo>()
-            .get_mut(self.entity)
-        {
-            if animation_info.changed {
-                self.postbox
-                    .send_message(ClientMsg::PlayerAnimation(animation_info.clone()));
-            }
         }
 
         // Output debug metrics
