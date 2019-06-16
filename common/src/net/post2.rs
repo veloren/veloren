@@ -204,7 +204,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                             */
 
                             // Assemble into packet.
-                            let mut packet_bytes = msg_bytes.len().to_le_bytes().as_ref().to_vec();
+                            let mut packet_bytes =
+                                (msg_bytes.len() as u64).to_le_bytes().as_ref().to_vec();
                             packet_bytes.push(msg_bytes.iter().fold(0, |a, x| a ^ *x));
                             packet_bytes.append(&mut msg_bytes);
 
