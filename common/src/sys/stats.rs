@@ -5,9 +5,8 @@ use crate::{
 use log::warn;
 use specs::{Entities, Join, Read, System, WriteStorage};
 
-// Basic ECS AI agent system
+/// This system kills players
 pub struct Sys;
-
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,

@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::phys::Pos, msg::ClientState};
+use common::{clock::Clock, comp, comp::Pos, msg::ClientState};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -16,8 +16,9 @@ use vek::*;
 pub struct SessionState {
     scene: Scene,
     client: Rc<RefCell<Client>>,
-    key_state: KeyState,
     hud: Hud,
+    key_state: KeyState,
+    controller: comp::Controller,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -30,6 +31,7 @@ impl SessionState {
             scene,
             client,
             key_state: KeyState::new(),
+            controller: comp::Controller::default(),
             hud: Hud::new(window),
         }
     }
@@ -45,22 +47,8 @@ const BG_COLOR: Rgba<f32> = Rgba {
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
-    pub fn tick(&mut self, dt: Duration) -> Result<(), Error> {
-        // Calculate the movement input vector of the player from the current key presses
-        // and the camera direction.
-        let ori = self.scene.camera().get_orientation();
-        let unit_vecs = (
-            Vec2::new(ori[0].cos(), -ori[0].sin()),
-            Vec2::new(ori[0].sin(), ori[0].cos()),
-        );
-        let dir_vec = self.key_state.dir_vec();
-        let move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
-
-        for event in self
-            .client
-            .borrow_mut()
-            .tick(comp::Control { move_dir }, dt)?
-        {
+    fn tick(&mut self, dt: Duration) -> Result<(), Error> {
+        for event in self.client.borrow_mut().tick(self.controller.clone(), dt)? {
             match event {
                 client::Event::Chat(msg) => {
                     self.hud.new_message(msg);
@@ -127,19 +115,22 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    Event::InputUpdate(GameInput::Attack, true) => {
-                        self.client.borrow_mut().attack();
-                        self.client.borrow_mut().respawn();
+                    Event::InputUpdate(GameInput::Attack, state) => {
+                        self.controller.attack = state;
+                        self.controller.respawn = state; // TODO: Don't do both
                     }
-                    Event::InputUpdate(GameInput::Jump, true) => {
-                        self.client.borrow_mut().jump();
+                    Event::InputUpdate(GameInput::Roll, state) => {
+                        self.controller.roll = state;
+                    }
+                    Event::InputUpdate(GameInput::Jump, state) => {
+                        self.controller.jump = state;
                     }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
-                        self.client.borrow_mut().glide(state)
+                        self.controller.glide = state;
                     }
 
                     // Pass all other events to the scene
@@ -148,6 +139,16 @@ impl PlayState for SessionState {
                     } // TODO: Do something if the event wasn't handled?
                 }
             }
+
+            // Calculate the movement input vector of the player from the current key presses
+            // and the camera direction.
+            let ori = self.scene.camera().get_orientation();
+            let unit_vecs = (
+                Vec2::new(ori[0].cos(), -ori[0].sin()),
+                Vec2::new(ori[0].sin(), ori[0].cos()),
+            );
+            let dir_vec = self.key_state.dir_vec();
+            self.controller.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_last_delta()) {
