@@ -292,19 +292,6 @@ impl Client {
             _ => {}
         }
 
-        // Update the server about the player's current animation.
-        if let Some(animation_info) = self
-            .state
-            .ecs_mut()
-            .write_storage::<comp::AnimationInfo>()
-            .get_mut(self.entity)
-        {
-            if animation_info.changed {
-                self.postbox
-                    .send_message(ClientMsg::PlayerAnimation(animation_info.clone()));
-            }
-        }
-
         // Output debug metrics
         if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
             let metrics = self

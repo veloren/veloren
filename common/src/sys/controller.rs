@@ -99,13 +99,10 @@ impl<'a> System<'a> for Sys {
 
             // Jump
             if controller.jump
-                && jumpings.get(entity).is_none()
                 && on_ground.is_some()
                 && vel.0.z <= 0.0
             {
                 jumpings.insert(entity, Jumping);
-            } else {
-                jumpings.remove(entity);
             }
 
             // Roll

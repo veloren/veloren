@@ -71,5 +71,5 @@ impl Component for Jumping {
 }
 
 impl Component for Gliding {
-    type Storage = NullStorage<Self>;
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }

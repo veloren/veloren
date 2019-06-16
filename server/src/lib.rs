@@ -512,15 +512,6 @@ impl Server {
                             | ClientState::Character => new_chat_msgs.push((Some(entity), msg)),
                             ClientState::Pending => {}
                         },
-                        ClientMsg::PlayerAnimation(animation_info) => {
-                            match client.client_state {
-                                ClientState::Character => {
-                                    state.write_component(entity, animation_info)
-                                }
-                                // Only characters can send animations.
-                                _ => client.error_state(RequestStateError::Impossible),
-                            }
-                        }
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
                             ClientState::Character => {
                                 state.write_component(entity, pos);

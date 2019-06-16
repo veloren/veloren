@@ -98,13 +98,13 @@ impl State {
 
     // Create a new Sphynx ECS world.
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
-        // Register synced components.
+        // Register server->client synced components.
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::Attacking>(); // TODO: Don't send this to the client?
-        ecs.register_synced::<comp::Rolling>(); // TODO: Don't send this to the client?
-        ecs.register::<comp::ForceUpdate>();
+        ecs.register_synced::<comp::Attacking>();
+        ecs.register_synced::<comp::Rolling>();
+        ecs.register_synced::<comp::Gliding>();
 
         // Register components synced by other means
         ecs.register::<comp::Pos>();
@@ -121,8 +121,8 @@ impl State {
         // Register server-local components
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Respawning>();
-        ecs.register::<comp::Gliding>();
         ecs.register::<comp::Dying>();
+        ecs.register::<comp::ForceUpdate>();
         ecs.register::<inventory::Inventory>();
 
         // Register synced resources used by the ECS.
