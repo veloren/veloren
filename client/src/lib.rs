@@ -1,4 +1,4 @@
-#![feature(label_break_value, duration_float)]
+#![feature(label_break_value, duration_float, euclidean_division)]
 
 pub mod error;
 
@@ -12,12 +12,14 @@ use common::{
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
-    terrain::chonk::ChonkMetrics,
+    terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
+    vol::VolSize,
 };
 use log::{debug, info, log_enabled};
 use std::{
     collections::HashMap,
     net::SocketAddr,
+    sync::Arc,
     time::{Duration, Instant},
 };
 use threadpool::ThreadPool;
@@ -146,6 +148,21 @@ impl Client {
 
     pub fn loaded_distance(&self) -> Option<u32> {
         self.loaded_distance
+    }
+
+    pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
+        let chunk_pos = Vec2::from(
+            self.state
+                .read_storage::<comp::phys::Pos>()
+                .get(self.entity)
+                .cloned()?
+                .0,
+        )
+        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| {
+            (e as u32).div_euclid(sz) as i32
+        });
+
+        self.state.terrain().get_key_arc(chunk_pos).cloned()
     }
 
     /// Send a chat message to the server.

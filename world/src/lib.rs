@@ -1,15 +1,25 @@
-#![feature(euclidean_division)]
+#![feature(euclidean_division, bind_by_move_pattern_guards)]
 
+mod all;
+mod block;
+mod column;
+pub mod config;
 mod sim;
-mod structure;
+pub mod util;
 
+// Reexports
+pub use crate::config::CONFIG;
+
+use crate::{
+    block::BlockGen,
+    column::{ColumnGen, ColumnSample},
+    util::{HashCache, Sampler, SamplerMut},
+};
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{VolSize, Vox, WriteVol},
 };
-use fxhash::FxHashMap;
-use noise::{BasicMulti, MultiFractal, Seedable};
-use std::{hash::Hash, time::Duration};
+use std::time::Duration;
 use vek::*;
 
 #[derive(Debug)]
@@ -36,14 +46,20 @@ impl World {
         // TODO
     }
 
-    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> TerrainChunk {
-        // TODO: This is all test code, remove/improve this later.
+    pub fn sample_columns(
+        &self,
+    ) -> impl Sampler<Index = Vec2<i32>, Sample = Option<ColumnSample>> + '_ {
+        ColumnGen::new(self)
+    }
 
+    pub fn sample_blocks(&self) -> impl SamplerMut<Index = Vec3<i32>, Sample = Option<Block>> + '_ {
+        BlockGen::new(self, ColumnGen::new(self))
+    }
+
+    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> TerrainChunk {
         let air = Block::empty();
         let stone = Block::new(1, Rgb::new(200, 220, 255));
         let water = Block::new(5, Rgb::new(100, 150, 255));
-
-        let warp_nz = BasicMulti::new().set_octaves(3).set_seed(self.sim.seed + 0);
 
         let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
         let base_z = match self.sim.get_interpolated(
@@ -56,7 +72,7 @@ impl World {
 
         let mut chunk = TerrainChunk::new(base_z - 8, stone, air, TerrainChunkMeta::void());
 
-        let mut world_sampler = self.sim.sampler();
+        let mut sampler = self.sample_blocks();
 
         for x in 0..TerrainChunkSize::SIZE.x as i32 {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
@@ -79,51 +95,13 @@ impl World {
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                    let sim::Sample3d { block } =
-                        if let Some(sample) = world_sampler.sample_3d(wpos) {
-                            sample
-                        } else {
-                            continue;
-                        };
-
-                    let _ = chunk.set(lpos, block);
+                    if let Some(block) = sampler.get(wpos) {
+                        let _ = chunk.set(lpos, block);
+                    }
                 }
             }
         }
 
         chunk
-    }
-}
-
-struct Cache<K: Hash + Eq + Copy, V> {
-    capacity: usize,
-    map: FxHashMap<K, (usize, V)>,
-    counter: usize,
-}
-
-impl<K: Hash + Eq + Copy, V> Cache<K, V> {
-    pub fn with_capacity(capacity: usize) -> Self {
-        Self {
-            capacity,
-            map: FxHashMap::default(),
-            counter: 0,
-        }
-    }
-
-    pub fn maintain(&mut self) {
-        let (capacity, counter) = (self.capacity, self.counter);
-        self.map.retain(|_, (c, _)| *c + capacity > counter);
-    }
-
-    pub fn get<F: FnOnce(K) -> V>(&mut self, k: K, f: F) -> &V {
-        let counter = &mut self.counter;
-        &self
-            .map
-            .entry(k)
-            .or_insert_with(|| {
-                *counter += 1;
-                (*counter, f(k))
-            })
-            .1
     }
 }
