@@ -98,10 +98,8 @@ impl<'a> System<'a> for Sys {
             }
 
             // Roll
-            if on_ground.is_some() && controller.roll {
+            if controller.roll && rollings.get(entity).is_none() && on_ground.is_some() {
                 rollings.insert(entity, Rolling::start());
-            } else {
-                rollings.remove(entity);
             }
         }
     }
