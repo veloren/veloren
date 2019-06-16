@@ -15,6 +15,8 @@ const HUMANOID_SPEED: f32 = 500.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
+const ROLL_ACCEL: f32 = 200.0;
+const ROLL_SPEED: f32 = 800.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -102,12 +104,17 @@ impl<'a> System<'a> for Sys {
                     * match (
                         on_grounds.get(entity).is_some(),
                         glidings.get(entity).is_some(),
+                        rollings.get(entity).is_some(),
                     ) {
-                        (true, false) if vel.0.magnitude() < HUMANOID_SPEED => HUMANOID_ACCEL,
-                        (false, true) if vel.0.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
-                        (false, false) if vel.0.magnitude() < HUMANOID_AIR_SPEED => {
+                        (true, false, false) if vel.0.magnitude() < HUMANOID_SPEED => {
+                            HUMANOID_ACCEL
+                        }
+                        (false, true, false) if vel.0.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
+                        (false, false, false) if vel.0.magnitude() < HUMANOID_AIR_SPEED => {
                             HUMANOID_AIR_ACCEL
                         }
+                        (true, false, true) if vel.0.magnitude() < ROLL_SPEED => ROLL_ACCEL,
+
                         _ => 0.0,
                     };
             }
