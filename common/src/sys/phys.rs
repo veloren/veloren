@@ -53,8 +53,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, MoveDir>,
         ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
-        ReadStorage<'a, Rolling>,
         ReadStorage<'a, Stats>,
+        WriteStorage<'a, Rolling>,
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -70,8 +70,8 @@ impl<'a> System<'a> for Sys {
             move_dirs,
             jumpings,
             glidings,
-            rollings,
             stats,
+            mut rollings,
             mut on_grounds,
             mut positions,
             mut velocities,
@@ -79,13 +79,12 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, stats, move_dir, jumping, gliding, rolling, mut pos, mut vel, mut ori) in (
+        for (entity, stats, move_dir, jumping, gliding, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
             move_dirs.maybe(),
             jumpings.maybe(),
             glidings.maybe(),
-            rollings.maybe(),
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -130,8 +129,12 @@ impl<'a> System<'a> for Sys {
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
 
-            // TODO:
-            if rolling.is_some() {}
+            if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
+                *time += dt.0;
+                if *time > 0.7 {
+                    rollings.remove(entity);
+                }
+            }
 
             // Set direction based on velocity
             if vel.0.magnitude_squared() != 0.0 {
