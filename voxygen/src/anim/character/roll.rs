@@ -22,11 +22,11 @@ impl Animation for RollAnimation {
         let wave_slow = (anim_time as f32 * 2.0 + PI).sin();
         let wave_dub = (anim_time as f32 * 4.0).sin();
 
-        next.head.offset = Vec3::new(0.0, -1.0 + wave_slow * -3.0, 16.0 + wave_dub * -3.0);
+        next.head.offset = Vec3::new(0.0, 0.0 + wave_slow * -3.0, 9.0 + wave_dub * -5.0);
         next.head.ori = Quaternion::rotation_x(wave_dub * -0.4);
         next.head.scale = Vec3::one();
 
-        next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_dub * -1.5);
+        next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_dub * -2.5);
         next.chest.ori = Quaternion::rotation_x(wave_dub * -0.5);
         next.chest.scale = Vec3::one() * 1.01;
 
@@ -40,32 +40,32 @@ impl Animation for RollAnimation {
 
         next.l_hand.offset = Vec3::new(
             -5.5 + wave * -0.5,
-            -2.0 + wave_quick_cos * 5.5,
-            8.0 + wave_quick * -5.5,
-        ) / 11.0;
+            -2.0 + wave_quick_cos * -5.5,
+            8.0 + wave_quick * 0.5,
+        );
 
         next.l_hand.ori =
             Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
-        next.l_hand.scale = Vec3::one() / 11.0;
+        next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(
             5.5 + wave * 0.5,
-            -2.0 + wave_quick_cos * 5.5,
-            8.0 + wave_quick * -5.5,
-        ) / 11.0;
+            -2.0 + wave_quick_cos * 2.5,
+            8.0 + wave_quick * 3.0,
+        );
         next.r_hand.ori =
             Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
-        next.r_hand.scale = Vec3::one() / 11.;
+        next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, -0.1, 9.0 - 0.0 + wave * 1.2);
+        next.l_foot.offset = Vec3::new(-3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.2);
         next.l_foot.ori = Quaternion::rotation_x(wave * 0.6);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, -0.1, 9.0 - 0.0 + wave * 1.0);
+        next.r_foot.offset = Vec3::new(3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.0);
         next.r_foot.ori = Quaternion::rotation_x(wave * -0.4);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -7.0, 18.0);
+        next.weapon.offset = Vec3::new(-7.0, -7.0, 15.0);
         next.weapon.ori =
             Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57 + wave_quick * 1.0);
         next.weapon.scale = Vec3::one();
@@ -90,7 +90,7 @@ impl Animation for RollAnimation {
         next.right_equip.ori = Quaternion::rotation_x(0.0);;
         next.right_equip.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, -2.2, 0.1 + wave_dub * 12.0) / 11.0;
+        next.torso.offset = Vec3::new(0.0, -2.2, 0.1 + wave_dub * 16.0) / 11.0;
         next.torso.ori = Quaternion::rotation_x(wave_slow * 6.0);
         next.torso.scale = Vec3::one() / 11.0;
         next
