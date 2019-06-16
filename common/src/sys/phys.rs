@@ -15,8 +15,8 @@ const HUMANOID_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
-const ROLL_ACCEL: f32 = 140.0;
-const ROLL_SPEED: f32 = 450.0;
+const ROLL_ACCEL: f32 = 160.0;
+const ROLL_SPEED: f32 = 550.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
