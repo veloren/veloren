@@ -132,7 +132,7 @@ impl<'a> System<'a> for Sys {
             // Roll
             if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
                 *time += dt.0;
-                if *time > 0.7 {
+                if *time > 0.55 {
                     rollings.remove(entity);
                 }
             }
