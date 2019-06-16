@@ -15,12 +15,12 @@ impl Animation for RollAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 4.0).sin();
-        let wave_quick = (anim_time as f32 * 7.0).sin();
-        let wave_quick_cos = (anim_time as f32 * 7.0).cos();
-        let wave_cos = (anim_time as f32 * 4.0).cos();
-        let wave_slow = (anim_time as f32 * 2.0 + PI).sin();
-        let wave_dub = (anim_time as f32 * 4.0).sin();
+        let wave = (anim_time as f32 * 5.5).sin();
+        let wave_quick = (anim_time as f32 * 9.5).sin();
+        let wave_quick_cos = (anim_time as f32 * 9.5).cos();
+        let wave_cos = (anim_time as f32 * 5.5).cos();
+        let wave_slow = (anim_time as f32 * 2.8 + PI).sin();
+        let wave_dub = (anim_time as f32 * 5.5).sin();
 
         next.head.offset = Vec3::new(0.0, 0.0 + wave_slow * -3.0, 9.0 + wave_dub * -5.0);
         next.head.ori = Quaternion::rotation_x(wave_dub * -0.4);
