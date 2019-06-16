@@ -2,8 +2,10 @@ use crate::assets;
 use lazy_static::lazy_static;
 use rand::seq::SliceRandom;
 use serde_json;
+use std::str::FromStr;
 use std::sync::Arc;
 
+#[derive(Clone, Copy)]
 pub enum NpcKind {
     Humanoid,
     Wolf,
@@ -16,6 +18,19 @@ impl NpcKind {
             NpcKind::Humanoid => "humanoid",
             NpcKind::Wolf => "wolf",
             NpcKind::Pig => "pig",
+        }
+    }
+}
+
+impl FromStr for NpcKind {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, ()> {
+        match s {
+            "humanoid" => Ok(NpcKind::Humanoid),
+            "wolf" => Ok(NpcKind::Wolf),
+            "pig" => Ok(NpcKind::Pig),
+            _ => Err(()),
         }
     }
 }
