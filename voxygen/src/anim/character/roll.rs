@@ -57,11 +57,11 @@ impl Animation for RollAnimation {
             Quaternion::rotation_x(wave_slow * 6.5) * Quaternion::rotation_y(wave * 0.3);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.2);
+        next.l_foot.offset = Vec3::new(-3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.2 + wave_slow * 4.0);
         next.l_foot.ori = Quaternion::rotation_x(wave * 0.6);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.0);
+        next.r_foot.offset = Vec3::new(3.4, -0.1, 9.0 - 0.0 + wave_dub * -1.0 + wave_slow * 4.0);
         next.r_foot.ori = Quaternion::rotation_x(wave * -0.4);
         next.r_foot.scale = Vec3::one();
 

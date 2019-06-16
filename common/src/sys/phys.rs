@@ -10,13 +10,13 @@ use vek::*;
 const GRAVITY: f32 = 9.81 * 4.0;
 const FRIC_GROUND: f32 = 0.15;
 const FRIC_AIR: f32 = 0.015;
-const HUMANOID_ACCEL: f32 = 100.0;
-const HUMANOID_SPEED: f32 = 500.0;
+const HUMANOID_ACCEL: f32 = 70.0;
+const HUMANOID_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
-const ROLL_ACCEL: f32 = 200.0;
-const ROLL_SPEED: f32 = 800.0;
+const ROLL_ACCEL: f32 = 140.0;
+const ROLL_SPEED: f32 = 450.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -129,6 +129,7 @@ impl<'a> System<'a> for Sys {
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
 
+            // Roll
             if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
                 *time += dt.0;
                 if *time > 0.7 {
