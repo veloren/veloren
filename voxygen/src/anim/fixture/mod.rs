@@ -33,5 +33,5 @@ impl Skeleton for FixtureSkeleton {
         ]
     }
 
-    fn interpolate(&mut self, target: &Self) {}
+    fn interpolate(&mut self, target: &Self, dt: f32) {}
 }
