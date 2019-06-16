@@ -79,7 +79,6 @@ impl<'a> System<'a> for Sys {
 
             // Glide
             if controller.glide
-                && glidings.get(entity).is_none()
                 && on_ground.is_none()
                 && attackings.get(entity).is_none()
                 && rollings.get(entity).is_none()
