@@ -36,6 +36,10 @@ impl Chonk {
         }
     }
 
+    pub fn meta(&self) -> &TerrainChunkMeta {
+        &self.meta
+    }
+
     pub fn get_min_z(&self) -> i32 {
         self.z_offset
     }

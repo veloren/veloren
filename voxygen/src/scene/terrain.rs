@@ -247,7 +247,7 @@ impl Terrain {
                 chunk_pos.y + chunk_sz / 2.0,
                 (chunk.z_bounds.0 + chunk.z_bounds.1) * 0.5,
             );
-            let chunk_radius = (chunk.z_bounds.1 - chunk.z_bounds.0)
+            let chunk_radius = ((chunk.z_bounds.1 - chunk.z_bounds.0) / 2.0)
                 .max(chunk_sz / 2.0)
                 .powf(2.0)
                 .mul(2.0)

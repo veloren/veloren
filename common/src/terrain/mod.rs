@@ -27,14 +27,31 @@ impl VolSize for TerrainChunkSize {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerrainChunkMeta {
+    name: Option<String>,
     biome: BiomeKind,
 }
 
 impl TerrainChunkMeta {
+    pub fn new(name: Option<String>, biome: BiomeKind) -> Self {
+        Self { name, biome }
+    }
+
     pub fn void() -> Self {
         Self {
+            name: None,
             biome: BiomeKind::Void,
         }
+    }
+
+    pub fn name(&self) -> &str {
+        self.name
+            .as_ref()
+            .map(|s| s.as_str())
+            .unwrap_or("Wilderness")
+    }
+
+    pub fn biome(&self) -> BiomeKind {
+        self.biome
     }
 }
 

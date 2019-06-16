@@ -28,11 +28,11 @@ void main() {
 		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
 	}
 
-	float glob_ambience = 0.001;
+	float glob_ambience = 0.0005;
 
-	float sun_ambience = 0.9;
+	float sun_ambience = 0.8;
 
-	vec3 sun_dir = normalize(vec3(1.3, 1.7, 2.1));
+	vec3 sun_dir = normalize(vec3(0.7, 1.3, 2.1));
 
 	float sun_diffuse = dot(sun_dir, f_norm);
 	float sun_light = sun_ambience + sun_diffuse;
