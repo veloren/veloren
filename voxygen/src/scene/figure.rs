@@ -574,7 +574,7 @@ impl FigureMgr {
                             comp::Animation::Gliding => {
                                 character::GlidingAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    time,
+                                    (vel.0.magnitude(), time),
                                     animation_info.time,
                                 )
                             }

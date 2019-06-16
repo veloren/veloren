@@ -46,11 +46,11 @@ impl Animation for AttackAnimation {
             -8.0 + wave_quicken_slow * 10.0,
             4.0 + wave_quicken_double * 3.0,
             9.0,
-        ) / 11.0;
+        );
         next.l_hand.ori = Quaternion::rotation_z(-0.8)
             * Quaternion::rotation_x(0.0 + wave_quicken * -0.8)
             * Quaternion::rotation_y(0.0 + wave_quicken * -0.4);
-        next.l_hand.scale = Vec3::one() / 11.0;
+        next.l_hand.scale = Vec3::one();
 
         next.r_hand.offset = Vec3::new(0.0, -2.0, 6.5) / 11.0;
         next.r_hand.ori = Quaternion::rotation_x(0.0);
