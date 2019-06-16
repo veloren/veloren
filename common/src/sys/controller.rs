@@ -65,40 +65,58 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
+            // Move dir
+            if rollings.get(entity).is_none() {
+                move_dirs.insert(
+                    entity,
+                    MoveDir(if controller.move_dir.magnitude() > 1.0 {
+                        controller.move_dir.normalized()
+                    } else {
+                        controller.move_dir
+                    }),
+                );
+            }
+
             // Glide
-            if controller.glide && on_ground.is_none() && attackings.get(entity).is_none() {
+            if controller.glide
+                && glidings.get(entity).is_none()
+                && on_ground.is_none()
+                && attackings.get(entity).is_none()
+                && rollings.get(entity).is_none()
+            {
                 glidings.insert(entity, Gliding);
             } else {
                 glidings.remove(entity);
             }
 
-            // Move dir
-            move_dirs.insert(
-                entity,
-                MoveDir(if controller.move_dir.magnitude() > 1.0 {
-                    controller.move_dir.normalized()
-                } else {
-                    controller.move_dir
-                }),
-            );
-
             // Attack
             if controller.attack
                 && attackings.get(entity).is_none()
                 && glidings.get(entity).is_none()
+                && rollings.get(entity).is_none()
             {
                 attackings.insert(entity, Attacking::start());
             }
 
             // Jump
-            if on_ground.is_some() && controller.jump && vel.0.z <= 0.0 {
+            if controller.jump
+                && jumpings.get(entity).is_none()
+                && on_ground.is_some()
+                && vel.0.z <= 0.0
+            {
                 jumpings.insert(entity, Jumping);
             } else {
                 jumpings.remove(entity);
             }
 
             // Roll
-            if controller.roll && rollings.get(entity).is_none() && on_ground.is_some() {
+            if controller.roll
+                && rollings.get(entity).is_none()
+                && attackings.get(entity).is_none()
+                && glidings.get(entity).is_none()
+                && on_ground.is_some()
+                && vel.0.magnitude() > 5.0
+            {
                 rollings.insert(entity, Rolling::start());
             }
         }

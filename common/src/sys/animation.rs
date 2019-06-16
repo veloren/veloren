@@ -49,7 +49,6 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             animation_info.time += dt.0 as f64;
-            let moving = vel.0.magnitude() > 3.0;
 
             fn impossible_animation(message: &str) -> Animation {
                 warn!("{}", message);
@@ -58,7 +57,7 @@ impl<'a> System<'a> for Sys {
 
             let animation = match (
                 on_ground.is_some(),
-                moving,
+                vel.0.magnitude() > 3.0, // Moving
                 attacking.is_some(),
                 gliding.is_some(),
                 rolling.is_some(),
