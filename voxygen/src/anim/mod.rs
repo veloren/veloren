@@ -29,9 +29,9 @@ impl Bone {
     }
 
     /// Change the current bone to be more like `target`.
-    fn interpolate(&mut self, target: &Bone) {
+    fn interpolate(&mut self, target: &Bone, dt: f32) {
         // TODO: Make configurable.
-        let factor = 0.3;
+        let factor = dbg!((15.0 * dt).min(1.0));
         self.offset += (target.offset - self.offset) * factor;
         self.ori = vek::ops::Slerp::slerp(self.ori, target.ori, factor);
         self.scale += (target.scale - self.scale) * factor;
@@ -42,7 +42,7 @@ pub trait Skeleton: Send + Sync + 'static {
     fn compute_matrices(&self) -> [FigureBoneData; 16];
 
     /// Change the current skeleton to be more like `target`.
-    fn interpolate(&mut self, target: &Self);
+    fn interpolate(&mut self, target: &Self, dt: f32);
 }
 
 pub trait Animation {

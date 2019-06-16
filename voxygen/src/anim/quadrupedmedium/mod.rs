@@ -73,17 +73,17 @@ impl Skeleton for QuadrupedMediumSkeleton {
         ]
     }
 
-    fn interpolate(&mut self, target: &Self) {
-        self.wolf_head_upper.interpolate(&target.wolf_head_upper);
-        self.wolf_jaw.interpolate(&target.wolf_jaw);
-        self.wolf_head_lower.interpolate(&target.wolf_head_lower);
-        self.wolf_tail.interpolate(&target.wolf_tail);
-        self.wolf_torso_back.interpolate(&target.wolf_torso_back);
-        self.wolf_torso_mid.interpolate(&target.wolf_torso_mid);
-        self.wolf_ears.interpolate(&target.wolf_ears);
-        self.wolf_foot_lf.interpolate(&target.wolf_foot_lf);
-        self.wolf_foot_rf.interpolate(&target.wolf_foot_rf);
-        self.wolf_foot_lb.interpolate(&target.wolf_foot_lb);
-        self.wolf_foot_rb.interpolate(&target.wolf_foot_rb);
+    fn interpolate(&mut self, target: &Self, dt: f32) {
+        self.wolf_head_upper.interpolate(&target.wolf_head_upper, dt);
+        self.wolf_jaw.interpolate(&target.wolf_jaw, dt);
+        self.wolf_head_lower.interpolate(&target.wolf_head_lower, dt);
+        self.wolf_tail.interpolate(&target.wolf_tail, dt);
+        self.wolf_torso_back.interpolate(&target.wolf_torso_back, dt);
+        self.wolf_torso_mid.interpolate(&target.wolf_torso_mid, dt);
+        self.wolf_ears.interpolate(&target.wolf_ears, dt);
+        self.wolf_foot_lf.interpolate(&target.wolf_foot_lf, dt);
+        self.wolf_foot_rf.interpolate(&target.wolf_foot_rf, dt);
+        self.wolf_foot_lb.interpolate(&target.wolf_foot_lb, dt);
+        self.wolf_foot_rb.interpolate(&target.wolf_foot_rb, dt);
     }
 }
