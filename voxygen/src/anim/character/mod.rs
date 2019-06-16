@@ -89,21 +89,21 @@ impl Skeleton for CharacterSkeleton {
         ]
     }
 
-    fn interpolate(&mut self, target: &Self) {
-        self.head.interpolate(&target.head);
-        self.chest.interpolate(&target.chest);
-        self.belt.interpolate(&target.belt);
-        self.shorts.interpolate(&target.shorts);
-        self.l_hand.interpolate(&target.l_hand);
-        self.r_hand.interpolate(&target.r_hand);
-        self.l_foot.interpolate(&target.l_foot);
-        self.r_foot.interpolate(&target.r_foot);
-        self.weapon.interpolate(&target.weapon);
-        self.l_shoulder.interpolate(&target.l_shoulder);
-        self.r_shoulder.interpolate(&target.r_shoulder);
-        self.draw.interpolate(&target.draw);
-        self.left_equip.interpolate(&target.left_equip);
-        self.right_equip.interpolate(&target.right_equip);
-        self.torso.interpolate(&target.torso);
+    fn interpolate(&mut self, target: &Self, dt: f32) {
+        self.head.interpolate(&target.head, dt);
+        self.chest.interpolate(&target.chest, dt);
+        self.belt.interpolate(&target.belt, dt);
+        self.shorts.interpolate(&target.shorts, dt);
+        self.l_hand.interpolate(&target.l_hand, dt);
+        self.r_hand.interpolate(&target.r_hand, dt);
+        self.l_foot.interpolate(&target.l_foot, dt);
+        self.r_foot.interpolate(&target.r_foot, dt);
+        self.weapon.interpolate(&target.weapon, dt);
+        self.l_shoulder.interpolate(&target.l_shoulder, dt);
+        self.r_shoulder.interpolate(&target.r_shoulder, dt);
+        self.draw.interpolate(&target.draw, dt);
+        self.left_equip.interpolate(&target.left_equip, dt);
+        self.right_equip.interpolate(&target.right_equip, dt);
+        self.torso.interpolate(&target.torso, dt);
     }
 }

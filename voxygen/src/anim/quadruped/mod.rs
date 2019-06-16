@@ -57,12 +57,12 @@ impl Skeleton for QuadrupedSkeleton {
         ]
     }
 
-    fn interpolate(&mut self, target: &Self) {
-        self.pig_head.interpolate(&target.pig_head);
-        self.pig_chest.interpolate(&target.pig_chest);
-        self.pig_leg_lf.interpolate(&target.pig_leg_lf);
-        self.pig_leg_rf.interpolate(&target.pig_leg_rf);
-        self.pig_leg_lb.interpolate(&target.pig_leg_lb);
-        self.pig_leg_rb.interpolate(&target.pig_leg_rb);
+    fn interpolate(&mut self, target: &Self, dt: f32) {
+        self.pig_head.interpolate(&target.pig_head, dt);
+        self.pig_chest.interpolate(&target.pig_chest, dt);
+        self.pig_leg_lf.interpolate(&target.pig_leg_lf, dt);
+        self.pig_leg_rf.interpolate(&target.pig_leg_rf, dt);
+        self.pig_leg_lb.interpolate(&target.pig_leg_lb, dt);
+        self.pig_leg_rb.interpolate(&target.pig_leg_rb, dt);
     }
 }

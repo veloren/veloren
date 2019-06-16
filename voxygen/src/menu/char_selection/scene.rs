@@ -14,7 +14,7 @@ use crate::{
     },
 };
 use client::Client;
-use common::comp::{self, HumanoidBody};
+use common::{comp, state::DeltaTime};
 use log::error;
 use vek::*;
 
@@ -108,7 +108,10 @@ impl Scene {
             client.state().get_time(),
             client.state().get_time(),
         );
-        self.figure_state.skeleton_mut().interpolate(&tgt_skeleton);
+        self.figure_state.skeleton_mut().interpolate(
+            &tgt_skeleton,
+            client.state().ecs().read_resource::<DeltaTime>().0,
+        );
 
         self.figure_state.update(
             renderer,
@@ -118,7 +121,7 @@ impl Scene {
         );
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: HumanoidBody) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: comp::HumanoidBody) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         let model = self.figure_model_cache.get_or_create_model(
