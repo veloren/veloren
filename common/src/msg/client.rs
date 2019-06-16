@@ -17,7 +17,6 @@ pub enum ClientMsg {
     Ping,
     Pong,
     Chat(String),
-    PlayerAnimation(comp::AnimationInfo),
     PlayerPhysics {
         pos: comp::Pos,
         vel: comp::Vel,

@@ -51,9 +51,9 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, MoveDir>,
-        ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
         ReadStorage<'a, Stats>,
+        WriteStorage<'a, Jumping>,
         WriteStorage<'a, Rolling>,
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Pos>,
@@ -68,9 +68,9 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             move_dirs,
-            jumpings,
             glidings,
             stats,
+            mut jumpings,
             mut rollings,
             mut on_grounds,
             mut positions,
@@ -79,11 +79,10 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, stats, move_dir, jumping, gliding, mut pos, mut vel, mut ori) in (
+        for (entity, stats, move_dir, gliding, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
             move_dirs.maybe(),
-            jumpings.maybe(),
             glidings.maybe(),
             &mut positions,
             &mut velocities,
@@ -119,8 +118,9 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if jumping.is_some() {
+            if jumpings.get(entity).is_some() {
                 vel.0.z = HUMANOID_JUMP_ACCEL;
+                jumpings.remove(entity);
             }
 
             // Glide
