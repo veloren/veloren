@@ -15,7 +15,7 @@ use common::{
     terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
-use log::{debug, info, log_enabled};
+use log::{info, log_enabled, warn};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -371,8 +371,7 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        debug!("{:?}", error);
-                        self.client_state = state;
+                        warn!("{:?}", error);
                     }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;
