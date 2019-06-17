@@ -2,6 +2,8 @@ use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};
 use std::io;
+use std::sync::mpsc;
+use std::thread;
 use std::time::Duration;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
@@ -25,6 +27,9 @@ fn main() {
     // Set up an fps clock.
     let mut clock = Clock::new();
 
+    println!("Enter your username");
+    let mut username = read_input();
+
     // Create a client.
     let mut client =
         Client::new(([127, 0, 0, 1], 59003), None).expect("Failed to create client instance");
@@ -33,15 +38,21 @@ fn main() {
 
     println!("Players online: {:?}", client.get_players());
 
-    println!("Enter your username");
-    let mut username = read_input();
-
     client.register(comp::Player::new(username, None));
 
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        loop {
+            let msg = read_input();
+            tx.send(msg).unwrap();
+        }
+    });
+
     loop {
-        // TODO: Make it run on another thread. The client doesn't sync until you won't send another
-        // message.
-        client.send_chat(read_input());
+        for msg in rx.try_iter() {
+            client.send_chat(msg)
+        }
+
         let events = match client.tick(comp::Controller::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
@@ -56,7 +67,6 @@ fn main() {
                 Event::Disconnect => {} // TODO
             }
         }
-
         // Clean up the server after a tick.
         client.cleanup();
 
