@@ -1,15 +1,16 @@
 use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};
-use std::time::Duration;
 use std::io;
+use std::time::Duration;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
 fn read_input() -> String {
     let mut buffer = String::new();
 
-    io::stdin().read_line(&mut buffer)
+    io::stdin()
+        .read_line(&mut buffer)
         .expect("Failed to read input");
 
     buffer
@@ -38,7 +39,6 @@ fn main() {
     client.register(comp::Player::new(username, None));
 
     loop {
-
         // TODO: Make it run on another thread. The client doesn't sync until you won't send another
         // message.
         client.send_chat(read_input());
