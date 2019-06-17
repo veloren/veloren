@@ -15,7 +15,7 @@ use common::{
     terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
-use log::{debug, info, log_enabled};
+use log::{info, log_enabled, warn};
 use std::{
     collections::HashMap,
     net::SocketAddr,
@@ -201,8 +201,10 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        self.state.write_component(self.entity, controller.clone());
-        self.postbox.send_message(ClientMsg::Controller(controller));
+        if let ClientState::Character | ClientState::Dead = self.client_state {
+            self.state.write_component(self.entity, controller.clone());
+            self.postbox.send_message(ClientMsg::Controller(controller));
+        }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
@@ -369,8 +371,7 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        debug!("{:?}", error);
-                        self.client_state = state;
+                        warn!("{:?}", error);
                     }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;
