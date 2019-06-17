@@ -41,11 +41,9 @@ fn main() {
     client.register(comp::Player::new(username, None));
 
     let (tx, rx) = mpsc::channel();
-    thread::spawn(move || {
-        loop {
-            let msg = read_input();
-            tx.send(msg).unwrap();
-        }
+    thread::spawn(move || loop {
+        let msg = read_input();
+        tx.send(msg).unwrap();
     });
 
     loop {
