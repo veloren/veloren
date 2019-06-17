@@ -615,13 +615,14 @@ impl FigureMgr {
                             let target_skeleton = match animation_info.animation {
                                 comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                     state.skeleton_mut(),
+                                    (vel.linear.magnitude(), time),
                                     time,
                                     animation_info.time,
                                     skeleton_attr,
                                 ),
                                 comp::Animation::Run => character::RunAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    (vel.0.magnitude(), time),
+                                    (vel.linear.magnitude(), time),
                                     animation_info.time,
                                     skeleton_attr,
                                 ),
@@ -647,7 +648,7 @@ impl FigureMgr {
                                 ),
                                 comp::Animation::Crun => character::CrunAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    (vel.0.magnitude(), time),
+                                    (vel.linear.magnitude(), time),
                                     animation_info.time,
                                     skeleton_attr,
                                 ),
@@ -662,7 +663,7 @@ impl FigureMgr {
                                 comp::Animation::Gliding => {
                                     character::GlidingAnimation::update_skeleton(
                                         state.skeleton_mut(),
-                                        (vel.0.magnitude(), time),
+                                        (vel.linear.magnitude(), time),
                                         animation_info.time,
                                         skeleton_attr,
                                     )
@@ -680,7 +681,7 @@ impl FigureMgr {
                             let target_skeleton = match animation_info.animation {
                                 comp::Animation::Run => quadruped::RunAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    (vel.0.magnitude(), time),
+                                    (vel.linear.magnitude(), time),
                                     animation_info.time,
                                     skeleton_attr,
                                 ),
@@ -692,7 +693,7 @@ impl FigureMgr {
                                 ),
                                 comp::Animation::Jump => quadruped::JumpAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    (vel.0.magnitude(), time),
+                                    (vel.linear.magnitude(), time),
                                     animation_info.time,
                                     skeleton_attr,
                                 ),
@@ -716,7 +717,7 @@ impl FigureMgr {
                                 comp::Animation::Run => {
                                     quadrupedmedium::RunAnimation::update_skeleton(
                                         state.skeleton_mut(),
-                                        (vel.0.magnitude(), time),
+                                        (vel.linear.magnitude(), time),
                                         animation_info.time,
                                         skeleton_attr,
                                     )
@@ -732,7 +733,7 @@ impl FigureMgr {
                                 comp::Animation::Jump => {
                                     quadrupedmedium::JumpAnimation::update_skeleton(
                                         state.skeleton_mut(),
-                                        (vel.0.magnitude(), time),
+                                        (vel.linear.magnitude(), time),
                                         animation_info.time,
                                         skeleton_attr,
                                     )

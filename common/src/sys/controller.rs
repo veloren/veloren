@@ -98,7 +98,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if controller.jump && on_ground.is_some() && vel.0.z <= 0.0 {
+            if controller.jump && on_ground.is_some() && vel.linear.z <= 0.0 {
                 jumpings.insert(entity, Jumping);
             }
 
@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
                 && attackings.get(entity).is_none()
                 && glidings.get(entity).is_none()
                 && on_ground.is_some()
-                && vel.0.magnitude() > 5.0
+                && vel.linear.magnitude() > 5.0
             {
                 rollings.insert(entity, Rolling::start());
             }

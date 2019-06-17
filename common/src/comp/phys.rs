@@ -1,17 +1,24 @@
 use specs::{Component, NullStorage, VecStorage};
 use vek::*;
 
+pub type Position = Vec3<f32>;
+pub type Velocity = Vec3<f32>;
+pub type Acceleration = Vec3<f32>;
+
 // Position
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Pos(pub Vec3<f32>);
+pub struct Pos(pub Position);
 
 impl Component for Pos {
     type Storage = VecStorage<Self>;
 }
 
-// Velocity
+// Velocity (with Acceleration)
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Vel(pub Vec3<f32>);
+pub struct Vel {
+    pub linear: Velocity,
+    pub accel: Acceleration,
+}
 
 impl Component for Vel {
     type Storage = VecStorage<Self>;

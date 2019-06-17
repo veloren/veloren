@@ -4,7 +4,6 @@ use crate::{
     },
     state::{DeltaTime, Uid},
 };
-use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 /// This system is responsible for handling accepted inputs like moving or attacking
@@ -53,8 +52,8 @@ impl<'a> System<'a> for Sys {
                         {
                             // Deal damage
                             stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                            vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
-                            vel_b.0.z = 15.0;
+                            vel_b.linear += (pos_b.0 - pos.0).normalized() * 10.0;
+                            vel_b.linear.z = 15.0;
                             let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }

@@ -143,7 +143,10 @@ impl Server {
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Vel {
+                linear: comp::Velocity::zero(),
+                accel: comp::Acceleration::zero(),
+            })
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
             .with(comp::AnimationInfo::default())
@@ -152,6 +155,7 @@ impl Server {
             .with(comp::ForceUpdate)
     }
 
+    /// Build a player character.
     pub fn create_player_character(
         state: &mut State,
         entity: EcsEntity,
@@ -166,7 +170,13 @@ impl Server {
         state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
-        state.write_component(entity, comp::Vel(Vec3::zero()));
+        state.write_component(
+            entity,
+            comp::Vel {
+                linear: comp::Velocity::zero(),
+                accel: comp::Acceleration::zero(),
+            },
+        );
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
@@ -246,7 +256,13 @@ impl Server {
         // Actually kill them
         for entity in todo_kill {
             if let Some(client) = self.clients.get_mut(&entity) {
-                self.state.write_component(entity, comp::Vel(Vec3::zero()));
+                self.state.write_component(
+                    entity,
+                    comp::Vel {
+                        linear: comp::Velocity::zero(),
+                        accel: comp::Acceleration::zero(),
+                    },
+                );
                 self.state.write_component(entity, comp::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
@@ -275,7 +291,13 @@ impl Server {
                     .write_storage::<comp::Pos>()
                     .get_mut(entity)
                     .map(|pos| pos.0.z += 100.0);
-                self.state.write_component(entity, comp::Vel(Vec3::zero()));
+                self.state.write_component(
+                    entity,
+                    comp::Vel {
+                        linear: comp::Velocity::zero(),
+                        accel: comp::Acceleration::zero(),
+                    },
+                );
                 self.state.write_component(entity, comp::ForceUpdate);
             }
         }
