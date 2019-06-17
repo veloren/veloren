@@ -201,8 +201,10 @@ impl Client {
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
-        self.state.write_component(self.entity, controller.clone());
-        self.postbox.send_message(ClientMsg::Controller(controller));
+        if let ClientState::Character | ClientState::Dead = self.client_state {
+            self.state.write_component(self.entity, controller.clone());
+            self.postbox.send_message(ClientMsg::Controller(controller));
+        }
 
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
