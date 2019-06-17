@@ -1,9 +1,22 @@
 use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};
+use std::io;
+use std::sync::mpsc;
+use std::thread;
 use std::time::Duration;
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
+
+fn read_input() -> String {
+    let mut buffer = String::new();
+
+    io::stdin()
+        .read_line(&mut buffer)
+        .expect("Failed to read input");
+
+    buffer
+}
 
 fn main() {
     // Initialize logging.
@@ -14,21 +27,30 @@ fn main() {
     // Set up an fps clock.
     let mut clock = Clock::new();
 
+    println!("Enter your username");
+    let mut username = read_input();
+
     // Create a client.
     let mut client =
         Client::new(([127, 0, 0, 1], 59003), None).expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info);
 
-    // TODO: Remove or move somewhere else, this doesn't work immediately after connecting
-    println!("Ping: {:?}", client.get_ping_ms());
-
     println!("Players online: {:?}", client.get_players());
 
-    client.register(comp::Player::new("test".to_string(), None));
-    client.send_chat("Hello!".to_string());
+    client.register(comp::Player::new(username, None));
+
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || loop {
+        let msg = read_input();
+        tx.send(msg).unwrap();
+    });
 
     loop {
+        for msg in rx.try_iter() {
+            client.send_chat(msg)
+        }
+
         let events = match client.tick(comp::Controller::default(), clock.get_last_delta()) {
             Ok(events) => events,
             Err(err) => {
@@ -39,11 +61,10 @@ fn main() {
 
         for event in events {
             match event {
-                Event::Chat(msg) => println!("[chat] {}", msg),
+                Event::Chat(msg) => println!("{}", msg),
                 Event::Disconnect => {} // TODO
             }
         }
-
         // Clean up the server after a tick.
         client.cleanup();
 
