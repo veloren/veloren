@@ -26,10 +26,33 @@ float noise(vec3 p){
     return o4.y * d.y + o4.x * (1.0 - d.y);
 }
 
+vec3 get_sun_dir(float time_of_day) {
+	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
+
+	float sun_angle_rad = time_of_day * TIME_FACTOR;
+	vec3 sun_dir = vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+
+	return sun_dir;
+}
+
+float get_sun_brightness(vec3 sun_dir) {
+	return max(-sun_dir.z, 0.0);
+}
+
+const float PERSISTENT_AMBIANCE = 0.015;
+
+float get_sun_diffuse(vec3 norm, float time_of_day) {
+	const float SUN_AMBIANCE = 0.2;
+
+	vec3 sun_dir = get_sun_dir(time_of_day);
+
+	float sun_light = get_sun_brightness(sun_dir);
+
+	return (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0)) * sun_light + PERSISTENT_AMBIANCE;
+}
+
 vec3 get_sky_color(vec3 dir, float time_of_day) {
 	bool objects = true;
-
-	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
 
 	vec2 pos2d = dir.xy / dir.z;
 
@@ -37,29 +60,38 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	const vec3 SKY_MIDDLE = vec3(0.1, 0.15, 0.7);
 	const vec3 SKY_BOTTOM = vec3(0.025, 0.15, 0.35);
 
-	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.7, 0.5) * 0.5;
+	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.4, 0.3) * 0.5;
 	const vec3 SUN_SURF_COLOR = vec3(1.0, 0.9, 0.35) * 200.0;
 
-	float sun_angle_rad = time_of_day * TIME_FACTOR;
-	vec3 sun_dir = vec3(sin(sun_angle_rad), 0.0, cos(sun_angle_rad));
+	vec3 sun_dir = get_sun_dir(time_of_day);
+	float sky_brightness = get_sun_brightness(sun_dir);
 
-	vec3 sun_halo = pow(max(dot(dir, sun_dir), 0.0), 8.0) * SUN_HALO_COLOR;
-	vec3 sun_surf = pow(max(dot(dir, sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;
+	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * SUN_HALO_COLOR;
+	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;
 	vec3 sun_light = sun_halo + sun_surf;
 
-	vec3 sky_top;
+	float brightess = (sky_brightness + PERSISTENT_AMBIANCE);
+
+	vec3 sky_top = SKY_TOP * brightess;
 	if (objects) {
-		vec3 p = vec3(pos2d + time_of_day * 0.0002, time_of_day * 0.0001);
-		sky_top = mix(SKY_TOP, vec3(1), pow(noise(p) * 0.8 + noise(p * 3.0) * 0.2, 2.5) * 3.0);
-	} else {
-		sky_top = SKY_TOP;
+		// Clouds
+		// vec3 p = vec3(pos2d + time_of_day * 0.0002, time_of_day * 0.00003);
+		// sky_top = mix(sky_top, vec3(1) * brightess, pow(noise(p) * 0.8 + noise(p * 3.0) * 0.2, 2.5) * 3.0);
 	}
 
-	vec3 sky_color = mix(mix(SKY_MIDDLE, sky_top, clamp(dir.z, 0, 1)), SKY_BOTTOM, clamp(-dir.z * 5.0, 0, 1));
-
 	if (objects) {
-		sky_color += sun_light;
+		sky_top += sun_light;
 	}
+
+	vec3 sky_color = mix(
+		mix(
+			SKY_MIDDLE * brightess,
+			sky_top,
+			clamp(dir.z * 3.0, 0, 1)
+		),
+		SKY_BOTTOM * brightess,
+		clamp(-dir.z * 3.0, 0, 1)
+	);
 
 	return sky_color;
 }
