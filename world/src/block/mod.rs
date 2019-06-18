@@ -165,7 +165,11 @@ impl<'a> SamplerMut for BlockGen<'a> {
         // Rocks
         let block = block.or_else(|| {
             if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
-                Some(warm_stone)
+                let field0 = RandomField::new(self.world.sim().seed + 0);
+                let field1 = RandomField::new(self.world.sim().seed + 1);
+                let field2 = RandomField::new(self.world.sim().seed + 2);
+
+                Some(Block::new(2, stone_col - Rgb::new(field0.get(wpos) as u8 % 32, field1.get(wpos) as u8 % 32, field2.get(wpos) as u8 % 32)))
             } else {
                 None
             }
