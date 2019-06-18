@@ -10,7 +10,9 @@ use crate::{
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use vek::*;
 
+// TODO: Don't hard-code these.
 const GRAV_ACCEL: f32 = 9.81 * 4.0;
+const TRACTION: f32 = 1.0;
 const FRIC_GROUND: f32 = 0.15;
 const FRIC_AIR: f32 = 0.015;
 const HUMANOID_ACCEL: f32 = 70.0;
@@ -47,23 +49,25 @@ const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 //}
 
 /// Handles gravity, ground friction, air resistance, etc.
-fn resolve_forces(lin_vel: Velocity, on_ground: bool) -> Acceleration {
-    let gravity: Acceleration = Acceleration::new(0.0, 0.0, get_grav_accel(on_ground));
+fn resolve_forces(lin_vel: &Velocity, is_on_ground: bool) -> Acceleration {
+    let gravity: Acceleration = Acceleration::new(0.0, 0.0, get_grav_accel(is_on_ground));
 
-    let speed_squared = lin_vel.magnitude_squared();
-    let mut friction: Acceleration = if on_ground {
-        Acceleration::new(1.0, 1.0, 0.0)
+    let mut damp_accel: Acceleration = if is_on_ground {
+        // Effectively this is 1/2 * velocity, applicable in laminar flow cases,
+        // but this is being used as a substitute for standard ground friction.
+        Acceleration::new(1.0, 1.0, 0.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
     } else {
-        Acceleration::broadcast(1.0)
+        // TODO: Perform some better glide physics here?
+        Acceleration::broadcast(1.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
     };
-    friction *= 0.5 * get_friction_factor(on_ground) * speed_squared;
+    println!("Orig Vel: {:?}\nAfter Friction: {:?}", lin_vel, damp_accel);
 
-    gravity - friction
+    gravity - damp_accel
 }
 
 /// Gets the appropriate gravitational acceleration.
-fn get_grav_accel(on_ground: bool) -> f32 {
-    if on_ground {
+fn get_grav_accel(is_on_ground: bool) -> f32 {
+    if is_on_ground {
         0.0
     } else {
         -GRAV_ACCEL
@@ -71,9 +75,9 @@ fn get_grav_accel(on_ground: bool) -> f32 {
 }
 
 /// Gets the appropriate friction factor.
-fn get_friction_factor(on_ground: bool) -> f32 {
+fn get_friction_factor(is_on_ground: bool) -> f32 {
     // TODO: Determine ground friction by block type (use enum)
-    50.0 * if on_ground { FRIC_GROUND } else { FRIC_AIR }
+    50.0 * if is_on_ground { FRIC_GROUND } else { FRIC_AIR }
 }
 
 /// This system applies forces and calculates new positions and velocities.
@@ -136,13 +140,15 @@ impl<'a> System<'a> for Sys {
                     * move_dir.0
                     * match (on_ground, gliding.is_some(), rollings.get(entity).is_some()) {
                         (true, false, false) if vel.linear.magnitude() < HUMANOID_SPEED => {
-                            HUMANOID_ACCEL
+                            HUMANOID_ACCEL * TRACTION
                         }
                         (false, true, false) if vel.linear.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
                         (false, false, false) if vel.linear.magnitude() < HUMANOID_AIR_SPEED => {
                             HUMANOID_AIR_ACCEL
                         }
-                        (true, false, true) if vel.linear.magnitude() < ROLL_SPEED => ROLL_ACCEL,
+                        (true, false, true) if vel.linear.magnitude() < ROLL_SPEED => {
+                            ROLL_ACCEL * TRACTION
+                        }
 
                         _ => 0.0,
                     };
@@ -158,7 +164,7 @@ impl<'a> System<'a> for Sys {
             if gliding.is_some() && vel.linear.magnitude() < GLIDE_SPEED && vel.linear.z < 0.0 {
                 let lift = GLIDE_ANTIGRAV + vel.linear.z.powf(2.0) * 0.2;
                 vel.linear.z +=
-                    dt.0 * lift * Vec2::<f32>::from(vel.linear * 0.15).magnitude().min(1.0);
+                    dt.0 * lift * Vec2::<f32>::from(vel.linear * 0.2).magnitude().min(1.0);
             }
 
             // Roll
@@ -177,32 +183,33 @@ impl<'a> System<'a> for Sys {
             // velocity- or position-based accelerations. If this step is omitted, the results will
             // match this more complete algorithm iff accelerations are solely dependent on time.
             println!(
-                "Before calcs ------\npos: {:?}\nvel: {:?}\naccel: {:?}\ndt:{}\n------",
+                "Before calcs ------\npos: {:?}\nvel: {:?}\naccel: {:?}\ndt:{}",
                 pos.0, vel.linear, vel.accel, dt.0
             );
-            let half_dt = 0.5 * dt.0;
+            let half_dt = dt.0 / 2.0;
             println!("Half dt: {}", half_dt);
             let mut half_accel = vel.accel;
             half_accel *= half_dt;
+            println!("Half accel: {}", half_accel);
             let half_step_vel: Velocity = vel.linear + half_accel;
             pos.0 += half_step_vel * dt.0;
             println!("Half-vel: {:?}\nUpdated pos: {:?}", half_step_vel, pos.0);
             // TODO: Resolve collisions, change accelerations/velocities accordingly.
             // Update entity's velocity and acceleration.
-            let new_accel: Acceleration = resolve_forces(vel.linear, on_ground);
+            let new_accel: Acceleration = resolve_forces(&vel.linear, on_ground);
             println!("New accel: {:?}", new_accel);
             let mut combined_accel = vel.accel + new_accel;
             println!("Combined accel: {:?}", combined_accel);
-            combined_accel *= half_dt;
-            println!("Times half dt: {:?}", combined_accel);
-            vel.linear = half_step_vel + combined_accel;
+            //            combined_accel *= half_dt;
+            //            println!("Times half dt: {:?}", combined_accel);
+            vel.linear = half_step_vel + (combined_accel * half_dt);
             println!("New vel: {:?}", vel.linear);
-            if vel.linear.z > HUMANOID_AIR_SPEED {
-                vel.linear.z = HUMANOID_AIR_SPEED;
-            } else if vel.linear.z < -HUMANOID_AIR_SPEED {
-                vel.linear.z = -HUMANOID_AIR_SPEED;
-            }
-            println!("New vel(z): {}", vel.linear.z);
+            vel.linear.z = vel
+                .linear
+                .z
+                .min(HUMANOID_AIR_SPEED)
+                .max(-HUMANOID_AIR_SPEED);
+            println!("New vel(z): {} --------", vel.linear.z);
             vel.accel = new_accel;
             // ------------------------
 
