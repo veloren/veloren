@@ -1,10 +1,19 @@
-use crate::{all::ForestKind, util::Sampler, World, CONFIG};
+use crate::{
+    all::ForestKind,
+    util::Sampler,
+    sim::Location,
+    World,
+    CONFIG,
+};
 use common::{
     terrain::{Block, TerrainChunkSize},
     vol::{VolSize, Vox},
 };
 use noise::NoiseFn;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
+};
 use vek::*;
 
 pub struct ColumnGen<'a> {
@@ -19,12 +28,12 @@ impl<'a> ColumnGen<'a> {
 
 impl<'a> Sampler for ColumnGen<'a> {
     type Index = Vec2<i32>;
-    type Sample = Option<ColumnSample>;
+    type Sample = Option<ColumnSample<'a>>;
 
-    fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample> {
+    fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e as u32 / sz
+            e / sz as i32
         });
 
         let sim = self.world.sim();
@@ -36,7 +45,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let cliffiness = sim.get_interpolated(wpos, |chunk| chunk.cliffiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
 
-        let forest_kind = sim.get(chunk_pos)?.forest_kind;
+        let sim_chunk = sim.get(chunk_pos)?;
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
@@ -140,19 +149,20 @@ impl<'a> Sampler for ColumnGen<'a> {
                 (alt - CONFIG.sea_level - 2.0) / 5.0,
             ),
             tree_density,
-            forest_kind,
+            forest_kind: sim_chunk.forest_kind,
             close_trees: sim.gen_ctx.tree_gen.get(wpos),
             cave_xy,
             cave_alt,
             rock,
             cliff: cliffiness,
             temp,
+            location: sim_chunk.location.as_ref(),
         })
     }
 }
 
 #[derive(Clone)]
-pub struct ColumnSample {
+pub struct ColumnSample<'a> {
     pub alt: f32,
     pub chaos: f32,
     pub surface_color: Rgb<f32>,
@@ -164,4 +174,5 @@ pub struct ColumnSample {
     pub rock: f32,
     pub cliff: f32,
     pub temp: f32,
+    pub location: Option<&'a Arc<Location>>
 }

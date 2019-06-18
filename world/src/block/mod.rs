@@ -15,7 +15,7 @@ use vek::*;
 
 pub struct BlockGen<'a> {
     world: &'a World,
-    column_cache: HashCache<Vec2<i32>, Option<ColumnSample>>,
+    column_cache: HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
     column_gen: ColumnGen<'a>,
 }
 
@@ -53,6 +53,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             rock,
             cliff,
             temp,
+            ..
         } = self.sample_column(Vec2::from(wpos))?;
 
         let wposf = wpos.map(|e| e as f64);

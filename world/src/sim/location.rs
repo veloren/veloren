@@ -1,17 +1,37 @@
 use rand::Rng;
+use vek::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum LocationKind {
     Settlement,
-    Mountain,
-    Forest,
+    Wildnerness,
 }
 
 #[derive(Clone, Debug)]
 pub struct Location {
     name: String,
+    center: Vec2<i32>,
     kind: LocationKind,
-    kingdom: Kingdom,
+    kingdom: Option<Kingdom>,
+}
+
+impl Location {
+    pub fn generate<R: Rng>(center: Vec2<i32>, rng: &mut R) -> Self {
+        Self {
+            name: generate_name(rng),
+            center,
+            kind: LocationKind::Wildnerness,
+            kingdom: None,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn kingdom(&self) -> Option<&Kingdom> {
+        self.kingdom.as_ref()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -19,7 +39,7 @@ pub struct Kingdom {
     name: String,
 }
 
-fn generate_name() -> String {
+fn generate_name<R: Rng>(rng: &mut R) -> String {
     let consts = [
         "st", "tr", "b", "n", "p", "ph", "cr", "g", "c", "d", "k", "kr", "kl", "gh", "sl", "st",
         "cr", "sp", "th", "dr", "pr", "dr", "gr", "br", "ryth", "rh", "sl", "f", "fr", "p", "pr",
