@@ -51,19 +51,48 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
-                let mut neighbour_light = [[(1.0f32, 0.0); 3]; 3];
+                let mut neighbour_light = [[[1.0f32; 3]; 3]; 3];
 
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
+
+                    // Shift lighting
+                    neighbour_light[2] = neighbour_light[1];
+                    neighbour_light[1] = neighbour_light[0];
+
+                    // Accumulate shade under opaque blocks
+                    for i in 0..3 {
+                        for j in 0..3 {
+                            neighbour_light[0][i][j] = if let Some(opacity) = self
+                                .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, -1))
+                                .ok()
+                                .and_then(|vox| vox.get_opacity())
+                            {
+                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.2)).max(1.0 - opacity * 1.0)
+                            } else {
+                                (neighbour_light[0][i][j] * 1.035).min(1.0)
+                            };
+                        }
+                    }
+
+                    // Spread light
+                    neighbour_light[0] = [[neighbour_light[0]
+                        .iter()
+                        .map(|col| col.iter())
+                        .flatten()
+                        .copied()
+                        .fold(0.0, |a, x| a + x) / 9.0; 3]; 3];
 
                     // Create mesh polygons
                     if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
                         let avg_light = neighbour_light
                             .iter()
+                            .map(|row| row.iter())
+                            .flatten()
                             .map(|col| col.iter())
                             .flatten()
-                            .fold(0.0, |a, (x, _)| a + x)
-                            / 9.0;
+                            .fold(0.0, |a, x| a + x)
+                            / 27.0;
                         let light = avg_light;
 
                         let col = col.map(|e| e as f32 / 255.0);
@@ -77,29 +106,10 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             pos,
                             offs,
                             col,
-                            |pos, norm, col| TerrainVertex::new(pos, norm, col, light),
+                            |pos, norm, col, light| TerrainVertex::new(pos, norm, col, light),
                             false,
+                            &neighbour_light,
                         );
-                    }
-
-                    // Accumulate shade under opaque blocks
-                    for i in 0..3 {
-                        for j in 0..3 {
-                            let max_opacity = neighbour_light[i][j].1;
-                            neighbour_light[i][j] = if let Some(opacity) = self
-                                .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, 0))
-                                .ok()
-                                .and_then(|vox| vox.get_opacity())
-                            {
-                                (
-                                    (neighbour_light[i][j].0 * (1.0 - max_opacity * 0.3))
-                                        .max(1.0 - max_opacity * 0.999),
-                                    max_opacity.max(opacity),
-                                )
-                            } else {
-                                ((neighbour_light[i][j].0 * 1.02).min(1.0), max_opacity)
-                            };
-                        }
                     }
                 }
             }
