@@ -56,6 +56,35 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
 
+                    // Create mesh polygons
+                    if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
+                        let avg_light = neighbour_light
+                            .iter()
+                            .map(|row| row.iter())
+                            .flatten()
+                            .map(|col| col.iter())
+                            .flatten()
+                            .fold(0.0, |a, x| a + x)
+                            / 27.0;
+                        let light = avg_light;
+
+                        let col = col.map(|e| e as f32 / 255.0);
+
+                        let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
+                            - Vec3::new(1.0, 1.0, 0.0);
+
+                        vol::push_vox_verts(
+                            &mut mesh,
+                            self,
+                            pos,
+                            offs,
+                            col,
+                            |pos, norm, col, ao, light| TerrainVertex::new(pos, norm, Lerp::lerp(Rgb::zero(), col, ao), light),
+                            false,
+                            &neighbour_light,
+                        );
+                    }
+
                     // Shift lighting
                     neighbour_light[2] = neighbour_light[1];
                     neighbour_light[1] = neighbour_light[0];
@@ -82,35 +111,6 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                         .flatten()
                         .copied()
                         .fold(0.0, |a, x| a + x) / 9.0; 3]; 3];
-
-                    // Create mesh polygons
-                    if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                        let avg_light = neighbour_light
-                            .iter()
-                            .map(|row| row.iter())
-                            .flatten()
-                            .map(|col| col.iter())
-                            .flatten()
-                            .fold(0.0, |a, x| a + x)
-                            / 27.0;
-                        let light = avg_light;
-
-                        let col = col.map(|e| e as f32 / 255.0);
-
-                        let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
-                            - Vec3::new(1.0, 1.0, 0.0);
-
-                        vol::push_vox_verts(
-                            &mut mesh,
-                            self,
-                            pos,
-                            offs,
-                            col,
-                            |pos, norm, col, ao, light| TerrainVertex::new(pos, norm, col * ao, light),
-                            false,
-                            &neighbour_light,
-                        );
-                    }
                 }
             }
         }

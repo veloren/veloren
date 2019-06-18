@@ -55,12 +55,12 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
     ];
 
     let mut name = String::new();
-    for i in 0..rand::random::<u32>() % 2 {
-        name += rand::thread_rng().choose(&consts).unwrap();
-        name += rand::thread_rng().choose(&vowels).unwrap();
+    for i in 0..rng.gen::<u32>() % 2 {
+        name += rng.choose(&consts).unwrap();
+        name += rng.choose(&vowels).unwrap();
     }
-    name += rand::thread_rng().choose(&consts).unwrap();
-    name += rand::thread_rng().choose(&tails).unwrap();
+    name += rng.choose(&consts).unwrap();
+    name += rng.choose(&tails).unwrap();
 
     name
 }
