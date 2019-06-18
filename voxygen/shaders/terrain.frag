@@ -30,11 +30,11 @@ void main() {
 
 	float glob_ambience = 0.0005;
 
-	float sun_ambience = 0.8;
+	float sun_ambience = 0.3;
 
 	vec3 sun_dir = normalize(vec3(0.7, 1.3, 2.1));
 
-	float sun_diffuse = dot(sun_dir, f_norm);
+	float sun_diffuse = max(dot(sun_dir, f_norm), 0.0);
 	float sun_light = sun_ambience + sun_diffuse;
 
 	float static_light = glob_ambience + min(sun_light, f_light);

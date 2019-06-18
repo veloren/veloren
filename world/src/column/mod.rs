@@ -39,9 +39,10 @@ impl<'a> Sampler for ColumnGen<'a> {
         let forest_kind = sim.get(chunk_pos)?.forest_kind;
 
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
-            + sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32
-                * chaos.max(0.2)
-                * 64.0;
+            + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
+                .abs()
+                .mul(chaos.max(0.2))
+                .mul(64.0);
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -62,8 +63,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         .mul(0.5);
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.3, 0.1);
-        let warm_grass = Rgb::new(0.35, 1.0, 0.05);
+        let cold_grass = Rgb::new(0.0, 0.3, 0.15);
+        let warm_grass = Rgb::new(0.2, 0.8, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.4);
