@@ -32,13 +32,8 @@ void main() {
 		vec4(f_norm, 0.0)
 	).xyz;
 
-	float ambient = 0.5;
-
-	vec3 sun_dir = normalize(vec3(1.3, 1.7, 1.1));
-
-	float sun_diffuse = dot(sun_dir, world_norm) * 0.5;
-
-	vec3 surf_color = model_col.rgb * f_col * (ambient + sun_diffuse);
+	float light = get_sun_diffuse(world_norm, time_of_day.x);
+	vec3 surf_color = model_col.rgb * f_col * 2.0 * light;
 
 	float fog_level = fog(f_pos.xy, focus_pos.xy);
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
