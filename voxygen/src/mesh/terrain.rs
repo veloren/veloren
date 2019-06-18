@@ -106,7 +106,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             pos,
                             offs,
                             col,
-                            |pos, norm, col, light| TerrainVertex::new(pos, norm, col, light),
+                            |pos, norm, col, ao, light| TerrainVertex::new(pos, norm, col * ao, light),
                             false,
                             &neighbour_light,
                         );
