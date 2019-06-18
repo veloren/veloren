@@ -41,7 +41,7 @@ fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, shift: Vec3<i32>, dirs: &[Ve
                     .unwrap_or(false);
                 // Map both 1 and 2 neighbors to 0.5 occlusion.
                 if s1 || s2 || corner {
-                    0.5
+                    0.3
                 } else {
                     1.0
                 }
