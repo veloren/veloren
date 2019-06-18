@@ -1,14 +1,24 @@
 mod location;
 
-use self::location::Location;
+// Reexports
+pub use self::location::Location;
+
 use crate::{all::ForestKind, util::StructureGen2d, CONFIG};
-use common::{terrain::TerrainChunkSize, vol::VolSize};
+use common::{
+    terrain::{BiomeKind, TerrainChunkSize},
+    vol::VolSize,
+};
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
 use vek::*;
+use rand::{
+    Rng,
+    SeedableRng,
+    prng::XorShiftRng,
+};
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -35,6 +45,7 @@ pub struct WorldSim {
     pub seed: u32,
     pub(crate) chunks: Vec<SimChunk>,
     pub(crate) gen_ctx: GenCtx,
+    pub rng: XorShiftRng,
 }
 
 impl WorldSim {
@@ -64,8 +75,8 @@ impl WorldSim {
         };
 
         let mut chunks = Vec::new();
-        for x in 0..WORLD_SIZE.x as u32 {
-            for y in 0..WORLD_SIZE.y as u32 {
+        for x in 0..WORLD_SIZE.x as i32 {
+            for y in 0..WORLD_SIZE.y as i32 {
                 chunks.push(SimChunk::generate(Vec2::new(x, y), &mut gen_ctx));
             }
         }
@@ -74,20 +85,70 @@ impl WorldSim {
             seed,
             chunks,
             gen_ctx,
+            rng: XorShiftRng::from_seed([
+                (seed >> 0) as u8, 0, 0, 0,
+                (seed >> 8) as u8, 0, 0, 0,
+                (seed >> 16) as u8, 0, 0, 0,
+                (seed >> 24) as u8, 0, 0, 0,
+            ]),
         };
 
-        this.simulate(100);
+        this.seed_elements();
+        this.simulate(200);
 
         this
     }
 
-    pub fn simulate(&mut self, cycles: usize) {
-        // TODO
+    /// Prepare the world for simulation
+    pub fn seed_elements(&mut self) {
+        let mut rng = self.rng.clone();
+
+        for _ in 0..250 {
+            let loc_center = Vec2::new(
+                self.rng.gen::<i32>() % WORLD_SIZE.x as i32,
+                self.rng.gen::<i32>() % WORLD_SIZE.y as i32,
+            );
+
+            if let Some(chunk) = self.get_mut(loc_center) {
+                chunk.location = Some(Location::generate(loc_center, &mut rng).into());
+            }
+        }
+
+        self.rng = rng;
     }
 
-    pub fn get(&self, chunk_pos: Vec2<u32>) -> Option<&SimChunk> {
+    pub fn simulate(&mut self, cycles: usize) {
+        let mut rng = self.rng.clone();
+
+        for _ in 0..cycles {
+            for i in 0..WORLD_SIZE.x as i32 {
+                for j in 0..WORLD_SIZE.y as i32 {
+                    let pos = Vec2::new(i, j);
+
+                    let location = self.get(pos).unwrap().location.clone();
+
+                    let rpos = Vec2::new(
+                        rng.gen::<i32>(),
+                        rng.gen::<i32>(),
+                    ).map(|e| e.abs() % 3 - 1);
+
+                    if let Some(other) = &mut self.get_mut(pos + rpos) {
+                        if other.location.is_none()
+                            && rng.gen::<f32>() > other.chaos * 1.5
+                            && other.alt > CONFIG.sea_level {
+                            other.location = location;
+                        }
+                    }
+                }
+            }
+        }
+
+        self.rng = rng;
+    }
+
+    pub fn get(&self, chunk_pos: Vec2<i32>) -> Option<&SimChunk> {
         if chunk_pos
-            .map2(WORLD_SIZE, |e, sz| e < sz as u32)
+            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
             .reduce_and()
         {
             Some(&self.chunks[chunk_pos.y as usize * WORLD_SIZE.x + chunk_pos.x as usize])
@@ -96,7 +157,18 @@ impl WorldSim {
         }
     }
 
-    pub fn get_base_z(&self, chunk_pos: Vec2<u32>) -> Option<f32> {
+    pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
+        if chunk_pos
+            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
+            .reduce_and()
+        {
+            Some(&mut self.chunks[chunk_pos.y as usize * WORLD_SIZE.x + chunk_pos.x as usize])
+        } else {
+            None
+        }
+    }
+
+    pub fn get_base_z(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
         self.get(chunk_pos).and_then(|_| {
             (0..2)
                 .map(|i| (0..2).map(move |j| (i, j)))
@@ -135,10 +207,10 @@ impl WorldSim {
 
         for (x_idx, j) in (-1..3).enumerate() {
             let y0 =
-                f(self.get(pos.map2(Vec2::new(j, -1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y1 = f(self.get(pos.map2(Vec2::new(j, 0), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y2 = f(self.get(pos.map2(Vec2::new(j, 1), |e, q| (e.max(0.0) as i32 + q) as u32))?);
-            let y3 = f(self.get(pos.map2(Vec2::new(j, 2), |e, q| (e.max(0.0) as i32 + q) as u32))?);
+                f(self.get(pos.map2(Vec2::new(j, -1), |e, q| e.max(0.0) as i32 + q))?);
+            let y1 = f(self.get(pos.map2(Vec2::new(j, 0), |e, q| e.max(0.0) as i32 + q))?);
+            let y2 = f(self.get(pos.map2(Vec2::new(j, 1), |e, q| e.max(0.0) as i32 + q))?);
+            let y3 = f(self.get(pos.map2(Vec2::new(j, 2), |e, q| e.max(0.0) as i32 + q))?);
 
             x[x_idx] = cubic(y0, y1, y2, y3, pos.y.fract() as f32);
         }
@@ -162,8 +234,8 @@ pub struct SimChunk {
 }
 
 impl SimChunk {
-    fn generate(pos: Vec2<u32>, gen_ctx: &mut GenCtx) -> Self {
-        let wposf = (pos * Vec2::from(TerrainChunkSize::SIZE)).map(|e| e as f64);
+    fn generate(pos: Vec2<i32>, gen_ctx: &mut GenCtx) -> Self {
+        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
 
         let hill = (0.0
             + gen_ctx
@@ -180,6 +252,7 @@ impl SimChunk {
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
+            .mul((gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32).powf(2.0).add(0.5).min(1.0))
             .powf(1.4)
             .add(0.1 * hill);
 
@@ -262,5 +335,27 @@ impl SimChunk {
 
     pub fn get_max_z(&self) -> f32 {
         (self.alt + Z_TOLERANCE.1).max(CONFIG.sea_level + 1.0)
+    }
+
+    pub fn get_name(&self) -> Option<String> {
+        self.location
+            .as_ref()
+            .map(|l| l.name().to_string())
+    }
+
+    pub fn get_biome(&self) -> BiomeKind {
+        if self.alt < CONFIG.sea_level {
+            BiomeKind::Ocean
+        } else if self.chaos > 0.6 {
+            BiomeKind::Mountain
+        } else if self.temp > CONFIG.desert_temp {
+            BiomeKind::Desert
+        } else if self.temp < CONFIG.snow_temp {
+            BiomeKind::Snowlands
+        } else if self.tree_density > 0.65 {
+            BiomeKind::Forest
+        } else {
+            BiomeKind::Grassland
+        }
     }
 }
