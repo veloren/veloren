@@ -10,7 +10,7 @@ use crate::render::{
 /// Given volume, position, and cardinal directions, compute each vertex's AO value.
 /// `dirs` should be a slice of length 5 so that the sliding window of size 2 over the slice
 /// yields each vertex' adjacent positions.
-fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, shift: Vec3<i32>, dirs: &[Vec3<i32>], corners: &[[usize; 3]; 4], darknesses: &[[[f32; 3]; 3]; 3]) -> Vec4<f32> {
+fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, shift: Vec3<i32>, dirs: &[Vec3<i32>], corners: &[[usize; 3]; 4], darknesses: &[[[f32; 3]; 3]; 3]) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .enumerate()
         .map(|(i, offs)| {
@@ -32,7 +32,7 @@ fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, shift: Vec3<i32>, dirs: &[Ve
                 .flatten()
                 .fold(0.0, |a: f32, x| a.max(*x));
 
-            darkness * if s1 && s2 {
+            (darkness, if s1 && s2 {
                 0.0
             } else {
                 let corner = vol
@@ -41,53 +41,58 @@ fn get_ao_quad<V: ReadVol>(vol: &V, pos: Vec3<i32>, shift: Vec3<i32>, dirs: &[Ve
                     .unwrap_or(false);
                 // Map both 1 and 2 neighbors to 0.5 occlusion.
                 if s1 || s2 || corner {
-                    0.3
+                    0.5
                 } else {
                     1.0
                 }
-            }
+            })
         })
-        .collect::<Vec4<f32>>()
+        .collect::<Vec4<(f32, f32)>>()
 }
 
 // Utility function
-fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32) -> P::Vertex>(
+fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex>(
     origin: Vec3<f32>,
     unit_x: Vec3<f32>,
     unit_y: Vec3<f32>,
     norm: Vec3<f32>,
     col: Rgb<f32>,
-    ao: Vec4<f32>,
+    darkness_ao: Vec4<(f32, f32)>,
     vcons: &F,
 ) -> Quad<P> {
     let ao_scale = 0.95;
     let dark = col * (1.0 - ao_scale);
 
+    let darkness = darkness_ao.map(|e| e.0);
+    let ao = darkness_ao.map(|e| e.1);
+
     let ao_map = ao;//ao.map(|e| 0.2 + e.powf(1.0) * 0.8);
 
     if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
-            vcons(origin + unit_y, norm, col, ao_map[3]),
-            vcons(origin, norm, col, ao_map[0]),
-            vcons(origin + unit_x, norm, col, ao_map[1]),
+            vcons(origin + unit_y, norm, col, darkness[3], ao_map[3]),
+            vcons(origin, norm, col, darkness[0], ao_map[0]),
+            vcons(origin + unit_x, norm, col, darkness[1], ao_map[1]),
             vcons(
                 origin + unit_x + unit_y,
                 norm,
                 col,
+                darkness[2],
                 ao_map[2],
             ),
         )
     } else {
         Quad::new(
-            vcons(origin, norm, col, ao_map[0]),
-            vcons(origin + unit_x, norm, col, ao_map[1]),
+            vcons(origin, norm, col, darkness[0], ao_map[0]),
+            vcons(origin + unit_x, norm, col, darkness[1], ao_map[1]),
             vcons(
                 origin + unit_x + unit_y,
                 norm,
                 col,
+                darkness[2],
                 ao_map[2],
             ),
-            vcons(origin + unit_y, norm, col, ao_map[3]),
+            vcons(origin + unit_y, norm, col, darkness[3], ao_map[3]),
         )
     }
 }
@@ -95,7 +100,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32) -> P::Ver
 pub fn push_vox_verts<
     V: ReadVol,
     P: Pipeline,
-    F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32) -> P::Vertex,
+    F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
 >(
     mesh: &mut Mesh<P>,
     vol: &V,
