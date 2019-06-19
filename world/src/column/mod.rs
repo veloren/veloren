@@ -1,10 +1,4 @@
-use crate::{
-    all::ForestKind,
-    util::Sampler,
-    sim::Location,
-    World,
-    CONFIG,
-};
+use crate::{all::ForestKind, sim::Location, util::Sampler, World, CONFIG};
 use common::{
     terrain::{Block, TerrainChunkSize},
     vol::{VolSize, Vox},
@@ -174,5 +168,5 @@ pub struct ColumnSample<'a> {
     pub rock: f32,
     pub cliff: f32,
     pub temp: f32,
-    pub location: Option<&'a Arc<Location>>
+    pub location: Option<&'a Arc<Location>>,
 }

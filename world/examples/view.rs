@@ -26,16 +26,22 @@ fn main() {
 
                 let (alt, location) = sampler
                     .get(pos)
-                    .map(|sample| (
-                        sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,
-                        sample.location,
-                    ))
+                    .map(|sample| {
+                        (
+                            sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,
+                            sample.location,
+                        )
+                    })
                     .unwrap_or((0, None));
 
-                let loc_color = location.map(|l| (
-                    l.name().bytes().nth(0).unwrap() * 17,
-                    l.name().bytes().nth(1).unwrap() * 17,
-                )).unwrap_or((0, 0));
+                let loc_color = location
+                    .map(|l| {
+                        (
+                            l.name().bytes().nth(0).unwrap() * 17,
+                            l.name().bytes().nth(1).unwrap() * 17,
+                        )
+                    })
+                    .unwrap_or((0, 0));
 
                 buf[j * W + i] = u32::from_le_bytes([loc_color.0, loc_color.1, alt, alt]);
             }

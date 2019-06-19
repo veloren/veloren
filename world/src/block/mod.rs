@@ -170,7 +170,15 @@ impl<'a> SamplerMut for BlockGen<'a> {
                 let field1 = RandomField::new(self.world.sim().seed + 1);
                 let field2 = RandomField::new(self.world.sim().seed + 2);
 
-                Some(Block::new(2, stone_col - Rgb::new(field0.get(wpos) as u8 % 32, field1.get(wpos) as u8 % 32, field2.get(wpos) as u8 % 32)))
+                Some(Block::new(
+                    2,
+                    stone_col
+                        - Rgb::new(
+                            field0.get(wpos) as u8 % 32,
+                            field1.get(wpos) as u8 % 32,
+                            field2.get(wpos) as u8 % 32,
+                        ),
+                ))
             } else {
                 None
             }
