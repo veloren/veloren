@@ -25,6 +25,7 @@ pub(crate) struct GenCtx {
     pub alt_nz: HybridMulti,
     pub hill_nz: SuperSimplex,
     pub temp_nz: SuperSimplex,
+    pub dry_nz: BasicMulti,
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
     pub cliff_nz: HybridMulti,
@@ -56,16 +57,17 @@ impl WorldSim {
                 .set_persistence(0.1)
                 .set_seed(seed + 4),
             temp_nz: SuperSimplex::new().set_seed(seed + 5),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 6),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 7),
-            warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 8),
+            dry_nz: BasicMulti::new().set_seed(seed + 6),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(seed + 7),
+            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 8),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(seed + 9),
+            warp_nz: BasicMulti::new().set_octaves(3).set_seed(seed + 10),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
-                .set_seed(seed + 9),
-            cave_0_nz: SuperSimplex::new().set_seed(seed + 10),
-            cave_1_nz: SuperSimplex::new().set_seed(seed + 11),
+                .set_seed(seed + 12),
+            cave_0_nz: SuperSimplex::new().set_seed(seed + 13),
+            cave_1_nz: SuperSimplex::new().set_seed(seed + 14),
 
             tree_gen: StructureGen2d::new(seed, 32, 24),
         };
@@ -256,7 +258,18 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
-        let dryness = (gen_ctx.chaos_nz.get((wposf.div(1_000.0)).into_array()) as f32);
+        let dryness = (gen_ctx.dry_nz.get(
+            (wposf
+                .add(Vec2::new(
+                    gen_ctx
+                        .dry_nz
+                        .get((wposf.add(10000.0).div(500.0)).into_array())
+                        * 150.0,
+                    gen_ctx.dry_nz.get((wposf.add(0.0).div(500.0)).into_array()) * 150.0,
+                ))
+                .div(2_000.0))
+            .into_array(),
+        ) as f32);
 
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
@@ -345,7 +358,7 @@ impl SimChunk {
     }
 
     pub fn get_min_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos + 0.3)
+        self.alt - Z_TOLERANCE.0 * (self.chaos * 1.2 + 0.3)
     }
 
     pub fn get_max_z(&self) -> f32 {
