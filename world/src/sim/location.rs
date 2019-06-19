@@ -36,7 +36,7 @@ impl Location {
 
 #[derive(Clone, Debug)]
 pub struct Kingdom {
-    name: String,
+    region_name: String,
 }
 
 fn generate_name<R: Rng>(rng: &mut R) -> String {
@@ -45,7 +45,7 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
         "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Black", "Iron", "Grey", "Hel",
         "Gal", "Mor", "Lo", "Nil", "Mana", "Gar", "Mountain",
     ];
-    let mid = ["o", "oa", "au", "e", "ea", "u", "a", "i", "ie"];
+    let mid = ["ka", "se", "au", "da", "di", "u"];
     let tails = [
         "mill", "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone", "tiva",
         "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well", "oll",
@@ -55,12 +55,14 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
     ];
 
     let mut name = String::new();
-    /*for i in 0..rng.gen::<u32>() % 1 {
+    if rand::random() {
         name += rng.choose(&firstsyl).unwrap();
-    }*/
-    name += rng.choose(&firstsyl).unwrap();
-    //name += rng.choose(&mid).unwrap();
-    name += rng.choose(&tails).unwrap();
-
-    name
+        name += rng.choose(&mid).unwrap();
+        name += rng.choose(&tails).unwrap();
+        name
+    } else {
+        name += rng.choose(&firstsyl).unwrap();
+        name += rng.choose(&tails).unwrap();
+        name
+    }
 }
