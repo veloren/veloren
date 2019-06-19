@@ -55,7 +55,7 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
     ];
 
     let mut name = String::new();
-    if rand::random() {
+    if rng.gen() {
         name += rng.choose(&firstsyl).unwrap();
         name += rng.choose(&mid).unwrap();
         name += rng.choose(&tails).unwrap();
