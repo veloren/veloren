@@ -38,6 +38,7 @@ use conrod_core::{
 };
 use specs::Join;
 use std::collections::VecDeque;
+use std::{cell::RefCell, rc::Rc};
 use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -509,7 +510,9 @@ impl Hud {
         }
 
         // MiniMap
-        match MiniMap::new(&self.show, &self.imgs, &self.fonts).set(self.ids.minimap, ui_widgets) {
+        match MiniMap::new(&self.show, client, &self.imgs, &self.fonts)
+            .set(self.ids.minimap, ui_widgets)
+        {
             Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
             None => {}
         }

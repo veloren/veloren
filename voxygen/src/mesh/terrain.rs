@@ -79,7 +79,14 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             pos,
                             offs,
                             col,
-                            |pos, norm, col, ao, light| TerrainVertex::new(pos, norm, Lerp::lerp(Rgb::zero(), col, ao), light),
+                            |pos, norm, col, ao, light| {
+                                TerrainVertex::new(
+                                    pos,
+                                    norm,
+                                    Lerp::lerp(Rgb::zero(), col, ao),
+                                    light,
+                                )
+                            },
                             false,
                             &neighbour_light,
                         );
@@ -97,7 +104,8 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                                 .ok()
                                 .and_then(|vox| vox.get_opacity())
                             {
-                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.2)).max(1.0 - opacity * 1.0)
+                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.2))
+                                    .max(1.0 - opacity * 1.0)
                             } else {
                                 (neighbour_light[0][i][j] * 1.035).min(1.0)
                             };
@@ -110,7 +118,8 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                         .map(|col| col.iter())
                         .flatten()
                         .copied()
-                        .fold(0.0, |a, x| a + x) / 9.0; 3]; 3];
+                        .fold(0.0, |a, x| a + x)
+                        / 9.0; 3]; 3];
                 }
             }
         }

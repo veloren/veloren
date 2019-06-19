@@ -27,7 +27,9 @@ impl Meshable for Segment {
                     pos,
                     offs + pos.map(|e| e as f32),
                     col,
-                    |origin, norm, col, ao, light| FigureVertex::new(origin, norm, col * ao * light, 0),
+                    |origin, norm, col, ao, light| {
+                        FigureVertex::new(origin, norm, col * ao * light, 0)
+                    },
                     true,
                     &[[[1.0; 3]; 3]; 3],
                 );
