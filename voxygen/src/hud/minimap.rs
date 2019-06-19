@@ -104,7 +104,7 @@ impl<'a> Widget for MiniMap<'a> {
 
         // Title
         // TODO: Make it display the actual location.
-        Text::new("Uncanny Valley")
+        Text::new("Region Name")
             .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
             .font_size(14)
             .color(TEXT_COLOR)
