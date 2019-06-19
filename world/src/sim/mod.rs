@@ -261,10 +261,12 @@ impl SimChunk {
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .mul((gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
-                .powf(2.0)
-                .add(0.5)
-                .min(1.0))
+            .mul(
+                (gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
+                    .powf(2.0)
+                    .add(0.5)
+                    .min(1.0),
+            )
             .powf(1.4)
             .add(0.1 * hill);
 
