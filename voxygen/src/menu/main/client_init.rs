@@ -57,7 +57,7 @@ impl ClientInit {
                             Ok(mut client) => {
                                 client.register(player);
                                 let _ = tx.send(Ok(client));
-                                
+
                                 #[cfg(feature = "discord")]
                                 {
                                     match discord_instance.lock() {
@@ -74,7 +74,7 @@ impl ClientInit {
                                         }
                                     }
                                 }
-                                
+
                                 return;
                             }
                             Err(err) => {
