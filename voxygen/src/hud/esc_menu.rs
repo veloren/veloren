@@ -160,7 +160,7 @@ impl<'a> Widget for EscMenu<'a> {
                     Err(e) => log::error!("couldn't send Update to discord: {}", e),
                 }
             }
-            
+
             return Some(Event::Logout);
         };
         // Quit
