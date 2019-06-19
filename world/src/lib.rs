@@ -62,18 +62,19 @@ impl World {
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
         let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
-        let (base_z, sim_chunk) = match self.sim.get_interpolated(
-            chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
-            |chunk| chunk.get_base_z(),
-        ).and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk))) {
+        let (base_z, sim_chunk) = match self
+            .sim
+            .get_interpolated(
+                chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
+                |chunk| chunk.get_base_z(),
+            )
+            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
+        {
             Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
         };
 
-        let meta = TerrainChunkMeta::new(
-            sim_chunk.get_name(),
-            sim_chunk.get_biome(),
-        );
+        let meta = TerrainChunkMeta::new(sim_chunk.get_name(), sim_chunk.get_biome());
 
         let mut chunk = TerrainChunk::new(base_z - 8, stone, air, meta);
 
