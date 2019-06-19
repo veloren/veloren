@@ -35,6 +35,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+        let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let cliffiness = sim.get_interpolated(wpos, |chunk| chunk.cliffiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
@@ -45,7 +46,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
                 .abs()
                 .mul(chaos.max(0.2))
-                .mul(64.0);
+                .mul(64.0)
+            - dryness.abs().neg().add(0.03).max(0.0).mul(3000.0);
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
