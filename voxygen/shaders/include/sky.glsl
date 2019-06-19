@@ -73,6 +73,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	float brightess = (sky_brightness + PERSISTENT_AMBIANCE);
 
 	vec3 sky_top = SKY_TOP * brightess;
+	vec3 sky_middle = SKY_MIDDLE * brightess;
 	if (objects) {
 		// Clouds
 		// vec3 p = vec3(pos2d + time_of_day * 0.0002, time_of_day * 0.00003);
@@ -81,13 +82,14 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 
 	if (objects) {
 		sky_top += sun_light;
+		sky_middle += sun_light;
 	}
 
 	vec3 sky_color = mix(
 		mix(
-			SKY_MIDDLE * brightess,
+			sky_middle,
 			sky_top,
-			clamp(dir.z * 3.0, 0, 1)
+			clamp(dir.z * 1.0, 0, 1)
 		),
 		SKY_BOTTOM * brightess,
 		clamp(-dir.z * 3.0, 0, 1)
