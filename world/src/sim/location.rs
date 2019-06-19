@@ -40,26 +40,26 @@ pub struct Kingdom {
 }
 
 fn generate_name<R: Rng>(rng: &mut R) -> String {
-    let consts = [
-        "st", "tr", "b", "n", "p", "ph", "cr", "g", "c", "d", "k", "kr", "kl", "gh", "sl", "st",
-        "cr", "sp", "th", "dr", "pr", "dr", "gr", "br", "ryth", "rh", "sl", "f", "fr", "p", "pr",
-        "qu", "s", "sh", "z", "k", "br", "wh", "tr", "h", "bl", "sl", "r", "kl", "sl", "w", "v",
-        "vr", "kr",
+    let firstsyl = [
+        "Eri", "Val", "Gla", "Wilde", "Cold", "Deep", "Dura", "Ester", "Fay", "Dark", "West",
+        "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Black", "Iron", "Grey", "Hel",
+        "Gal", "Mor", "Lo", "Nil", "Mana", "Gar", "Mountain",
     ];
-    let vowels = [
-        "oo", "o", "oa", "au", "e", "ee", "ea", "ou", "u", "a", "i", "ie",
-    ];
+    let mid = ["o", "oa", "au", "e", "ea", "u", "a", "i", "ie"];
     let tails = [
-        "er", "in", "o", "on", "an", "ar", "is", "oon", "er", "aru", "ab", "um", "id", "and",
-        "eld", "ald", "oft", "aft", "ift", "ity", "ell", "oll", "ill", "all",
+        "mill", "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone", "tiva",
+        "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well", "oll",
+        "ill", "all", "wyn", "light", "hill", "lin", "mont", "mor", "cliff", "rok", "den", "mi",
+        "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia", "cliff", "marsh",
+        "kor", "light", "ice", "river", "venn", "vale",
     ];
 
     let mut name = String::new();
-    for i in 0..rng.gen::<u32>() % 2 {
-        name += rng.choose(&consts).unwrap();
-        name += rng.choose(&vowels).unwrap();
-    }
-    name += rng.choose(&consts).unwrap();
+    /*for i in 0..rng.gen::<u32>() % 1 {
+        name += rng.choose(&firstsyl).unwrap();
+    }*/
+    name += rng.choose(&firstsyl).unwrap();
+    //name += rng.choose(&mid).unwrap();
     name += rng.choose(&tails).unwrap();
 
     name
