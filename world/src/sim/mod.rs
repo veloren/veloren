@@ -9,16 +9,12 @@ use common::{
     vol::VolSize,
 };
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
+use rand::{prng::XorShiftRng, Rng, SeedableRng};
 use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
 use vek::*;
-use rand::{
-    Rng,
-    SeedableRng,
-    prng::XorShiftRng,
-};
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
@@ -86,10 +82,22 @@ impl WorldSim {
             chunks,
             gen_ctx,
             rng: XorShiftRng::from_seed([
-                (seed >> 0) as u8, 0, 0, 0,
-                (seed >> 8) as u8, 0, 0, 0,
-                (seed >> 16) as u8, 0, 0, 0,
-                (seed >> 24) as u8, 0, 0, 0,
+                (seed >> 0) as u8,
+                0,
+                0,
+                0,
+                (seed >> 8) as u8,
+                0,
+                0,
+                0,
+                (seed >> 16) as u8,
+                0,
+                0,
+                0,
+                (seed >> 24) as u8,
+                0,
+                0,
+                0,
             ]),
         };
 
@@ -127,15 +135,14 @@ impl WorldSim {
 
                     let location = self.get(pos).unwrap().location.clone();
 
-                    let rpos = Vec2::new(
-                        rng.gen::<i32>(),
-                        rng.gen::<i32>(),
-                    ).map(|e| e.abs() % 3 - 1);
+                    let rpos =
+                        Vec2::new(rng.gen::<i32>(), rng.gen::<i32>()).map(|e| e.abs() % 3 - 1);
 
                     if let Some(other) = &mut self.get_mut(pos + rpos) {
                         if other.location.is_none()
                             && rng.gen::<f32>() > other.chaos * 1.5
-                            && other.alt > CONFIG.sea_level {
+                            && other.alt > CONFIG.sea_level
+                        {
                             other.location = location;
                         }
                     }
@@ -206,8 +213,7 @@ impl WorldSim {
         let mut x = [T::default(); 4];
 
         for (x_idx, j) in (-1..3).enumerate() {
-            let y0 =
-                f(self.get(pos.map2(Vec2::new(j, -1), |e, q| e.max(0.0) as i32 + q))?);
+            let y0 = f(self.get(pos.map2(Vec2::new(j, -1), |e, q| e.max(0.0) as i32 + q))?);
             let y1 = f(self.get(pos.map2(Vec2::new(j, 0), |e, q| e.max(0.0) as i32 + q))?);
             let y2 = f(self.get(pos.map2(Vec2::new(j, 1), |e, q| e.max(0.0) as i32 + q))?);
             let y3 = f(self.get(pos.map2(Vec2::new(j, 2), |e, q| e.max(0.0) as i32 + q))?);
@@ -252,7 +258,12 @@ impl SimChunk {
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .mul((gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32).powf(2.0).add(0.5).min(1.0))
+            .mul(
+                (gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
+                    .powf(2.0)
+                    .add(0.5)
+                    .min(1.0),
+            )
             .powf(1.4)
             .add(0.1 * hill);
 
@@ -338,9 +349,7 @@ impl SimChunk {
     }
 
     pub fn get_name(&self) -> Option<String> {
-        self.location
-            .as_ref()
-            .map(|l| l.name().to_string())
+        self.location.as_ref().map(|l| l.name().to_string())
     }
 
     pub fn get_biome(&self) -> BiomeKind {
