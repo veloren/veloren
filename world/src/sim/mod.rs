@@ -232,6 +232,7 @@ pub struct SimChunk {
     pub alt_base: f32,
     pub alt: f32,
     pub temp: f32,
+    pub dryness: f32,
     pub rockiness: f32,
     pub cliffiness: f32,
     pub tree_density: f32,
@@ -255,15 +256,15 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
+        let dryness = (gen_ctx.chaos_nz.get((wposf.div(1_000.0)).into_array()) as f32);
+
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
-            .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
-                    .powf(2.0)
-                    .add(0.5)
-                    .min(1.0),
-            )
+            .mul((gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
+                .powf(2.0)
+                .add(0.5)
+                .min(1.0))
             .powf(1.4)
             .add(0.1 * hill);
 
@@ -299,6 +300,7 @@ impl SimChunk {
             alt_base,
             alt,
             temp,
+            dryness,
             rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .sub(0.1)
                 .mul(1.3)
