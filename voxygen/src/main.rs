@@ -6,6 +6,12 @@
 #[macro_use]
 extern crate lazy_static;
 
+#[cfg(feature = "discord")]
+pub mod discord;
+
+#[cfg(feature = "discord")]
+use std::sync::{mpsc::Sender, Mutex};
+
 #[macro_use]
 pub mod ui;
 pub mod anim;
@@ -22,20 +28,11 @@ pub mod settings;
 pub mod singleplayer;
 pub mod window;
 
-#[cfg(feature = "discord")]
-pub mod discord;
-
 // Reexports
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use log::{self, debug, error, info, warn};
-
-#[cfg(feature = "discord")]
-use std::sync::{
-    mpsc::Sender,
-    Mutex,
-};
 
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
@@ -120,15 +117,15 @@ fn main() {
         ),
     ])
     .unwrap();
-    
-    // Initialize discord. (lazy_static intialise lazily...)
+
+    // Initialize discord. (lazy_static initalise lazily...)
     #[cfg(feature = "discord")]
     {
         match discord_instance.lock() {
             Ok(disc) => {
                 //great
             }
-            Err(e) => { log::error!("Couldn't init discord: {}", e) }
+            Err(e) => log::error!("Couldn't init discord: {}", e),
         }
     }
 
@@ -255,7 +252,7 @@ fn main() {
             }
         }
     }
-    
+
     //Properly shutdown discord thread
     #[cfg(feature = "discord")]
     {
@@ -274,7 +271,7 @@ fn main() {
             Err(e) => error!("couldn't gracefully shutdown discord thread: {}", e),
         }
     }
-    
+
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = global_state.settings.save_to_file() {
         warn!("Failed to save settings: {:?}", err);

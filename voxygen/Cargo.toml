@@ -9,7 +9,7 @@ default-run = "veloren-voxygen"
 
 [features]
 gl = ["gfx_device_gl"]
-discord = ["discord_game_sdk", "chrono"]
+discord = ["discord-rpc-sdk"]
 
 default = ["gl"]
 
@@ -38,8 +38,7 @@ specs = "0.14"
 vek = "0.9"
 
 # discord
-discord_game_sdk = { version = "0.2.0", optional = true }
-chrono = { version = "0.4.6", optional = true }
+discord-rpc-sdk = { git = "https://github.com/Songtronix/rust-discord-rpc.git", optional = true }
 
 # Utility
 glsl-include = "0.3"
