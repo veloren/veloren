@@ -44,6 +44,8 @@ impl<'a> SamplerMut for BlockGen<'a> {
         let ColumnSample {
             alt,
             chaos,
+            water_level,
+            river,
             surface_color,
             tree_density,
             forest_kind,
@@ -107,6 +109,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
         };
 
         let height = alt + warp + cliff;
+        let water_height = water_level + warp;
 
         // Sample blocks
 
@@ -138,7 +141,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             );
             // Surface
             Some(Block::new(1, col.map(|e| (e * 255.0) as u8)))
-        } else if (wposf.z as f32) < CONFIG.sea_level {
+        } else if (wposf.z as f32) < water_height {
             // Ocean
             Some(water)
         } else {
@@ -233,7 +236,8 @@ impl<'a> SamplerMut for BlockGen<'a> {
                     match self.sample_column(Vec2::from(*tree_pos)) {
                         Some(tree_sample)
                             if tree_sample.tree_density
-                                > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2 =>
+                                > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
+                                && tree_sample.alt > tree_sample.water_level =>
                         {
                             let tree_pos3d =
                                 Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);

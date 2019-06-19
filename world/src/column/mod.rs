@@ -5,6 +5,7 @@ use common::{
 };
 use noise::NoiseFn;
 use std::{
+    f32,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
@@ -42,12 +43,31 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let sim_chunk = sim.get(chunk_pos)?;
 
-        let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
+        const RIVER_PROPORTION: f32 = 0.025;
+
+        let river = dryness
+            .abs()
+            .neg()
+            .add(RIVER_PROPORTION)
+            .div(RIVER_PROPORTION)
+            .max(0.0)
+            .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
+
+        let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
                 .abs()
                 .mul(chaos.max(0.2))
-                .mul(64.0)
-            - dryness.abs().neg().add(0.03).max(0.0).mul(3000.0);
+                .mul(64.0);
+
+        let alt = riverless_alt
+            - (1.0 - river)
+                .mul(f32::consts::PI)
+                .cos()
+                .add(1.0)
+                .mul(0.5)
+                .mul(24.0);
+
+        let water_level = (riverless_alt - 4.0 - 5.0 * chaos).max(CONFIG.sea_level);
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -123,6 +143,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         Some(ColumnSample {
             alt,
             chaos,
+            water_level,
+            river,
             surface_color: Rgb::lerp(
                 sand,
                 // Land
@@ -142,7 +164,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     (alt - CONFIG.sea_level - 0.2 * CONFIG.mountain_scale) / 180.0,
                 ),
                 // Beach
-                (alt - CONFIG.sea_level - 2.0) / 5.0,
+                ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
             ),
             tree_density,
             forest_kind: sim_chunk.forest_kind,
@@ -161,6 +183,8 @@ impl<'a> Sampler for ColumnGen<'a> {
 pub struct ColumnSample<'a> {
     pub alt: f32,
     pub chaos: f32,
+    pub water_level: f32,
+    pub river: f32,
     pub surface_color: Rgb<f32>,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
