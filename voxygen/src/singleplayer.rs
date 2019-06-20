@@ -11,7 +11,7 @@ use std::{
 };
 
 #[cfg(feature = "discord")]
-use crate::{discord, discord_instance};
+use crate::{discord, discord::DiscordUpdate};
 
 const TPS: u64 = 30;
 
@@ -72,10 +72,10 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
     #[cfg(feature = "discord")]
     {
-        match discord_instance.lock() {
-            Ok(mut disc) => discord::send_singleplayer(&mut disc),
-            Err(e) => log::error!("couldn't send Update to discord: {}", e),
-        }
+        discord::send_all(vec![
+            DiscordUpdate::Details("Singleplayer".into()),
+            DiscordUpdate::State("Playing...".into()),
+        ]);
     }
 
     loop {

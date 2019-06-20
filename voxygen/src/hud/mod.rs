@@ -41,7 +41,7 @@ use std::collections::VecDeque;
 use vek::*;
 
 #[cfg(feature = "discord")]
-use crate::{discord, discord_instance};
+use crate::{discord, discord::DiscordUpdate};
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -653,10 +653,11 @@ impl Hud {
 
                     #[cfg(feature = "discord")]
                     {
-                        match discord_instance.lock() {
-                            Ok(mut disc) => discord::send_menu(&mut disc),
-                            Err(e) => log::error!("couldn't send Update to discord: {}", e),
-                        }
+                        discord::send_all(vec![
+                            DiscordUpdate::Details("Menu".into()),
+                            DiscordUpdate::State("Idling".into()),
+                            DiscordUpdate::LargeImg("bg_main".into()),
+                        ]);
                     }
                 }
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),

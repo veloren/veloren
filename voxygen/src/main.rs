@@ -89,7 +89,7 @@ pub trait PlayState {
 #[cfg(feature = "discord")]
 lazy_static! {
     //Set up discord rich presence
-    static ref discord_instance: Mutex<discord::DiscordState> = {
+    static ref DISCORD_INSTANCE: Mutex<discord::DiscordState> = {
         discord::run()
     };
 }
@@ -121,7 +121,7 @@ fn main() {
     // Initialize discord. (lazy_static initalise lazily...)
     #[cfg(feature = "discord")]
     {
-        match discord_instance.lock() {
+        match DISCORD_INSTANCE.lock() {
             Ok(disc) => {
                 //great
             }
@@ -256,12 +256,12 @@ fn main() {
     //Properly shutdown discord thread
     #[cfg(feature = "discord")]
     {
-        match discord_instance.lock() {
+        match DISCORD_INSTANCE.lock() {
             Ok(mut disc) => {
-                disc.tx.send(discord::DiscordUpdate::Shutdown);
+                let _ = disc.tx.send(discord::DiscordUpdate::Shutdown);
                 match disc.thread.take() {
                     Some(th) => {
-                        th.join();
+                        let _ = th.join();
                     }
                     None => {
                         error!("couldn't gracefully shutdown discord thread");
