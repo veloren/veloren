@@ -9,7 +9,7 @@ use std::{
 };
 
 #[cfg(feature = "discord")]
-use crate::{discord, discord_instance};
+use crate::{discord, discord::DiscordUpdate};
 
 #[derive(Debug)]
 pub enum Error {
@@ -60,18 +60,11 @@ impl ClientInit {
 
                                 #[cfg(feature = "discord")]
                                 {
-                                    match discord_instance.lock() {
-                                        Ok(mut disc) => {
-                                            if !server_address.eq("127.0.0.1") {
-                                                discord::send_singleplayer(&mut disc);
-                                                disc.tx.send(discord::DiscordUpdate::Details(
-                                                    server_address,
-                                                ));
-                                            }
-                                        }
-                                        Err(e) => {
-                                            log::error!("couldn't send Update to discord: {}", e)
-                                        }
+                                    if !server_address.eq("127.0.0.1") {
+                                        discord::send_all(vec![
+                                            DiscordUpdate::Details(server_address),
+                                            DiscordUpdate::State("Playing...".into()),
+                                        ]);
                                     }
                                 }
 

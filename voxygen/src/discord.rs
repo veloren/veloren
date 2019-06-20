@@ -1,6 +1,8 @@
 use discord_rpc_sdk::{DiscordUser, EventHandlers, RichPresence, RPC};
 use std::time::SystemTime;
 
+use crate::DISCORD_INSTANCE;
+
 use std::sync::mpsc::Sender;
 use std::sync::{mpsc, Mutex, MutexGuard};
 use std::thread;
@@ -33,8 +35,13 @@ pub fn run() -> Mutex<DiscordState> {
     Mutex::new(DiscordState {
         tx,
         thread: Some(thread::spawn(move || {
-            let rpc = RPC::init::<Handlers>(DISCORD_APPLICATION_ID, true, None)
-                .expect("failed to initiate discord_game_sdk");
+            let mut rpc: RPC = match RPC::init::<Handlers>(DISCORD_APPLICATION_ID, true, None) {
+                Ok(rpc) => rpc,
+                Err(e) => {
+                    log::error!("failed to initiate discord_game_sdk: {}", e);
+                    return;
+                }
+            };
 
             //Set initial Status
             let mut current_presence = RichPresence {
@@ -91,6 +98,8 @@ pub fn run() -> Mutex<DiscordState> {
                     Err(_) => {}
                 }
             }
+
+            rpc.clear_presence();
         })),
     })
 }
@@ -103,7 +112,7 @@ impl EventHandlers for Handlers {
     }
 
     fn errored(errcode: i32, message: &str) {
-        log::debug!("Error {}: {}", errcode, message);
+        log::warn!("Error {}: {}", errcode, message);
     }
 
     fn disconnected(errcode: i32, message: &str) {
@@ -123,13 +132,13 @@ impl EventHandlers for Handlers {
     }
 }
 
-/* Some helpers */
-pub fn send_menu(disc: &mut MutexGuard<DiscordState>) {
-    disc.tx.send(DiscordUpdate::Details("Menu".into()));
-    disc.tx.send(DiscordUpdate::State("Idling".into()));
-    disc.tx.send(DiscordUpdate::LargeImg("bg_main".into()));
-}
-pub fn send_singleplayer(disc: &mut MutexGuard<DiscordState>) {
-    disc.tx.send(DiscordUpdate::Details("Singleplayer".into()));
-    disc.tx.send(DiscordUpdate::State("Playing...".into()));
+pub fn send_all(updates: Vec<DiscordUpdate>) {
+    match DISCORD_INSTANCE.lock() {
+        Ok(mut disc) => {
+            for update in updates {
+                let _ = disc.tx.send(update);
+            }
+        }
+        Err(e) => log::error!("couldn't send Update to discord: {}", e),
+    }
 }
