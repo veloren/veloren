@@ -164,7 +164,6 @@ fn main() {
     if global_state.settings.audio.audio_device == None {
         global_state.settings.audio.audio_device = Some(AudioFrontend::get_default_device());
     }
-
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
     states

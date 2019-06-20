@@ -1,5 +1,5 @@
 use crate::{
-    render::Renderer,
+    render::{consts::Consts, pipelines::Globals, Renderer},
     ui::{
         self,
         img_ids::{ImageGraphic, VoxelGraphic},
@@ -512,7 +512,7 @@ impl MainMenuUi {
         events
     }
 
-    pub fn render(&self, renderer: &mut Renderer) {
+    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
         self.ui.render(renderer, None);
     }
 }
