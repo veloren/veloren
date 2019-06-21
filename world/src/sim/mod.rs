@@ -283,7 +283,7 @@ impl SimChunk {
                     .add(0.5)
                     .min(1.0),
             )
-            .powf(1.4)
+            .powf(1.5)
             .add(0.1 * hill);
 
         let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
@@ -296,7 +296,7 @@ impl SimChunk {
 
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()
-            .powf(1.7);
+            .powf(1.8);
 
         let alt = CONFIG.sea_level
             + alt_base
