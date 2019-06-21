@@ -83,8 +83,8 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                                 TerrainVertex::new(
                                     pos,
                                     norm,
-                                    Lerp::lerp(Rgb::zero(), col, ao),
-                                    light,
+                                    Lerp::lerp(Rgb::zero(), col, 1.0),
+                                    light * ao,
                                 )
                             },
                             false,
@@ -104,10 +104,10 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                                 .ok()
                                 .and_then(|vox| vox.get_opacity())
                             {
-                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.2))
-                                    .max(1.0 - opacity * 1.0)
+                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.4))
+                                    .max(1.0 - opacity)
                             } else {
-                                (neighbour_light[0][i][j] * 1.035).min(1.0)
+                                (neighbour_light[0][i][j] * 1.025).min(1.0)
                             };
                         }
                     }
