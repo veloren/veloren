@@ -66,7 +66,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	vec3 sun_dir = get_sun_dir(time_of_day);
 	float sky_brightness = get_sun_brightness(sun_dir);
 
-	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.5, 0.0), 8.0) * SUN_HALO_COLOR;
+	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * SUN_HALO_COLOR;
 	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;
 	vec3 sun_light = sun_halo + sun_surf;
 

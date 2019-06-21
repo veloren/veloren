@@ -20,11 +20,11 @@ use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
 // TODO: Don't hard-code this.
-const DAY_CYCLE_FACTOR: f64 = 24.0 * 60.0;
+const DAY_CYCLE_FACTOR: f64 = 24.0 * 2.0;
 
 /// A resource that stores the time of day.
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct TimeOfDay(f64);
+pub struct TimeOfDay(pub f64);
 
 /// A resource that stores the tick (i.e: physics) time.
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
