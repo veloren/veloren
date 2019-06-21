@@ -106,44 +106,6 @@ impl<'a> SamplerMut for BlockGen<'a> {
         let wpos_turb = Vec2::from(wpos) + turb.map(|e| e as i32);
         let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
 
-            /*
-        let is_cliff = if cliff > 0.0 {
-            (self
-                .world
-                .sim()
-                .gen_ctx
-                .warp_nz
-                .get((wposf.div(Vec3::new(300.0, 300.0, 1500.0))).into_array()) as f32)
-                * cliff
-                > 0.3
-        } else {
-            false
-        };
-
-        let cliff = if is_cliff {
-            (0.0 + (self
-                .world
-                .sim()
-                .gen_ctx
-                .warp_nz
-                .get((wposf.div(Vec3::new(350.0, 350.0, 800.0))).into_array())
-                as f32)
-                * 0.8
-                + (self
-                    .world
-                    .sim()
-                    .gen_ctx
-                    .warp_nz
-                    .get((wposf.div(Vec3::new(100.0, 100.0, 70.0))).into_array())
-                    as f32)
-                    * 0.3)
-                .add(0.4)
-                .mul(75.0)
-        } else {
-            0.0
-        };
-        */
-
         let height = (alt + warp).max(cliff_height);
         let water_height = water_level + warp;
 
