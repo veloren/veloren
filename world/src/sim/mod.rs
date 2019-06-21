@@ -19,8 +19,8 @@ use vek::*;
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
 pub(crate) struct GenCtx {
-    pub turb_x_nz: BasicMulti,
-    pub turb_y_nz: BasicMulti,
+    pub turb_x_nz: SuperSimplex,
+    pub turb_y_nz: SuperSimplex,
     pub chaos_nz: RidgedMulti,
     pub alt_nz: HybridMulti,
     pub hill_nz: SuperSimplex,
@@ -36,6 +36,7 @@ pub(crate) struct GenCtx {
     pub cave_1_nz: SuperSimplex,
 
     pub tree_gen: StructureGen2d,
+    pub cliff_gen: StructureGen2d,
 }
 
 pub struct WorldSim {
@@ -48,8 +49,8 @@ pub struct WorldSim {
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
         let mut gen_ctx = GenCtx {
-            turb_x_nz: BasicMulti::new().set_seed(seed + 0),
-            turb_y_nz: BasicMulti::new().set_seed(seed + 1),
+            turb_x_nz: SuperSimplex::new().set_seed(seed + 0),
+            turb_y_nz: SuperSimplex::new().set_seed(seed + 1),
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(seed + 2),
             hill_nz: SuperSimplex::new().set_seed(seed + 3),
             alt_nz: HybridMulti::new()
@@ -70,6 +71,7 @@ impl WorldSim {
             cave_1_nz: SuperSimplex::new().set_seed(seed + 14),
 
             tree_gen: StructureGen2d::new(seed, 32, 24),
+            cliff_gen: StructureGen2d::new(seed, 80, 64),
         };
 
         let mut chunks = Vec::new();
@@ -104,7 +106,7 @@ impl WorldSim {
         };
 
         this.seed_elements();
-        this.simulate(200);
+        this.simulate(0);
 
         this
     }
@@ -227,7 +229,7 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (128.0, 96.0);
+const Z_TOLERANCE: (f32, f32) = (64.0, 128.0);
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -236,7 +238,8 @@ pub struct SimChunk {
     pub temp: f32,
     pub dryness: f32,
     pub rockiness: f32,
-    pub cliffiness: f32,
+    pub cliffs: bool,
+    pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub location: Option<Arc<Location>>,
@@ -275,7 +278,7 @@ impl SimChunk {
             .add(1.0)
             .mul(0.5)
             .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(8_000.0)).into_array()) as f32)
+                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
                     .powf(2.0)
                     .add(0.5)
                     .min(1.0),
@@ -291,7 +294,7 @@ impl SimChunk {
             .add(alt_base.mul(128.0).sin().mul(0.005))
             .mul(400.0);
 
-        let alt_main = (gen_ctx.alt_nz.get((wposf.div(1_000.0)).into_array()) as f32)
+        let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()
             .powf(1.7);
 
@@ -310,6 +313,8 @@ impl SimChunk {
 
         let temp = (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32);
 
+        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+
         Self {
             chaos,
             alt_base,
@@ -320,16 +325,12 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            cliffiness: (gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32)
-                .sub(0.15)
-                .mul(3.0)
-                .mul(1.1 - chaos)
-                .max(0.0)
-                .min(1.0),
+            cliffs: cliff > 0.5,
+            near_cliffs: cliff > 0.4,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .mul(1.2 - chaos * 0.85)
+                .mul(1.2 - chaos * 0.95)
                 .add(0.1)
                 .mul(if alt > CONFIG.sea_level + 5.0 {
                     1.0
@@ -362,7 +363,7 @@ impl SimChunk {
     }
 
     pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1).max(CONFIG.sea_level + 1.0)
+        (self.alt + Z_TOLERANCE.1 * if self.near_cliffs { 1.0 } else { 0.5 }).max(CONFIG.sea_level + 2.0)
     }
 
     pub fn get_name(&self) -> Option<String> {
