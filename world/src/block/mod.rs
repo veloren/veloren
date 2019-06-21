@@ -43,18 +43,20 @@ impl<'a> BlockGen<'a> {
         close_cliffs
             .iter()
             .fold(0.0f32, |max_height, (cliff_pos, seed)| {
-                let cliff_pos3d = Vec3::from(*cliff_pos);
-
-                let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
-                let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
-
                 match self.sample_column(Vec2::from(*cliff_pos)) {
-                    Some(cliff_sample) => max_height.max(if cliff_sample.cliffs && cliff_pos.distance_squared(wpos) < (radius * radius) as i32 {
-                        cliff_sample.alt + height as f32 * (1.0 - cliff_sample.chaos) + cliff_hill
-                    } else {
-                        0.0
-                    }),
-                    None => max_height,
+                    Some(cliff_sample) if cliff_sample.cliffs => {
+                        let cliff_pos3d = Vec3::from(*cliff_pos);
+
+                        let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
+                        let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
+
+                        max_height.max(if cliff_pos.distance_squared(wpos) < (radius * radius) as i32 {
+                            cliff_sample.alt + height as f32 * (1.0 - cliff_sample.chaos) + cliff_hill
+                        } else {
+                            0.0
+                        })
+                    },
+                    _ => max_height,
                 }
             })
     }
@@ -86,28 +88,38 @@ impl<'a> SamplerMut for BlockGen<'a> {
 
         let wposf = wpos.map(|e| e as f64);
 
-        // Apply warping
+        let (definitely_underground, height, water_height) = if (wposf.z as f32) < alt - 64.0 * chaos {
+            // Shortcut warping
+            (true, alt, water_level)
+        } else {
+            // Apply warping
+            let warp = (self
+                .world
+                .sim()
+                .gen_ctx
+                .warp_nz
+                .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
+                as f32)
+                .mul((chaos - 0.1).max(0.0))
+                .mul(115.0);
 
-        let warp = (self
-            .world
-            .sim()
-            .gen_ctx
-            .warp_nz
-            .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
-            as f32)
-            .mul((chaos - 0.1).max(0.0))
-            .mul(115.0);
+            let height = if (wposf.z as f32) < alt + warp - 10.0 {
+                // Shortcut cliffs
+                alt + warp
+            } else {
+                let turb = Vec2::new(
+                    self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(64.0)).into_array()) as f32,
+                    self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(64.0)).into_array()) as f32,
+                ) * 16.0;
 
-        let turb = Vec2::new(
-            self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
-            self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
-        ) * 12.0;
+                let wpos_turb = Vec2::from(wpos) + turb.map(|e| e as i32);
+                let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
 
-        let wpos_turb = Vec2::from(wpos) + turb.map(|e| e as i32);
-        let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
+                (alt + warp).max(cliff_height)
+            };
 
-        let height = (alt + warp).max(cliff_height);
-        let water_height = water_level + warp;
+            (false, height, water_level + warp)
+        };
 
         // Sample blocks
 
@@ -172,7 +184,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
                 let field2 = RandomField::new(self.world.sim().seed + 2);
 
                 Some(Block::new(
-                    2,
+                    1,
                     stone_col
                         - Rgb::new(
                             field0.get(wpos) as u8 % 32,
@@ -226,40 +238,46 @@ impl<'a> SamplerMut for BlockGen<'a> {
             }
         }
 
-        let block = match block {
-            Some(block) => block,
-            None => (&close_trees)
-                .iter()
-                .fold(air, |block, (tree_pos, tree_seed)| {
-                    match self.sample_column(Vec2::from(*tree_pos)) {
-                        Some(tree_sample)
-                            if tree_sample.tree_density
-                                > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
-                                && tree_sample.alt > tree_sample.water_level =>
-                        {
-                            let cliff_height = self.get_cliff_height(*tree_pos, &tree_sample.close_cliffs, cliff_hill);
-                            let height = tree_sample.alt.max(cliff_height);
-                            let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, height as i32);
-                            let rpos = wpos - tree_pos3d;
+        let block = if definitely_underground {
+            block.unwrap_or(Block::empty())
+        } else {
+            match block {
+                Some(block) => block,
+                None => (&close_trees)
+                    .iter()
+                    .fold(air, |block, (tree_pos, tree_seed)| if !block.is_empty() {
+                        block
+                    } else {
+                        match self.sample_column(Vec2::from(*tree_pos)) {
+                            Some(tree_sample)
+                                if tree_sample.tree_density
+                                    > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
+                                    && tree_sample.alt > tree_sample.water_level =>
+                            {
+                                let cliff_height = self.get_cliff_height(*tree_pos, &tree_sample.close_cliffs, cliff_hill);
+                                let height = tree_sample.alt.max(cliff_height);
+                                let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, height as i32);
+                                let rpos = wpos - tree_pos3d;
 
-                            let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
+                                let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
 
-                            block.or(trees[*tree_seed as usize % trees.len()]
-                                .get((rpos * 128) / 128) // Scaling
-                                .map(|b| {
-                                    block_from_structure(
-                                        *b,
-                                        rpos,
-                                        *tree_pos,
-                                        *tree_seed,
-                                        &tree_sample,
-                                    )
-                                })
-                                .unwrap_or(Block::empty()))
+                                block.or(trees[*tree_seed as usize % trees.len()]
+                                    .get((rpos * 128) / 128) // Scaling
+                                    .map(|b| {
+                                        block_from_structure(
+                                            *b,
+                                            rpos,
+                                            *tree_pos,
+                                            *tree_seed,
+                                            &tree_sample,
+                                        )
+                                    })
+                                    .unwrap_or(Block::empty()))
+                            }
+                            _ => block,
                         }
-                        _ => block,
-                    }
-                }),
+                    }),
+            }
         };
 
         Some(block)

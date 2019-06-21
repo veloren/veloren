@@ -71,7 +71,7 @@ impl WorldSim {
             cave_1_nz: SuperSimplex::new().set_seed(seed + 14),
 
             tree_gen: StructureGen2d::new(seed, 32, 24),
-            cliff_gen: StructureGen2d::new(seed, 80, 64),
+            cliff_gen: StructureGen2d::new(seed, 80, 56),
         };
 
         let mut chunks = Vec::new();
@@ -229,7 +229,7 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (64.0, 128.0);
+const Z_TOLERANCE: (f32, f32) = (100.0, 128.0);
 
 pub struct SimChunk {
     pub chaos: f32,
@@ -325,7 +325,7 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            cliffs: cliff > 0.5,
+            cliffs: cliff > 0.5 && dryness > 0.05,
             near_cliffs: cliff > 0.4,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)

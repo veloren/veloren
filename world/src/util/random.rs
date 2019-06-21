@@ -20,22 +20,19 @@ impl Sampler for RandomField {
 
         let next = self.seed.wrapping_mul(0x168E3D1F).wrapping_add(0xDEADBEAD);
         let next = next
-            .rotate_left(13)
             .wrapping_mul(133227)
             .wrapping_add(pos.x);
-        let next = next.rotate_left(13).wrapping_mul(318912) ^ 0x42133742;
+        let next = next.rotate_left(13).wrapping_add(318912) ^ 0x42133742;
         let next = next
-            .rotate_left(13)
             .wrapping_mul(938219)
             .wrapping_add(pos.y);
-        let next = next.rotate_left(13).wrapping_mul(318912) ^ 0x23341753;
+        let next = next.rotate_left(13).wrapping_add(318912) ^ 0x23341753;
         let next = next
-            .rotate_left(13)
             .wrapping_mul(938219)
             .wrapping_add(pos.z);
-        let next = next.rotate_left(13).wrapping_mul(313322) ^ 0xDEADBEEF;
-        let next = next.rotate_left(13).wrapping_mul(929009) ^ 0xFF329DE3;
-        let next = next.rotate_left(13).wrapping_mul(422671) ^ 0x42892942;
-        next
+        let next = next.wrapping_add(313322) ^ 0xDEADBEEF;
+        let next = next.wrapping_sub(929009) ^ 0xFF329DE3;
+        let next = next.wrapping_add(422671) ^ 0x42892942;
+        next.rotate_left(13)
     }
 }
