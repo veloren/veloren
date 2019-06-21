@@ -10,12 +10,15 @@ use common::{
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::{
+    cell::RefCell,
+    ops::{Add, Div, Mul, Neg, Sub},
+};
 use vek::*;
 
 pub struct BlockGen<'a> {
     world: &'a World,
-    column_cache: HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+    column_cache: RefCell<HashCache<Vec2<i32>, Option<ColumnSample<'a>>>>,
     column_gen: ColumnGen<'a>,
 }
 
@@ -23,16 +26,37 @@ impl<'a> BlockGen<'a> {
     pub fn new(world: &'a World, column_gen: ColumnGen<'a>) -> Self {
         Self {
             world,
-            column_cache: HashCache::with_capacity(1024),
+            column_cache: RefCell::new(HashCache::with_capacity(1024)),
             column_gen,
         }
     }
 
-    fn sample_column(&mut self, wpos: Vec2<i32>) -> Option<ColumnSample> {
-        let column_gen = &mut self.column_gen;
+    fn sample_column(&self, wpos: Vec2<i32>) -> Option<ColumnSample> {
+        let column_gen = &self.column_gen;
         self.column_cache
+            .borrow_mut()
             .get(Vec2::from(wpos), |wpos| column_gen.get(wpos))
             .clone()
+    }
+
+    fn get_cliff_height(&self, wpos: Vec2<i32>, close_cliffs: &[(Vec2<i32>, u32); 9], cliff_hill: f32) -> f32 {
+        close_cliffs
+            .iter()
+            .fold(0.0f32, |max_height, (cliff_pos, seed)| {
+                let cliff_pos3d = Vec3::from(*cliff_pos);
+
+                let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
+                let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
+
+                match self.sample_column(Vec2::from(*cliff_pos)) {
+                    Some(cliff_sample) => max_height.max(if cliff_sample.cliffs && cliff_pos.distance_squared(wpos) < (radius * radius) as i32 {
+                        cliff_sample.alt + height as f32 * (1.0 - cliff_sample.chaos) + cliff_hill
+                    } else {
+                        0.0
+                    }),
+                    None => max_height,
+                }
+            })
     }
 }
 
@@ -53,7 +77,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
             cave_xy,
             cave_alt,
             rock,
-            cliff,
+            cliffs,
+            cliff_hill,
+            close_cliffs,
             temp,
             ..
         } = self.sample_column(Vec2::from(wpos))?;
@@ -72,6 +98,15 @@ impl<'a> SamplerMut for BlockGen<'a> {
             .mul((chaos - 0.1).max(0.0))
             .mul(115.0);
 
+        let turb = Vec2::new(
+            self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+            self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+        ) * 12.0;
+
+        let wpos_turb = Vec2::from(wpos) + turb.map(|e| e as i32);
+        let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
+
+            /*
         let is_cliff = if cliff > 0.0 {
             (self
                 .world
@@ -107,8 +142,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
         } else {
             0.0
         };
+        */
 
-        let height = alt + warp + cliff;
+        let height = (alt + warp).max(cliff_height);
         let water_height = water_level + warp;
 
         // Sample blocks
@@ -239,8 +275,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
                                 > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
                                 && tree_sample.alt > tree_sample.water_level =>
                         {
-                            let tree_pos3d =
-                                Vec3::new(tree_pos.x, tree_pos.y, tree_sample.alt as i32);
+                            let cliff_height = self.get_cliff_height(*tree_pos, &tree_sample.close_cliffs, cliff_hill);
+                            let height = tree_sample.alt.max(cliff_height);
+                            let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, height as i32);
                             let rpos = wpos - tree_pos3d;
 
                             let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
