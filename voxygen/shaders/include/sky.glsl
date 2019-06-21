@@ -36,7 +36,7 @@ vec3 get_sun_dir(float time_of_day) {
 }
 
 float get_sun_brightness(vec3 sun_dir) {
-	return max(-sun_dir.z, 0.0);
+	return pow(max(-sun_dir.z + 0.3, 0.0), 0.5);
 }
 
 const float PERSISTENT_AMBIANCE = 0.015;
