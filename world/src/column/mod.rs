@@ -38,7 +38,6 @@ impl<'a> Sampler for ColumnGen<'a> {
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
         let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
-        let cliffiness = sim.get_interpolated(wpos, |chunk| chunk.cliffiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
 
         let sim_chunk = sim.get(chunk_pos)?;
@@ -53,11 +52,16 @@ impl<'a> Sampler for ColumnGen<'a> {
             .max(0.0)
             .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
 
+        let cliff_hill = (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32)
+            .mul(12.0);
+
         let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
                 .abs()
                 .mul(chaos.max(0.2))
                 .mul(64.0);
+
+        let cliffs = sim_chunk.cliffs;
 
         let alt = riverless_alt
             - (1.0 - river)
@@ -125,7 +129,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul((1.15 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
-        let cave_alt = alt - 32.0
+        let cave_alt = alt - 16.0
             + (sim
                 .gen_ctx
                 .cave_1_nz
@@ -161,7 +165,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             - marble * 24.0)
                             / 12.0,
                     ),
-                    (alt - CONFIG.sea_level - 0.2 * CONFIG.mountain_scale) / 180.0,
+                    (alt - CONFIG.sea_level - 0.2 * CONFIG.mountain_scale + marble * 48.0) / 100.0,
                 ),
                 // Beach
                 ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
@@ -172,7 +176,9 @@ impl<'a> Sampler for ColumnGen<'a> {
             cave_xy,
             cave_alt,
             rock,
-            cliff: cliffiness,
+            cliffs,
+            cliff_hill,
+            close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
             location: sim_chunk.location.as_ref(),
         })
@@ -192,7 +198,9 @@ pub struct ColumnSample<'a> {
     pub cave_xy: f32,
     pub cave_alt: f32,
     pub rock: f32,
-    pub cliff: f32,
+    pub cliffs: bool,
+    pub cliff_hill: f32,
+    pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
     pub location: Option<&'a Arc<Location>>,
 }
