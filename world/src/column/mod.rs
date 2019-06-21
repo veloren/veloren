@@ -165,7 +165,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             - marble * 24.0)
                             / 12.0,
                     ),
-                    (alt - CONFIG.sea_level - 0.2 * CONFIG.mountain_scale + marble * 48.0) / 100.0,
+                    (alt - CONFIG.sea_level - 0.3 * CONFIG.mountain_scale + marble * 128.0) / 100.0,
                 ),
                 // Beach
                 ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
