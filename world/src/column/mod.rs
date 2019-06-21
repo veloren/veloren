@@ -53,7 +53,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
 
         let cliff_hill = (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32)
-            .mul(12.0);
+            .mul(16.0);
 
         let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
@@ -129,7 +129,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul((1.15 - chaos).min(1.0))
         };
         let cave_xy = cave_at(wposf);
-        let cave_alt = alt - 16.0
+        let cave_alt = alt - 24.0
             + (sim
                 .gen_ctx
                 .cave_1_nz
@@ -138,11 +138,11 @@ impl<'a> Sampler for ColumnGen<'a> {
             + (sim
                 .gen_ctx
                 .cave_1_nz
-                .get(Vec2::new(wposf.x, wposf.y).div(300.0).into_array()) as f32)
+                .get(Vec2::new(wposf.x, wposf.y).div(500.0).into_array()) as f32)
                 .add(1.0)
                 .mul(0.5)
-                .powf(8.0)
-                .mul(256.0);
+                .powf(15.0)
+                .mul(150.0);
 
         Some(ColumnSample {
             alt,
