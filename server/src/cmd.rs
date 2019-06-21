@@ -7,6 +7,7 @@ use common::{
     comp,
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
+    state::TimeOfDay,
 };
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
@@ -59,37 +60,43 @@ lazy_static! {
             "jump",
             "{d} {d} {d}",
             "/jump <dx> <dy> <dz> : Offset your current position",
-            handle_jump
+            handle_jump,
         ),
         ChatCommand::new(
             "goto",
             "{d} {d} {d}",
             "/goto <x> <y> <z> : Teleport to a position",
-            handle_goto
+            handle_goto,
         ),
         ChatCommand::new(
             "alias",
             "{}",
             "/alias <name> : Change your alias",
-            handle_alias
+            handle_alias,
         ),
         ChatCommand::new(
             "tp",
             "{}",
             "/tp <alias> : Teleport to another player",
-            handle_tp
+            handle_tp,
         ),
         ChatCommand::new(
             "kill",
             "{}",
             "/kill : Kill yourself",
-            handle_kill
+            handle_kill,
+        ),
+        ChatCommand::new(
+            "time",
+            "{} {s}",
+            "/time : Set the time of day",
+            handle_time,
         ),
         ChatCommand::new(
             "spawn",
             "{} {} {d}",
             "/spawn <alignment> <entity> [amount] : Spawn a test entity",
-            handle_spawn
+            handle_spawn,
         ),
         ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
@@ -141,6 +148,31 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
         .write_storage::<comp::Stats>()
         .get_mut(entity)
         .map(|s| s.hp.set_to(0, comp::HealthSource::Suicide));
+}
+
+fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let time = scan_fmt!(&args, action.arg_fmt, String);
+    server
+        .state
+        .ecs_mut()
+        .write_resource::<TimeOfDay>()
+        .0 = match time.as_ref().map(|s| s.as_str()) {
+            Some("day") => 12.0 * 3600.0,
+            Some("night") => 24.0 * 3600.0,
+            Some("dawn") => 5.0 * 3600.0,
+            Some("dusk") => 17.0 * 3600.0,
+            Some(n) => match n.parse() {
+                Ok(n) => n,
+                Err(_) => {
+                    server.clients.notify(entity, ServerMsg::Chat(format!("'{}' is not a time!", n)));
+                    return;
+                },
+            },
+            None => {
+                server.clients.notify(entity, ServerMsg::Chat("You must specify a time!".to_string()));
+                return;
+            },
+        };
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
