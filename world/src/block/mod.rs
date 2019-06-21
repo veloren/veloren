@@ -39,7 +39,7 @@ impl<'a> BlockGen<'a> {
             .clone()
     }
 
-    fn get_cliff_height(&self, wpos: Vec2<i32>, close_cliffs: &[(Vec2<i32>, u32); 9], cliff_hill: f32) -> f32 {
+    fn get_cliff_height(&self, wpos: Vec2<f32>, close_cliffs: &[(Vec2<i32>, u32); 9], cliff_hill: f32) -> f32 {
         close_cliffs
             .iter()
             .fold(0.0f32, |max_height, (cliff_pos, seed)| {
@@ -50,7 +50,7 @@ impl<'a> BlockGen<'a> {
                         let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
                         let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
-                        max_height.max(if cliff_pos.distance_squared(wpos) < (radius * radius) as i32 {
+                        max_height.max(if cliff_pos.map(|e| e as f32).distance_squared(wpos) < (radius * radius) as f32 {
                             cliff_sample.alt + height as f32 * (1.0 - cliff_sample.chaos) + cliff_hill
                         } else {
                             0.0
@@ -108,11 +108,11 @@ impl<'a> SamplerMut for BlockGen<'a> {
                 alt + warp
             } else {
                 let turb = Vec2::new(
-                    self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(64.0)).into_array()) as f32,
-                    self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(64.0)).into_array()) as f32,
-                ) * 16.0;
+                    self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+                    self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+                ) * 12.0;
 
-                let wpos_turb = Vec2::from(wpos) + turb.map(|e| e as i32);
+                let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
                 let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
 
                 (alt + warp).max(cliff_height)
@@ -254,7 +254,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
                                     > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
                                     && tree_sample.alt > tree_sample.water_level =>
                             {
-                                let cliff_height = self.get_cliff_height(*tree_pos, &tree_sample.close_cliffs, cliff_hill);
+                                let cliff_height = self.get_cliff_height(tree_pos.map(|e| e as f32), &tree_sample.close_cliffs, cliff_hill);
                                 let height = tree_sample.alt.max(cliff_height);
                                 let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, height as i32);
                                 let rpos = wpos - tree_pos3d;
