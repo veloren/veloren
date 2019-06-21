@@ -8,7 +8,7 @@ use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::VolSize,
 };
-use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
+use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, OpenSimplex, SuperSimplex};
 use rand::{prng::XorShiftRng, Rng, SeedableRng};
 use std::{
     ops::{Add, Div, Mul, Neg, Sub},
