@@ -615,7 +615,6 @@ impl FigureMgr {
                             let target_skeleton = match animation_info.animation {
                                 comp::Animation::Idle => character::IdleAnimation::update_skeleton(
                                     state.skeleton_mut(),
-                                    (vel.linear.magnitude(), time),
                                     time,
                                     animation_info.time,
                                     skeleton_attr,
@@ -624,7 +623,7 @@ impl FigureMgr {
                                     state.skeleton_mut(),
                                     (vel.linear.magnitude(), time),
                                     animation_info.time,
-                                    skeleton_attr,
+                                       skeleton_attr,
                                 ),
                                 comp::Animation::Jump => character::JumpAnimation::update_skeleton(
                                     state.skeleton_mut(),

@@ -144,8 +144,8 @@ impl Server {
             .create_entity_synced()
             .with(pos)
             .with(comp::Vel {
-                linear: comp::Velocity::zero(),
-                accel: comp::Acceleration::zero(),
+                linear: Vec3::<f32>::zero(),
+                accel: Vec3::<f32>::zero(),
             })
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
@@ -173,8 +173,8 @@ impl Server {
         state.write_component(
             entity,
             comp::Vel {
-                linear: comp::Velocity::zero(),
-                accel: comp::Acceleration::zero(),
+                linear: Vec3::<f32>::zero(),
+                accel: Vec3::<f32>::zero(),
             },
         );
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
@@ -259,8 +259,8 @@ impl Server {
                 self.state.write_component(
                     entity,
                     comp::Vel {
-                        linear: comp::Velocity::zero(),
-                        accel: comp::Acceleration::zero(),
+                        linear: Vec3::<f32>::zero(),
+                        accel: Vec3::<f32>::zero(),
                     },
                 );
                 self.state.write_component(entity, comp::ForceUpdate);
@@ -294,8 +294,8 @@ impl Server {
                 self.state.write_component(
                     entity,
                     comp::Vel {
-                        linear: comp::Velocity::zero(),
-                        accel: comp::Acceleration::zero(),
+                        linear: Vec3::<f32>::zero(),
+                        accel: Vec3::<f32>::zero(),
                     },
                 );
                 self.state.write_component(entity, comp::ForceUpdate);

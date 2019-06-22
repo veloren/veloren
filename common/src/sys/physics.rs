@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        Acceleration, Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Position, Rolling, Stats, Vel,
-        Velocity,
-    },
+    comp::{Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -28,16 +25,16 @@ const GRAV_ACCEL: f32 = 9.81 * 4.0;
 const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 
 /// Handles gravity, ground friction, air resistance, etc.
-fn resolve_forces(lin_vel: &Velocity, is_on_ground: bool) -> Acceleration {
-    let gravity: Acceleration = Acceleration::new(0.0, 0.0, get_grav_accel(is_on_ground));
+fn resolve_forces(lin_vel: &Vec3<f32>, is_on_ground: bool) -> Vec3<f32> {
+    let gravity: Vec3<f32> = Vec3::new(0.0, 0.0, get_grav_accel(is_on_ground));
 
-    let mut damp_accel: Acceleration = if is_on_ground {
+    let mut damp_accel: Vec3<f32> = if is_on_ground {
         // Effectively this is 1/2 * velocity, applicable in laminar flow cases,
         // but this is being used as a substitute for standard ground friction.
-        Acceleration::new(1.0, 1.0, 0.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
+        Vec3::new(1.0, 1.0, 0.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
     } else {
         // TODO: Perform some better glide physics here?
-        Acceleration::broadcast(1.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
+        Vec3::broadcast(1.0) * lin_vel * (get_friction_factor(is_on_ground) / 2.0)
     };
     println!("Orig Vel: {:?}\nAfter Friction: {:?}", lin_vel, damp_accel);
 
@@ -111,13 +108,17 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            let on_ground = on_grounds.get(entity).is_some();
+            let was_on_ground = on_grounds.get(entity).is_some();
 
             // Move player according to move_dir
             if let Some(move_dir) = move_dir {
                 vel.linear += Vec2::broadcast(dt.0)
                     * move_dir.0
-                    * match (on_ground, gliding.is_some(), rollings.get(entity).is_some()) {
+                    * match (
+                        was_on_ground,
+                        gliding.is_some(),
+                        rollings.get(entity).is_some(),
+                    ) {
                         (true, false, false) if vel.linear.magnitude() < HUMANOID_SPEED => {
                             HUMANOID_ACCEL * TRACTION
                         }
@@ -164,12 +165,12 @@ impl<'a> System<'a> for Sys {
             let half_dt = dt.0 / 2.0;
             let mut half_accel = vel.accel;
             half_accel *= half_dt;
-            let half_step_vel: Velocity = vel.linear + half_accel;
+            let half_step_vel: Vec3<f32> = vel.linear + half_accel;
             pos.0 += half_step_vel * dt.0;
             println!("Half-vel: {:?}\nUpdated pos: {:?}", half_step_vel, pos.0);
             // TODO: Resolve collisions, change accelerations/velocities accordingly.
             // Update entity's velocity and acceleration.
-            let new_accel: Acceleration = resolve_forces(&half_step_vel, on_ground);
+            let new_accel: Vec3<f32> = resolve_forces(&half_step_vel, was_on_ground);
             println!("New accel: {:?}", new_accel);
             let mut combined_accel = vel.accel + new_accel;
             vel.linear = half_step_vel + (combined_accel * half_dt);
@@ -228,7 +229,6 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
-            let was_on_ground = on_grounds.get(entity).is_some();
             on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
             pos.0.z -= 0.0001; // To force collision with the floor
 
@@ -236,11 +236,11 @@ impl<'a> System<'a> for Sys {
             let mut attempts = 0; // Don't loop infinitely here
 
             // Don't jump too far at once
-            let increments = ((vel.0 * dt.0).map(|e| e.abs()).reduce_partial_max() / 0.3)
+            let increments = ((vel.linear * dt.0).map(|e| e.abs()).reduce_partial_max() / 0.3)
                 .ceil()
                 .max(1.0);
             for _ in 0..increments as usize {
-                pos.0 += vel.0 * dt.0 / increments;
+                pos.0 += vel.linear * dt.0 / increments;
 
                 // While the player is colliding with the terrain...
                 while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
@@ -276,7 +276,7 @@ impl<'a> System<'a> for Sys {
                         })
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
                         .max_by_key(|(_, block_aabb)| {
-                            ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
+                            ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.linear)
                                 .map(|e| e.abs())
                                 .reduce_partial_min()
                                 * 1000.0) as i32
@@ -291,7 +291,7 @@ impl<'a> System<'a> for Sys {
                     let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
 
                     // When the resolution direction is pointing upwards, we must be on the ground
-                    if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
+                    if resolve_dir.z > 0.0 && vel.linear.z <= 0.0 {
                         on_ground = true;
                     }
 
@@ -307,8 +307,8 @@ impl<'a> System<'a> for Sys {
                     } else {
                         // Resolve the collision normally
                         pos.0 += resolve_dir;
-                        vel.0 = vel
-                            .0
+                        vel.linear = vel
+                            .linear
                             .map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
                     }
 
@@ -320,8 +320,8 @@ impl<'a> System<'a> for Sys {
                 on_grounds.insert(entity, OnGround);
             // If we're not on the ground but the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.0, near_iter.clone())
-                && vel.0.z < 0.0
-                && vel.0.z > -1.0
+                && vel.linear.z < 0.0
+                && vel.linear.z > -1.0
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
