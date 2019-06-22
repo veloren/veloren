@@ -40,10 +40,10 @@ impl<'a> Sampler for ColumnGen<'a> {
         let sim = self.world.sim();
 
         let turb = Vec2::new(
-            world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
-            world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+            sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+            sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
-        let wposf_turb = wposf + turb;
+        let wposf_turb = wposf + turb.map(|e| e as f64);
 
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
@@ -141,7 +141,11 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .div(near_0.distance(near_1));
 
         let (alt, ground) = if dist_to_path < 5.0 {
-            (alt - 1.5, Rgb::new(0.4, 0.25, 0.0))
+            (alt - 1.5, Lerp::lerp(
+                Rgb::new(0.25, 0.15, 0.05),
+                Rgb::new(0.4, 0.25, 0.0),
+                marble,
+            ))
         } else {
             (alt, ground)
         };
