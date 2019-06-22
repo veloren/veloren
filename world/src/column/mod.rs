@@ -134,16 +134,10 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .abs()
                 .div(near_0.distance(near_1));
 
-        let alt = if dist_to_path < 15.0 {
-            alt - 100.0
+        let (alt, ground) = if dist_to_path < 5.0 {
+            (alt - 1.5, Rgb::new(0.4, 0.25, 0.0))
         } else {
-            alt
-        };
-
-        let ground = if dist_to_path < 5.0 {
-            Rgb::new(0.0, 0.0, 0.0)
-        } else {
-            ground
+            (alt, ground)
         };
 
         // Caves
