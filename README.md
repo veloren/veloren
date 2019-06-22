@@ -1,5 +1,5 @@
 <p align="center">
-	<img alt="Veloren logo on a screenshot" src="https://cdn.discordapp.com/attachments/449602562165833760/521121348886593547/veloren_image.png">
+	<img alt="Veloren logo on a screenshot" src="https://i.redd.it/balynnef4x531.png">
 </p>
 
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/commits/master)
@@ -10,9 +10,6 @@
 ## Welcome To Veloren!
 
 Veloren is a multiplayer voxel RPG written in Rust. Veloren takes inspiration from games such as Cube World, Minecraft and Dwarf Fortress. The game is currently under heavy development, but is playable.
-
-At the moment the engine is undergoing a complete rewrite, so most basic things do not work yet.
-(You can see the original engine [here](https://gitlab.com/veloren/game), but we concentrate all further development on the new engine.)
 
 ## Development
 
