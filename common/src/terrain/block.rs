@@ -27,7 +27,7 @@ impl Block {
     pub fn get_opacity(&self) -> Option<f32> {
         match self.kind {
             0 => None,
-            1 => Some(0.6),
+            1 => Some(0.85),
             _ => Some(1.0),
         }
     }
