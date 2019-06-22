@@ -42,16 +42,18 @@ pub struct Kingdom {
 fn generate_name<R: Rng>(rng: &mut R) -> String {
     let firstsyl = [
         "Eri", "Val", "Gla", "Wilde", "Cold", "Deep", "Dura", "Ester", "Fay", "Dark", "West",
-        "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Black", "Iron", "Grey", "Hel",
-        "Gal", "Mor", "Lo", "Nil", "Mana", "Gar", "Mountain",
+        "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Sommer", "Black", "Iron", "Grey",
+        "Hel", "Gal", "Mor", "Lo", "Nil", "Bel", "Lor", "Gold", "Red", "Marble", "Mana", "Gar",
+        "Mountain", "Red", "Cheo", "Far", "High",
     ];
-    let mid = ["ka", "se", "au", "da", "di", "u"];
+    let mid = ["ka", "se", "au", "da", "di"];
     let tails = [
-        "mill", "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone", "tiva",
+        /*"mill",*/ "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone", "tiva",
         "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well", "oll",
-        "ill", "all", "wyn", "light", "hill", "lin", "mont", "mor", "cliff", "rok", "den", "mi",
+        "ill", "all", "wyn", "light", " Hill", "lin", "mont", "mor", "cliff", "rok", "den", "mi",
         "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia", "cliff", "marsh",
-        "kor", "light", "ice", "river", "venn", "vale",
+        "kor", "ice", /*"river",*/ "acre", "venn", "crest", "field", "vale", "spring", " Vale",
+        "grasp", "fel", "fall", "grove", "wyn", "edge",
     ];
 
     let mut name = String::new();
