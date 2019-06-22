@@ -104,7 +104,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                                 .ok()
                                 .and_then(|vox| vox.get_opacity())
                             {
-                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.4))
+                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.1))
                                     .max(1.0 - opacity)
                             } else {
                                 (neighbour_light[0][i][j] * 1.025).min(1.0)
