@@ -52,6 +52,9 @@ impl<'a> System<'a> for Sys {
                         {
                             // Deal damage
                             stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
+
+                            // Deal knockback
+                            // TODO: Should this be moved to `phys`?
                             vel_b.linear += (pos_b.0 - pos.0).normalized() * 10.0;
                             vel_b.linear.z = 15.0;
                             let _ = force_updates.insert(b, ForceUpdate);

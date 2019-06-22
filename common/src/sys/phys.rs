@@ -11,7 +11,6 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage}
 use vek::*;
 
 // TODO: Don't hard-code these.
-const GRAV_ACCEL: f32 = 9.81 * 4.0;
 const TRACTION: f32 = 1.0;
 const FRIC_GROUND: f32 = 0.15;
 const FRIC_AIR: f32 = 0.015;
@@ -24,29 +23,9 @@ const ROLL_ACCEL: f32 = 120.0;
 const ROLL_SPEED: f32 = 550.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
+const GRAV_ACCEL: f32 = 9.81 * 4.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
-
-//// Integrates forces, calculates the new velocity based off of the old velocity
-//// dt = delta time
-//// lv = linear velocity
-//// damp = linear damping
-//// Friction is a type of damping.
-//fn integrate_forces(dt: f32, mut lv: Vec3<f32>, damp: f32) -> Vec3<f32> {
-//    lv.z -= (GRAVITATIONAL_ACCEL * dt).max(-50.0);
-//
-//    let mut linear_damp = 1.0 - dt * damp;
-//
-//    if linear_damp < 0.0
-//    // reached zero in the given time
-//    {
-//        linear_damp = 0.0;
-//    }
-//
-//    lv *= linear_damp;
-//
-//    lv
-//}
 
 /// Handles gravity, ground friction, air resistance, etc.
 fn resolve_forces(lin_vel: &Velocity, is_on_ground: bool) -> Acceleration {
@@ -182,26 +161,17 @@ impl<'a> System<'a> for Sys {
             // Performing these half time-step calculations allows for accurate calculations with
             // velocity- or position-based accelerations. If this step is omitted, the results will
             // match this more complete algorithm iff accelerations are solely dependent on time.
-            println!(
-                "Before calcs ------\npos: {:?}\nvel: {:?}\naccel: {:?}\ndt:{}",
-                pos.0, vel.linear, vel.accel, dt.0
-            );
             let half_dt = dt.0 / 2.0;
-            println!("Half dt: {}", half_dt);
             let mut half_accel = vel.accel;
             half_accel *= half_dt;
-            println!("Half accel: {}", half_accel);
             let half_step_vel: Velocity = vel.linear + half_accel;
             pos.0 += half_step_vel * dt.0;
             println!("Half-vel: {:?}\nUpdated pos: {:?}", half_step_vel, pos.0);
             // TODO: Resolve collisions, change accelerations/velocities accordingly.
             // Update entity's velocity and acceleration.
-            let new_accel: Acceleration = resolve_forces(&vel.linear, on_ground);
+            let new_accel: Acceleration = resolve_forces(&half_step_vel, on_ground);
             println!("New accel: {:?}", new_accel);
             let mut combined_accel = vel.accel + new_accel;
-            println!("Combined accel: {:?}", combined_accel);
-            //            combined_accel *= half_dt;
-            //            println!("Times half dt: {:?}", combined_accel);
             vel.linear = half_step_vel + (combined_accel * half_dt);
             println!("New vel: {:?}", vel.linear);
             vel.linear.z = vel
