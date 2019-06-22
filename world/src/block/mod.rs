@@ -103,8 +103,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             (true, alt, water_level)
         } else {
             // Apply warping
-            let warp = (self
-                .world
+            let warp = (world
                 .sim()
                 .gen_ctx
                 .warp_nz
