@@ -1,5 +1,5 @@
 <p align="center">
-	<img alt="Veloren logo on a screenshot" src="https://cdn.discordapp.com/attachments/449602562165833760/521121348886593547/veloren_image.png">
+	<img alt="Veloren logo on a screenshot" src="https://i.redd.it/balynnef4x531.png">
 </p>
 
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/commits/master)
