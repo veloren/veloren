@@ -1,4 +1,10 @@
-use crate::{all::ForestKind, sim::Location, util::Sampler, World, CONFIG};
+use crate::{
+    all::ForestKind,
+    sim::{Location, LocationInfo},
+    util::Sampler,
+    World,
+    CONFIG,
+};
 use common::{
     terrain::{Block, TerrainChunkSize},
     vol::{VolSize, Vox},
@@ -116,6 +122,30 @@ impl<'a> Sampler for ColumnGen<'a> {
             temp.sub(CONFIG.desert_temp).mul(32.0),
         );
 
+        // Work out if we're on a path
+        let near_0 = sim_chunk.location.as_ref().map(|l| l.near[0].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
+        let near_1 = sim_chunk.location.as_ref().map(|l| l.near[1].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
+
+        let dist_to_path = (0.0
+            + (near_1.y - near_0.y) * wposf.x as f32
+            - (near_1.x - near_0.x) * wposf.y as f32
+            + near_1.x * near_0.y
+            - near_0.x * near_1.y)
+                .abs()
+                .div(near_0.distance(near_1));
+
+        let alt = if dist_to_path < 15.0 {
+            alt - 100.0
+        } else {
+            alt
+        };
+
+        let ground = if dist_to_path < 5.0 {
+            Rgb::new(0.0, 0.0, 0.0)
+        } else {
+            ground
+        };
+
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
             (sim.gen_ctx.cave_0_nz.get(
@@ -202,5 +232,5 @@ pub struct ColumnSample<'a> {
     pub cliff_hill: f32,
     pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
-    pub location: Option<&'a Arc<Location>>,
+    pub location: Option<&'a LocationInfo>,
 }

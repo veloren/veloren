@@ -1,4 +1,4 @@
-#![feature(euclidean_division, bind_by_move_pattern_guards)]
+#![feature(euclidean_division, bind_by_move_pattern_guards, option_flattening)]
 
 mod all;
 mod block;
