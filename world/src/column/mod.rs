@@ -142,7 +142,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let (alt, ground) = if dist_to_path < 5.0 {
             (alt - 1.5, Lerp::lerp(
-                Rgb::new(0.25, 0.15, 0.05),
+                Rgb::new(0.15, 0.075, 0.05),
                 Rgb::new(0.4, 0.25, 0.0),
                 marble,
             ))
