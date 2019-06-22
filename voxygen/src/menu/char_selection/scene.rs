@@ -65,7 +65,7 @@ impl Scene {
             backdrop_model: renderer
                 .create_model(&FigureModelCache::load_mesh(
                     "fixture/selection_bg.vox",
-                    Vec3::new(-55.0, -50.0, -1.0),
+                    Vec3::new(-55.0, -49.5, -2.0),
                 ))
                 .unwrap(),
             backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
@@ -84,7 +84,7 @@ impl Scene {
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        const CHAR_SELECT_TIME_OF_DAY: f32 = 50000.0; // 12*3600 seconds
+        const CHAR_SELECT_TIME_OF_DAY: f32 = 80000.0; // 12*3600 seconds
         if let Err(err) = renderer.update_consts(
             &mut self.globals,
             &[Globals::new(
@@ -93,7 +93,7 @@ impl Scene {
                 cam_pos,
                 self.camera.get_focus_pos(),
                 CHAR_SELECT_TIME_OF_DAY,
-                500.0,
+                55800.0,
                 client.state().get_time(),
                 renderer.get_resolution(),
             )],

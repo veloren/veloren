@@ -115,7 +115,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .font_size(14)
                 .color(TEXT_COLOR)
                 .set(state.ids.mmap_location, ui),
-            None => Text::new("Wait what")
+            None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
                 .font_size(14)
                 .color(TEXT_COLOR)

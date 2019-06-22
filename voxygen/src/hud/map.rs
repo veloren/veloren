@@ -1,10 +1,13 @@
 use conrod_core::{
     color,
-    widget::{self, Button, Image, Rectangle},
-    widget_ids, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image, Rectangle, Text},
+    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, Fonts};
+use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR_2};
+use client::{self, Client};
+
+use std::{cell::RefCell, rc::Rc};
 
 widget_ids! {
     struct Ids {
@@ -17,22 +20,28 @@ widget_ids! {
         map_frame_r,
         map_frame_bl,
         map_frame_br,
+        location_name,
     }
 }
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
+    show: &'a Show,
+
+    client: &'a Client,
+
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
-
 impl<'a> Map<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
+            show,
             imgs,
+            client,
             fonts,
             common: widget::CommonBuilder::default(),
         }
@@ -106,6 +115,21 @@ impl<'a> Widget for Map<'a> {
             .was_clicked()
         {
             return Some(Event::Close);
+        }
+
+        // Location Name
+        match self.client.current_chunk() {
+            Some(chunk) => Text::new(chunk.meta().name())
+                .mid_top_with_margin_on(state.ids.map_bg, 40.0)
+                .font_size(40)
+                .color(TEXT_COLOR_2)
+                .parent(state.ids.map_frame_r)
+                .set(state.ids.location_name, ui),
+            None => Text::new(" ")
+                .mid_top_with_margin_on(state.ids.map_bg, 3.0)
+                .font_size(40)
+                .color(TEXT_COLOR_2)
+                .set(state.ids.location_name, ui),
         }
 
         None

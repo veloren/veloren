@@ -43,6 +43,7 @@ use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 
@@ -641,7 +642,9 @@ impl Hud {
 
         // Map
         if self.show.map {
-            match Map::new(&self.imgs, &self.fonts).set(self.ids.map, ui_widgets) {
+            match Map::new(&self.show, client, &self.imgs, &self.fonts)
+                .set(self.ids.map, ui_widgets)
+            {
                 Some(map::Event::Close) => {
                     self.show.map(false);
                     self.force_ungrab = true;
@@ -650,7 +653,6 @@ impl Hud {
             }
         }
 
-        // Esc-menu
         if self.show.esc_menu {
             match EscMenu::new(&self.imgs, &self.fonts).set(self.ids.esc_menu, ui_widgets) {
                 Some(esc_menu::Event::OpenSettings(tab)) => {
