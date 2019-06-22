@@ -37,8 +37,8 @@ fn main() {
                 let loc_color = location
                     .map(|l| {
                         (
-                            l.name().bytes().nth(0).unwrap() * 17,
-                            l.name().bytes().nth(1).unwrap() * 17,
+                            l.loc.name().bytes().nth(0).unwrap() * 17,
+                            l.loc.name().bytes().nth(1).unwrap() * 17,
                         )
                     })
                     .unwrap_or((0, 0));
@@ -67,10 +67,10 @@ fn main() {
             gain -= 10.0;
         }
         if win.is_key_down(minifb::Key::R) {
-            scale += 1;
+            scale += 6;
         }
         if win.is_key_down(minifb::Key::F) {
-            scale -= 1;
+            scale -= 6;
         }
 
         win.update_with_buffer(&buf).unwrap();
