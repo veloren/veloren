@@ -10,15 +10,12 @@ use common::{
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
-use std::{
-    cell::RefCell,
-    ops::{Add, Div, Mul, Neg, Sub},
-};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 
 pub struct BlockGen<'a> {
     world: &'a World,
-    column_cache: RefCell<HashCache<Vec2<i32>, Option<ColumnSample<'a>>>>,
+    column_cache: HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
     column_gen: ColumnGen<'a>,
 }
 
@@ -26,24 +23,31 @@ impl<'a> BlockGen<'a> {
     pub fn new(world: &'a World, column_gen: ColumnGen<'a>) -> Self {
         Self {
             world,
-            column_cache: RefCell::new(HashCache::with_capacity(1024)),
+            column_cache: HashCache::with_capacity(64),
             column_gen,
         }
     }
 
-    fn sample_column(&self, wpos: Vec2<i32>) -> Option<ColumnSample> {
-        let column_gen = &self.column_gen;
-        self.column_cache
-            .borrow_mut()
+    fn sample_column(
+        column_gen: &ColumnGen<'a>,
+        cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>, wpos: Vec2<i32>,
+    ) -> Option<ColumnSample<'a>> {
+        cache
             .get(Vec2::from(wpos), |wpos| column_gen.get(wpos))
             .clone()
     }
 
-    fn get_cliff_height(&self, wpos: Vec2<f32>, close_cliffs: &[(Vec2<i32>, u32); 9], cliff_hill: f32) -> f32 {
+    fn get_cliff_height(
+        column_gen: &ColumnGen<'a>,
+        cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+        wpos: Vec2<f32>,
+        close_cliffs: &[(Vec2<i32>, u32); 9],
+        cliff_hill: f32,
+    ) -> f32 {
         close_cliffs
             .iter()
             .fold(0.0f32, |max_height, (cliff_pos, seed)| {
-                match self.sample_column(Vec2::from(*cliff_pos)) {
+                match Self::sample_column(column_gen, cache, Vec2::from(*cliff_pos)) {
                     Some(cliff_sample) if cliff_sample.cliffs => {
                         let cliff_pos3d = Vec3::from(*cliff_pos);
 
@@ -67,6 +71,12 @@ impl<'a> SamplerMut for BlockGen<'a> {
     type Sample = Option<Block>;
 
     fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
+        let BlockGen {
+            world,
+            column_cache,
+            column_gen,
+        } = self;
+
         let ColumnSample {
             alt,
             chaos,
@@ -84,7 +94,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             close_cliffs,
             temp,
             ..
-        } = self.sample_column(Vec2::from(wpos))?;
+        } = Self::sample_column(column_gen, column_cache, Vec2::from(wpos))?;
 
         let wposf = wpos.map(|e| e as f64);
 
@@ -108,12 +118,12 @@ impl<'a> SamplerMut for BlockGen<'a> {
                 alt + warp
             } else {
                 let turb = Vec2::new(
-                    self.world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
-                    self.world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+                    world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+                    world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
                 ) * 12.0;
 
                 let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
-                let cliff_height = self.get_cliff_height(wpos_turb, &close_cliffs, cliff_hill);
+                let cliff_height = Self::get_cliff_height(column_gen, column_cache, wpos_turb, &close_cliffs, cliff_hill);
 
                 (alt + warp).max(cliff_height)
             };
@@ -179,9 +189,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
         // Rocks
         let block = block.or_else(|| {
             if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
-                let field0 = RandomField::new(self.world.sim().seed + 0);
-                let field1 = RandomField::new(self.world.sim().seed + 1);
-                let field2 = RandomField::new(self.world.sim().seed + 2);
+                let field0 = RandomField::new(world.sim().seed + 0);
+                let field1 = RandomField::new(world.sim().seed + 1);
+                let field2 = RandomField::new(world.sim().seed + 2);
 
                 Some(Block::new(
                     1,
@@ -248,13 +258,13 @@ impl<'a> SamplerMut for BlockGen<'a> {
                     .fold(air, |block, (tree_pos, tree_seed)| if !block.is_empty() {
                         block
                     } else {
-                        match self.sample_column(Vec2::from(*tree_pos)) {
+                        match Self::sample_column(column_gen, column_cache, Vec2::from(*tree_pos)) {
                             Some(tree_sample)
                                 if tree_sample.tree_density
                                     > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
                                     && tree_sample.alt > tree_sample.water_level =>
                             {
-                                let cliff_height = self.get_cliff_height(tree_pos.map(|e| e as f32), &tree_sample.close_cliffs, cliff_hill);
+                                let cliff_height = Self::get_cliff_height(column_gen, column_cache, tree_pos.map(|e| e as f32), &tree_sample.close_cliffs, cliff_hill);
                                 let height = tree_sample.alt.max(cliff_height);
                                 let tree_pos3d = Vec3::new(tree_pos.x, tree_pos.y, height as i32);
                                 let rpos = wpos - tree_pos3d;
