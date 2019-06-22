@@ -39,6 +39,12 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let sim = self.world.sim();
 
+        let turb = Vec2::new(
+            world.sim().gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
+            world.sim().gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
+        ) * 12.0;
+        let wposf_turb = wposf + turb;
+
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -127,8 +133,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let near_1 = sim_chunk.location.as_ref().map(|l| l.near[1].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
 
         let dist_to_path = (0.0
-            + (near_1.y - near_0.y) * wposf.x as f32
-            - (near_1.x - near_0.x) * wposf.y as f32
+            + (near_1.y - near_0.y) * wposf_turb.x as f32
+            - (near_1.x - near_0.x) * wposf_turb.y as f32
             + near_1.x * near_0.y
             - near_0.x * near_1.y)
                 .abs()
