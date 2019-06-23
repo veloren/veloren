@@ -167,7 +167,7 @@ void main() {
 	//vec4 fxaa_color = texture(src_color, uv);
 
 	vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
-	hsva_color.y *= 1.3;
+	hsva_color.y *= 1.4;
 	hsva_color.x -= 0.015;
 	hsva_color.z *= 0.85;
 	//hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
