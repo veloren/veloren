@@ -48,12 +48,12 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
     ];
     let mid = ["ka", "se", "au", "da", "di"];
     let tails = [
-        /*"mill",*/ "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone", "tiva",
-        "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well", "oll",
-        "ill", "all", "wyn", "light", " Hill", "lin", "mont", "mor", "cliff", "rok", "den", "mi",
-        "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia", "cliff", "marsh",
-        "kor", "ice", /*"river",*/ "acre", "venn", "crest", "field", "vale", "spring", " Vale",
-        "grasp", "fel", "fall", "grove", "wyn", "edge",
+        /*"mill",*/ "ben", "sel", "dori", "theas", "dar", "bur", "to", "vis", "ten", "stone",
+        "tiva", "id", "and", "or", "el", "ond", "ia", "eld", "ald", "aft", "ift", "ity", "well",
+        "oll", "ill", "all", "wyn", "light", " Hill", "lin", "mont", "mor", "cliff", "rok", "den",
+        "mi", "rock", "glenn", "rovi", "lea", "gate", "view", "ley", "wood", "ovia", "cliff",
+        "marsh", "kor", "ice", /*"river",*/ "acre", "venn", "crest", "field", "vale",
+        "spring", " Vale", "grasp", "fel", "fall", "grove", "wyn", "edge",
     ];
 
     let mut name = String::new();

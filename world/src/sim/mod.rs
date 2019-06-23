@@ -5,14 +5,17 @@ pub use self::location::Location;
 
 use crate::{
     all::ForestKind,
-    util::{StructureGen2d, Sampler},
+    util::{Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::VolSize,
 };
-use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, OpenSimplex, SuperSimplex};
+use noise::{
+    BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
+    SuperSimplex,
+};
 use rand::{prng::XorShiftRng, Rng, SeedableRng};
 use std::{
     ops::{Add, Div, Mul, Neg, Sub},
@@ -132,12 +135,12 @@ impl WorldSim {
                 self.rng.gen::<usize>() % grid_size.y,
             );
             let wpos = (cell_pos * cell_size)
-                .map2(
-                    Vec2::from(TerrainChunkSize::SIZE),
-                    |e, sz: u32| e as i32 * sz as i32,
-                );
+                .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    e as i32 * sz as i32
+                });
 
-            locations[cell_pos.y * grid_size.x + cell_pos.x] = Some(Arc::new(Location::generate(wpos, &mut rng)));
+            locations[cell_pos.y * grid_size.x + cell_pos.x] =
+                Some(Arc::new(Location::generate(wpos, &mut rng)));
         }
 
         // Simulate invasion!
@@ -148,10 +151,8 @@ impl WorldSim {
                     if locations[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
                         let idx = self.rng.gen::<usize>() % 4;
-                        let loc = Vec2::new(
-                            i as i32 + R_COORDS[idx],
-                            j as i32 + R_COORDS[idx + 1],
-                        ).map(|e| e as usize);
+                        let loc = Vec2::new(i as i32 + R_COORDS[idx], j as i32 + R_COORDS[idx + 1])
+                            .map(|e| e as usize);
 
                         locations[j * grid_size.x + i] = locations
                             .get(loc.y * grid_size.x + loc.x)
@@ -175,7 +176,9 @@ impl WorldSim {
                     .iter()
                     .map(|(pos, seed)| RegionInfo {
                         chunk_pos: *pos,
-                        block_pos: pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e * sz as i32),
+                        block_pos: pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                            e * sz as i32
+                        }),
                         dist: (pos - chunk_pos).map(|e| e as f32).magnitude(),
                         seed: *seed,
                     })
@@ -189,10 +192,7 @@ impl WorldSim {
                     .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
                     .cloned()
                     .unwrap_or(None)
-                    .map(|loc| LocationInfo {
-                        loc,
-                        near,
-                    });
+                    .map(|loc| LocationInfo { loc, near });
             }
         }
 
@@ -409,7 +409,10 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            cliffs: cliff > 0.5 && dryness > 0.05 && alt > CONFIG.sea_level + 5.0 && dryness.abs() > 0.075,
+            cliffs: cliff > 0.5
+                && dryness > 0.05
+                && alt > CONFIG.sea_level + 5.0
+                && dryness.abs() > 0.075,
             near_cliffs: cliff > 0.4,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .add(1.0)
@@ -447,7 +450,8 @@ impl SimChunk {
     }
 
     pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1 * if self.near_cliffs { 1.0 } else { 0.5 }).max(CONFIG.sea_level + 2.0)
+        (self.alt + Z_TOLERANCE.1 * if self.near_cliffs { 1.0 } else { 0.5 })
+            .max(CONFIG.sea_level + 2.0)
     }
 
     pub fn get_name(&self) -> Option<String> {

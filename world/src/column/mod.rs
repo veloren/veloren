@@ -2,8 +2,7 @@ use crate::{
     all::ForestKind,
     sim::{Location, LocationInfo},
     util::Sampler,
-    World,
-    CONFIG,
+    World, CONFIG,
 };
 use common::{
     terrain::{Block, TerrainChunkSize},
@@ -64,8 +63,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             .max(0.0)
             .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
 
-        let cliff_hill = (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32)
-            .mul(16.0);
+        let cliff_hill =
+            (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32).mul(16.0);
 
         let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
@@ -100,7 +99,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5);
-        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
+        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
+            .mul(0.75)
             .add(1.0)
             .mul(0.5)
             .add(marble_small.mul(0.25));
@@ -118,11 +118,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        let dirt = Lerp::lerp(
-            Rgb::new(0.2, 0.1, 0.05),
-            Rgb::new(0.4, 0.25, 0.0),
-            marble,
-        );
+        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
 
         let turf = grass;
 
@@ -139,18 +135,27 @@ impl<'a> Sampler for ColumnGen<'a> {
         );
 
         // Work out if we're on a path or near a town
-        let near_0 = sim_chunk.location.as_ref().map(|l| l.near[0].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
-        let near_1 = sim_chunk.location.as_ref().map(|l| l.near[1].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
+        let near_0 = sim_chunk
+            .location
+            .as_ref()
+            .map(|l| l.near[0].block_pos)
+            .unwrap_or(Vec2::zero())
+            .map(|e| e as f32);
+        let near_1 = sim_chunk
+            .location
+            .as_ref()
+            .map(|l| l.near[1].block_pos)
+            .unwrap_or(Vec2::zero())
+            .map(|e| e as f32);
 
-        let dist_to_path = (0.0
-            + (near_1.y - near_0.y) * wposf_turb.x as f32
+        let dist_to_path = (0.0 + (near_1.y - near_0.y) * wposf_turb.x as f32
             - (near_1.x - near_0.x) * wposf_turb.y as f32
             + near_1.x * near_0.y
             - near_0.x * near_1.y)
-                .abs()
-                .div(near_0.distance(near_1));
+            .abs()
+            .div(near_0.distance(near_1));
 
-        let on_path = dist_to_path < 5.0;// || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
+        let on_path = dist_to_path < 5.0; // || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
 
         let (alt, ground) = if on_path {
             (alt - 1.0, dirt)
