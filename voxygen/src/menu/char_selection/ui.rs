@@ -141,7 +141,7 @@ widget_ids! {
 
 image_ids! {
     struct Imgs {
-        <VoxelGraphic>       
+        <VoxelGraphic>
         button: "voxygen/element/buttons/button.vox",
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
@@ -169,7 +169,7 @@ image_ids! {
         frame_open_press: "voxygen/element/buttons/frame/open_press.png",
         skin_eyes_window: "voxygen/element/frames/skin_eyes.png",
         hair_window: "voxygen/element/frames/skin_eyes.png",
-        accessories_window: "voxygen/element/frames/skin_eyes.png",        
+        accessories_window: "voxygen/element/frames/skin_eyes.png",
         slider_range: "voxygen/element/slider/track.png",
         slider_indicator: "voxygen/element/slider/indicator.png",
         window_frame_2: "voxygen/element/frames/window_2.png",
