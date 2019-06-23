@@ -14,6 +14,7 @@ out vec3 f_pos;
 void main() {
 	f_pos = v_pos;
 
+	// TODO: Make this position-independent to avoid rounding error jittering
 	gl_Position =
 		proj_mat *
 		view_mat *
