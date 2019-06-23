@@ -121,7 +121,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let dirt = Lerp::lerp(
             Rgb::new(0.2, 0.1, 0.05),
             Rgb::new(0.4, 0.25, 0.0),
-            marble_small,
+            marble,
         );
 
         let turf = grass;
@@ -150,7 +150,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .abs()
                 .div(near_0.distance(near_1));
 
-        let on_path = dist_to_path < 5.0 || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
+        let on_path = dist_to_path < 5.0;// || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
 
         let (alt, ground) = if on_path {
             (alt - 1.0, dirt)
