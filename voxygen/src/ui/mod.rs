@@ -41,9 +41,11 @@ use conrod_core::{
 use graphic::Id as GraphicId;
 use log::warn;
 use scale::Scale;
-use std::io::Read;
-use std::ops::Range;
-use std::sync::Arc;
+use std::{
+    io::{BufReader, Read},
+    ops::Range,
+    sync::Arc,
+};
 use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
 
@@ -79,9 +81,9 @@ impl DrawCommand {
 
 pub struct Font(text::Font);
 impl assets::Asset for Font {
-    fn load(specifier: &str) -> Result<Self, assets::Error> {
+    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
-        assets::load_from_path(specifier)?.read_to_end(&mut buf)?;
+        buf_reader.read_to_end(&mut buf)?;
         Ok(Font(text::Font::from_bytes(buf.clone()).unwrap()))
     }
 }

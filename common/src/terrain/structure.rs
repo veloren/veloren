@@ -5,6 +5,7 @@ use crate::{
     volumes::dyna::{Dyna, DynaErr},
 };
 use dot_vox::DotVoxData;
+use std::io::{BufReader, Read};
 use vek::*;
 
 #[derive(Copy, Clone)]
@@ -61,8 +62,8 @@ impl ReadVol for Structure {
 }
 
 impl Asset for Structure {
-    fn load(specifier: &str) -> Result<Self, assets::Error> {
-        let dot_vox_data = DotVoxData::load(specifier)?;
+    fn load(buf_reader: BufReader<impl Read>) -> Result<Self, assets::Error> {
+        let dot_vox_data = DotVoxData::load(buf_reader)?;
 
         if let Some(model) = dot_vox_data.models.get(0) {
             let palette = dot_vox_data

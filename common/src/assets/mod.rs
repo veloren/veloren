@@ -7,8 +7,7 @@ use std::{
     collections::HashMap,
     env,
     fs::{read_dir, read_link, File, ReadDir},
-    io::BufReader,
-    io::Read,
+    io::{BufReader, Read},
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
@@ -41,11 +40,13 @@ lazy_static! {
 /// Function used to load assets. Permits manipulating the loaded asset with a mapping function.
 /// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
-/// ```no_run
-/// use image::DynamicImage;
-/// use veloren_common::assets;
+/// ```no_run=
+/// use veloren_common::{assets, terrain::Structure};
 ///
-/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// let my_tree_structure = assets::load_map(
+///        "world/tree/oak_green/1.vox",
+///        |s: Structure| s.with_center(Vec3::new(15, 18, 14)),
+///    ).unwrap();
 /// ```
 pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
@@ -55,7 +56,7 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     match assets_write.get(specifier) {
         Some(asset) => Ok(Arc::clone(asset).downcast()?),
         None => {
-            let asset = Arc::new(f(A::load(specifier)?));
+            let asset = Arc::new(f(A::load(load_from_path(specifier)?)?));
             let clone = Arc::clone(&asset);
             assets_write.insert(specifier.to_owned(), clone);
             Ok(asset)
@@ -92,28 +93,28 @@ pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
 
 /// Asset Trait
 pub trait Asset: Send + Sync + Sized {
-    fn load(specifier: &str) -> Result<Self, Error>;
+    fn load(buf_reader: BufReader<impl Read>) -> Result<Self, Error>;
 }
 
 impl Asset for DynamicImage {
-    fn load(specifier: &str) -> Result<Self, Error> {
+    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
         let mut buf = Vec::new();
-        load_from_path(specifier)?.read_to_end(&mut buf)?;
+        buf_reader.read_to_end(&mut buf)?;
         Ok(image::load_from_memory(&buf).unwrap())
     }
 }
 
 impl Asset for DotVoxData {
-    fn load(specifier: &str) -> Result<Self, Error> {
+    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
         let mut buf = Vec::new();
-        load_from_path(specifier)?.read_to_end(&mut buf)?;
+        buf_reader.read_to_end(&mut buf)?;
         Ok(dot_vox::load_bytes(&buf).unwrap())
     }
 }
 
 impl Asset for Value {
-    fn load(specifier: &str) -> Result<Self, Error> {
-        Ok(serde_json::from_reader(load_from_path(specifier)?).unwrap())
+    fn load(buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
+        Ok(serde_json::from_reader(buf_reader).unwrap())
     }
 }
 
