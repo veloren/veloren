@@ -493,13 +493,12 @@ impl FigureMgr {
             .join()
         {
             // Don't process figures outside the vd
-            let vd_percent = (pos.0 - player_pos)
-                .map2(TerrainChunkSize::SIZE, |d, sz| {
-                    (100 * d.abs() as u32) / (view_distance * sz)
-                })
-                .reduce_max();
+            let vd_frac = (pos.0 - player_pos)
+                .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                .magnitude()
+                / view_distance as f32;
             // Keep from re-adding/removing entities on the border of the vd
-            if vd_percent > 120 {
+            if vd_frac > 1.2 {
                 match actor {
                     comp::Actor::Character { body, .. } => match body {
                         Body::Humanoid(_) => {
@@ -514,7 +513,7 @@ impl FigureMgr {
                     },
                 }
                 continue;
-            } else if vd_percent > 100 {
+            } else if vd_frac > 1.0 {
                 continue;
             }
 
@@ -693,10 +692,9 @@ impl FigureMgr {
             // Don't render figures outside the vd
             .filter(|(_, pos, _, _, _, _, _)| {
                 (pos.0 - player_pos)
-                    .map2(TerrainChunkSize::SIZE, |d, sz| {
-                        (d.abs() as u32) < view_distance * sz as u32
-                    })
-                    .reduce_and()
+                    .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                    .magnitude()
+                    < view_distance as f32
             })
             // Don't render dead entities
             .filter(|(_, _, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
