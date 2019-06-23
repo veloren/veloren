@@ -55,11 +55,13 @@ widget_ids! {
 
         // Test
         bag_space_add,
+
         // Debug
         debug_bg,
         fps_counter,
         ping,
         coordinates,
+        loaded_distance,
 
         // Game Version
         version,
@@ -336,10 +338,9 @@ impl Hud {
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _, _, _)| {
                     (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| {
-                            (d.abs() as u32) < view_distance * sz as u32
-                        })
-                        .reduce_and()
+                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                        .magnitude()
+                        < view_distance as f32
                 })
                 .map(|(_, pos, actor, _, player)| match actor {
                     comp::Actor::Character {
@@ -380,10 +381,9 @@ impl Hud {
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _)| {
                     (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| {
-                            (d.abs() as u32) < view_distance * sz as u32
-                        })
-                        .reduce_and()
+                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                        .magnitude()
+                        < view_distance as f32
                 })
             {
                 let back_id = health_back_id_walker.next(
@@ -425,18 +425,21 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
+            // Ticks per second
             Text::new(&format!("FPS: {:.1}", debug_info.tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
+            // Ping
             Text::new(&format!("Ping: {:.1}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, 5.0)
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.ping, ui_widgets);
+            // Players position
             let coordinates_text = match debug_info.coordinates {
                 Some(coordinates) => format!("Coordinates: {:.1}", coordinates.0),
                 None => "Player has no Pos component".to_owned(),
@@ -447,6 +450,16 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.coordinates, ui_widgets);
+            // Loaded distance
+            Text::new(&format!(
+                "View distance: {} chunks",
+                client.loaded_distance().unwrap_or(0)
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.coordinates, 5.0)
+            .font_id(self.fonts.opensans)
+            .font_size(14)
+            .set(self.ids.loaded_distance, ui_widgets);
         }
 
         // Add Bag-Space Button.
