@@ -36,7 +36,7 @@ vec3 get_sun_dir(float time_of_day) {
 }
 
 float get_sun_brightness(vec3 sun_dir) {
-	return pow(max(-sun_dir.z + 0.3, 0.0), 0.5);
+	return max(-sun_dir.z + 0.6, 0.0) * 0.8;
 }
 
 const float PERSISTENT_AMBIANCE = 0.015;
@@ -51,7 +51,110 @@ float get_sun_diffuse(vec3 norm, float time_of_day) {
 	return (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0)) * sun_light + PERSISTENT_AMBIANCE;
 }
 
+vec3 rand_offs(vec3 pos) {
+	return sin(pos * vec3(1473.7 * pos.z, 8891.1 * pos.x, 3813.3 * pos.y));
+}
+
 vec3 get_sky_color(vec3 dir, float time_of_day) {
+
+	// Stars
+	float star_scale = 60.0;
+	float dist = 1000.0;
+	for (int i = 0; i < 2; i ++) {
+		for (int j = 0; j < 2; j ++) {
+			for (int k = 0; k < 2; k ++) {
+				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
+				pos += rand_offs(pos) * 0.2;
+				dist = min(dist, length(normalize(pos) - dir));
+			}
+		}
+	}
+	float star;
+	if (dist < 0.0015) {
+		star = 1.0;
+	} else {
+		star = 0.0;
+	}
+
+	// Sky color
+
+	const vec3 SKY_DAY_TOP = vec3(0.2, 0.3, 0.9);
+	const vec3 SKY_DAY_MID = vec3(0.1, 0.15, 0.7);
+	const vec3 SKY_DAY_BOT = vec3(0.025, 0.15, 0.35);
+
+	const vec3 SKY_DUSK_TOP = vec3(0.1, 0.15, 0.3);
+	const vec3 SKY_DUSK_MID = vec3(0.9, 0.3, 0.2);
+	const vec3 SKY_DUSK_BOT = vec3(0.01, 0.05, 0.15);
+
+	const vec3 SKY_NIGHT_TOP = vec3(0.002, 0.002, 0.005);
+	const vec3 SKY_NIGHT_MID = vec3(0.002, 0.01, 0.03);
+	const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.002, 0.005);
+
+	vec3 sun_dir = get_sun_dir(time_of_day);
+
+	vec3 sky_top = mix(
+		mix(
+			SKY_DUSK_TOP,
+			SKY_NIGHT_TOP,
+			clamp(sun_dir.z, 0, 1)
+		) + star,
+		SKY_DAY_TOP,
+		clamp(-sun_dir.z, 0, 1)
+	);
+
+	vec3 sky_mid = mix(
+		mix(
+			SKY_DUSK_MID,
+			SKY_NIGHT_MID,
+			clamp(sun_dir.z, 0, 1)
+		),
+		SKY_DAY_MID,
+		clamp(-sun_dir.z, 0, 1)
+	);
+
+	vec3 sky_bot = mix(
+		mix(
+			SKY_DUSK_BOT,
+			SKY_NIGHT_BOT,
+			clamp(sun_dir.z, 0, 1)
+		),
+		SKY_DAY_MID,
+		clamp(-sun_dir.z, 0, 1)
+	);
+
+	vec3 sky_color = mix(
+		mix(
+			sky_mid,
+			sky_bot,
+			pow(clamp(-dir.z, 0, 1), 0.4)
+		),
+		sky_top,
+		pow(clamp(dir.z, 0, 1), 1.0)
+	);
+
+	// Sun
+
+	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.35, 0.1) * 0.3;
+	const vec3 SUN_SURF_COLOR = vec3(1.0, 0.9, 0.35) * 200.0;
+
+	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * SUN_HALO_COLOR;
+	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;
+	vec3 sun_light = (sun_halo + sun_surf) * clamp(dir.z * 10.0, 0, 1);
+
+	return sky_color + sun_light;
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
 	bool objects = true;
 
 	vec2 pos2d = dir.xy / dir.z;
@@ -96,6 +199,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	);
 
 	return sky_color;
+	*/
 }
 
 float fog(vec2 f_pos, vec2 focus_pos) {
