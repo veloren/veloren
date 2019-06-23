@@ -83,6 +83,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             water_level,
             river,
             surface_color,
+            sub_surface_color,
             tree_density,
             forest_kind,
             close_trees,
@@ -143,8 +144,13 @@ impl<'a> SamplerMut for BlockGen<'a> {
         let water = Block::new(1, Rgb::new(100, 150, 255));
         let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
-        let block = if (wposf.z as f32) < height - 3.0 {
-            let col = Lerp::lerp(dirt_col, stone_col, (height - 4.0 - wposf.z as f32) * 0.15);
+        let grass_depth = 2.0;
+        let block = if (wposf.z as f32) < height - grass_depth {
+            let col = Lerp::lerp(
+                sub_surface_color.map(|e| (e * 255.0) as u8),
+                stone_col,
+                (height - grass_depth - wposf.z as f32) * 0.15,
+            );
 
             // Underground
             if (wposf.z as f32) > alt - 32.0 * chaos {
@@ -154,9 +160,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
             }
         } else if (wposf.z as f32) < height {
             let col = Lerp::lerp(
-                dirt_col.map(|e| e as f32 / 255.0),
+                sub_surface_color,
                 surface_color,
-                (wposf.z as f32 - (height - 4.0)) * 0.25,
+                (wposf.z as f32 - (height - grass_depth)).div(grass_depth).powf(0.5),
             );
             // Surface
             Some(Block::new(1, col.map(|e| (e * 255.0) as u8)))

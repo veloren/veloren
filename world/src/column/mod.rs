@@ -97,15 +97,17 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
-        let marble = (0.0
-            + (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
-            + (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32).mul(0.25))
-        .add(1.0)
-        .mul(0.5);
+        let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
+            .add(1.0)
+            .mul(0.5);
+        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32).mul(0.75)
+            .add(1.0)
+            .mul(0.5)
+            .add(marble_small.mul(0.25));
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.3, 0.15);
-        let warm_grass = Rgb::new(0.2, 0.8, 0.05);
+        let cold_grass = Rgb::new(0.05, 0.2, 0.1);
+        let warm_grass = Rgb::new(0.15, 0.65, 0.05);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.4);
@@ -116,10 +118,18 @@ impl<'a> Sampler for ColumnGen<'a> {
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
+        let dirt = Lerp::lerp(
+            Rgb::new(0.2, 0.1, 0.05),
+            Rgb::new(0.4, 0.25, 0.0),
+            marble_small,
+        );
+
+        let turf = grass;
+
         let ground = Rgb::lerp(
             Rgb::lerp(
                 snow,
-                grass,
+                turf,
                 temp.sub(CONFIG.snow_temp)
                     .sub((marble - 0.5) * 0.05)
                     .mul(256.0),
@@ -128,7 +138,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             temp.sub(CONFIG.desert_temp).mul(32.0),
         );
 
-        // Work out if we're on a path
+        // Work out if we're on a path or near a town
         let near_0 = sim_chunk.location.as_ref().map(|l| l.near[0].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
         let near_1 = sim_chunk.location.as_ref().map(|l| l.near[1].block_pos).unwrap_or(Vec2::zero()).map(|e| e as f32);
 
@@ -140,12 +150,10 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .abs()
                 .div(near_0.distance(near_1));
 
-        let (alt, ground) = if dist_to_path < 5.0 {
-            (alt - 1.5, Lerp::lerp(
-                Rgb::new(0.15, 0.075, 0.05),
-                Rgb::new(0.4, 0.25, 0.0),
-                marble,
-            ))
+        let on_path = dist_to_path < 5.0 || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
+
+        let (alt, ground) = if on_path {
+            (alt - 1.0, dirt)
         } else {
             (alt, ground)
         };
@@ -204,6 +212,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 // Beach
                 ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
             ),
+            sub_surface_color: dirt,
             tree_density,
             forest_kind: sim_chunk.forest_kind,
             close_trees: sim.gen_ctx.tree_gen.get(wpos),
@@ -226,6 +235,7 @@ pub struct ColumnSample<'a> {
     pub water_level: f32,
     pub river: f32,
     pub surface_color: Rgb<f32>,
+    pub sub_surface_color: Rgb<f32>,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub close_trees: [(Vec2<i32>, u32); 9],
