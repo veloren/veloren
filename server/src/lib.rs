@@ -295,11 +295,11 @@ impl Server {
                 })
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| e.abs())
-                    .reduce_max() as u32;
+                let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
+                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                    .magnitude_squared();
 
-                if dist <= view_distance + 1 {
+                if adjusted_dist_sqr <= view_distance.pow(2) {
                     self.clients.notify(
                         entity,
                         ServerMsg::TerrainChunkUpdate {
@@ -327,13 +327,14 @@ impl Server {
                 .join()
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let dist = Vec2::from(chunk_pos - key)
-                    .map(|e: i32| e.abs() as u32)
-                    .reduce_max();
+
+                let adjusted_dist_sqr = Vec2::from(chunk_pos - key)
+                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                    .magnitude_squared();
 
                 if player
                     .view_distance
-                    .map(|vd| dist <= vd + 1)
+                    .map(|vd| adjusted_dist_sqr <= vd.pow(2))
                     .unwrap_or(false)
                 {
                     should_drop = false;
@@ -696,9 +697,10 @@ impl Server {
 
                 (pos.0 - client_pos)
                     .map2(TerrainChunkSize::SIZE, |d, sz| {
-                        (d.abs() as u32) < client_vd * sz as u32
+                        (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
                     })
-                    .reduce_and()
+                    .magnitude_squared()
+                    < client_vd.pow(2)
             };
 
             match force_update {

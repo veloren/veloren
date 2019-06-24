@@ -45,6 +45,7 @@ pub struct Client {
     tick: u64,
     state: State,
     entity: EcsEntity,
+
     view_distance: Option<u32>,
     loaded_distance: Option<u32>,
 
@@ -230,9 +231,9 @@ impl Client {
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
                 if (Vec2::from(chunk_pos) - Vec2::from(key))
-                    .map(|e: i32| e.abs() as u32)
-                    .reduce_max()
-                    > view_distance + 1
+                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                    .magnitude_squared()
+                    > view_distance.pow(2)
                 {
                     chunks_to_remove.push(key);
                 }
@@ -242,18 +243,39 @@ impl Client {
             }
 
             // Request chunks from the server.
-            // TODO: This is really inefficient.
             let mut all_loaded = true;
             'outer: for dist in 0..=view_distance as i32 {
-                for i in chunk_pos.x - dist..=chunk_pos.x + 1 + dist {
-                    for j in chunk_pos.y - dist..=chunk_pos.y + 1 + dist {
-                        let key = Vec2::new(i, j);
-                        if self.state.terrain().get_key(key).is_none() {
-                            if !self.pending_chunks.contains_key(&key) {
+                // Only iterate through chunks that need to be loaded for circular vd
+                // The (dist - 2) explained:
+                // -0.5 because a chunk is visible if its corner is within the view distance
+                // -0.5 for being able to move to the corner of the current chunk
+                // -1 because chunks are not meshed if they don't have all their neighbors
+                //     (notice also that view_distance is decreased by 1)
+                //     (this subtraction on vd is ommitted elsewhere in order to provide a buffer layer of loaded chunks)
+                let top = if 2 * (dist - 2).max(0).pow(2) > (view_distance - 1).pow(2) as i32 {
+                    ((view_distance - 1).pow(2) as f32 - (dist - 2).pow(2) as f32)
+                        .sqrt()
+                        .round() as i32
+                        + 1
+                } else {
+                    dist
+                };
+
+                for i in -top..=top {
+                    let keys = [
+                        chunk_pos + Vec2::new(dist, i),
+                        chunk_pos + Vec2::new(i, dist),
+                        chunk_pos + Vec2::new(-dist, i),
+                        chunk_pos + Vec2::new(i, -dist),
+                    ];
+
+                    for key in keys.iter() {
+                        if self.state.terrain().get_key(*key).is_none() {
+                            if !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
                                     self.postbox
-                                        .send_message(ClientMsg::TerrainChunkRequest { key });
-                                    self.pending_chunks.insert(key, Instant::now());
+                                        .send_message(ClientMsg::TerrainChunkRequest { key: *key });
+                                    self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     break 'outer;
                                 }
