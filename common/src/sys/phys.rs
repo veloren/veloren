@@ -158,10 +158,14 @@ impl<'a> System<'a> for Sys {
             // Basic collision with terrain
 
             // Iterate through nearby blocks, prioritise closer ones
-            let near_iter = [0, -1, 1, -2, 2, 3].into_iter()
-                .map(move |k| [0, -1, 1, -2, 2].into_iter()
-                    .map(move |j| [0, -1, 1, -2, 2].into_iter()
-                        .map(move |i| (*i, *j, *k))))
+            let near_iter = (0..5)
+                .map(move |dist| (-dist..=dist)
+                    .map(move |x| (-dist..=dist)
+                        .map(move |y| (-dist..=dist)
+                            .map(move |z| Vec3::new(x, y, z))
+                            .filter(move |p| p.map(|e: i32| e.abs()).reduce_max() == dist)
+                            .map(|p| p.into_tuple()))))
+                .flatten()
                 .flatten()
                 .flatten();
 
