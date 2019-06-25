@@ -23,6 +23,7 @@ use common::{
         Body,
     },
     figure::Segment,
+    state::DeltaTime,
     terrain::TerrainChunkSize,
     vol::VolSize,
 };
@@ -579,7 +580,10 @@ impl FigureMgr {
                             }
                         };
 
-                        state.skeleton.interpolate(&target_skeleton);
+                        state.skeleton.interpolate(
+                            &target_skeleton,
+                            client.state().ecs().read_resource::<DeltaTime>().0,
+                        );
                         state.update(renderer, pos.0, ori.0, col);
                     }
                     Body::Quadruped(_) => {
@@ -608,7 +612,10 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(&target_skeleton);
+                        state.skeleton.interpolate(
+                            &target_skeleton,
+                            client.state().ecs().read_resource::<DeltaTime>().0,
+                        );
                         state.update(renderer, pos.0, ori.0, col);
                     }
                     Body::QuadrupedMedium(_) => {
@@ -644,7 +651,10 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(&target_skeleton);
+                        state.skeleton.interpolate(
+                            &target_skeleton,
+                            client.state().ecs().read_resource::<DeltaTime>().0,
+                        );
                         state.update(renderer, pos.0, ori.0, col);
                     }
                 },
