@@ -38,7 +38,7 @@ pub struct DeltaTime(pub f32);
 /// too fast, we'd skip important physics events like collisions. This constant determines the
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
-const MAX_DELTA_TIME: f32 = 0.15;
+const MAX_DELTA_TIME: f32 = 0.03;
 
 pub struct Changes {
     pub new_chunks: HashSet<Vec2<i32>>,
@@ -186,6 +186,11 @@ impl State {
     /// Note that this does not correspond to the time of day.
     pub fn get_time(&self) -> f64 {
         self.ecs.read_resource::<Time>().0
+    }
+
+    /// Get the current delta time.
+    pub fn get_delta_time(&self) -> f32 {
+        self.ecs.read_resource::<DeltaTime>().0
     }
 
     /// Get a reference to this state's terrain.

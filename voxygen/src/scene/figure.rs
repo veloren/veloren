@@ -474,10 +474,9 @@ impl FigureMgr {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
         let view_distance = client.view_distance().unwrap_or(1);
+        let dt = client.state().get_delta_time();
         // Get player position.
-        let player_pos = client
-            .state()
-            .ecs()
+        let player_pos = ecs
             .read_storage::<comp::Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
@@ -584,7 +583,7 @@ impl FigureMgr {
                             &target_skeleton,
                             client.state().ecs().read_resource::<DeltaTime>().0,
                         );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::Quadruped(_) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
@@ -616,7 +615,7 @@ impl FigureMgr {
                             &target_skeleton,
                             client.state().ecs().read_resource::<DeltaTime>().0,
                         );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::QuadrupedMedium(_) => {
                         let state =
@@ -655,7 +654,7 @@ impl FigureMgr {
                             &target_skeleton,
                             client.state().ecs().read_resource::<DeltaTime>().0,
                         );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                 },
                 // TODO: Non-character actors
@@ -764,10 +763,11 @@ impl<S: Skeleton> FigureState<S> {
         pos: Vec3<f32>,
         ori: Vec3<f32>,
         col: Rgba<f32>,
+        dt: f32,
     ) {
         // Update interpolate pos
-        self.pos = Lerp::lerp(self.pos, pos, 0.4);
-        self.ori = Slerp::slerp(self.ori, ori, 0.2);
+        self.pos = Lerp::lerp(self.pos, pos, (0.4f32).powf(60.0).powf(dt));
+        self.ori = Slerp::slerp(self.ori, ori, (0.2f32).powf(60.0).powf(dt));
 
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
