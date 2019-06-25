@@ -741,6 +741,8 @@ pub struct FigureState<S: Skeleton> {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
     skeleton: S,
+    pos: Vec3<f32>,
+    ori: Vec3<f32>,
 }
 
 impl<S: Skeleton> FigureState<S> {
@@ -751,6 +753,8 @@ impl<S: Skeleton> FigureState<S> {
                 .unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
             skeleton,
+            pos: Vec3::zero(),
+            ori: Vec3::zero(),
         }
     }
 
@@ -761,8 +765,12 @@ impl<S: Skeleton> FigureState<S> {
         ori: Vec3<f32>,
         col: Rgba<f32>,
     ) {
+        // Update interpolate pos
+        self.pos = Lerp::lerp(self.pos, pos, 0.4);
+        self.ori = Slerp::slerp(self.ori, ori, 0.2);
+
         let mat = Mat4::<f32>::identity()
-            * Mat4::translation_3d(pos)
+            * Mat4::translation_3d(self.pos)
             * Mat4::rotation_z(-ori.x.atan2(ori.y))
             * Mat4::scaling_3d(Vec3::from(0.8));
 
