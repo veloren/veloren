@@ -35,12 +35,7 @@ fn main() {
                     .unwrap_or((0, None));
 
                 let loc_color = location
-                    .map(|l| {
-                        (
-                            l.loc.name().bytes().nth(0).unwrap() * 17,
-                            l.loc.name().bytes().nth(1).unwrap() * 17,
-                        )
-                    })
+                    .map(|l| (l.loc_idx as u8 * 17, l.loc_idx as u8 * 13))
                     .unwrap_or((0, 0));
 
                 buf[j * W + i] = u32::from_le_bytes([loc_color.0, loc_color.1, alt, alt]);
