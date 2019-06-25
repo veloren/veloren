@@ -145,18 +145,6 @@ impl<'a> System<'a> for Sys {
             // Movement
             pos.0 += vel.0 * dt.0;
 
-            // Update OnGround component
-            if terrain
-                .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                .map(|vox| !vox.is_empty())
-                .unwrap_or(false)
-                && vel.0.z <= 0.0
-            {
-                on_grounds.insert(entity, OnGround);
-            } else {
-                on_grounds.remove(entity);
-            }
-
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
@@ -170,14 +158,37 @@ impl<'a> System<'a> for Sys {
             // Basic collision with terrain
 
             // Iterate through nearby blocks, prioritise closer ones
-            let near_iter = [0, -1, 1].into_iter()
-                .map(move |i| [0, -1, 1].into_iter()
-                    .map(move |j| [0, 1, -1, 2].into_iter()
-                        .map(move |k| (*i, *j, *k))))
+            let near_iter = [0, -1, 1, -2, 2, 3].into_iter()
+                .map(move |k| [0, -1, 1, -2, 2].into_iter()
+                    .map(move |j| [0, -1, 1, -2, 2].into_iter()
+                        .map(move |i| (*i, *j, *k))))
                 .flatten()
                 .flatten();
 
+                /*
+            let collision_with = |pos: Vec3<f32>, near_iter| {
+                for (i, j, k) in near_iter {
+                    let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
+
+                    let this_aabb = Aabb { min: pos + Vec3::new(-0.3, -0.3, 0.0), max: pos + Vec3::new(0.3, 0.3, 1.7) };
+                    let block_aabb = Aabb { min: block_pos.map(|e| e as f32), max: block_pos.map(|e| e as f32) + 1.0 };
+
+                    if this_aabb.collides_with_aabb(block_aabb) {
+                        return true;
+                    }
+                }
+                false
+            };
+            */
+
+            //let collision_above = collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone());
+            //let collision_below = collision_with(pos.0 - Vec3::unit_z() * 1.01, near_iter.clone());
+
+            on_grounds.remove(entity);
+            pos.0.z -= 0.0001; // To force collision with the floor
+
             // For every nearby block...
+            let mut on_ground = false;
             for (i, j, k) in near_iter {
                 let block_pos = pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
@@ -188,30 +199,38 @@ impl<'a> System<'a> for Sys {
                     .unwrap_or(false)
                 {
                     // ...and calculate bounding boxes for both the player's body and the block.
-                    let this_body_aabb = Aabb { min: pos.0 + Vec3::new(-0.4, -0.4, 1.0), max: pos.0 + Vec3::new(0.4, 0.4, 2.0) };
-                    let other_aabb = Aabb { min: block_pos.map(|e| e as f32), max: block_pos.map(|e| e as f32) + 1.0 };
+                    let this_aabb = Aabb { min: pos.0 + Vec3::new(-0.3, -0.3, 0.0), max: pos.0 + Vec3::new(0.3, 0.3, 1.7) };
+                    let block_aabb = Aabb { min: block_pos.map(|e| e as f32), max: block_pos.map(|e| e as f32) + 1.0 };
 
                     // If the bounding boxes collide, resolve the collision
-                    if this_body_aabb.collides_with_aabb(other_aabb) {
-                        let dir = this_body_aabb.collision_vector_with_aabb(other_aabb);
+                    if this_aabb.collides_with_aabb(block_aabb) {
+                        let dir = this_aabb.collision_vector_with_aabb(block_aabb);
 
                         let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
-                        let resolve_dir = dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
+                        let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
 
-                        pos.0 -= resolve_dir;
-                        vel.0 = vel.0.map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
-                    }
+                        // When the resolution direction is pointing upwards, we must be on the ground
+                        if resolve_dir.z > 0.0 {
+                            on_ground = true;
+                        }
 
-                    // Now, calculate a binding box for the player's feet...
-                    let this_feet_aabb = Aabb { min: pos.0 + Vec3::new(-0.3, -0.3, 0.0), max: pos.0 + Vec3::new(0.3, 0.3, 1.0) };
-
-                    // ...if it collides with the block, snap the player to the top of it...
-                    if this_feet_aabb.collides_with_aabb(other_aabb) {
-                        pos.0.z -= this_feet_aabb.collision_vector_with_aabb(other_aabb).z;
-                        vel.0.z = vel.0.z.max(0.0);
+                        //if resolve_dir.z == 0.0 && !collision_above {
+                        //    pos.0.z += 1.01;
+                        //    break;
+                        //} else {
+                            pos.0 += resolve_dir;
+                            vel.0 = vel.0.map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
+                        //}
                     }
                 }
             }
+
+
+            if on_ground {
+                on_grounds.insert(entity, OnGround);
+            }// else if collision_below && vel.0.z < 0.0 {
+            //    pos.0.z -= 0.5;
+            //}
         }
     }
 }
