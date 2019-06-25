@@ -52,7 +52,7 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample) if cliff_sample.cliffs => {
+                Some(cliff_sample) if cliff_sample.cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
@@ -299,7 +299,8 @@ impl<'a> SamplerMut for BlockGen<'a> {
                                 Some(tree_sample)
                                     if tree_sample.tree_density
                                         > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
-                                        && tree_sample.alt > tree_sample.water_level =>
+                                        && tree_sample.alt > tree_sample.water_level
+                                        && tree_sample.spawn_rate > 0.5 =>
                                 {
                                     let cliff_height = Self::get_cliff_height(
                                         column_gen,

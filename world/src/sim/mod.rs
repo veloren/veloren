@@ -1,7 +1,9 @@
 mod location;
+mod settlement;
 
 // Reexports
 pub use self::location::Location;
+pub use self::settlement::Settlement;
 
 use crate::{
     all::ForestKind,
@@ -49,6 +51,8 @@ pub(crate) struct GenCtx {
 pub struct WorldSim {
     pub seed: u32,
     pub(crate) chunks: Vec<SimChunk>,
+    pub(crate) locations: Vec<Location>,
+
     pub(crate) gen_ctx: GenCtx,
     pub rng: XorShiftRng,
 }
@@ -91,6 +95,7 @@ impl WorldSim {
         let mut this = Self {
             seed,
             chunks,
+            locations: Vec::new(),
             gen_ctx,
             rng: XorShiftRng::from_seed([
                 (seed >> 0) as u8,
@@ -113,7 +118,6 @@ impl WorldSim {
         };
 
         this.seed_elements();
-        this.simulate(0);
 
         this
     }
@@ -126,7 +130,8 @@ impl WorldSim {
         let grid_size = WORLD_SIZE / cell_size;
         let loc_count = 250;
 
-        let mut locations = vec![None; grid_size.product()];
+        let mut loc_grid = vec![None; grid_size.product()];
+        let mut locations = Vec::new();
 
         // Seed the world with some locations
         for _ in 0..loc_count {
@@ -134,13 +139,35 @@ impl WorldSim {
                 self.rng.gen::<usize>() % grid_size.x,
                 self.rng.gen::<usize>() % grid_size.y,
             );
-            let wpos = (cell_pos * cell_size)
+            let wpos = (cell_pos * cell_size + cell_size / 2)
                 .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-                    e as i32 * sz as i32
+                    e as i32 * sz as i32 + sz as i32 / 2
                 });
 
-            locations[cell_pos.y * grid_size.x + cell_pos.x] =
-                Some(Arc::new(Location::generate(wpos, &mut rng)));
+            locations.push(Location::generate(wpos, &mut rng));
+
+            loc_grid[cell_pos.y * grid_size.x + cell_pos.x] = Some(locations.len() - 1);
+        }
+
+        // Find neighbours
+        let mut loc_clone = locations
+            .iter()
+            .map(|l| l.center)
+            .enumerate()
+            .collect::<Vec<_>>();
+        for i in 0..locations.len() {
+            let pos = locations[i].center;
+
+            loc_clone.sort_by_key(|(_, l)| l.distance_squared(pos));
+
+            loc_clone
+                .iter()
+                .skip(1)
+                .take(2)
+                .for_each(|(j, _)| {
+                    locations[i].neighbours.insert(*j);
+                    locations[*j].neighbours.insert(i);
+                });
         }
 
         // Simulate invasion!
@@ -148,13 +175,13 @@ impl WorldSim {
         for _ in 0..invasion_cycles {
             for i in 0..grid_size.x {
                 for j in 0..grid_size.y {
-                    if locations[j * grid_size.x + i].is_none() {
+                    if loc_grid[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
                         let idx = self.rng.gen::<usize>() % 4;
                         let loc = Vec2::new(i as i32 + R_COORDS[idx], j as i32 + R_COORDS[idx + 1])
                             .map(|e| e as usize);
 
-                        locations[j * grid_size.x + i] = locations
+                        loc_grid[j * grid_size.x + i] = loc_grid
                             .get(loc.y * grid_size.x + loc.x)
                             .cloned()
                             .flatten();
@@ -168,6 +195,7 @@ impl WorldSim {
         for i in 0..WORLD_SIZE.x {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
+                let block_pos = Vec2::new(chunk_pos.x * TerrainChunkSize::SIZE.x as i32, chunk_pos.y * TerrainChunkSize::SIZE.y as i32);
                 let cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
                 // Find the distance to each region
@@ -188,43 +216,28 @@ impl WorldSim {
                 near.sort_by(|a, b| a.dist.partial_cmp(&b.dist).unwrap());
 
                 let nearest_cell_pos = near[0].chunk_pos.map(|e| e as usize) / cell_size;
-                self.get_mut(chunk_pos).unwrap().location = locations
+                self.get_mut(chunk_pos).unwrap().location = loc_grid
                     .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
                     .cloned()
                     .unwrap_or(None)
-                    .map(|loc| LocationInfo { loc, near });
-            }
-        }
+                    .map(|loc_idx| LocationInfo { loc_idx, near });
 
-        self.rng = rng;
-    }
-
-    pub fn simulate(&mut self, cycles: usize) {
-        let mut rng = self.rng.clone();
-
-        for _ in 0..cycles {
-            for i in 0..WORLD_SIZE.x as i32 {
-                for j in 0..WORLD_SIZE.y as i32 {
-                    let pos = Vec2::new(i, j);
-
-                    let location = self.get(pos).unwrap().location.clone();
-
-                    let rpos =
-                        Vec2::new(rng.gen::<i32>(), rng.gen::<i32>()).map(|e| e.abs() % 3 - 1);
-
-                    if let Some(other) = &mut self.get_mut(pos + rpos) {
-                        if other.location.is_none()
-                            && rng.gen::<f32>() > other.chaos * 1.5
-                            && other.alt > CONFIG.sea_level
-                        {
-                            other.location = location;
-                        }
-                    }
+                let town_size = 200;
+                let in_town = self
+                    .get(chunk_pos)
+                    .unwrap()
+                    .location
+                    .as_ref()
+                    .map(|l| locations[l.loc_idx].center.distance_squared(block_pos) < town_size * town_size)
+                    .unwrap_or(false);
+                if in_town {
+                    self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
                 }
             }
         }
 
         self.rng = rng;
+        self.locations = locations;
     }
 
     pub fn get(&self, chunk_pos: Vec2<i32>) -> Option<&SimChunk> {
@@ -312,6 +325,7 @@ pub struct SimChunk {
     pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
+    pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
 }
 
@@ -325,7 +339,7 @@ pub struct RegionInfo {
 
 #[derive(Clone)]
 pub struct LocationInfo {
-    pub loc: Arc<Location>,
+    pub loc_idx: usize,
     pub near: Vec<RegionInfo>,
 }
 
@@ -437,6 +451,7 @@ impl SimChunk {
                     ForestKind::SnowPine
                 }
             },
+            spawn_rate: 1.0,
             location: None,
         }
     }
@@ -454,8 +469,14 @@ impl SimChunk {
             .max(CONFIG.sea_level + 2.0)
     }
 
-    pub fn get_name(&self) -> Option<String> {
-        self.location.as_ref().map(|l| l.loc.name().to_string())
+    pub fn get_name(&self, world: &WorldSim) -> Option<String> {
+        if let Some(loc) = &self.location {
+            Some(world.locations[loc.loc_idx]
+                .name()
+                .to_string())
+        } else {
+            None
+        }
     }
 
     pub fn get_biome(&self) -> BiomeKind {

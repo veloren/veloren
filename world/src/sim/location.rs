@@ -1,27 +1,25 @@
 use rand::Rng;
 use vek::*;
-
-#[derive(Copy, Clone, Debug)]
-pub enum LocationKind {
-    Settlement,
-    Wildnerness,
-}
+use fxhash::FxHashSet;
+use super::Settlement;
 
 #[derive(Clone, Debug)]
 pub struct Location {
-    name: String,
-    center: Vec2<i32>,
-    kind: LocationKind,
-    kingdom: Option<Kingdom>,
+    pub(crate) name: String,
+    pub(crate) center: Vec2<i32>,
+    pub(crate) kingdom: Option<Kingdom>,
+    pub(crate) neighbours: FxHashSet<usize>,
+    pub(crate) settlement: Settlement,
 }
 
 impl Location {
-    pub fn generate<R: Rng>(center: Vec2<i32>, rng: &mut R) -> Self {
+    pub fn generate(center: Vec2<i32>, rng: &mut impl Rng) -> Self {
         Self {
             name: generate_name(rng),
             center,
-            kind: LocationKind::Wildnerness,
             kingdom: None,
+            neighbours: FxHashSet::default(),
+            settlement: Settlement::generate(rng),
         }
     }
 

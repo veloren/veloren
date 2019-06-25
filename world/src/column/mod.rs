@@ -50,6 +50,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
+        let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
 
         let sim_chunk = sim.get(chunk_pos)?;
 
@@ -135,25 +136,32 @@ impl<'a> Sampler for ColumnGen<'a> {
         );
 
         // Work out if we're on a path or near a town
-        let near_0 = sim_chunk
-            .location
-            .as_ref()
-            .map(|l| l.near[0].block_pos)
-            .unwrap_or(Vec2::zero())
-            .map(|e| e as f32);
-        let near_1 = sim_chunk
-            .location
-            .as_ref()
-            .map(|l| l.near[1].block_pos)
-            .unwrap_or(Vec2::zero())
-            .map(|e| e as f32);
+        let dist_to_path = match &sim_chunk.location {
+            Some(loc) => {
+                let this_loc = &sim.locations[loc.loc_idx];
+                this_loc.neighbours
+                    .iter()
+                    .map(|j| {
+                        let other_loc = &sim.locations[*j];
 
-        let dist_to_path = (0.0 + (near_1.y - near_0.y) * wposf_turb.x as f32
-            - (near_1.x - near_0.x) * wposf_turb.y as f32
-            + near_1.x * near_0.y
-            - near_0.x * near_1.y)
-            .abs()
-            .div(near_0.distance(near_1));
+                        // Find the two location centers
+                        let near_0 = this_loc.center.map(|e| e as f32);
+                        let near_1 = other_loc.center.map(|e| e as f32);
+
+                        // Calculate distance to path between them
+                        (0.0 + (near_1.y - near_0.y) * wposf_turb.x as f32
+                            - (near_1.x - near_0.x) * wposf_turb.y as f32
+                            + near_1.x * near_0.y
+                            - near_0.x * near_1.y)
+                            .abs()
+                            .div(near_0.distance(near_1))
+                    })
+                    .filter(|x| x.is_finite())
+                    .min_by(|a, b| a.partial_cmp(b).unwrap())
+                    .unwrap_or(f32::INFINITY)
+            },
+            None => f32::INFINITY,
+        };
 
         let on_path = dist_to_path < 5.0; // || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
 
@@ -162,6 +170,23 @@ impl<'a> Sampler for ColumnGen<'a> {
         } else {
             (alt, ground)
         };
+
+        // Cities
+        let building = match &sim_chunk.location {
+            Some(loc) => {
+                let loc = &sim.locations[loc.loc_idx];
+                let rpos = wposf.map2(loc.center, |a, b| a as f32 - b as f32) / 256.0 + 0.5;
+
+                if rpos.map(|e| e >= 0.0 && e < 1.0).reduce_and() {
+                    (loc.settlement.get_at(rpos).map(|b| b.seed % 20 + 10).unwrap_or(0)) as f32
+                } else {
+                    0.0
+                }
+            },
+            None => 0.0,
+        };
+
+        let alt = alt + building;
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
@@ -228,6 +253,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             cliff_hill,
             close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
+            spawn_rate,
             location: sim_chunk.location.as_ref(),
         })
     }
@@ -251,5 +277,6 @@ pub struct ColumnSample<'a> {
     pub cliff_hill: f32,
     pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
+    pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
 }
