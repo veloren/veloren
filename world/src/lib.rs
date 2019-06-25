@@ -74,7 +74,7 @@ impl World {
             None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
         };
 
-        let meta = TerrainChunkMeta::new(sim_chunk.get_name(), sim_chunk.get_biome());
+        let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
 
         let mut chunk = TerrainChunk::new(base_z - 8, stone, air, meta);
 
