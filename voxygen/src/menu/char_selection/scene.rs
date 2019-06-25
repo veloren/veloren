@@ -118,6 +118,7 @@ impl Scene {
             Vec3::zero(),
             -Vec3::unit_y(),
             Rgba::broadcast(1.0),
+            1.0 / 60.0, // TODO: Use actual deltatime here?
         );
     }
 

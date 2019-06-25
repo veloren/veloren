@@ -151,7 +151,7 @@ impl PlayState for SessionState {
             self.controller.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
 
             // Perform an in-game tick.
-            if let Err(err) = self.tick(clock.get_last_delta()) {
+            if let Err(err) = self.tick(clock.get_avg_delta()) {
                 error!("Failed to tick the scene: {:?}", err);
                 return PlayStateResult::Pop;
             }
