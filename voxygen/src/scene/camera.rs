@@ -1,9 +1,9 @@
 use client::Client;
-use common::vol::ReadVol;
+use common::vol::{ReadVol, Vox};
 use std::f32::consts::PI;
 use vek::*;
 
-const NEAR_PLANE: f32 = 0.1;
+const NEAR_PLANE: f32 = 0.01;
 const FAR_PLANE: f32 = 10000.0;
 
 const INTERP_TIME: f32 = 0.1;
@@ -40,13 +40,13 @@ impl Camera {
     pub fn compute_dependents(&self, client: &Client) -> (Mat4<f32>, Mat4<f32>, Vec3<f32>) {
         let dist = {
             let (start, end) = (
-                self.focus,
                 self.focus
                     + (Vec3::new(
                         -f32::sin(self.ori.x) * f32::cos(self.ori.y),
                         -f32::cos(self.ori.x) * f32::cos(self.ori.y),
                         f32::sin(self.ori.y),
                     ) * self.dist),
+                self.focus,
             );
 
             match client
@@ -55,9 +55,10 @@ impl Camera {
                 .ray(start, end)
                 .ignore_error()
                 .max_iter(500)
+                .until(|b| b.is_empty())
                 .cast()
             {
-                (d, Ok(Some(_))) => f32::min(d - 1.0, self.dist),
+                (d, Ok(Some(_))) => f32::min(self.dist - d - 0.03, self.dist),
                 (_, Ok(None)) => self.dist,
                 (_, Err(_)) => self.dist,
             }

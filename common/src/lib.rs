@@ -1,4 +1,4 @@
-#![type_length_limit="1652471"]
+#![type_length_limit = "1652471"]
 #![feature(
     euclidean_division,
     duration_float,
