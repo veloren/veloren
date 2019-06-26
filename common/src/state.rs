@@ -38,7 +38,7 @@ pub struct DeltaTime(pub f32);
 /// too fast, we'd skip important physics events like collisions. This constant determines the
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
-const MAX_DELTA_TIME: f32 = 0.03;
+const MAX_DELTA_TIME: f32 = 0.1;
 
 pub struct Changes {
     pub new_chunks: HashSet<Vec2<i32>>,
