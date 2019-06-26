@@ -237,7 +237,7 @@ impl<'a> System<'a> for Sys {
                 if resolve_dir.z == 0.0
                     && !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                 {
-                    pos.0.z += 1.0;
+                    pos.0.z = (pos.0.z + 1.0).ceil();
                     on_ground = true;
                     break;
                 } else {
