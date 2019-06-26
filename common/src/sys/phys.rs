@@ -221,7 +221,7 @@ impl<'a> System<'a> for Sys {
                         .get(*block_pos)
                         .map(|vox| !vox.is_empty())
                         .unwrap_or(false))
-                    .max_by_key(|(_, block_aabb)| ((player_aabb.collision_vector_with_aabb(*block_aabb) * Vec3::new(1.0, 1.0, 10.0)).map(|e| e.abs()).reduce_partial_min() * 200.0) as i32)
+                    .max_by_key(|(_, block_aabb)| ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0).map(|e| e.abs()).reduce_partial_min() * 1000.0) as i32)
                     .expect("Collision detected, but no colliding blocks found!");
 
                 let dir = player_aabb.collision_vector_with_aabb(block_aabb);
