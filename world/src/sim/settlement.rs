@@ -27,25 +27,16 @@ pub struct Building {
 enum Lot {
     None,
     One(Building),
-    Many {
-        split_x: bool,
-        lots: Vec<Lot>,
-    },
+    Many { split_x: bool, lots: Vec<Lot> },
 }
 
 impl Lot {
     pub fn generate(deep: usize, depth: f32, aspect: f32, rng: &mut impl Rng) -> Self {
-        let depth = if deep < 3 {
-            8.0
-        } else {
-            depth
-        };
+        let depth = if deep < 3 { 8.0 } else { depth };
 
         if (depth < 1.0 || deep > 6) && !(deep < 3 || deep % 2 == 1) {
             if rng.gen::<f32>() < 0.5 {
-                Lot::One(Building {
-                    seed: rng.gen(),
-                })
+                Lot::One(Building { seed: rng.gen() })
             } else {
                 Lot::None
             }
@@ -76,11 +67,13 @@ impl Lot {
     pub fn get_at(&self, pos: Vec2<f32>) -> Option<&Building> {
         match self {
             Lot::None => None,
-            Lot::One(building) => if pos.map(|e| e > 0.1 && e < 0.9).reduce_and() {
-                Some(building)
-            } else {
-                None
-            },
+            Lot::One(building) => {
+                if pos.map(|e| e > 0.1 && e < 0.9).reduce_and() {
+                    Some(building)
+                } else {
+                    None
+                }
+            }
             Lot::Many { split_x, lots } => {
                 let split_dim = if *split_x { pos.x } else { pos.y };
                 let idx = (split_dim * lots.len() as f32).floor() as usize;
@@ -89,7 +82,7 @@ impl Lot {
                 } else {
                     Vec2::new(pos.x, (pos.y * lots.len() as f32).fract())
                 })
-            },
+            }
         }
     }
 }

@@ -1,15 +1,14 @@
+use noise::{NoiseFn, Seedable, SuperSimplex};
+use rand::thread_rng;
 use std::ops::{Add, Mul, Sub};
 use vek::*;
 use veloren_world::sim::Settlement;
-use rand::thread_rng;
-use noise::{Seedable, NoiseFn, SuperSimplex};
 
 const W: usize = 640;
 const H: usize = 640;
 
 fn main() {
-    let mut win =
-        minifb::Window::new("Turb", W, H, minifb::WindowOptions::default()).unwrap();
+    let mut win = minifb::Window::new("Turb", W, H, minifb::WindowOptions::default()).unwrap();
 
     let nz_x = SuperSimplex::new().set_seed(0);
     let nz_y = SuperSimplex::new().set_seed(1);
@@ -24,13 +23,9 @@ fn main() {
 
                 let pos = pos * 10.0;
 
-                let pos = (0..10)
-                    .fold(pos, |pos, _| pos.map(|e| e.powf(3.0) - 1.0));
+                let pos = (0..10).fold(pos, |pos, _| pos.map(|e| e.powf(3.0) - 1.0));
 
-                let val = if pos
-                    .map(|e| e.abs() < 0.5)
-                    .reduce_and()
-                {
+                let val = if pos.map(|e| e.abs() < 0.5).reduce_and() {
                     1.0f32
                 } else {
                     0.0
