@@ -198,7 +198,8 @@ impl<'a> System<'a> for Sys {
             pos.0.z -= 0.0001; // To force collision with the floor
 
             let mut on_ground = false;
-            while collision_with(pos.0, near_iter.clone()) {
+            let mut attempts = 0;
+            while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
                 let player_aabb = Aabb {
                     min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
                     max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
@@ -245,6 +246,8 @@ impl<'a> System<'a> for Sys {
                         .0
                         .map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
                 }
+
+                attempts += 1;
             }
 
             if on_ground {
