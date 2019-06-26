@@ -757,8 +757,8 @@ impl<S: Skeleton> FigureState<S> {
         dt: f32,
     ) {
         // Update interpolate pos
-        self.pos = Lerp::lerp(self.pos, pos, (0.4f32).powf(60.0).powf(dt));
-        self.ori = Slerp::slerp(self.ori, ori, (0.2f32).powf(60.0).powf(dt));
+        self.pos = Lerp::lerp(self.pos, pos, (0.2f32).powf(dt + 0.75));
+        self.ori = Slerp::slerp(self.ori, ori, (0.1f32).powf(dt + 0.75));
 
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
