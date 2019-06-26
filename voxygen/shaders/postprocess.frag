@@ -164,6 +164,7 @@ void main() {
 	vec2 uv = (f_pos + 1.0) * 0.5;
 
 	vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+	//vec4 fxaa_color = texture(src_color, uv);
 
 	vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
 	hsva_color.y *= 1.3;
