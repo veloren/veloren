@@ -1,3 +1,4 @@
+#![type_length_limit="1615607"]
 #![feature(
     euclidean_division,
     duration_float,
