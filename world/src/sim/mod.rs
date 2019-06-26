@@ -160,14 +160,10 @@ impl WorldSim {
 
             loc_clone.sort_by_key(|(_, l)| l.distance_squared(pos));
 
-            loc_clone
-                .iter()
-                .skip(1)
-                .take(2)
-                .for_each(|(j, _)| {
-                    locations[i].neighbours.insert(*j);
-                    locations[*j].neighbours.insert(i);
-                });
+            loc_clone.iter().skip(1).take(2).for_each(|(j, _)| {
+                locations[i].neighbours.insert(*j);
+                locations[*j].neighbours.insert(i);
+            });
         }
 
         // Simulate invasion!
@@ -181,10 +177,8 @@ impl WorldSim {
                         let loc = Vec2::new(i as i32 + R_COORDS[idx], j as i32 + R_COORDS[idx + 1])
                             .map(|e| e as usize);
 
-                        loc_grid[j * grid_size.x + i] = loc_grid
-                            .get(loc.y * grid_size.x + loc.x)
-                            .cloned()
-                            .flatten();
+                        loc_grid[j * grid_size.x + i] =
+                            loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
                     }
                 }
             }
@@ -195,7 +189,10 @@ impl WorldSim {
         for i in 0..WORLD_SIZE.x {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
-                let block_pos = Vec2::new(chunk_pos.x * TerrainChunkSize::SIZE.x as i32, chunk_pos.y * TerrainChunkSize::SIZE.y as i32);
+                let block_pos = Vec2::new(
+                    chunk_pos.x * TerrainChunkSize::SIZE.x as i32,
+                    chunk_pos.y * TerrainChunkSize::SIZE.y as i32,
+                );
                 let cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
                 // Find the distance to each region
@@ -228,7 +225,10 @@ impl WorldSim {
                     .unwrap()
                     .location
                     .as_ref()
-                    .map(|l| locations[l.loc_idx].center.distance_squared(block_pos) < town_size * town_size)
+                    .map(|l| {
+                        locations[l.loc_idx].center.distance_squared(block_pos)
+                            < town_size * town_size
+                    })
                     .unwrap_or(false);
                 if in_town {
                     self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
@@ -471,9 +471,7 @@ impl SimChunk {
 
     pub fn get_name(&self, world: &WorldSim) -> Option<String> {
         if let Some(loc) = &self.location {
-            Some(world.locations[loc.loc_idx]
-                .name()
-                .to_string())
+            Some(world.locations[loc.loc_idx].name().to_string())
         } else {
             None
         }

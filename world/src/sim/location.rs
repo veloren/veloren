@@ -1,7 +1,7 @@
+use super::Settlement;
+use fxhash::FxHashSet;
 use rand::Rng;
 use vek::*;
-use fxhash::FxHashSet;
-use super::Settlement;
 
 #[derive(Clone, Debug)]
 pub struct Location {
