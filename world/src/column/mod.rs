@@ -164,7 +164,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             None => f32::INFINITY,
         };
 
-        let on_path = dist_to_path < 5.0; // || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
+        let on_path = dist_to_path < 5.0 && !sim_chunk.near_cliffs; // || near_0.distance(wposf_turb.map(|e| e as f32)) < 150.0;
 
         let (alt, ground) = if on_path {
             (alt - 1.0, dirt)
@@ -173,6 +173,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         };
 
         // Cities
+        // TODO: In a later MR
+        /*
         let building = match &sim_chunk.location {
             Some(loc) => {
                 let loc = &sim.locations[loc.loc_idx];
@@ -191,6 +193,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         };
 
         let alt = alt + building;
+        */
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
