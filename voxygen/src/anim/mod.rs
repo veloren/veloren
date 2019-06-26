@@ -31,7 +31,7 @@ impl Bone {
     /// Change the current bone to be more like `target`.
     fn interpolate(&mut self, target: &Bone, dt: f32) {
         // TODO: Make configurable.
-        let factor = dbg!((15.0 * dt).min(1.0));
+        let factor = (15.0 * dt).min(1.0);
         self.offset += (target.offset - self.offset) * factor;
         self.ori = vek::ops::Slerp::slerp(self.ori, target.ori, factor);
         self.scale += (target.scale - self.scale) * factor;
