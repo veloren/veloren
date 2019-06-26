@@ -5,6 +5,9 @@ use conrod_core::{
 };
 
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use client::{self, Client};
+
+use std::{cell::RefCell, rc::Rc};
 
 widget_ids! {
     struct Ids {
@@ -19,6 +22,8 @@ widget_ids! {
 pub struct MiniMap<'a> {
     show: &'a Show,
 
+    client: &'a Client,
+
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
@@ -27,9 +32,10 @@ pub struct MiniMap<'a> {
 }
 
 impl<'a> MiniMap<'a> {
-    pub fn new(show: &'a Show, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             show,
+            client,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -103,12 +109,18 @@ impl<'a> Widget for MiniMap<'a> {
         }
 
         // Title
-        // TODO: Make it display the actual location.
-        Text::new("Uncanny Valley")
-            .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
-            .font_size(14)
-            .color(TEXT_COLOR)
-            .set(state.ids.mmap_location, ui);
+        match self.client.current_chunk() {
+            Some(chunk) => Text::new(chunk.meta().name())
+                .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.mmap_location, ui),
+            None => Text::new(" ")
+                .mid_top_with_margin_on(state.ids.mmap_frame, 3.0)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.mmap_location, ui),
+        }
 
         None
     }

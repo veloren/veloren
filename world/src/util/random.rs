@@ -18,24 +18,20 @@ impl Sampler for RandomField {
     fn get(&self, pos: Self::Index) -> Self::Sample {
         let pos = pos.map(|e| (e * 13 + (1 << 31)) as u32);
 
-        let next = self.seed.wrapping_mul(0x168E3D1F).wrapping_add(0xDEADBEAD);
-        let next = next
-            .rotate_left(13)
-            .wrapping_mul(133227)
-            .wrapping_add(pos.x);
-        let next = next.rotate_left(13).wrapping_mul(318912) ^ 0x42133742;
-        let next = next
-            .rotate_left(13)
-            .wrapping_mul(938219)
-            .wrapping_add(pos.y);
-        let next = next.rotate_left(13).wrapping_mul(318912) ^ 0x23341753;
-        let next = next
-            .rotate_left(13)
-            .wrapping_mul(938219)
-            .wrapping_add(pos.z);
-        let next = next.rotate_left(13).wrapping_mul(313322) ^ 0xDEADBEEF;
-        let next = next.rotate_left(13).wrapping_mul(929009) ^ 0xFF329DE3;
-        let next = next.rotate_left(13).wrapping_mul(422671) ^ 0x42892942;
-        next
+        let mut a = self.seed;
+        a = (a ^ 61) ^ (a >> 16);
+        a = a + (a << 3);
+        a = a ^ pos.x;
+        a = a ^ (a >> 4);
+        a = a * 0x27d4eb2d;
+        a = a ^ (a >> 15);
+        a = a ^ pos.y;
+        a = (a ^ 61) ^ (a >> 16);
+        a = a + (a << 3);
+        a = a ^ (a >> 4);
+        a = a ^ pos.z;
+        a = a * 0x27d4eb2d;
+        a = a ^ (a >> 15);
+        a
     }
 }
