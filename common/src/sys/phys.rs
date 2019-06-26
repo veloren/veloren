@@ -142,9 +142,6 @@ impl<'a> System<'a> for Sys {
                 ori.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
             }
 
-            // Movement
-            pos.0 += vel.0 * dt.0;
-
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
@@ -198,77 +195,85 @@ impl<'a> System<'a> for Sys {
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
 
-            // While the player is colliding with the terrain...
-            while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
-                // Calculate the player's AABB
-                let player_aabb = Aabb {
-                    min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
-                    max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
-                };
+            // Don't jump too far at once
+            let increments = ((vel.0 * dt.0).map(|e| e.abs()).reduce_partial_max() / 0.3)
+                .ceil()
+                .max(1.0);
+            for _ in 0..increments as usize {
+                pos.0 += vel.0 * dt.0 / increments;
 
-                // Determine the block that we are colliding with most (based on minimum collision axis)
-                let (block_pos, block_aabb) = near_iter
-                    .clone()
-                    // Calculate the block's position in world space
-                    .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                    // Calculate the AABB of the block
-                    .map(|block_pos| {
-                        (
-                            block_pos,
-                            Aabb {
-                                min: block_pos.map(|e| e as f32),
-                                max: block_pos.map(|e| e as f32) + 1.0,
-                            },
-                        )
-                    })
-                    // Determine whether the block's AABB collides with the player's AABB
-                    .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
-                    // Make sure the block is actually solid
-                    .filter(|(block_pos, _)| {
-                        terrain
-                            .get(*block_pos)
-                            .map(|vox| !vox.is_empty())
-                            .unwrap_or(false)
-                    })
-                    // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                    .max_by_key(|(_, block_aabb)| {
-                        ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
-                            .map(|e| e.abs())
-                            .reduce_partial_min()
-                            * 1000.0) as i32
-                    })
-                    .expect("Collision detected, but no colliding blocks found!");
+                // While the player is colliding with the terrain...
+                while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
+                    // Calculate the player's AABB
+                    let player_aabb = Aabb {
+                        min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
+                        max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
+                    };
 
-                // Find the intrusion vector of the collision
-                let dir = player_aabb.collision_vector_with_aabb(block_aabb);
+                    // Determine the block that we are colliding with most (based on minimum collision axis)
+                    let (block_pos, block_aabb) = near_iter
+                        .clone()
+                        // Calculate the block's position in world space
+                        .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
+                        // Calculate the AABB of the block
+                        .map(|block_pos| {
+                            (
+                                block_pos,
+                                Aabb {
+                                    min: block_pos.map(|e| e as f32),
+                                    max: block_pos.map(|e| e as f32) + 1.0,
+                                },
+                            )
+                        })
+                        // Determine whether the block's AABB collides with the player's AABB
+                        .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
+                        // Make sure the block is actually solid
+                        .filter(|(block_pos, _)| {
+                            terrain
+                                .get(*block_pos)
+                                .map(|vox| !vox.is_empty())
+                                .unwrap_or(false)
+                        })
+                        // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
+                        .max_by_key(|(_, block_aabb)| {
+                            ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
+                                .map(|e| e.abs())
+                                .reduce_partial_min()
+                                * 1000.0) as i32
+                        })
+                        .expect("Collision detected, but no colliding blocks found!");
 
-                // Determine an appropriate resolution vector (i.e: the minimum distance needed to push out of the block)
-                let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
-                let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
+                    // Find the intrusion vector of the collision
+                    let dir = player_aabb.collision_vector_with_aabb(block_aabb);
 
-                // When the resolution direction is pointing upwards, we must be on the ground
-                if resolve_dir.z > 0.0 {
-                    on_ground = true;
+                    // Determine an appropriate resolution vector (i.e: the minimum distance needed to push out of the block)
+                    let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
+                    let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
+
+                    // When the resolution direction is pointing upwards, we must be on the ground
+                    if resolve_dir.z > 0.0 {
+                        on_ground = true;
+                    }
+
+                    // When the resolution direction is non-vertical, we must be colliding with a wall
+                    // If the space above is free...
+                    if resolve_dir.z == 0.0
+                        && !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
+                    {
+                        // ...block-hop!
+                        pos.0.z = (pos.0.z + 1.0).ceil();
+                        on_ground = true;
+                        break;
+                    } else {
+                        // Resolve the collision normally
+                        pos.0 += resolve_dir;
+                        vel.0 = vel
+                            .0
+                            .map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
+                    }
+
+                    attempts += 1;
                 }
-
-                // When the resolution direction is non-vertical, we must be colliding with a wall
-                // If the space above is free...
-                if resolve_dir.z == 0.0
-                    && !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
-                {
-                    // ...block-hop!
-                    pos.0.z = (pos.0.z + 1.0).ceil();
-                    on_ground = true;
-                    break;
-                } else {
-                    // Resolve the collision normally
-                    pos.0 += resolve_dir;
-                    vel.0 = vel
-                        .0
-                        .map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
-                }
-
-                attempts += 1;
             }
 
             if on_ground {
