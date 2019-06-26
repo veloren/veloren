@@ -579,10 +579,7 @@ impl FigureMgr {
                             }
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
+                        state.skeleton.interpolate(&target_skeleton, dt);
                         state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::Quadruped(_) => {
@@ -611,10 +608,7 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
+                        state.skeleton.interpolate(&target_skeleton, dt);
                         state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::QuadrupedMedium(_) => {
@@ -650,10 +644,7 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
+                        state.skeleton.interpolate(&target_skeleton, dt);
                         state.update(renderer, pos.0, ori.0, col, dt);
                     }
                 },
