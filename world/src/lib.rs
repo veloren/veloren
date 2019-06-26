@@ -1,10 +1,10 @@
-#![feature(euclidean_division, bind_by_move_pattern_guards)]
+#![feature(euclidean_division, bind_by_move_pattern_guards, option_flattening)]
 
 mod all;
 mod block;
 mod column;
 pub mod config;
-mod sim;
+pub mod sim;
 pub mod util;
 
 // Reexports
@@ -62,15 +62,21 @@ impl World {
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
         let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
-        let base_z = match self.sim.get_interpolated(
-            chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
-            |chunk| chunk.get_base_z(),
-        ) {
-            Some(base_z) => base_z as i32,
+        let (base_z, sim_chunk) = match self
+            .sim
+            .get_interpolated(
+                chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
+                |chunk| chunk.get_base_z(),
+            )
+            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
+        {
+            Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
         };
 
-        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, TerrainChunkMeta::void());
+        let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
+
+        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, meta);
 
         let mut sampler = self.sample_blocks();
 
