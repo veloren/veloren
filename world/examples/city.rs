@@ -1,7 +1,7 @@
+use rand::thread_rng;
 use std::ops::{Add, Mul, Sub};
 use vek::*;
 use veloren_world::sim::Settlement;
-use rand::thread_rng;
 
 const W: usize = 640;
 const H: usize = 480;
@@ -21,7 +21,12 @@ fn main() {
 
                 let seed = settlement.get_at(pos).map(|b| b.seed).unwrap_or(0);
 
-                buf[j * W + i] = u32::from_le_bytes([(seed >> 0) as u8, (seed >> 8) as u8, (seed >> 16) as u8, (seed >> 24) as u8]);
+                buf[j * W + i] = u32::from_le_bytes([
+                    (seed >> 0) as u8,
+                    (seed >> 8) as u8,
+                    (seed >> 16) as u8,
+                    (seed >> 24) as u8,
+                ]);
             }
         }
 

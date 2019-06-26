@@ -139,7 +139,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let dist_to_path = match &sim_chunk.location {
             Some(loc) => {
                 let this_loc = &sim.locations[loc.loc_idx];
-                this_loc.neighbours
+                this_loc
+                    .neighbours
                     .iter()
                     .map(|j| {
                         let other_loc = &sim.locations[*j];
@@ -159,7 +160,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     .filter(|x| x.is_finite())
                     .min_by(|a, b| a.partial_cmp(b).unwrap())
                     .unwrap_or(f32::INFINITY)
-            },
+            }
             None => f32::INFINITY,
         };
 
@@ -178,11 +179,14 @@ impl<'a> Sampler for ColumnGen<'a> {
                 let rpos = wposf.map2(loc.center, |a, b| a as f32 - b as f32) / 256.0 + 0.5;
 
                 if rpos.map(|e| e >= 0.0 && e < 1.0).reduce_and() {
-                    (loc.settlement.get_at(rpos).map(|b| b.seed % 20 + 10).unwrap_or(0)) as f32
+                    (loc.settlement
+                        .get_at(rpos)
+                        .map(|b| b.seed % 20 + 10)
+                        .unwrap_or(0)) as f32
                 } else {
                     0.0
                 }
-            },
+            }
             None => 0.0,
         };
 
