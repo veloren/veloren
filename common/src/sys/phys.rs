@@ -159,11 +159,9 @@ impl<'a> System<'a> for Sys {
             let player_rad = 0.3; // half-width of the player's AABB
             let player_height = 1.7;
 
-            let dist = 2;
+            let dist = 2; // distance to probe the terrain for collisions
             let near_iter = (-dist..=dist)
-                .map(move |i| (-dist..=dist)
-                    .map(move |j| (-dist..=dist)
-                        .map(move |k| (i, j, k))))
+                .map(move |i| (-dist..=dist).map(move |j| (-dist..=dist).map(move |k| (i, j, k))))
                 .flatten()
                 .flatten();
 
@@ -194,38 +192,57 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
-            on_grounds.remove(entity);
+            on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
             pos.0.z -= 0.0001; // To force collision with the floor
 
             let mut on_ground = false;
-            let mut attempts = 0;
+            let mut attempts = 0; // Don't loop infinitely here
+
+            // While the player is colliding with the terrain...
             while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
+                // Calculate the player's AABB
                 let player_aabb = Aabb {
                     min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
                     max: pos.0 + Vec3::new(player_rad, player_rad, player_height),
                 };
 
+                // Determine the block that we are colliding with most (based on minimum collision axis)
                 let (block_pos, block_aabb) = near_iter
                     .clone()
+                    // Calculate the block's position in world space
                     .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
+                    // Calculate the AABB of the block
                     .map(|block_pos| {
-                        let block_aabb = Aabb {
-                            min: block_pos.map(|e| e as f32),
-                            max: block_pos.map(|e| e as f32) + 1.0,
-                        };
-
-                        (block_pos, block_aabb)
+                        (
+                            block_pos,
+                            Aabb {
+                                min: block_pos.map(|e| e as f32),
+                                max: block_pos.map(|e| e as f32) + 1.0,
+                            },
+                        )
                     })
+                    // Determine whether the block's AABB collides with the player's AABB
                     .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
-                    .filter(|(block_pos, _)| terrain
-                        .get(*block_pos)
-                        .map(|vox| !vox.is_empty())
-                        .unwrap_or(false))
-                    .max_by_key(|(_, block_aabb)| ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0).map(|e| e.abs()).reduce_partial_min() * 1000.0) as i32)
+                    // Make sure the block is actually solid
+                    .filter(|(block_pos, _)| {
+                        terrain
+                            .get(*block_pos)
+                            .map(|vox| !vox.is_empty())
+                            .unwrap_or(false)
+                    })
+                    // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
+                    .max_by_key(|(_, block_aabb)| {
+                        ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
+                            .map(|e| e.abs())
+                            .reduce_partial_min()
+                            * 1000.0) as i32
+                    })
                     .expect("Collision detected, but no colliding blocks found!");
 
+                // Find the intrusion vector of the collision
                 let dir = player_aabb.collision_vector_with_aabb(block_aabb);
 
+                // Determine an appropriate resolution vector (i.e: the minimum distance needed to push out of the block)
                 let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
                 let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
 
@@ -234,13 +251,17 @@ impl<'a> System<'a> for Sys {
                     on_ground = true;
                 }
 
+                // When the resolution direction is non-vertical, we must be colliding with a wall
+                // If the space above is free...
                 if resolve_dir.z == 0.0
                     && !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                 {
+                    // ...block-hop!
                     pos.0.z = (pos.0.z + 1.0).ceil();
                     on_ground = true;
                     break;
                 } else {
+                    // Resolve the collision normally
                     pos.0 += resolve_dir;
                     vel.0 = vel
                         .0
@@ -252,6 +273,7 @@ impl<'a> System<'a> for Sys {
 
             if on_ground {
                 on_grounds.insert(entity, OnGround);
+            // If we're not on the ground but the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.0, near_iter.clone())
                 && vel.0.z < 0.0
                 && vel.0.z > -1.0
