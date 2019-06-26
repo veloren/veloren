@@ -474,10 +474,9 @@ impl FigureMgr {
         let time = client.state().get_time();
         let ecs = client.state().ecs();
         let view_distance = client.view_distance().unwrap_or(1);
+        let dt = client.state().get_delta_time();
         // Get player position.
-        let player_pos = client
-            .state()
-            .ecs()
+        let player_pos = ecs
             .read_storage::<comp::Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
@@ -580,11 +579,8 @@ impl FigureMgr {
                             }
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.skeleton.interpolate(&target_skeleton, dt);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::Quadruped(_) => {
                         let state = self.quadruped_states.entry(entity).or_insert_with(|| {
@@ -612,11 +608,8 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.skeleton.interpolate(&target_skeleton, dt);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                     Body::QuadrupedMedium(_) => {
                         let state =
@@ -651,11 +644,8 @@ impl FigureMgr {
                             _ => state.skeleton_mut().clone(),
                         };
 
-                        state.skeleton.interpolate(
-                            &target_skeleton,
-                            client.state().ecs().read_resource::<DeltaTime>().0,
-                        );
-                        state.update(renderer, pos.0, ori.0, col);
+                        state.skeleton.interpolate(&target_skeleton, dt);
+                        state.update(renderer, pos.0, ori.0, col, dt);
                     }
                 },
                 // TODO: Non-character actors
@@ -741,6 +731,8 @@ pub struct FigureState<S: Skeleton> {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
     skeleton: S,
+    pos: Vec3<f32>,
+    ori: Vec3<f32>,
 }
 
 impl<S: Skeleton> FigureState<S> {
@@ -751,6 +743,8 @@ impl<S: Skeleton> FigureState<S> {
                 .unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
             skeleton,
+            pos: Vec3::zero(),
+            ori: Vec3::zero(),
         }
     }
 
@@ -760,9 +754,14 @@ impl<S: Skeleton> FigureState<S> {
         pos: Vec3<f32>,
         ori: Vec3<f32>,
         col: Rgba<f32>,
+        dt: f32,
     ) {
+        // Update interpolate pos
+        self.pos = Lerp::lerp(self.pos, pos, (0.3f32).powf(1.0 / 60.0).powf(1.0 / dt));
+        self.ori = Slerp::slerp(self.ori, ori, (0.15f32).powf(1.0 / 60.0).powf(1.0 / dt));
+
         let mat = Mat4::<f32>::identity()
-            * Mat4::translation_3d(pos)
+            * Mat4::translation_3d(self.pos)
             * Mat4::rotation_z(-ori.x.atan2(ori.y))
             * Mat4::scaling_3d(Vec3::from(0.8));
 
