@@ -15,7 +15,7 @@ const HUMANOID_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 16.0;
-const ROLL_ACCEL: f32 = 160.0;
+const ROLL_ACCEL: f32 = 120.0;
 const ROLL_SPEED: f32 = 550.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
@@ -28,19 +28,11 @@ const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 // damp = linear damping
 // Friction is a type of damping.
 fn integrate_forces(dt: f32, mut lv: Vec3<f32>, damp: f32) -> Vec3<f32> {
-    lv.z -= (GRAVITY * dt).max(-50.0);
+    lv.z = (lv.z - GRAVITY * dt).max(-50.0);
 
-    let mut linear_damp = 1.0 - dt * damp;
+    let linear_damp = (1.0 - dt * damp).max(0.0);
 
-    if linear_damp < 0.0
-    // reached zero in the given time
-    {
-        linear_damp = 0.0;
-    }
-
-    lv *= linear_damp;
-
-    lv
+    lv * linear_damp
 }
 
 /// This system applies forces and calculates new positions and velocities.
@@ -153,12 +145,15 @@ impl<'a> System<'a> for Sys {
             vel.0 = integrate_forces(dt.0, vel.0, friction);
 
             // Basic collision with terrain
-            let player_rad = 0.3; // half-width of the player's AABB
-            let player_height = 1.7;
+            let player_rad = 0.3f32; // half-width of the player's AABB
+            let player_height = 1.55f32;
 
-            let dist = 2; // distance to probe the terrain for collisions
-            let near_iter = (-dist..=dist)
-                .map(move |i| (-dist..=dist).map(move |j| (-dist..=dist).map(move |k| (i, j, k))))
+            // Probe distances
+            let hdist = player_rad.ceil() as i32;
+            let vdist = player_height.ceil() as i32;
+            // Neighbouring blocks iterator
+            let near_iter = (-hdist..=hdist)
+                .map(move |i| (-hdist..=hdist).map(move |j| (0..=vdist).map(move |k| (i, j, k))))
                 .flatten()
                 .flatten();
 
@@ -189,6 +184,7 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
+            let was_on_ground = on_grounds.get(entity).is_some();
             on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
             pos.0.z -= 0.0001; // To force collision with the floor
 
@@ -251,7 +247,7 @@ impl<'a> System<'a> for Sys {
                     let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
 
                     // When the resolution direction is pointing upwards, we must be on the ground
-                    if resolve_dir.z > 0.0 {
+                    if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
                         on_ground = true;
                     }
 
@@ -282,6 +278,7 @@ impl<'a> System<'a> for Sys {
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.0, near_iter.clone())
                 && vel.0.z < 0.0
                 && vel.0.z > -1.0
+                && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
                 on_grounds.insert(entity, OnGround);
