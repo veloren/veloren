@@ -15,7 +15,13 @@
 *.code-workspace
 
 # Eclipse
+
 .project
+
+# Vim
+
+**/*.swp
+**/*.vi
 
 # Veloren
 *.rar
