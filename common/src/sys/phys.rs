@@ -145,12 +145,15 @@ impl<'a> System<'a> for Sys {
             vel.0 = integrate_forces(dt.0, vel.0, friction);
 
             // Basic collision with terrain
-            let player_rad = 0.3; // half-width of the player's AABB
-            let player_height = 1.7;
+            let player_rad = 0.3f32; // half-width of the player's AABB
+            let player_height = 1.55f32;
 
-            let dist = 2; // distance to probe the terrain for collisions
-            let near_iter = (-dist..=dist)
-                .map(move |i| (-dist..=dist).map(move |j| (-dist..=dist).map(move |k| (i, j, k))))
+            // Probe distances
+            let hdist = player_rad.ceil() as i32;
+            let vdist = player_height.ceil() as i32;
+            // Neighbouring blocks iterator
+            let near_iter = (-hdist..=hdist)
+                .map(move |i| (-hdist..=hdist).map(move |j| (0..=vdist).map(move |k| (i, j, k))))
                 .flatten()
                 .flatten();
 
