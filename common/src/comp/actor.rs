@@ -19,13 +19,7 @@ pub enum BodyType {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Head {
-    Default,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Chest {
-    Default,
     Blue,
     Brown,
     Dark,
@@ -35,13 +29,11 @@ pub enum Chest {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Belt {
-    //Default,
     Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Pants {
-    Default,
     Blue,
     Brown,
     Dark,
@@ -56,13 +48,13 @@ pub enum Hand {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Foot {
-    Default,
     Dark,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Shoulder {
-    Default,
+    None,
+    Brown1,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -165,9 +157,7 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Undead,
 ];
 pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
-pub const ALL_HEADS: [Head; 1] = [Head::Default];
-pub const ALL_CHESTS: [Chest; 6] = [
-    Chest::Default,
+pub const ALL_CHESTS: [Chest; 5] = [
     Chest::Blue,
     Chest::Brown,
     Chest::Dark,
@@ -178,8 +168,7 @@ pub const ALL_BELTS: [Belt; 1] = [
     //Belt::Default,
     Belt::Dark,
 ];
-pub const ALL_PANTS: [Pants; 6] = [
-    Pants::Default,
+pub const ALL_PANTS: [Pants; 5] = [
     Pants::Blue,
     Pants::Brown,
     Pants::Dark,
@@ -187,7 +176,7 @@ pub const ALL_PANTS: [Pants; 6] = [
     Pants::Orange,
 ];
 pub const ALL_HANDS: [Hand; 1] = [Hand::Default];
-pub const ALL_FEET: [Foot; 2] = [Foot::Default, Foot::Dark];
+pub const ALL_FEET: [Foot; 1] = [Foot::Dark];
 pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Daggers,
     Weapon::SwordShield,
@@ -197,14 +186,13 @@ pub const ALL_WEAPONS: [Weapon; 7] = [
     Weapon::Bow,
     Weapon::Staff,
 ];
-pub const ALL_SHOULDERS: [Shoulder; 1] = [Shoulder::Default];
+pub const ALL_SHOULDERS: [Shoulder; 2] = [Shoulder::None, Shoulder::Brown1];
 pub const ALL_DRAW: [Draw; 1] = [Draw::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HumanoidBody {
     pub race: Race,
     pub body_type: BodyType,
-    pub head: Head,
     pub chest: Chest,
     pub belt: Belt,
     pub pants: Pants,
@@ -221,7 +209,6 @@ impl HumanoidBody {
         Self {
             race: *(&ALL_RACES).choose(&mut rng).unwrap(),
             body_type: *(&ALL_BODY_TYPES).choose(&mut rng).unwrap(),
-            head: *(&ALL_HEADS).choose(&mut rng).unwrap(),
             chest: *(&ALL_CHESTS).choose(&mut rng).unwrap(),
             belt: *(&ALL_BELTS).choose(&mut rng).unwrap(),
             pants: *(&ALL_PANTS).choose(&mut rng).unwrap(),
@@ -234,14 +221,6 @@ impl HumanoidBody {
     }
 }
 ///////////
-const ALL_QRACES: [Race; 6] = [
-    Race::Danari,
-    Race::Dwarf,
-    Race::Elf,
-    Race::Human,
-    Race::Orc,
-    Race::Undead,
-];
 const ALL_QBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
 const ALL_QPIG_HEADS: [PigHead; 1] = [PigHead::Default];
 const ALL_QPIG_CHESTS: [PigChest; 1] = [PigChest::Default];
@@ -250,7 +229,6 @@ const ALL_QPIG_LEG_RS: [PigLegR; 1] = [PigLegR::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QuadrupedBody {
-    pub race: Race,
     pub body_type: BodyType,
     pub pig_head: PigHead,
     pub pig_chest: PigChest,
@@ -262,7 +240,6 @@ impl QuadrupedBody {
     pub fn random() -> Self {
         let mut rng = thread_rng();
         Self {
-            race: *(&ALL_QRACES).choose(&mut rng).unwrap(),
             body_type: *(&ALL_QBODY_TYPES).choose(&mut rng).unwrap(),
             pig_head: *(&ALL_QPIG_HEADS).choose(&mut rng).unwrap(),
             pig_chest: *(&ALL_QPIG_CHESTS).choose(&mut rng).unwrap(),
@@ -272,14 +249,6 @@ impl QuadrupedBody {
     }
 }
 /////////////
-const ALL_QMRACES: [Race; 6] = [
-    Race::Danari,
-    Race::Dwarf,
-    Race::Elf,
-    Race::Human,
-    Race::Orc,
-    Race::Undead,
-];
 const ALL_QMBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
 const ALL_QMWOLF_HEADS_UPPER: [WolfHeadUpper; 1] = [WolfHeadUpper::Default];
 const ALL_QMWOLF_JAWS: [WolfJaw; 1] = [WolfJaw::Default];
@@ -295,7 +264,6 @@ const ALL_QMWOLF_FEET_RB: [WolfFootRB; 1] = [WolfFootRB::Default];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QuadrupedMediumBody {
-    pub race: Race,
     pub body_type: BodyType,
     pub wolf_head_upper: WolfHeadUpper,
     pub wolf_jaw: WolfJaw,
@@ -314,7 +282,6 @@ impl QuadrupedMediumBody {
     pub fn random() -> Self {
         let mut rng = thread_rng();
         Self {
-            race: *(&ALL_QMRACES).choose(&mut rng).unwrap(),
             body_type: *(&ALL_QMBODY_TYPES).choose(&mut rng).unwrap(),
             wolf_head_upper: *(&ALL_QMWOLF_HEADS_UPPER).choose(&mut rng).unwrap(),
             wolf_jaw: *(&ALL_QMWOLF_JAWS).choose(&mut rng).unwrap(),
