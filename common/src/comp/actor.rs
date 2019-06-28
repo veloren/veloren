@@ -15,7 +15,6 @@ pub enum Race {
 pub enum BodyType {
     Female,
     Male,
-    Unspecified,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -156,7 +155,7 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Orc,
     Race::Undead,
 ];
-pub const ALL_BODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+pub const ALL_BODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
 pub const ALL_CHESTS: [Chest; 5] = [
     Chest::Blue,
     Chest::Brown,
@@ -221,7 +220,7 @@ impl HumanoidBody {
     }
 }
 ///////////
-const ALL_QBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+const ALL_QBODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
 const ALL_QPIG_HEADS: [PigHead; 1] = [PigHead::Default];
 const ALL_QPIG_CHESTS: [PigChest; 1] = [PigChest::Default];
 const ALL_QPIG_LEG_LS: [PigLegL; 1] = [PigLegL::Default];
@@ -249,7 +248,7 @@ impl QuadrupedBody {
     }
 }
 /////////////
-const ALL_QMBODY_TYPES: [BodyType; 3] = [BodyType::Female, BodyType::Male, BodyType::Unspecified];
+const ALL_QMBODY_TYPES: [BodyType; 2] = [BodyType::Female, BodyType::Male];
 const ALL_QMWOLF_HEADS_UPPER: [WolfHeadUpper; 1] = [WolfHeadUpper::Default];
 const ALL_QMWOLF_JAWS: [WolfJaw; 1] = [WolfJaw::Default];
 const ALL_QMWOLF_HEADS_LOWER: [WolfHeadLower; 1] = [WolfHeadLower::Default];
