@@ -305,7 +305,11 @@ impl Hud {
     ) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
-        let version = env!("CARGO_PKG_VERSION");
+
+        let version = match std::env::var("GIT_HASH") {
+            Ok(hash) => format!("{}-{}", env!("CARGO_PKG_VERSION"), hash),
+            Err(_) => env!("CARGO_PKG_VERSION").to_owned(),
+        };
 
         // Don't show anything if the UI is toggled off.
         if !self.show.ui {
@@ -421,7 +425,7 @@ impl Hud {
         // Display debug window.
         if self.show.debug {
             // Alpha Version
-            Text::new(version)
+            Text::new(&version)
                 .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
