@@ -29,7 +29,7 @@ impl Animation for AttackAnimation {
         let wave_stop_quick = (anim_time as f32 * 16.0).min(PI / 2.0).sin();
 
         next.head.offset = Vec3::new(
-            0.0,
+            0.0 + skeleton_attr.neck_right,
             0.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 15.0,
         );

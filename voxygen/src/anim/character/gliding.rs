@@ -40,7 +40,7 @@ impl Animation for GlidingAnimation {
                 * 0.25,
         );
         next.head.offset = Vec3::new(
-            0.0,
+            0.0 + skeleton_attr.neck_right,
             0.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 6.0,
         );
