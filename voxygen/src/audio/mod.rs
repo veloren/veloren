@@ -1,14 +1,16 @@
 use crate::settings::AudioSettings;
 use common::assets;
+use log::error;
 use rodio::{Decoder, Device, SpatialSink};
 use std::iter::Iterator;
+use std::panic::catch_unwind;
 
 pub struct AudioFrontend {
     device: Device,
     // Performance optimisation, iterating through available audio devices takes time
     devices: Vec<Device>,
     // streams: HashMap<String, SpatialSink>, //always use SpatialSink even if no position is used for now
-    stream: SpatialSink,
+    stream: Option<SpatialSink>,
 }
 
 impl AudioFrontend {
@@ -21,9 +23,20 @@ impl AudioFrontend {
             None => rodio::default_output_device().expect("No audio devices found"),
         };
 
-        let sink =
-            rodio::SpatialSink::new(&device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
-        sink.set_volume(settings.music_volume);
+        let sink = catch_unwind(|| {
+            let sink = rodio::SpatialSink::new(
+                &device,
+                [0.0, 0.0, 0.0],
+                [1.0, 0.0, 0.0],
+                [-1.0, 0.0, 0.0],
+            );
+            sink.set_volume(settings.music_volume);
+            Some(sink)
+        })
+        .unwrap_or_else(|e| {
+            error!("Error creating a SpatialSink (audio): ");
+            None
+        });
 
         AudioFrontend {
             device,
@@ -40,7 +53,9 @@ impl AudioFrontend {
         // TODO: stop previous audio from playing. Sink has this ability, but
         // SpatialSink does not for some reason. This means that we will
         // probably want to use sinks for music, and SpatialSink for sfx.
-        self.stream.append(src);
+        if let Some(s) = &self.stream {
+            s.append(src);
+        }
     }
 
     pub fn maintain(&mut self) {
@@ -55,14 +70,19 @@ impl AudioFrontend {
             "voxygen/audio/soundtrack/Snowtop_volume.ogg",
             "voxygen/audio/soundtrack/veloren_title_tune-3.ogg",
         ];
-        if self.stream.empty() {
-            let i = rand::random::<usize>() % music.len();
-            self.play_music(music[i])
+
+        if let Some(s) = &self.stream {
+            if s.empty() {
+                let i = rand::random::<usize>() % music.len();
+                self.play_music(music[i]);
+            }
         }
     }
 
     pub fn set_volume(&mut self, volume: f32) {
-        self.stream.set_volume(volume.min(1.0).max(0.0))
+        if let Some(s) = &self.stream {
+            s.set_volume(volume.min(1.0).max(0.0));
+        }
     }
 
     /// Returns a vec of the audio devices available.
@@ -101,12 +121,19 @@ impl AudioFrontend {
     pub fn set_device(&mut self, name: String) {
         if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
             self.device = dev;
-            self.stream = rodio::SpatialSink::new(
-                &self.device,
-                [0.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-            );
+            self.stream = catch_unwind(|| {
+                let sink = rodio::SpatialSink::new(
+                    &self.device,
+                    [0.0, 0.0, 0.0],
+                    [1.0, 0.0, 0.0],
+                    [-1.0, 0.0, 0.0],
+                );
+                Some(sink)
+            })
+            .unwrap_or_else(|e| {
+                error!("Error creating a SpatialSink (audio): ");
+                None
+            });
         }
     }
 }
