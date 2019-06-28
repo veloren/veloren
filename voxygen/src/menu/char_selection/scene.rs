@@ -15,7 +15,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    comp::{Body, HumanoidBody},
+    comp::{humanoid, Body},
     state::DeltaTime,
 };
 use log::error;
@@ -79,7 +79,7 @@ impl Scene {
         &self.globals
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: HumanoidBody) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
         self.camera.set_focus_pos(Vec3::unit_z() * 2.0);
         self.camera.update(client.state().get_time());
         self.camera.set_distance(4.2);
@@ -126,7 +126,7 @@ impl Scene {
         );
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: HumanoidBody) {
+    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         let model = &self
