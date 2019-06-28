@@ -1,16 +1,35 @@
-use crate::comp::actor;
 use specs::{Component, VecStorage};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Weapon {
+    Daggers,
+    SwordShield,
+    Sword,
+    Axe,
+    Hammer,
+    Bow,
+    Staff,
+}
+pub const ALL_WEAPONS: [Weapon; 7] = [
+    Weapon::Daggers,
+    Weapon::SwordShield,
+    Weapon::Sword,
+    Weapon::Axe,
+    Weapon::Hammer,
+    Weapon::Bow,
+    Weapon::Staff,
+];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
     // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also creepy thing to do.
     Helmet,
-    Shoulders(actor::Shoulder),
-    Chestplate(actor::Chest),
-    Belt(actor::Belt),
-    Gloves(actor::Hand),
-    Pants(actor::Pants),
-    Boots(actor::Foot),
+    Shoulders,
+    Chestplate,
+    Belt,
+    Gloves,
+    Pants,
+    Boots,
     Back,
     Tabard,
     Gem,
@@ -31,7 +50,6 @@ pub enum Item {
         damage: i32,
         strength: i32,
         rarity: Rarity,
-        variant: actor::Weapon,
     },
     Armor {
         defense: i32,
