@@ -721,17 +721,17 @@ impl CharSelectionUi {
                 self.imgs.icon_border
             })
             .middle_of(self.ids.hammer)
-            //.hover_image(self.imgs.icon_border_mo)
-            //.press_image(self.imgs.icon_border_press)
+            .hover_image(self.imgs.icon_border_mo)
+            .press_image(self.imgs.icon_border_press)
             .set(self.ids.hammer_button, ui_widgets)
             .was_clicked()
             {
-                //self.character_body.weapon = Weapon::Hammer;
+                self.character_body.weapon = Weapon::Hammer;
             }
             // REMOVE THIS AFTER IMPLEMENTATION
-            Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.hammer)
-                .set(self.ids.hammer_grey, ui_widgets);
+            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+            .middle_of(self.ids.hammer)
+            .set(self.ids.hammer_grey, ui_widgets);*/
 
             // Bow
 
@@ -830,17 +830,17 @@ impl CharSelectionUi {
                 self.imgs.icon_border
             })
             .middle_of(self.ids.axe)
-            //.hover_image(self.imgs.icon_border_mo)
-            //.press_image(self.imgs.icon_border_press)
+            .hover_image(self.imgs.icon_border_mo)
+            .press_image(self.imgs.icon_border_press)
             .set(self.ids.axe_button, ui_widgets)
             .was_clicked()
             {
-                //self.character_body.weapon = Weapon::Axe;
+                self.character_body.weapon = Weapon::Axe;
             }
             // REMOVE THIS AFTER IMPLEMENTATION
-            Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
-                .middle_of(self.ids.axe)
-                .set(self.ids.axe_grey, ui_widgets);
+            /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+            .middle_of(self.ids.axe)
+            .set(self.ids.axe_grey, ui_widgets);*/
 
             // Sliders
 
