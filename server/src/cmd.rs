@@ -128,16 +128,24 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
-    match (opt_x, opt_y, opt_z) {
-        (Some(x), Some(y), Some(z)) => {
-            server
-                .state
-                .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
-            server.state.write_component(entity, comp::ForceUpdate);
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
+        Some(mut pos) => match (opt_x, opt_y, opt_z) {
+            (Some(x), Some(y), Some(z)) => {
+                server
+                    .state
+                    .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
+                server.state.write_component(entity, comp::ForceUpdate);
+            }
+            _ => server
+                .clients
+                .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+        },
+        None => {
+            server.clients.notify(
+                entity,
+                ServerMsg::Chat(String::from("You don't have any position!")),
+            );
         }
-        _ => server
-            .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
 }
 
@@ -203,25 +211,33 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 .join()
                 .find(|(_, player)| player.alias == alias)
                 .map(|(entity, _)| entity);
-            match opt_player {
-                Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
-                    Some(pos) => {
-                        server.state.write_component(entity, pos);
-                        server.state.write_component(entity, comp::ForceUpdate);
+            match server.state.read_component_cloned::<comp::Pos>(entity) {
+                Some(mut pos) => match opt_player {
+                    Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
+                        Some(pos) => {
+                            server.state.write_component(entity, pos);
+                            server.state.write_component(entity, comp::ForceUpdate);
+                        }
+                        None => server.clients.notify(
+                            entity,
+                            ServerMsg::Chat(format!("Unable to teleport to player '{}'!", alias)),
+                        ),
+                    },
+                    None => {
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                        );
+                        server
+                            .clients
+                            .notify(entity, ServerMsg::Chat(String::from(action.help_string)));
                     }
-                    None => server.clients.notify(
-                        entity,
-                        ServerMsg::Chat(format!("Unable to teleport to player '{}'!", alias)),
-                    ),
                 },
                 None => {
                     server.clients.notify(
                         entity,
-                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                        ServerMsg::Chat(format!("You don't have any position!")),
                     );
-                    server
-                        .clients
-                        .notify(entity, ServerMsg::Chat(String::from(action.help_string)));
                 }
             }
         }

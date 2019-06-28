@@ -15,7 +15,7 @@ fn read_input() -> String {
         .read_line(&mut buffer)
         .expect("Failed to read input");
 
-    buffer
+    buffer.trim().to_string()
 }
 
 fn main() {
