@@ -27,7 +27,7 @@ impl Animation for RollAnimation {
         let wave_dub = (anim_time as f32 * 5.5).sin();
 
         next.head.offset = Vec3::new(
-            0.0,
+            0.0 + skeleton_attr.neck_right,
             -2.0 + wave_slow * -3.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 9.0 + wave_dub * -5.0,
         );
