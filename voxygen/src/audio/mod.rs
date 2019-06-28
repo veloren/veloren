@@ -1,5 +1,6 @@
 use crate::settings::AudioSettings;
 use common::assets;
+use log::error;
 use rodio::{Decoder, Device, SpatialSink};
 use std::iter::Iterator;
 use std::panic::catch_unwind;
@@ -32,7 +33,10 @@ impl AudioFrontend {
             sink.set_volume(settings.music_volume);
             Some(sink)
         })
-        .unwrap_or(None);
+        .unwrap_or_else(|e| {
+            error!("Error creating a SpatialSink (audio): ");
+            None
+        });
 
         AudioFrontend {
             device,
@@ -126,7 +130,10 @@ impl AudioFrontend {
                 );
                 Some(sink)
             })
-            .unwrap_or(None);
+            .unwrap_or_else(|e| {
+                error!("Error creating a SpatialSink (audio): ");
+                None
+            });
         }
     }
 }
