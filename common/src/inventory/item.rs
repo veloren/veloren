@@ -4,7 +4,7 @@ use specs::{Component, VecStorage};
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
     // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also creepy thing to do.
-    Helmet(actor::Head),
+    Helmet,
     Shoulders(actor::Shoulder),
     Chestplate(actor::Chest),
     Belt(actor::Belt),
