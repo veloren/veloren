@@ -1,4 +1,7 @@
-use super::{super::Animation, QuadrupedSkeleton};
+use super::{
+    super::{Animation, SkeletonAttr},
+    QuadrupedSkeleton,
+};
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -12,6 +15,7 @@ impl Animation for IdleAnimation {
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
         anim_time: f64,
+        skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
