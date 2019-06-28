@@ -1,4 +1,7 @@
-use super::{super::Animation, CharacterSkeleton};
+use super::{
+    super::{Animation, SkeletonAttr},
+    CharacterSkeleton,
+};
 use std::f32::consts::PI;
 use vek::*;
 
@@ -12,6 +15,7 @@ impl Animation for JumpAnimation {
         skeleton: &Self::Skeleton,
         global_time: f64,
         anim_time: f64,
+        skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
         let wave = (anim_time as f32 * 14.0).sin();
@@ -19,9 +23,13 @@ impl Animation for JumpAnimation {
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
         let wave_stop_alt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
-        next.head.offset = Vec3::new(0.0, 3.0, 13.0);
+        next.head.offset = Vec3::new(
+            0.0,
+            0.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 15.0,
+        );
         next.head.ori = Quaternion::rotation_x(0.25 + wave_stop * 0.1 + wave_slow * 0.04);
-        next.head.scale = Vec3::one();
+        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 8.0);
         next.chest.ori = Quaternion::rotation_z(0.0);
@@ -59,7 +67,11 @@ impl Animation for JumpAnimation {
         next.r_foot.ori = Quaternion::rotation_x(wave_stop * 1.2 + wave_slow * 0.2);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
+        next.weapon.offset = Vec3::new(
+            -7.0 + skeleton_attr.weapon_x,
+            -5.0 + skeleton_attr.weapon_y,
+            15.0,
+        );
         next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
         next.weapon.scale = Vec3::one();
 
@@ -83,9 +95,9 @@ impl Animation for JumpAnimation {
         next.right_equip.ori = Quaternion::rotation_x(0.0);;
         next.right_equip.scale = Vec3::one() * 0.0;
 
-        next.torso.offset = Vec3::new(0.0, -0.2, 0.0);
+        next.torso.offset = Vec3::new(0.0, -0.2, 0.0) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(-0.2);
-        next.torso.scale = Vec3::one() / 11.0;
+        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next
     }

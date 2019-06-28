@@ -493,7 +493,7 @@ impl MainMenuUi {
                 .set(self.ids.servers_button, ui_widgets)
                 .was_clicked()
             {
-                self.show_servers = true;
+                self.show_servers = !self.show_servers;
             };
         }
 
