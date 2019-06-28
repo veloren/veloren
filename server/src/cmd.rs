@@ -262,8 +262,8 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
             match server.state.read_component_cloned::<comp::Pos>(entity) {
                 Some(mut pos) => {
                     pos.0.x += 1.0; // Temp fix TODO: Solve NaN issue with positions of pets
-                    let body = kind_to_body(id);
                     for _ in 0..amount {
+                        let body = kind_to_body(id);
                         server
                             .create_npc(pos, get_npc_name(id), body)
                             .with(agent)
