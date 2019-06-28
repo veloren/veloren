@@ -118,7 +118,13 @@ fn try_open_with_path(name: &str) -> Option<File> {
     let abs_path = std::env::current_dir().expect("No current directory?");
     // TODO: don't do this?
     // if it's stupid and it works..,
+    let platform_specific = "".to_string();
+    #[cfg(target_os = "linux")]
+    {
+        let platform_specific = "/usr/share/veloren/assets".to_string();
+    }
     [
+        std::env::var("VELOREN_ASSETS").unwrap_or("".to_owned()),
         "assets".to_string(),
         "../assets".to_string(), /* optimizations */
         "../../assets".to_string(),
@@ -127,6 +133,7 @@ fn try_open_with_path(name: &str) -> Option<File> {
         [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
         "../../../assets".to_string(),
         [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
+        platform_specific,
     ]
     .into_iter()
     .map(|bp| {
