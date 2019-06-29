@@ -20,7 +20,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
-use log::warn;
+use log::{debug, warn};
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
@@ -148,6 +148,7 @@ impl Server {
             .with(comp::Controller::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
+            .with(comp::ActionState::default())
             .with(comp::ForceUpdate)
     }
 
@@ -526,7 +527,7 @@ impl Server {
         // Handle client disconnects.
         for entity in disconnected_clients {
             if let Err(err) = self.state.ecs_mut().delete_entity_synced(entity) {
-                warn!("Failed to delete disconnected client: {:?}", err);
+                debug!("Failed to delete disconnected client: {:?}", err);
             }
 
             frontend_events.push(Event::ClientDisconnected { entity });
