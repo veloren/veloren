@@ -29,9 +29,10 @@ Currently the communication of contributors happens mainly on our [official Disc
 
 ## Get Veloren
 
-We currently don't provide binary downloads of Veloren, you have to compile it yourself.
+You can download up-to-date builds for Windows and Linux from [Gitlab CI pipelines](https://gitlab.com/veloren/veloren/pipelines) (refer to the [Download chapter in the book](https://book.veloren.net/download/index.html) for more information).
+As of 0.2, due to rapid developement stable versions are **outdated** and **incompatible with the public server**.
 
-Take a look at the [How to Compile Guide](https://book.veloren.net/download/compiling.html) in the book.
+If you want to compile Veloren yourself, take a look at the [How to Compile Guide](https://book.veloren.net/compile/index.html) in the book.
 
 ## F.A.Q.
 ### **Q:** How is this game licensed?
@@ -40,7 +41,7 @@ Take a look at the [How to Compile Guide](https://book.veloren.net/download/comp
 
 ### **Q:** What platforms are supported?
 
-**A:** Veloren can run on Windows, Linux and Mac OS on all architectures. It's probably possible to compile Veloren on/for BSD, Fuchsia and others as well.
+**A:** Veloren can run on Windows, Linux and Mac OS on all architectures (although x86_64 is our main focus). It's probably possible to compile Veloren on/for BSD, Fuchsia and others as well.
 
 ### **Q:** Do you accept donations?
 
