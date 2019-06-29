@@ -291,7 +291,7 @@ impl Hud {
                 open_windows: Windows::None,
                 map: false,
                 ui: true,
-                inventory_test_button: false,
+                inventory_test_button: true,
                 mini_map: false,
                 settings_tab: SettingsTab::Interface,
                 want_grab: true,
@@ -476,13 +476,14 @@ impl Hud {
 
         // Add Bag-Space Button.
         if self.show.inventory_test_button {
-            if Button::image(self.imgs.grid_button)
+            if Button::image(self.imgs.button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
-                .label("1 Up!")
+                .label("Add 10 Spaces")
                 .label_font_size(20)
-                .hover_image(self.imgs.grid_button_hover)
-                .press_image(self.imgs.grid_button_press)
+                .label_color(TEXT_COLOR)   
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
