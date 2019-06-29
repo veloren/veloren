@@ -260,10 +260,11 @@ impl<'a> System<'a> for Sys {
                     // If the space above is free...
                     if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                         && resolve_dir.z == 0.0
-                        && terrain
-                            .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32)) // Make sure we're close to the ground
-                            .map(|vox| !vox.is_empty())
-                            .unwrap_or(false)
+                        && vel.0.z <= 0.0
+                        && collision_with(
+                            pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
+                            near_iter.clone(),
+                        )
                     {
                         // ...block-hop!
                         pos.0.z = (pos.0.z + 1.0).ceil();
@@ -284,7 +285,7 @@ impl<'a> System<'a> for Sys {
             if on_ground {
                 on_grounds.insert(entity, OnGround);
             // If we're not on the ground but the space below us is free, then "snap" to the ground
-            } else if collision_with(pos.0 - Vec3::unit_z() * 1.0, near_iter.clone())
+            } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
                 && vel.0.z > -1.0
                 && was_on_ground
