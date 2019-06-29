@@ -41,7 +41,7 @@ If you want to compile Veloren yourself, take a look at the [How to Compile Guid
 
 ### **Q:** What platforms are supported?
 
-**A:** Veloren can run on Windows, Linux and Mac OS on all architectures. It's probably possible to compile Veloren on/for BSD, Fuchsia and others as well.
+**A:** Veloren can run on Windows, Linux and Mac OS on all architectures (although x86_64 is our main focus). It's probably possible to compile Veloren on/for BSD, Fuchsia and others as well.
 
 ### **Q:** Do you accept donations?
 
