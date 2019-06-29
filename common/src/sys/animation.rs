@@ -25,15 +25,12 @@ impl<'a> System<'a> for Sys {
             mut animation_infos,
         ): Self::SystemData,
     ) {
-        for (entity, a, mut animation_info) in (
+        for (entity, a) in (
             &entities,
             &action_states,
-            &mut animation_infos,
         )
             .join()
         {
-            animation_info.time += dt.0 as f64;
-
             fn impossible_animation(message: &str) -> Animation {
                 warn!("{}", message);
                 Animation::Idle
@@ -58,14 +55,12 @@ impl<'a> System<'a> for Sys {
                 (_, _, true, false, false) => Animation::Attack,
             };
 
-            let last = animation_info.clone();
-            let changed = last.animation != animation;
+            let new_time = animation_infos.get(entity).filter(|i| i.animation == animation).map(|i| i.time + dt.0 as f64);
 
-            *animation_info = AnimationInfo {
+            animation_infos.insert(entity, AnimationInfo {
                 animation,
-                time: if changed { 0.0 } else { last.time },
-                changed,
-            };
+                time: new_time.unwrap_or(0.0),
+            });
         }
     }
 }
