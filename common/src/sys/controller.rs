@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource, Jumping, MoveDir,
-        OnGround, Respawning, Rolling, Stats, {ForceUpdate, Ori, Pos, Vel},
+        ActionState, Animation, AnimationInfo, Attacking, Controller, Gliding, HealthSource,
+        Jumping, MoveDir, OnGround, Respawning, Rolling, Stats, {ForceUpdate, Ori, Pos, Vel},
     },
     state::DeltaTime,
 };
@@ -18,7 +18,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, OnGround>,
+        ReadStorage<'a, ActionState>,
         WriteStorage<'a, MoveDir>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
@@ -37,7 +37,7 @@ impl<'a> System<'a> for Sys {
             positions,
             velocities,
             orientations,
-            on_grounds,
+            action_states,
             mut move_dirs,
             mut jumpings,
             mut attackings,
@@ -46,14 +46,14 @@ impl<'a> System<'a> for Sys {
             mut glidings,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, vel, ori, on_ground) in (
+        for (entity, controller, stats, pos, vel, ori, a) in (
             &entities,
             &controllers,
             &stats,
             &positions,
             &velocities,
             &orientations,
-            on_grounds.maybe(),
+            &action_states,
         )
             .join()
         {
@@ -66,10 +66,10 @@ impl<'a> System<'a> for Sys {
             }
 
             // Move dir
-            if rollings.get(entity).is_none() {
+            if !a.rolling {
                 move_dirs.insert(
                     entity,
-                    MoveDir(if controller.move_dir.magnitude() > 1.0 {
+                    MoveDir(if controller.move_dir.magnitude_squared() > 1.0 {
                         controller.move_dir.normalized()
                     } else {
                         controller.move_dir
@@ -78,38 +78,24 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide
-                && on_ground.is_none()
-                && attackings.get(entity).is_none()
-                && rollings.get(entity).is_none()
-            {
+            if controller.glide && !a.on_ground && !a.attacking && !a.rolling {
                 glidings.insert(entity, Gliding);
             } else {
                 glidings.remove(entity);
             }
 
             // Attack
-            if controller.attack
-                && attackings.get(entity).is_none()
-                && glidings.get(entity).is_none()
-                && rollings.get(entity).is_none()
-            {
+            if controller.attack && !a.attacking && !a.gliding && !a.rolling {
                 attackings.insert(entity, Attacking::start());
             }
 
             // Jump
-            if controller.jump && on_ground.is_some() && vel.0.z <= 0.0 {
+            if controller.jump && a.on_ground && vel.0.z <= 0.0 {
                 jumpings.insert(entity, Jumping);
             }
 
             // Roll
-            if controller.roll
-                && rollings.get(entity).is_none()
-                && attackings.get(entity).is_none()
-                && glidings.get(entity).is_none()
-                && on_ground.is_some()
-                && vel.0.magnitude_squared() > 25.0
-            {
+            if controller.roll && !a.rolling && a.on_ground && a.moving && !a.attacking && !a.gliding {
                 rollings.insert(entity, Rolling::start());
             }
         }

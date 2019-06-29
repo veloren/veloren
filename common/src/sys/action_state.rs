@@ -4,6 +4,7 @@ use crate::{
         Jumping, OnGround, Ori, Pos, Rolling, Vel,
     },
     state::DeltaTime,
+    sys::phys::MOVEMENT_THRESHOLD_VEL,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
@@ -63,7 +64,7 @@ impl<'a> System<'a> for Sys {
         {
             *action_state = ActionState {
                 on_ground: on_ground.is_some(),
-                moving: vel.0.magnitude_squared() > 10.0,
+                moving: vel.0.magnitude_squared() > MOVEMENT_THRESHOLD_VEL.powf(2.0),
                 attacking: attacking.is_some(),
                 rolling: rolling.is_some(),
                 gliding: gliding.is_some(),
