@@ -3,14 +3,17 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.2, 0.3, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.15, 0.2, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.02, 0.1, 0.3);
+const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 0.8);
 
 const vec3 SKY_DUSK_TOP = vec3(0.1, 0.15, 0.3);
 const vec3 SKY_DUSK_MID = vec3(0.9, 0.3, 0.2);
 const vec3 SKY_DUSK_BOT = vec3(0.01, 0.05, 0.15);
+const vec3 DUSK_LIGHT   = vec3(0.9, 0.2, 0.1);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.002, 0.002, 0.005);
 const vec3 SKY_NIGHT_MID = vec3(0.002, 0.01, 0.03);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.002, 0.005);
+const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
 
 vec3 get_sun_dir(float time_of_day) {
 	const float TIME_FACTOR = (PI * 2.0) / (3600.0 * 24.0);
@@ -25,7 +28,7 @@ float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0) * 0.8;
 }
 
-const float PERSISTENT_AMBIANCE = 0.015;
+const float PERSISTENT_AMBIANCE = 0.008;
 
 vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 	const float SUN_AMBIANCE = 0.2;
@@ -36,11 +39,11 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 
 	vec3 sun_color = normalize(mix(
 		mix(
-			SKY_DUSK_MID,
-			SKY_NIGHT_MID,
+			DUSK_LIGHT,
+			NIGHT_LIGHT,
 			clamp(sun_dir.z, 0, 1)
 		),
-		SKY_DAY_MID,
+		DAY_LIGHT,
 		clamp(-sun_dir.z, 0, 1)
 	)) / 2.0 + 0.5;
 
