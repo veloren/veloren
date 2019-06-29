@@ -1,5 +1,7 @@
 use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
 
+const MAX_ALIAS_LEN: usize = 32;
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Player {
     pub alias: String,
@@ -12,6 +14,11 @@ impl Player {
             alias,
             view_distance,
         }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.alias.chars().all(|c| c.is_alphanumeric() || c == '_') && self.alias.len() <= MAX_ALIAS_LEN
+        // TODO: Check view distance here based on server config too
     }
 }
 
