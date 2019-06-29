@@ -14,7 +14,7 @@ use crate::{
 };
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg, MAX_CHAT_INPUT},
     net::PostOffice,
     state::{State, Uid},
     terrain::{TerrainChunk, TerrainChunkSize},
@@ -517,7 +517,11 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs.push((Some(entity), msg)),
+                            | ClientState::Character => {
+                                if msg.len() <= MAX_CHAT_INPUT {
+                                    new_chat_msgs.push((Some(entity), msg))
+                                }
+                            }
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {

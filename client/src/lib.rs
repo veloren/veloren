@@ -9,7 +9,7 @@ pub use specs::Entity as EcsEntity;
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg, MAX_CHAT_INPUT},
     net::PostBox,
     state::State,
     terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
@@ -151,6 +151,14 @@ impl Client {
         self.loaded_distance
     }
 
+    /// Send a chat message to the server.
+    #[allow(dead_code)]
+    pub fn send_chat(&mut self, msg: String) {
+        if (msg.len() <= MAX_CHAT_INPUT) {
+            self.postbox.send_message(ClientMsg::Chat(msg))
+        }
+    }
+
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(
             self.state
@@ -164,12 +172,6 @@ impl Client {
         });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
-    }
-
-    /// Send a chat message to the server.
-    #[allow(dead_code)]
-    pub fn send_chat(&mut self, msg: String) {
-        self.postbox.send_message(ClientMsg::Chat(msg))
     }
 
     /// Remove all cached terrain

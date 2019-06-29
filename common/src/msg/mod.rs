@@ -7,6 +7,8 @@ pub use self::client::ClientMsg;
 pub use self::ecs_packet::{EcsCompPacket, EcsResPacket};
 pub use self::server::{RequestStateError, ServerInfo, ServerMsg};
 
+pub const MAX_CHAT_INPUT: usize = 80;
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ClientState {
     Pending,

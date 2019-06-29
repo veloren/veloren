@@ -1,4 +1,5 @@
 use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
+use common::msg::MAX_CHAT_INPUT;
 use conrod_core::{
     input::Key,
     position::Dimension,
@@ -128,7 +129,9 @@ impl<'a> Widget for Chat<'a> {
             {
                 let mut input = str.to_owned();
                 input.retain(|c| c != '\n');
-                state.update(|s| s.input = input);
+                if input.len() <= MAX_CHAT_INPUT {
+                    state.update(|s| s.input = input);
+                }
             }
         }
 
