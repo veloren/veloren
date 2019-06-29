@@ -58,7 +58,7 @@ impl World {
 
     pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> TerrainChunk {
         let air = Block::empty();
-        let stone = Block::new(1, Rgb::new(200, 220, 255));
+        let stone = Block::new(2, Rgb::new(200, 220, 255));
         let water = Block::new(5, Rgb::new(100, 150, 255));
 
         let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
