@@ -114,7 +114,8 @@ impl PlayState for MainMenuState {
                                 false,
                             )));
                         } else {
-                            self.main_menu_ui.login_error("Invalid username".to_string());
+                            self.main_menu_ui
+                                .login_error("Invalid username".to_string());
                         }
                     }
                     MainMenuEvent::StartSingleplayer => {

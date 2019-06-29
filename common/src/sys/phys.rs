@@ -255,7 +255,8 @@ impl<'a> System<'a> for Sys {
                     // If the space above is free...
                     if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                         && resolve_dir.z == 0.0
-                        && terrain.get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32)) // Make sure we're close to the ground
+                        && terrain
+                            .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32)) // Make sure we're close to the ground
                             .map(|vox| !vox.is_empty())
                             .unwrap_or(false)
                     {
