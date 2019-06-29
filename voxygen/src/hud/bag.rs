@@ -118,7 +118,7 @@ impl<'a> Widget for Bag<'a> {
         // Test Item
         if self.inventory_space > 0 {
             Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
-                .w_h(4.0 * 3.5, 7.0 * 3.5) // TODO: height value has to be constant(but not the same as the slot widget), while width depends on the image displayed to avoid stretching
+                .w_h(4.0 * 4.5, 7.0*4.5) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
                 .middle_of(state.ids.inv_slot[0]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
                 .label("5x") // TODO: Quantity goes here...
                 .label_font_id(self.fonts.opensans)
