@@ -295,20 +295,20 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
     let ecs = server.state.ecs();
     let players = ecs.read_storage::<comp::Player>();
     let count = players.join().count();
-    let mut str: String = format!("Online players ({})", count);
+    let mut header_message: String = format!("{} online players: \n", count);
     if count > 0 {
-        str += ": ";
-        let mut player_list: String = players.join().fold(String::new(), |mut s, player| {
-            s += &player.alias;
-            s += ",";
-            s
-        });
-        player_list.pop();
+        let mut player_iter = players.join();
+        let first = player_iter.next().unwrap().alias.to_owned();
+        let player_list = player_iter
+            .fold(first, |s, p| {
+                format!("{},\n{}", s, p.alias)
+            });
+
         server
             .clients
-            .notify(entity, ServerMsg::Chat(str + &player_list));
+            .notify(entity, ServerMsg::Chat(header_message + &player_list));
     } else {
-        server.clients.notify(entity, ServerMsg::Chat(str));
+        server.clients.notify(entity, ServerMsg::Chat(header_message));
     }
 }
 
