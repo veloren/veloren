@@ -95,7 +95,13 @@ impl<'a> System<'a> for Sys {
             }
 
             // Roll
-            if controller.roll && !a.rolling && a.on_ground && a.moving && !a.attacking && !a.gliding {
+            if controller.roll
+                && !a.rolling
+                && a.on_ground
+                && a.moving
+                && !a.attacking
+                && !a.gliding
+            {
                 rollings.insert(entity, Rolling::start());
             }
         }

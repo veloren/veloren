@@ -126,10 +126,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if a.gliding
-                && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0)
-                && vel.0.z < 0.0
-            {
+            if a.gliding && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) && vel.0.z < 0.0 {
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
