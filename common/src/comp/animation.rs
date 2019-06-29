@@ -16,7 +16,6 @@ pub enum Animation {
 pub struct AnimationInfo {
     pub animation: Animation,
     pub time: f64,
-    pub changed: bool,
 }
 
 impl Default for AnimationInfo {
@@ -24,7 +23,6 @@ impl Default for AnimationInfo {
         Self {
             animation: Animation::Idle,
             time: 0.0,
-            changed: true,
         }
     }
 }
