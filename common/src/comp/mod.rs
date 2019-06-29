@@ -1,3 +1,4 @@
+mod action_state;
 mod agent;
 mod animation;
 mod body;
@@ -9,6 +10,7 @@ mod player;
 mod stats;
 
 // Reexports
+pub use action_state::ActionState;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
 pub use body::{humanoid, quadruped, quadruped_medium, Actor, Body};

@@ -102,9 +102,6 @@ impl State {
         ecs.register_synced::<comp::Actor>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::Attacking>();
-        ecs.register_synced::<comp::Rolling>();
-        ecs.register_synced::<comp::Gliding>();
 
         // Register components synced by other means
         ecs.register::<comp::Pos>();
@@ -112,10 +109,14 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::MoveDir>();
         ecs.register::<comp::OnGround>();
-        ecs.register::<comp::AnimationInfo>();
         ecs.register::<comp::Controller>();
+        ecs.register::<comp::Attacking>();
+        ecs.register::<comp::Rolling>();
+        ecs.register::<comp::Gliding>();
+        ecs.register::<comp::ActionState>();
 
         // Register client-local components
+        ecs.register::<comp::AnimationInfo>();
         ecs.register::<comp::Jumping>();
 
         // Register server-local components
