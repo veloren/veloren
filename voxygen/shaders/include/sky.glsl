@@ -45,9 +45,9 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 		),
 		DAY_LIGHT,
 		clamp(-sun_dir.z, 0, 1)
-	)) / 2.0 + 0.5;
+	));
 
-	vec3 diffuse_light = (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0)) * sun_light * sun_color + PERSISTENT_AMBIANCE;
+	vec3 diffuse_light = (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0) * sun_color) * sun_light + PERSISTENT_AMBIANCE;
 
 	return diffuse_light;
 }
