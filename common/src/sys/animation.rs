@@ -57,7 +57,7 @@ impl<'a> System<'a> for Sys {
 
             let animation = match (
                 on_ground.is_some(),
-                vel.0.magnitude() > 3.0, // Moving
+                vel.0.magnitude_squared() > 10.0, // Moving
                 attacking.is_some(),
                 gliding.is_some(),
                 rolling.is_some(),
