@@ -311,11 +311,6 @@ impl Hud {
             Err(_) => env!("CARGO_PKG_VERSION").to_owned(),
         };
 
-        // Don't show anything if the UI is toggled off.
-        if !self.show.ui {
-            return events;
-        }
-
         // Nametags and healthbars
         if self.show.ingame {
             let ecs = client.state().ecs();
@@ -819,7 +814,10 @@ impl Hud {
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
-        self.ui.render(renderer, Some(globals));
+        // Don't show anything if the UI is toggled off.
+        if self.show.ui {
+            self.ui.render(renderer, Some(globals));
+        }
     }
 }
 
