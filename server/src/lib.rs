@@ -1,4 +1,4 @@
-#![feature(drain_filter)]
+#![feature(drain_filter, bind_by_move_pattern_guards)]
 
 pub mod client;
 pub mod cmd;
@@ -454,19 +454,26 @@ impl Server {
                             ClientState::Dead => client.error_state(RequestStateError::Impossible),
                             ClientState::Pending => {}
                         },
-                        ClientMsg::Register { player } => match client.client_state {
-                            ClientState::Connected => {
-                                Self::initialize_player(state, entity, client, player);
-                                if let Some(player) =
-                                    state.ecs().read_storage::<comp::Player>().get(entity)
-                                {
-                                    new_chat_msgs
-                                        .push((None, format!("{} logged in", &player.alias)));
+                        // Valid player
+                        ClientMsg::Register { player } if player.is_valid() => {
+                            match client.client_state {
+                                ClientState::Connected => {
+                                    Self::initialize_player(state, entity, client, player);
+                                    if let Some(player) =
+                                        state.ecs().read_storage::<comp::Player>().get(entity)
+                                    {
+                                        new_chat_msgs
+                                            .push((None, format!("{} logged in", &player.alias)));
+                                    }
                                 }
+                                // Use RequestState instead (No need to send `player` again).
+                                _ => client.error_state(RequestStateError::Impossible),
                             }
-                            // Use RequestState instead (No need to send `player` again).
-                            _ => client.error_state(RequestStateError::Impossible),
-                        },
+                        }
+                        // Invalid player
+                        ClientMsg::Register { player } => {
+                            client.error_state(RequestStateError::Impossible)
+                        }
                         ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                             ClientState::Character { .. } => {
                                 state
