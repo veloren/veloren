@@ -16,7 +16,6 @@ pub mod assets;
 pub mod clock;
 pub mod comp;
 pub mod figure;
-pub mod inventory;
 pub mod msg;
 pub mod npc;
 pub mod ray;
