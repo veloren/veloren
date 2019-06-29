@@ -146,7 +146,6 @@ impl Server {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
-            .with(comp::AnimationInfo::default())
             .with(comp::Actor::Character { name, body })
             .with(comp::Stats::default())
             .with(comp::ForceUpdate)
@@ -163,7 +162,6 @@ impl Server {
 
         state.write_component(entity, comp::Actor::Character { name, body });
         state.write_component(entity, comp::Stats::default());
-        state.write_component(entity, comp::AnimationInfo::default());
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -636,19 +634,6 @@ impl Server {
             });
         }
 
-        // Sync animations
-        for (&uid, &animation_info) in (
-            &state.ecs().read_storage::<Uid>(),
-            &state.ecs().read_storage::<comp::AnimationInfo>(),
-        )
-            .join()
-        {
-            client.notify(ServerMsg::EntityAnimation {
-                entity: uid.into(),
-                animation_info: animation_info.clone(),
-            });
-        }
-
         // Tell the client its request was successful.
         client.allow_state(ClientState::Registered);
     }
@@ -706,27 +691,6 @@ impl Server {
             match force_update {
                 Some(_) => clients.notify_ingame_if(msg, in_vd),
                 None => clients.notify_ingame_if_except(entity, msg, in_vd),
-            }
-        }
-
-        // Sync animations
-        for (entity, &uid, &animation_info, force_update) in (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::AnimationInfo>(),
-            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
-        )
-            .join()
-        {
-            if animation_info.changed || force_update.is_some() {
-                let msg = ServerMsg::EntityAnimation {
-                    entity: uid.into(),
-                    animation_info: animation_info.clone(),
-                };
-                match force_update {
-                    Some(_) => self.clients.notify_ingame(msg),
-                    None => self.clients.notify_ingame_except(entity, msg),
-                }
             }
         }
 

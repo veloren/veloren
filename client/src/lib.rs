@@ -60,7 +60,7 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info) = match postbox.next_message() {
+        let (mut state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
@@ -83,6 +83,12 @@ impl Client {
             .build();
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
+
+        // Set client-only components
+        state
+            .ecs_mut()
+            .write_storage()
+            .insert(entity, comp::AnimationInfo::default());
 
         Ok(Self {
             client_state,
@@ -373,15 +379,6 @@ impl Client {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, ori);
-                        }
-                        None => {}
-                    },
-                    ServerMsg::EntityAnimation {
-                        entity,
-                        animation_info,
-                    } => match self.state.ecs().entity_from_uid(entity) {
-                        Some(entity) => {
-                            self.state.write_component(entity, animation_info);
                         }
                         None => {}
                     },
