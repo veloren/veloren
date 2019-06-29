@@ -109,19 +109,24 @@ impl<'a> Widget for Bag<'a> {
 
         // Test Item
 
-        if self.inventory_space > 0 {
-            Button::image(self.imgs.potion_red)                        
-                .w_h(4.0*3.5, 7.0*3.5)
-                .middle_of(state.ids.inv_slot[0])
-                .label("5x") 
-                .label_font_id(self.fonts.opensans)
-                .label_font_size(12)
-                .label_x(Relative::Scalar(10.0)) 
-                .label_y(Relative::Scalar(-10.0))
-                .label_color(TEXT_COLOR)        
-                .set(state.ids.item1, ui);
+        // Create available inventory slot widgets
 
-        }
+
+         
+        dbg!(self.inventory_space);
+       if state.ids.inv_slot.len() < self.inventory_space {
+        state.update(|s| { s.ids.inv_slot.resize(self.inventory_space, &mut ui.widget_id_generator());});}
+        for i in 0..self.inventory_space {
+            let x = i % 5;
+            let y = i / 5; 
+            Button::image(self.imgs.inv_slot)
+                .top_left_with_margins_on(state.ids.inv_alignment, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))          
+                .w_h(40.0, 40.0)          
+                .set(state.ids.inv_slot[i], ui);
+                }    
+           
+
+
 
         // X-button
         if Button::image(self.imgs.close_button)
