@@ -35,6 +35,7 @@ pub enum ServerMsg {
         pos: comp::Pos,
         vel: comp::Vel,
         ori: comp::Ori,
+        action_state: comp::ActionState,
     },
     TerrainChunkUpdate {
         key: Vec2<i32>,

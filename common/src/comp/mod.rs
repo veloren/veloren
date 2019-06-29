@@ -7,6 +7,7 @@ mod inventory;
 mod phys;
 mod player;
 mod stats;
+mod action_state;
 
 // Reexports
 pub use agent::Agent;
@@ -18,3 +19,4 @@ pub use inventory::{item, Inventory};
 pub use phys::{ForceUpdate, Ori, Pos, Vel};
 pub use player::Player;
 pub use stats::{Dying, HealthSource, Stats};
+pub use action_state::ActionState;

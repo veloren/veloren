@@ -23,9 +23,6 @@ sphynx::sum_type! {
         Actor(comp::Actor),
         Player(comp::Player),
         Stats(comp::Stats),
-        Attacking(comp::Attacking),
-        Rolling(comp::Rolling),
-        Gliding(comp::Gliding),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -39,9 +36,6 @@ sphynx::sum_type! {
         Actor(PhantomData<comp::Actor>),
         Player(PhantomData<comp::Player>),
         Stats(PhantomData<comp::Stats>),
-        Attacking(PhantomData<comp::Attacking>),
-        Rolling(PhantomData<comp::Rolling>),
-        Gliding(PhantomData<comp::Gliding>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {
