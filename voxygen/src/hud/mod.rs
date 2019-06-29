@@ -713,9 +713,6 @@ impl Hud {
             }
             WinEvent::InputUpdate(GameInput::ToggleCursor, true) if !self.typing() => {
                 self.force_ungrab = !self.force_ungrab;
-                if self.force_ungrab {
-                    global_state.window.grab_cursor(false);
-                }
                 true
             }
             _ if !self.show.ui => false,
@@ -786,15 +783,17 @@ impl Hud {
             // Else the player is typing in chat
             WinEvent::InputUpdate(_key, _) => self.typing(),
             WinEvent::Char(_) => self.typing(),
+            WinEvent::Focused(state) => {
+                self.force_ungrab = !state;
+                true
+            }
 
             _ => false,
         };
         // Handle cursor grab.
-        if !self.force_ungrab {
-            if cursor_grabbed != self.show.want_grab {
-                global_state.window.grab_cursor(self.show.want_grab);
-            }
-        }
+        global_state
+            .window
+            .grab_cursor(!self.force_ungrab && self.show.want_grab);
 
         handled
     }
