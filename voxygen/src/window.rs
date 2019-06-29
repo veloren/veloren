@@ -59,6 +59,8 @@ pub enum Event {
     ViewDistanceChanged(u32),
     /// Game settings have changed.
     SettingsChanged,
+    /// The window is (un)focused
+    Focused(bool),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
@@ -225,7 +227,10 @@ impl Window {
                         },
                         _ => {}
                     },
-                    glutin::WindowEvent::Focused(new_focus) => *focused = new_focus,
+                    glutin::WindowEvent::Focused(state) => {
+                        *focused = state;
+                        events.push(Event::Focused(state));
+                    }
                     _ => {}
                 },
                 glutin::Event::DeviceEvent { event, .. } => match event {
