@@ -310,16 +310,18 @@ impl Client {
         }
 
         // 6) Update the server about the player's physics attributes.
-        match (
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-        ) {
-            (Some(pos), Some(vel), Some(ori)) => {
-                self.postbox
-                    .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
+        if let ClientState::Character = self.client_state {
+            match (
+                self.state.read_storage().get(self.entity).cloned(),
+                self.state.read_storage().get(self.entity).cloned(),
+                self.state.read_storage().get(self.entity).cloned(),
+            ) {
+                (Some(pos), Some(vel), Some(ori)) => {
+                    self.postbox
+                        .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
+                }
+                _ => {}
             }
-            _ => {}
         }
 
         // Output debug metrics
@@ -392,7 +394,7 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        warn!("{:?}", error);
+                        warn!("StateAnswer: {:?}", error);
                     }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;
