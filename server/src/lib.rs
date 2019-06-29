@@ -4,9 +4,10 @@ pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod input;
+pub mod settings;
 
 // Reexports
-pub use crate::{error::Error, input::Input};
+pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
     client::{Client, Clients},
@@ -36,8 +37,6 @@ use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
-const DEFAULT_WORLD_SEED: u32 = 1337;
-
 pub enum Event {
     ClientConnected {
         entity: EcsEntity,
@@ -66,19 +65,20 @@ pub struct Server {
     chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
     pending_chunks: HashSet<Vec2<i32>>,
 
+    server_settings: ServerSettings,
     server_info: ServerInfo,
 }
 
 impl Server {
     /// Create a new `Server` bound to the default socket.
     #[allow(dead_code)]
-    pub fn new() -> Result<Self, Error> {
-        Self::bind(SocketAddr::from(([0; 4], 59003)))
+    pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+        Self::bind(settings.address, settings)
     }
 
     /// Create a new server bound to the given socket.
     #[allow(dead_code)]
-    pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
+    pub fn bind<A: Into<SocketAddr>>(addrs: A, settings: ServerSettings) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::default();
@@ -88,7 +88,7 @@ impl Server {
 
         let this = Self {
             state,
-            world: Arc::new(World::generate(DEFAULT_WORLD_SEED)),
+            world: Arc::new(World::generate(settings.world_seed)),
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -100,7 +100,9 @@ impl Server {
             chunk_rx,
             pending_chunks: HashSet::new(),
 
+            server_settings: settings,
             server_info: ServerInfo {
+                // TODO: get from settings
                 name: "Server name".to_owned(),
                 description: "This is the best Veloren server.".to_owned(),
             },
