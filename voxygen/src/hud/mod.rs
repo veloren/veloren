@@ -256,7 +256,7 @@ pub struct Hud {
     imgs: Imgs,
     fonts: Fonts,
     new_messages: VecDeque<String>,
-    inventory_space: u32,
+    inventory_space: usize,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -486,7 +486,7 @@ impl Hud {
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
-                self.inventory_space += 1;
+                if self.inventory_space < 91 {self.inventory_space += 10;} else {}
             };
         }
 
