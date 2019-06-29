@@ -99,6 +99,12 @@ lazy_static! {
             handle_spawn,
         ),
         ChatCommand::new(
+             "players",
+             "{}",
+             "/players : Show the online players list",
+             handle_players,
+         ),
+        ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
     ];
 }
@@ -282,6 +288,30 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
         _ => server
             .clients
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    let ecs = server.state.ecs();
+    let players = ecs.read_storage::<comp::Player>();
+    let count = players.join().count();
+    let mut header_message: String = format!("{} online players: \n", count);
+    if count > 0 {
+        let mut player_iter = players.join();
+        let first = player_iter.next().unwrap().alias.to_owned();
+        let player_list = player_iter.fold(first, |mut s, p| {
+            s += ",\n";
+            s += &p.alias;
+            s
+        });
+
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(header_message + &player_list));
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(header_message));
     }
 }
 
