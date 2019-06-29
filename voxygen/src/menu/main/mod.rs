@@ -100,15 +100,22 @@ impl PlayState for MainMenuState {
                         if let Err(err) = global_state.settings.save_to_file() {
                             warn!("Failed to save settings: {:?}", err);
                         }
-                        // Don't try to connect if there is already a connection in progress.
-                        client_init = client_init.or(Some(ClientInit::new(
-                            (server_address, DEFAULT_PORT, false),
-                            comp::Player::new(
-                                username.clone(),
-                                Some(global_state.settings.graphics.view_distance),
-                            ),
-                            false,
-                        )));
+
+                        let player = comp::Player::new(
+                            username.clone(),
+                            Some(global_state.settings.graphics.view_distance),
+                        );
+
+                        if player.is_valid() {
+                            // Don't try to connect if there is already a connection in progress.
+                            client_init = client_init.or(Some(ClientInit::new(
+                                (server_address, DEFAULT_PORT, false),
+                                player,
+                                false,
+                            )));
+                        } else {
+                            self.main_menu_ui.login_error("Invalid username".to_string());
+                        }
                     }
                     MainMenuEvent::StartSingleplayer => {
                         return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
