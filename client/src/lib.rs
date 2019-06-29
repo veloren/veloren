@@ -60,7 +60,7 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (state, entity, server_info) = match postbox.next_message() {
+        let (mut state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,
@@ -83,6 +83,12 @@ impl Client {
             .build();
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
+
+        // Set client-only components
+        state
+            .ecs_mut()
+            .write_storage()
+            .insert(entity, comp::AnimationInfo::default());
 
         Ok(Self {
             client_state,
@@ -304,16 +310,18 @@ impl Client {
         }
 
         // 6) Update the server about the player's physics attributes.
-        match (
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-            self.state.read_storage().get(self.entity).cloned(),
-        ) {
-            (Some(pos), Some(vel), Some(ori)) => {
-                self.postbox
-                    .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
+        if let ClientState::Character = self.client_state {
+            match (
+                self.state.read_storage().get(self.entity).cloned(),
+                self.state.read_storage().get(self.entity).cloned(),
+                self.state.read_storage().get(self.entity).cloned(),
+            ) {
+                (Some(pos), Some(vel), Some(ori)) => {
+                    self.postbox
+                        .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
+                }
+                _ => {}
             }
-            _ => {}
         }
 
         // Output debug metrics
@@ -368,20 +376,13 @@ impl Client {
                         pos,
                         vel,
                         ori,
+                        action_state,
                     } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, ori);
-                        }
-                        None => {}
-                    },
-                    ServerMsg::EntityAnimation {
-                        entity,
-                        animation_info,
-                    } => match self.state.ecs().entity_from_uid(entity) {
-                        Some(entity) => {
-                            self.state.write_component(entity, animation_info);
+                            self.state.write_component(entity, action_state);
                         }
                         None => {}
                     },
@@ -393,7 +394,7 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        warn!("{:?}", error);
+                        warn!("StateAnswer: {:?}", error);
                     }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;

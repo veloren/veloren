@@ -439,7 +439,7 @@ impl FigureModelCache {
     fn load_wolf_head_lower(head_lower: quadruped_medium::HeadLower) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head_lower {
-                quadruped_medium::HeadLower::Default => "npc/wolf/head_lower.vox",
+                quadruped_medium::HeadLower::Default => "npc/wolf/wolf_head_lower.vox",
             },
             Vec3::new(-7.0, -6.0, -5.5),
         )
