@@ -1,7 +1,6 @@
 use crate::{
     comp::{
-        Animation, AnimationInfo, Attacking, ForceUpdate, Gliding, Jumping, OnGround, Ori, Pos,
-        Rolling, Vel,
+        Animation, AnimationInfo, ForceUpdate, ActionState
     },
     state::DeltaTime,
 };
@@ -13,12 +12,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, Vel>,
-        ReadStorage<'a, OnGround>,
-        ReadStorage<'a, Jumping>,
-        ReadStorage<'a, Gliding>,
-        ReadStorage<'a, Attacking>,
-        ReadStorage<'a, Rolling>,
+        ReadStorage<'a, ActionState>,
         WriteStorage<'a, AnimationInfo>,
     );
 
@@ -27,23 +21,13 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             dt,
-            velocities,
-            on_grounds,
-            jumpings,
-            glidings,
-            attackings,
-            rollings,
+            action_states,
             mut animation_infos,
         ): Self::SystemData,
     ) {
-        for (entity, vel, on_ground, jumping, gliding, attacking, rolling, mut animation_info) in (
+        for (entity, a, mut animation_info) in (
             &entities,
-            &velocities,
-            on_grounds.maybe(),
-            jumpings.maybe(),
-            glidings.maybe(),
-            attackings.maybe(),
-            rollings.maybe(),
+            &action_states,
             &mut animation_infos,
         )
             .join()
@@ -56,11 +40,11 @@ impl<'a> System<'a> for Sys {
             }
 
             let animation = match (
-                on_ground.is_some(),
-                vel.0.magnitude_squared() > 10.0, // Moving
-                attacking.is_some(),
-                gliding.is_some(),
-                rolling.is_some(),
+                a.on_ground,
+                a.moving,
+                a.attacking,
+                a.gliding,
+                a.rolling,
             ) {
                 (_, _, true, true, _) => impossible_animation("Attack while gliding"),
                 (_, _, true, _, true) => impossible_animation("Roll while attacking"),

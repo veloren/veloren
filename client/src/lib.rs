@@ -374,11 +374,13 @@ impl Client {
                         pos,
                         vel,
                         ori,
+                        action_state,
                     } => match self.state.ecs().entity_from_uid(entity) {
                         Some(entity) => {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, ori);
+                            self.state.write_component(entity, action_state);
                         }
                         None => {}
                     },
