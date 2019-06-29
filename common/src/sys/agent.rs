@@ -41,9 +41,7 @@ impl<'a> System<'a> for Sys {
                             let tgt_pos = tgt_pos.0 + *offset;
 
                             if tgt_pos.z > pos.0.z + 1.0 {
-                                if let Err(err) = jumps.insert(entity, Jumping) {
-                                    warn!("Inserting Jumping for an entity failed: {:?}", err,);
-                                }
+                                controller.jump = true;
                             }
 
                             // Move towards the target.
@@ -74,9 +72,7 @@ impl<'a> System<'a> for Sys {
                                 controller.move_dir = Vec2::zero();
 
                                 if rand::random::<f32>() < 0.2 {
-                                    attacks
-                                        .insert(entity, Attacking::start())
-                                        .expect("Inserting attacking for an entity failed!");
+                                    controller.attack = true;
                                 }
 
                                 false
