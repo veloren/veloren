@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        Animation, AnimationInfo, Attacking, ForceUpdate, Gliding, Jumping, OnGround, Ori, Pos,
-        Rolling, Vel,
-    },
+    comp::{ActionState, Animation, AnimationInfo, ForceUpdate},
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -13,55 +10,18 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, Vel>,
-        ReadStorage<'a, OnGround>,
-        ReadStorage<'a, Jumping>,
-        ReadStorage<'a, Gliding>,
-        ReadStorage<'a, Attacking>,
-        ReadStorage<'a, Rolling>,
+        ReadStorage<'a, ActionState>,
         WriteStorage<'a, AnimationInfo>,
     );
 
-    fn run(
-        &mut self,
-        (
-            entities,
-            dt,
-            velocities,
-            on_grounds,
-            jumpings,
-            glidings,
-            attackings,
-            rollings,
-            mut animation_infos,
-        ): Self::SystemData,
-    ) {
-        for (entity, vel, on_ground, jumping, gliding, attacking, rolling, mut animation_info) in (
-            &entities,
-            &velocities,
-            on_grounds.maybe(),
-            jumpings.maybe(),
-            glidings.maybe(),
-            attackings.maybe(),
-            rollings.maybe(),
-            &mut animation_infos,
-        )
-            .join()
-        {
-            animation_info.time += dt.0 as f64;
-
+    fn run(&mut self, (entities, dt, action_states, mut animation_infos): Self::SystemData) {
+        for (entity, a) in (&entities, &action_states).join() {
             fn impossible_animation(message: &str) -> Animation {
                 warn!("{}", message);
                 Animation::Idle
             }
 
-            let animation = match (
-                on_ground.is_some(),
-                vel.0.magnitude() > 3.0, // Moving
-                attacking.is_some(),
-                gliding.is_some(),
-                rolling.is_some(),
-            ) {
+            let animation = match (a.on_ground, a.moving, a.attacking, a.gliding, a.rolling) {
                 (_, _, true, true, _) => impossible_animation("Attack while gliding"),
                 (_, _, true, _, true) => impossible_animation("Roll while attacking"),
                 (_, _, _, true, true) => impossible_animation("Roll while gliding"),
@@ -74,14 +34,18 @@ impl<'a> System<'a> for Sys {
                 (_, _, true, false, false) => Animation::Attack,
             };
 
-            let last = animation_info.clone();
-            let changed = last.animation != animation;
+            let new_time = animation_infos
+                .get(entity)
+                .filter(|i| i.animation == animation)
+                .map(|i| i.time + dt.0 as f64);
 
-            *animation_info = AnimationInfo {
-                animation,
-                time: if changed { 0.0 } else { last.time },
-                changed,
-            };
+            animation_infos.insert(
+                entity,
+                AnimationInfo {
+                    animation,
+                    time: new_time.unwrap_or(0.0),
+                },
+            );
         }
     }
 }

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
+    comp::{ActionState, Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -21,6 +21,8 @@ const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
+
+pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time
@@ -45,6 +47,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, MoveDir>,
         ReadStorage<'a, Gliding>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, ActionState>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Rolling>,
         WriteStorage<'a, OnGround>,
@@ -62,6 +65,7 @@ impl<'a> System<'a> for Sys {
             move_dirs,
             glidings,
             stats,
+            action_states,
             mut jumpings,
             mut rollings,
             mut on_grounds,
@@ -71,11 +75,11 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, stats, move_dir, gliding, mut pos, mut vel, mut ori) in (
+        for (entity, stats, a, move_dir, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
+            &action_states,
             move_dirs.maybe(),
-            glidings.maybe(),
             &mut positions,
             &mut velocities,
             &mut orientations,
@@ -91,19 +95,25 @@ impl<'a> System<'a> for Sys {
             if let Some(move_dir) = move_dir {
                 vel.0 += Vec2::broadcast(dt.0)
                     * move_dir.0
-                    * match (
-                        on_grounds.get(entity).is_some(),
-                        glidings.get(entity).is_some(),
-                        rollings.get(entity).is_some(),
-                    ) {
-                        (true, false, false) if vel.0.magnitude() < HUMANOID_SPEED => {
+                    * match (a.on_ground, a.gliding, a.rolling) {
+                        (true, false, false)
+                            if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) =>
+                        {
                             HUMANOID_ACCEL
                         }
-                        (false, true, false) if vel.0.magnitude() < GLIDE_SPEED => GLIDE_ACCEL,
-                        (false, false, false) if vel.0.magnitude() < HUMANOID_AIR_SPEED => {
+                        (false, true, false)
+                            if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) =>
+                        {
+                            GLIDE_ACCEL
+                        }
+                        (false, false, false)
+                            if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
+                        {
                             HUMANOID_AIR_ACCEL
                         }
-                        (true, false, true) if vel.0.magnitude() < ROLL_SPEED => ROLL_ACCEL,
+                        (true, false, true) if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) => {
+                            ROLL_ACCEL
+                        }
 
                         _ => 0.0,
                     };
@@ -116,7 +126,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if gliding.is_some() && vel.0.magnitude() < GLIDE_SPEED && vel.0.z < 0.0 {
+            if a.gliding && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) && vel.0.z < 0.0 {
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
@@ -124,7 +134,7 @@ impl<'a> System<'a> for Sys {
             // Roll
             if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
                 *time += dt.0;
-                if *time > 0.55 {
+                if *time > 0.55 || !a.moving {
                     rollings.remove(entity);
                 }
             }
@@ -136,12 +146,7 @@ impl<'a> System<'a> for Sys {
 
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
-            let friction = 50.0
-                * if on_grounds.get(entity).is_some() {
-                    FRIC_GROUND
-                } else {
-                    FRIC_AIR
-                };
+            let friction = 50.0 * if a.on_ground { FRIC_GROUND } else { FRIC_AIR };
             vel.0 = integrate_forces(dt.0, vel.0, friction);
 
             // Basic collision with terrain
@@ -184,7 +189,7 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
-            let was_on_ground = on_grounds.get(entity).is_some();
+            let was_on_ground = a.on_ground;
             on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
             pos.0.z -= 0.0001; // To force collision with the floor
 
