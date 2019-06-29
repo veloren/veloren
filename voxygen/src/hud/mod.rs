@@ -481,13 +481,16 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .label("Add 10 Spaces")
                 .label_font_size(20)
-                .label_color(TEXT_COLOR)   
+                .label_color(TEXT_COLOR)
                 .hover_image(self.imgs.button_hover)
                 .press_image(self.imgs.button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
-                if self.inventory_space < 91 {self.inventory_space += 10;} else {}
+                if self.inventory_space < 91 {
+                    self.inventory_space += 10;
+                } else {
+                }
             };
         }
 
