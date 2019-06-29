@@ -101,10 +101,28 @@ impl<'a> Widget for Bag<'a> {
             let x = i % 5;
             let y = i / 5; 
             Button::image(self.imgs.inv_slot)
-                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))          
+                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))  
+                .parent(state.ids.inv_grid_2)       
                 .w_h(40.0, 40.0)          
                 .set(state.ids.inv_slot[i], ui);
-            }      
+            }     
+
+        // Test Item
+
+        if self.inventory_space > 0 {
+            Button::image(self.imgs.potion_red)                        
+                .w_h(4.0*3.5, 7.0*3.5)
+                .middle_of(state.ids.inv_slot[0])
+                .label("5x") 
+                .label_font_id(self.fonts.opensans)
+                .label_font_size(12)
+                .label_x(Relative::Scalar(10.0)) 
+                .label_y(Relative::Scalar(-10.0))
+                .label_color(TEXT_COLOR)        
+                .set(state.ids.item1, ui);
+
+        }
+
         // X-button
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
