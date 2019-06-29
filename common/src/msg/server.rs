@@ -36,10 +36,6 @@ pub enum ServerMsg {
         vel: comp::Vel,
         ori: comp::Ori,
     },
-    EntityAnimation {
-        entity: u64,
-        animation_info: comp::AnimationInfo,
-    },
     TerrainChunkUpdate {
         key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
