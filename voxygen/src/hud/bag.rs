@@ -101,33 +101,10 @@ impl<'a> Widget for Bag<'a> {
             let x = i % 5;
             let y = i / 5; 
             Button::image(self.imgs.inv_slot)
-                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))  
-                .parent(state.ids.inv_grid_2)       
+                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))          
                 .w_h(40.0, 40.0)          
                 .set(state.ids.inv_slot[i], ui);
-            }     
-
-        // Test Item
-
-        // Create available inventory slot widgets
-
-
-         
-        dbg!(self.inventory_space);
-       if state.ids.inv_slot.len() < self.inventory_space {
-        state.update(|s| { s.ids.inv_slot.resize(self.inventory_space, &mut ui.widget_id_generator());});}
-        for i in 0..self.inventory_space {
-            let x = i % 5;
-            let y = i / 5; 
-            Button::image(self.imgs.inv_slot)
-                .top_left_with_margins_on(state.ids.inv_alignment, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))          
-                .w_h(40.0, 40.0)          
-                .set(state.ids.inv_slot[i], ui);
-                }    
-           
-
-
-
+            }      
         // X-button
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
