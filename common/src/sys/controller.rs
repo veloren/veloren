@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
                 && attackings.get(entity).is_none()
                 && glidings.get(entity).is_none()
                 && on_ground.is_some()
-                && vel.0.magnitude() > 5.0
+                && vel.0.magnitude_squared() > 25.0
             {
                 rollings.insert(entity, Rolling::start());
             }
