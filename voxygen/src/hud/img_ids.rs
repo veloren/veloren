@@ -8,13 +8,14 @@ image_ids! {
         bag_contents: "voxygen/element/frames/bag.vox",
         inv_grid: "voxygen/element/frames/inv_grid.vox",
         inv_slot: "voxygen/element/buttons/inv_slot.vox",
+        grid_inv: "voxygen/element/buttons/grid_inv.vox",
 
         // Window Parts
         window_3: "voxygen/element/frames/window_3.vox",
         tab_bg: "voxygen/element/frames/tab_bg.vox",
         tab_small_open: "voxygen/element/frames/tab_small_open.vox",
         tab_small_closed: "voxygen/element/frames/tab_small_closed.vox",
-
+        
         // MiniMap
         mmap_frame: "voxygen/element/frames/mmap.vox",
         mmap_frame_closed: "voxygen/element/frames/mmap_closed.vox",
@@ -121,6 +122,8 @@ image_ids! {
 
         // Crosshair
         crosshair: "voxygen/element/misc_bg/crosshair.vox",
+        // Items
+        potion_red: "voxygen/voxel/object/potion_red.vox",
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
