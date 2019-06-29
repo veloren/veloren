@@ -28,7 +28,7 @@ void main() {
 		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
 	}
 
-	float light = get_sun_diffuse(f_norm, time_of_day.x) * f_light;
+	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) * f_light;
 	vec3 surf_color = f_col * light;
 
 	float fog_level = fog(f_pos.xy, focus_pos.xy);
