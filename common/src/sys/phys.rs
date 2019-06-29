@@ -261,7 +261,10 @@ impl<'a> System<'a> for Sys {
                     if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                         && resolve_dir.z == 0.0
                         && vel.0.z <= 0.0
-                        && collision_with(pos.0 + resolve_dir - Vec3::unit_z() * 1.05, near_iter.clone())
+                        && collision_with(
+                            pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
+                            near_iter.clone(),
+                        )
                     {
                         // ...block-hop!
                         pos.0.z = (pos.0.z + 1.0).ceil();
