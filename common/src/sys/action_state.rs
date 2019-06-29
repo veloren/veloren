@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        Animation, AnimationInfo, Attacking, ForceUpdate, Gliding, Jumping, OnGround, Ori, Pos,
-        Rolling, Vel, ActionState,
+        ActionState, Animation, AnimationInfo, Attacking, Controller, ForceUpdate, Gliding,
+        Jumping, OnGround, Ori, Pos, Rolling, Vel,
     },
     state::DeltaTime,
 };
@@ -13,6 +13,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        ReadStorage<'a, Controller>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, OnGround>,
         ReadStorage<'a, Jumping>,
@@ -27,6 +28,7 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             dt,
+            controllers, // To make sure it only runs on the single client and the server
             velocities,
             on_grounds,
             jumpings,
@@ -36,9 +38,20 @@ impl<'a> System<'a> for Sys {
             mut action_states,
         ): Self::SystemData,
     ) {
-        for (entity, vel, on_ground, jumping, gliding, attacking, rolling, mut action_state) in (
+        for (
+            entity,
+            vel,
+            _controller,
+            on_ground,
+            jumping,
+            gliding,
+            attacking,
+            rolling,
+            mut action_state,
+        ) in (
             &entities,
             &velocities,
+            &controllers,
             on_grounds.maybe(),
             jumpings.maybe(),
             glidings.maybe(),
