@@ -301,7 +301,9 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
         let first = player_iter.next().unwrap().alias.to_owned();
         let player_list = player_iter
             .fold(first, |s, p| {
-                format!("{},\n{}", s, p.alias)
+                s += ",\n";
+                s += &p.alias;
+                s
             });
 
         server
