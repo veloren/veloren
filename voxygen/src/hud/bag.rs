@@ -3,7 +3,7 @@ use conrod_core::{
     color,
     position::Relative,
     widget::{self, Button, Image, Rectangle, Scrollbar},
-    widget_ids, Labelable, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -93,36 +93,33 @@ impl<'a> Widget for Bag<'a> {
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.inv_scrollbar, ui);
-        // Create available inventory slot widgets         
-        dbg!(self.inventory_space);
-       if state.ids.inv_slot.len() < self.inventory_space {
+        // Create available inventory slot widgets                 
+        if state.ids.inv_slot.len() < self.inventory_space {
         state.update(|s| { s.ids.inv_slot.resize(self.inventory_space, &mut ui.widget_id_generator());});}
+        // "Allowed" max. inventory space should be handled serverside and thus isn't limited in the UI
         for i in 0..self.inventory_space {
             let x = i % 5;
             let y = i / 5; 
             Button::image(self.imgs.inv_slot)
-                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))  
-                .parent(state.ids.inv_grid_2)       
+                .top_left_with_margins_on(state.ids.inv_grid_1, 4.0 + y as f64 * (40.0 + 4.0), 4.0 + x as f64 * (40.0 + 4.0))  // conrod uses a (y,x) format for placing...
+                .parent(state.ids.inv_grid_2) // Avoids the background overlapping available slots
                 .w_h(40.0, 40.0)          
                 .set(state.ids.inv_slot[i], ui);
             }     
-
         // Test Item
-
         if self.inventory_space > 0 {
-            Button::image(self.imgs.potion_red)                        
-                .w_h(4.0*3.5, 7.0*3.5)
-                .middle_of(state.ids.inv_slot[0])
-                .label("5x") 
+            Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot                   
+                .w_h(4.0*3.5, 7.0*3.5) // TODO: height value has to be constant(but not the same as the slot widget), while width depends on the image displayed to avoid stretching
+                .middle_of(state.ids.inv_slot[0]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
+                .label("5x") // TODO: Quantity goes here...
                 .label_font_id(self.fonts.opensans)
                 .label_font_size(12)
                 .label_x(Relative::Scalar(10.0)) 
                 .label_y(Relative::Scalar(-10.0))
                 .label_color(TEXT_COLOR)        
-                .set(state.ids.item1, ui);
+                .set(state.ids.item1, ui); // TODO: Add widget_id generator for displayed items
 
         }
-
         // X-button
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)

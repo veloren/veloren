@@ -15,7 +15,7 @@ image_ids! {
         tab_bg: "voxygen/element/frames/tab_bg.vox",
         tab_small_open: "voxygen/element/frames/tab_small_open.vox",
         tab_small_closed: "voxygen/element/frames/tab_small_closed.vox",
-        
+
         // MiniMap
         mmap_frame: "voxygen/element/frames/mmap.vox",
         mmap_frame_closed: "voxygen/element/frames/mmap_closed.vox",
