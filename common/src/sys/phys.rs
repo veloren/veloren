@@ -196,12 +196,22 @@ impl<'a> System<'a> for Sys {
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
 
+            // Don't move if we're not in a loaded chunk
+            let pos_delta = if terrain
+                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                .is_some()
+            {
+                vel.0 * dt.0
+            } else {
+                Vec3::zero()
+            };
+
             // Don't jump too far at once
-            let increments = ((vel.0 * dt.0).map(|e| e.abs()).reduce_partial_max() / 0.3)
+            let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
                 .ceil()
                 .max(1.0);
             for _ in 0..increments as usize {
-                pos.0 += vel.0 * dt.0 / increments;
+                pos.0 += pos_delta / increments;
 
                 // While the player is colliding with the terrain...
                 while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
