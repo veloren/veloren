@@ -108,8 +108,16 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     Event::InputUpdate(GameInput::Attack, state) => {
-                        self.controller.attack = state;
-                        self.controller.respawn = state; // TODO: Don't do both
+                        if state {
+                            if let ClientState::Character = current_client_state {
+                                self.controller.attack = state;
+                            } else {
+                                self.controller.respawn = state; // TODO: Don't do both
+                            }
+                        } else {
+                            self.controller.attack = state;
+                            self.controller.respawn = state;
+                        }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
                         self.controller.roll = state;
