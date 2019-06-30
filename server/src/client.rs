@@ -75,6 +75,7 @@ impl Clients {
         for client in self.clients.values_mut() {
             if client.client_state == ClientState::Spectator
                 || client.client_state == ClientState::Character
+                || client.client_state == ClientState::Dead
             {
                 client.notify(msg.clone());
             }
@@ -85,6 +86,7 @@ impl Clients {
         for (_entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
             if client.client_state == ClientState::Spectator
                 || client.client_state == ClientState::Character
+                || client.client_state == ClientState::Dead
             {
                 client.notify(msg.clone());
             }
@@ -102,7 +104,8 @@ impl Clients {
     pub fn notify_ingame_except(&mut self, except_entity: EcsEntity, msg: ServerMsg) {
         for (entity, client) in self.clients.iter_mut() {
             if (client.client_state == ClientState::Spectator
-                || client.client_state == ClientState::Character)
+                || client.client_state == ClientState::Character
+                || client.client_state == ClientState::Dead)
                 && *entity != except_entity
             {
                 client.notify(msg.clone());
@@ -118,7 +121,8 @@ impl Clients {
     ) {
         for (entity, client) in self.clients.iter_mut().filter(|(e, _)| f(**e)) {
             if (client.client_state == ClientState::Spectator
-                || client.client_state == ClientState::Character)
+                || client.client_state == ClientState::Character
+                || client.client_state == ClientState::Dead)
                 && *entity != except_entity
             {
                 client.notify(msg.clone());
