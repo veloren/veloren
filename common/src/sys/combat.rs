@@ -52,7 +52,9 @@ impl<'a> System<'a> for Sys {
                             && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
                         {
                             // Deal damage
-                            stat_b.hp.change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
+                            stat_b
+                                .health
+                                .change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
                             vel_b.0 += (pos_b.0 - pos.0).normalized() * 10.0;
                             vel_b.0.z = 15.0;
                             let _ = force_updates.insert(b, ForceUpdate);
