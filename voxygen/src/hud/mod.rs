@@ -282,7 +282,7 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 8,
+            inventory_space: 10,
             show: Show {
                 help: false,
                 debug: true,
@@ -291,7 +291,7 @@ impl Hud {
                 open_windows: Windows::None,
                 map: false,
                 ui: true,
-                inventory_test_button: true,
+                inventory_test_button: false,
                 mini_map: false,
                 settings_tab: SettingsTab::Interface,
                 want_grab: true,
