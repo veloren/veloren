@@ -43,19 +43,11 @@ impl Animation for CjumpAnimation {
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
-            -7.0,
-            4.0,
-            0.0 + wave_stop * 2.0,
-        );
+        next.l_hand.offset = Vec3::new(-7.0, 4.0, 0.0 + wave_stop * 2.0);
         next.l_hand.ori = Quaternion::rotation_x(-0.3);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
-            -7.0,
-            3.0,
-            -2.0 + wave_stop * 2.0,
-        );
+        next.r_hand.offset = Vec3::new(-7.0, 3.0, -2.0 + wave_stop * 2.0);
         next.r_hand.ori = Quaternion::rotation_x(-0.3);
         next.r_hand.scale = Vec3::one();
 

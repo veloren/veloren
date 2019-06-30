@@ -621,28 +621,28 @@ impl FigureMgr {
                             )
                         }
                         comp::Animation::Cjump => anim::character::CjumpAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_info.time,
-                                skeleton_attr,
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
                         ),
                         comp::Animation::Roll => anim::character::RollAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_info.time,
-                                skeleton_attr,
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
                         ),
                         comp::Animation::Crun => anim::character::CrunAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                (vel.0.magnitude(), time),
-                                animation_info.time,
-                                skeleton_attr,
+                            state.skeleton_mut(),
+                            (vel.0.magnitude(), time),
+                            animation_info.time,
+                            skeleton_attr,
                         ),
                         comp::Animation::Cidle => anim::character::CidleAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_info.time,
-                                skeleton_attr,
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
                         ),
                         comp::Animation::Gliding => {
                             anim::character::GlidingAnimation::update_skeleton(
