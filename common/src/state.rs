@@ -111,6 +111,7 @@ impl State {
         ecs.register::<comp::OnGround>();
         ecs.register::<comp::Controller>();
         ecs.register::<comp::Attacking>();
+        ecs.register::<comp::Wielding>();
         ecs.register::<comp::Rolling>();
         ecs.register::<comp::Gliding>();
         ecs.register::<comp::ActionState>();

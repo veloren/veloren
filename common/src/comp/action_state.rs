@@ -7,6 +7,7 @@ pub struct ActionState {
     pub attacking: bool,
     pub rolling: bool,
     pub gliding: bool,
+    pub wielding: bool,
 }
 
 impl Default for ActionState {
@@ -17,6 +18,7 @@ impl Default for ActionState {
             attacking: false,
             rolling: false,
             gliding: false,
+            wielding: false,
         }
     }
 }

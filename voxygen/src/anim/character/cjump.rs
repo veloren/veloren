@@ -5,9 +5,9 @@ use super::{
 use std::f32::consts::PI;
 use vek::*;
 
-pub struct JumpAnimation;
+pub struct CjumpAnimation;
 
-impl Animation for JumpAnimation {
+impl Animation for CjumpAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -43,20 +43,12 @@ impl Animation for JumpAnimation {
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
-            -8.0,
-            0.0 + wave_stop * 3.8,
-            0.0 + wave_stop * 3.2 - wave * 0.4,
-        );
-        next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
+        next.l_hand.offset = Vec3::new(-7.0, 4.0, 0.0 + wave_stop * 2.0);
+        next.l_hand.ori = Quaternion::rotation_x(-0.3);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
-            8.0,
-            0.0 + wave_stop * -3.8,
-            0.0 + wave_stop * 3.2 - wave * 0.4,
-        );
-        next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
+        next.r_hand.offset = Vec3::new(-7.0, 3.0, -2.0 + wave_stop * 2.0);
+        next.r_hand.ori = Quaternion::rotation_x(-0.3);
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 6.0);
@@ -69,10 +61,12 @@ impl Animation for JumpAnimation {
 
         next.weapon.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
-            -5.0 + skeleton_attr.weapon_y,
-            15.0,
+            4.0 + skeleton_attr.weapon_y,
+            0.0 + wave_stop * 2.0,
         );
-        next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
+        next.weapon.ori = Quaternion::rotation_x(-0.3)
+            * Quaternion::rotation_y(0.0)
+            * Quaternion::rotation_z(0.0);
         next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
