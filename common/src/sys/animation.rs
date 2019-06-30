@@ -20,8 +20,6 @@ impl<'a> System<'a> for Sys {
                 warn!("{}", message);
                 Animation::Idle
             }
-
-<<<<<<< HEAD
             let animation = match (a.on_ground, a.moving, a.attacking, a.gliding, a.rolling) {
                 (_, _, true, true, _) => impossible_animation("Attack while gliding"),
                 (_, _, true, _, true) => impossible_animation("Roll while attacking"),
