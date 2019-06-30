@@ -14,6 +14,12 @@ pub struct Attacking {
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Wielding {
+    pub time: f32,
+    pub applied: bool,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Rolling {
     pub time: f32,
     pub applied: bool,
@@ -41,6 +47,15 @@ impl Attacking {
     }
 }
 
+impl Wielding {
+    pub fn start() -> Self {
+        Self {
+            time: 0.0,
+            applied: false,
+        }
+    }
+}
+
 impl Rolling {
     pub fn start() -> Self {
         Self {
@@ -55,6 +70,10 @@ impl Component for MoveDir {
 }
 
 impl Component for Attacking {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl Component for Wielding {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
