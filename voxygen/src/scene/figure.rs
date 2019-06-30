@@ -162,7 +162,7 @@ impl FigureModelCache {
             ),
             (Elf, Male) => (
                 "figure/head/head_elf_male.vox",
-                Vec3::new(-7.0, -6.5, -3.75),
+                Vec3::new(-8.0, -5.0, -2.25),
             ),
             (Elf, Female) => (
                 "figure/head/head_elf_female.vox",
