@@ -79,6 +79,7 @@ pub struct Window {
     fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<KeyMouse, GameInput>,
+    keypress_map: HashMap<GameInput, glutin::ElementState>,
     supplement_events: Vec<Event>,
     focused: bool,
 }
@@ -139,6 +140,8 @@ impl Window {
         key_map.insert(settings.controls.attack, GameInput::Attack);
         key_map.insert(settings.controls.roll, GameInput::Roll);
 
+        let keypress_map = HashMap::new();
+
         Ok(Self {
             events_loop,
             renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
@@ -149,6 +152,7 @@ impl Window {
             fullscreen: false,
             needs_refresh_resize: false,
             key_map,
+            keypress_map,
             supplement_events: vec![],
             focused: true,
         })
@@ -177,6 +181,7 @@ impl Window {
         let window = &mut self.window;
         let focused = &mut self.focused;
         let key_map = &self.key_map;
+        let mut keypress_map = &mut self.keypress_map;
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
         let mut toggle_fullscreen = false;
@@ -209,20 +214,52 @@ impl Window {
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
                         Some(key) => match key_map.get(&KeyMouse::Key(key)) {
-                            Some(GameInput::Fullscreen) => match input.state {
-                                glutin::ElementState::Pressed => {
-                                    toggle_fullscreen = !toggle_fullscreen
+                            Some(GameInput::Fullscreen) => {
+                                if input.state == glutin::ElementState::Pressed
+                                    && !Self::is_event_key_held(keypress_map, GameInput::Fullscreen)
+                                {
+                                    toggle_fullscreen = !toggle_fullscreen;
                                 }
-                                _ => (),
-                            },
-                            Some(GameInput::Screenshot) => match input.state {
-                                glutin::ElementState::Pressed => take_screenshot = true,
-                                _ => {}
-                            },
-                            Some(&game_input) => events.push(Event::InputUpdate(
-                                game_input,
-                                input.state == glutin::ElementState::Pressed,
-                            )),
+                                Self::update_keypress_map(
+                                    keypress_map,
+                                    GameInput::Fullscreen,
+                                    input.state,
+                                );
+                            }
+                            Some(GameInput::Screenshot) => {
+                                take_screenshot = input.state == glutin::ElementState::Pressed
+                                    && !Self::is_event_key_held(
+                                        keypress_map,
+                                        GameInput::Screenshot,
+                                    );
+                                Self::update_keypress_map(
+                                    keypress_map,
+                                    GameInput::Screenshot,
+                                    input.state,
+                                );
+                            }
+                            Some(&game_input)
+                                if game_input == GameInput::MoveForward
+                                    || game_input == GameInput::MoveBack
+                                    || game_input == GameInput::MoveLeft
+                                    || game_input == GameInput::MoveRight
+                                    || game_input == GameInput::Jump
+                                    || game_input == GameInput::Attack
+                                    || game_input == GameInput::Roll =>
+                            {
+                                events.push(Event::InputUpdate(
+                                    game_input,
+                                    input.state == glutin::ElementState::Pressed,
+                                ))
+                            }
+                            Some(&game_input) => {
+                                if input.state == glutin::ElementState::Pressed
+                                    && !Self::is_event_key_held(keypress_map, game_input)
+                                {
+                                    events.push(Event::InputUpdate(game_input, true));
+                                }
+                                Self::update_keypress_map(keypress_map, game_input, input.state);
+                            }
                             _ => {}
                         },
                         _ => {}
@@ -339,5 +376,21 @@ impl Window {
                 err
             ),
         }
+    }
+
+    fn is_event_key_held(
+        map: &mut HashMap<GameInput, glutin::ElementState>,
+        input: GameInput,
+    ) -> bool {
+        *(map.entry(input).or_insert(glutin::ElementState::Released))
+            == glutin::ElementState::Pressed
+    }
+
+    fn update_keypress_map(
+        map: &mut HashMap<GameInput, glutin::ElementState>,
+        input: GameInput,
+        state: glutin::ElementState,
+    ) {
+        map.insert(input, state);
     }
 }
