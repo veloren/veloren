@@ -18,7 +18,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, ActionState>,
+        WriteStorage<'a, ActionState>,
         WriteStorage<'a, MoveDir>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
@@ -37,7 +37,7 @@ impl<'a> System<'a> for Sys {
             positions,
             velocities,
             orientations,
-            action_states,
+            mut action_states,
             mut move_dirs,
             mut jumpings,
             mut attackings,
@@ -46,14 +46,16 @@ impl<'a> System<'a> for Sys {
             mut glidings,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, pos, vel, ori, a) in (
+        for (entity, controller, stats, pos, vel, ori, mut a) in (
             &entities,
             &controllers,
             &stats,
             &positions,
             &velocities,
             &orientations,
-            &action_states,
+            // Although this is changed, it is only kept for this system
+            // as it will be replaced in the action state system
+            &mut action_states,
         )
             .join()
         {
@@ -80,18 +82,16 @@ impl<'a> System<'a> for Sys {
             // Glide
             if controller.glide && !a.on_ground && !a.attacking && !a.rolling {
                 glidings.insert(entity, Gliding);
+                a.gliding = true;
             } else {
                 glidings.remove(entity);
+                a.gliding = false;
             }
 
             // Attack
             if controller.attack && !a.attacking && !a.gliding && !a.rolling {
                 attackings.insert(entity, Attacking::start());
-            }
-
-            // Jump
-            if controller.jump && a.on_ground && vel.0.z <= 0.0 {
-                jumpings.insert(entity, Jumping);
+                a.attacking = true;
             }
 
             // Roll
@@ -103,6 +103,13 @@ impl<'a> System<'a> for Sys {
                 && !a.gliding
             {
                 rollings.insert(entity, Rolling::start());
+                a.rolling = true;
+            }
+
+            // Jump
+            if controller.jump && a.on_ground && vel.0.z <= 0.0 {
+                jumpings.insert(entity, Jumping);
+                a.on_ground = false;
             }
         }
     }
