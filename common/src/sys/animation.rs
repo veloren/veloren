@@ -20,17 +20,27 @@ impl<'a> System<'a> for Sys {
                 warn!("{}", message);
                 Animation::Idle
             }
-            let animation = match (a.on_ground, a.moving, a.attacking, a.gliding, a.rolling) {
-                (_, _, true, true, _) => impossible_animation("Attack while gliding"),
-                (_, _, true, _, true) => impossible_animation("Roll while attacking"),
-                (_, _, _, true, true) => impossible_animation("Roll while gliding"),
-                (_, false, _, _, true) => impossible_animation("Roll without moving"),
-                (_, true, false, false, true) => Animation::Roll,
-                (true, false, false, false, false) => Animation::Idle,
-                (true, true, false, false, false) => Animation::Run,
-                (false, _, false, false, false) => Animation::Jump,
-                (_, _, false, true, false) => Animation::Gliding,
-                (_, _, true, false, false) => Animation::Attack,
+            let animation = match (
+                a.on_ground,
+                a.moving,
+                a.attacking,
+                a.gliding,
+                a.rolling,
+                a.wielding,
+            ) {
+                (_, _, true, true, _, _) => impossible_animation("Attack while gliding"),
+                (_, _, true, _, true, _) => impossible_animation("Roll while attacking"),
+                (_, _, _, true, true, _) => impossible_animation("Roll while gliding"),
+                (_, false, _, _, true, _) => impossible_animation("Roll without moving"),
+                (_, true, false, false, true, _) => Animation::Roll,
+                (true, false, false, false, false, false) => Animation::Idle,
+                (true, true, false, false, false, false) => Animation::Run,
+                (false, _, false, false, false, false) => Animation::Jump,
+                (true, false, false, false, false, true) => Animation::Cidle,
+                (true, true, false, false, false, true) => Animation::Crun,
+                (false, _, false, false, false, true) => Animation::Cjump,
+                (_, _, false, true, false, _) => Animation::Gliding,
+                (_, _, true, false, false, _) => Animation::Attack,
             };
 
             let new_time = animation_infos

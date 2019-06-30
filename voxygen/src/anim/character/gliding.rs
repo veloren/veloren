@@ -60,12 +60,19 @@ impl Animation for GlidingAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave_very_slow_cos * 0.25);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-10.0, -5.0 + wave_very_slow * 0.1, 8.5);
-        next.l_hand.ori =
-            Quaternion::rotation_x(1.0 + wave_very_slow_cos * -0.1) * skeleton_attr.scaler;
+        next.l_hand.offset = Vec3::new(
+            -9.5 + wave_very_slow_cos * -1.5,
+            -7.0 + wave_very_slow_cos * 1.5,
+            9.0,
+        );
+        next.l_hand.ori = Quaternion::rotation_x(1.0 + wave_very_slow_cos * -0.1);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(10.0, -5.0 + wave_very_slow * 0.1, 8.5);
+        next.r_hand.offset = Vec3::new(
+            9.5 + wave_very_slow_cos * -1.5,
+            -7.0 + wave_very_slow_cos * -1.5,
+            9.0,
+        );
         next.r_hand.ori = Quaternion::rotation_x(1.0 + wave_very_slow_cos * -0.10);
         next.r_hand.scale = Vec3::one();
 
