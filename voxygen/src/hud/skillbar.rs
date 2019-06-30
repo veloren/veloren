@@ -31,14 +31,14 @@ pub struct Skillbar<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
-    stats: Stats,
+    stats: &'a Stats,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Skillbar<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: Stats) -> Self {
+    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: &'a Stats) -> Self {
         Self {
             imgs,
             fonts,
@@ -78,7 +78,8 @@ impl<'a> Widget for Skillbar<'a> {
         let next_level_xp = (level as f64).powi(4) - start_level_xp;
         // TODO: We need a max xp value
         let xp_percentage = (self.stats.xp as f64 - start_level_xp) / next_level_xp;
-        let hp_percentage = self.stats.hp.get_current() as f64 / self.stats.hp.get_maximum() as f64;
+        let hp_percentage =
+            self.stats.health.get_current() as f64 / self.stats.health.get_maximum() as f64;
         let mana_percentage = 1.0;
 
         // TODO: Only show while aiming with a bow or when casting a spell.
