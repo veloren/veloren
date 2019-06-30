@@ -20,7 +20,7 @@ sphynx::sum_type! {
         Pos(comp::Pos),
         Vel(comp::Vel),
         Ori(comp::Ori),
-        Actor(comp::Actor),
+        Body(comp::Body),
         Player(comp::Player),
         Stats(comp::Stats),
     }
@@ -33,7 +33,7 @@ sphynx::sum_type! {
         Pos(PhantomData<comp::Pos>),
         Vel(PhantomData<comp::Vel>),
         Ori(PhantomData<comp::Ori>),
-        Actor(PhantomData<comp::Actor>),
+        Body(PhantomData<comp::Body>),
         Player(PhantomData<comp::Player>),
         Stats(PhantomData<comp::Stats>),
     }

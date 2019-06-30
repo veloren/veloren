@@ -146,8 +146,8 @@ impl Server {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
-            .with(comp::Actor::Character { name, body })
-            .with(comp::Stats::default())
+            .with(body)
+            .with(comp::Stats::new(name))
             .with(comp::ActionState::default())
             .with(comp::ForceUpdate)
     }
@@ -161,8 +161,8 @@ impl Server {
     ) {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
-        state.write_component(entity, comp::Actor::Character { name, body });
-        state.write_component(entity, comp::Stats::default());
+        state.write_component(entity, body);
+        state.write_component(entity, comp::Stats::new(name));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -677,9 +677,7 @@ impl Server {
                 self.state.write_component(entity, comp::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
-                if let Err(err) = self.state.ecs_mut().delete_entity_synced(entity) {
-                    warn!("Failed to delete client not found in kill list: {:?}", err);
-                }
+                let _ = self.state.ecs_mut().delete_entity_synced(entity);
                 continue;
             }
         }
@@ -696,14 +694,20 @@ impl Server {
         for entity in todo_respawn {
             if let Some(client) = self.clients.get_mut(&entity) {
                 client.allow_state(ClientState::Character);
-                self.state.write_component(entity, comp::Stats::default());
+                self.state
+                    .ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(entity)
+                    .map(|stats| {
+                        stats
+                            .health
+                            .set_to(stats.health.get_maximum(), comp::HealthSource::Revive)
+                    });
                 self.state
                     .ecs_mut()
                     .write_storage::<comp::Pos>()
                     .get_mut(entity)
                     .map(|pos| pos.0.z += 100.0);
-                self.state.write_component(entity, comp::Vel(Vec3::zero()));
-                self.state.write_component(entity, comp::ForceUpdate);
             }
         }
 

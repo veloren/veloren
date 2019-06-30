@@ -314,7 +314,6 @@ impl Hud {
         // Nametags and healthbars
         if self.show.ingame {
             let ecs = client.state().ecs();
-            let actor = ecs.read_storage::<comp::Actor>();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
             let player = ecs.read_storage::<comp::Player>();
@@ -333,29 +332,25 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Render Name Tags
-            for (pos, name) in (&entities, &pos, &actor, &stats, player.maybe())
+            for (pos, name) in (&entities, &pos, &stats, player.maybe())
                 .join()
-                .filter(|(entity, _, _, stats, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, stats, _)| *entity != me && !stats.is_dead)
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _, _)| {
+                .filter(|(_, pos, _, _)| {
                     (pos.0 - player_pos)
                         .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
                         .magnitude()
                         < view_distance as f32
                 })
-                .map(|(_, pos, actor, _, player)| match actor {
-                    comp::Actor::Character {
-                        name: char_name, ..
-                    } => {
-                        // Temporary
-                        // If the player used the default character name display their name instead
-                        let name = if char_name == "Character Name" {
-                            player.map_or(char_name, |p| &p.alias)
-                        } else {
-                            char_name
-                        };
-                        (pos.0, name)
-                    }
+                .map(|(_, pos, stats, player)| {
+                    // TODO: This is temporary
+                    // If the player used the default character name display their name instead
+                    let name = if stats.name == "Character Name" {
+                        player.map_or(&stats.name, |p| &p.alias)
+                    } else {
+                        &stats.name
+                    };
+                    (pos.0, name)
                 })
             {
                 let id = name_id_walker.next(
@@ -377,7 +372,7 @@ impl Hud {
                 .filter(|(entity, _, stats)| {
                     *entity != me
                         && !stats.is_dead
-                        && stats.hp.get_current() != stats.hp.get_maximum()
+                        && stats.health.get_current() != stats.health.get_maximum()
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _)| {
@@ -405,7 +400,9 @@ impl Hud {
                 // % HP Filling
                 Rectangle::fill_with(
                     [
-                        120.0 * (stats.hp.get_current() as f64 / stats.hp.get_maximum() as f64),
+                        120.0
+                            * (stats.health.get_current() as f64
+                                / stats.health.get_maximum() as f64),
                         8.0,
                     ],
                     HP_COLOR,
@@ -545,14 +542,14 @@ impl Hud {
 
         // Skillbar
         // Get player stats
-        let stats = client
+        if let Some(stats) = client
             .state()
             .ecs()
             .read_storage::<comp::Stats>()
             .get(client.entity())
-            .map(|&s| s)
-            .unwrap_or_default();
-        Skillbar::new(&self.imgs, &self.fonts, stats).set(self.ids.skillbar, ui_widgets);
+        {
+            Skillbar::new(&self.imgs, &self.fonts, stats).set(self.ids.skillbar, ui_widgets);
+        }
 
         // Chat box
         match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)

@@ -13,7 +13,7 @@ mod stats;
 pub use action_state::ActionState;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
-pub use body::{humanoid, quadruped, quadruped_medium, Actor, Body};
+pub use body::{humanoid, quadruped, quadruped_medium, Body};
 pub use controller::Controller;
 pub use inputs::{Attacking, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling};
 pub use inventory::{item, Inventory};
