@@ -14,7 +14,7 @@ const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
-const HUMANOID_JUMP_ACCEL: f32 = 17.0;
+const HUMANOID_JUMP_ACCEL: f32 = 16.5;
 const ROLL_ACCEL: f32 = 120.0;
 const ROLL_SPEED: f32 = 550.0;
 const GLIDE_ACCEL: f32 = 15.0;
@@ -140,8 +140,12 @@ impl<'a> System<'a> for Sys {
             }
 
             // Set direction based on velocity
-            if vel.0.magnitude_squared() > 0.1 {
-                ori.0 = vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0);
+            if Vec2::<f32>::from(vel.0).magnitude_squared() > 0.1 {
+                ori.0 = Lerp::lerp(
+                    ori.0,
+                    vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0),
+                    10.0 * dt.0,
+                );
             }
 
             // Integrate forces
@@ -191,17 +195,26 @@ impl<'a> System<'a> for Sys {
 
             let was_on_ground = a.on_ground;
             on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
-            pos.0.z -= 0.0001; // To force collision with the floor
 
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
 
+            // Don't move if we're not in a loaded chunk
+            let pos_delta = if terrain
+                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                .is_some()
+            {
+                vel.0 * dt.0
+            } else {
+                Vec3::zero()
+            };
+
             // Don't jump too far at once
-            let increments = ((vel.0 * dt.0).map(|e| e.abs()).reduce_partial_max() / 0.3)
+            let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
                 .ceil()
                 .max(1.0);
             for _ in 0..increments as usize {
-                pos.0 += vel.0 * dt.0 / increments;
+                pos.0 += pos_delta / increments;
 
                 // While the player is colliding with the terrain...
                 while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
@@ -240,7 +253,7 @@ impl<'a> System<'a> for Sys {
                             ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
                                 .map(|e| e.abs())
                                 .reduce_partial_min()
-                                * 1000.0) as i32
+                                * 1_000_000.0) as i32
                         })
                         .expect("Collision detected, but no colliding blocks found!");
 
@@ -259,8 +272,14 @@ impl<'a> System<'a> for Sys {
                     // When the resolution direction is non-vertical, we must be colliding with a wall
                     // If the space above is free...
                     if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
+                        // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
-                        && vel.0.z <= 0.0
+                        // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
+                        && (vel.0.z <= 0.0 || terrain
+                            .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
+                            .map(|vox| !vox.is_empty())
+                            .unwrap_or(false))
+                        // ...and there is a collision with a block beneath our current hitbox...
                         && collision_with(
                             pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
                             near_iter.clone(),
