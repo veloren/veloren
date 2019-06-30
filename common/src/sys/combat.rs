@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Attacking, HealthSource, Stats, {ForceUpdate, Ori, Pos, Vel},
+        Attacking, HealthSource, Stats, Wielding, {ForceUpdate, Ori, Pos, Vel},
     },
     state::{DeltaTime, Uid},
 };
@@ -18,6 +18,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Wielding>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, ForceUpdate>,
     );
@@ -32,6 +33,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             mut velocities,
             mut attackings,
+            mut wieldings,
             mut stats,
             mut force_updates,
         ): Self::SystemData,
@@ -67,6 +69,7 @@ impl<'a> System<'a> for Sys {
                     Some(entity)
                 } else {
                     attacking.time += dt.0;
+
                     None
                 }
             })
