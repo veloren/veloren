@@ -60,19 +60,11 @@ impl Animation for CrunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
-            -6.0,
-            4.0,
-            0.0,
-        );
+        next.l_hand.offset = Vec3::new(-6.0, 4.0, 0.0);
         next.l_hand.ori = Quaternion::rotation_x(-0.3);
         next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
-            -6.0,
-            3.0,
-            -2.0,
-        );
+        next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
         next.r_hand.ori = Quaternion::rotation_x(-0.3);
         next.r_hand.scale = Vec3::one();
 
@@ -84,11 +76,7 @@ impl Animation for CrunAnimation {
         next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(
-            -6.0 + skeleton_attr.weapon_x,
-            4.0,
-            0.0,
-        );
+        next.weapon.offset = Vec3::new(-6.0 + skeleton_attr.weapon_x, 4.0, 0.0);
         next.weapon.ori = Quaternion::rotation_x(-0.3)
             * Quaternion::rotation_y(0.0)
             * Quaternion::rotation_z(0.0);

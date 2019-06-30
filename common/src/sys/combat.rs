@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Attacking, Wielding, HealthSource, Stats, {ForceUpdate, Ori, Pos, Vel},
+        Attacking, HealthSource, Stats, Wielding, {ForceUpdate, Ori, Pos, Vel},
     },
     state::{DeltaTime, Uid},
 };

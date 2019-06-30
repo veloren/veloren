@@ -29,8 +29,6 @@ impl Animation for CidleAnimation {
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
         let wave_slow = (anim_time as f32 * 6.0 + PI).sin();
 
-
-
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 1.5)
                 .floor()
