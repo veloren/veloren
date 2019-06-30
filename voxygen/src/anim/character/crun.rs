@@ -2,6 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
+use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
 
@@ -19,8 +20,11 @@ impl Animation for CrunAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 14.0).sin();
-        let wave_cos = (anim_time as f32 * 14.0).cos();
+        let wave = (anim_time as f32 * 12.0).sin();
+        let wave_cos = (anim_time as f32 * 12.0).cos();
+        let wave_diff = (anim_time as f32 * 12.0 + PI / 2.0).sin();
+        let wave_cos_dub = (anim_time as f32 * 24.0).cos();
+        let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 2.0)
@@ -35,10 +39,14 @@ impl Animation for CrunAnimation {
                 * 0.1,
         );
 
-        next.head.offset = Vec3::new(0.0, 3.0, 12.0 + wave_cos * 1.3);
+        next.head.offset = Vec3::new(
+            0.0,
+            -1.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 15.0 + wave_cos * 1.3,
+        );
         next.head.ori = Quaternion::rotation_z(head_look.x + wave * 0.1)
             * Quaternion::rotation_x(head_look.y + 0.35);
-        next.head.scale = Vec3::one();
+        next.head.scale = Vec3::one() * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0, 0.0, 7.0 + wave_cos * 1.1);
         next.chest.ori = Quaternion::rotation_z(wave * 0.1);
@@ -52,25 +60,39 @@ impl Animation for CrunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(-9.0, 3.0 + wave_cos * 8.0, 12.0 - wave * 1.0) / 11.0;
-        next.l_hand.ori = Quaternion::rotation_x(wave_cos * 1.1);
-        next.l_hand.scale = Vec3::one() / 11.0;
+        next.l_hand.offset = Vec3::new(
+            -6.0,
+            4.0,
+            0.0,
+        );
+        next.l_hand.ori = Quaternion::rotation_x(-0.3);
+        next.l_hand.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(9.0, 3.0 - wave_cos * 8.0, 12.0 + wave * 1.0) / 11.0;
-        next.r_hand.ori = Quaternion::rotation_x(wave_cos * -1.1);
-        next.r_hand.scale = Vec3::one() / 11.0;
+        next.r_hand.offset = Vec3::new(
+            -6.0,
+            3.0,
+            -2.0,
+        );
+        next.r_hand.ori = Quaternion::rotation_x(-0.3);
+        next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0);
+        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
         next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.5);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0);
+        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
         next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
         next.r_foot.scale = Vec3::one();
 
-        next.weapon.offset = Vec3::new(-7.0, -5.0, 15.0);
-        next.weapon.ori = Quaternion::rotation_y(2.5) * Quaternion::rotation_z(1.57);
-        next.weapon.scale = Vec3::one() * 0.0;
+        next.weapon.offset = Vec3::new(
+            -6.0 + skeleton_attr.weapon_x,
+            4.0,
+            0.0,
+        );
+        next.weapon.ori = Quaternion::rotation_x(-0.3)
+            * Quaternion::rotation_y(0.0)
+            * Quaternion::rotation_z(0.0);
+        next.weapon.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
@@ -84,17 +106,11 @@ impl Animation for CrunAnimation {
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
-        next.left_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
-        next.left_equip.ori = Quaternion::rotation_x(0.0);;
-        next.left_equip.scale = Vec3::one() * 0.0;
-
-        next.right_equip.offset = Vec3::new(0.0, 0.0, 5.0) / 11.0;
-        next.right_equip.ori = Quaternion::rotation_x(0.0);;
-        next.right_equip.scale = Vec3::one() * 0.0;
-
-        next.torso.offset = Vec3::new(0.0, -0.2, 0.4);
-        next.torso.ori = Quaternion::rotation_x(-velocity * 0.04 - wave_cos * 0.10);
-        next.torso.scale = Vec3::one() / 11.0;
+        next.torso.offset =
+            Vec3::new(0.0, -0.2 + wave * -0.08, 0.4 + wave_cos_dub * 0.11) * skeleton_attr.scaler;
+        next.torso.ori =
+            Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005);
+        next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next
     }
