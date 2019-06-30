@@ -9,6 +9,9 @@ image_ids! {
         inv_grid: "voxygen/element/frames/inv_grid.vox",
         inv_slot: "voxygen/element/buttons/inv_slot.vox",
         grid_inv: "voxygen/element/buttons/grid_inv.vox",
+        bag_top: "voxygen/element/bag/top.vox",
+        bag_mid: "voxygen/element/bag/mid.vox",
+        bag_bot: "voxygen/element/bag/bot.vox",
 
         // Window Parts
         window_3: "voxygen/element/frames/window_3.vox",

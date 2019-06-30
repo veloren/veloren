@@ -256,7 +256,7 @@ pub struct Hud {
     imgs: Imgs,
     fonts: Fonts,
     new_messages: VecDeque<String>,
-    inventory_space: usize,
+    inventory_space: usize,       
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -282,7 +282,7 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 0,
+            inventory_space: 8,
             show: Show {
                 help: false,
                 debug: true,
@@ -479,7 +479,7 @@ impl Hud {
             if Button::image(self.imgs.button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
-                .label("Add 10 Spaces")
+                .label("Add 1 Space")
                 .label_font_size(20)
                 .label_color(TEXT_COLOR)
                 .hover_image(self.imgs.button_hover)
@@ -487,8 +487,8 @@ impl Hud {
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
-                if self.inventory_space < 91 {
-                    self.inventory_space += 10;
+                if self.inventory_space < 100 {
+                    self.inventory_space += 1;
                 } else {
                 }
             };
