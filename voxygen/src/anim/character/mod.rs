@@ -1,7 +1,7 @@
 pub mod attack;
 pub mod cidle;
-pub mod crun;
 pub mod cjump;
+pub mod crun;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
@@ -11,8 +11,8 @@ pub mod run;
 // Reexports
 pub use self::attack::AttackAnimation;
 pub use self::cidle::CidleAnimation;
-pub use self::crun::CrunAnimation;
 pub use self::cjump::CjumpAnimation;
+pub use self::crun::CrunAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
@@ -85,7 +85,6 @@ impl Skeleton for CharacterSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-
         ]
     }
 

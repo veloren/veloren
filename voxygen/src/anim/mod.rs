@@ -107,7 +107,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
             neck_height: match (body.race, body.body_type) {
                 (Orc, Male) => -2.0,
                 (Orc, Female) => -2.0,
-                (Human, Male) => 0.0,
+                (Human, Male) => -0.5,
                 (Human, Female) => -2.0,
                 (Elf, Male) => -0.5,
                 (Elf, Female) => -1.25,
