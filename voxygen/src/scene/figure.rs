@@ -581,7 +581,6 @@ impl FigureMgr {
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
 
-<<<<<<< HEAD
             let skeleton_attr = &self
                 .model_cache
                 .get_or_create_model(renderer, *body, tick)
@@ -613,7 +612,8 @@ impl FigureMgr {
                             animation_info.time,
                             skeleton_attr,
                         ),
-                        comp::Animation::Attack => anim::character::AttackAnimation::update_skeleton(
+                        comp::Animation::Attack => {
+                            anim::character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,
@@ -644,7 +644,8 @@ impl FigureMgr {
                                 animation_info.time,
                                 skeleton_attr,
                         ),
-                        comp::Animation::Gliding => anim::character::GlidingAnimation::update_skeleton(
+                        comp::Animation::Gliding => {
+                            anim::character::GlidingAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_info.time,
