@@ -5,6 +5,7 @@ use specs::{Component, FlaggedStorage, VecStorage};
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
+    Revive,
     Unknown,
 }
 
@@ -23,18 +24,20 @@ impl Health {
         self.maximum
     }
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
+        let amount = amount.min(self.maximum);
         self.last_change = Some((amount as i32 - self.current as i32, 0.0, cause));
         self.current = amount;
     }
     pub fn change_by(&mut self, amount: i32, cause: HealthSource) {
-        self.current = (self.current as i32 + amount).max(0) as u32;
+        self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
         self.last_change = Some((amount, 0.0, cause));
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
-    pub hp: Health,
+    pub name: String,
+    pub health: Health,
     pub xp: u32,
     pub is_dead: bool,
 }
@@ -42,14 +45,15 @@ pub struct Stats {
 impl Stats {
     pub fn should_die(&self) -> bool {
         // TODO: Remove
-        self.hp.current == 0
+        self.health.current == 0
     }
 }
 
-impl Default for Stats {
-    fn default() -> Self {
+impl Stats {
+    pub fn new(name: String) -> Self {
         Self {
-            hp: Health {
+            name,
+            health: Health {
                 current: 100,
                 maximum: 100,
                 last_change: None,
