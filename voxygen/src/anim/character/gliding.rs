@@ -103,14 +103,6 @@ impl Animation for GlidingAnimation {
             * Quaternion::rotation_y(wave_very_slow_cos * 0.04);
         next.draw.scale = Vec3::one();
 
-        next.left_equip.offset = Vec3::new(0.0, 0.0, -5.0) / 11.0;
-        next.left_equip.ori = Quaternion::rotation_x(0.0);;
-        next.left_equip.scale = Vec3::one() * 0.0;
-
-        next.right_equip.offset = Vec3::new(0.0, 0.0, -5.0) / 11.0;
-        next.right_equip.ori = Quaternion::rotation_x(0.0);
-        next.right_equip.scale = Vec3::one() * 0.0;
-
         next.torso.offset = Vec3::new(0.0, 6.0, 15.0) / 11.0 * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(-0.05 * velocity + wave_very_slow * 0.10);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
