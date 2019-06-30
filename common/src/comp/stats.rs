@@ -47,6 +47,11 @@ impl Stats {
         // TODO: Remove
         self.health.current == 0
     }
+    pub fn revive(&mut self) {
+        self.health
+            .set_to(self.health.get_maximum(), HealthSource::Revive);
+        self.is_dead = false;
+    }
 }
 
 impl Stats {

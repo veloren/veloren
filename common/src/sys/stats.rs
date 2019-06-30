@@ -18,8 +18,7 @@ impl<'a> System<'a> for Sys {
     fn run(&mut self, (entities, dt, mut stats, mut dyings): Self::SystemData) {
         for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.should_die() && !stat.is_dead {
-                // TODO: Replace is_dead with client states
-                if let Err(err) = dyings.insert(
+                let _ = dyings.insert(
                     entity,
                     Dying {
                         cause: match stat.health.last_change {
@@ -30,9 +29,7 @@ impl<'a> System<'a> for Sys {
                             }
                         },
                     },
-                ) {
-                    warn!("Inserting Dying for an entity failed: {:?}", err);
-                }
+                );
                 stat.is_dead = true;
             }
             if let Some(change) = &mut stat.health.last_change {
