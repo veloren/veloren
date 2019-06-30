@@ -244,6 +244,7 @@ impl Window {
                                     || game_input == GameInput::MoveLeft
                                     || game_input == GameInput::MoveRight
                                     || game_input == GameInput::Jump
+                                    || game_input == GameInput::Glide
                                     || game_input == GameInput::Attack
                                     || game_input == GameInput::Roll =>
                             {
