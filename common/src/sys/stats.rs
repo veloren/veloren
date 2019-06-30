@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
                 if let Err(err) = dyings.insert(
                     entity,
                     Dying {
-                        cause: match stat.hp.last_change {
+                        cause: match stat.health.last_change {
                             Some(change) => change.2,
                             None => {
                                 warn!("Nothing caused an entity to die!");
@@ -35,7 +35,7 @@ impl<'a> System<'a> for Sys {
                 }
                 stat.is_dead = true;
             }
-            if let Some(change) = &mut stat.hp.last_change {
+            if let Some(change) = &mut stat.health.last_change {
                 change.1 += dt.0 as f64;
             }
         }
