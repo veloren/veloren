@@ -61,12 +61,12 @@ impl FigureModelCache {
                                     Some(Self::load_right_hand(body.hand)),
                                     Some(Self::load_left_foot(body.foot)),
                                     Some(Self::load_right_foot(body.foot)),
-                                    Some(Self::load_weapon(Weapon::Axe)), // TODO: Inventory
+                                    Some(Self::load_weapon(Weapon::Sword)), // TODO: Inventory
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw()),
-                                    Some(Self::load_left_equip(Weapon::Axe)), // TODO: Inventory
-                                    Some(Self::load_right_equip(body.hand)),
+                                    None,
+                                    None,
                                     None,
                                     None,
                                 ],
@@ -154,7 +154,7 @@ impl FigureModelCache {
         let (name, offset) = match (race, body_type) {
             (Human, Male) => (
                 "figure/head/head_human_male.vox",
-                Vec3::new(-7.0, -5.5, -9.25),
+                Vec3::new(-7.0, -5.5, -2.25),
             ),
             (Human, Female) => (
                 "figure/head/head_human_female.vox",
@@ -340,28 +340,14 @@ impl FigureModelCache {
         Self::load_mesh("object/glider.vox", Vec3::new(-26.0, -26.0, -5.0))
     }
 
-    fn load_left_equip(weapon: Weapon) -> Mesh<FigurePipeline> {
-        let (name, offset) = match weapon {
-            Weapon::Sword => ("weapon/sword/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
-            Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
-            Weapon::Axe => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -4.0)),
-            Weapon::Sword => ("weapon/sword/wood_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
-            Weapon::Daggers => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
-            Weapon::SwordShield => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -2.0)),
-            Weapon::Bow => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
-            Weapon::Staff => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -2.0)),
-        };
-        Self::load_mesh(name, offset)
-    }
-
-    fn load_right_equip(hand: humanoid::Hand) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match hand {
-                humanoid::Hand::Default => "figure/body/hand.vox",
-            },
-            Vec3::new(-2.0, -2.5, -5.0),
-        )
-    }
+    //fn load_right_equip(hand: humanoid::Hand) -> Mesh<FigurePipeline> {
+    //    Self::load_mesh(
+    //        match hand {
+    //            humanoid::Hand::Default => "figure/body/hand.vox",
+    //        },
+    //        Vec3::new(-2.0, -2.5, -5.0),
+    //    )
+    //}
 
     /////////
     fn load_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
@@ -595,6 +581,7 @@ impl FigureMgr {
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
 
+<<<<<<< HEAD
             let skeleton_attr = &self
                 .model_cache
                 .get_or_create_model(renderer, *body, tick)
@@ -626,34 +613,38 @@ impl FigureMgr {
                             animation_info.time,
                             skeleton_attr,
                         ),
-                        comp::Animation::Attack => {
-                            anim::character::AttackAnimation::update_skeleton(
+                        comp::Animation::Attack => anim::character::AttackAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,
                                 skeleton_attr,
                             )
                         }
+                        comp::Animation::Cjump => anim::character::CjumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                        ),
                         comp::Animation::Roll => anim::character::RollAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
                         ),
                         comp::Animation::Crun => anim::character::CrunAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            (vel.0.magnitude(), time),
-                            animation_info.time,
-                            skeleton_attr,
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
                         ),
                         comp::Animation::Cidle => anim::character::CidleAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
                         ),
-                        comp::Animation::Gliding => {
-                            anim::character::GlidingAnimation::update_skeleton(
+                        comp::Animation::Gliding => anim::character::GlidingAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
                                 animation_info.time,
