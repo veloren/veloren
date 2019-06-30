@@ -587,58 +587,6 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // Sync physics
-        for (entity, &uid, &pos, &vel, &ori, &action_state, force_update) in (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::Pos>(),
-            &self.state.ecs().read_storage::<comp::Vel>(),
-            &self.state.ecs().read_storage::<comp::Ori>(),
-            &self.state.ecs().read_storage::<comp::ActionState>(),
-            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
-        )
-            .join()
-        {
-            let msg = ServerMsg::EntityPhysics {
-                entity: uid.into(),
-                pos,
-                vel,
-                ori,
-                action_state,
-            };
-
-            let state = &self.state;
-            let clients = &mut self.clients;
-
-            let in_vd = |entity| {
-                // Get client position.
-                let client_pos = match state.ecs().read_storage::<comp::Pos>().get(entity) {
-                    Some(pos) => pos.0,
-                    None => return false,
-                };
-                // Get client view distance
-                let client_vd = match state.ecs().read_storage::<comp::Player>().get(entity) {
-                    Some(comp::Player {
-                        view_distance: Some(vd),
-                        ..
-                    }) => *vd,
-                    _ => return false,
-                };
-
-                (pos.0 - client_pos)
-                    .map2(TerrainChunkSize::SIZE, |d, sz| {
-                        (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
-                    })
-                    .magnitude_squared()
-                    < client_vd.pow(2)
-            };
-
-            match force_update {
-                Some(_) => clients.notify_ingame_if(msg, in_vd),
-                None => clients.notify_ingame_if_except(entity, msg, in_vd),
-            }
-        }
-
         // Sync deaths.
         let ecs = &self.state.ecs();
         let clients = &mut self.clients;
@@ -698,16 +646,65 @@ impl Server {
                     .ecs_mut()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
-                    .map(|stats| {
-                        stats
-                            .health
-                            .set_to(stats.health.get_maximum(), comp::HealthSource::Revive)
-                    });
+                    .map(|stats| stats.revive());
                 self.state
                     .ecs_mut()
                     .write_storage::<comp::Pos>()
                     .get_mut(entity)
-                    .map(|pos| pos.0.z += 100.0);
+                    .map(|pos| pos.0.z += 20.0);
+                self.state.write_component(entity, comp::ForceUpdate);
+            }
+        }
+
+        // Sync physics
+        for (entity, &uid, &pos, &vel, &ori, &action_state, force_update) in (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<Uid>(),
+            &self.state.ecs().read_storage::<comp::Pos>(),
+            &self.state.ecs().read_storage::<comp::Vel>(),
+            &self.state.ecs().read_storage::<comp::Ori>(),
+            &self.state.ecs().read_storage::<comp::ActionState>(),
+            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
+        )
+            .join()
+        {
+            let msg = ServerMsg::EntityPhysics {
+                entity: uid.into(),
+                pos,
+                vel,
+                ori,
+                action_state,
+            };
+
+            let state = &self.state;
+            let clients = &mut self.clients;
+
+            let in_vd = |entity| {
+                // Get client position.
+                let client_pos = match state.ecs().read_storage::<comp::Pos>().get(entity) {
+                    Some(pos) => pos.0,
+                    None => return false,
+                };
+                // Get client view distance
+                let client_vd = match state.ecs().read_storage::<comp::Player>().get(entity) {
+                    Some(comp::Player {
+                        view_distance: Some(vd),
+                        ..
+                    }) => *vd,
+                    _ => return false,
+                };
+
+                (pos.0 - client_pos)
+                    .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
+                    })
+                    .magnitude_squared()
+                    < client_vd.pow(2)
+            };
+
+            match force_update {
+                Some(_) => clients.notify_ingame_if(msg, in_vd),
+                None => clients.notify_ingame_if_except(entity, msg, in_vd),
             }
         }
 
