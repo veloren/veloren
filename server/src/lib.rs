@@ -357,16 +357,21 @@ impl Server {
                 last_ping: self.state.get_time(),
             };
 
-            // Return the state of the current world (all of the components that Sphynx tracks).
-            client.notify(ServerMsg::InitialSync {
-                ecs_state: self.state.ecs().gen_state_package(),
-                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
-                server_info: self.server_info.clone(),
-            });
+            // TODO: Figure out if this if/else if correct
+            if self.server_settings.max_players <= self.clients.len() {
+                client.notify(ServerMsg::TooManyPlayers);
+            } else {
+                // Return the state of the current world (all of the components that Sphynx tracks).
+                client.notify(ServerMsg::InitialSync {
+                    ecs_state: self.state.ecs().gen_state_package(),
+                    entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
+                    server_info: self.server_info.clone(),
+                });
+
+                frontend_events.push(Event::ClientConnected { entity });
+            }
 
             self.clients.add(entity, client);
-
-            frontend_events.push(Event::ClientConnected { entity });
         }
 
         Ok(frontend_events)

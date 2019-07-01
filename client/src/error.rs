@@ -6,6 +6,7 @@ pub enum Error {
     ServerWentMad,
     ServerTimeout,
     ServerShutdown,
+    TooManyPlayers,
     Other(String),
 }
 
