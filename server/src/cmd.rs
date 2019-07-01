@@ -331,18 +331,10 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(current_pos) => {
-            let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
-
-            for i in -1..2 {
-                for j in -1..2 {
-                    for k in -1..2 {
-                        terrain_change.set(
-                            current_pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k),
-                            Block::new(1, Rgb::broadcast(255)),
-                        );
-                    }
-                }
-            }
+            server.state.ecs().write_resource::<TerrainChange>().set(
+                current_pos.0.map(|e| e.floor() as i32),
+                Block::new(1, Rgb::broadcast(255)),
+            );
         }
         None => server.clients.notify(
             entity,
