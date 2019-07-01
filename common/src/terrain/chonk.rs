@@ -1,6 +1,6 @@
 use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{BaseVol, ReadVol, WriteVol, VolSize},
+    vol::{BaseVol, ReadVol, VolSize, WriteVol},
     volumes::chunk::{Chunk, ChunkErr},
 };
 use fxhash::FxHashMap;
@@ -188,7 +188,7 @@ impl WriteVol for Chonk {
             SubChunk::Hash(cblock, map) if block == *cblock => {
                 map.remove(&rpos.map(|e| e as u8));
                 Ok(())
-            },
+            }
             SubChunk::Hash(_cblock, map) if map.len() <= 4096 => {
                 map.insert(rpos.map(|e| e as u8), block);
                 Ok(())

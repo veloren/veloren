@@ -5,7 +5,7 @@ use crate::{
     comp,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
-    terrain::{TerrainChunk, TerrainMap, Block},
+    terrain::{Block, TerrainChunk, TerrainMap},
     vol::WriteVol,
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
@@ -17,7 +17,7 @@ use specs::{
 };
 use sphynx;
 use std::{
-    collections::{HashSet, HashMap},
+    collections::{HashMap, HashSet},
     sync::Arc,
     time::Duration,
 };
@@ -255,11 +255,13 @@ impl State {
         {
             self.ecs
                 .write_resource::<ChunkChanges>()
-                .modified_chunks.insert(key);
+                .modified_chunks
+                .insert(key);
         } else {
             self.ecs
                 .write_resource::<ChunkChanges>()
-                .new_chunks.insert(key);
+                .new_chunks
+                .insert(key);
         }
     }
 
@@ -273,7 +275,8 @@ impl State {
         {
             self.ecs
                 .write_resource::<ChunkChanges>()
-                .removed_chunks.insert(key);
+                .removed_chunks
+                .insert(key);
         }
     }
 
@@ -303,21 +306,19 @@ impl State {
             .write_resource::<TerrainChange>()
             .blocks
             .drain()
-            .for_each(|(pos, block)| if terrain.set(pos, block).is_ok() {
-                chunk_changes.modified_chunks.insert(terrain.pos_key(pos));
-            } else {
-                warn!("Tried to modify block outside of terrain at {:?}", pos);
+            .for_each(|(pos, block)| {
+                if terrain.set(pos, block).is_ok() {
+                    chunk_changes.modified_chunks.insert(terrain.pos_key(pos));
+                } else {
+                    warn!("Tried to modify block outside of terrain at {:?}", pos);
+                }
             });
     }
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
-        self.ecs
-            .write_resource::<TerrainChange>()
-            .clear();
-        self.ecs
-            .write_resource::<ChunkChanges>()
-            .clear();
+        self.ecs.write_resource::<TerrainChange>().clear();
+        self.ecs.write_resource::<ChunkChanges>().clear();
     }
 }

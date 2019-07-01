@@ -7,7 +7,7 @@ use common::{
     comp,
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
-    state::{TimeOfDay, TerrainChange},
+    state::{TerrainChange, TimeOfDay},
     terrain::Block,
     vol::Vox,
 };
@@ -254,10 +254,9 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                     }
                 },
                 None => {
-                    server.clients.notify(
-                        entity,
-                        ServerMsg::Chat(format!("You have no position!")),
-                    );
+                    server
+                        .clients
+                        .notify(entity, ServerMsg::Chat(format!("You have no position!")));
                 }
             }
         }
@@ -332,10 +331,7 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(current_pos) => {
-            let mut terrain_change = server
-                .state
-                .ecs()
-                .write_resource::<TerrainChange>();
+            let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
 
             for i in -1..2 {
                 for j in -1..2 {
@@ -358,10 +354,7 @@ fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &C
 fn handle_empty(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(current_pos) => {
-            let mut terrain_change = server
-                .state
-                .ecs()
-                .write_resource::<TerrainChange>();
+            let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
 
             for i in -1..2 {
                 for j in -1..2 {
