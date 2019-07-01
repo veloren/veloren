@@ -13,8 +13,8 @@ pub enum NpcKind {
 }
 
 impl NpcKind {
-    fn as_str(&self) -> &'static str {
-        match *self {
+    fn as_str(self) -> &'static str {
+        match self {
             NpcKind::Humanoid => "humanoid",
             NpcKind::Wolf => "wolf",
             NpcKind::Pig => "pig",

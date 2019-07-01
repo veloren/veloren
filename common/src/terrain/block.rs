@@ -16,7 +16,7 @@ impl Block {
         }
     }
 
-    pub fn get_color(&self) -> Option<Rgb<u8>> {
+    pub fn get_color(self) -> Option<Rgb<u8>> {
         if self.is_empty() {
             None
         } else {
@@ -24,7 +24,7 @@ impl Block {
         }
     }
 
-    pub fn get_opacity(&self) -> Option<f32> {
+    pub fn get_opacity(self) -> Option<f32> {
         match self.kind {
             0 => None,
             1 => Some(0.85),

@@ -51,13 +51,16 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
     f: F,
 ) -> Result<Arc<A>, Error> {
-    Ok(ASSETS
-        .write()
-        .unwrap()
-        .entry(specifier.to_string())
-        .or_insert(Arc::new(f(A::load(specifier)?)))
-        .clone()
-        .downcast()?)
+    let mut assets_write = ASSETS.write().unwrap();
+    match assets_write.get(specifier) {
+        Some(asset) => Ok(Arc::clone(asset).downcast()?),
+        None => {
+            let asset = Arc::new(f(A::load(specifier)?));
+            let clone = Arc::clone(&asset);
+            assets_write.insert(specifier.to_owned(), clone);
+            Ok(asset)
+        }
+    }
 }
 
 /// Function used to load assets.
@@ -84,7 +87,7 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
 pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
-    load(specifier).expect(&format!("Failed loading essential asset: {}", specifier))
+    load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
 }
 
 /// Asset Trait

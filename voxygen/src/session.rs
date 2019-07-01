@@ -88,7 +88,7 @@ impl PlayState for SessionState {
         global_state.window.grab_cursor(true);
 
         // Set up an fps clock.
-        let mut clock = Clock::new();
+        let mut clock = Clock::start();
         self.client.borrow_mut().clear_terrain();
 
         // Game loop

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, Animation, AnimationInfo, ForceUpdate},
+    comp::{ActionState, Animation, AnimationInfo},
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -46,9 +46,9 @@ impl<'a> System<'a> for Sys {
             let new_time = animation_infos
                 .get(entity)
                 .filter(|i| i.animation == animation)
-                .map(|i| i.time + dt.0 as f64);
+                .map(|i| i.time + f64::from(dt.0));
 
-            animation_infos.insert(
+            let _ = animation_infos.insert(
                 entity,
                 AnimationInfo {
                     animation,

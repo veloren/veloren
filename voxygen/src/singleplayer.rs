@@ -65,7 +65,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
     info!("Starting server-cli...");
 
     // Set up an fps clock
-    let mut clock = Clock::new();
+    let mut clock = Clock::start();
 
     loop {
         let events = server
