@@ -6,6 +6,7 @@ pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
     Revive,
+    Command,
     Unknown,
 }
 
