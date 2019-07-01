@@ -149,7 +149,7 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
     match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(mut pos) => match (opt_x, opt_y, opt_z) {
+        Some(_pos) => match (opt_x, opt_y, opt_z) {
             (Some(x), Some(y), Some(z)) => {
                 server
                     .state
@@ -232,7 +232,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 .find(|(_, player)| player.alias == alias)
                 .map(|(entity, _)| entity);
             match server.state.read_component_cloned::<comp::Pos>(entity) {
-                Some(mut pos) => match opt_player {
+                Some(_pos) => match opt_player {
                     Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
                         Some(pos) => {
                             server.state.write_component(entity, pos);
@@ -308,7 +308,7 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
     let ecs = server.state.ecs();
     let players = ecs.read_storage::<comp::Player>();
     let count = players.join().count();
-    let mut header_message: String = format!("{} online players: \n", count);
+    let header_message: String = format!("{} online players: \n", count);
     if count > 0 {
         let mut player_iter = players.join();
         let first = player_iter.next().unwrap().alias.to_owned();

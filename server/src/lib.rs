@@ -20,7 +20,7 @@ use common::{
     terrain::{TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
 };
-use log::{debug, warn};
+use log::debug;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
@@ -177,7 +177,7 @@ impl Server {
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
-    pub fn tick(&mut self, input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
+    pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most server-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
         // the core developers before making significant changes to this code. Here is the
@@ -442,7 +442,7 @@ impl Server {
                             }
                         }
                         // Invalid player
-                        ClientMsg::Register { player } => {
+                        ClientMsg::Register { .. } => {
                             client.error_state(RequestStateError::Impossible)
                         }
                         ClientMsg::SetViewDistance(view_distance) => match client.client_state {
