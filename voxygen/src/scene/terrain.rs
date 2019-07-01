@@ -122,9 +122,6 @@ impl Terrain {
                         }
 
                         if neighbours {
-                            if modified {
-                                println!("MODIFIED: {:?}", pos);
-                            }
                             self.mesh_todo.insert(pos, ChunkMeshState {
                                 pos,
                                 started_tick: current_tick,
@@ -185,8 +182,6 @@ impl Terrain {
             // Clone various things so that they can be moved into the thread.
             let send = self.mesh_send_tmp.clone();
             let pos = todo.pos;
-
-            println!("SPAWN: {:?}", todo.pos);
 
             // Queue the worker thread.
             client.thread_pool().execute(move || {
