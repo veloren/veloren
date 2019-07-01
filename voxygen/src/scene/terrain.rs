@@ -88,12 +88,20 @@ impl Terrain {
         let current_tick = client.get_tick();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed.
-        for pos in client
+        for (modified, pos) in client
             .state()
-            .changes()
-            .new_chunks
+            .chunk_changes()
+            .modified_chunks
             .iter()
-            .chain(client.state().changes().changed_chunks.iter())
+            .map(|c| (true, c))
+            .chain(
+                client
+                    .state()
+                    .chunk_changes()
+                    .new_chunks
+                    .iter()
+                    .map(|c| (false, c)),
+            )
         {
             // TODO: ANOTHER PROBLEM HERE!
             // What happens if the block on the edge of a chunk gets modified? We need to spawn
@@ -103,7 +111,7 @@ impl Terrain {
                 for j in -1..2 {
                     let pos = pos + Vec2::new(i, j);
 
-                    if !self.chunks.contains_key(&pos) {
+                    if !self.chunks.contains_key(&pos) || modified {
                         let mut neighbours = true;
                         for i in -1..2 {
                             for j in -1..2 {
@@ -116,18 +124,21 @@ impl Terrain {
                         }
 
                         if neighbours {
-                            self.mesh_todo.entry(pos).or_insert(ChunkMeshState {
+                            self.mesh_todo.insert(
                                 pos,
-                                started_tick: current_tick,
-                                active_worker: false,
-                            });
+                                ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: false,
+                                },
+                            );
                         }
                     }
                 }
             }
         }
         // Remove any models for chunks that have been recently removed.
-        for pos in &client.state().changes().removed_chunks {
+        for pos in &client.state().chunk_changes().removed_chunks {
             self.chunks.remove(pos);
             self.mesh_todo.remove(pos);
         }
@@ -218,6 +229,8 @@ impl Terrain {
                             z_bounds: response.z_bounds,
                         },
                     );
+
+                    self.mesh_todo.remove(&response.pos);
                 }
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed.

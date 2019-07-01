@@ -17,7 +17,7 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
-    terrain::{TerrainChunk, TerrainChunkSize},
+    terrain::{TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
 };
 use log::{debug, warn};
@@ -246,9 +246,24 @@ impl Server {
             self.pending_chunks.remove(&key);
         }
 
+        fn chunk_in_vd(
+            player_pos: Vec3<f32>,
+            chunk_pos: Vec2<i32>,
+            terrain: &TerrainMap,
+            vd: u32,
+        ) -> bool {
+            let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
+
+            let adjusted_dist_sqr = Vec2::from(player_chunk_pos - chunk_pos)
+                .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                .magnitude_squared();
+
+            adjusted_dist_sqr <= vd.pow(2)
+        }
+
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain().iter().for_each(|(key, _)| {
+        self.state.terrain().iter().for_each(|(chunk_key, _)| {
             let mut should_drop = true;
 
             // For each player with a position, calculate the distance.
@@ -258,15 +273,9 @@ impl Server {
             )
                 .join()
             {
-                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-
-                let adjusted_dist_sqr = Vec2::from(chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
-                    .magnitude_squared();
-
                 if player
                     .view_distance
-                    .map(|vd| adjusted_dist_sqr <= vd.pow(2))
+                    .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
                     .unwrap_or(false)
                 {
                     should_drop = false;
@@ -275,7 +284,7 @@ impl Server {
             }
 
             if should_drop {
-                chunks_to_remove.push(key);
+                chunks_to_remove.push(chunk_key);
             }
         });
         for key in chunks_to_remove {
@@ -284,6 +293,36 @@ impl Server {
 
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
+
+        // Sync changed chunks
+        'chunk: for chunk_key in &self.state.chunk_changes().modified_chunks {
+            let terrain = self.state.terrain();
+
+            for (entity, player, pos) in (
+                &self.state.ecs().entities(),
+                &self.state.ecs().read_storage::<comp::Player>(),
+                &self.state.ecs().read_storage::<comp::Pos>(),
+            )
+                .join()
+            {
+                if player
+                    .view_distance
+                    .map(|vd| chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
+                    .unwrap_or(false)
+                {
+                    self.clients.notify(
+                        entity,
+                        ServerMsg::TerrainChunkUpdate {
+                            key: *chunk_key,
+                            chunk: Box::new(match self.state.terrain().get_key(*chunk_key) {
+                                Some(chunk) => chunk.clone(),
+                                None => break 'chunk,
+                            }),
+                        },
+                    );
+                }
+            }
+        }
 
         // 7) Finish the tick, pass control back to the frontend.
 
