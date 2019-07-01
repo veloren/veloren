@@ -73,6 +73,7 @@ impl Client {
                     .ok_or(Error::ServerWentMad)?;
                 (state, entity, server_info)
             }
+            Some(ServerMsg::TooManyPlayers) => return Err(Error::TooManyPlayers),
             _ => return Err(Error::ServerWentMad),
         };
 
@@ -362,6 +363,7 @@ impl Client {
             for msg in new_msgs {
                 match msg {
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                    ServerMsg::TooManyPlayers => return Err(Error::ServerWentMad),
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {

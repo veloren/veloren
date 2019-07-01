@@ -20,6 +20,7 @@ pub enum Error {
     // Parsing/host name resolution successful but could not connect.
     ConnectionFailed(ClientError),
     ClientCrashed,
+    ServerIsFull,
 }
 
 // Used to asynchronously parse the server address, resolve host names,
@@ -75,6 +76,10 @@ impl ClientInit {
                                     // Assume the connection failed and try next address.
                                     ClientError::Network(_) => {
                                         last_err = Some(Error::ConnectionFailed(err))
+                                    }
+                                    ClientError::TooManyPlayers => {
+                                        last_err = Some(Error::ServerIsFull);
+                                        break;
                                     }
                                     // TODO: Handle errors?
                                     _ => panic!(

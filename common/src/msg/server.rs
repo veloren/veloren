@@ -41,6 +41,7 @@ pub enum ServerMsg {
         key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
+    TooManyPlayers,
     Disconnect,
     Shutdown,
 }
