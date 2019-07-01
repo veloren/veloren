@@ -3,14 +3,14 @@ mod tree;
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{HashCache, RandomField, Sampler, SamplerMut},
-    World, CONFIG,
+    World,
 };
 use common::{
     terrain::{structure::StructureBlock, Block},
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg};
 use vek::*;
 
 pub struct BlockGen<'a> {
@@ -91,19 +91,19 @@ impl<'a> SamplerMut for BlockGen<'a> {
             alt,
             chaos,
             water_level,
-            river,
+            //river,
             surface_color,
             sub_surface_color,
-            tree_density,
-            forest_kind,
+            //tree_density,
+            //forest_kind,
             close_trees,
             cave_xy,
             cave_alt,
             rock,
-            cliffs,
+            //cliffs,
             cliff_hill,
             close_cliffs,
-            temp,
+            //temp,
             ..
         } = Self::sample_column(column_gen, column_cache, Vec2::from(wpos))?;
 
@@ -159,15 +159,15 @@ impl<'a> SamplerMut for BlockGen<'a> {
         // Sample blocks
 
         let stone_col = Rgb::new(200, 220, 255);
-        let dirt_col = Rgb::new(79, 67, 60);
+        // let dirt_col = Rgb::new(79, 67, 60);
 
         let air = Block::empty();
-        let stone = Block::new(2, stone_col);
-        let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
-        let dirt = Block::new(1, dirt_col);
-        let sand = Block::new(1, Rgb::new(180, 150, 50));
+        // let stone = Block::new(2, stone_col);
+        // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
+        // let dirt = Block::new(1, dirt_col);
+        // let sand = Block::new(1, Rgb::new(180, 150, 50));
+        // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
         let water = Block::new(1, Rgb::new(100, 150, 255));
-        let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
         let grass_depth = 2.0;
         let block = if (wposf.z as f32) < height - grass_depth {
@@ -244,7 +244,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             pos: Vec3<i32>,
             structure_pos: Vec2<i32>,
             structure_seed: u32,
-            sample: &ColumnSample,
+            _sample: &ColumnSample,
         ) -> Block {
             let field = RandomField::new(structure_seed + 0);
 

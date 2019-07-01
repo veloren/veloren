@@ -13,7 +13,7 @@ pub use crate::config::CONFIG;
 use crate::{
     block::BlockGen,
     column::{ColumnGen, ColumnSample},
-    util::{HashCache, Sampler, SamplerMut},
+    util::{Sampler, SamplerMut},
 };
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
@@ -42,7 +42,7 @@ impl World {
         &self.sim
     }
 
-    pub fn tick(&self, dt: Duration) {
+    pub fn tick(&self, _dt: Duration) {
         // TODO
     }
 
@@ -84,7 +84,7 @@ impl World {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
                 let wpos2d = Vec2::new(x, y)
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
-                let wposf2d = wpos2d.map(|e| e as f64);
+                let _wposf2d = wpos2d.map(|e| e as f64);
 
                 let min_z = self
                     .sim
