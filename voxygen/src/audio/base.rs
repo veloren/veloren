@@ -3,7 +3,7 @@ use common::assets::{load_from_path, read_from_assets};
 use crossbeam::{
     atomic::AtomicCell,
     channel::{unbounded, Receiver, Sender},
-    queue::{PopError, SegQueue},
+    queue::SegQueue,
     sync::{ShardedLock, WaitGroup},
 };
 use rodio::{Decoder, Device, Sink, SpatialSink};
@@ -155,19 +155,20 @@ impl MonoMode for AudioPlayer {
                 };
                 let mut playback = MonoEmitter::new(&Settings::load().audio);
                 loop {
-                    if let action = event_loop.queue.pop() {
+                    if let Ok(action) = event_loop.queue.pop() {
                         match action {
-                            Ok(Action::Load(path)) => {
+                            Action::Load(path) => {
                                 if playback.stream.empty() {
                                     playback.play_from(&path);
                                     send_msg(&mut tx, AudioPlayerMsg::AudioPlay);
                                 }
                             }
-                            Ok(Action::Stop) => playback.stream.stop(),
-                            Ok(Action::AdjustVolume(value)) => playback.set_volume(value),
-                            Ok(Action::ChangeDevice(device)) => playback.set_device(device),
-                            Err(PopError) => eprintln!("There's no soundtrack in the playlist!"),
+                            Action::Stop => playback.stream.stop(),
+                            Action::AdjustVolume(value) => playback.set_volume(value),
+                            Action::ChangeDevice(device) => playback.set_device(device),
                         }
+                    } else {
+                        block();
                     }
                 }
             });
@@ -212,7 +213,7 @@ impl Jukebox {
 
     /// Display the current genre.
     pub(crate) fn get_genre(self) -> Genre {
-        self.genre.into_inner()
+        self.genre.load()
     }
 }
 
