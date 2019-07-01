@@ -1,18 +1,9 @@
-use crate::{
-    all::ForestKind,
-    sim::{Location, LocationInfo},
-    util::Sampler,
-    World, CONFIG,
-};
-use common::{
-    terrain::{Block, TerrainChunkSize},
-    vol::{VolSize, Vox},
-};
+use crate::{all::ForestKind, sim::LocationInfo, util::Sampler, World, CONFIG};
+use common::{terrain::TerrainChunkSize, vol::VolSize};
 use noise::NoiseFn;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
-    sync::Arc,
 };
 use vek::*;
 
