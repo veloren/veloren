@@ -28,7 +28,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
         pos.map2(S::SIZE, |e, sz| {
             // Horrid, but it's faster than a cheetah with a red bull blood transfusion
             let log2 = (sz - 1).count_ones();
-            ((((e as i64 + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
+            ((((i64::from(e) + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
         })
     }
 
@@ -36,7 +36,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| {
             // Horrid, but it's even faster than the aforementioned cheetah
-            (((e as i64 + (1 << 32)) as u64) & (sz - 1) as u64) as i32
+            (((i64::from(e) + (1 << 32)) as u64) & u64::from(sz - 1)) as i32
         })
     }
 }
@@ -55,7 +55,7 @@ impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap3d<V, S> {
             .ok_or(VolMap3dErr::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(|err| VolMap3dErr::ChunkErr(err))
+                chunk.get(co).map_err(VolMap3dErr::ChunkErr)
             })
     }
 }
@@ -78,7 +78,7 @@ impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
                 for z in chunk_min.z..=chunk_max.z {
                     let chunk_key = Vec3::new(x, y, z);
 
-                    let chunk = self.get_key_arc(chunk_key).map(|v| v.clone());
+                    let chunk = self.get_key_arc(chunk_key).cloned();
 
                     if let Some(chunk) = chunk {
                         sample.insert(chunk_key, chunk);
@@ -102,7 +102,7 @@ impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for Vol
                 let co = Self::chunk_offs(pos);
                 Arc::make_mut(chunk)
                     .set(co, vox)
-                    .map_err(|err| VolMap3dErr::ChunkErr(err))
+                    .map_err(VolMap3dErr::ChunkErr)
             })
     }
 }
@@ -153,7 +153,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
         Self::chunk_key(pos)
     }
 
-    pub fn iter<'a>(&'a self) -> ChunkIter<'a, V> {
+    pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }

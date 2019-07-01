@@ -1,5 +1,4 @@
-use crate::comp::{Agent, Attacking, Controller, Jumping, Pos};
-use log::warn;
+use crate::comp::{Agent, Controller, Pos};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -12,15 +11,10 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Agent>,
         ReadStorage<'a, Pos>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Attacking>,
     );
 
-    fn run(
-        &mut self,
-        (entities, mut agents, positions, mut controllers, mut jumps, mut attacks): Self::SystemData,
-    ) {
-        for (entity, agent, pos, controller) in
+    fn run(&mut self, (entities, mut agents, positions, mut controllers): Self::SystemData) {
+        for (_entity, agent, pos, controller) in
             (&entities, &mut agents, &positions, &mut controllers).join()
         {
             match agent {

@@ -86,13 +86,13 @@ impl Asset for Structure {
                         let color = palette
                             .get(index as usize)
                             .copied()
-                            .unwrap_or(Rgb::broadcast(0));
+                            .unwrap_or_else(|| Rgb::broadcast(0));
                         StructureBlock::Block(Block::new(1, color))
                     }
                 };
 
                 let _ = vol.set(
-                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| e as i32),
+                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
                     block,
                 );
             }

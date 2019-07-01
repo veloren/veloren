@@ -32,7 +32,7 @@ impl From<&DotVoxData> for Segment {
                 if let Some(&color) = palette.get(voxel.i as usize) {
                     // TODO: Maybe don't ignore this error?
                     let _ = segment.set(
-                        Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| e as i32),
+                        Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
                         Cell::new(color),
                     );
                 }
