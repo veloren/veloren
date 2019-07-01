@@ -119,7 +119,13 @@ lazy_static! {
              handle_empty,
          ),
         ChatCommand::new(
-            "help", "", "/help: Display this message", handle_help)
+            "help", "", "/help: Display this message", handle_help),
+        ChatCommand::new(
+            "health",
+            "{}",
+            "/health : Set your current health",
+            handle_health,
+        )
     ];
 }
 
@@ -203,6 +209,31 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             return;
         }
     };
+}
+
+fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_hp = scan_fmt!(&args, action.arg_fmt, u32);
+
+    match server
+        .state
+        .ecs_mut()
+        .write_storage::<comp::Stats>()
+        .get_mut(entity)
+    {
+        Some(stats) => match opt_hp {
+            Some(hp) => stats.health.set_to(hp, comp::HealthSource::Command),
+            None => {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::Chat(String::from("You must specify health amount!")),
+                );
+            }
+        },
+        None => server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("You have no position.")),
+        ),
+    }
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
