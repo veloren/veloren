@@ -7,7 +7,9 @@ use common::{
     comp,
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
-    state::TimeOfDay,
+    state::{TerrainChange, TimeOfDay},
+    terrain::Block,
+    vol::Vox,
 };
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
@@ -105,6 +107,18 @@ lazy_static! {
              handle_players,
          ),
         ChatCommand::new(
+             "solid",
+             "{}",
+             "/solid : Make the blocks around you solid",
+             handle_solid,
+         ),
+        ChatCommand::new(
+             "empty",
+             "{}",
+             "/empty : Make the blocks around you empty",
+             handle_empty,
+         ),
+        ChatCommand::new(
             "help", "", "/help: Display this message", handle_help)
     ];
 }
@@ -122,7 +136,7 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
                 None => server.clients.notify(
                     entity,
-                    ServerMsg::Chat(String::from("Command 'jump' invalid in current state.")),
+                    ServerMsg::Chat(String::from("You have no position!")),
                 ),
             }
         }
@@ -240,10 +254,9 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                     }
                 },
                 None => {
-                    server.clients.notify(
-                        entity,
-                        ServerMsg::Chat(format!("You don't have any position!")),
-                    );
+                    server
+                        .clients
+                        .notify(entity, ServerMsg::Chat(format!("You have no position!")));
                 }
             }
         }
@@ -312,6 +325,44 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
         server
             .clients
             .notify(entity, ServerMsg::Chat(header_message));
+    }
+}
+
+fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
+        Some(current_pos) => {
+            server.state.ecs().write_resource::<TerrainChange>().set(
+                current_pos.0.map(|e| e.floor() as i32),
+                Block::new(1, Rgb::broadcast(255)),
+            );
+        }
+        None => server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("You have no position!")),
+        ),
+    }
+}
+
+fn handle_empty(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
+        Some(current_pos) => {
+            let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
+
+            for i in -1..2 {
+                for j in -1..2 {
+                    for k in -2..1 {
+                        terrain_change.set(
+                            current_pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k),
+                            Block::empty(),
+                        );
+                    }
+                }
+            }
+        }
+        None => server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("You have no position!")),
+        ),
     }
 }
 
