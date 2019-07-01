@@ -14,15 +14,9 @@ use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::VolSize,
 };
-use noise::{
-    BasicMulti, HybridMulti, MultiFractal, NoiseFn, OpenSimplex, RidgedMulti, Seedable,
-    SuperSimplex,
-};
+use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use rand::{prng::XorShiftRng, Rng, SeedableRng};
-use std::{
-    ops::{Add, Div, Mul, Neg, Sub},
-    sync::Arc,
-};
+use std::ops::{Add, Div, Mul, Sub};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -193,7 +187,7 @@ impl WorldSim {
                     chunk_pos.x * TerrainChunkSize::SIZE.x as i32,
                     chunk_pos.y * TerrainChunkSize::SIZE.y as i32,
                 );
-                let cell_pos = Vec2::new(i / cell_size, j / cell_size);
+                let _cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
                 // Find the distance to each region
                 let near = gen.get(chunk_pos);
@@ -359,7 +353,7 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
-        let dryness = (gen_ctx.dry_nz.get(
+        let dryness = gen_ctx.dry_nz.get(
             (wposf
                 .add(Vec2::new(
                     gen_ctx
@@ -370,7 +364,7 @@ impl SimChunk {
                 ))
                 .div(2_000.0))
             .into_array(),
-        ) as f32);
+        ) as f32;
 
         let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
             .add(1.0)
@@ -409,7 +403,7 @@ impl SimChunk {
                 .mul(chaos)
                 .mul(CONFIG.mountain_scale);
 
-        let temp = (gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32);
+        let temp = gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32;
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
