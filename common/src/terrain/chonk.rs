@@ -1,6 +1,6 @@
 use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{BaseVol, ReadVol, WriteVol},
+    vol::{BaseVol, ReadVol, WriteVol, VolSize},
     volumes::chunk::{Chunk, ChunkErr},
 };
 use fxhash::FxHashMap;
@@ -185,20 +185,23 @@ impl WriteVol for Chonk {
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
                 Ok(())
             }
-            SubChunk::Hash(cblock, _map) if block == *cblock => Ok(()),
-            SubChunk::Hash(_cblock, map) if map.len() < 4096 => {
+            SubChunk::Hash(cblock, map) if block == *cblock => {
+                map.remove(&rpos.map(|e| e as u8));
+                Ok(())
+            },
+            SubChunk::Hash(_cblock, map) if map.len() <= 4096 => {
                 map.insert(rpos.map(|e| e as u8), block);
                 Ok(())
             }
             SubChunk::Hash(cblock, map) => {
                 let mut new_chunk = Chunk::filled(*cblock, ());
-                new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
-
                 for (map_pos, map_block) in map {
                     new_chunk
                         .set(map_pos.map(|e| e as i32), *map_block)
                         .unwrap(); // Can't fail (I hope!)
                 }
+
+                new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
 
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
                 Ok(())
@@ -223,10 +226,21 @@ impl WriteVol for Chonk {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubChunkSize;
+
+impl VolSize for SubChunkSize {
+    const SIZE: Vec3<u32> = Vec3 {
+        x: TerrainChunkSize::SIZE.x,
+        y: TerrainChunkSize::SIZE.y,
+        z: SUB_CHUNK_HEIGHT,
+    };
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SubChunk {
     Homogeneous(Block),
     Hash(Block, FxHashMap<Vec3<u8>, Block>),
-    Heterogeneous(Chunk<Block, TerrainChunkSize, ()>),
+    Heterogeneous(Chunk<Block, SubChunkSize, ()>),
 }
 
 impl SubChunk {
