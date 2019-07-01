@@ -5,7 +5,8 @@ use crate::{
     comp,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
-    terrain::{TerrainChunk, TerrainMap},
+    terrain::{Block, TerrainChunk, TerrainMap},
+    vol::WriteVol,
 };
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
@@ -15,7 +16,11 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity,
 };
 use sphynx;
-use std::{collections::HashSet, sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    time::Duration,
+};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -40,24 +45,48 @@ pub struct DeltaTime(pub f32);
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 
-pub struct Changes {
+pub struct TerrainChange {
+    blocks: HashMap<Vec3<i32>, Block>,
+}
+
+impl Default for TerrainChange {
+    fn default() -> Self {
+        Self {
+            blocks: HashMap::new(),
+        }
+    }
+}
+
+impl TerrainChange {
+    pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
+        self.blocks.insert(pos, block);
+    }
+
+    pub fn clear(&mut self) {
+        self.blocks.clear();
+    }
+}
+
+pub struct ChunkChanges {
     pub new_chunks: HashSet<Vec2<i32>>,
-    pub changed_chunks: HashSet<Vec2<i32>>,
+    pub modified_chunks: HashSet<Vec2<i32>>,
     pub removed_chunks: HashSet<Vec2<i32>>,
 }
 
-impl Changes {
-    pub fn default() -> Self {
+impl Default for ChunkChanges {
+    fn default() -> Self {
         Self {
             new_chunks: HashSet::new(),
-            changed_chunks: HashSet::new(),
+            modified_chunks: HashSet::new(),
             removed_chunks: HashSet::new(),
         }
     }
+}
 
-    pub fn cleanup(&mut self) {
+impl ChunkChanges {
+    pub fn clear(&mut self) {
         self.new_chunks.clear();
-        self.changed_chunks.clear();
+        self.modified_chunks.clear();
         self.removed_chunks.clear();
     }
 }
@@ -68,7 +97,6 @@ pub struct State {
     ecs: sphynx::World<EcsCompPacket, EcsResPacket>,
     // Avoid lifetime annotation by storing a thread pool instead of the whole dispatcher
     thread_pool: Arc<ThreadPool>,
-    changes: Changes,
 }
 
 impl State {
@@ -77,7 +105,6 @@ impl State {
         Self {
             ecs: sphynx::World::new(specs::World::new(), Self::setup_sphynx_world),
             thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
-            changes: Changes::default(),
         }
     }
 
@@ -92,7 +119,6 @@ impl State {
                 state_package,
             ),
             thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
-            changes: Changes::default(),
         }
     }
 
@@ -134,6 +160,8 @@ impl State {
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
+        ecs.add_resource(TerrainChange::default());
+        ecs.add_resource(ChunkChanges::default());
     }
 
     /// Register a component with the state's ECS.
@@ -172,8 +200,8 @@ impl State {
 
     /// Get a reference to the `Changes` structure of the state. This contains
     /// information about state that has changed since the last game tick.
-    pub fn changes(&self) -> &Changes {
-        &self.changes
+    pub fn chunk_changes(&self) -> Fetch<ChunkChanges> {
+        self.ecs.read_resource()
     }
 
     /// Get the current in-game time of day.
@@ -197,12 +225,12 @@ impl State {
 
     /// Get a reference to this state's terrain.
     pub fn terrain(&self) -> Fetch<TerrainMap> {
-        self.ecs.read_resource::<TerrainMap>()
+        self.ecs.read_resource()
     }
 
     /// Get a writable reference to this state's terrain.
     pub fn terrain_mut(&self) -> FetchMut<TerrainMap> {
-        self.ecs.write_resource::<TerrainMap>()
+        self.ecs.write_resource()
     }
 
     /// Removes every chunk of the terrain.
@@ -226,9 +254,15 @@ impl State {
             .insert(key, Arc::new(chunk))
             .is_some()
         {
-            self.changes.changed_chunks.insert(key);
+            self.ecs
+                .write_resource::<ChunkChanges>()
+                .modified_chunks
+                .insert(key);
         } else {
-            self.changes.new_chunks.insert(key);
+            self.ecs
+                .write_resource::<ChunkChanges>()
+                .new_chunks
+                .insert(key);
         }
     }
 
@@ -240,7 +274,10 @@ impl State {
             .remove(key)
             .is_some()
         {
-            self.changes.removed_chunks.insert(key);
+            self.ecs
+                .write_resource::<ChunkChanges>()
+                .removed_chunks
+                .insert(key);
         }
     }
 
@@ -262,11 +299,27 @@ impl State {
         dispatch_builder.build().dispatch(&self.ecs.res);
 
         self.ecs.maintain();
+
+        // Apply terrain changes
+        let mut terrain = self.ecs.write_resource::<TerrainMap>();
+        let mut chunk_changes = self.ecs.write_resource::<ChunkChanges>();
+        self.ecs
+            .write_resource::<TerrainChange>()
+            .blocks
+            .drain()
+            .for_each(|(pos, block)| {
+                if terrain.set(pos, block).is_ok() {
+                    chunk_changes.modified_chunks.insert(terrain.pos_key(pos));
+                } else {
+                    warn!("Tried to modify block outside of terrain at {:?}", pos);
+                }
+            });
     }
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
-        self.changes.cleanup();
+        self.ecs.write_resource::<TerrainChange>().clear();
+        self.ecs.write_resource::<ChunkChanges>().clear();
     }
 }
