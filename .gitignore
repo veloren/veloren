@@ -3,6 +3,11 @@
 /target/
 /*/target/
 
+# Vim
+
+**/*.vi
+**/*.swp
+
 # IntelliJ
 
 **/.idea/
