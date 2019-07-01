@@ -100,12 +100,11 @@ impl Server {
             chunk_rx,
             pending_chunks: HashSet::new(),
 
-            server_settings: settings,
             server_info: ServerInfo {
-                // TODO: get from settings
-                name: "Server name".to_owned(),
-                description: "This is the best Veloren server.".to_owned(),
+                name: settings.server_name.clone(),
+                description: settings.server_description.clone(),
             },
+            server_settings: settings,
         };
 
         Ok(this)
