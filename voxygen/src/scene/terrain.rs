@@ -203,7 +203,7 @@ impl Terrain {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).
-                Some(todo) if response.started_tick <= todo.started_tick => {
+                Some(todo) if response.started_tick == todo.started_tick => {
                     self.chunks.insert(
                         response.pos,
                         TerrainChunk {
