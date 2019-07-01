@@ -36,7 +36,8 @@ impl Singleplayer {
         ));
 
         // Create server
-        let server = Server::bind(sock.clone(), ServerSettings::default()).expect("Failed to create server instance!");
+        let server = Server::bind(sock.clone(), ServerSettings::default())
+            .expect("Failed to create server instance!");
 
         let server = match client {
             Some(client) => server.with_thread_pool(client.thread_pool().clone()),
