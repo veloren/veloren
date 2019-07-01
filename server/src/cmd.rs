@@ -328,7 +328,7 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
     }
 }
 
-fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_solid(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(current_pos) => {
             server.state.ecs().write_resource::<TerrainChange>().set(
@@ -343,7 +343,7 @@ fn handle_solid(server: &mut Server, entity: EcsEntity, args: String, action: &C
     }
 }
 
-fn handle_empty(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_empty(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(current_pos) => {
             let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
