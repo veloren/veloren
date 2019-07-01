@@ -94,12 +94,14 @@ impl Terrain {
             .modified_chunks
             .iter()
             .map(|c| (true, c))
-            .chain(client
-                .state()
-                .chunk_changes()
-                .new_chunks
-                .iter()
-                .map(|c| (false, c)))
+            .chain(
+                client
+                    .state()
+                    .chunk_changes()
+                    .new_chunks
+                    .iter()
+                    .map(|c| (false, c)),
+            )
         {
             // TODO: ANOTHER PROBLEM HERE!
             // What happens if the block on the edge of a chunk gets modified? We need to spawn
@@ -122,11 +124,14 @@ impl Terrain {
                         }
 
                         if neighbours {
-                            self.mesh_todo.insert(pos, ChunkMeshState {
+                            self.mesh_todo.insert(
                                 pos,
-                                started_tick: current_tick,
-                                active_worker: false,
-                            });
+                                ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: false,
+                                },
+                            );
                         }
                     }
                 }
