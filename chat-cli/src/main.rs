@@ -28,7 +28,7 @@ fn main() {
     let mut clock = Clock::new();
 
     println!("Enter your username");
-    let mut username = read_input();
+    let username = read_input();
 
     // Create a client.
     let mut client =
