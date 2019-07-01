@@ -17,7 +17,7 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, Uid},
-    terrain::{TerrainChunk, TerrainMap, TerrainChunkSize},
+    terrain::{TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
 };
 use log::{debug, warn};
@@ -246,7 +246,12 @@ impl Server {
             self.pending_chunks.remove(&key);
         }
 
-        fn chunk_in_vd(player_pos: Vec3<f32>, chunk_pos: Vec2<i32>, terrain: &TerrainMap, vd: u32) -> bool {
+        fn chunk_in_vd(
+            player_pos: Vec3<f32>,
+            chunk_pos: Vec2<i32>,
+            terrain: &TerrainMap,
+            vd: u32,
+        ) -> bool {
             let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
             let adjusted_dist_sqr = Vec2::from(player_chunk_pos - chunk_pos)
