@@ -22,6 +22,7 @@ sphynx::sum_type! {
         Ori(comp::Ori),
         Body(comp::Body),
         Player(comp::Player),
+        CanBuild(comp::CanBuild),
         Stats(comp::Stats),
     }
 }
@@ -35,6 +36,7 @@ sphynx::sum_type! {
         Ori(PhantomData<comp::Ori>),
         Body(PhantomData<comp::Body>),
         Player(PhantomData<comp::Player>),
+        CanBuild(PhantomData<comp::CanBuild>),
         Stats(PhantomData<comp::Stats>),
     }
 }

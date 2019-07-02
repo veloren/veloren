@@ -129,6 +129,7 @@ impl State {
         ecs.register_synced::<comp::Body>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
+        ecs.register_synced::<comp::CanBuild>();
 
         // Register components synced by other means
         ecs.register::<comp::Pos>();
@@ -136,7 +137,6 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::MoveDir>();
         ecs.register::<comp::OnGround>();
-        ecs.register::<comp::CanBuild>();
         ecs.register::<comp::Controller>();
         ecs.register::<comp::Attacking>();
         ecs.register::<comp::Wielding>();
