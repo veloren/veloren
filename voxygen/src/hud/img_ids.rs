@@ -49,9 +49,6 @@ image_ids! {
         chat_arrow_mo: "voxygen/element/buttons/arrow_down_hover.vox",
         chat_arrow_press: "voxygen/element/buttons/arrow_down_press.vox",
 
-        // Crosshair
-        crosshair: "voxygen/element/misc_bg/crosshair.vox",
-
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
@@ -121,6 +118,9 @@ image_ids! {
         button: "voxygen/element/buttons/button.vox",
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
+
+        // Other
+        crosshair: "voxygen/element/misc_bg/crosshair.vox",
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
