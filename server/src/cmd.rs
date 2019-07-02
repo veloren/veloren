@@ -413,7 +413,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
                 .remove(entity);
             server.clients.notify(
                 entity,
-                ServerMsg::Chat(String::from("Toggled on build mode!")),
+                ServerMsg::Chat(String::from("Toggled off build mode!")),
             );
         }
         None => {
@@ -424,7 +424,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
                 .insert(entity, comp::CanBuild);
             server.clients.notify(
                 entity,
-                ServerMsg::Chat(String::from("Toggled off build mode!")),
+                ServerMsg::Chat(String::from("Toggled on build mode!")),
             );
         }
     }

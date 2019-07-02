@@ -89,7 +89,7 @@ impl Component for OnGround {
 }
 
 impl Component for CanBuild {
-    type Storage = NullStorage<Self>;
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
 }
 
 impl Component for Jumping {
