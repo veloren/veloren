@@ -21,7 +21,12 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
+use crate::{
+    audio::{base::Genre, AudioFrontend},
+    menu::main::MainMenuState,
+    settings::Settings,
+    window::Window,
+};
 use log::{debug, error, info, warn};
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
@@ -162,8 +167,13 @@ fn main() {
         default_hook(panic_info);
     }));
 
-    if global_state.settings.audio.audio_device == None {
-        global_state.settings.audio.audio_device = Some(crate::audio::base::get_default_device());
+    match global_state.audio.model.get_genre() {
+        Genre::Bgm => {
+            global_state.settings.audio.audio_device =
+                Some(crate::audio::base::get_default_device())
+        }
+        Genre::Sfx => unimplemented!(),
+        Genre::None => global_state.settings.audio.audio_device = None,
     }
 
     // Set up the initial play state.

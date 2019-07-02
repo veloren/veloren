@@ -1,5 +1,7 @@
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use crate::{
+    audio::base::{AudioDevice, Genre},
+    settings::AudioSettings,
     ui::{ImageSlider, ToggleButton},
     GlobalState,
 };
@@ -707,26 +709,40 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Audio Device Selector --------------------------------------------
-            let device = self.global_state.audio.model.device.get_device();
-            let device_list = self.global_state.audio.model.device.list_devices();
-            Text::new("Volume")
-                .down_from(state.ids.audio_volume_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.audio_device_text, ui);
+            match self.global_state.audio.model.get_genre() {
+                Genre::Bgm => {
+                    let init = AudioDevice::new(&AudioSettings::default());
+                    let device = init.get_device();
+                    let device_list = init.list_devices();
+                    Text::new("Volume")
+                        .down_from(state.ids.audio_volume_slider, 10.0)
+                        .font_size(14)
+                        .font_id(self.fonts.opensans)
+                        .color(TEXT_COLOR)
+                        .set(state.ids.audio_device_text, ui);
 
-            // Get which device is currently selected
-            let selected = device_list.iter().position(|x| x.contains(&device));
+                    // Get which device is currently selected
+                    let selected = device_list.iter().position(|x| x.contains(&device));
 
-            if let Some(clicked) = DropDownList::new(&device_list, selected)
-                .w_h(400.0, 22.0)
-                .down_from(state.ids.audio_device_text, 10.0)
-                .label_font_id(self.fonts.opensans)
-                .set(state.ids.audio_device_list, ui)
-            {
-                let new_val = device_list[clicked].clone();
-                events.push(Event::ChangeAudioDevice(new_val));
+                    if let Some(clicked) = DropDownList::new(&device_list, selected)
+                        .w_h(400.0, 22.0)
+                        .down_from(state.ids.audio_device_text, 10.0)
+                        .label_font_id(self.fonts.opensans)
+                        .set(state.ids.audio_device_list, ui)
+                    {
+                        let new_val = device_list[clicked].clone();
+                        events.push(Event::ChangeAudioDevice(new_val));
+                    }
+                }
+                Genre::Sfx => unimplemented!(),
+                Genre::None => {
+                    Text::new("Volume")
+                        .down_from(state.ids.audio_volume_slider, 10.0)
+                        .font_size(14)
+                        .font_id(self.fonts.opensans)
+                        .color(TEXT_COLOR)
+                        .set(state.ids.audio_device_text, ui);
+                }
             }
         }
 
