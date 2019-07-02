@@ -166,7 +166,6 @@ impl MonoMode for AudioPlayer {
                             Action::Load(path) => {
                                 if playback.stream.empty() {
                                     playback.play_from(&path);
-                                    send_msg(&mut tx, AudioPlayerMsg::AudioPlay);
                                 }
                             }
                             Action::Stop => playback.stream.stop(),
