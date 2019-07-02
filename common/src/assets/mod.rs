@@ -116,16 +116,46 @@ impl Asset for Value {
 
 // TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
 fn assets_folder() -> PathBuf {
-    match std::env::current_exe() {
-        Ok(mut exe_path) => {
-            exe_path.pop();
-            find_folder::Search::Parents(3)
-                .of(exe_path)
-                .for_folder("assets")
-        }
-        Err(_) => find_folder::Search::Parents(3).for_folder("assets"),
+    let mut paths = Vec::new();
+
+    // VELOREN_ASSETS environment variable
+    if let Ok(var) = std::env::var("VELOREN_ASSETS") {
+        paths.push(var.to_string().into());
     }
-    .expect("Could not find assets folder")
+
+    // Executable path
+    if let Ok(mut path) = std::env::current_exe() {
+        path.pop();
+        paths.push(path);
+    }
+
+    // Working path
+    if let Ok(path) = std::env::current_dir() {
+        paths.push(path);
+    }
+
+    // System paths
+    #[cfg(target_os = "linux")]
+    paths.push("/usr/share/veloren/assets".into());
+
+    for path in paths.clone() {
+        match find_folder::Search::ParentsThenKids(3, 1)
+            .of(path)
+            .for_folder("assets")
+        {
+            Ok(assets_path) => return assets_path,
+            Err(_) => continue,
+        }
+    }
+
+    panic!(
+        "Asset directory not found. In attempting to find it, we searched:\n{})",
+        paths.iter().fold(String::new(), |mut a, path| {
+            a += path.to_str().unwrap_or("<invalid>");
+            a += "\n";
+            a
+        }),
+    );
 }
 
 // TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
