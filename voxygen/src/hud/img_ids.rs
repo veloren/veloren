@@ -119,7 +119,7 @@ image_ids! {
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
 
-        // Other
+        // Crosshair
         crosshair: "voxygen/element/misc_bg/crosshair.vox",
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
