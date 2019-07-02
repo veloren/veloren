@@ -1,10 +1,14 @@
 use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};
-use std::io;
-use std::sync::mpsc;
-use std::thread;
-use std::time::Duration;
+use std::{
+    io,
+    net::{SocketAddr, ToSocketAddrs},
+    str::FromStr,
+    sync::mpsc,
+    thread,
+    time::Duration,
+};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
@@ -30,9 +34,19 @@ fn main() {
     println!("Enter your username");
     let username = read_input();
 
+    println!("Enter the server address");
+    let server_addr = read_input();
+
     // Create a client.
-    let mut client =
-        Client::new(([127, 0, 0, 1], 59003), None).expect("Failed to create client instance");
+    let mut client = Client::new(
+        server_addr
+            .to_socket_addrs()
+            .expect("Invalid server address")
+            .next()
+            .unwrap(),
+        None,
+    )
+    .expect("Failed to create client instance");
 
     println!("Server info: {:?}", client.server_info);
 
