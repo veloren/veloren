@@ -1,10 +1,7 @@
 use crate::{
-    comp::{
-        Attacking, HealthSource, Stats, Wielding, {ForceUpdate, Ori, Pos, Vel},
-    },
+    comp::{Attacking, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel},
     state::{DeltaTime, Uid},
 };
-use log::warn;
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 /// This system is responsible for handling accepted inputs like moving or attacking
@@ -18,7 +15,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Attacking>,
-        WriteStorage<'a, Wielding>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, ForceUpdate>,
     );
@@ -33,7 +29,6 @@ impl<'a> System<'a> for Sys {
             orientations,
             mut velocities,
             mut attackings,
-            mut wieldings,
             mut stats,
             mut force_updates,
         ): Self::SystemData,
@@ -44,7 +39,7 @@ impl<'a> System<'a> for Sys {
             .filter_map(|(entity, uid, pos, ori, mut attacking)| {
                 if !attacking.applied {
                     // Go through all other entities
-                    for (b, pos_b, mut vel_b, mut stat_b) in
+                    for (b, pos_b, mut vel_b, stat_b) in
                         (&entities, &positions, &mut velocities, &mut stats).join()
                     {
                         // Check if it is a hit

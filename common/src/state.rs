@@ -82,7 +82,6 @@ impl Default for ChunkChanges {
         }
     }
 }
-
 impl ChunkChanges {
     pub fn clear(&mut self) {
         self.new_chunks.clear();
@@ -99,15 +98,17 @@ pub struct State {
     thread_pool: Arc<ThreadPool>,
 }
 
-impl State {
+impl Default for State {
     /// Create a new `State`.
-    pub fn new() -> Self {
+    fn default() -> Self {
         Self {
             ecs: sphynx::World::new(specs::World::new(), Self::setup_sphynx_world),
             thread_pool: Arc::new(ThreadPoolBuilder::new().build().unwrap()),
         }
     }
+}
 
+impl State {
     /// Create a new `State` from an ECS state package.
     pub fn from_state_package(
         state_package: sphynx::StatePackage<EcsCompPacket, EcsResPacket>,

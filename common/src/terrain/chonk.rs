@@ -117,7 +117,7 @@ impl ReadVol for Chonk {
                         - Vec3::unit_z()
                             * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
 
-                    chunk.get(rpos).map_err(|err| ChonkError::ChunkError(err))
+                    chunk.get(rpos).map_err(ChonkError::ChunkError)
                 }
             }
         }
@@ -197,7 +197,7 @@ impl WriteVol for Chonk {
                 let mut new_chunk = Chunk::filled(*cblock, ());
                 for (map_pos, map_block) in map {
                     new_chunk
-                        .set(map_pos.map(|e| e as i32), *map_block)
+                        .set(map_pos.map(|e| i32::from(e)), *map_block)
                         .unwrap(); // Can't fail (I hope!)
                 }
 
@@ -217,9 +217,9 @@ impl WriteVol for Chonk {
                 Ok(())
             }
             */
-            SubChunk::Heterogeneous(chunk) => chunk
-                .set(rpos, block)
-                .map_err(|err| ChonkError::ChunkError(err)),
+            SubChunk::Heterogeneous(chunk) => {
+                chunk.set(rpos, block).map_err(ChonkError::ChunkError)
+            }
             //_ => unimplemented!(),
         }
     }

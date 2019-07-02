@@ -1,23 +1,17 @@
 use crate::{
-    comp::{
-        ActionState, Animation, AnimationInfo, Attacking, Controller, ForceUpdate, Gliding,
-        Jumping, OnGround, Ori, Pos, Rolling, Vel, Wielding,
-    },
-    state::DeltaTime,
+    comp::{ActionState, Attacking, Controller, Gliding, OnGround, Rolling, Vel, Wielding},
     sys::phys::MOVEMENT_THRESHOLD_VEL,
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 /// This system will set the ActionState component as specified by other components
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        Read<'a, DeltaTime>,
         ReadStorage<'a, Controller>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, OnGround>,
-        ReadStorage<'a, Jumping>,
         ReadStorage<'a, Gliding>,
         ReadStorage<'a, Attacking>,
         ReadStorage<'a, Wielding>,
@@ -29,11 +23,9 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            dt,
             controllers, // To make sure it only runs on the single client and the server
             velocities,
             on_grounds,
-            jumpings,
             glidings,
             attackings,
             wieldings,
@@ -42,22 +34,20 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         for (
-            entity,
+            _entity,
             vel,
             _controller,
             on_ground,
-            jumping,
             gliding,
             attacking,
             wielding,
             rolling,
-            mut action_state,
+            action_state,
         ) in (
             &entities,
             &velocities,
             &controllers,
             on_grounds.maybe(),
-            jumpings.maybe(),
             glidings.maybe(),
             attackings.maybe(),
             wieldings.maybe(),

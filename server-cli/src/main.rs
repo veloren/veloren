@@ -12,7 +12,7 @@ fn main() {
     info!("Starting server-cli...");
 
     // Set up an fps clock
-    let mut clock = Clock::new();
+    let mut clock = Clock::start();
 
     // Create server
     let mut server = Server::new().expect("Failed to create server instance!");

@@ -13,8 +13,7 @@ pub struct Clock {
 }
 
 impl Clock {
-    #[allow(dead_code)]
-    pub fn new() -> Self {
+    pub fn start() -> Self {
         Self {
             last_sys_time: Instant::now(),
             last_delta: None,
@@ -23,22 +22,18 @@ impl Clock {
         }
     }
 
-    #[allow(dead_code)]
     pub fn get_tps(&self) -> f64 {
         1.0 / self.running_tps_average
     }
 
-    #[allow(dead_code)]
     pub fn get_last_delta(&self) -> Duration {
-        self.last_delta.unwrap_or(Duration::new(0, 0))
+        self.last_delta.unwrap_or_else(|| Duration::new(0, 0))
     }
 
-    #[allow(dead_code)]
     pub fn get_avg_delta(&self) -> Duration {
         Duration::from_secs_f64(self.running_tps_average)
     }
 
-    #[allow(dead_code)]
     pub fn tick(&mut self, tgt: Duration) {
         let delta = Instant::now().duration_since(self.last_sys_time);
 

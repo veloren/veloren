@@ -38,7 +38,7 @@ const BG_COLOR: Rgba<f32> = Rgba {
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Set up an fps clock.
-        let mut clock = Clock::new();
+        let mut clock = Clock::start();
 
         // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
