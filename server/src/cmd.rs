@@ -11,9 +11,9 @@ use common::{
     terrain::Block,
     vol::Vox,
 };
+use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
-use rand::Rng;
 
 use lazy_static::lazy_static;
 use scan_fmt::scan_fmt;
@@ -298,7 +298,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
     }
 }
 
-fn  handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
     // This should be just an enum handled with scan_fmt!
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
@@ -314,8 +314,8 @@ fn  handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &
                 Some(mut pos) => {
                     for _ in 0..amount {
                         pos.0.z += 10.0;
-                        pos.0.x += rand::thread_rng().gen_range(-2.0,3.0);
-                        pos.0.y += rand::thread_rng().gen_range(-2.0,3.0);
+                        pos.0.x += rand::thread_rng().gen_range(-2.0, 3.0);
+                        pos.0.y += rand::thread_rng().gen_range(-2.0, 3.0);
                         let body = kind_to_body(id);
                         server
                             .create_npc(pos, get_npc_name(id), body)
