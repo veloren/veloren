@@ -166,7 +166,6 @@ impl MonoMode for AudioPlayer {
                             Action::Load(path) => {
                                 if playback.stream.empty() {
                                     playback.play_from(&path);
-                                    send_msg(&mut tx, AudioPlayerMsg::AudioPlay);
                                 }
                             }
                             Action::Stop => playback.stream.stop(),
@@ -425,4 +424,12 @@ fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
 /// Returns vec of devices
 fn list_devices_raw() -> Vec<Device> {
     rodio::output_devices().collect()
+}
+
+#[test]
+fn test_load_soundtracks() {
+    use crate::audio::base::{load_soundtracks, Genre};
+    for entry in load_soundtracks(&Genre::Bgm).iter() {
+        println!("{}", entry)
+    }
 }
