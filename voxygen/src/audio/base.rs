@@ -2,7 +2,7 @@ use crate::settings::{AudioSettings, Settings};
 use common::assets::{load_from_path, read_from_assets};
 use crossbeam::{
     atomic::AtomicCell,
-    channel::{unbounded, Receiver, Sender},
+    channel::{unbounded, Sender},
     queue::SegQueue,
     sync::{ShardedLock, WaitGroup},
 };
@@ -23,6 +23,10 @@ trait StereoMode {
     fn set_stereo(tx: Sender<AudioPlayerMsg>) -> Self;
 }
 
+trait DebugMode {
+    fn set_no_audio(tx: Sender<AudioPlayerMsg>) -> Self;
+}
+
 #[derive(Debug)]
 pub enum SinkError {
     SinkNotMatch,
@@ -32,6 +36,7 @@ pub enum SinkError {
 pub enum Genre {
     Bgm,
     Sfx,
+    None,
 }
 
 #[derive(Debug)]
@@ -78,6 +83,7 @@ impl AudioPlayer {
         match genre {
             Genre::Bgm => AudioPlayer::set_mono(tx),
             Genre::Sfx => unimplemented!(),
+            Genre::None => AudioPlayer::set_no_audio(tx),
         }
     }
 
@@ -182,10 +188,19 @@ impl MonoMode for AudioPlayer {
     }
 }
 
+impl DebugMode for AudioPlayer {
+    /// Don't load `rodio` for `no-audio` feature.
+    fn set_no_audio(tx: Sender<AudioPlayerMsg>) -> Self {
+        Self {
+            event_loop: EventLoop::new(),
+            paused: AtomicCell::new(true),
+            tx,
+        }
+    }
+}
+
 /// TODO: Implement treeview and modellist widgets for GUI design.
 pub struct Jukebox {
-    // display the current song.
-    //current_song: RefCell<Option<String>>,
     genre: AtomicCell<Genre>,
     pub(crate) player: AudioPlayer,
     pub(crate) device: AudioDevice,
@@ -193,7 +208,7 @@ pub struct Jukebox {
 
 impl Jukebox {
     pub(crate) fn new(genre: Genre) -> Self {
-        let (tx, rx) = unbounded();
+        let (tx, _rx) = unbounded();
         Self {
             genre: AtomicCell::new(genre),
             player: AudioPlayer::new(genre, tx),
@@ -201,18 +216,14 @@ impl Jukebox {
         }
     }
 
-    //pub(crate) fn update(&mut self) {
-    //    if self.mono.stream.empty() {
-    //        let index = rand::random::<usize>() % self.soundtracks.len();
-    //        self.mono.play_from(&self.soundtracks[index]);
-    //    }
-    //}
-
-    /// Listen by Conrod.
-    pub(crate) fn update(&mut self, msg: AudioPlayerMsg) {}
+    // TODO: The `update` function should associate with `conrod` to visualise the audio playlist
+    // and settings.
+    pub(crate) fn update(&mut self, msg: AudioPlayerMsg) {
+        unimplemented!()
+    }
 
     /// Display the current genre.
-    pub(crate) fn get_genre(self) -> Genre {
+    pub(crate) fn get_genre(&self) -> Genre {
         self.genre.load()
     }
 }
@@ -356,11 +367,6 @@ pub(crate) fn get_default_device() -> String {
         .name()
 }
 
-/// Returns vec of devices
-fn list_devices_raw() -> Vec<Device> {
-    rodio::output_devices().collect()
-}
-
 /// Load the audio file directory selected by genre.
 pub(crate) fn load_soundtracks(genre: &Genre) -> Vec<String> {
     match *genre {
@@ -398,6 +404,10 @@ pub(crate) fn load_soundtracks(genre: &Genre) -> Vec<String> {
 
             soundtracks
         }
+        Genre::None => {
+            let empty_list = Vec::new();
+            empty_list
+        }
     }
 }
 
@@ -408,5 +418,11 @@ pub(crate) fn select_random_music(genre: &Genre) -> String {
 }
 
 fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
-    tx.try_send(msg);
+    tx.try_send(msg)
+        .expect("Failed on attempting to send a message into audio channel.");
+}
+
+/// Returns vec of devices
+fn list_devices_raw() -> Vec<Device> {
+    rodio::output_devices().collect()
 }

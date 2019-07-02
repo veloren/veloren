@@ -42,7 +42,7 @@ impl GlobalState {
     }
 
     pub fn maintain(&mut self) {
-        // TODO: fix this issue.
+        // TODO: Maintain both `Bgm` and `Sfx` audio threads.
         self.audio.play();
     }
 }
@@ -80,7 +80,7 @@ fn main() {
     // Set up the global state.
     let settings = Settings::load();
     let mut global_state = GlobalState {
-        audio: AudioFrontend::new(),
+        audio: AudioFrontend::new(), // TODO: Provide `AudioFrontend::no_audio()` feature during initialisation, the config will be stored in `ron` object list.
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };

@@ -1,16 +1,8 @@
 pub mod base;
-use base::*;
-use crossbeam::{
-    channel::{unbounded, Receiver, Sender},
-    queue::{PopError, SegQueue},
-};
-use std::thread;
+use base::{Genre, Jukebox};
 
 pub struct AudioFrontend {
     pub(crate) model: Jukebox,
-    // mpsc sender and receiver used for audio playback threads.
-    //tx_thread: mpsc::Sender,
-    //rx_thread: mpsc::Receiver,
 }
 
 impl AudioFrontend {
@@ -24,10 +16,20 @@ impl AudioFrontend {
     pub(crate) fn play(&mut self) {
         let path = base::select_random_music(&Genre::Bgm);
 
-        if self.model.player.is_paused() {
-            self.model.player.resume();
-        } else {
-            self.model.player.load(&path);
+        match self.model.player.is_paused() {
+            true => match self.model.get_genre() {
+                Genre::Bgm => self.model.player.resume(),
+                Genre::Sfx => unimplemented!(), // TODO: add support for sound effects.
+                Genre::None => (),
+            },
+            false => self.model.player.load(&path),
+        }
+    }
+
+    /// Construct in `no-audio` mode for debugging.
+    pub(crate) fn no_audio() -> Self {
+        Self {
+            model: Jukebox::new(Genre::None),
         }
     }
 }
