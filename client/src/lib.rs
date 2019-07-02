@@ -236,7 +236,7 @@ impl Client {
             // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
             self.state.terrain().iter().for_each(|(key, _)| {
-                if (Vec2::from(chunk_pos) - Vec2::from(key))
+                if (chunk_pos - key)
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared()
                     > view_distance.pow(2)
@@ -311,16 +311,13 @@ impl Client {
 
         // 6) Update the server about the player's physics attributes.
         if let ClientState::Character = self.client_state {
-            match (
+            if let (Some(pos), Some(vel), Some(ori)) = (
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
                 self.state.read_storage().get(self.entity).cloned(),
             ) {
-                (Some(pos), Some(vel), Some(ori)) => {
-                    self.postbox
-                        .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
-                }
-                _ => {}
+                self.postbox
+                    .send_message(ClientMsg::PlayerPhysics { pos, vel, ori });
             }
         }
 
@@ -377,15 +374,14 @@ impl Client {
                         vel,
                         ori,
                         action_state,
-                    } => match self.state.ecs().entity_from_uid(entity) {
-                        Some(entity) => {
+                    } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, ori);
                             self.state.write_component(entity, action_state);
                         }
-                        None => {}
-                    },
+                    }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         self.state.insert_chunk(key, *chunk);
                         self.pending_chunks.remove(&key);
@@ -466,7 +462,7 @@ impl Client {
             .ecs()
             .read_storage::<comp::Player>()
             .join()
-            .map(|p| p.clone())
+            .cloned()
             .collect()
     }
 }
