@@ -24,7 +24,7 @@ pub struct SessionState {
 /// Represents an active game session (i.e., the one being played).
 impl SessionState {
     /// Create a new `SessionState`.
-    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, settings: Settings) -> Self {
+    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, _settings: Settings) -> Self {
         // Create a scene for this session. The scene handles visible elements of the game world.
         let scene = Scene::new(window.renderer_mut(), &client.borrow());
         Self {
