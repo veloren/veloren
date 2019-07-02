@@ -215,7 +215,7 @@ impl PlayState for SessionState {
                         }
                     }
                     HudEvent::AdjustVolume(volume) => {
-                        global_state.audio.set_volume(volume);
+                        global_state.audio.model.player.set_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
                         if let Err(err) = global_state.settings.save_to_file() {
@@ -223,7 +223,7 @@ impl PlayState for SessionState {
                         }
                     }
                     HudEvent::ChangeAudioDevice(name) => {
-                        global_state.audio.set_device(name.clone());
+                        global_state.audio.model.player.set_device(&name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
                         if let Err(err) = global_state.settings.save_to_file() {
