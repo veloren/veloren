@@ -219,8 +219,7 @@ impl WriteVol for Chonk {
             */
             SubChunk::Heterogeneous(chunk) => {
                 chunk.set(rpos, block).map_err(ChonkError::ChunkError)
-            }
-            //_ => unimplemented!(),
+            } //_ => unimplemented!(),
         }
     }
 }
