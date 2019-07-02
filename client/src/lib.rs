@@ -85,7 +85,7 @@ impl Client {
         thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
 
         // Set client-only components
-        state
+        let _ = state
             .ecs_mut()
             .write_storage()
             .insert(entity, comp::AnimationInfo::default());
@@ -394,7 +394,10 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
-                        warn!("StateAnswer: {:?}", error);
+                        warn!(
+                            "StateAnswer: {:?}. Server thinks client is in state {:?}.",
+                            error, state
+                        );
                     }
                     ServerMsg::ForceState(state) => {
                         self.client_state = state;
