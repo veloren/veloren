@@ -16,9 +16,10 @@ use common::{
     comp,
     msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, Uid},
-    terrain::{TerrainChunk, TerrainChunkSize, TerrainMap},
+    state::{State, TerrainChange, Uid},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
+    vol::Vox,
 };
 use log::debug;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
@@ -500,6 +501,30 @@ impl Server {
                             // Only characters can send positions.
                             _ => client.error_state(RequestStateError::Impossible),
                         },
+                        ClientMsg::BreakBlock(pos) => {
+                            if state
+                                .ecs_mut()
+                                .read_storage::<comp::CanBuild>()
+                                .get(entity)
+                                .is_some()
+                            {
+                                let mut terrain_change =
+                                    state.ecs().write_resource::<TerrainChange>();
+                                terrain_change.set(pos, Block::empty());
+                            }
+                        }
+                        ClientMsg::PlaceBlock(pos, block) => {
+                            if state
+                                .ecs_mut()
+                                .read_storage::<comp::CanBuild>()
+                                .get(entity)
+                                .is_some()
+                            {
+                                let mut terrain_change =
+                                    state.ecs().write_resource::<TerrainChange>();
+                                terrain_change.set(pos, block);
+                            }
+                        }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
                             ClientState::Connected
                             | ClientState::Registered
