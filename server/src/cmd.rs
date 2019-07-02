@@ -125,7 +125,13 @@ lazy_static! {
             "{}",
             "/health : Set your current health",
             handle_health,
-        )
+        ),
+        ChatCommand::new(
+            "build",
+            "",
+            "/build : Toggles build mode on and off",
+            handle_build,
+        ),
     ];
 }
 
@@ -394,6 +400,33 @@ fn handle_empty(server: &mut Server, entity: EcsEntity, _args: String, _action: 
             entity,
             ServerMsg::Chat(String::from("You have no position!")),
         ),
+    }
+}
+
+fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    match server.state.read_component_cloned::<comp::CanBuild>(entity) {
+        Some(_build_perms) => {
+            server
+                .state
+                .ecs()
+                .write_storage::<comp::CanBuild>()
+                .remove(entity);
+            server.clients.notify(
+                entity,
+                ServerMsg::Chat(String::from("Toggled on build mode!")),
+            );
+        }
+        None => {
+            let _ = server
+                .state
+                .ecs()
+                .write_storage::<comp::CanBuild>()
+                .insert(entity, comp::CanBuild);
+            server.clients.notify(
+                entity,
+                ServerMsg::Chat(String::from("Toggled off build mode!")),
+            );
+        }
     }
 }
 
