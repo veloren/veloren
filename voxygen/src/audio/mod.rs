@@ -1,139 +1,35 @@
-use crate::settings::AudioSettings;
-use common::assets;
-use log::error;
-use rodio::{Decoder, Device, SpatialSink};
-use std::iter::Iterator;
-use std::panic::catch_unwind;
+pub mod base;
+use base::{Genre, Jukebox};
 
 pub struct AudioFrontend {
-    device: Device,
-    // Performance optimisation, iterating through available audio devices takes time
-    devices: Vec<Device>,
-    // streams: HashMap<String, SpatialSink>, //always use SpatialSink even if no position is used for now
-    stream: Option<SpatialSink>,
+    pub(crate) model: Jukebox,
 }
 
 impl AudioFrontend {
-    pub fn new(settings: &AudioSettings) -> Self {
-        let device = match &settings.audio_device {
-            Some(dev) => rodio::output_devices()
-                .find(|x| &x.name() == dev)
-                .or_else(rodio::default_output_device)
-                .expect("No Audio devices found"),
-            None => rodio::default_output_device().expect("No audio devices found"),
-        };
-
-        let sink = catch_unwind(|| {
-            let sink = rodio::SpatialSink::new(
-                &device,
-                [0.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-            );
-            sink.set_volume(settings.music_volume);
-            Some(sink)
-        })
-        .unwrap_or_else(|e| {
-            error!("Error creating a SpatialSink (audio): ");
-            None
-        });
-
-        AudioFrontend {
-            device,
-            // streams: HashMap::<String, SpatialSink>::new(),
-            stream: sink,
-            devices: AudioFrontend::list_devices_raw(),
+    pub(crate) fn new() -> Self {
+        Self {
+            model: Jukebox::new(Genre::Bgm),
         }
     }
 
-    pub fn play_music(&mut self, path: &str) {
-        let bufreader = assets::load_from_path(path).unwrap();
-        let src = Decoder::new(bufreader).unwrap();
+    /// Play audio.
+    pub(crate) fn play(&mut self) {
+        let path = base::select_random_music(&Genre::Bgm);
 
-        // TODO: stop previous audio from playing. Sink has this ability, but
-        // SpatialSink does not for some reason. This means that we will
-        // probably want to use sinks for music, and SpatialSink for sfx.
-        if let Some(s) = &self.stream {
-            s.append(src);
+        match self.model.player.is_paused() {
+            true => match self.model.get_genre() {
+                Genre::Bgm => self.model.player.resume(),
+                Genre::Sfx => unimplemented!(), // TODO: add support for sound effects.
+                Genre::None => (),
+            },
+            false => self.model.player.load(&path),
         }
     }
 
-    pub fn maintain(&mut self) {
-        let music = [
-            "voxygen/audio/soundtrack/Ethereal_Bonds.ogg",
-            "voxygen/audio/soundtrack/field_grazing.ogg",
-            "voxygen/audio/soundtrack/fiesta_del_pueblo.ogg",
-            "voxygen/audio/soundtrack/library_theme_with_harpsichord.ogg",
-            "voxygen/audio/soundtrack/Mineral_Deposits.ogg",
-            //"voxygen/audio/soundtrack/Ruination.ogg",
-            "voxygen/audio/soundtrack/sacred_temple.ogg",
-            "voxygen/audio/soundtrack/Snowtop_volume.ogg",
-            "voxygen/audio/soundtrack/veloren_title_tune-3.ogg",
-        ];
-
-        if let Some(s) = &self.stream {
-            if s.empty() {
-                let i = rand::random::<usize>() % music.len();
-                self.play_music(music[i]);
-            }
-        }
-    }
-
-    pub fn set_volume(&mut self, volume: f32) {
-        if let Some(s) = &self.stream {
-            s.set_volume(volume.min(1.0).max(0.0));
-        }
-    }
-
-    /// Returns a vec of the audio devices available.
-    /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn list_device_names(&self) -> Vec<String> {
-        self.devices.iter().map(|x| x.name()).collect()
-    }
-
-    /// Returns vec of devices
-    fn list_devices_raw() -> Vec<Device> {
-        rodio::output_devices().collect()
-    }
-
-    /// Caches vec of devices for later reference
-    fn maintain_devices(&mut self) {
-        self.devices = AudioFrontend::list_devices_raw()
-    }
-
-    /// Returns the default audio device.
-    /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn get_default_device() -> String {
-        rodio::default_output_device()
-            .expect("No audio output devices detected.")
-            .name()
-    }
-
-    /// Returns the name of the current audio device.
-    /// Does not return rodio Device struct in case our audio backend changes.
-    pub fn get_device_name(&self) -> String {
-        self.device.name()
-    }
-
-    /// Sets the current audio device from a string.
-    /// Does not use the rodio Device struct in case that detail changes.
-    /// If the string is an invalid audio device, then no change is made.
-    pub fn set_device(&mut self, name: String) {
-        if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
-            self.device = dev;
-            self.stream = catch_unwind(|| {
-                let sink = rodio::SpatialSink::new(
-                    &self.device,
-                    [0.0, 0.0, 0.0],
-                    [1.0, 0.0, 0.0],
-                    [-1.0, 0.0, 0.0],
-                );
-                Some(sink)
-            })
-            .unwrap_or_else(|e| {
-                error!("Error creating a SpatialSink (audio): ");
-                None
-            });
+    /// Construct in `no-audio` mode for debugging.
+    pub(crate) fn no_audio() -> Self {
+        Self {
+            model: Jukebox::new(Genre::None),
         }
     }
 }
