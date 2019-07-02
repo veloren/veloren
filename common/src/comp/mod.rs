@@ -1,6 +1,7 @@
 mod action_state;
 mod agent;
 mod animation;
+mod audio;
 mod body;
 mod controller;
 mod inputs;
