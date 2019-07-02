@@ -21,17 +21,16 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct EscMenu<'a> {
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> EscMenu<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(imgs: &'a Imgs, _fonts: &'a Fonts) -> Self {
         Self {
             imgs,
-            fonts,
+            _fonts,
             common: widget::CommonBuilder::default(),
         }
     }

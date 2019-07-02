@@ -38,7 +38,6 @@ use conrod_core::{
 };
 use specs::Join;
 use std::collections::VecDeque;
-use std::{cell::RefCell, rc::Rc};
 use vek::*;
 
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
@@ -367,7 +366,7 @@ impl Hud {
             }
 
             // Render Health Bars
-            for (entity, pos, stats) in (&entities, &pos, &stats)
+            for (_entity, pos, stats) in (&entities, &pos, &stats)
                 .join()
                 .filter(|(entity, _, stats)| {
                     *entity != me
