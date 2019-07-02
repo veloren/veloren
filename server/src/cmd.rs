@@ -311,14 +311,18 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     match (opt_agent, opt_id, opt_amount) {
         (Some(agent), Some(id), Some(amount)) => {
             match server.state.read_component_cloned::<comp::Pos>(entity) {
-                Some(mut pos) => {
+                Some(pos) => {
                     for _ in 0..amount {
-                        pos.0.z += 10.0;
-                        pos.0.x += rand::thread_rng().gen_range(-2.0, 3.0);
-                        pos.0.y += rand::thread_rng().gen_range(-2.0, 3.0);
+                        let vel = Vec3::new(
+                            rand::thread_rng().gen_range(-2.0, 3.0),
+                            rand::thread_rng().gen_range(-2.0, 3.0),
+                            10.0,
+                        );
+
                         let body = kind_to_body(id);
                         server
                             .create_npc(pos, get_npc_name(id), body)
+                            .with(comp::Vel(vel))
                             .with(agent)
                             .build();
                     }
