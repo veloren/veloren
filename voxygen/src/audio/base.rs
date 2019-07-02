@@ -202,7 +202,6 @@ impl DebugMode for AudioPlayer {
 pub struct Jukebox {
     genre: AtomicCell<Genre>,
     pub(crate) player: AudioPlayer,
-    pub(crate) device: AudioDevice,
 }
 
 impl Jukebox {
@@ -211,7 +210,6 @@ impl Jukebox {
         Self {
             genre: AtomicCell::new(genre),
             player: AudioPlayer::new(genre, tx),
-            device: AudioDevice::new(&AudioSettings::default()),
         }
     }
 
@@ -233,7 +231,7 @@ pub struct AudioDevice {
 }
 
 impl AudioDevice {
-    fn new(settings: &AudioSettings) -> Self {
+    pub(crate) fn new(settings: &AudioSettings) -> Self {
         let device = match &settings.audio_device {
             Some(dev) => rodio::output_devices()
                 .find(|x| &x.name() == dev)
