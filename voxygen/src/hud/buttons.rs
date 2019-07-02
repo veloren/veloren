@@ -31,8 +31,7 @@ pub struct Buttons<'a> {
     show_bag: bool,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -43,14 +42,14 @@ impl<'a> Buttons<'a> {
         show_map: bool,
         show_bag: bool,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
+        _fonts: &'a Fonts,
     ) -> Self {
         Self {
             open_windows,
             show_map,
             show_bag,
             imgs,
-            fonts,
+            _fonts,
             common: widget::CommonBuilder::default(),
         }
     }
