@@ -426,3 +426,11 @@ fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
 fn list_devices_raw() -> Vec<Device> {
     rodio::output_devices().collect()
 }
+
+#[test]
+fn test_load_soundtracks() {
+    use crate::audio::base::{load_soundtracks, Genre};
+    for entry in load_soundtracks(&Genre::Bgm).iter() {
+        println!("{}", entry)
+    }
+}
