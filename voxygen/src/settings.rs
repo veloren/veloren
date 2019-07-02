@@ -138,6 +138,7 @@ impl Default for GraphicsSettings {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct AudioSettings {
+    pub master_volume: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
 
@@ -148,6 +149,7 @@ pub struct AudioSettings {
 impl Default for AudioSettings {
     fn default() -> Self {
         Self {
+            master_volume: 1.0,
             music_volume: 0.5,
             sfx_volume: 0.5,
             audio_device: None,
