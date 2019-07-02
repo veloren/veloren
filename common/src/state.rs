@@ -46,7 +46,7 @@ pub struct DeltaTime(pub f32);
 const MAX_DELTA_TIME: f32 = 1.0;
 
 pub struct TerrainChange {
-    blocks: HashMap<Vec3<i32>, Block>,
+    pub blocks: HashMap<Vec3<i32>, Block>,
 }
 
 impl Default for TerrainChange {
@@ -136,6 +136,7 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::MoveDir>();
         ecs.register::<comp::OnGround>();
+        ecs.register::<comp::CanBuild>();
         ecs.register::<comp::Controller>();
         ecs.register::<comp::Attacking>();
         ecs.register::<comp::Wielding>();

@@ -29,6 +29,9 @@ pub struct Rolling {
 pub struct OnGround;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct CanBuild;
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Jumping;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -82,6 +85,10 @@ impl Component for Rolling {
 }
 
 impl Component for OnGround {
+    type Storage = NullStorage<Self>;
+}
+
+impl Component for CanBuild {
     type Storage = NullStorage<Self>;
 }
 
