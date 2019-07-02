@@ -29,8 +29,7 @@ widget_ids! {
 #[derive(WidgetCommon)]
 pub struct Skillbar<'a> {
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     stats: &'a Stats,
 
     #[conrod(common_builder)]
@@ -41,7 +40,7 @@ impl<'a> Skillbar<'a> {
     pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: &'a Stats) -> Self {
         Self {
             imgs,
-            fonts,
+            _fonts: fonts,
             stats,
             common: widget::CommonBuilder::default(),
         }
