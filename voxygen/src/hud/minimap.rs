@@ -7,8 +7,6 @@ use conrod_core::{
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
 use client::{self, Client};
 
-use std::{cell::RefCell, rc::Rc};
-
 widget_ids! {
     struct Ids {
         mmap_frame,
@@ -25,8 +23,7 @@ pub struct MiniMap<'a> {
     client: &'a Client,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -37,7 +34,7 @@ impl<'a> MiniMap<'a> {
             show,
             client,
             imgs,
-            fonts,
+            _fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
     }

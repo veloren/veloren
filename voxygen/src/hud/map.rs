@@ -7,8 +7,6 @@ use conrod_core::{
 use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR_2};
 use client::{self, Client};
 
-use std::{cell::RefCell, rc::Rc};
-
 widget_ids! {
     struct Ids {
         map_frame,
@@ -26,23 +24,21 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
-    show: &'a Show,
-
+    _show: &'a Show,
     client: &'a Client,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 impl<'a> Map<'a> {
     pub fn new(show: &'a Show, client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
-            show,
+            _show: show,
             imgs,
             client,
-            fonts,
+            _fonts: fonts,
             common: widget::CommonBuilder::default(),
         }
     }

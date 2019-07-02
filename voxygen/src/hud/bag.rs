@@ -23,18 +23,17 @@ pub struct Bag<'a> {
     inventory_space: u32,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,
-
+    _fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(inventory_space: u32, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(inventory_space: u32, imgs: &'a Imgs, _fonts: &'a Fonts) -> Self {
         Self {
             inventory_space,
             imgs,
-            fonts,
+            _fonts,
             common: widget::CommonBuilder::default(),
         }
     }
