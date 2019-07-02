@@ -425,6 +425,7 @@ fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
 fn list_devices_raw() -> Vec<Device> {
     rodio::output_devices().collect()
 }
+<<<<<<< HEAD
 
 #[test]
 fn test_load_soundtracks() {
@@ -433,3 +434,5 @@ fn test_load_soundtracks() {
         println!("{}", entry)
     }
 }
+=======
+>>>>>>> Revamping the audio system for Voxygen from #163
