@@ -8,7 +8,7 @@ pub enum Error {
     /// An error relating to the internal client.
     ClientError(client::Error),
     /// A miscellaneous error relating to a backend dependency.
-    BackendError(Box<any::Any>),
+    BackendError(Box<dyn any::Any>),
     /// An error relating the rendering subsystem.
     RenderError(RenderError),
     /// A miscellaneous error with an unknown or unspecified source.

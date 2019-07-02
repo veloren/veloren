@@ -19,7 +19,7 @@ enum Msg {
 /// Used to start and stop the background thread running the server
 /// when in singleplayer mode.
 pub struct Singleplayer {
-    server_thread: JoinHandle<()>,
+    _server_thread: JoinHandle<()>,
     sender: Sender<Msg>,
 }
 
@@ -46,7 +46,7 @@ impl Singleplayer {
 
         (
             Singleplayer {
-                server_thread: thread,
+                _server_thread: thread,
                 sender,
             },
             sock,
@@ -74,9 +74,9 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
         for event in events {
             match event {
-                Event::ClientConnected { entity } => info!("Client connected!"),
-                Event::ClientDisconnected { entity } => info!("Client disconnected!"),
-                Event::Chat { entity, msg } => info!("[Client] {}", msg),
+                Event::ClientConnected { .. } => info!("Client connected!"),
+                Event::ClientDisconnected { .. } => info!("Client disconnected!"),
+                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
             }
         }
 
