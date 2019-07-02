@@ -1,0 +1,5 @@
+https://github.com/PistonDevelopers/conrod/
+https://book.veloren.net/
+https://gitlab.com/veloren/veloren/issures
+https://gitlab.com/veloren/veloren/milestones/2
+https://doc.rust-lang.org/book/index.html

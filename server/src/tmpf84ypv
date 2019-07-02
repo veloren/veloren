@@ -312,10 +312,10 @@ fn  handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &
         (Some(agent), Some(id), Some(amount)) => {
             match server.state.read_component_cloned::<comp::Pos>(entity) {
                 Some(mut pos) => {
+                     // Temp fix TODO: Solve NaN issue with positions of pets
                     for _ in 0..amount {
-                        pos.0.z += 10.0;
-                        pos.0.x += rand::thread_rng().gen_range(-2.0,3.0);
-                        pos.0.y += rand::thread_rng().gen_range(-2.0,3.0);
+                        pos.0.z +=
+                        pos.0.x += rand::Rng::thread_rng().gen_range(1,11);
                         let body = kind_to_body(id);
                         server
                             .create_npc(pos, get_npc_name(id), body)
