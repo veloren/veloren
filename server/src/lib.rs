@@ -80,7 +80,7 @@ impl Server {
     pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
-        let mut state = State::new();
+        let mut state = State::default();
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 305.0)));

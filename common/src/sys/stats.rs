@@ -33,7 +33,7 @@ impl<'a> System<'a> for Sys {
                 stat.is_dead = true;
             }
             if let Some(change) = &mut stat.health.last_change {
-                change.1 += dt.0 as f64;
+                change.1 += f64::from(dt.0);
             }
         }
     }
