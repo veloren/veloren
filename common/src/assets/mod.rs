@@ -119,11 +119,11 @@ fn assets_folder() -> PathBuf {
     match std::env::current_exe() {
         Ok(mut exe_path) => {
             exe_path.pop();
-            find_folder::Search::Parents(2)
+            find_folder::Search::Parents(3)
                 .of(exe_path)
                 .for_folder("assets")
         }
-        Err(_) => find_folder::Search::Parents(2).for_folder("assets"),
+        Err(_) => find_folder::Search::Parents(3).for_folder("assets"),
     }
     .expect("Could not find assets folder")
 }
