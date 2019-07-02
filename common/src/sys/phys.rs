@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, Gliding, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
+    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -45,7 +45,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, MoveDir>,
-        ReadStorage<'a, Gliding>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, ActionState>,
         WriteStorage<'a, Jumping>,
@@ -63,7 +62,6 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             move_dirs,
-            glidings,
             stats,
             action_states,
             mut jumpings,
@@ -225,7 +223,7 @@ impl<'a> System<'a> for Sys {
                     };
 
                     // Determine the block that we are colliding with most (based on minimum collision axis)
-                    let (block_pos, block_aabb) = near_iter
+                    let (_block_pos, block_aabb) = near_iter
                         .clone()
                         // Calculate the block's position in world space
                         .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
@@ -262,7 +260,13 @@ impl<'a> System<'a> for Sys {
 
                     // Determine an appropriate resolution vector (i.e: the minimum distance needed to push out of the block)
                     let max_axis = dir.map(|e| e.abs()).reduce_partial_min();
-                    let resolve_dir = -dir.map(|e| if e.abs() == max_axis { e } else { 0.0 });
+                    let resolve_dir = -dir.map(|e| {
+                        if e.abs().to_bits() == max_axis.to_bits() {
+                            e
+                        } else {
+                            0.0
+                        }
+                    });
 
                     // When the resolution direction is pointing upwards, we must be on the ground
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
@@ -302,7 +306,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if on_ground {
-                on_grounds.insert(entity, OnGround);
+                let _ = on_grounds.insert(entity, OnGround);
             // If we're not on the ground but the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
@@ -310,7 +314,7 @@ impl<'a> System<'a> for Sys {
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
-                on_grounds.insert(entity, OnGround);
+                let _ = on_grounds.insert(entity, OnGround);
             }
         }
     }

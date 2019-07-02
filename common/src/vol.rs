@@ -56,7 +56,6 @@ impl Iterator for VoxPosIter {
 /// A volume that has a finite size.
 pub trait SizedVol: BaseVol {
     /// Get the size of the volume.
-    #[inline(always)]
     fn get_size(&self) -> Vec3<u32>;
 
     /// Iterate through all potential voxel positions in this volume.
@@ -71,10 +70,8 @@ pub trait SizedVol: BaseVol {
 /// A volume that provides read access to its voxel data.
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
-    #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
 
-    #[inline(always)]
     unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox {
         self.get(pos).unwrap()
     }
@@ -103,7 +100,6 @@ pub trait SampleVol<I>: BaseVol {
 /// A volume that provides write access to its voxel data.
 pub trait WriteVol: BaseVol {
     /// Set the voxel at the provided position in the volume to the provided value.
-    #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Err>;
 }
 

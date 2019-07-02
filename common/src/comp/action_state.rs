@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use specs::{Component, FlaggedStorage, VecStorage};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct ActionState {

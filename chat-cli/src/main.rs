@@ -25,7 +25,7 @@ fn main() {
     info!("Starting chat-cli...");
 
     // Set up an fps clock.
-    let mut clock = Clock::new();
+    let mut clock = Clock::start();
 
     println!("Enter your username");
     let username = read_input();
