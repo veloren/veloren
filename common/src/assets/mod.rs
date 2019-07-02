@@ -130,8 +130,7 @@ fn assets_folder() -> PathBuf {
     }
 
     // Working path
-    if let Ok(mut path) = std::env::current_dir() {
-        path.pop();
+    if let Ok(path) = std::env::current_dir() {
         paths.push(path);
     }
 
@@ -150,7 +149,7 @@ fn assets_folder() -> PathBuf {
     }
 
     panic!(
-        "Could not find assets folder (tried to search... {})",
+        "Asset directory not found. In attempting to find it, we searched:\n{})",
         paths.iter().fold(String::new(), |mut a, path| {
             a += path.to_str().unwrap_or("<invalid>");
             a += "\n";
