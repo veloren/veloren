@@ -181,7 +181,7 @@ impl Window {
         let window = &mut self.window;
         let focused = &mut self.focused;
         let key_map = &self.key_map;
-        let mut keypress_map = &mut self.keypress_map;
+        let keypress_map = &mut self.keypress_map;
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
         let mut toggle_fullscreen = false;
