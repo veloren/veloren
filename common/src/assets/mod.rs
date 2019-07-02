@@ -5,9 +5,11 @@ use serde_json::Value;
 use std::{
     any::Any,
     collections::HashMap,
-    fs::File,
+    env,
+    fs::{read_dir, read_link, File, ReadDir},
     io::BufReader,
     io::Read,
+    path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
 
@@ -113,41 +115,60 @@ impl Asset for Value {
 }
 
 // TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
-fn try_open_with_path(name: &str) -> Option<File> {
-    debug!("Trying to access \"{}\"", name);
-    let abs_path = std::env::current_dir().expect("No current directory?");
-    // TODO: don't do this?
-    // if it's stupid and it works..,
-    let platform_specific = "".to_string();
-    #[cfg(target_os = "linux")]
-    {
-        let platform_specific = "/usr/share/veloren/assets".to_string();
+fn assets_folder() -> PathBuf {
+    match std::env::current_exe() {
+        Ok(mut exe_path) => {
+            exe_path.pop();
+            find_folder::Search::Parents(2)
+                .of(exe_path)
+                .for_folder("assets")
+        }
+        Err(_) => find_folder::Search::Parents(2).for_folder("assets"),
     }
-    [
-        std::env::var("VELOREN_ASSETS").unwrap_or("".to_owned()),
-        "assets".to_string(),
-        "../assets".to_string(), /* optimizations */
-        "../../assets".to_string(),
-        [env!("CARGO_MANIFEST_DIR"), "/../assets"].concat(),
-        [env!("CARGO_MANIFEST_DIR"), "/assets"].concat(),
-        [env!("CARGO_MANIFEST_DIR"), "/../../assets"].concat(),
-        "../../../assets".to_string(),
-        [env!("CARGO_MANIFEST_DIR"), "/../../../assets"].concat(),
-        platform_specific,
-    ]
-    .into_iter()
-    .map(|bp| {
-        let mut p = abs_path.clone();
-        p.push(bp);
-        p.push(name);
-        p
-    })
-    .find_map(|ref filename| File::open(filename).ok())
+    .expect("Could not find assets folder")
 }
 
+// TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
 pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
-    match try_open_with_path(name) {
-        Some(f) => Ok(BufReader::new(f)),
-        None => Err(Error::NotFound(name.to_owned())),
+    debug!("Trying to access \"{}\"", name);
+
+    let mut path = assets_folder();
+    path.push(name);
+
+    match File::open(path) {
+        Ok(file) => Ok(BufReader::new(file)),
+        Err(_) => Err(Error::NotFound(name.to_owned())),
+    }
+}
+
+/// Read directory from `veloren/assets/*`
+pub fn read_from_assets(dir_name: &str) -> Result<ReadDir, Error> {
+    let mut entry = assets_folder();
+    entry.push("../assets/");
+    entry.push(dir_name);
+    match Path::new(&entry).exists() {
+        true => Ok(read_dir(entry).expect("`read_dir` failed.")),
+        false => Err(Error::NotFound(entry.to_str().unwrap().to_owned())),
+    }
+}
+
+/// Returns the cargo manifest directory when running the executable with cargo
+/// or the directory in which the executable resides otherwise,
+/// traversing symlinks if necessary.
+pub fn application_root_dir() -> String {
+    match env::var("PROFILE") {
+        Ok(_) => String::from(env!("CARGO_MANIFEST_DIR")),
+        Err(_) => {
+            let mut path = env::current_exe().expect("Failed to find executable path.");
+            while let Ok(target) = read_link(path.clone()) {
+                path = target;
+            }
+            String::from(
+                path.parent()
+                    .expect("Failed to get parent directory of the executable.")
+                    .to_str()
+                    .unwrap(),
+            )
+        }
     }
 }

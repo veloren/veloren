@@ -42,7 +42,8 @@ impl GlobalState {
     }
 
     pub fn maintain(&mut self) {
-        self.audio.maintain();
+        // TODO: Maintain both `Bgm` and `Sfx` audio threads.
+        self.audio.play();
     }
 }
 
@@ -79,7 +80,7 @@ fn main() {
     // Set up the global state.
     let settings = Settings::load();
     let mut global_state = GlobalState {
-        audio: AudioFrontend::new(&settings.audio),
+        audio: AudioFrontend::new(), // TODO: Provide `AudioFrontend::no_audio()` feature during initialisation, the config will be stored in `ron` object list.
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
@@ -162,7 +163,7 @@ fn main() {
     }));
 
     if global_state.settings.audio.audio_device == None {
-        global_state.settings.audio.audio_device = Some(AudioFrontend::get_default_device());
+        global_state.settings.audio.audio_device = Some(crate::audio::base::get_default_device());
     }
 
     // Set up the initial play state.

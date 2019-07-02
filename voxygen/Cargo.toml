@@ -27,9 +27,6 @@ conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.2"
 
-# Audio
-rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "dd93f905c1afefaac03c496a666ecab27d3e391b" }
-
 # ECS
 specs = "0.14"
 
@@ -56,3 +53,5 @@ num = "0.2"
 backtrace = "0.3"
 rand = "0.5"
 frustum_query = "0.1.2"
+rodio = "^0.9"
+crossbeam = "^0.7.1"
