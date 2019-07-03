@@ -50,8 +50,6 @@ fn mesh_worker(
     }
 }
 
-const MAX_WORKERS_QUEUED: usize = 32;
-
 pub struct Terrain {
     chunks: HashMap<Vec2<i32>, TerrainChunk>,
 
@@ -60,7 +58,6 @@ pub struct Terrain {
     mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
     mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
-    workers_queued: usize,
 }
 
 impl Terrain {
@@ -75,7 +72,6 @@ impl Terrain {
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::new(),
-            workers_queued: 0,
         }
     }
 
@@ -153,10 +149,6 @@ impl Terrain {
             // Only spawn workers for meshing jobs without an active worker already.
             .filter(|todo| !todo.active_worker)
         {
-            if self.workers_queued >= MAX_WORKERS_QUEUED {
-                break;
-            }
-
             // Find the area of the terrain we want. Because meshing needs to compute things like
             // ambient occlusion and edge elision, we also need the borders of the chunk's
             // neighbours too (hence the `- 1` and `+ 1`).
@@ -207,7 +199,6 @@ impl Terrain {
                 ));
             });
             todo.active_worker = true;
-            self.workers_queued += 1;
         }
 
         // Receive a chunk mesh from a worker thread and upload it to the GPU, then store it.
@@ -245,8 +236,6 @@ impl Terrain {
                 // since it's either out of date or no longer needed.
                 _ => {}
             }
-
-            self.workers_queued -= 1;
         }
 
         // Construct view frustum
