@@ -101,6 +101,8 @@ pub struct Ui {
     ingame_locals: Vec<Consts<UiLocals>>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
+    // Used to delay cache resizing until after current frame is drawn
+    need_cache_resize: bool,
     // Scaling of the ui
     scale: Scale,
 }
@@ -122,6 +124,7 @@ impl Ui {
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
             window_resized: None,
+            need_cache_resize: false,
             scale,
         })
     }
@@ -215,6 +218,15 @@ impl Ui {
             Some(primitives) => primitives,
             None => return,
         };
+
+        if self.need_cache_resize {
+            // Resize graphic cache
+            self.cache.resize_graphic_cache(renderer).unwrap();
+            // Resize glyph cache
+            self.cache.resize_glyph_cache(renderer).unwrap();
+
+            self.need_cache_resize = false;
+        }
 
         self.draw_commands.clear();
         let mut mesh = Mesh::new();
@@ -344,7 +356,7 @@ impl Ui {
                 PrimitiveKind::Image {
                     image_id,
                     color,
-                    source_rect,
+                    source_rect: _, // TODO: <-- use this
                 } => {
                     let graphic_id = self
                         .image_map
@@ -391,35 +403,25 @@ impl Ui {
                             max: Vec2::new(uv_r, uv_t),
                         }
                     };
+                    // TODO: get dims from graphic_cache (or have it return floats directly)
                     let (cache_w, cache_h) =
                         cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                     // Cache graphic at particular resolution.
-                    let uv_aabr = match graphic_cache.cache_res(
-                        *graphic_id,
-                        resolution,
-                        source_aabr,
-                        |aabr, data| {
-                            let offset = aabr.min.into_array();
-                            let size = aabr.size().into_array();
-                            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data)
-                            {
-                                warn!("Failed to update texture: {:?}", err);
-                            }
-                        },
-                    ) {
-                        Some(aabr) => Aabr {
-                            min: Vec2::new(
-                                aabr.min.x as f32 / cache_w,
-                                aabr.max.y as f32 / cache_h,
-                            ),
-                            max: Vec2::new(
-                                aabr.max.x as f32 / cache_w,
-                                aabr.min.y as f32 / cache_h,
-                            ),
-                        },
-                        None => continue,
-                    };
+                    let uv_aabr =
+                        match graphic_cache.queue_res(*graphic_id, resolution, source_aabr) {
+                            Some(aabr) => Aabr {
+                                min: Vec2::new(
+                                    aabr.min.x as f32 / cache_w,
+                                    aabr.max.y as f32 / cache_h,
+                                ),
+                                max: Vec2::new(
+                                    aabr.max.x as f32 / cache_w,
+                                    aabr.min.y as f32 / cache_h,
+                                ),
+                            },
+                            None => continue,
+                        };
 
                     mesh.push_quad(create_ui_quad(gl_aabr(rect), uv_aabr, color, UiMode::Image));
                 }
@@ -630,22 +632,31 @@ impl Ui {
                 .create_dynamic_model(mesh.vertices().len() * 4 / 3)
                 .unwrap();
         }
-        renderer.update_model(&self.model, &mesh, 0).unwrap();
         // Update model with new mesh.
+        renderer.update_model(&self.model, &mesh, 0).unwrap();
+
+        // Move cached graphics to the gpu
+        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
+        graphic_cache.cache_queued(|aabr, data| {
+            let offset = aabr.min.into_array();
+            let size = aabr.size().into_array();
+            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data) {
+                warn!("Failed to update texture: {:?}", err);
+            }
+        });
 
         // Handle window resizing.
         if let Some(new_dims) = self.window_resized.take() {
+            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
             self.scale.window_resized(new_dims, renderer);
             let (w, h) = self.scale.scaled_window_size().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
 
-            let res = renderer.get_resolution();
             // Avoid panic in graphic cache when minimizing.
-            if res.x > 0 && res.y > 0 {
-                self.cache
-                    .clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
-            }
-            // TODO: Probably need to resize glyph cache, see conrod's gfx backend for reference.
+            // Avoid resetting cache if window size didn't change
+            // Somewhat inefficient for elements that won't change size after a window resize
+            let res = renderer.get_resolution();
+            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
         }
     }
 
