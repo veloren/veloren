@@ -118,8 +118,6 @@ impl PlayState for SessionState {
                             .read_component_cloned::<comp::CanBuild>(client.entity())
                         {
                             Some(_build_perms) => {
-                                println!("Placing block");
-
                                 let (view_mat, _, cam_pos) =
                                     self.scene.camera().compute_dependents(&client);
                                 let cam_dir =
@@ -132,9 +130,12 @@ impl PlayState for SessionState {
                                     (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                                 };
 
-                                if b {
-                                    let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                    client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
+                                if state {
+                                    if b {
+                                        let pos = (cam_pos + cam_dir * (d - 0.01))
+                                            .map(|e| e.floor() as i32);
+                                        client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
+                                    }
                                 }
                             }
                             None => {
@@ -152,13 +153,31 @@ impl PlayState for SessionState {
                         }
                     }
                     Event::InputUpdate(GameInput::SecondAttack, state) => {
-                        match self
-                            .client
-                            .borrow()
+                        let mut client = self.client.borrow_mut();
+                        match client
                             .state()
-                            .read_component_cloned::<comp::CanBuild>(self.client.borrow().entity())
+                            .read_component_cloned::<comp::CanBuild>(client.entity())
                         {
-                            Some(_build_perms) => {}
+                            Some(_build_perms) => {
+                                let (view_mat, _, cam_pos) =
+                                    self.scene.camera().compute_dependents(&client);
+                                let cam_dir =
+                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+
+                                let (d, b) = {
+                                    let terrain = client.state().terrain();
+                                    let ray =
+                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                    (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
+                                };
+
+                                if state {
+                                    if b {
+                                        let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                        client.remove_block(pos); // TODO: Handle block color with a command
+                                    }
+                                }
+                            }
                             None => {
                                 // TODO: Handle secondary attack here
                             }
