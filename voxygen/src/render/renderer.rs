@@ -282,6 +282,11 @@ impl Renderer {
         model.update(&mut self.encoder, mesh, offset)
     }
 
+    /// Return the maximum supported texture size.
+    pub fn max_texture_size(&self) -> usize {
+        self.factory.get_capabilities().max_texture_size
+    }
+
     /// Create a new texture from the provided image.
     pub fn create_texture<P: Pipeline>(
         &mut self,
