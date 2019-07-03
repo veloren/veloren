@@ -6,7 +6,7 @@ use fxhash::FxHashMap;
 use std::{collections::hash_map, fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum VolMap2dErr<V: BaseVol> {
     NoSuchChunk,
     ChunkErr(V::Err),

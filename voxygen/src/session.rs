@@ -8,7 +8,9 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{terrain::block::Block, ray::Ray, vol::ReadVol, clock::Clock, comp, comp::Pos, msg::ClientState};
+use common::{
+    clock::Clock, comp, comp::Pos, msg::ClientState, ray::Ray, terrain::block::Block, vol::ReadVol,
+};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -110,30 +112,31 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Attack, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
-                        match self.client.borrow().state().read_component_cloned::<comp::CanBuild>(self.client.borrow().entity()) {
-                           Some(_build_perms) => {
-                               println!("Placing block");
-                               let (view_mat, _, dist) = self.scene.camera().compute_dependents(&self.client.borrow());
-                               let cam_pos = self.scene.camera().compute_dependents(&self.client.borrow()).2;
-                               let cam_dir = (view_mat.inverted() * Vec4::unit_z()).normalized(); 
-                               match self.client
-                                   .borrow()
-                                   .state()
-                                   .terrain()
-                                   .ray(cam_pos, cam_pos + cam_dir * 100.0)
-                                   .cast()
-                               {
-                                   (d, Ok(Some((_)))) => { 
-                                       let cam_pos = self.scene.camera().compute_dependents(&self.client.borrow()).2;
-                                       let cam_dir = (view_mat.inverted() * Vec4::unit_z()).normalized(); 
-                                       let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                       self.client.borrow_mut().place_block(pos, Block::new(1, Rgb::broadcast(255)));// TODO: Handle block color with a command
-                                   },
-                                   (_, Err(_)) => {},
-                                   (_, Ok(None)) => {},
-                               };
+                        let mut client = self.client.borrow_mut();
+                        match client
+                            .state()
+                            .read_component_cloned::<comp::CanBuild>(client.entity())
+                        {
+                            Some(_build_perms) => {
+                                println!("Placing block");
 
-                            },
+                                let (view_mat, _, cam_pos) =
+                                    self.scene.camera().compute_dependents(&client);
+                                let cam_dir =
+                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+
+                                let (d, b) = {
+                                    let terrain = client.state().terrain();
+                                    let ray =
+                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                    (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
+                                };
+
+                                if b {
+                                    let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                    client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
+                                }
+                            }
                             None => {
                                 if state {
                                     if let ClientState::Character = current_client_state {
@@ -149,10 +152,13 @@ impl PlayState for SessionState {
                         }
                     }
                     Event::InputUpdate(GameInput::SecondAttack, state) => {
-                        match self.client.borrow().state().read_component_cloned::<comp::CanBuild>(self.client.borrow().entity()) {
-                            Some(_build_perms) => {
-
-                            }
+                        match self
+                            .client
+                            .borrow()
+                            .state()
+                            .read_component_cloned::<comp::CanBuild>(self.client.borrow().entity())
+                        {
+                            Some(_build_perms) => {}
                             None => {
                                 // TODO: Handle secondary attack here
                             }
