@@ -165,7 +165,6 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         // Cities
         // TODO: In a later MR
-        /*
         let building = match &sim_chunk.location {
             Some(loc) => {
                 let loc = &sim.locations[loc.loc_idx];
@@ -184,7 +183,6 @@ impl<'a> Sampler for ColumnGen<'a> {
         };
 
         let alt = alt + building;
-        */
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
