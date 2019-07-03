@@ -12,7 +12,7 @@ use common::{
     msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
-    terrain::{chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
 };
 use log::{info, log_enabled, warn};
@@ -183,6 +183,14 @@ impl Client {
     pub fn clear_terrain(&mut self) {
         self.state.clear_terrain();
         self.pending_chunks.clear();
+    }
+
+    pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
+        self.postbox.send_message(ClientMsg::PlaceBlock(pos, block));
+    }
+
+    pub fn remove_block(&mut self, pos: Vec3<i32>) {
+        self.postbox.send_message(ClientMsg::BreakBlock(pos));
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.

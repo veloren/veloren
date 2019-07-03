@@ -34,6 +34,7 @@ pub enum GameInput {
     Screenshot,
     ToggleIngameUi,
     Attack,
+    SecondAttack,
     Roll,
     Respawn,
 }
@@ -138,6 +139,7 @@ impl Window {
             GameInput::ToggleIngameUi,
         );
         key_map.insert(settings.controls.attack, GameInput::Attack);
+        key_map.insert(settings.controls.second_attack, GameInput::SecondAttack);
         key_map.insert(settings.controls.roll, GameInput::Roll);
 
         let keypress_map = HashMap::new();
