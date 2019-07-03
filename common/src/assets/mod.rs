@@ -42,6 +42,7 @@ lazy_static! {
 /// Example usage:
 /// ```no_run=
 /// use veloren_common::{assets, terrain::Structure};
+/// use vek::*;
 ///
 /// let my_tree_structure = assets::load_map(
 ///        "world/tree/oak_green/1.vox",
