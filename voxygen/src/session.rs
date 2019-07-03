@@ -120,8 +120,6 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                             {
-                                println!("Placing block");
-
                                 let (view_mat, _, cam_pos) =
                                     self.scene.camera().compute_dependents(&client);
                                 let cam_dir =
@@ -160,8 +158,6 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                             {
-                                println!("Placing block");
-
                                 let (view_mat, _, cam_pos) =
                                     self.scene.camera().compute_dependents(&client);
                                 let cam_dir =

@@ -46,7 +46,7 @@ pub struct DeltaTime(pub f32);
 const MAX_DELTA_TIME: f32 = 1.0;
 
 pub struct TerrainChange {
-    pub blocks: HashMap<Vec3<i32>, Block>,
+    blocks: HashMap<Vec3<i32>, Block>,
 }
 
 impl Default for TerrainChange {
