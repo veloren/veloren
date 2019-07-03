@@ -101,6 +101,8 @@ pub struct Ui {
     ingame_locals: Vec<Consts<UiLocals>>,
     // Window size for updating scaling
     window_resized: Option<Vec2<f64>>,
+    // Used to delay cache resizing until after current frame is drawn
+    need_cache_resize: bool,
     // Scaling of the ui
     scale: Scale,
 }
@@ -122,6 +124,7 @@ impl Ui {
             default_globals: renderer.create_consts(&[Globals::default()])?,
             ingame_locals: Vec::new(),
             window_resized: None,
+            need_cache_resize: false,
             scale,
         })
     }
@@ -215,6 +218,15 @@ impl Ui {
             Some(primitives) => primitives,
             None => return,
         };
+
+        if self.need_cache_resize {
+            // Resize graphic cache
+            self.cache.resize_graphic_cache(renderer).unwrap();
+            // Resize glyph cache
+            self.cache.resize_glyph_cache(renderer).unwrap();
+
+            self.need_cache_resize = false;
+        }
 
         self.draw_commands.clear();
         let mut mesh = Mesh::new();
@@ -634,22 +646,17 @@ impl Ui {
         });
 
         // Handle window resizing.
-        // TODO: avoid bluescreen
         if let Some(new_dims) = self.window_resized.take() {
             let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
             self.scale.window_resized(new_dims, renderer);
             let (w, h) = self.scale.scaled_window_size().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
 
-            let res = renderer.get_resolution();
             // Avoid panic in graphic cache when minimizing.
             // Avoid resetting cache if window size didn't change
-            // Somewhat inefficient for elements that won't change size
-            if res.x > 0 && res.y > 0 && !(old_w == w && old_h == h) {
-                self.cache
-                    .clear_graphic_cache(renderer, renderer.get_resolution());
-            }
-            // TODO: Probably need to resize glyph cache, see conrod's gfx backend for reference.
+            // Somewhat inefficient for elements that won't change size after a window resize
+            let res = renderer.get_resolution();
+            self.need_cache_resize = res.x > 0 && res.y > 0 && !(old_w == w && old_h == h);
         }
     }
 

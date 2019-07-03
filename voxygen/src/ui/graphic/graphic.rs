@@ -1,15 +1,9 @@
 use dot_vox::DotVoxData;
-use fnv::{FnvHashMap, FnvHashSet};
+use fnv::FnvHashMap;
 use guillotiere::{size2, AllocId, Allocation, AtlasAllocator};
 use image::{DynamicImage, RgbaImage};
 use log::{error, warn};
-use std::{
-    sync::{
-        mpsc::{channel, Receiver, Sender},
-        Arc,
-    },
-    thread,
-};
+use std::sync::Arc;
 use vek::*;
 
 #[derive(Clone)]
