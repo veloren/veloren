@@ -1,5 +1,6 @@
 use super::ClientState;
 use crate::comp;
+use crate::terrain::block::Block;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,6 +15,8 @@ pub enum ClientMsg {
     Controller(comp::Controller),
     RequestState(ClientState),
     SetViewDistance(u32),
+    BreakBlock(Vec3<i32>),
+    PlaceBlock(Vec3<i32>, Block),
     Ping,
     Pong,
     Chat(String),
