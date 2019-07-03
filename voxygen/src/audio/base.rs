@@ -7,7 +7,7 @@ use crossbeam::{
     sync::{ShardedLock, WaitGroup},
 };
 use rodio::{Decoder, Device, Sink, SpatialSink};
-use std::sync::Arc;
+use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
 trait AudioConfig {
@@ -56,7 +56,7 @@ pub enum Action {
 
 #[derive(Clone)]
 struct EventLoop {
-    condition: Arc<(ShardedLock<bool>, WaitGroup)>,
+    condvar: Arc<(Mutex<bool>, Condvar)>,
     queue: Arc<SegQueue<Action>>,
     playing: Arc<ShardedLock<bool>>,
 }
@@ -64,7 +64,7 @@ struct EventLoop {
 impl EventLoop {
     fn new() -> Self {
         Self {
-            condition: Arc::new((ShardedLock::new(false), WaitGroup::new())),
+            condvar: Arc::new((Mutex::new(false), Condvar::new())),
             queue: Arc::new(SegQueue::new()),
             playing: Arc::new(ShardedLock::new(false)),
         }
@@ -89,14 +89,7 @@ impl AudioPlayer {
 
     pub(crate) fn load(&self, path: &str) {
         self.emit(Action::Load(path.to_string()));
-    }
-
-    pub(crate) fn set_volume(&self, value: f32) {
-        self.emit(Action::AdjustVolume(value));
-    }
-
-    pub(crate) fn set_device(&self, device: &str) {
-        self.emit(Action::ChangeDevice(device.to_string()));
+        self.set_playing(true);
     }
 
     pub(crate) fn pause(&mut self) {
@@ -111,15 +104,23 @@ impl AudioPlayer {
         self.set_playing(true);
     }
 
-    pub(crate) fn is_paused(&self) -> bool {
-        self.paused.load()
-    }
-
     pub(crate) fn stop(&mut self) {
         self.paused.store(false);
         self.send(AudioPlayerMsg::AudioStop);
         self.emit(Action::Stop);
         self.set_playing(false);
+    }
+
+    pub(crate) fn is_paused(&self) -> bool {
+        self.paused.load()
+    }
+
+    pub(crate) fn set_volume(&self, value: f32) {
+        self.emit(Action::AdjustVolume(value));
+    }
+
+    pub(crate) fn set_device(&self, device: &str) {
+        self.emit(Action::ChangeDevice(device.to_string()));
     }
 
     fn emit(&self, action: Action) {
@@ -132,12 +133,11 @@ impl AudioPlayer {
 
     fn set_playing(&self, playing: bool) {
         *self.event_loop.playing.write().unwrap() = playing;
-        let &(ref lock, ref wg) = &*self.event_loop.condition;
-        let mut started = lock.write().unwrap();
+        let &(ref lock, ref condvar) = &*self.event_loop.condvar;
+        let mut started = lock.lock().unwrap();
         *started = playing;
-        let wg = wg.clone();
         if playing {
-            wg.wait();
+            condvar.notify_one();
         }
     }
 }
@@ -148,24 +148,29 @@ impl MonoMode for AudioPlayer {
         let event_loop = EventLoop::new();
 
         {
-            let mut tx = tx.clone();
+            //let mut tx = tx.clone();
             let event_loop = event_loop.clone();
-            let condition = event_loop.condition.clone();
+            let condition = event_loop.condvar.clone();
 
             thread::spawn(move || {
                 let block = || {
-                    let &(ref lock, ref wg) = &*condition;
-                    let mut started = lock.write().unwrap();
+                    let (ref lock, ref condvar) = *condition;
+                    let mut started = lock.lock().unwrap();
                     *started = false;
-                    drop(wg);
+                    while !*started {
+                        started = condvar.wait(started).unwrap();
+                    }
                 };
                 let mut playback = MonoEmitter::new(&Settings::load().audio);
+
+                // Start the thread if set_playing(true).
                 loop {
                     if let Ok(action) = event_loop.queue.pop() {
                         match action {
                             Action::Load(path) => {
                                 if playback.stream.empty() {
                                     playback.play_from(&path);
+                                    //send_msg(&mut tx, AudioPlayerMsg::AudioPlay);
                                 }
                             }
                             Action::Stop => playback.stream.stop(),
@@ -415,7 +420,7 @@ pub(crate) fn select_random_music(genre: &Genre) -> String {
 }
 
 fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
-    tx.try_send(msg)
+    tx.send(msg)
         .expect("Failed on attempting to send a message into audio channel.");
 }
 
