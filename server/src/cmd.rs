@@ -7,9 +7,7 @@ use common::{
     comp,
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
-    state::{TerrainChange, TimeOfDay},
-    terrain::Block,
-    vol::Vox,
+    state::TimeOfDay,
 };
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
@@ -107,25 +105,19 @@ lazy_static! {
              handle_players,
          ),
         ChatCommand::new(
-             "solid",
-             "{}",
-             "/solid : Make the blocks around you solid",
-             handle_solid,
-         ),
-        ChatCommand::new(
-             "empty",
-             "{}",
-             "/empty : Make the blocks around you empty",
-             handle_empty,
-         ),
-        ChatCommand::new(
             "help", "", "/help: Display this message", handle_help),
         ChatCommand::new(
             "health",
             "{}",
             "/health : Set your current health",
             handle_health,
-        )
+        ),
+        ChatCommand::new(
+            "build",
+            "",
+            "/build : Toggles build mode on and off",
+            handle_build,
+        ),
     ];
 }
 
@@ -359,41 +351,32 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
     }
 }
 
-fn handle_solid(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(current_pos) => {
-            server.state.ecs().write_resource::<TerrainChange>().set(
-                current_pos.0.map(|e| e.floor() as i32),
-                Block::new(1, Rgb::broadcast(255)),
-            );
-        }
-        None => server.clients.notify(
+fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    if server
+        .state
+        .read_storage::<comp::CanBuild>()
+        .get(entity)
+        .is_some()
+    {
+        server
+            .state
+            .ecs()
+            .write_storage::<comp::CanBuild>()
+            .remove(entity);
+        server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("You have no position!")),
-        ),
-    }
-}
-
-fn handle_empty(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(current_pos) => {
-            let mut terrain_change = server.state.ecs().write_resource::<TerrainChange>();
-
-            for i in -1..2 {
-                for j in -1..2 {
-                    for k in -2..1 {
-                        terrain_change.set(
-                            current_pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k),
-                            Block::empty(),
-                        );
-                    }
-                }
-            }
-        }
-        None => server.clients.notify(
+            ServerMsg::Chat(String::from("Toggled off build mode!")),
+        );
+    } else {
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::CanBuild>()
+            .insert(entity, comp::CanBuild);
+        server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("You have no position!")),
-        ),
+            ServerMsg::Chat(String::from("Toggled on build mode!")),
+        );
     }
 }
 
