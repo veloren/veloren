@@ -8,7 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::Pos, msg::ClientState};
+use common::{terrain::block::Block, ray::Ray, vol::ReadVol, clock::Clock, comp, comp::Pos, msg::ClientState};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -108,15 +108,54 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     Event::InputUpdate(GameInput::Attack, state) => {
-                        if state {
-                            if let ClientState::Character = current_client_state {
-                                self.controller.attack = state;
-                            } else {
-                                self.controller.respawn = state; // TODO: Don't do both
+                        // Check the existence of CanBuild component. If it's here, use LMB to
+                        // place blocks, if not, use it to attack
+                        match self.client.borrow().state().read_component_cloned::<comp::CanBuild>(self.client.borrow().entity()) {
+                           Some(_build_perms) => {
+                               println!("Placing block");
+                               let (view_mat, _, dist) = self.scene.camera().compute_dependents(&self.client.borrow());
+                               let cam_pos = self.scene.camera().compute_dependents(&self.client.borrow()).2;
+                               let cam_dir = (view_mat.inverted() * Vec4::unit_z()).normalized(); 
+                               match self.client
+                                   .borrow()
+                                   .state()
+                                   .terrain()
+                                   .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                   .cast()
+                               {
+                                   (d, Ok(Some((_)))) => { 
+                                       let cam_pos = self.scene.camera().compute_dependents(&self.client.borrow()).2;
+                                       let cam_dir = (view_mat.inverted() * Vec4::unit_z()).normalized(); 
+                                       let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                       self.client.borrow_mut().place_block(pos, Block::new(1, Rgb::broadcast(255)));// TODO: Handle block color with a command
+                                   },
+                                   (_, Err(_)) => {},
+                                   (_, Ok(None)) => {},
+                               };
+
+                            },
+                            None => {
+                                if state {
+                                    if let ClientState::Character = current_client_state {
+                                        self.controller.attack = state
+                                    } else {
+                                        self.controller.respawn = state; // TODO: Don't do both
+                                    }
+                                } else {
+                                    self.controller.attack = state;
+                                    self.controller.respawn = state;
+                                }
                             }
-                        } else {
-                            self.controller.attack = state;
-                            self.controller.respawn = state;
+                        }
+                    }
+                    Event::InputUpdate(GameInput::SecondAttack, state) => {
+                        match self.client.borrow().state().read_component_cloned::<comp::CanBuild>(self.client.borrow().entity()) {
+                            Some(_build_perms) => {
+
+                            }
+                            None => {
+                                // TODO: Handle secondary attack here
+                            }
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
