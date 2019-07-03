@@ -352,29 +352,31 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 }
 
 fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    match server.state.read_component_cloned::<comp::CanBuild>(entity) {
-        Some(_build_perms) => {
-            server
-                .state
-                .ecs()
-                .write_storage::<comp::CanBuild>()
-                .remove(entity);
-            server.clients.notify(
-                entity,
-                ServerMsg::Chat(String::from("Toggled off build mode!")),
-            );
-        }
-        None => {
-            let _ = server
-                .state
-                .ecs()
-                .write_storage::<comp::CanBuild>()
-                .insert(entity, comp::CanBuild);
-            server.clients.notify(
-                entity,
-                ServerMsg::Chat(String::from("Toggled on build mode!")),
-            );
-        }
+    if server
+        .state
+        .read_storage::<comp::CanBuild>()
+        .get(entity)
+        .is_some()
+    {
+        server
+            .state
+            .ecs()
+            .write_storage::<comp::CanBuild>()
+            .remove(entity);
+        server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("Toggled off build mode!")),
+        );
+    } else {
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::CanBuild>()
+            .insert(entity, comp::CanBuild);
+        server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("Toggled on build mode!")),
+        );
     }
 }
 
