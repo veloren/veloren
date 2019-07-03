@@ -57,11 +57,7 @@ impl<'a> Pipeline for Voxel {
     }
 }
 
-pub fn draw_vox(
-    segment: &Segment,
-    output_size: Vec2<u16>,
-    min_samples: Option<u8>,
-) -> Vec<[u8; 4]> {
+pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u8>) -> RgbaImage {
     let scale = min_samples.map_or(1.0, |s| s as f32).sqrt().ceil() as usize;
     let dims = output_size.map(|e| e as usize * scale).into_array();
     let mut color = Buffer2d::new(dims, [0; 4]);
@@ -85,33 +81,29 @@ pub fn draw_vox(
         &mut depth,
     );
 
-    if scale > 1 {
-        DynamicImage::ImageRgba8(
-            RgbaImage::from_vec(
-                dims[0] as u32,
-                dims[1] as u32,
-                color
-                    .as_ref()
-                    .iter()
-                    .flatten()
-                    .cloned()
-                    .collect::<Vec<u8>>(),
-            )
-            .unwrap(),
+    let image = DynamicImage::ImageRgba8(
+        RgbaImage::from_vec(
+            dims[0] as u32,
+            dims[1] as u32,
+            color
+                .as_ref()
+                .iter()
+                .flatten()
+                .cloned()
+                .collect::<Vec<u8>>(),
         )
-        .resize_exact(
+        .unwrap(),
+    );
+    if scale > 1 {
+        image.resize_exact(
             output_size.x as u32,
             output_size.y as u32,
             image::FilterType::Triangle,
         )
-        .to_rgba()
-        .pixels()
-        .map(|p| p.data)
-        .collect::<Vec<[u8; 4]>>()
     } else {
-        // TODO: Remove clone.
-        color.as_ref().to_vec()
+        image
     }
+    .to_rgba()
 }
 
 fn ao_level(side1: bool, corner: bool, side2: bool) -> u8 {
