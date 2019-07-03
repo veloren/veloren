@@ -179,7 +179,6 @@ pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
 /// Read directory from `veloren/assets/*`
 pub fn read_from_assets(dir_name: &str) -> Result<ReadDir, Error> {
     let mut entry = assets_folder();
-    entry.push("../assets/");
     entry.push(dir_name);
     match Path::new(&entry).exists() {
         true => Ok(read_dir(entry).expect("`read_dir` failed.")),
