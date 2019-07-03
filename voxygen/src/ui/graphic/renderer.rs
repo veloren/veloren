@@ -11,19 +11,20 @@ struct Voxel {
     mvp: Mat4<f32>,
 }
 
+// TODO: use norm or remove it
 #[derive(Copy, Clone)]
 struct Vert {
     pos: Vec3<f32>,
     col: Rgb<f32>,
-    norm: Vec3<f32>,
+    //norm: Vec3<f32>,
     ao_level: u8,
 }
 impl Vert {
-    fn new(pos: Vec3<f32>, col: Rgb<f32>, norm: Vec3<f32>, ao_level: u8) -> Self {
+    fn new(pos: Vec3<f32>, col: Rgb<f32>, _norm: Vec3<f32>, ao_level: u8) -> Self {
         Vert {
             pos,
             col,
-            norm,
+            //norm,
             ao_level,
         }
     }
@@ -40,7 +41,7 @@ impl<'a> Pipeline for Voxel {
         Vert {
             pos,
             col,
-            norm: _,
+            //norm: _,
             ao_level,
         }: &Self::Vertex,
     ) -> ([f32; 3], Self::VsOut) {

@@ -1,8 +1,5 @@
 use conrod_core::{
-    builder_methods,
-    position::Dimension,
-    widget::{self, Id},
-    Position, Ui, UiCell, Widget, WidgetCommon,
+    builder_methods, position::Dimension, widget, Position, Ui, UiCell, Widget, WidgetCommon,
 };
 use vek::*;
 
@@ -18,12 +15,11 @@ pub trait Ingameable: Widget + Sized {
     fn prim_count(&self) -> usize;
     // Note this is not responsible for the 3d positioning
     // Only call this directly if using IngameAnchor
-    fn set_ingame(self, id: widget::Id, parent_id: Id, ui: &mut UiCell) -> Self::Event {
+    fn set_ingame(self, id: widget::Id, ui: &mut UiCell) -> Self::Event {
         self
             // should pass focus to the window if these are clicked
             // (they are not displayed where conrod thinks they are)
             .graphics_for(ui.window)
-            //.parent(parent_id) // TODO: Is this needed?
             .set(id, ui)
     }
     fn position_ingame(self, pos: Vec3<f32>) -> Ingame<Self> {
@@ -104,7 +100,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, ui, .. } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
         let Ingame {
             widget, parameters, ..
         } = self;
@@ -116,19 +112,19 @@ impl<W: Ingameable> Widget for Ingame<W> {
             });
         }
 
-        widget.set_ingame(state.id.unwrap(), id, ui)
+        widget.set_ingame(state.id.unwrap(), ui)
     }
 
-    fn default_x_position(&self, ui: &Ui) -> Position {
+    fn default_x_position(&self, _: &Ui) -> Position {
         Position::Absolute(0.0)
     }
-    fn default_y_position(&self, ui: &Ui) -> Position {
+    fn default_y_position(&self, _: &Ui) -> Position {
         Position::Absolute(0.0)
     }
-    fn default_x_dimension(&self, ui: &Ui) -> Dimension {
+    fn default_x_dimension(&self, _: &Ui) -> Dimension {
         Dimension::Absolute(1.0)
     }
-    fn default_y_dimension(&self, ui: &Ui) -> Dimension {
+    fn default_y_dimension(&self, _: &Ui) -> Dimension {
         Dimension::Absolute(1.0)
     }
 }
