@@ -356,7 +356,7 @@ impl Ui {
                 PrimitiveKind::Image {
                     image_id,
                     color,
-                    source_rect,
+                    source_rect: _, // TODO: <-- use this
                 } => {
                     let graphic_id = self
                         .image_map
