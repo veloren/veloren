@@ -112,12 +112,16 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Attack, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
-                        let mut client = self.client.borrow_mut();
-                        match client
-                            .state()
-                            .read_component_cloned::<comp::CanBuild>(client.entity())
-                        {
-                            Some(_build_perms) => {
+                        if state {
+                            let mut client = self.client.borrow_mut();
+                            if client
+                                .state()
+                                .read_storage::<comp::CanBuild>()
+                                .get(client.entity())
+                                .is_some()
+                            {
+                                println!("Placing block");
+
                                 let (view_mat, _, cam_pos) =
                                     self.scene.camera().compute_dependents(&client);
                                 let cam_dir =
@@ -130,35 +134,34 @@ impl PlayState for SessionState {
                                     (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                                 };
 
-                                if state {
-                                    if b {
-                                        let pos = (cam_pos + cam_dir * (d - 0.01))
-                                            .map(|e| e.floor() as i32);
-                                        client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
-                                    }
+                                if b {
+                                    let pos =
+                                        (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
+                                    client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
                                 }
-                            }
-                            None => {
-                                if state {
-                                    if let ClientState::Character = current_client_state {
-                                        self.controller.attack = state
-                                    } else {
-                                        self.controller.respawn = state; // TODO: Don't do both
-                                    }
+                            } else {
+                                if let ClientState::Character = current_client_state {
+                                    self.controller.attack = state
                                 } else {
-                                    self.controller.attack = state;
-                                    self.controller.respawn = state;
+                                    self.controller.respawn = state; // TODO: Don't do both
                                 }
                             }
+                        } else {
+                            self.controller.attack = state;
+                            self.controller.respawn = state;
                         }
                     }
                     Event::InputUpdate(GameInput::SecondAttack, state) => {
-                        let mut client = self.client.borrow_mut();
-                        match client
-                            .state()
-                            .read_component_cloned::<comp::CanBuild>(client.entity())
-                        {
-                            Some(_build_perms) => {
+                        if state {
+                            let mut client = self.client.borrow_mut();
+                            if client
+                                .state()
+                                .read_storage::<comp::CanBuild>()
+                                .get(client.entity())
+                                .is_some()
+                            {
+                                println!("Placing block");
+
                                 let (view_mat, _, cam_pos) =
                                     self.scene.camera().compute_dependents(&client);
                                 let cam_dir =
@@ -171,15 +174,12 @@ impl PlayState for SessionState {
                                     (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                                 };
 
-                                if state {
-                                    if b {
-                                        let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                        client.remove_block(pos); // TODO: Handle block color with a command
-                                    }
+                                if b {
+                                    let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                    client.remove_block(pos);
                                 }
-                            }
-                            None => {
-                                // TODO: Handle secondary attack here
+                            } else {
+                                // TODO: Handle secondary attack
                             }
                         }
                     }
