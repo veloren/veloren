@@ -84,8 +84,14 @@ pub trait PlayState {
 fn main() {
     // Set up the global state.
     let settings = Settings::load();
+    let audio = if settings.audio.audio_on {
+        AudioFrontend::new()
+    } else {
+        AudioFrontend::no_audio()
+    };
+
     let mut global_state = GlobalState {
-        audio: AudioFrontend::new(), // TODO: Provide `AudioFrontend::no_audio()` feature during initialisation, the config will be stored in `ron` object list.
+        audio,
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
