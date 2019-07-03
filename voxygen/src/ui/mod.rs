@@ -391,35 +391,25 @@ impl Ui {
                             max: Vec2::new(uv_r, uv_t),
                         }
                     };
+                    // TODO: get dims from graphic_cache (or have it return floats directly)
                     let (cache_w, cache_h) =
                         cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                     // Cache graphic at particular resolution.
-                    let uv_aabr = match graphic_cache.cache_res(
-                        *graphic_id,
-                        resolution,
-                        source_aabr,
-                        |aabr, data| {
-                            let offset = aabr.min.into_array();
-                            let size = aabr.size().into_array();
-                            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data)
-                            {
-                                warn!("Failed to update texture: {:?}", err);
-                            }
-                        },
-                    ) {
-                        Some(aabr) => Aabr {
-                            min: Vec2::new(
-                                aabr.min.x as f32 / cache_w,
-                                aabr.max.y as f32 / cache_h,
-                            ),
-                            max: Vec2::new(
-                                aabr.max.x as f32 / cache_w,
-                                aabr.min.y as f32 / cache_h,
-                            ),
-                        },
-                        None => continue,
-                    };
+                    let uv_aabr =
+                        match graphic_cache.queue_res(*graphic_id, resolution, source_aabr) {
+                            Some(aabr) => Aabr {
+                                min: Vec2::new(
+                                    aabr.min.x as f32 / cache_w,
+                                    aabr.max.y as f32 / cache_h,
+                                ),
+                                max: Vec2::new(
+                                    aabr.max.x as f32 / cache_w,
+                                    aabr.min.y as f32 / cache_h,
+                                ),
+                            },
+                            None => continue,
+                        };
 
                     mesh.push_quad(create_ui_quad(gl_aabr(rect), uv_aabr, color, UiMode::Image));
                 }
@@ -630,20 +620,34 @@ impl Ui {
                 .create_dynamic_model(mesh.vertices().len() * 4 / 3)
                 .unwrap();
         }
-        renderer.update_model(&self.model, &mesh, 0).unwrap();
         // Update model with new mesh.
+        renderer.update_model(&self.model, &mesh, 0).unwrap();
+
+        // Move cached graphics to the gpu
+        let (graphic_cache, cache_tex) = self.cache.graphic_cache_mut_and_tex();
+        graphic_cache.cache_queued(|aabr, data| {
+            let offset = aabr.min.into_array();
+            let size = aabr.size().into_array();
+            if let Err(err) = renderer.update_texture(cache_tex, offset, size, data) {
+                warn!("Failed to update texture: {:?}", err);
+            }
+        });
 
         // Handle window resizing.
+        // TODO: avoid bluescreen
         if let Some(new_dims) = self.window_resized.take() {
+            let (old_w, old_h) = self.scale.scaled_window_size().into_tuple();
             self.scale.window_resized(new_dims, renderer);
             let (w, h) = self.scale.scaled_window_size().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
 
             let res = renderer.get_resolution();
             // Avoid panic in graphic cache when minimizing.
-            if res.x > 0 && res.y > 0 {
+            // Avoid resetting cache if window size didn't change
+            // Somewhat inefficient for elements that won't change size
+            if res.x > 0 && res.y > 0 && !(old_w == w && old_h == h) {
                 self.cache
-                    .clear_graphic_cache(renderer, renderer.get_resolution().map(|e| e * 4));
+                    .clear_graphic_cache(renderer, renderer.get_resolution());
             }
             // TODO: Probably need to resize glyph cache, see conrod's gfx backend for reference.
         }
