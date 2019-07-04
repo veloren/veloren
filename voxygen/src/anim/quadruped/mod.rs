@@ -10,8 +10,6 @@ pub use self::run::RunAnimation;
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;
 
-const SCALE: f32 = 11.0;
-
 #[derive(Clone)]
 pub struct QuadrupedSkeleton {
     pig_head: Bone,

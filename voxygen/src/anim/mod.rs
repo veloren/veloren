@@ -87,7 +87,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Undead, Female) => 0.93,
                 (Danari, Male) => 0.85,
                 (Danari, Female) => 0.82,
-                _ => 1.0,
             },
             head_scale: match (body.race, body.body_type) {
                 (Orc, Male) => 0.9,
@@ -102,7 +101,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Undead, Female) => 1.0,
                 (Danari, Male) => 1.11,
                 (Danari, Female) => 1.11,
-                _ => 1.0,
             },
             neck_height: match (body.race, body.body_type) {
                 (Orc, Male) => -2.0,
@@ -117,7 +115,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Undead, Female) => -0.5,
                 (Danari, Male) => 0.5,
                 (Danari, Female) => -0.5,
-                _ => 1.0,
             },
             neck_forward: match (body.race, body.body_type) {
                 (Orc, Male) => 1.0,
@@ -132,7 +129,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Undead, Female) => 1.0,
                 (Danari, Male) => 0.5,
                 (Danari, Female) => 0.0,
-                _ => 1.0,
             },
             neck_right: match (body.race, body.body_type) {
                 (Orc, Male) => 0.0,
@@ -147,7 +143,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Undead, Female) => 0.0,
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
-                _ => 1.0,
             },
             weapon_x: match Weapon::Sword {
                 // TODO: Inventory
@@ -158,8 +153,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Staff => 3.0,
                 Weapon::Bow => 0.0,
                 Weapon::Daggers => 0.0,
-
-                _ => 1.0,
             },
             weapon_y: match Weapon::Sword {
                 // TODO: Inventory
@@ -170,8 +163,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Staff => 0.0,
                 Weapon::Bow => -2.0,
                 Weapon::Daggers => -2.0,
-
-                _ => 1.0,
             },
         }
     }
