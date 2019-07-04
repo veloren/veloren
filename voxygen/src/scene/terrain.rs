@@ -9,7 +9,8 @@ use common::{
     volumes::vol_map_2d::VolMap2dErr,
 };
 use frustum_query::frustum::Frustum;
-use std::{collections::HashMap, i32, ops::Mul, sync::mpsc, time::Duration};
+use std::{i32, ops::Mul, sync::mpsc, time::Duration};
+use fxhash::FxHashMap;
 use vek::*;
 
 struct TerrainChunk {
@@ -51,13 +52,13 @@ fn mesh_worker(
 }
 
 pub struct Terrain {
-    chunks: HashMap<Vec2<i32>, TerrainChunk>,
+    chunks: FxHashMap<Vec2<i32>, TerrainChunk>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
     // We keep the sender component for no reason other than to clone it and send it to new workers.
     mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
     mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
-    mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
+    mesh_todo: FxHashMap<Vec2<i32>, ChunkMeshState>,
 }
 
 impl Terrain {
@@ -67,11 +68,10 @@ impl Terrain {
         let (send, recv) = mpsc::channel();
 
         Self {
-            chunks: HashMap::new(),
-
+            chunks: FxHashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
-            mesh_todo: HashMap::new(),
+            mesh_todo: FxHashMap::default(),
         }
     }
 
@@ -143,15 +143,14 @@ impl Terrain {
             self.mesh_todo.remove(pos);
         }
 
-        for todo in self
-            .mesh_todo
+        for todo in self.mesh_todo
             .values_mut()
-            // Only spawn workers for meshing jobs without an active worker already.
             .filter(|todo| {
                 todo.active_worker
                     .map(|worker_tick| worker_tick < todo.started_tick)
                     .unwrap_or(true)
             })
+            .min_by_key(|todo| todo.active_worker.unwrap_or(0))
         {
             if client.thread_pool().queued_count() > 0 {
                 break;
