@@ -105,6 +105,7 @@ impl PlayState for SessionState {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         if state {
+                            self.controller.respawn = state;
                             let mut client = self.client.borrow_mut();
                             if client
                                 .state()
@@ -131,8 +132,6 @@ impl PlayState for SessionState {
                             } else {
                                 if let ClientState::Character = current_client_state {
                                     self.controller.attack = state
-                                } else {
-                                    self.controller.respawn = state; // TODO: Don't do both
                                 }
                             }
                         } else {
