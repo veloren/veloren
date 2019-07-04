@@ -9,7 +9,7 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    clock::Clock, comp, comp::Pos, msg::ClientState, ray::Ray, terrain::block::Block, vol::ReadVol,
+    clock::Clock, comp, comp::Pos, msg::ClientState, terrain::block::Block, vol::ReadVol,
 };
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
@@ -28,7 +28,7 @@ impl SessionState {
     /// Create a new `SessionState`.
     pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, _settings: Settings) -> Self {
         // Create a scene for this session. The scene handles visible elements of the game world.
-        let scene = Scene::new(window.renderer_mut(), &client.borrow());
+        let scene = Scene::new(window.renderer_mut());
         Self {
             scene,
             client,
@@ -38,14 +38,6 @@ impl SessionState {
         }
     }
 }
-
-// Background colour
-const BG_COLOR: Rgba<f32> = Rgba {
-    r: 0.0,
-    g: 0.3,
-    b: 1.0,
-    a: 1.0,
-};
 
 impl SessionState {
     /// Tick the session (and the client attached to it).
@@ -72,7 +64,7 @@ impl SessionState {
     /// This method should be called once per frame.
     pub fn render(&mut self, renderer: &mut Renderer) {
         // Clear the screen
-        renderer.clear(BG_COLOR);
+        renderer.clear();
 
         // Render the screen using the global renderer
         self.scene.render(renderer, &mut self.client.borrow_mut());
@@ -120,8 +112,7 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                             {
-                                let (view_mat, _, cam_pos) =
-                                    self.scene.camera().compute_dependents(&client);
+                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
                                 let cam_dir =
                                     (self.scene.camera().get_focus_pos() - cam_pos).normalized();
 
@@ -158,8 +149,7 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                             {
-                                let (view_mat, _, cam_pos) =
-                                    self.scene.camera().compute_dependents(&client);
+                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
                                 let cam_dir =
                                     (self.scene.camera().get_focus_pos() - cam_pos).normalized();
 

@@ -12,7 +12,6 @@ use log::error;
 use scene::Scene;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use ui::CharSelectionUi;
-use vek::*;
 
 pub struct CharSelectionState {
     char_selection_ui: CharSelectionUi,
@@ -30,14 +29,6 @@ impl CharSelectionState {
         }
     }
 }
-
-// Background colour
-const BG_COLOR: Rgba<f32> = Rgba {
-    r: 0.0,
-    g: 0.3,
-    b: 1.0,
-    a: 1.0,
-};
 
 impl PlayState for CharSelectionState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
@@ -61,7 +52,7 @@ impl PlayState for CharSelectionState {
                 }
             }
 
-            global_state.window.renderer_mut().clear(BG_COLOR);
+            global_state.window.renderer_mut().clear();
 
             // Maintain the UI.
             for event in self

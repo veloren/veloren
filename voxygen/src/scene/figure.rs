@@ -13,7 +13,6 @@ use common::{
     assets,
     comp::{self, humanoid, item::Weapon, quadruped, quadruped_medium, Body},
     figure::Segment,
-    state::DeltaTime,
     terrain::TerrainChunkSize,
     vol::VolSize,
 };
@@ -200,13 +199,6 @@ impl FigureModelCache {
                 "figure/head/head_danari_female.vox",
                 Vec3::new(-9.0, -5.5, -2.5),
             ),
-            _ => {
-                warn!("Invalid race, body_type combination for figure head");
-                (
-                    "figure/head/head_human_male.vox",
-                    Vec3::new(-7.0, -5.5, -9.25),
-                )
-            }
         };
         Self::load_mesh(name, offset)
     }
@@ -306,7 +298,6 @@ impl FigureModelCache {
             Weapon::Sword => ("weapon/sword/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
             Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
             Weapon::Axe => ("weapon/axe/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
-            Weapon::Sword => ("weapon/sword/wood_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
             Weapon::Daggers => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
             Weapon::SwordShield => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -2.0)),
             Weapon::Bow => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),

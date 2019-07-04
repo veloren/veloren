@@ -4,7 +4,7 @@ use crossbeam::{
     atomic::AtomicCell,
     channel::{unbounded, Sender},
     queue::SegQueue,
-    sync::{ShardedLock, WaitGroup},
+    sync::ShardedLock,
 };
 use rodio::{Decoder, Device, Sink, SpatialSink};
 use std::sync::{Arc, Condvar, Mutex};
@@ -220,7 +220,7 @@ impl Jukebox {
 
     // TODO: The `update` function should associate with `conrod` to visualise the audio playlist
     // and settings.
-    pub(crate) fn update(&mut self, msg: AudioPlayerMsg) {
+    pub(crate) fn update(&mut self, _msg: AudioPlayerMsg) {
         unimplemented!()
     }
 

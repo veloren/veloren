@@ -7,7 +7,7 @@ use crate::{
     },
     window::Window,
 };
-use common::comp::{humanoid, item::Weapon, quadruped, quadruped_medium};
+use common::comp::{humanoid, item::Weapon};
 use conrod_core::{
     color,
     color::TRANSPARENT,
@@ -1038,7 +1038,7 @@ impl CharSelectionUi {
                     .font_id(self.fonts.metamorph)
                     .color(TEXT_COLOR_2)
                     .set(self.ids.beard_text, ui_widgets);
-                if let Some(val) = ImageSlider::continuous(
+                if let Some(_val) = ImageSlider::continuous(
                     5.0,
                     0.0,
                     10.0,

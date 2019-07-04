@@ -10,7 +10,6 @@ use log::warn;
 use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
-use vek::*;
 
 pub struct MainMenuState {
     main_menu_ui: MainMenuUi,
@@ -26,14 +25,6 @@ impl MainMenuState {
 }
 
 const DEFAULT_PORT: u16 = 59003;
-
-// Background colour
-const BG_COLOR: Rgba<f32> = Rgba {
-    r: 0.0,
-    g: 0.3,
-    b: 1.0,
-    a: 1.0,
-};
 
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
@@ -57,7 +48,7 @@ impl PlayState for MainMenuState {
                 }
             }
 
-            global_state.window.renderer_mut().clear(BG_COLOR);
+            global_state.window.renderer_mut().clear();
 
             // Poll client creation.
             match client_init.as_ref().and_then(|init| init.poll()) {
