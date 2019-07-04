@@ -29,14 +29,22 @@ impl ServerSettings {
     pub fn load() -> Self {
         let path = ServerSettings::get_settings_path();
 
-        // If file doesn't exist, use the default settings.
         if let Ok(file) = fs::File::open(path) {
-            // TODO: Replace expect with returning default?
-            ron::de::from_reader(file).expect("Error parsing settings")
+            match ron::de::from_reader(file) {
+                Ok(x) => x,
+                Err(e) => {
+                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    Self::default()
+                }
+            }
         } else {
-            // TODO: temporary
-            Self::default().save_to_file().unwrap();
-            Self::default()
+            let default_settings = Self::default();
+
+            match default_settings.save_to_file() {
+                Err(e) => log::error!("Failed to create default setting file! {}", e),
+                _ => {}
+            }
+            default_settings
         }
     }
 
