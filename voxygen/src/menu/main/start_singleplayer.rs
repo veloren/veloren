@@ -8,16 +8,20 @@ use log::warn;
 use std::net::SocketAddr;
 
 pub struct StartSingleplayerState {
-    singleplayer: Singleplayer,
+    // Necessary to keep singleplayer working
+    _singleplayer: Singleplayer,
     sock: SocketAddr,
 }
 
 impl StartSingleplayerState {
     /// Create a new `MainMenuState`.
     pub fn new() -> Self {
-        let (singleplayer, sock) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
+        let (_singleplayer, sock) = Singleplayer::new(None); // TODO: Make client and server use the same thread pool
 
-        Self { singleplayer, sock }
+        Self {
+            _singleplayer,
+            sock,
+        }
     }
 }
 
