@@ -127,7 +127,10 @@ image_ids! {
         crosshair: "voxygen/element/misc_bg/crosshair.vox",
         // Items
         potion_red: "voxygen/voxel/object/potion_red.vox",
-
+        potion_green: "voxygen/voxel/object/potion_green.vox",
+        potion_blue: "voxygen/voxel/object/potion_blue.vox",
+        key: "voxygen/voxel/object/key.vox",
+        key_gold: "voxygen/voxel/object/key_gold.vox",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
 
