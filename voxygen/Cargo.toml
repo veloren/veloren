@@ -55,3 +55,4 @@ rand = "0.5"
 frustum_query = "0.1.2"
 rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "dd93f905c1afefaac03c496a666ecab27d3e391b"  }
 crossbeam = "^0.7.1"
+fxhash = "0.2"
