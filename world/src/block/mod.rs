@@ -74,20 +74,40 @@ impl<'a> BlockGen<'a> {
             },
         )
     }
-}
 
-impl<'a> SamplerMut for BlockGen<'a> {
-    type Index = Vec3<i32>;
-    type Sample = Option<Block>;
-
-    fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
+    pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
             world,
             column_cache,
             column_gen,
         } = self;
 
-        let ColumnSample {
+        let sample = Self::sample_column(column_gen, column_cache, wpos)?;
+
+        let mut tree_samples = [None, None, None, None, None, None, None, None, None];
+
+        for i in 0..tree_samples.len() {
+            tree_samples[i] = Self::sample_column(
+                column_gen,
+                column_cache,
+                Vec2::from(sample.close_trees[i].0),
+            );
+        }
+
+        Some(ZCache {
+            sample,
+            tree_samples,
+        })
+    }
+
+    pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
+        let BlockGen {
+            world,
+            column_cache,
+            column_gen,
+        } = self;
+
+        let &ColumnSample {
             alt,
             chaos,
             water_level,
@@ -105,7 +125,9 @@ impl<'a> SamplerMut for BlockGen<'a> {
             close_cliffs,
             //temp,
             ..
-        } = Self::sample_column(column_gen, column_cache, Vec2::from(wpos))?;
+        } = &z_cache?.sample;
+
+        let tree_samples = &z_cache?.tree_samples;
 
         let wposf = wpos.map(|e| e as f64);
 
@@ -285,17 +307,13 @@ impl<'a> SamplerMut for BlockGen<'a> {
         } else {
             match block {
                 Some(block) => block,
-                None => (&close_trees)
-                    .iter()
-                    .fold(air, |block, (tree_pos, tree_seed)| {
+                None => (&close_trees).iter().enumerate().fold(
+                    air,
+                    |block, (tree_idx, (tree_pos, tree_seed))| {
                         if !block.is_empty() {
                             block
                         } else {
-                            match Self::sample_column(
-                                column_gen,
-                                column_cache,
-                                Vec2::from(*tree_pos),
-                            ) {
+                            match &tree_samples[tree_idx] {
                                 Some(tree_sample)
                                     if tree_sample.tree_density
                                         > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
@@ -332,10 +350,26 @@ impl<'a> SamplerMut for BlockGen<'a> {
                                 _ => block,
                             }
                         }
-                    }),
+                    },
+                ),
             }
         };
 
         Some(block)
+    }
+}
+
+pub struct ZCache<'a> {
+    sample: ColumnSample<'a>,
+    tree_samples: [Option<ColumnSample<'a>>; 9],
+}
+
+impl<'a> SamplerMut for BlockGen<'a> {
+    type Index = Vec3<i32>;
+    type Sample = Option<Block>;
+
+    fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
+        let z_cache = self.get_z_cache(wpos.into());
+        self.get_with_z_cache(wpos, z_cache.as_ref())
     }
 }
