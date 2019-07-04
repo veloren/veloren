@@ -1,14 +1,7 @@
 use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};
-use std::{
-    io,
-    net::{SocketAddr, ToSocketAddrs},
-    str::FromStr,
-    sync::mpsc,
-    thread,
-    time::Duration,
-};
+use std::{io, net::ToSocketAddrs, sync::mpsc, thread, time::Duration};
 
 const TPS: u64 = 10; // Low value is okay, just reading messages.
 
