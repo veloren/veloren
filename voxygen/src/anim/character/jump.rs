@@ -13,7 +13,7 @@ impl Animation for JumpAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        global_time: f64,
+        _global_time: f64,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {

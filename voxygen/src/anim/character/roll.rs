@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct RollAnimation;
@@ -13,7 +13,7 @@ impl Animation for RollAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        global_time: f64,
+        _global_time: f64,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -22,7 +22,6 @@ impl Animation for RollAnimation {
         let wave = (anim_time as f32 * 5.5).sin();
         let wave_quick = (anim_time as f32 * 9.5).sin();
         let wave_quick_cos = (anim_time as f32 * 9.5).cos();
-        let wave_cos = (anim_time as f32 * 5.5).cos();
         let wave_slow = (anim_time as f32 * 2.8 + PI).sin();
         let wave_dub = (anim_time as f32 * 5.5).sin();
 

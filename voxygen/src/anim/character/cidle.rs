@@ -22,8 +22,6 @@ impl Animation for CidleAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let wave = (anim_time as f32 * 4.0).sin();
-
         let wave_ultra_slow = (anim_time as f32 * 3.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();

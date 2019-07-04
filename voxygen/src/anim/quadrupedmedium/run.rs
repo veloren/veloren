@@ -13,9 +13,9 @@ impl Animation for RunAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, global_time): Self::Dependency,
+        (_velocity, global_time): Self::Dependency,
         anim_time: f64,
-        skeleton_attr: &SkeletonAttr,
+        _skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
@@ -34,18 +34,6 @@ impl Animation for RunAnimation {
                 .sin()
                 * 0.25,
             ((global_time + anim_time) as f32 / 4.0)
-                .floor()
-                .mul(1337.0)
-                .sin()
-                * 0.125,
-        );
-        let wolf_tail = Vec2::new(
-            ((global_time + anim_time) as f32 / 2.0)
-                .floor()
-                .mul(7331.0)
-                .sin()
-                * 0.25,
-            ((global_time + anim_time) as f32 / 2.0)
                 .floor()
                 .mul(1337.0)
                 .sin()
