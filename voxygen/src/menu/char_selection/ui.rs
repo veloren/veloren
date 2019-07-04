@@ -142,38 +142,17 @@ image_ids! {
         button: "voxygen/element/buttons/button.vox",
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
-        button_red: "voxygen/element/buttons/button_red.vox",
-        button_red_hover: "voxygen/element/buttons/button_red_hover.vox",
-        button_red_press: "voxygen/element/buttons/button_red_press.vox",
         name_input: "voxygen/element/misc_bg/textbox.vox",
         charlist_frame: "voxygen/element/frames/window_4.vox",
-        selection_frame: "voxygen/element/frames/selection_frame.vox",
         server_frame: "voxygen/element/frames/server_frame.vox",
         selection: "voxygen/element/frames/selection.vox",
 
-        arrow_left:"voxygen/element/buttons/button_red_press.vox",
-        arrow_left_mo:"voxygen/element/buttons/button_red_press.vox",
-        arrow_left_press:"voxygen/element/buttons/button_red_press.vox",
-
-        divider: "voxygen/element/frames/divider.vox",
-
         <ImageGraphic>
-        frame_closed: "voxygen/element/buttons/frame/closed.png",
-        frame_closed_mo: "voxygen/element/buttons/frame/closed_mo.png",
-        frame_closed_press: "voxygen/element/buttons/frame/closed_press.png",
-        frame_open: "voxygen/element/buttons/frame/open.png",
-        frame_open_mo: "voxygen/element/buttons/frame/open_mo.png",
-        frame_open_press: "voxygen/element/buttons/frame/open_press.png",
-        skin_eyes_window: "voxygen/element/frames/skin_eyes.png",
-        hair_window: "voxygen/element/frames/skin_eyes.png",
-        accessories_window: "voxygen/element/frames/skin_eyes.png",
         slider_range: "voxygen/element/slider/track.png",
         slider_indicator: "voxygen/element/slider/indicator.png",
-        window_frame_2: "voxygen/element/frames/window_2.png",
 
         // Weapon Icons
         daggers: "voxygen/element/icons/daggers.png",
-        sword_shield: "voxygen/element/icons/swordshield.png",
         sword: "voxygen/element/icons/sword.png",
         axe: "voxygen/element/icons/axe.png",
         hammer: "voxygen/element/icons/hammer.png",
