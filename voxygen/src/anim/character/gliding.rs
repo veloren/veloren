@@ -25,8 +25,6 @@ impl Animation for GlidingAnimation {
         let wave_very_slow_alt = (anim_time as f32 * 2.5).sin();
         let wave_very_slow_cos = (anim_time as f32 * 3.0).cos();
 
-        let wave_slow_test = (anim_time as f32).min(PI / 2.0).sin();
-
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 4.0)
                 .floor()
