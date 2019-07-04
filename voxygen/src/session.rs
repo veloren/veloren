@@ -8,9 +8,7 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{
-    clock::Clock, comp, comp::Pos, msg::ClientState, terrain::block::Block, vol::ReadVol,
-};
+use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -21,6 +19,7 @@ pub struct SessionState {
     hud: Hud,
     key_state: KeyState,
     controller: comp::Controller,
+    selected_block: Block,
 }
 
 /// Represents an active game session (i.e., the one being played).
@@ -35,6 +34,7 @@ impl SessionState {
             key_state: KeyState::new(),
             controller: comp::Controller::default(),
             hud: Hud::new(window),
+            selected_block: Block::new(1, Rgb::broadcast(255)),
         }
     }
 }
@@ -127,7 +127,8 @@ impl PlayState for SessionState {
                             if b {
                                 let pos =
                                     (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
-                                client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
+                                client.place_block(pos, self.selected_block); // TODO: Handle block color with a command
+
                             }
                         } else {
                             self.controller.attack = state
@@ -164,7 +165,39 @@ impl PlayState for SessionState {
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
-                        self.controller.roll = state;
+                        let client = self.client.borrow();
+                        if client
+                            .state()
+                            .read_storage::<comp::CanBuild>()
+                            .get(client.entity())
+                            .is_some()
+                        {
+                            if state {
+                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
+                                let cam_dir =
+                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+
+                                let (d, block) = {
+                                    let terrain = client.state().terrain();
+                                    let ray =
+                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                    (
+                                        ray.0,
+                                        if let Ok(Some(b)) = ray.1 {
+                                            Some(*b)
+                                        } else {
+                                            None
+                                        },
+                                    )
+                                };
+
+                                if let Some(block) = block {
+                                    self.selected_block = block;
+                                }
+                            }
+                        } else {
+                            self.controller.roll = state;
+                        }
                     }
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.controller.jump = state;
