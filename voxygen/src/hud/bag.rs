@@ -28,7 +28,7 @@ pub struct Bag<'a> {
     inventory_space: usize,
 
     imgs: &'a Imgs,
-    _fonts: &'a Fonts,
+    fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -38,7 +38,7 @@ impl<'a> Bag<'a> {
         Self {
             inventory_space,            
             imgs,
-            _fonts,
+            fonts,
             common: widget::CommonBuilder::default(),
         }
     }
