@@ -15,12 +15,10 @@ fn get_ao_quad<V: ReadVol>(
     pos: Vec3<i32>,
     shift: Vec3<i32>,
     dirs: &[Vec3<i32>],
-    corners: &[[usize; 3]; 4],
     darknesses: &[[[f32; 3]; 3]; 3],
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
-        .enumerate()
-        .map(|(i, offs)| {
+        .map(|offs| {
             let (s1, s2) = (
                 vol.get(pos + shift + offs[0])
                     .map(|v| !v.is_empty())
@@ -29,8 +27,6 @@ fn get_ao_quad<V: ReadVol>(
                     .map(|v| !v.is_empty())
                     .unwrap_or(false),
             );
-
-            let darkness = darknesses[corners[i][0]][corners[i][1]][corners[i][2]];
 
             let darkness = darknesses
                 .iter()
@@ -70,9 +66,6 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     darkness_ao: Vec4<(f32, f32)>,
     vcons: &F,
 ) -> Quad<P> {
-    let ao_scale = 0.95;
-    let dark = col * (1.0 - ao_scale);
-
     let darkness = darkness_ao.map(|e| e.0);
     let ao = darkness_ao.map(|e| e.1);
 
@@ -123,14 +116,7 @@ pub fn push_vox_verts<
             Vec3::unit_y(),
             -Vec3::unit_x(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_x(),
-                &[-z, -y, z, y, -z],
-                &[[0; 3]; 4],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, -Vec3::unit_x(), &[-z, -y, z, y, -z], darknesses),
             &vcons,
         ));
     }
@@ -146,14 +132,7 @@ pub fn push_vox_verts<
             Vec3::unit_z(),
             Vec3::unit_x(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_x(),
-                &[-y, -z, y, z, -y],
-                &[[0; 3]; 4],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, Vec3::unit_x(), &[-y, -z, y, z, -y], darknesses),
             &vcons,
         ));
     }
@@ -169,14 +148,7 @@ pub fn push_vox_verts<
             Vec3::unit_z(),
             -Vec3::unit_y(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_y(),
-                &[-x, -z, x, z, -x],
-                &[[0; 3]; 4],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, -Vec3::unit_y(), &[-x, -z, x, z, -x], darknesses),
             &vcons,
         ));
     }
@@ -192,14 +164,7 @@ pub fn push_vox_verts<
             Vec3::unit_x(),
             Vec3::unit_y(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_y(),
-                &[-z, -x, z, x, -z],
-                &[[0; 3]; 4],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, Vec3::unit_y(), &[-z, -x, z, x, -z], darknesses),
             &vcons,
         ));
     }
@@ -215,14 +180,7 @@ pub fn push_vox_verts<
             Vec3::unit_x(),
             -Vec3::unit_z(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_z(),
-                &[-y, -x, y, x, -y],
-                &[[0; 3]; 4],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, -Vec3::unit_z(), &[-y, -x, y, x, -y], darknesses),
             &vcons,
         ));
     }
@@ -238,14 +196,7 @@ pub fn push_vox_verts<
             Vec3::unit_y(),
             Vec3::unit_z(),
             col,
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_z(),
-                &[-x, -y, x, y, -x],
-                &[[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]],
-                darknesses,
-            ),
+            get_ao_quad(vol, pos, Vec3::unit_z(), &[-x, -y, x, y, -x], darknesses),
             &vcons,
         ));
     }
