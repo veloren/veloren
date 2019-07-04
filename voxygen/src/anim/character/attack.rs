@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use std::{f32::consts::PI, ops::Mul};
+use std::f32::consts::PI;
 use vek::*;
 
 pub struct Input {
@@ -16,7 +16,7 @@ impl Animation for AttackAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        global_time: f64,
+        _global_time: f64,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -25,7 +25,6 @@ impl Animation for AttackAnimation {
         let wave_quicken = 1.0 - (anim_time as f32 * 16.0).cos();
         let wave_quicken_slow = 1.0 - (anim_time as f32 * 12.0).cos();
         let wave_quicken_double = 1.0 - (anim_time as f32 * 24.0).cos();
-        let wave_quick = (anim_time as f32 * 0.5).sin();
         let wave_stop_quick = (anim_time as f32 * 16.0).min(PI / 2.0).sin();
 
         next.head.offset = Vec3::new(
