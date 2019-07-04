@@ -2,6 +2,7 @@
 pub use sphynx::Uid;
 
 use crate::{
+	mod_loader,
     comp,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
@@ -162,6 +163,8 @@ impl State {
         ecs.add_resource(TerrainMap::new().unwrap());
         ecs.add_resource(TerrainChange::default());
         ecs.add_resource(ChunkChanges::default());
+
+		mod_loader::test_mod();
     }
 
     /// Register a component with the state's ECS.

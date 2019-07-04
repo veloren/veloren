@@ -25,6 +25,7 @@ pub mod terrain;
 pub mod util;
 pub mod vol;
 pub mod volumes;
+pub mod mod_loader;
 
 /// The networking module containing high-level wrappers of `TcpListener` and `TcpStream` (`PostOffice` and `PostBox` respectively) and data types used by both the server and client.
 /// # Examples
