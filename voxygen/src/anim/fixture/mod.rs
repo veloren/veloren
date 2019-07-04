@@ -1,8 +1,6 @@
 use super::Skeleton;
 use crate::render::FigureBoneData;
 
-const SCALE: f32 = 44.0;
-
 pub struct FixtureSkeleton;
 
 impl FixtureSkeleton {
@@ -33,5 +31,5 @@ impl Skeleton for FixtureSkeleton {
         ]
     }
 
-    fn interpolate(&mut self, target: &Self, dt: f32) {}
+    fn interpolate(&mut self, _target: &Self, _dt: f32) {}
 }
