@@ -41,7 +41,7 @@ pub struct Scene {
 
 impl Scene {
     /// Create a new `Scene` with default parameters.
-    pub fn new(renderer: &mut Renderer, client: &Client) -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         let resolution = renderer.get_resolution().map(|e| e as f32);
 
         Self {

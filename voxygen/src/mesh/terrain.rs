@@ -58,16 +58,6 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
 
                     // Create mesh polygons
                     if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                        let avg_light = neighbour_light
-                            .iter()
-                            .map(|row| row.iter())
-                            .flatten()
-                            .map(|col| col.iter())
-                            .flatten()
-                            .fold(0.0, |a, x| a + x)
-                            / 27.0;
-                        let light = avg_light;
-
                         let col = col.map(|e| e as f32 / 255.0);
 
                         let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
@@ -80,12 +70,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             offs,
                             col,
                             |pos, norm, col, ao, light| {
-                                TerrainVertex::new(
-                                    pos,
-                                    norm,
-                                    Lerp::lerp(Rgb::zero(), col, 1.0),
-                                    light * ao,
-                                )
+                                TerrainVertex::new(pos, norm, col, light * ao)
                             },
                             false,
                             &neighbour_light,
