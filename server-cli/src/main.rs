@@ -13,7 +13,7 @@ fn main() {
 
     // Set up an fps clock
     let mut clock = Clock::start();
-    
+
     // Load settings
     let settings = ServerSettings::load();
 
