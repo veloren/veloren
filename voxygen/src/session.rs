@@ -102,44 +102,38 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     Event::InputUpdate(GameInput::Attack, state) => {
+                        self.controller.respawn = state; // TODO: Move this into separate GameInput
+
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
-                        if state {
-                            let mut client = self.client.borrow_mut();
-                            if client
+                        let mut client = self.client.borrow_mut();
+                        if state
+                            && client
                                 .state()
                                 .read_storage::<comp::CanBuild>()
                                 .get(client.entity())
                                 .is_some()
-                            {
-                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
-                                let cam_dir =
-                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+                        {
+                            let cam_pos = self.scene.camera().compute_dependents(&client).2;
+                            let cam_dir =
+                                (self.scene.camera().get_focus_pos() - cam_pos).normalized();
 
-                                let (d, b) = {
-                                    let terrain = client.state().terrain();
-                                    let ray =
-                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                    (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                                };
+                            let (d, b) = {
+                                let terrain = client.state().terrain();
+                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
+                            };
 
-                                if b {
-                                    let pos =
-                                        (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
-                                    client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
-                                }
-                            } else {
-                                if let ClientState::Character = current_client_state {
-                                    self.controller.attack = state
-                                } else {
-                                    self.controller.respawn = state; // TODO: Don't do both
-                                }
+                            if b {
+                                let pos =
+                                    (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
+                                client.place_block(pos, Block::new(1, Rgb::broadcast(255))); // TODO: Handle block color with a command
                             }
                         } else {
-                            self.controller.attack = state;
-                            self.controller.respawn = state;
+                            self.controller.attack = state
                         }
                     }
+
                     Event::InputUpdate(GameInput::SecondAttack, state) => {
                         if state {
                             let mut client = self.client.borrow_mut();
