@@ -105,7 +105,11 @@ impl PlayState for SessionState {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         if state {
-                            self.controller.respawn = state;
+                            // Check if the player is dead or not
+                            if current_client_state != ClientState::Character {
+                                self.controller.respawn = state;
+                            }
+
                             let mut client = self.client.borrow_mut();
                             if client
                                 .state()
