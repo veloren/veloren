@@ -9,8 +9,8 @@ use common::{
     volumes::vol_map_2d::VolMap2dErr,
 };
 use frustum_query::frustum::Frustum;
-use std::{i32, ops::Mul, sync::mpsc, time::Duration};
 use fxhash::FxHashMap;
+use std::{i32, ops::Mul, sync::mpsc, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -143,7 +143,8 @@ impl Terrain {
             self.mesh_todo.remove(pos);
         }
 
-        for todo in self.mesh_todo
+        for todo in self
+            .mesh_todo
             .values_mut()
             .filter(|todo| {
                 todo.active_worker
