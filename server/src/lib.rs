@@ -15,7 +15,7 @@ use crate::{
 };
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, TerrainChange, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
@@ -357,9 +357,8 @@ impl Server {
                 last_ping: self.state.get_time(),
             };
 
-            // TODO: Figure out if this if/else if correct
             if self.server_settings.max_players <= self.clients.len() {
-                client.notify(ServerMsg::TooManyPlayers);
+                client.notify(ServerMsg::Error(ServerError::TooManyPlayers));
             } else {
                 // Return the state of the current world (all of the components that Sphynx tracks).
                 client.notify(ServerMsg::InitialSync {
