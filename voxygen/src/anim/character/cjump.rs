@@ -13,15 +13,14 @@ impl Animation for CjumpAnimation {
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        global_time: f64,
+        _global_time: f64,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
-        let wave = (anim_time as f32 * 14.0).sin();
+
         let wave_slow = (anim_time as f32 * 7.0).sin();
         let wave_stop = (anim_time as f32 * 4.5).min(PI / 2.0).sin();
-        let wave_stop_alt = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,

@@ -15,7 +15,7 @@ impl Animation for IdleAnimation {
         skeleton: &Self::Skeleton,
         global_time: Self::Dependency,
         anim_time: f64,
-        skeleton_attr: &SkeletonAttr,
+        _skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
