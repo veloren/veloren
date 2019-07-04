@@ -6,7 +6,7 @@ use crossbeam::{
     queue::SegQueue,
     sync::ShardedLock,
 };
-use rodio::{Decoder, Device, Sink, SpatialSink};
+use rodio::{Decoder, Device, Sink};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
@@ -92,11 +92,11 @@ impl AudioPlayer {
         self.set_playing(true);
     }
 
-    pub(crate) fn pause(&mut self) {
-        self.paused.store(true);
-        self.send(AudioPlayerMsg::AudioStop);
-        self.set_playing(false);
-    }
+    // pub(crate) fn pause(&mut self) {
+    //     self.paused.store(true);
+    //     self.send(AudioPlayerMsg::AudioStop);
+    //     self.set_playing(false);
+    // }
 
     pub(crate) fn resume(&mut self) {
         self.paused.store(false);
@@ -104,12 +104,12 @@ impl AudioPlayer {
         self.set_playing(true);
     }
 
-    pub(crate) fn stop(&mut self) {
-        self.paused.store(false);
-        self.send(AudioPlayerMsg::AudioStop);
-        self.emit(Action::Stop);
-        self.set_playing(false);
-    }
+    // pub(crate) fn stop(&mut self) {
+    //     self.paused.store(false);
+    //     self.send(AudioPlayerMsg::AudioStop);
+    //     self.emit(Action::Stop);
+    //     self.set_playing(false);
+    // }
 
     pub(crate) fn is_paused(&self) -> bool {
         self.paused.load()
@@ -220,9 +220,9 @@ impl Jukebox {
 
     // TODO: The `update` function should associate with `conrod` to visualise the audio playlist
     // and settings.
-    pub(crate) fn update(&mut self, _msg: AudioPlayerMsg) {
-        unimplemented!()
-    }
+    // pub(crate) fn update(&mut self, _msg: AudioPlayerMsg) {
+    //     unimplemented!()
+    // }
 
     /// Display the current genre.
     pub(crate) fn get_genre(&self) -> Genre {
@@ -258,9 +258,9 @@ impl AudioDevice {
     }
 
     /// Caches vec of devices for later reference
-    pub(crate) fn update_devices(&mut self) {
-        self.devices = list_devices_raw()
-    }
+    // pub(crate) fn update_devices(&mut self) {
+    //     self.devices = list_devices_raw()
+    // }
 
     /// Returns the name of the current audio device.
     /// Does not return rodio Device struct in case our audio backend changes.
@@ -274,10 +274,10 @@ struct MonoEmitter {
     stream: Sink,
 }
 
-struct StereoEmitter {
-    device: AudioDevice,
-    stream: SpatialSink,
-}
+// struct StereoEmitter {
+//     device: AudioDevice,
+//     stream: SpatialSink,
+// }
 
 impl MonoEmitter {
     fn new(settings: &AudioSettings) -> Self {
@@ -315,51 +315,51 @@ impl AudioConfig for MonoEmitter {
     }
 }
 
-impl StereoEmitter {
-    fn new(settings: &AudioSettings) -> Self {
-        let device = AudioDevice::new(settings);
+// impl StereoEmitter {
+//     fn new(settings: &AudioSettings) -> Self {
+//         let device = AudioDevice::new(settings);
 
-        let sink = SpatialSink::new(
-            &device.device,
-            [0.0, 0.0, 0.0],
-            [1.0, 0.0, 0.0],
-            [-1.0, 0.0, 0.0],
-        );
-        sink.set_volume(settings.music_volume);
+//         let sink = SpatialSink::new(
+//             &device.device,
+//             [0.0, 0.0, 0.0],
+//             [1.0, 0.0, 0.0],
+//             [-1.0, 0.0, 0.0],
+//         );
+//         sink.set_volume(settings.music_volume);
 
-        Self {
-            device,
-            stream: sink,
-        }
-    }
+//         Self {
+//             device,
+//             stream: sink,
+//         }
+//     }
 
-    fn play_from(&mut self, path: &str) {
-        let bufreader = load_from_path(path).unwrap();
-        let src = Decoder::new(bufreader).unwrap();
-        self.stream.append(src);
-    }
-}
+//     fn play_from(&mut self, path: &str) {
+//         let bufreader = load_from_path(path).unwrap();
+//         let src = Decoder::new(bufreader).unwrap();
+//         self.stream.append(src);
+//     }
+// }
 
-impl AudioConfig for StereoEmitter {
-    fn set_volume(&mut self, volume: f32) {
-        self.stream.set_volume(volume.min(1.0).max(0.0))
-    }
+// impl AudioConfig for StereoEmitter {
+//     fn set_volume(&mut self, volume: f32) {
+//         self.stream.set_volume(volume.min(1.0).max(0.0))
+//     }
 
-    /// Sets the current audio device from a string.
-    /// Does not use the rodio Device struct in case that detail changes.
-    /// If the string is an invalid audio device, then no change is made.
-    fn set_device(&mut self, name: String) {
-        if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
-            self.device.device = dev;
-            self.stream = SpatialSink::new(
-                &self.device.device,
-                [0.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [-1.0, 0.0, 0.0],
-            );
-        }
-    }
-}
+//     /// Sets the current audio device from a string.
+//     /// Does not use the rodio Device struct in case that detail changes.
+//     /// If the string is an invalid audio device, then no change is made.
+//     fn set_device(&mut self, name: String) {
+//         if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
+//             self.device.device = dev;
+//             self.stream = SpatialSink::new(
+//                 &self.device.device,
+//                 [0.0, 0.0, 0.0],
+//                 [1.0, 0.0, 0.0],
+//                 [-1.0, 0.0, 0.0],
+//             );
+//         }
+//     }
+// }
 
 /// Returns the default audio device.
 /// Does not return rodio Device struct in case our audio backend changes.
