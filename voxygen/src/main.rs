@@ -9,7 +9,7 @@ extern crate lazy_static;
 pub mod discord;
 
 #[cfg(feature = "discord")]
-use std::sync::{mpsc::Sender, Mutex};
+use std::sync::Mutex;
 
 #[macro_use]
 pub mod ui;
@@ -128,7 +128,7 @@ fn main() {
     #[cfg(feature = "discord")]
     {
         match DISCORD_INSTANCE.lock() {
-            Ok(disc) => {
+            Ok(_disc) => {
                 //great
             }
             Err(e) => log::error!("Couldn't init discord: {}", e),

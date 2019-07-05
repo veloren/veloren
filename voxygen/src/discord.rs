@@ -4,7 +4,7 @@ use std::time::SystemTime;
 use crate::DISCORD_INSTANCE;
 
 use std::sync::mpsc::Sender;
-use std::sync::{mpsc, Mutex, MutexGuard};
+use std::sync::{mpsc, Mutex};
 use std::thread;
 use std::thread::JoinHandle;
 
@@ -35,7 +35,7 @@ pub fn run() -> Mutex<DiscordState> {
     Mutex::new(DiscordState {
         tx,
         thread: Some(thread::spawn(move || {
-            let mut rpc: RPC = match RPC::init::<Handlers>(DISCORD_APPLICATION_ID, true, None) {
+            let rpc: RPC = match RPC::init::<Handlers>(DISCORD_APPLICATION_ID, true, None) {
                 Ok(rpc) => rpc,
                 Err(e) => {
                     log::error!("failed to initiate discord_game_sdk: {}", e);
@@ -134,7 +134,7 @@ impl EventHandlers for Handlers {
 
 pub fn send_all(updates: Vec<DiscordUpdate>) {
     match DISCORD_INSTANCE.lock() {
-        Ok(mut disc) => {
+        Ok(disc) => {
             for update in updates {
                 let _ = disc.tx.send(update);
             }
