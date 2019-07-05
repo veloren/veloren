@@ -344,6 +344,10 @@ impl Hud {
                 .middle_of(ui_widgets.window)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
                 .set(self.ids.crosshair, ui_widgets);
+            /* TODO:                
+            95% translucency outside of combat
+            When having a distance weapon as your active weapon/being in build mode -> adjust the camera to an over the shoulder (overhead?!) perspective  to avoid the character blocking the view 
+            Crosshair should be completely invisible when the player doesn't have a ranged weapon (equipped as the primary weapon in the char window) or is in build mode*/
 
             // Render Name Tags
             for (pos, name) in (&entities, &pos, &stats, player.maybe())
