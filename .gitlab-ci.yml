@@ -32,7 +32,10 @@ before_script:
   - git lfs install;
   - git lfs fetch;
   - git lfs checkout;
+  - echo "\n\n\n-------\nDEBUG\n-------\n\n"
   - git status
+  - echo "\n\n"
+  - rustup -v show
   - if [ -d target ]; then
       ls -la target;
     fi;
