@@ -1,5 +1,5 @@
 use super::Graphic;
-use common::assets::{load, Error};
+use common::assets::{load_specifier, Error};
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 
@@ -19,7 +19,7 @@ impl<'a> GraphicCreator<'a> for BlankGraphic {
 impl<'a> GraphicCreator<'a> for ImageGraphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Image(load::<DynamicImage>(specifier)?))
+        Ok(Graphic::Image(load_specifier::<DynamicImage>(specifier)?))
     }
 }
 
@@ -31,14 +31,17 @@ pub enum VoxelMs9Graphic {}
 impl<'a> GraphicCreator<'a> for VoxelGraphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?, None))
+        Ok(Graphic::Voxel(
+            load_specifier::<DotVoxData>(specifier)?,
+            None,
+        ))
     }
 }
 impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
     type Specifier = (&'a str, u8);
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
         Ok(Graphic::Voxel(
-            load::<DotVoxData>(specifier.0)?,
+            load_specifier::<DotVoxData>(specifier.0)?,
             Some(specifier.1),
         ))
     }
@@ -46,13 +49,19 @@ impl<'a> GraphicCreator<'a> for VoxelMsGraphic {
 impl<'a> GraphicCreator<'a> for VoxelMs4Graphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?, Some(4)))
+        Ok(Graphic::Voxel(
+            load_specifier::<DotVoxData>(specifier)?,
+            Some(4),
+        ))
     }
 }
 impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
     type Specifier = &'a str;
     fn new_graphic(specifier: Self::Specifier) -> Result<Graphic, Error> {
-        Ok(Graphic::Voxel(load::<DotVoxData>(specifier)?, Some(9)))
+        Ok(Graphic::Voxel(
+            load_specifier::<DotVoxData>(specifier)?,
+            Some(9),
+        ))
     }
 }
 

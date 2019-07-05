@@ -37,7 +37,7 @@ impl FromStr for NpcKind {
 
 lazy_static! {
     static ref NPC_NAMES_JSON: Arc<serde_json::Value> =
-        assets::load_expect("common/npc_names.json");
+        assets::load_specifier_expect("common/npc_names.json");
 }
 
 pub fn get_npc_name(npc_type: NpcKind) -> String {

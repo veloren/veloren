@@ -21,7 +21,7 @@ macro_rules! font_ids {
             impl $Ids {
                 pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
                     Ok(Self {
-                        $( $name: ui.new_font(common::assets::load($specifier)?), )*
+                        $( $name: ui.new_font(common::assets::load_specifier($specifier)?), )*
                     })
                 }
             }

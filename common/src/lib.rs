@@ -1,3 +1,8 @@
+//! A crate containing functionality common to many parts of the project.
+//!
+//! This includes things like networking, the physics system, voxel manipulation and other utility
+//! code.
+
 #![type_length_limit = "1664759"]
 #![feature(
     euclidean_division,

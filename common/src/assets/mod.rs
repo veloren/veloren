@@ -1,3 +1,5 @@
+//! Load assets like images or voxel data from files
+
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -12,6 +14,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 
+/// The error returned by asset loading functions
 #[derive(Debug, Clone)]
 pub enum Error {
     /// An asset of a different type has already been loaded with this specifier.
@@ -37,19 +40,19 @@ lazy_static! {
         RwLock::new(HashMap::new());
 }
 
-/// Function used to load assets. Permits manipulating the loaded asset with a mapping function.
+/// Function used to load assets using their specifier. Permits manipulating the loaded asset with a mapping function.
 /// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
-/// ```no_run=
+/// ```no_run
 /// use veloren_common::{assets, terrain::Structure};
 /// use vek::*;
 ///
-/// let my_tree_structure = assets::load_map(
+/// let my_tree_structure = assets::load_specifier_map(
 ///        "world/tree/oak_green/1.vox",
 ///        |s: Structure| s.with_center(Vec3::new(15, 18, 14)),
 ///    ).unwrap();
 /// ```
-pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
+pub fn load_specifier_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     specifier: &str,
     f: F,
 ) -> Result<Arc<A>, Error> {
@@ -65,17 +68,17 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     }
 }
 
-/// Function used to load assets.
+/// Function used to load assets using their specifier.
 /// Loaded assets are cached in a global singleton hashmap.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
 /// use veloren_common::assets;
 ///
-/// let my_image = assets::load::<DynamicImage>("core.ui.backgrounds.city").unwrap();
+/// let my_image = assets::load_specifier::<DynamicImage>("core.ui.backgrounds.city").unwrap();
 /// ```
-pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
-    load_map(specifier, |x| x)
+pub fn load_specifier<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
+    load_specifier_map(specifier, |x| x)
 }
 
 /// Function used to load assets that will panic if the asset is not found.
@@ -86,14 +89,16 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
 /// use image::DynamicImage;
 /// use veloren_common::assets;
 ///
-/// let my_image = assets::load_expect::<DynamicImage>("core.ui.backgrounds.city");
+/// let my_image = assets::load_specifier_expect::<DynamicImage>("core.ui.backgrounds.city");
 /// ```
-pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
-    load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
+pub fn load_specifier_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
+    load_specifier(specifier)
+        .unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
 }
 
 /// Asset Trait
 pub trait Asset: Send + Sync + Sized {
+    /// Load an asset from a `BufReader`
     fn load(buf_reader: BufReader<impl Read>) -> Result<Self, Error>;
 }
 
