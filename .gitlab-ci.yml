@@ -109,8 +109,7 @@ clippy:
   tags:
     - veloren-docker
   script:
-    - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
-  allow_failure: true
+    - cargo clippy --all -- -D clippy
 
 #############
 # Commit build
