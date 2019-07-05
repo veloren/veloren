@@ -33,7 +33,7 @@ before_script:
   - git lfs fetch;
   - git lfs checkout;
   - git status
-  - rustup default nightly-2019-07-03
+  - echo "nightly-2019-07-03" > rust-toolchain
   - rustup -v show
   - if [ -d target ]; then
       ls -la target;
