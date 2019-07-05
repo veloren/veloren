@@ -33,6 +33,7 @@ use crate::{
 use client::Client;
 use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
 use conrod_core::{
+    text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
@@ -259,6 +260,8 @@ pub struct Hud {
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
+    force_chat_input: Option<String>,
+    force_chat_cursor: Option<Index>,
 }
 
 impl Hud {
@@ -296,6 +299,8 @@ impl Hud {
             },
             to_focus: None,
             force_ungrab: false,
+            force_chat_input: None,
+            force_chat_cursor: None,
         }
     }
 
@@ -561,9 +566,17 @@ impl Hud {
         }
 
         // Chat box
-        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
-            .set(self.ids.chat, ui_widgets)
-        {
+        let mut chat = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts);
+
+        if let Some(input) = self.force_chat_input.take() {
+            chat = chat.input(input);
+        }
+
+        if let Some(pos) = self.force_chat_cursor.take() {
+            chat = chat.cursor_pos(pos);
+        }
+
+        match chat.set(self.ids.chat, ui_widgets) {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             }
@@ -739,6 +752,12 @@ impl Hud {
 
             // Press key while not typing
             WinEvent::InputUpdate(key, true) if !self.typing() => match key {
+                GameInput::Command => {
+                    self.force_chat_input = Some("/".to_owned());
+                    self.force_chat_cursor = Some(Index { line: 0, char: 1 });
+                    self.ui.focus_widget(Some(self.ids.chat));
+                    true
+                }
                 GameInput::Map => {
                     self.show.toggle_map();
                     true

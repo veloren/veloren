@@ -19,6 +19,7 @@ pub enum GameInput {
     Jump,
     Glide,
     Enter,
+    Command,
     Escape,
     Map,
     Bag,
@@ -110,6 +111,7 @@ impl Window {
         key_map.insert(settings.controls.toggle_cursor, GameInput::ToggleCursor);
         key_map.insert(settings.controls.escape, GameInput::Escape);
         key_map.insert(settings.controls.enter, GameInput::Enter);
+        key_map.insert(settings.controls.command, GameInput::Command);
         key_map.insert(settings.controls.move_forward, GameInput::MoveForward);
         key_map.insert(settings.controls.move_left, GameInput::MoveLeft);
         key_map.insert(settings.controls.move_back, GameInput::MoveBack);
