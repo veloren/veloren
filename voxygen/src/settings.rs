@@ -46,6 +46,7 @@ pub struct ControlSettings {
     pub roll: KeyMouse,
     pub respawn: KeyMouse,
     pub interact: KeyMouse,
+    pub place_vox: KeyMouse,
 }
 
 impl Default for ControlSettings {
@@ -84,6 +85,7 @@ impl Default for ControlSettings {
             roll: KeyMouse::Mouse(MouseButton::Middle),
             respawn: KeyMouse::Mouse(MouseButton::Left),
             interact: KeyMouse::Key(VirtualKeyCode::E),
+            place_vox: KeyMouse::Key(VirtualKeyCode::F7),
         }
     }
 }

@@ -44,6 +44,7 @@ pub enum GameInput {
     Roll,
     Respawn,
     Interact,
+    PlaceVox,
 }
 
 /// Represents an incoming event from the window.
@@ -213,6 +214,9 @@ impl Window {
         map.entry(settings.controls.interact)
             .or_default()
             .push(GameInput::Interact);
+        map.entry(settings.controls.place_vox)
+            .or_default()
+            .push(GameInput::PlaceVox);
 
         let keypress_map = HashMap::new();
 
