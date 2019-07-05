@@ -33,6 +33,7 @@ before_script:
   - git lfs fetch;
   - git lfs checkout;
   - git status
+  - rustup -v show
   - if [ -d target ]; then
       ls -la target;
     fi;
@@ -108,8 +109,7 @@ clippy:
   tags:
     - veloren-docker
   script:
-    - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
-  allow_failure: true
+    - cargo clippy -- -D warnings
 
 #############
 # Commit build
