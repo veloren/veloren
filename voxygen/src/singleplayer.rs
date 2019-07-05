@@ -69,7 +69,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
     // Set up an fps clock
     let mut clock = Clock::start();
-    
+
     #[cfg(feature = "discord")]
     {
         discord::send_all(vec![
