@@ -360,7 +360,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "conrod_core"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git#93f02e61838b475ff190b3563a0f41f8981cc228"
+source = "git+https://gitlab.com/veloren/conrod.git#d603363488870eae9df91ba45ba795509c8a6ab4"
 dependencies = [
  "conrod_derive 0.63.0 (git+https://gitlab.com/veloren/conrod.git)",
  "daggy 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -374,7 +374,7 @@ dependencies = [
 [[package]]
 name = "conrod_derive"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git#93f02e61838b475ff190b3563a0f41f8981cc228"
+source = "git+https://gitlab.com/veloren/conrod.git#d603363488870eae9df91ba45ba795509c8a6ab4"
 dependencies = [
  "proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -384,7 +384,7 @@ dependencies = [
 [[package]]
 name = "conrod_winit"
 version = "0.63.0"
-source = "git+https://gitlab.com/veloren/conrod.git#93f02e61838b475ff190b3563a0f41f8981cc228"
+source = "git+https://gitlab.com/veloren/conrod.git#d603363488870eae9df91ba45ba795509c8a6ab4"
 
 [[package]]
 name = "constant_time_eq"
