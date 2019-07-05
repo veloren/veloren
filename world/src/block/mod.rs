@@ -82,10 +82,11 @@ impl<'a> BlockGen<'a> {
             column_gen,
         } = self;
 
+        // Main sample
         let sample = Self::sample_column(column_gen, column_cache, wpos)?;
 
+        // Tree samples
         let mut tree_samples = [None, None, None, None, None, None, None, None, None];
-
         for i in 0..tree_samples.len() {
             tree_samples[i] = Self::sample_column(
                 column_gen,
@@ -129,6 +130,7 @@ impl<'a> BlockGen<'a> {
 
         let tree_samples = &z_cache?.tree_samples;
 
+        let wpos2d = Vec2::from(wpos);
         let wposf = wpos.map(|e| e as f64);
 
         let (definitely_underground, height, water_height) =
@@ -318,7 +320,8 @@ impl<'a> BlockGen<'a> {
                                     if tree_sample.tree_density
                                         > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
                                         && tree_sample.alt > tree_sample.water_level
-                                        && tree_sample.spawn_rate > 0.5 =>
+                                        && tree_sample.spawn_rate > 0.5
+                                        && wpos2d.distance_squared(*tree_pos) < 20 * 20 =>
                                 {
                                     let cliff_height = Self::get_cliff_height(
                                         column_gen,
