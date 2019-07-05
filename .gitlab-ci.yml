@@ -90,7 +90,7 @@ clean-code:
   tags:
     - veloren-docker
   script:
-    - cargo +nightly fmt --all -- --check
+    - cargo fmt --all -- --check
 
 # # Coverage needs to be disabled until an issue in the Rust compiler is fixed
 # # https://github.com/rust-lang/rust/issues/58375
