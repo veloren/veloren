@@ -34,6 +34,7 @@ pub struct ControlSettings {
     pub attack: KeyMouse,
     pub second_attack: KeyMouse,
     pub roll: KeyMouse,
+    pub place_vox: KeyMouse,
 }
 
 impl Default for ControlSettings {
@@ -65,6 +66,7 @@ impl Default for ControlSettings {
             attack: KeyMouse::Mouse(MouseButton::Left),
             second_attack: KeyMouse::Mouse(MouseButton::Right),
             roll: KeyMouse::Mouse(MouseButton::Middle),
+            place_vox: KeyMouse::Key(VirtualKeyCode::F7),
         }
     }
 }
