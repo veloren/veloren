@@ -32,9 +32,8 @@ before_script:
   - git lfs install;
   - git lfs fetch;
   - git lfs checkout;
-  - echo "\n\n\n-------\nDEBUG\n-------\n\n"
   - git status
-  - echo "\n\n"
+  - rustup default nightly-2019-07-03
   - rustup -v show
   - if [ -d target ]; then
       ls -la target;
