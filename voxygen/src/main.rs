@@ -30,7 +30,10 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window, audio::base::Genre};
+use crate::{
+    audio::base::Genre, audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
+    window::Window,
+};
 use log::{self, debug, error, info, warn};
 
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
