@@ -7,7 +7,7 @@ pub enum Error {
     ServerTimeout,
     ServerShutdown,
     TooManyPlayers,
-    InvalidAlias,
+    //TODO: InvalidAlias,
     Other(String),
 }
 

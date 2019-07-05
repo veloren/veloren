@@ -366,7 +366,7 @@ impl Client {
                 match msg {
                     ServerMsg::Error(e) => match e {
                         ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
-                        ServerError::InvalidAlias => return Err(Error::InvalidAlias),
+                        //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
