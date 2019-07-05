@@ -2,6 +2,7 @@ use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
 use conrod_core::{
     input::Key,
     position::Dimension,
+    text::cursor::Index,
     widget::{self, Button, Id, List, Rectangle, Text, TextEdit},
     widget_ids, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
@@ -22,6 +23,8 @@ const MAX_MESSAGES: usize = 100;
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
     new_messages: &'a mut VecDeque<String>,
+    force_input: Option<String>,
+    force_cursor: Option<Index>,
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
@@ -34,10 +37,22 @@ impl<'a> Chat<'a> {
     pub fn new(new_messages: &'a mut VecDeque<String>, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
             new_messages,
+            force_input: None,
+            force_cursor: None,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
         }
+    }
+
+    pub fn input(mut self, input: String) -> Self {
+        self.force_input = Some(input);
+        self
+    }
+
+    pub fn cursor_pos(mut self, index: Index) -> Self {
+        self.force_cursor = Some(index);
+        self
     }
 
     fn scrolled_to_bottom(state: &State, ui: &UiCell) -> bool {
@@ -74,8 +89,8 @@ impl<'a> Widget for Chat<'a> {
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
-            messages: VecDeque::new(),
             input: "".to_owned(),
+            messages: VecDeque::new(),
             ids: Ids::new(id_gen),
         }
     }
@@ -101,18 +116,30 @@ impl<'a> Widget for Chat<'a> {
         });
 
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
-        let input_focused = keyboard_capturer == Some(state.ids.input);
+
+        if let Some(input) = &self.force_input {
+            state.update(|s| s.input = input.clone());
+        }
+
+        let input_focused =
+            keyboard_capturer == Some(state.ids.input) || keyboard_capturer == Some(id);
 
         // Only show if it has the keyboard captured.
         // Chat input uses a rectangle as its background.
         if input_focused {
-            let text_edit = TextEdit::new(&state.input)
+            let input = self.force_input.as_ref().unwrap_or(&state.input);
+            let mut text_edit = TextEdit::new(input)
                 .w(460.0)
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
                 .line_spacing(2.0)
                 .font_size(15)
                 .font_id(self.fonts.opensans);
+
+            if let Some(pos) = self.force_cursor {
+                text_edit = text_edit.cursor_pos(pos);
+            }
+
             let y = match text_edit.get_y_dimension(ui) {
                 Dimension::Absolute(y) => y + 6.0,
                 _ => 0.0,
@@ -122,6 +149,7 @@ impl<'a> Widget for Chat<'a> {
                 .bottom_left_with_margins_on(ui.window, 10.0, 10.0)
                 .w(470.0)
                 .set(state.ids.input_bg, ui);
+
             if let Some(str) = text_edit
                 .top_left_with_margins_on(state.ids.input_bg, 1.0, 1.0)
                 .set(state.ids.input, ui)
