@@ -431,12 +431,6 @@ impl Server {
                             match client.client_state {
                                 ClientState::Connected => {
                                     Self::initialize_player(state, entity, client, player);
-                                    if let Some(player) =
-                                        state.ecs().read_storage::<comp::Player>().get(entity)
-                                    {
-                                        new_chat_msgs
-                                            .push((None, format!("{} logged in", &player.alias)));
-                                    }
                                 }
                                 // Use RequestState instead (No need to send `player` again).
                                 _ => client.error_state(RequestStateError::Impossible),
@@ -464,7 +458,12 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead => {
-                                Self::create_player_character(state, entity, client, name, body)
+                                Self::create_player_character(state, entity, client, name, body);
+                                if let Some(player) =
+                                    state.ecs().read_storage::<comp::Player>().get(entity)
+                                {
+                                    new_chat_msgs.push((None, format!("{} joined", &player.alias)));
+                                }
                             }
                             ClientState::Character => {
                                 client.error_state(RequestStateError::Already)
