@@ -8,7 +8,9 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
+use common::{
+    assets::Asset, clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol,
+};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -93,9 +95,15 @@ impl PlayState for SessionState {
         }
 
         let mut placing_vox = false;
-        let vox = common::figure::Segment::from(common::assets::load_expect::<dot_vox::DotVoxData>("place.vox").as_ref());
+        let load_vox = || {
+            common::figure::Segment::from(
+                &dot_vox::DotVoxData::load(common::assets::load_from_path("place.vox").unwrap())
+                    .unwrap(),
+            )
+        };
         let mut curpos = Vec3::<i32>::zero();
         let mut placepos = Vec3::zero();
+        let mut vox = load_vox();
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -210,6 +218,8 @@ impl PlayState for SessionState {
                             let client = self.client.borrow();
                             // start placing
                             placing_vox = !placing_vox;
+                            //reload vox file
+                            vox = load_vox();
                             curpos = Vec3::new(0, 0, 0);
                             let cam_pos = self.scene.camera().compute_dependents(&client).2;
                             let cam_dir =
@@ -282,9 +292,12 @@ impl PlayState for SessionState {
                     }
                     if placing_vox {
                         match vox.get(curpos).map(|v| v.get_color()) {
-                            Ok(Some(color)) => self.client.borrow_mut().place_block(curpos+placepos, common::terrain::block::Block::new(5, color)),
-                            Ok(None) => self.client.borrow_mut().remove_block(curpos+placepos),
-                            Err(_) => {},
+                            Ok(Some(color)) => self.client.borrow_mut().place_block(
+                                curpos + placepos,
+                                common::terrain::block::Block::new(5, color),
+                            ),
+                            Ok(None) => self.client.borrow_mut().remove_block(curpos + placepos),
+                            Err(_) => {}
                         }
                     }
                 }
