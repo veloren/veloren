@@ -45,11 +45,11 @@ impl Clients {
         self.clients.insert(entity, client);
     }
 
-    pub fn get<'a>(&'a self, entity: EcsEntity) -> Option<&'a Client> {
+    pub fn get(&self, entity: EcsEntity) -> Option<&Client> {
         self.clients.get(&entity)
     }
 
-    pub fn get_mut<'a>(&'a mut self, entity: EcsEntity) -> Option<&'a mut Client> {
+    pub fn get_mut(&mut self, entity: EcsEntity) -> Option<&mut Client> {
         self.clients.get_mut(&entity)
     }
 

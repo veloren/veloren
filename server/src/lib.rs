@@ -228,7 +228,7 @@ impl Server {
                 })
             {
                 let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
-                let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
+                let adjusted_dist_sqr = (chunk_pos - key)
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared();
 
@@ -255,7 +255,7 @@ impl Server {
         ) -> bool {
             let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
-            let adjusted_dist_sqr = Vec2::from(player_chunk_pos - chunk_pos)
+            let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
                 .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                 .magnitude_squared();
 
@@ -359,7 +359,7 @@ impl Server {
             // Return the state of the current world (all of the components that Sphynx tracks).
             client.notify(ServerMsg::InitialSync {
                 ecs_state: self.state.ecs().gen_state_package(),
-                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
+                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap(), // Can't fail.
                 server_info: self.server_info.clone(),
             });
 
@@ -440,16 +440,17 @@ impl Server {
                         ClientMsg::Register { .. } => {
                             client.error_state(RequestStateError::Impossible)
                         }
-                        ClientMsg::SetViewDistance(view_distance) => match client.client_state {
-                            ClientState::Character { .. } => {
-                                state
+                        ClientMsg::SetViewDistance(view_distance) => {
+                            if let ClientState::Character { .. } = client.client_state {
+                                if let Some(player) = state
                                     .ecs_mut()
                                     .write_storage::<comp::Player>()
                                     .get_mut(entity)
-                                    .map(|player| player.view_distance = Some(view_distance));
+                                {
+                                    player.view_distance = Some(view_distance)
+                                }
                             }
-                            _ => {}
-                        },
+                        }
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.
                             ClientState::Connected => {
@@ -577,7 +578,7 @@ impl Server {
         for (entity, msg) in new_chat_msgs {
             if let Some(entity) = entity {
                 // Handle chat commands.
-                if msg.starts_with("/") && msg.len() > 1 {
+                if msg.starts_with('/') && msg.len() > 1 {
                     let argv = String::from(&msg[1..]);
                     self.process_chat_cmd(entity, argv);
                 } else {
@@ -672,7 +673,7 @@ impl Server {
                     } else {
                         None
                     }
-                    .unwrap_or(format!("{} died", &player.alias));
+                    .unwrap_or_else(|| format!("{} died", &player.alias));
 
                     clients.notify_registered(ServerMsg::Chat(msg));
                 }
@@ -705,16 +706,22 @@ impl Server {
         for entity in todo_respawn {
             if let Some(client) = self.clients.get_mut(entity) {
                 client.allow_state(ClientState::Character);
-                self.state
+                if let Some(stats) = self
+                    .state
                     .ecs_mut()
                     .write_storage::<comp::Stats>()
                     .get_mut(entity)
-                    .map(|stats| stats.revive());
-                self.state
+                {
+                    stats.revive()
+                }
+                if let Some(pos) = self
+                    .state
                     .ecs_mut()
                     .write_storage::<comp::Pos>()
                     .get_mut(entity)
-                    .map(|pos| pos.0.z += 20.0);
+                {
+                    pos.0.z += 20.0
+                }
                 self.state.write_component(entity, comp::ForceUpdate);
             }
         }

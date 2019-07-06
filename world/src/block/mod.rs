@@ -33,9 +33,7 @@ impl<'a> BlockGen<'a> {
         cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
     ) -> Option<ColumnSample<'a>> {
-        cache
-            .get(wpos, |wpos| column_gen.get(wpos))
-            .clone()
+        cache.get(wpos, |wpos| column_gen.get(wpos)).clone()
     }
 
     fn get_cliff_height(
@@ -47,11 +45,8 @@ impl<'a> BlockGen<'a> {
     ) -> f32 {
         close_cliffs.iter().fold(
             0.0f32,
-            |max_height, (cliff_pos, seed)| match Self::sample_column(
-                column_gen,
-                cache,
-                *cliff_pos,
-            ) {
+            |max_height, (cliff_pos, seed)| match Self::sample_column(column_gen, cache, *cliff_pos)
+            {
                 Some(cliff_sample) if cliff_sample.cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
@@ -291,11 +286,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
                         if !block.is_empty() {
                             block
                         } else {
-                            match Self::sample_column(
-                                column_gen,
-                                column_cache,
-                                *tree_pos,
-                            ) {
+                            match Self::sample_column(column_gen, column_cache, *tree_pos) {
                                 Some(tree_sample)
                                     if tree_sample.tree_density
                                         > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
