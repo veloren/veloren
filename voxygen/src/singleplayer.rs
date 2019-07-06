@@ -33,7 +33,7 @@ impl Singleplayer {
         ));
 
         // Create server
-        let server = Server::bind(sock.clone()).expect("Failed to create server instance!");
+        let server = Server::bind(sock).expect("Failed to create server instance!");
 
         let server = match client {
             Some(client) => server.with_thread_pool(client.thread_pool().clone()),
@@ -76,7 +76,7 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
             match event {
                 Event::ClientConnected { .. } => info!("Client connected!"),
                 Event::ClientDisconnected { .. } => info!("Client disconnected!"),
-                Event::Chat { entity: _, msg } => info!("[Client] {}", msg),
+                Event::Chat { msg, .. } => info!("[Client] {}", msg),
             }
         }
 

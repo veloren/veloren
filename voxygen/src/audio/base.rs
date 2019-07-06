@@ -374,42 +374,27 @@ pub(crate) fn load_soundtracks(genre: &Genre) -> Vec<String> {
     match *genre {
         Genre::Bgm => {
             let assets = read_from_assets("voxygen/audio/soundtrack/").unwrap();
-            let soundtracks = assets
+            assets
                 .filter_map(|entry| {
                     entry.ok().map(|f| {
                         let path = f.path();
                         (*path.into_os_string().to_string_lossy()).to_owned()
                     })
                 })
-                .collect::<Vec<String>>();
-
-            soundtracks
+                .collect::<Vec<String>>()
         }
         Genre::Sfx => {
             let assets = read_from_assets("voxygen/audio/soundtrack/").unwrap();
-            let soundtracks = assets
-                //.filter_map(|entry| {
-                //    entry.ok().and_then(|f| {
-                //        f.path()
-                //            .file_name()
-                //            .and_then(|n| n.to_str().map(|s| String::from(s)))
-                //    })
-                //})
-                //.collect::<Vec<String>>();
+            assets
                 .filter_map(|entry| {
                     entry.ok().map(|f| {
                         let path = f.path();
                         (*path.into_os_string().to_string_lossy()).to_owned()
                     })
                 })
-                .collect::<Vec<String>>();
-
-            soundtracks
+                .collect::<Vec<String>>()
         }
-        Genre::None => {
-            let empty_list = Vec::new();
-            empty_list
-        }
+        Genre::None => Vec::new(),
     }
 }
 

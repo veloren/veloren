@@ -21,7 +21,7 @@ pub fn srgb_to_linear(c: Rgba<f32>) -> Rgba<f32> {
 pub fn linear_to_srgb(c: Rgba<f32>) -> Rgba<f32> {
     #[inline(always)]
     fn to_srgb(x: f32) -> f32 {
-        if x <= 0.0031308 {
+        if x <= 0.003_130_8 {
             x * 12.92
         } else {
             x.powf(1.0 / 2.4) * 1.055 - 0.055

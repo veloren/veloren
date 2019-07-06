@@ -413,22 +413,20 @@ impl MainMenuUi {
                     .label_font_size(22)
                     .label_y(Relative::Scalar(5.0))
                     .set(self.ids.login_button, ui_widgets);
-            } else {
-                if Button::image(self.imgs.button)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .w_h(258.0, 55.0)
-                    .down_from(self.ids.address_bg, 20.0)
-                    .align_middle_x_of(self.ids.address_bg)
-                    .label("Login")
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(24)
-                    .label_y(Relative::Scalar(5.0))
-                    .set(self.ids.login_button, ui_widgets)
-                    .was_clicked()
-                {
-                    login!();
-                }
+            } else if Button::image(self.imgs.button)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .w_h(258.0, 55.0)
+                .down_from(self.ids.address_bg, 20.0)
+                .align_middle_x_of(self.ids.address_bg)
+                .label("Login")
+                .label_color(TEXT_COLOR)
+                .label_font_size(24)
+                .label_y(Relative::Scalar(5.0))
+                .set(self.ids.login_button, ui_widgets)
+                .was_clicked()
+            {
+                login!();
             };
 
             // Singleplayer button

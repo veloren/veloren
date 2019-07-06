@@ -95,9 +95,7 @@ impl<'a> Widget for Chat<'a> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
@@ -204,17 +202,16 @@ impl<'a> Widget for Chat<'a> {
 
         // Chat Arrow
         // Check if already at bottom.
-        if !Self::scrolled_to_bottom(state, ui) {
-            if Button::image(self.imgs.chat_arrow)
+        if !Self::scrolled_to_bottom(state, ui)
+            && Button::image(self.imgs.chat_arrow)
                 .w_h(20.0, 20.0)
                 .hover_image(self.imgs.chat_arrow_mo)
                 .press_image(self.imgs.chat_arrow_press)
                 .bottom_right_with_margins_on(state.ids.message_box_bg, 0.0, -22.0)
                 .set(state.ids.chat_arrow, ui)
                 .was_clicked()
-            {
-                ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
-            }
+        {
+            ui.scroll_widget(state.ids.message_box, [0.0, std::f64::MAX]);
         }
 
         // If the chat widget is focused, return a focus event to pass the focus to the input box.

@@ -277,7 +277,7 @@ impl Terrain {
     }
 
     pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
-        for (_pos, chunk) in &self.chunks {
+        for chunk in self.chunks.values() {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
             }
