@@ -168,12 +168,11 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 }
 
 fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    server
+    if let Some(s) = server
         .state
         .ecs_mut()
         .write_storage::<comp::Stats>()
-        .get_mut(entity)
-        .map(|s| s.health.set_to(0, comp::HealthSource::Suicide));
+        .get_mut(entity) { s.health.set_to(0, comp::HealthSource::Suicide) }
 }
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
@@ -232,12 +231,11 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
         Some(alias) => {
-            server
+            if let Some(player) = server
                 .state
                 .ecs_mut()
                 .write_storage::<comp::Player>()
-                .get_mut(entity)
-                .map(|player| player.alias = alias);
+                .get_mut(entity) { player.alias = alias }
         }
         None => server
             .clients

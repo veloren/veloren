@@ -22,7 +22,7 @@ impl<'a> Sampler for ColumnGen<'a> {
     type Sample = Option<ColumnSample<'a>>;
 
     fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
-        let wposf = wpos.map(|e| e as f64);
+        let wposf = wpos.map(f64::from);
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
             e / sz as i32
         });
@@ -33,7 +33,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
-        let wposf_turb = wposf + turb.map(|e| e as f64);
+        let wposf_turb = wposf + turb.map(f64::from);
 
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
@@ -77,7 +77,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let water_level = (riverless_alt - 4.0 - 5.0 * chaos).max(CONFIG.sea_level);
 
         let rock = (sim.gen_ctx.small_nz.get(
-            Vec3::new(wposf.x, wposf.y, alt as f64)
+            Vec3::new(wposf.x, wposf.y, f64::from(alt))
                 .div(100.0)
                 .into_array(),
         ) as f32)
@@ -86,7 +86,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             .max(0.0)
             .mul(8.0);
 
-        let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
+        let wposf3d = Vec3::new(wposf.x, wposf.y, f64::from(alt));
 
         let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
             .add(1.0)
@@ -189,7 +189,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
             (sim.gen_ctx.cave_0_nz.get(
-                Vec3::new(wposf.x, wposf.y, alt as f64 * 8.0)
+                Vec3::new(wposf.x, wposf.y, f64::from(alt) * 8.0)
                     .div(800.0)
                     .into_array(),
             ) as f32)

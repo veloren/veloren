@@ -15,6 +15,7 @@ impl Sampler for RandomField {
     type Index = Vec3<i32>;
     type Sample = u32;
 
+    #[allow(clippy::all)]
     fn get(&self, pos: Self::Index) -> Self::Sample {
         let pos = pos.map(|e| (e * 13 + (1 << 31)) as u32);
 
