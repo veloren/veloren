@@ -50,7 +50,8 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 widget_ids! {
     struct Ids {
         // Crosshair
-        crosshair,
+        crosshair_inner,
+        crosshair_outer,
 
         // Character Names
         name_tags[],
@@ -339,11 +340,16 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Crosshair
-            Image::new(self.imgs.crosshair)
-                .w_h(21.0 * 2.0, 21.0 * 2.0)
+            Image::new(self.imgs.crosshair_outer)
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
                 .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
-                .set(self.ids.crosshair, ui_widgets);
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.2)))
+                .set(self.ids.crosshair_outer, ui_widgets);
+            Image::new(self.imgs.crosshair_inner)
+                .w_h(21.0 * 2.0, 21.0 * 2.0)
+                .middle_of(self.ids.crosshair_outer)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                .set(self.ids.crosshair_inner, ui_widgets);
 
             // Render Name Tags
             for (pos, name) in (&entities, &pos, &stats, player.maybe())

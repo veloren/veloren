@@ -55,9 +55,13 @@ image_ids! {
 
         // Crosshair
         crosshair: "voxygen/element/misc_bg/crosshair.vox",
+        //crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
+        crosshair_inner: "voxygen/element/misc_bg/crosshair_inner.vox",
 
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
+
+        crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
 
         // Buttons
         mmap_closed: "voxygen/element/buttons/button_mmap_closed.vox",
