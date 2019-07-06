@@ -97,9 +97,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         Ids::new(id_gen)
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;

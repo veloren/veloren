@@ -77,6 +77,7 @@ impl SessionState {
 }
 
 impl PlayState for SessionState {
+    #[allow(clippy::cognitive_complexity)]
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {
         // Trap the cursor.
         global_state.window.grab_cursor(true);
@@ -298,7 +299,7 @@ impl PlayState for SessionState {
 
             // Wait for the next tick.
             clock.tick(Duration::from_millis(
-                1000 / global_state.settings.graphics.max_fps as u64,
+                1000 / u64::from(global_state.settings.graphics.max_fps),
             ));
 
             // Clean things up after the tick.

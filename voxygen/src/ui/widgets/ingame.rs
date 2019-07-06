@@ -95,9 +95,7 @@ impl<W: Ingameable> Widget for Ingame<W> {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
@@ -176,12 +174,10 @@ impl Widget for IngameAnchor {
         }
     }
 
-    fn style(&self) -> Self::Style {
-        ()
-    }
+    fn style(&self) -> Self::Style {}
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id: _, state, .. } = args;
+        let widget::UpdateArgs { state, .. } = args;
         let IngameAnchor { parameters, .. } = self;
 
         // Update pos if it has changed

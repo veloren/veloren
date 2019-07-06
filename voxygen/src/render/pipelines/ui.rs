@@ -87,7 +87,7 @@ pub fn create_quad(
     mode: Mode,
 ) -> Quad<UiPipeline> {
     let mode_val = mode.value();
-    let v = |pos, uv| Vertex {
+    let vert = |pos, uv| Vertex {
         pos,
         uv,
         color: color.into_array(),
@@ -95,13 +95,13 @@ pub fn create_quad(
     };
     let aabr_to_lbrt = |aabr: Aabr<f32>| (aabr.min.x, aabr.min.y, aabr.max.x, aabr.max.y);
 
-    let (l, b, r, t) = aabr_to_lbrt(rect);
+    let (left, bottom, right, top) = aabr_to_lbrt(rect);
     let (uv_l, uv_b, uv_r, uv_t) = aabr_to_lbrt(uv_rect);
     Quad::new(
-        v([r, t], [uv_r, uv_t]),
-        v([l, t], [uv_l, uv_t]),
-        v([l, b], [uv_l, uv_b]),
-        v([r, b], [uv_r, uv_b]),
+        vert([right, top], [uv_r, uv_t]),
+        vert([left, top], [uv_l, uv_t]),
+        vert([left, bottom], [uv_l, uv_b]),
+        vert([right, bottom], [uv_r, uv_b]),
     )
 }
 
@@ -112,15 +112,15 @@ pub fn create_tri(
     mode: Mode,
 ) -> Tri<UiPipeline> {
     let mode_val = mode.value();
-    let v = |pos, uv| Vertex {
+    let vert = |pos, uv| Vertex {
         pos,
         uv,
         color: color.into_array(),
         mode: mode_val,
     };
     Tri::new(
-        v([tri[0][0], tri[0][1]], [uv_tri[0][0], uv_tri[0][1]]),
-        v([tri[1][0], tri[1][1]], [uv_tri[1][0], uv_tri[1][1]]),
-        v([tri[2][0], tri[2][1]], [uv_tri[2][0], uv_tri[2][1]]),
+        vert([tri[0][0], tri[0][1]], [uv_tri[0][0], uv_tri[0][1]]),
+        vert([tri[1][0], tri[1][1]], [uv_tri[1][0], uv_tri[1][1]]),
+        vert([tri[2][0], tri[2][1]], [uv_tri[2][0], uv_tri[2][1]]),
     )
 }

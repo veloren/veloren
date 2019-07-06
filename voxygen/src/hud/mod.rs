@@ -411,20 +411,16 @@ impl Hud {
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
+                let hp_amount = 120.0
+                    * (f64::from(stats.health.get_current())
+                        / f64::from(stats.health.get_maximum()));
+
                 // % HP Filling
-                Rectangle::fill_with(
-                    [
-                        120.0
-                            * (stats.health.get_current() as f64
-                                / stats.health.get_maximum() as f64),
-                        8.0,
-                    ],
-                    HP_COLOR,
-                )
-                .x_y(0.0, -25.0)
-                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
-                .resolution(100.0)
-                .set(bar_id, ui_widgets);
+                Rectangle::fill_with([hp_amount, 8.0], HP_COLOR)
+                    .x_y(0.0, -25.0)
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
+                    .resolution(100.0)
+                    .set(bar_id, ui_widgets);
             }
         }
 
@@ -475,8 +471,8 @@ impl Hud {
         }
 
         // Add Bag-Space Button.
-        if self.show.inventory_test_button {
-            if Button::image(self.imgs.grid_button)
+        if self.show.inventory_test_button
+            && Button::image(self.imgs.grid_button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
                 .label("1 Up!")
@@ -485,9 +481,8 @@ impl Hud {
                 .press_image(self.imgs.grid_button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
-            {
-                self.inventory_space += 1;
-            };
+        {
+            self.inventory_space += 1;
         }
 
         // Help Text

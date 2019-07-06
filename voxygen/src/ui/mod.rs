@@ -354,6 +354,8 @@ impl Ui {
                 }
             };
 
+            // Until the source_rect gets resolved
+            #[allow(clippy::unneeded_field_pattern)]
             match kind {
                 PrimitiveKind::Image {
                     image_id,

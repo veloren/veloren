@@ -42,7 +42,7 @@ pub struct Scene {
 impl Scene {
     /// Create a new `Scene` with default parameters.
     pub fn new(renderer: &mut Renderer) -> Self {
-        let resolution = renderer.get_resolution().map(|e| e as f32);
+        let resolution = renderer.get_resolution().map(|e| f32::from(e));
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
