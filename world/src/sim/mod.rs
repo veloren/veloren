@@ -92,7 +92,7 @@ impl WorldSim {
             locations: Vec::new(),
             gen_ctx,
             rng: XorShiftRng::from_seed([
-                (seed) as u8,
+                (seed >> 0) as u8,
                 0,
                 0,
                 0,
