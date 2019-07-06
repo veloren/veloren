@@ -1,5 +1,6 @@
 use crate::comp::{
     ActionState, Attacking, Controller, Gliding, Jumping, MoveDir, Respawning, Rolling, Stats, Vel,
+    Wielding,
 };
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
@@ -15,6 +16,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, MoveDir>,
         WriteStorage<'a, Jumping>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Wielding>,
         WriteStorage<'a, Rolling>,
         WriteStorage<'a, Respawning>,
         WriteStorage<'a, Gliding>,
@@ -31,6 +33,7 @@ impl<'a> System<'a> for Sys {
             mut move_dirs,
             mut jumpings,
             mut attackings,
+            mut wieldings,
             mut rollings,
             mut respawns,
             mut glidings,
@@ -76,8 +79,19 @@ impl<'a> System<'a> for Sys {
                 a.gliding = false;
             }
 
+            // Wield
+            if controller.attack && !a.wielding && !a.gliding && !a.rolling {
+                let _ = wieldings.insert(entity, Wielding::start());
+                a.wielding = true;
+            }
+
             // Attack
-            if controller.attack && !a.attacking && !a.gliding && !a.rolling {
+            if controller.attack
+                && !a.attacking
+                && wieldings.get(entity).map(|w| w.applied).unwrap_or(false)
+                && !a.gliding
+                && !a.rolling
+            {
                 let _ = attackings.insert(entity, Attacking::start());
                 a.attacking = true;
             }

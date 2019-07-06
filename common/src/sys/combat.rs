@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Attacking, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel},
+    comp::{Attacking, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel, Wielding},
     state::{DeltaTime, Uid},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -15,6 +15,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Ori>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Attacking>,
+        WriteStorage<'a, Wielding>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, ForceUpdate>,
     );
@@ -29,6 +30,7 @@ impl<'a> System<'a> for Sys {
             orientations,
             mut velocities,
             mut attackings,
+            mut wieldings,
             mut stats,
             mut force_updates,
         ): Self::SystemData,
@@ -73,5 +75,15 @@ impl<'a> System<'a> for Sys {
             .for_each(|e| {
                 attackings.remove(e);
             });
+        {
+            // Wields
+            for wielding in (&mut wieldings).join() {
+                if !wielding.applied && wielding.time > 0.3 {
+                    wielding.applied = true;
+                } else {
+                    wielding.time += dt.0;
+                }
+            }
+        }
     }
 }
