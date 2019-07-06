@@ -378,7 +378,7 @@ impl PlayState for SessionState {
                         match vox.get(curpos).map(|v| v.get_color()) {
                             Ok(Some(color)) => self.client.borrow_mut().place_block(
                                 curpos + placepos,
-                                common::terrain::block::Block::new(5, color),
+                                common::terrain::block::Block::new(1, color),
                             ),
                             Ok(None) => self.client.borrow_mut().remove_block(curpos + placepos),
                             Err(_) => {}
