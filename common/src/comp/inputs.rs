@@ -8,13 +8,13 @@ pub struct Respawning;
 pub struct MoveDir(pub Vec2<f32>);
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Attacking {
+pub struct Wielding {
     pub time: f32,
     pub applied: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
-pub struct Wielding {
+pub struct Attacking {
     pub time: f32,
     pub applied: bool,
 }
@@ -41,7 +41,7 @@ impl Component for Respawning {
     type Storage = NullStorage<Self>;
 }
 
-impl Attacking {
+impl Wielding {
     pub fn start() -> Self {
         Self {
             time: 0.0,
@@ -50,7 +50,7 @@ impl Attacking {
     }
 }
 
-impl Wielding {
+impl Attacking {
     pub fn start() -> Self {
         Self {
             time: 0.0,
@@ -72,11 +72,11 @@ impl Component for MoveDir {
     type Storage = VecStorage<Self>;
 }
 
-impl Component for Attacking {
+impl Component for Wielding {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-impl Component for Wielding {
+impl Component for Attacking {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 

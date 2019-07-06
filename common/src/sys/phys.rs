@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel},
+    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel, Wielding},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -48,6 +48,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, ActionState>,
         WriteStorage<'a, Jumping>,
+        WriteStorage<'a, Wielding>,
         WriteStorage<'a, Rolling>,
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Pos>,
@@ -65,6 +66,7 @@ impl<'a> System<'a> for Sys {
             stats,
             action_states,
             mut jumpings,
+            mut wieldings,
             mut rollings,
             mut on_grounds,
             mut positions,
@@ -125,12 +127,14 @@ impl<'a> System<'a> for Sys {
 
             // Glide
             if a.gliding && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) && vel.0.z < 0.0 {
+                let _ = wieldings.remove(entity);
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
 
             // Roll
             if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
+                let _ = wieldings.remove(entity);
                 *time += dt.0;
                 if *time > 0.55 || !a.moving {
                     rollings.remove(entity);
