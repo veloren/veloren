@@ -317,11 +317,11 @@ impl<'a> BlockGen<'a> {
                         } else {
                             match &tree_samples[tree_idx] {
                                 Some(tree_sample)
-                                    if tree_sample.tree_density
-                                        > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
+                                    if wpos2d.distance_squared(*tree_pos) < 28 * 28
+                                        && tree_sample.tree_density
+                                            > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
                                         && tree_sample.alt > tree_sample.water_level
-                                        && tree_sample.spawn_rate > 0.5
-                                        && wpos2d.distance_squared(*tree_pos) < 20 * 20 =>
+                                        && tree_sample.spawn_rate > 0.5 =>
                                 {
                                     let cliff_height = Self::get_cliff_height(
                                         column_gen,
