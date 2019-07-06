@@ -33,6 +33,7 @@ before_script:
   - git lfs fetch;
   - git lfs checkout;
   - git status
+  - rustup -v show
   - if [ -d target ]; then
       ls -la target;
     fi;
@@ -102,14 +103,15 @@ clean-code:
 #     - cargo tarpaulin --all
 #   allow_failure: true
 
+# For now, Clippy will just care about performance improvements as much of the
+# codebase is not in a place that cleaning warnings will be benificial
 clippy:
   stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
   script:
-    - cargo clippy --all -- -D clippy || echo "This job is disabled, because we are not activly using it now, so we dont want to see yellow failed partly"
-  allow_failure: true
+    - cargo clippy -- -W clippy::all
 
 #############
 # Commit build
