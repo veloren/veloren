@@ -256,7 +256,7 @@ pub struct Hud {
     imgs: Imgs,
     fonts: Fonts,
     new_messages: VecDeque<String>,
-    inventory_space: usize,       
+    inventory_space: usize,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -282,7 +282,7 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 10,
+            inventory_space: 8,
             show: Show {
                 help: false,
                 debug: true,
@@ -342,12 +342,8 @@ impl Hud {
             Image::new(self.imgs.crosshair)
                 .w_h(21.0 * 2.0, 21.0 * 2.0)
                 .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.1)))
                 .set(self.ids.crosshair, ui_widgets);
-            /* TODO:                
-            95% translucency outside of combat
-            When having a distance weapon as your active weapon/being in build mode -> adjust the camera to an over the shoulder (overhead?!) perspective  to avoid the character blocking the view 
-            Crosshair should be completely invisible when the player doesn't have a ranged weapon (equipped as the primary weapon in the char window) or is in build mode*/
 
             // Render Name Tags
             for (pos, name) in (&entities, &pos, &stats, player.maybe())
@@ -377,7 +373,7 @@ impl Hud {
                 );
                 Text::new(&name)
                     .font_size(20)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .color(Color::Rgba(0.33, 0.69, 0.65, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
