@@ -12,7 +12,7 @@ use common::{
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     figure::cell::Cell,
     net::PostBox,
-    state::State,
+    state::{State, BlockChanges},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::{ReadVol, SizedVol, VolSize, Vox},
 };
@@ -205,28 +205,26 @@ impl Client {
     where
         V: ReadVol<Vox = Cell> + SizedVol,
     {
-        let mut cursor_pos = Vec3::<i32>::zero();
-        let size = vol.get_size();
+        let size = vol.get_size().map(|x| x as i32);
 
-        let mut changes = FxHashMap::default();
-        loop {
-            if cursor_pos.x < size.x as i32 - 1 {
-                cursor_pos.x += 1;
-            } else if cursor_pos.y < size.y as i32 - 1 {
-                cursor_pos.x = 0;
-                cursor_pos.y += 1;
-            } else if cursor_pos.z < size.z as i32 - 1 {
-                cursor_pos.x = 0;
-                cursor_pos.y = 0;
-                cursor_pos.z += 1;
-            } else {
-                break;
-            }
-            if let Ok(Some(color)) = vol.get(cursor_pos).map(|b| b.get_color()) {
-                changes.insert(cursor_pos + place_pos, Block::new(1, color));
+        for z in 0..size.z {
+            for x in 0..size.x {
+                let mut changes = FxHashMap::default();
+                for y in 0..size.y {
+                    let pos = Vec3::new(x, y, z);
+                    if let Ok(color) = vol.get(pos).map(|b| b.get_color()) {
+                        changes.insert(
+                            pos + place_pos,
+                            match color {
+                                Some(color) => Block::new(1, color),
+                                None => Block::empty(),
+                            },
+                        );
+                    }
+                }
+                self.postbox.send_message(ClientMsg::BlockChanges(changes));
             }
         }
-        self.postbox.send_message(ClientMsg::BlockChanges(changes));
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.
@@ -434,9 +432,10 @@ impl Client {
                         self.state.insert_chunk(key, *chunk);
                         self.pending_chunks.remove(&key);
                     }
-                    ServerMsg::TerrainBlockUpdates(mut blocks) => blocks
-                        .drain()
-                        .for_each(|(pos, block)| self.state.set_block(pos, block)),
+                    ServerMsg::TerrainBlockUpdates(mut blocks) => {
+                        let mut block_changes = self.state.ecs_mut().write_resource::<BlockChanges>();
+                        blocks.drain().for_each(|(pos, block)| block_changes.set(pos, block));
+                    }
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
                     }

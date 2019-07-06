@@ -42,11 +42,11 @@ pub struct DeltaTime(pub f32);
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 
-pub struct BlockChange {
+pub struct BlockChanges {
     blocks: FxHashMap<Vec3<i32>, Block>,
 }
 
-impl Default for BlockChange {
+impl Default for BlockChanges {
     fn default() -> Self {
         Self {
             blocks: FxHashMap::default(),
@@ -54,7 +54,7 @@ impl Default for BlockChange {
     }
 }
 
-impl BlockChange {
+impl BlockChanges {
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
         self.blocks.insert(pos, block);
     }
@@ -166,7 +166,7 @@ impl State {
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
-        ecs.add_resource(BlockChange::default());
+        ecs.add_resource(BlockChanges::default());
         ecs.add_resource(TerrainChanges::default());
     }
 
@@ -241,7 +241,7 @@ impl State {
 
     /// Get a writable reference to this state's terrain.
     pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.ecs.write_resource::<BlockChange>().set(pos, block);
+        self.ecs.write_resource::<BlockChanges>().set(pos, block);
     }
 
     /// Removes every chunk of the terrain.
@@ -314,14 +314,14 @@ impl State {
         // Apply terrain changes
         let mut terrain = self.ecs.write_resource::<TerrainMap>();
         self.ecs
-            .read_resource::<BlockChange>()
+            .read_resource::<BlockChanges>()
             .blocks
             .iter()
             .for_each(|(pos, block)| {
                 let _ = terrain.set(*pos, *block);
             });
         std::mem::swap(
-            &mut self.ecs.write_resource::<BlockChange>().blocks,
+            &mut self.ecs.write_resource::<BlockChanges>().blocks,
             &mut self.ecs.write_resource::<TerrainChanges>().modified_blocks,
         )
     }
@@ -330,6 +330,6 @@ impl State {
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
         self.ecs.write_resource::<TerrainChanges>().clear();
-        self.ecs.write_resource::<BlockChange>().clear();
+        self.ecs.write_resource::<BlockChanges>().clear();
     }
 }

@@ -101,7 +101,7 @@ impl PlayState for SessionState {
                     .unwrap(),
             )
         };
-        let mut placepos = Vec3::zero();
+
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -214,7 +214,7 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::PlaceVox, state) => {
                         if state {
                             let mut client = self.client.borrow_mut();
-                            let mut vox = load_vox();
+                            let vox = load_vox();
                             let cam_pos = self.scene.camera().compute_dependents(&client).2;
                             let cam_dir =
                                 (self.scene.camera().get_focus_pos() - cam_pos).normalized();
@@ -226,8 +226,7 @@ impl PlayState for SessionState {
                             };
 
                             if b {
-                                placepos =
-                                    (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
+                                let placepos = (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
                                 client.insert_structure(vox, placepos);
                             }
                         }

@@ -17,10 +17,9 @@ use common::{
     comp,
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
+    state::{BlockChanges, State, TimeOfDay, Uid},
+    terrain::{TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
-    vol::Vox,
 };
 use log::debug;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
@@ -616,8 +615,9 @@ impl Server {
             self.generate_chunk(key);
         }
 
+        let mut block_changes = self.state.ecs_mut().write_resource::<BlockChanges>();
         for (pos, block) in modified_blocks {
-            self.state.set_block(pos, block);
+            block_changes.set(pos, block)
         }
 
         Ok(frontend_events)
