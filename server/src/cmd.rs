@@ -172,7 +172,10 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
         .state
         .ecs_mut()
         .write_storage::<comp::Stats>()
-        .get_mut(entity) { s.health.set_to(0, comp::HealthSource::Suicide) }
+        .get_mut(entity)
+    {
+        s.health.set_to(0, comp::HealthSource::Suicide)
+    }
 }
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
@@ -235,7 +238,10 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
                 .state
                 .ecs_mut()
                 .write_storage::<comp::Player>()
-                .get_mut(entity) { player.alias = alias }
+                .get_mut(entity)
+            {
+                player.alias = alias
+            }
         }
         None => server
             .clients
@@ -277,7 +283,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 None => {
                     server
                         .clients
-                        .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+                        .notify(entity, ServerMsg::Chat("You have no position!".to_string()));
                 }
             }
         }
@@ -290,7 +296,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
     // This should be just an enum handled with scan_fmt!
-    let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
+    let opt_agent = alignment_to_agent(&opt_align.unwrap_or_default(), entity);
 
     // Make sure the amount is either not provided or a valid value
     let opt_amount = opt_amount
