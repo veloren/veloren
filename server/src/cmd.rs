@@ -283,7 +283,7 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 None => {
                     server
                         .clients
-                        .notify(entity, ServerMsg::Chat("You have no position!".to_string()));
+                        .notify(entity, ServerMsg::Chat("You have no position!".to_owned()));
                 }
             }
         }
