@@ -438,12 +438,10 @@ impl SimChunk {
                 } else {
                     ForestKind::Oak
                 }
+            } else if temp > CONFIG.snow_temp {
+                ForestKind::Pine
             } else {
-                if temp > CONFIG.snow_temp {
-                    ForestKind::Pine
-                } else {
-                    ForestKind::SnowPine
-                }
+                ForestKind::SnowPine
             },
             spawn_rate: 1.0,
             location: None,

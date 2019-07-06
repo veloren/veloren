@@ -23,14 +23,14 @@ impl Sampler for RandomField {
         a = a + (a << 3);
         a = a ^ pos.x;
         a = a ^ (a >> 4);
-        a = a * 0x27d4eb2d;
+        a = a * 0x27d4_eb2d;
         a = a ^ (a >> 15);
         a = a ^ pos.y;
         a = (a ^ 61) ^ (a >> 16);
         a = a + (a << 3);
         a = a ^ (a >> 4);
         a = a ^ pos.z;
-        a = a * 0x27d4eb2d;
+        a = a * 0x27d4_eb2d;
         a = a ^ (a >> 15);
         a
     }

@@ -7,6 +7,7 @@ use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 /// This system will set the ActionState component as specified by other components
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #![allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Controller>,

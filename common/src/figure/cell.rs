@@ -13,9 +13,9 @@ impl Cell {
         Cell::Filled(rgb.into_array())
     }
 
-    pub fn get_color(&self) -> Option<Rgb<u8>> {
+    pub fn get_color(self) -> Option<Rgb<u8>> {
         match self {
-            Cell::Filled(col) => Some(Rgb::from(*col)),
+            Cell::Filled(col) => Some(Rgb::from(col)),
             Cell::Empty => None,
         }
     }

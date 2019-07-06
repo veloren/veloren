@@ -7,6 +7,7 @@ use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #![allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Uid>,

@@ -196,9 +196,7 @@ impl WriteVol for Chonk {
             SubChunk::Hash(cblock, map) => {
                 let mut new_chunk = Chunk::filled(*cblock, ());
                 for (map_pos, map_block) in map {
-                    new_chunk
-                        .set(map_pos.map(|e| i32::from(e)), *map_block)
-                        .unwrap(); // Can't fail (I hope!)
+                    new_chunk.set(map_pos.map(i32::from), *map_block).unwrap(); // Can't fail (I hope!)
                 }
 
                 new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
