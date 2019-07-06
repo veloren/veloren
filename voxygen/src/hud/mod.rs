@@ -373,7 +373,7 @@ impl Hud {
                 );
                 Text::new(&name)
                     .font_size(20)
-                    .color(Color::Rgba(0.33, 0.69, 0.65, 1.0))
+                    .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
