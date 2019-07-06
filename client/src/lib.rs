@@ -10,20 +10,21 @@ pub use specs::Entity as EcsEntity;
 use common::{
     comp,
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
+    figure::cell::Cell,
     net::PostBox,
     state::State,
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
-    vol::VolSize,
+    vol::{ReadVol, SizedVol, VolSize, Vox},
 };
 use log::{info, log_enabled, warn};
 use std::{
-    collections::HashMap,
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
+use fxhash::FxHashMap;
 
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
@@ -49,7 +50,7 @@ pub struct Client {
     view_distance: Option<u32>,
     loaded_distance: Option<u32>,
 
-    pending_chunks: HashMap<Vec2<i32>, Instant>,
+    pending_chunks: FxHashMap<Vec2<i32>, Instant>,
 }
 
 impl Client {
@@ -109,7 +110,7 @@ impl Client {
             view_distance,
             loaded_distance: None,
 
-            pending_chunks: HashMap::new(),
+            pending_chunks: FxHashMap::default(),
         })
     }
 
@@ -189,11 +190,43 @@ impl Client {
     }
 
     pub fn place_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.postbox.send_message(ClientMsg::PlaceBlock(pos, block));
+        let mut changes = FxHashMap::default();
+        changes.insert(pos, block);
+        self.postbox.send_message(ClientMsg::BlockChanges(changes));
     }
 
     pub fn remove_block(&mut self, pos: Vec3<i32>) {
-        self.postbox.send_message(ClientMsg::BreakBlock(pos));
+        let mut changes = FxHashMap::default();
+        changes.insert(pos, Block::empty());
+        self.postbox.send_message(ClientMsg::BlockChanges(changes));
+    }
+
+    pub fn insert_structure<V>(&mut self, vol: V, place_pos: Vec3<i32>)
+    where
+        V: ReadVol<Vox = Cell> + SizedVol,
+    {
+        let mut cursor_pos = Vec3::<i32>::zero();
+        let size = vol.get_size();
+
+        let mut changes = FxHashMap::default();
+        loop {
+            if cursor_pos.x < size.x as i32 - 1 {
+                cursor_pos.x += 1;
+            } else if cursor_pos.y < size.y as i32 - 1 {
+                cursor_pos.x = 0;
+                cursor_pos.y += 1;
+            } else if cursor_pos.z < size.z as i32 - 1 {
+                cursor_pos.x = 0;
+                cursor_pos.y = 0;
+                cursor_pos.z += 1;
+            } else {
+                break;
+            }
+            if let Ok(Some(color)) = vol.get(cursor_pos).map(|b| b.get_color()) {
+                changes.insert(cursor_pos + place_pos, Block::new(1, color));
+            }
+        }
+        self.postbox.send_message(ClientMsg::BlockChanges(changes));
     }
 
     /// Execute a single client tick, handle input and update the game state by the given duration.

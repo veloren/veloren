@@ -62,6 +62,10 @@ impl BlockChange {
     pub fn clear(&mut self) {
         self.blocks.clear();
     }
+
+    pub fn extend(&mut self, changes: FxHashMap<Vec3<i32>, Block>) {
+        self.blocks.extend(changes);
+    }
 }
 
 pub struct TerrainChanges {

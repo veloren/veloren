@@ -10,6 +10,7 @@ use crate::{
 use client::{self, Client};
 use common::{
     assets::Asset, clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol,
+    volumes::dyna::Dyna,
 };
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
@@ -94,16 +95,13 @@ impl PlayState for SessionState {
             }
         }
 
-        let mut placing_vox = false;
         let load_vox = || {
-            common::figure::Segment::from(
+            Dyna::from(
                 &dot_vox::DotVoxData::load(common::assets::load_from_path("place.vox").unwrap())
                     .unwrap(),
             )
         };
-        let mut curpos = Vec3::<i32>::zero();
         let mut placepos = Vec3::zero();
-        let mut vox = load_vox();
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -215,12 +213,8 @@ impl PlayState for SessionState {
                     }
                     Event::InputUpdate(GameInput::PlaceVox, state) => {
                         if state {
-                            let client = self.client.borrow();
-                            // start placing
-                            placing_vox = !placing_vox;
-                            //reload vox file
-                            vox = load_vox();
-                            curpos = Vec3::new(0, 0, 0);
+                            let mut client = self.client.borrow_mut();
+                            let mut vox = load_vox();
                             let cam_pos = self.scene.camera().compute_dependents(&client).2;
                             let cam_dir =
                                 (self.scene.camera().get_focus_pos() - cam_pos).normalized();
@@ -234,8 +228,7 @@ impl PlayState for SessionState {
                             if b {
                                 placepos =
                                     (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
-                            } else {
-                                placing_vox = false;
+                                client.insert_structure(vox, placepos);
                             }
                         }
                     }
@@ -272,36 +265,6 @@ impl PlayState for SessionState {
 
             // Maintain global state.
             global_state.maintain();
-
-            if placing_vox {
-                loop {
-                    use common::vol::SizedVol;
-                    let size = vox.get_size();
-                    if curpos.x < size.x as i32 - 1 {
-                        curpos.x += 1;
-                    } else if curpos.y < size.y as i32 - 1 {
-                        curpos.x = 0;
-                        curpos.y += 1;
-                    } else if curpos.z < size.z as i32 - 1 {
-                        curpos.x = 0;
-                        curpos.y = 0;
-                        curpos.z += 1;
-                    } else {
-                        placing_vox = false;
-                        break;
-                    }
-                    if placing_vox {
-                        match vox.get(curpos).map(|v| v.get_color()) {
-                            Ok(Some(color)) => self.client.borrow_mut().place_block(
-                                curpos + placepos,
-                                common::terrain::block::Block::new(1, color),
-                            ),
-                            Ok(None) => self.client.borrow_mut().remove_block(curpos + placepos),
-                            Err(_) => {}
-                        }
-                    }
-                }
-            }
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let hud_events = self.hud.maintain(

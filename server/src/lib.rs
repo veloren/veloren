@@ -522,24 +522,14 @@ impl Server {
                             // Only characters can send positions.
                             _ => client.error_state(RequestStateError::Impossible),
                         },
-                        ClientMsg::BreakBlock(pos) => {
+                        ClientMsg::BlockChanges(changes) => {
                             if state
                                 .ecs_mut()
                                 .read_storage::<comp::CanBuild>()
                                 .get(entity)
                                 .is_some()
                             {
-                                modified_blocks.push((pos, Block::empty()));
-                            }
-                        }
-                        ClientMsg::PlaceBlock(pos, block) => {
-                            if state
-                                .ecs_mut()
-                                .read_storage::<comp::CanBuild>()
-                                .get(entity)
-                                .is_some()
-                            {
-                                modified_blocks.push((pos, block));
+                                modified_blocks.extend(changes);
                             }
                         }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
