@@ -6,6 +6,7 @@ use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 /// This system is responsible for validating controller inputs
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #![allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Controller>,

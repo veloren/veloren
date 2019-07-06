@@ -92,10 +92,7 @@ impl Asset for Structure {
                     }
                 };
 
-                let _ = vol.set(
-                    Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e)),
-                    block,
-                );
+                let _ = vol.set(Vec3::new(voxel.x, voxel.y, voxel.z).map(i32::from), block);
             }
 
             Ok(Structure {

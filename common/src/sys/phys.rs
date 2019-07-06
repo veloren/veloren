@@ -40,6 +40,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, damp: f32) -> Vec3<f32> {
 /// This system applies forces and calculates new positions and velocities.
 pub struct Sys;
 impl<'a> System<'a> for Sys {
+    #![allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,

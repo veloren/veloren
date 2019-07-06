@@ -6,7 +6,7 @@ pub mod item;
 use item::Item;
 use std::mem::swap;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 pub struct Inventory {
     pub slots: Vec<Option<Item>>,
 }

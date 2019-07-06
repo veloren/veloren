@@ -180,9 +180,10 @@ pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
 pub fn read_from_assets(dir_name: &str) -> Result<ReadDir, Error> {
     let mut entry = assets_folder();
     entry.push(dir_name);
-    match Path::new(&entry).exists() {
-        true => Ok(read_dir(entry).expect("`read_dir` failed.")),
-        false => Err(Error::NotFound(entry.to_str().unwrap().to_owned())),
+    if Path::new(&entry).exists() {
+        Ok(read_dir(entry).expect("`read_dir` failed."))
+    } else {
+        Err(Error::NotFound(entry.to_str().unwrap().to_owned()))
     }
 }
 
