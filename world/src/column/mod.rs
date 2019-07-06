@@ -95,11 +95,11 @@ impl<'a> Sampler for ColumnGen<'a> {
             .mul(0.75)
             .add(1.0)
             .mul(0.5)
-            .add(marble_small.mul(0.25));
+            .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
-        let cold_grass = Rgb::new(0.05, 0.2, 0.1);
-        let warm_grass = Rgb::new(0.15, 0.65, 0.05);
+        let cold_grass = Rgb::new(0.0, 0.25, 0.13);
+        let warm_grass = Rgb::new(0.18, 0.65, 0.0);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
         let beach_sand = Rgb::new(0.93, 0.84, 0.4);
@@ -165,7 +165,6 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         // Cities
         // TODO: In a later MR
-        /*
         let building = match &sim_chunk.location {
             Some(loc) => {
                 let loc = &sim.locations[loc.loc_idx];
@@ -184,7 +183,6 @@ impl<'a> Sampler for ColumnGen<'a> {
         };
 
         let alt = alt + building;
-        */
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
