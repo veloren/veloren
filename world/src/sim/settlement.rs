@@ -44,6 +44,8 @@ impl Lot {
             Lot::Many {
                 split_x: aspect > 1.0,
                 lots: {
+                    //TODO: @Zesterer this is throwing a clippy warning because anything mod 1 is 0
+                    #[allow(clippy::modulo_one)]
                     let pow2 = 1 + rng.gen::<usize>() % 1;
                     let n = 1 << pow2;
 

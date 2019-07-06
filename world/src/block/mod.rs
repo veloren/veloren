@@ -34,7 +34,7 @@ impl<'a> BlockGen<'a> {
         wpos: Vec2<i32>,
     ) -> Option<ColumnSample<'a>> {
         cache
-            .get(Vec2::from(wpos), |wpos| column_gen.get(wpos))
+            .get(wpos, |wpos| column_gen.get(wpos))
             .clone()
     }
 
@@ -50,7 +50,7 @@ impl<'a> BlockGen<'a> {
             |max_height, (cliff_pos, seed)| match Self::sample_column(
                 column_gen,
                 cache,
-                Vec2::from(*cliff_pos),
+                *cliff_pos,
             ) {
                 Some(cliff_sample) if cliff_sample.cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
@@ -107,7 +107,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
             ..
         } = Self::sample_column(column_gen, column_cache, Vec2::from(wpos))?;
 
-        let wposf = wpos.map(|e| e as f64);
+        let wposf = wpos.map(f64::from);
 
         let (definitely_underground, height, water_height) =
             if (wposf.z as f32) < alt - 64.0 * chaos {
@@ -221,7 +221,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
         // Rocks
         let block = block.or_else(|| {
             if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
-                let field0 = RandomField::new(world.sim().seed + 0);
+                let field0 = RandomField::new(world.sim().seed);
                 let field1 = RandomField::new(world.sim().seed + 1);
                 let field2 = RandomField::new(world.sim().seed + 2);
 
@@ -246,11 +246,11 @@ impl<'a> SamplerMut for BlockGen<'a> {
             structure_seed: u32,
             _sample: &ColumnSample,
         ) -> Block {
-            let field = RandomField::new(structure_seed + 0);
+            let field = RandomField::new(structure_seed);
 
             let lerp = 0.5
                 + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.75
-                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.2;
+                + ((field.get(pos) % 256) as f32 / 256.0 - 0.5) * 0.2;
 
             match sblock {
                 StructureBlock::TemperateLeaves => Block::new(
@@ -281,7 +281,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
         }
 
         let block = if definitely_underground {
-            block.unwrap_or(Block::empty())
+            block.unwrap_or_else(Block::empty)
         } else {
             match block {
                 Some(block) => block,
@@ -294,7 +294,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
                             match Self::sample_column(
                                 column_gen,
                                 column_cache,
-                                Vec2::from(*tree_pos),
+                                *tree_pos,
                             ) {
                                 Some(tree_sample)
                                     if tree_sample.tree_density
@@ -327,7 +327,7 @@ impl<'a> SamplerMut for BlockGen<'a> {
                                                 &tree_sample,
                                             )
                                         })
-                                        .unwrap_or(Block::empty()))
+                                        .unwrap_or_else(|_| Block::empty()))
                                 }
                                 _ => block,
                             }

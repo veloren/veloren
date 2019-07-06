@@ -14,7 +14,7 @@ impl StructureGen2d {
         Self {
             freq,
             spread,
-            x_field: RandomField::new(seed + 0),
+            x_field: RandomField::new(seed),
             y_field: RandomField::new(seed + 1),
             seed_field: RandomField::new(seed + 2),
         }

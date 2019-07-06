@@ -683,7 +683,7 @@ impl Server {
 
         // Actually kill them
         for entity in todo_kill {
-            if let Some(client) = self.clients.get_mut(&entity) {
+            if let Some(client) = self.clients.get_mut(entity) {
                 self.state.write_component(entity, comp::Vel(Vec3::zero()));
                 self.state.write_component(entity, comp::ForceUpdate);
                 client.force_state(ClientState::Dead);
@@ -703,7 +703,7 @@ impl Server {
             .collect::<Vec<EcsEntity>>();
 
         for entity in todo_respawn {
-            if let Some(client) = self.clients.get_mut(&entity) {
+            if let Some(client) = self.clients.get_mut(entity) {
                 client.allow_state(ClientState::Character);
                 self.state
                     .ecs_mut()

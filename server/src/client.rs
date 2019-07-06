@@ -45,12 +45,12 @@ impl Clients {
         self.clients.insert(entity, client);
     }
 
-    pub fn get<'a>(&'a self, entity: &EcsEntity) -> Option<&'a Client> {
-        self.clients.get(entity)
+    pub fn get<'a>(&'a self, entity: EcsEntity) -> Option<&'a Client> {
+        self.clients.get(&entity)
     }
 
-    pub fn get_mut<'a>(&'a mut self, entity: &EcsEntity) -> Option<&'a mut Client> {
-        self.clients.get_mut(entity)
+    pub fn get_mut<'a>(&'a mut self, entity: EcsEntity) -> Option<&'a mut Client> {
+        self.clients.get_mut(&entity)
     }
 
     pub fn remove_if<F: FnMut(EcsEntity, &mut Client) -> bool>(&mut self, mut f: F) {

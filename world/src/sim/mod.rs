@@ -54,7 +54,7 @@ pub struct WorldSim {
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
         let mut gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new().set_seed(seed + 0),
+            turb_x_nz: SuperSimplex::new().set_seed(seed),
             turb_y_nz: SuperSimplex::new().set_seed(seed + 1),
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(seed + 2),
             hill_nz: SuperSimplex::new().set_seed(seed + 3),
@@ -92,7 +92,7 @@ impl WorldSim {
             locations: Vec::new(),
             gen_ctx,
             rng: XorShiftRng::from_seed([
-                (seed >> 0) as u8,
+                (seed) as u8,
                 0,
                 0,
                 0,
@@ -276,7 +276,7 @@ impl WorldSim {
         F: FnMut(&SimChunk) -> T,
     {
         let pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
-            e as f64 / sz as f64
+            f64::from(e) / f64::from(sz)
         });
 
         let cubic = |a: T, b: T, c: T, d: T, x: f32| -> T {
@@ -339,7 +339,7 @@ pub struct LocationInfo {
 
 impl SimChunk {
     fn generate(pos: Vec2<i32>, gen_ctx: &mut GenCtx) -> Self {
-        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
+        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(f64::from);
 
         let hill = (0.0
             + gen_ctx

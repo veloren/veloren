@@ -84,7 +84,7 @@ impl World {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
                 let wpos2d = Vec2::new(x, y)
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
-                let _wposf2d = wpos2d.map(|e| e as f64);
+                let _wposf2d = wpos2d.map(f64::from);
 
                 let min_z = self
                     .sim
