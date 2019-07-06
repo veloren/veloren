@@ -52,7 +52,7 @@ impl World {
         ColumnGen::new(self)
     }
 
-    pub fn sample_blocks(&self) -> impl SamplerMut<Index = Vec3<i32>, Sample = Option<Block>> + '_ {
+    pub fn sample_blocks(&self) -> BlockGen {
         BlockGen::new(self, ColumnGen::new(self))
     }
 
@@ -96,12 +96,14 @@ impl World {
                     .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
                     .unwrap_or(0.0) as i32;
 
+                let z_cache = sampler.get_z_cache(wpos2d);
+
                 for z in min_z..max_z {
                     let lpos = Vec3::new(x, y, z);
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                    if let Some(block) = sampler.get(wpos) {
+                    if let Some(block) = sampler.get_with_z_cache(wpos, z_cache.as_ref()) {
                         let _ = chunk.set(lpos, block);
                     }
                 }

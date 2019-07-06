@@ -120,9 +120,9 @@ impl WorldSim {
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();
 
-        let cell_size = 32;
+        let cell_size = 16;
         let grid_size = WORLD_SIZE / cell_size;
-        let loc_count = 250;
+        let loc_count = 100;
 
         let mut loc_grid = vec![None; grid_size.product()];
         let mut locations = Vec::new();

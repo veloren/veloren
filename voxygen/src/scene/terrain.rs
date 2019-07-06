@@ -9,7 +9,8 @@ use common::{
     volumes::vol_map_2d::VolMap2dErr,
 };
 use frustum_query::frustum::Frustum;
-use std::{collections::HashMap, i32, ops::Mul, sync::mpsc, time::Duration};
+use fxhash::FxHashMap;
+use std::{i32, ops::Mul, sync::mpsc, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -23,7 +24,7 @@ struct TerrainChunk {
 struct ChunkMeshState {
     pos: Vec2<i32>,
     started_tick: u64,
-    active_worker: bool,
+    active_worker: Option<u64>,
 }
 
 /// A type produced by mesh worker threads corresponding to the position and mesh of a chunk.
@@ -51,13 +52,13 @@ fn mesh_worker(
 }
 
 pub struct Terrain {
-    chunks: HashMap<Vec2<i32>, TerrainChunk>,
+    chunks: FxHashMap<Vec2<i32>, TerrainChunk>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
     // We keep the sender component for no reason other than to clone it and send it to new workers.
     mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
     mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
-    mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
+    mesh_todo: FxHashMap<Vec2<i32>, ChunkMeshState>,
 }
 
 impl Terrain {
@@ -67,11 +68,10 @@ impl Terrain {
         let (send, recv) = mpsc::channel();
 
         Self {
-            chunks: HashMap::new(),
-
+            chunks: FxHashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
-            mesh_todo: HashMap::new(),
+            mesh_todo: FxHashMap::default(),
         }
     }
 
@@ -129,7 +129,7 @@ impl Terrain {
                                 ChunkMeshState {
                                     pos,
                                     started_tick: current_tick,
-                                    active_worker: false,
+                                    active_worker: None,
                                 },
                             );
                         }
@@ -146,9 +146,17 @@ impl Terrain {
         for todo in self
             .mesh_todo
             .values_mut()
-            // Only spawn workers for meshing jobs without an active worker already.
-            .filter(|todo| !todo.active_worker)
+            .filter(|todo| {
+                todo.active_worker
+                    .map(|worker_tick| worker_tick < todo.started_tick)
+                    .unwrap_or(true)
+            })
+            .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
+            if client.thread_pool().queued_count() > 0 {
+                break;
+            }
+
             // Find the area of the terrain we want. Because meshing needs to compute things like
             // ambient occlusion and edge elision, we also need the borders of the chunk's
             // neighbours too (hence the `- 1` and `+ 1`).
@@ -189,16 +197,17 @@ impl Terrain {
             let pos = todo.pos;
 
             // Queue the worker thread.
+            let started_tick = todo.started_tick;
             client.thread_pool().execute(move || {
                 let _ = send.send(mesh_worker(
                     pos,
                     (min_z as f32, max_z as f32),
-                    current_tick,
+                    started_tick,
                     volume,
                     aabb,
                 ));
             });
-            todo.active_worker = true;
+            todo.active_worker = Some(todo.started_tick);
         }
 
         // Receive a chunk mesh from a worker thread and upload it to the GPU, then store it.
@@ -208,7 +217,7 @@ impl Terrain {
             match self.mesh_todo.get(&response.pos) {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).
-                Some(todo) if response.started_tick == todo.started_tick => {
+                Some(todo) if response.started_tick <= todo.started_tick => {
                     self.chunks.insert(
                         response.pos,
                         TerrainChunk {
@@ -230,7 +239,9 @@ impl Terrain {
                         },
                     );
 
-                    self.mesh_todo.remove(&response.pos);
+                    if response.started_tick == todo.started_tick {
+                        self.mesh_todo.remove(&response.pos);
+                    }
                 }
                 // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
                 // since it's either out of date or no longer needed.

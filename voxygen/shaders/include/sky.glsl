@@ -3,7 +3,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.2, 0.3, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.15, 0.2, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.02, 0.1, 0.3);
-const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 0.8);
+const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 1.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.1, 0.15, 0.3);
 const vec3 SKY_DUSK_MID = vec3(0.9, 0.3, 0.2);
@@ -25,13 +25,13 @@ vec3 get_sun_dir(float time_of_day) {
 }
 
 float get_sun_brightness(vec3 sun_dir) {
-	return max(-sun_dir.z + 0.6, 0.0) * 0.8;
+	return max(-sun_dir.z + 0.6, 0.0);
 }
 
 const float PERSISTENT_AMBIANCE = 0.008;
 
 vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
-	const float SUN_AMBIANCE = 0.2;
+	const float SUN_AMBIANCE = 0.1;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
 
