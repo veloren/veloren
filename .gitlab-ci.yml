@@ -109,7 +109,7 @@ clippy:
   tags:
     - veloren-docker
   script:
-    - cargo clippy -- -D warnings
+    - cargo clippy -- -W clippy::all
 
 #############
 # Commit build
