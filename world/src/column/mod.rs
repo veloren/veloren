@@ -106,24 +106,28 @@ impl<'a> Sampler for ColumnGen<'a> {
         let desert_sand = Rgb::new(0.98, 0.8, 0.15);
         let snow = Rgb::broadcast(1.0);
 
-        let grass = Rgb::lerp(cold_grass, warm_grass, marble);
-        let sand = Rgb::lerp(beach_sand, desert_sand, marble);
+        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
+        let grass = Rgb::lerp(cold_grass, warm_grass, marble);
+        let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
-        let turf = grass;
+        let tropical = Rgb::lerp(
+            grass,
+            Rgb::new(0.95, 0.85, 0.1),
+            marble_small.sub(0.5).mul(0.05).add(0.3),
+        );
 
         let ground = Rgb::lerp(
             Rgb::lerp(
                 snow,
-                turf,
+                grass,
                 temp.sub(CONFIG.snow_temp)
                     .sub((marble - 0.5) * 0.05)
                     .mul(256.0),
             ),
-            sand,
-            temp.sub(CONFIG.desert_temp).mul(32.0),
+            Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_temp).mul(32.0)),
+            temp.sub(CONFIG.tropical_temp).mul(128.0),
         );
 
         // Work out if we're on a path or near a town

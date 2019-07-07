@@ -16,7 +16,7 @@ use common::{
 };
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use rand::{prng::XorShiftRng, Rng, SeedableRng};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -353,6 +353,8 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
+        let temp = gen_ctx.temp_nz.get((wposf.div(15000.0)).into_array()) as f32;
+
         let dryness = gen_ctx.dry_nz.get(
             (wposf
                 .add(Vec2::new(
@@ -375,6 +377,7 @@ impl SimChunk {
                     .add(0.5)
                     .min(1.0),
             )
+            .mul(temp.mul(4.0).sub(1.0).neg().add(0.25).max(0.05).min(1.0))
             .powf(1.5)
             .add(0.1 * hill);
 
@@ -402,8 +405,6 @@ impl SimChunk {
                 .mul(0.5)
                 .mul(chaos)
                 .mul(CONFIG.mountain_scale);
-
-        let temp = gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32;
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
