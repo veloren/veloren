@@ -54,6 +54,7 @@ pub struct SkeletonAttr {
     neck_right: f32,
     weapon_x: f32,
     weapon_y: f32,
+    weapon_id: f32,
 }
 
 impl Default for SkeletonAttr {
@@ -66,6 +67,7 @@ impl Default for SkeletonAttr {
             neck_right: 1.0,
             weapon_x: 1.0,
             weapon_y: 1.0,
+            weapon_id: 0.0,
         }
     }
 }
@@ -144,7 +146,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
             },
-            weapon_x: match Weapon::Sword {
+            weapon_x: match Weapon::Hammer {
                 // TODO: Inventory
                 Weapon::Sword => 0.0,
                 Weapon::Axe => 3.0,
@@ -154,7 +156,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Bow => 0.0,
                 Weapon::Daggers => 0.0,
             },
-            weapon_y: match Weapon::Sword {
+            weapon_y: match Weapon::Hammer {
                 // TODO: Inventory
                 Weapon::Sword => -1.25,
                 Weapon::Axe => 0.0,
@@ -163,6 +165,18 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Staff => 0.0,
                 Weapon::Bow => -2.0,
                 Weapon::Daggers => -2.0,
+            },
+            weapon_id: match Weapon::Hammer {
+                // TODO: Inventory
+                Weapon::Sword => 1.0,
+                Weapon::Axe => 2.0,
+                Weapon::Hammer => 3.0,
+                Weapon::SwordShield => 4.0,
+                Weapon::Staff => 5.0,
+                Weapon::Bow => 6.0,
+                Weapon::Daggers => 7.0,
+
+
             },
         }
     }
