@@ -8,7 +8,7 @@ pub struct Config {
 
 pub const CONFIG: Config = Config {
     sea_level: 140.0,
-    mountain_scale: 1200.0,
+    mountain_scale: 1000.0,
     snow_temp: -0.4,
     tropical_temp: 0.25,
     desert_temp: 0.45,

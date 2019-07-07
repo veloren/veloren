@@ -368,20 +368,22 @@ impl SimChunk {
             .into_array(),
         ) as f32;
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
-                    .powf(2.0)
-                    .add(0.5)
+                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                    .abs()
                     .min(1.0),
             )
-            .add(0.1 * hill)
-            .mul(temp.mul(4.0).sub(1.0).neg().add(1.25).max(0.15).min(1.0))
-            .powf(1.5);
-
-        let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
+            .add(0.15 * hill)
+            .mul(
+                temp.sub(CONFIG.desert_temp)
+                    .neg()
+                    .mul(12.0)
+                    .max(0.35)
+                    .min(1.0),
+            );
 
         let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
         let alt_base = alt_base
@@ -391,7 +393,7 @@ impl SimChunk {
 
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()
-            .powf(1.8);
+            .powf(1.35);
 
         let alt = CONFIG.sea_level
             + alt_base
