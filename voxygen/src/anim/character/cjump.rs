@@ -2,6 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
+use common::comp::item::Weapon;
 use std::f32::consts::PI;
 use vek::*;
 
@@ -42,126 +43,135 @@ impl Animation for CjumpAnimation {
         next.shorts.ori = Quaternion::rotation_z(0.0);
         next.shorts.scale = Vec3::one();
 
-        if skeleton_attr.weapon_id == 1.0 {
-            next.l_hand.offset = Vec3::new(-7.0, 3.25, 0.25 + wave_stop * 2.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(-7.0, 3.0, -2.0 + wave_stop * 2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                -7.0 + skeleton_attr.weapon_x,
-                4.0 + skeleton_attr.weapon_y,
-                0.0 + wave_stop * 2.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 2.0 {
-            next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                -6.0 + skeleton_attr.weapon_x,
-                4.5 + skeleton_attr.weapon_y,
-                0.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 3.0 {
-            next.l_hand.offset = Vec3::new(-7.0, 8.25, 2.0 + wave_stop * 2.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.2)
-                * Quaternion::rotation_z(0.0);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(7.0, 7.0, -3.0 + wave_stop * 2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.2)
-                * Quaternion::rotation_z(0.0);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                5.0 + skeleton_attr.weapon_x,
-                8.75 + skeleton_attr.weapon_y,
-                -2.5 + wave_stop * 2.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.2)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 4.0 {
-            next.l_hand.offset = Vec3::new(-7.0, 7.5, 0.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.7)
-                * Quaternion::rotation_z(1.0);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(7.0, 6.25, 1.5);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.7)
-                * Quaternion::rotation_z(1.0);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                5.0 + skeleton_attr.weapon_x,
-                8.0 + skeleton_attr.weapon_y,
-                1.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(-1.7)
-                * Quaternion::rotation_z(1.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 5.0 {
-            next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                -6.0 + skeleton_attr.weapon_x,
-                4.5 + skeleton_attr.weapon_y,
-                0.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 6.0 {
-            next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                -6.0 + skeleton_attr.weapon_x,
-                4.5 + skeleton_attr.weapon_y,
-                0.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
-        } else if skeleton_attr.weapon_id == 7.0 {
-            next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
-            next.l_hand.ori = Quaternion::rotation_x(-0.3);
-            next.l_hand.scale = Vec3::one() * 1.01;
-            next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
-            next.r_hand.ori = Quaternion::rotation_x(-0.3);
-            next.r_hand.scale = Vec3::one() * 1.01;
-            next.weapon.offset = Vec3::new(
-                -6.0 + skeleton_attr.weapon_x,
-                4.5 + skeleton_attr.weapon_y,
-                0.0,
-            );
-            next.weapon.ori = Quaternion::rotation_x(-0.3)
-                * Quaternion::rotation_y(0.0)
-                * Quaternion::rotation_z(0.0);
-            next.weapon.scale = Vec3::one();
+        match Weapon::Hammer {
+            //TODO: Inventory
+            Weapon::Sword => {
+                next.l_hand.offset = Vec3::new(-7.0, 3.25, 0.25 + wave_stop * 2.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(-7.0, 3.0, -2.0 + wave_stop * 2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    -7.0 + skeleton_attr.weapon_x,
+                    4.0 + skeleton_attr.weapon_y,
+                    0.0 + wave_stop * 2.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::Axe => {
+                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    -6.0 + skeleton_attr.weapon_x,
+                    4.5 + skeleton_attr.weapon_y,
+                    0.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::Hammer => {
+                next.l_hand.offset = Vec3::new(-7.0, 8.25, 2.0 + wave_stop * 2.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.2)
+                    * Quaternion::rotation_z(0.0);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(7.0, 7.0, -3.0 + wave_stop * 2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.2)
+                    * Quaternion::rotation_z(0.0);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    5.0 + skeleton_attr.weapon_x,
+                    8.75 + skeleton_attr.weapon_y,
+                    -2.5 + wave_stop * 2.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.2)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::Staff => {
+                next.l_hand.offset = Vec3::new(-7.0, 7.5, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(1.0);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(7.0, 6.25, 1.5);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(1.0);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    5.0 + skeleton_attr.weapon_x,
+                    8.0 + skeleton_attr.weapon_y,
+                    1.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(1.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::SwordShield => {
+                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    -6.0 + skeleton_attr.weapon_x,
+                    4.5 + skeleton_attr.weapon_y,
+                    0.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::Bow => {
+                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    -6.0 + skeleton_attr.weapon_x,
+                    4.5 + skeleton_attr.weapon_y,
+                    0.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
+            Weapon::Daggers => {
+                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
+                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.scale = Vec3::one() * 1.01;
+                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
+                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.scale = Vec3::one() * 1.01;
+                next.weapon.offset = Vec3::new(
+                    -6.0 + skeleton_attr.weapon_x,
+                    4.5 + skeleton_attr.weapon_y,
+                    0.0,
+                );
+                next.weapon.ori = Quaternion::rotation_x(-0.3)
+                    * Quaternion::rotation_y(0.0)
+                    * Quaternion::rotation_z(0.0);
+                next.weapon.scale = Vec3::one();
+            }
         }
 
         next.l_foot.offset = Vec3::new(-3.4, 1.0, 6.0);
