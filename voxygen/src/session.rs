@@ -176,22 +176,14 @@ impl PlayState for SessionState {
                                 let cam_dir =
                                     (self.scene.camera().get_focus_pos() - cam_pos).normalized();
 
-                                let (d, block) = {
-                                    let terrain = client.state().terrain();
-                                    let ray =
-                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                    (
-                                        ray.0,
-                                        if let Ok(Some(b)) = ray.1 {
-                                            Some(*b)
-                                        } else {
-                                            None
-                                        },
-                                    )
-                                };
-
-                                if let Some(block) = block {
-                                    self.selected_block = block;
+                                if let Ok(Some(block)) = client
+                                    .state()
+                                    .terrain()
+                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                    .cast()
+                                    .1
+                                {
+                                    self.selected_block = *block;
                                 }
                             }
                         } else {
