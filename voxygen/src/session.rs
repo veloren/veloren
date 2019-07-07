@@ -282,6 +282,13 @@ impl PlayState for SessionState {
                             warn!("Failed to save settings: {:?}", err);
                         }
                     }
+                    HudEvent::CrosshairTransp(crosshair_transp) => {
+                        global_state.settings.gameplay.crosshair_transp = crosshair_transp;
+                        global_state.settings.gameplay.crosshair_transp = crosshair_transp;
+                        if let Err(err) = global_state.settings.save_to_file() {
+                            warn!("Failed to save settings: {:?}", err);
+                        }
+                    }
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.model.player.set_volume(volume);
 
