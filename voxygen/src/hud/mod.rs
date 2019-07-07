@@ -286,8 +286,7 @@ impl Hud {
             ui,
             imgs,
             fonts,
-            ids,
-            ui_scale,
+            ids,            
             new_messages: VecDeque::new(),
             inventory_space: 8,
             show: Show {
