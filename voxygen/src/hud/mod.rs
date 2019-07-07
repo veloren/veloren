@@ -10,7 +10,6 @@ mod settings_window;
 mod skillbar;
 mod small_window;
 
-use crate::hud::Event::CrosshairTransp;
 use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
@@ -124,6 +123,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     CrosshairTransp(f32),
+    //UiScale(f32),
     CharacterSelection,
     Logout,
     Quit,
@@ -271,7 +271,10 @@ impl Hud {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-        ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
+        let ui_scale = 0.7;
+        ui.scaling_mode(ScaleMode::RelativeToWindow(
+            window.renderer().get_resolution().map(|e| e as f64) / ui_scale as f64,
+        ));
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // Load images.
@@ -284,6 +287,7 @@ impl Hud {
             imgs,
             fonts,
             ids,
+            ui_scale,
             new_messages: VecDeque::new(),
             inventory_space: 8,
             show: Show {
