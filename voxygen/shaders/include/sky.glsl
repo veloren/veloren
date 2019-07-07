@@ -31,7 +31,7 @@ float get_sun_brightness(vec3 sun_dir) {
 const float PERSISTENT_AMBIANCE = 0.008;
 
 vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
-	const float SUN_AMBIANCE = 0.1;
+	const float SUN_AMBIANCE = 0.075;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
 
