@@ -260,7 +260,6 @@ pub struct Hud {
     fonts: Fonts,
     new_messages: VecDeque<String>,
     inventory_space: usize,
-    crosshair_transp: f32,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -287,7 +286,6 @@ impl Hud {
             ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
-            crosshair_transp: 0.6,
             show: Show {
                 help: false,
                 debug: true,
@@ -344,11 +342,15 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Crosshair
-            let crosshair_transp = self.crosshair_transp;
             Image::new(self.imgs.crosshair_outer)
                 .w_h(21.0 * 1.5, 21.0 * 1.5)
                 .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, self.crosshair_transp)))
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    global_state.settings.gameplay.crosshair_transp,
+                )))
                 .set(self.ids.crosshair_outer, ui_widgets);
             Image::new(self.imgs.crosshair_inner)
                 .w_h(21.0 * 2.0, 21.0 * 2.0)
