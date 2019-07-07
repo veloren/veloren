@@ -1,16 +1,65 @@
-use crate::all::ForestKind;
+use super::{BlockGen, StructureInfo, ZCache};
+use crate::{
+    all::ForestKind,
+    column::{ColumnGen, ColumnSample},
+    util::{HashCache, RandomPerm, Sampler},
+};
 use common::{assets, terrain::Structure};
 use lazy_static::lazy_static;
 use std::sync::Arc;
 use vek::*;
 
-pub fn kinds(forest_kind: ForestKind) -> &'static [Arc<Structure>] {
-    match forest_kind {
+static VOLUME_RAND: RandomPerm = RandomPerm::new(0);
+static UNIT_RAND: RandomPerm = RandomPerm::new(1);
+static QUIRKY_RAND: RandomPerm = RandomPerm::new(2);
+
+pub fn structure_gen<'a>(
+    column_gen: &ColumnGen<'a>,
+    column_cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+    idx: usize,
+    st_pos: Vec2<i32>,
+    st_seed: u32,
+    structure_samples: &[Option<ColumnSample>; 9],
+) -> Option<StructureInfo> {
+    let st_sample = &structure_samples[idx].as_ref()?;
+
+    // Assuming it's a tree... figure out when it SHOULDN'T spawn
+    if st_sample.tree_density < 0.5 + (st_seed as f32 / 1000.0).fract() * 0.2
+        || st_sample.alt < st_sample.water_level
+        || st_sample.spawn_rate < 0.5
+    {
+        return None;
+    }
+
+    let cliff_height = BlockGen::get_cliff_height(
+        column_gen,
+        column_cache,
+        st_pos.map(|e| e as f32),
+        &st_sample.close_cliffs,
+        st_sample.cliff_hill,
+    );
+
+    let wheight = st_sample.alt.max(cliff_height);
+    let st_pos3d = Vec3::new(st_pos.x, st_pos.y, wheight as i32);
+
+    let volumes: &'static [_] = match st_sample.forest_kind {
         ForestKind::Palm => &PALMS,
+        ForestKind::Savannah => &PALMS,
+        ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 64 == 0 => &QUIRKY,
+        ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 0 => &OAK_STUMPS,
         ForestKind::Oak => &OAKS,
         ForestKind::Pine => &PINES,
         ForestKind::SnowPine => &SNOW_PINES,
-    }
+    };
+
+    const UNIT_CHOICES: [(Vec2<i32>, Vec2<i32>); 1] = [(Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: 1 })];
+
+    Some(StructureInfo {
+        pos: st_pos3d,
+        seed: st_seed,
+        units: UNIT_CHOICES[UNIT_RAND.get(st_seed) as usize % UNIT_CHOICES.len()],
+        volume: &volumes[VOLUME_RAND.get(st_seed) as usize % volumes.len()],
+    })
 }
 
 lazy_static! {
@@ -43,6 +92,9 @@ lazy_static! {
         assets::load_map("world/tree/oak_green/9.vox", |s: Structure| s
             .with_center(Vec3::new(26, 26, 14)))
         .unwrap(),
+    ];
+
+    pub static ref OAK_STUMPS: Vec<Arc<Structure>> = vec![
         // oak stumps
         assets::load_map("world/tree/oak_stump/1.vox", |s: Structure| s
             .with_center(Vec3::new(15, 18, 10)))
@@ -350,4 +402,10 @@ lazy_static! {
         .unwrap(),
     ];
     */
+
+    pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
+        assets::load_map("world/structure/natural/tower_ruin.vox", |s: Structure| s
+            .with_center(Vec3::new(11, 14, 7)))
+        .unwrap(),
+    ];
 }

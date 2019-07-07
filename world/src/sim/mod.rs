@@ -368,18 +368,18 @@ impl SimChunk {
             .into_array(),
         ) as f32;
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
                     .powf(2.0)
                     .add(0.5)
                     .min(1.0),
             )
-            .mul(temp.mul(4.0).sub(1.0).neg().add(0.25).max(0.05).min(1.0))
-            .powf(1.5)
-            .add(0.1 * hill);
+            .add(0.1 * hill)
+            .mul(temp.mul(4.0).sub(1.0).neg().add(1.25).max(0.15).min(1.0))
+            .powf(1.5);
 
         let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
 
@@ -397,14 +397,13 @@ impl SimChunk {
             + alt_base
             + (0.0
                 + alt_main
-                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
-                    * alt_main.max(0.1)
-                    * chaos
-                    * 1.6)
-                .add(1.0)
-                .mul(0.5)
-                .mul(chaos)
-                .mul(CONFIG.mountain_scale);
+                + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                    .mul(alt_main.max(0.1))
+                    .mul(1.6))
+            .add(1.0)
+            .mul(0.5)
+            .mul(chaos)
+            .mul(CONFIG.mountain_scale);
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
@@ -436,6 +435,8 @@ impl SimChunk {
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
                     ForestKind::Palm
+                } else if temp > CONFIG.desert_temp {
+                    ForestKind::Savannah
                 } else {
                     ForestKind::Oak
                 }
