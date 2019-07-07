@@ -401,7 +401,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::CrosshairTransp(new_val));
             }
 
-            Text::new(&format!("{}", crosshair_transp,))
+            Text::new(&format!("{:.2}", crosshair_transp,))
                 .right_from(state.ids.ch_transp_slider, 8.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
