@@ -42,6 +42,10 @@ widget_ids! {
         mouse_zoom_slider,
         mouse_zoom_label,
         mouse_zoom_value,
+        ch_transp_slider,
+        ch_transp_label,
+        ch_transp_value,
+        ch_transp_text,
         settings_bg,
         sound,
         test,
@@ -113,6 +117,7 @@ pub enum Event {
     AdjustVolume(f32),
     ChangeAudioDevice(String),
     MaximumFPS(u32),
+    CrosshairTransp(f32),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -305,6 +310,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Gameplay = self.show.settings_tab {
             let display_pan = self.global_state.settings.gameplay.pan_sensitivity;
             let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
+            let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
 
             // Mouse Pan Sensitivity
             Text::new("Pan Sensitivity")
@@ -369,6 +375,38 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_value, ui);
+
+            // Crosshair Translucency
+            Text::new("Crosshair Transparency")
+                .down_from(state.ids.mouse_zoom_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                crosshair_transp,
+                0.0,
+                1.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.ch_transp_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.ch_transp_slider, ui)
+            {
+                events.push(Event::CrosshairTransp(new_val));
+            }
+
+            Text::new(&format!("{}", crosshair_transp,))
+                .right_from(state.ids.ch_transp_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_value, ui);
         }
 
         // 3) Controls Tab --------------------------------
