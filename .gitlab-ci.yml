@@ -180,8 +180,8 @@ commit:windows-debug:
 optional:linux-debug:
   <<: *optional
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --features="discord" --manifest-path voxygen/Cargo.toml)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --features="discord" --manifest-path voxygen/Cargo.toml)
     - rm -r -f optional-build
     - mkdir optional-build
     - cp target/debug/veloren-server-cli optional-build
@@ -198,8 +198,8 @@ optional:linux-debug:
 optional:windows-debug:
   <<: *optional
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --features="discord" --manifest-path voxygen/Cargo.toml)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu --features="discord" --manifest-path voxygen/Cargo.toml)
     - rm -r -f optional-build
     - mkdir optional-build
     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-build
@@ -228,8 +228,8 @@ optional:windows-debug:
 nightly:linux-optimized:
   <<: *nightly
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --features="discord" --manifest-path voxygen/Cargo.toml)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --features="discord" --manifest-path voxygen/Cargo.toml)
     - rm -r -f nightly-build
     - mkdir nightly-build
     - cp target/release/veloren-server-cli nightly-build
@@ -246,8 +246,8 @@ nightly:linux-optimized:
 nightly:windows-optimized:
   <<: *nightly
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu --features="discord" --manifest-path voxygen/Cargo.toml)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu --features="discord" --manifest-path voxygen/Cargo.toml)
     - rm -r -f nightly-build
     - mkdir nightly-build
     - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe nightly-build
