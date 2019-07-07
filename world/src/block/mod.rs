@@ -1,4 +1,4 @@
-mod tree;
+mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample},
@@ -6,7 +6,7 @@ use crate::{
     World,
 };
 use common::{
-    terrain::{structure::StructureBlock, Block},
+    terrain::{structure::StructureBlock, Block, Structure},
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
@@ -86,19 +86,34 @@ impl<'a> BlockGen<'a> {
         let sample = Self::sample_column(column_gen, column_cache, wpos)?;
 
         // Tree samples
-        let mut tree_samples = [None, None, None, None, None, None, None, None, None];
-        for i in 0..tree_samples.len() {
-            tree_samples[i] = Self::sample_column(
+        let mut structure_samples = [None, None, None, None, None, None, None, None, None];
+        for i in 0..structure_samples.len() {
+            let st_sample = Self::sample_column(
                 column_gen,
                 column_cache,
                 Vec2::from(sample.close_trees[i].0),
             );
+            structure_samples[i] = st_sample;
         }
 
-        Some(ZCache {
-            sample,
-            tree_samples,
-        })
+        let mut structures = [None, None, None, None, None, None, None, None, None];
+        for i in 0..structures.len() {
+            let (st_pos, st_seed) = sample.close_trees[i];
+            let st_info = natural::structure_gen(
+                column_gen,
+                column_cache,
+                i,
+                st_pos,
+                st_seed,
+                &structure_samples,
+            );
+
+            if let (Some(st_info), Some(st_sample)) = (st_info, structure_samples[i].clone()) {
+                structures[i] = Some((st_info, st_sample));
+            }
+        }
+
+        Some(ZCache { sample, structures })
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
@@ -128,9 +143,8 @@ impl<'a> BlockGen<'a> {
             ..
         } = &z_cache?.sample;
 
-        let tree_samples = &z_cache?.tree_samples;
+        let structures = &z_cache?.structures;
 
-        let wpos2d = Vec2::from(wpos);
         let wposf = wpos.map(|e| e as f64);
 
         let (definitely_underground, height, water_height) =
@@ -193,7 +207,7 @@ impl<'a> BlockGen<'a> {
         // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
         let water = Block::new(1, Rgb::new(100, 150, 255));
 
-        let grass_depth = 2.0;
+        let grass_depth = 1.5 + 2.0 * chaos;
         let block = if (wposf.z as f32) < height - grass_depth {
             let col = Lerp::lerp(
                 sub_surface_color.map(|e| (e * 255.0) as u8),
@@ -307,55 +321,32 @@ impl<'a> BlockGen<'a> {
         let block = if definitely_underground {
             block.unwrap_or(Block::empty())
         } else {
-            match block {
-                Some(block) => block,
-                None => (&close_trees).iter().enumerate().fold(
-                    air,
-                    |block, (tree_idx, (tree_pos, tree_seed))| {
-                        if !block.is_empty() {
-                            block
-                        } else {
-                            match &tree_samples[tree_idx] {
-                                Some(tree_sample)
-                                    if wpos2d.distance_squared(*tree_pos) < 28 * 28
-                                        && tree_sample.tree_density
-                                            > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
-                                        && tree_sample.alt > tree_sample.water_level
-                                        && tree_sample.spawn_rate > 0.5 =>
-                                {
-                                    let cliff_height = Self::get_cliff_height(
-                                        column_gen,
-                                        column_cache,
-                                        tree_pos.map(|e| e as f32),
-                                        &tree_sample.close_cliffs,
-                                        cliff_hill,
-                                    );
-                                    let height = tree_sample.alt.max(cliff_height);
-                                    let tree_pos3d =
-                                        Vec3::new(tree_pos.x, tree_pos.y, height as i32);
-                                    let rpos = wpos - tree_pos3d;
+            block
+                .or_else(|| {
+                    structures.iter().find_map(|st| {
+                        let (st, st_sample) = st.as_ref()?;
 
-                                    let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
+                        let rpos = wpos - st.pos;
+                        let block_pos = Vec3::unit_z() * rpos.z
+                            + Vec3::from(st.units.0) * rpos.x
+                            + Vec3::from(st.units.1) * rpos.y;
 
-                                    block.or(trees[*tree_seed as usize % trees.len()]
-                                        .get((rpos * 128) / 128) // Scaling
-                                        .map(|b| {
-                                            block_from_structure(
-                                                *b,
-                                                rpos,
-                                                *tree_pos,
-                                                *tree_seed,
-                                                &tree_sample,
-                                            )
-                                        })
-                                        .unwrap_or(Block::empty()))
-                                }
-                                _ => block,
-                            }
-                        }
-                    },
-                ),
-            }
+                        st.volume
+                            .get((block_pos * 128) / 128) // Scaling
+                            .map(|b| {
+                                block_from_structure(
+                                    *b,
+                                    block_pos,
+                                    st.pos.into(),
+                                    st.seed,
+                                    st_sample,
+                                )
+                            })
+                            .ok()
+                            .filter(|block| !block.is_empty())
+                    })
+                })
+                .unwrap_or(Block::empty())
         };
 
         Some(block)
@@ -364,7 +355,14 @@ impl<'a> BlockGen<'a> {
 
 pub struct ZCache<'a> {
     sample: ColumnSample<'a>,
-    tree_samples: [Option<ColumnSample<'a>>; 9],
+    structures: [Option<(StructureInfo, ColumnSample<'a>)>; 9],
+}
+
+pub struct StructureInfo {
+    pos: Vec3<i32>,
+    seed: u32,
+    units: (Vec2<i32>, Vec2<i32>),
+    volume: &'static Structure,
 }
 
 impl<'a> SamplerMut for BlockGen<'a> {
