@@ -60,7 +60,7 @@ impl FigureModelCache {
                                     Some(Self::load_right_hand(body.hand)),
                                     Some(Self::load_left_foot(body.foot)),
                                     Some(Self::load_right_foot(body.foot)),
-                                    Some(Self::load_weapon(Weapon::Sword)), // TODO: Inventory
+                                    Some(Self::load_weapon(Weapon::Hammer)), // TODO: Inventory
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw()),
@@ -296,8 +296,8 @@ impl FigureModelCache {
     fn load_weapon(weapon: Weapon) -> Mesh<FigurePipeline> {
         let (name, offset) = match weapon {
             Weapon::Sword => ("weapon/sword/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
-            Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
             Weapon::Axe => ("weapon/axe/rusty_2h.vox", Vec3::new(-1.5, -6.5, -4.0)),
+            Weapon::Hammer => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
             Weapon::Daggers => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
             Weapon::SwordShield => ("weapon/axe/rusty_2h.vox", Vec3::new(-2.5, -6.5, -2.0)),
             Weapon::Bow => ("weapon/hammer/rusty_2h.vox", Vec3::new(-2.5, -5.5, -4.0)),
