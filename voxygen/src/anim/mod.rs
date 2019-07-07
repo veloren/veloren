@@ -144,7 +144,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 (Danari, Male) => 0.0,
                 (Danari, Female) => 0.0,
             },
-            weapon_x: match Weapon::Sword {
+            weapon_x: match Weapon::Hammer {
                 // TODO: Inventory
                 Weapon::Sword => 0.0,
                 Weapon::Axe => 3.0,
@@ -154,7 +154,7 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Bow => 0.0,
                 Weapon::Daggers => 0.0,
             },
-            weapon_y: match Weapon::Sword {
+            weapon_y: match Weapon::Hammer {
                 // TODO: Inventory
                 Weapon::Sword => -1.25,
                 Weapon::Axe => 0.0,
