@@ -31,5 +31,6 @@
 # Veloren
 *.rar
 *.log
+settings.ron
 run.sh
 screenshots
