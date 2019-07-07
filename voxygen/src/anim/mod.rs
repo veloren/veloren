@@ -175,8 +175,6 @@ impl<'a> From<&'a comp::humanoid::Body> for SkeletonAttr {
                 Weapon::Staff => 5.0,
                 Weapon::Bow => 6.0,
                 Weapon::Daggers => 7.0,
-
-
             },
         }
     }
