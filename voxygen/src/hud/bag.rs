@@ -2,8 +2,8 @@ use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
 use conrod_core::{
     color,
     position::Relative,
-    widget::{self, Button, Image, Rectangle, Scrollbar},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget::{self, Button, Image, Rectangle/*, Scrollbar*/},
+    widget_ids, /*Color, Colorable,*/ Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
