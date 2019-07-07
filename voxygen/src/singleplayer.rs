@@ -10,6 +10,9 @@ use std::{
     time::Duration,
 };
 
+#[cfg(feature = "discord")]
+use crate::{discord, discord::DiscordUpdate};
+
 const TPS: u64 = 30;
 
 enum Msg {
@@ -66,6 +69,14 @@ fn run_server(mut server: Server, rec: Receiver<Msg>) {
 
     // Set up an fps clock
     let mut clock = Clock::start();
+
+    #[cfg(feature = "discord")]
+    {
+        discord::send_all(vec![
+            DiscordUpdate::Details("Singleplayer".into()),
+            DiscordUpdate::State("Playing...".into()),
+        ]);
+    }
 
     loop {
         let events = server

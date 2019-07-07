@@ -1,6 +1,16 @@
 #![feature(drain_filter)]
 #![recursion_limit = "2048"]
 
+#[cfg(feature = "discord")]
+#[macro_use]
+extern crate lazy_static;
+
+#[cfg(feature = "discord")]
+pub mod discord;
+
+#[cfg(feature = "discord")]
+use std::sync::Mutex;
+
 #[macro_use]
 pub mod ui;
 pub mod anim;
@@ -21,12 +31,11 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{
-    audio::{base::Genre, AudioFrontend},
-    menu::main::MainMenuState,
-    settings::Settings,
+    audio::base::Genre, audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
     window::Window,
 };
-use log::{debug, error, info, warn};
+use log::{self, debug, error, info, warn};
+
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
@@ -80,6 +89,14 @@ pub trait PlayState {
     fn name(&self) -> &'static str;
 }
 
+#[cfg(feature = "discord")]
+lazy_static! {
+    //Set up discord rich presence
+    static ref DISCORD_INSTANCE: Mutex<discord::DiscordState> = {
+        discord::run()
+    };
+}
+
 fn main() {
     // Set up the global state.
     let settings = Settings::load();
@@ -109,6 +126,17 @@ fn main() {
         ),
     ])
     .unwrap();
+
+    // Initialize discord. (lazy_static initalise lazily...)
+    #[cfg(feature = "discord")]
+    {
+        match DISCORD_INSTANCE.lock() {
+            Ok(_disc) => {
+                //great
+            }
+            Err(e) => log::error!("Couldn't init discord: {}", e),
+        }
+    }
 
     // Set up panic handler to relay swish panic messages to the user
     let settings_clone = global_state.settings.clone();
@@ -238,6 +266,26 @@ fn main() {
             }
         }
     }
+
+    //Properly shutdown discord thread
+    #[cfg(feature = "discord")]
+    {
+        match DISCORD_INSTANCE.lock() {
+            Ok(mut disc) => {
+                let _ = disc.tx.send(discord::DiscordUpdate::Shutdown);
+                match disc.thread.take() {
+                    Some(th) => {
+                        let _ = th.join();
+                    }
+                    None => {
+                        error!("couldn't gracefully shutdown discord thread");
+                    }
+                }
+            }
+            Err(e) => error!("couldn't gracefully shutdown discord thread: {}", e),
+        }
+    }
+
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = global_state.settings.save_to_file() {
         warn!("Failed to save settings: {:?}", err);

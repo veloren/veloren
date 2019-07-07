@@ -41,6 +41,9 @@ use specs::Join;
 use std::collections::VecDeque;
 use vek::*;
 
+#[cfg(feature = "discord")]
+use crate::{discord, discord::DiscordUpdate};
+
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
@@ -681,7 +684,18 @@ impl Hud {
                     self.show.want_grab = false;
                     self.force_ungrab = true;
                 }
-                Some(esc_menu::Event::Logout) => events.push(Event::Logout),
+                Some(esc_menu::Event::Logout) => {
+                    events.push(Event::Logout);
+
+                    #[cfg(feature = "discord")]
+                    {
+                        discord::send_all(vec![
+                            DiscordUpdate::Details("Menu".into()),
+                            DiscordUpdate::State("Idling".into()),
+                            DiscordUpdate::LargeImg("bg_main".into()),
+                        ]);
+                    }
+                }
                 Some(esc_menu::Event::Quit) => events.push(Event::Quit),
                 Some(esc_menu::Event::CharacterSelection) => events.push(Event::CharacterSelection),
                 None => {}
