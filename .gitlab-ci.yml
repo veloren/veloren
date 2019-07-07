@@ -48,7 +48,7 @@ build-voxygen:
   tags:
     - veloren-docker
   script:
-    - (cd voxygen && cargo rustc -v -- -D warnings)
+    - (cd voxygen && cargo rustc -v --features="discord" --manifest-path voxygen/Cargo.toml -- -D warnings)
 
 build-server-cli:
   stage: build
@@ -56,7 +56,7 @@ build-server-cli:
   tags:
     - veloren-docker
   script:
-    - (cd server-cli && cargo rustc -v -- -D warnings)
+    - (cd server-cli && cargo rustc -v --features="discord" --manifest-path voxygen/Cargo.toml -- -D warnings)
 
 #############
 # TEST
