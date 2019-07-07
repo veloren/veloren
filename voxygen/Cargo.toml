@@ -7,6 +7,7 @@ default-run = "veloren-voxygen"
 
 [features]
 gl = ["gfx_device_gl"]
+discord = ["discord-rpc-sdk"]
 
 default = ["gl"]
 
@@ -30,6 +31,9 @@ specs = "0.14"
 
 # Mathematics
 vek = "0.9"
+
+# discord
+discord-rpc-sdk = { git = "https://github.com/Songtronix/rust-discord-rpc.git", optional = true }
 
 # Utility
 glsl-include = "0.3"
