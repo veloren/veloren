@@ -53,7 +53,8 @@ const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 widget_ids! {
     struct Ids {
         // Crosshair
-        crosshair,
+        crosshair_inner,
+        crosshair_outer,
 
         // Character Names
         name_tags[],
@@ -124,6 +125,8 @@ pub enum Event {
     AdjustVolume(f32),
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
+    CrosshairTransp(f32),
+    //UiScale(f32),
     CharacterSelection,
     Logout,
     Quit,
@@ -259,7 +262,7 @@ pub struct Hud {
     imgs: Imgs,
     fonts: Fonts,
     new_messages: VecDeque<String>,
-    inventory_space: u32,
+    inventory_space: usize,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -271,7 +274,10 @@ impl Hud {
     pub fn new(window: &mut Window) -> Self {
         let mut ui = Ui::new(window).unwrap();
         // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-        ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
+        let ui_scale = 0.7;
+        ui.scaling_mode(ScaleMode::RelativeToWindow(
+            window.renderer().get_resolution().map(|e| e as f64) / ui_scale as f64,
+        ));
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // Load images.
@@ -285,7 +291,7 @@ impl Hud {
             fonts,
             ids,
             new_messages: VecDeque::new(),
-            inventory_space: 0,
+            inventory_space: 8,
             show: Show {
                 help: false,
                 debug: true,
@@ -342,11 +348,21 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Crosshair
-            Image::new(self.imgs.crosshair)
-                .w_h(21.0 * 2.0, 21.0 * 2.0)
+            Image::new(self.imgs.crosshair_outer)
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
                 .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-                .set(self.ids.crosshair, ui_widgets);
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    global_state.settings.gameplay.crosshair_transp,
+                )))
+                .set(self.ids.crosshair_outer, ui_widgets);
+            Image::new(self.imgs.crosshair_inner)
+                .w_h(21.0 * 2.0, 21.0 * 2.0)
+                .middle_of(self.ids.crosshair_outer)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                .set(self.ids.crosshair_inner, ui_widgets);
 
             // Render Name Tags
             for (pos, name) in (&entities, &pos, &stats, player.maybe())
@@ -376,7 +392,7 @@ impl Hud {
                 );
                 Text::new(&name)
                     .font_size(20)
-                    .color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                    .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
                     .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
                     .resolution(100.0)
@@ -479,17 +495,21 @@ impl Hud {
 
         // Add Bag-Space Button.
         if self.show.inventory_test_button {
-            if Button::image(self.imgs.grid_button)
+            if Button::image(self.imgs.button)
                 .w_h(100.0, 100.0)
                 .middle_of(ui_widgets.window)
-                .label("1 Up!")
+                .label("Add 1 Space")
                 .label_font_size(20)
-                .hover_image(self.imgs.grid_button_hover)
-                .press_image(self.imgs.grid_button_press)
+                .label_color(TEXT_COLOR)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
                 .set(self.ids.bag_space_add, ui_widgets)
                 .was_clicked()
             {
-                self.inventory_space += 1;
+                if self.inventory_space < 100 {
+                    self.inventory_space += 1;
+                } else {
+                }
             };
         }
 
@@ -616,6 +636,9 @@ impl Hud {
                     }
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
+                    }
+                    settings_window::Event::CrosshairTransp(crosshair_transp) => {
+                        events.push(Event::CrosshairTransp(crosshair_transp));
                     }
                     settings_window::Event::AdjustVolume(volume) => {
                         events.push(Event::AdjustVolume(volume));

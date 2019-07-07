@@ -8,6 +8,10 @@ image_ids! {
         bag_contents: "voxygen/element/frames/bag.vox",
         inv_grid: "voxygen/element/frames/inv_grid.vox",
         inv_slot: "voxygen/element/buttons/inv_slot.vox",
+        grid_inv: "voxygen/element/buttons/grid_inv.vox",
+        bag_top: "voxygen/element/bag/top.vox",
+        bag_mid: "voxygen/element/bag/mid.vox",
+        bag_bot: "voxygen/element/bag/bot.vox",
 
         // Window Parts
         window_3: "voxygen/element/frames/window_3.vox",
@@ -49,8 +53,15 @@ image_ids! {
         chat_arrow_mo: "voxygen/element/buttons/arrow_down_hover.vox",
         chat_arrow_press: "voxygen/element/buttons/arrow_down_press.vox",
 
+        // Crosshair
+        crosshair: "voxygen/element/misc_bg/crosshair.vox",
+        //crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
+        crosshair_inner: "voxygen/element/misc_bg/crosshair_inner.vox",
+
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
+
+        crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
 
         // Buttons
         mmap_closed: "voxygen/element/buttons/button_mmap_closed.vox",
@@ -119,9 +130,12 @@ image_ids! {
         button_hover: "voxygen/element/buttons/button_hover.vox",
         button_press: "voxygen/element/buttons/button_press.vox",
 
-        // Crosshair
-        crosshair: "voxygen/element/misc_bg/crosshair.vox",
-
+        // Items
+        potion_red: "voxygen/voxel/object/potion_red.vox",
+        potion_green: "voxygen/voxel/object/potion_green.vox",
+        potion_blue: "voxygen/voxel/object/potion_blue.vox",
+        key: "voxygen/voxel/object/key.vox",
+        key_gold: "voxygen/voxel/object/key_gold.vox",
 //////////////////////////////////////////////////////////////////////////////////////////////////////
         <ImageGraphic>
 

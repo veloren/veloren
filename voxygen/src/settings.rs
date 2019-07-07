@@ -75,6 +75,7 @@ impl Default for ControlSettings {
 pub struct GameplaySettings {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
+    pub crosshair_transp: f32,
 }
 
 impl Default for GameplaySettings {
@@ -82,6 +83,7 @@ impl Default for GameplaySettings {
         Self {
             pan_sensitivity: 100,
             zoom_sensitivity: 100,
+            crosshair_transp: 0.6,
         }
     }
 }
