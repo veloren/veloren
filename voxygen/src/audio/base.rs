@@ -284,7 +284,7 @@ impl MonoEmitter {
         let device = AudioDevice::new(settings);
 
         let sink = Sink::new(&device.device);
-        sink.set_volume(settings.master_volume);
+        sink.set_volume(settings.music_volume);
 
         Self {
             device,
