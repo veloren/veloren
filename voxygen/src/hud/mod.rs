@@ -10,6 +10,7 @@ mod settings_window;
 mod skillbar;
 mod small_window;
 
+use crate::hud::Event::CrosshairTransp;
 use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
@@ -122,6 +123,7 @@ pub enum Event {
     AdjustVolume(f32),
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
+    CrosshairTransp(f32),
     CharacterSelection,
     Logout,
     Quit,
@@ -258,6 +260,7 @@ pub struct Hud {
     fonts: Fonts,
     new_messages: VecDeque<String>,
     inventory_space: usize,
+    crosshair_transp: f32,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
     force_ungrab: bool,
@@ -284,6 +287,7 @@ impl Hud {
             ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
+            crosshair_transp: 0.6,
             show: Show {
                 help: false,
                 debug: true,
@@ -340,10 +344,11 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Crosshair
+            let crosshair_transp = self.crosshair_transp;
             Image::new(self.imgs.crosshair_outer)
                 .w_h(21.0 * 1.5, 21.0 * 1.5)
                 .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.2)))
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, self.crosshair_transp)))
                 .set(self.ids.crosshair_outer, ui_widgets);
             Image::new(self.imgs.crosshair_inner)
                 .w_h(21.0 * 2.0, 21.0 * 2.0)
@@ -623,6 +628,9 @@ impl Hud {
                     }
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
+                    }
+                    settings_window::Event::CrosshairTransp(crosshair_transp) => {
+                        events.push(Event::CrosshairTransp(crosshair_transp));
                     }
                     settings_window::Event::AdjustVolume(volume) => {
                         events.push(Event::AdjustVolume(volume));
