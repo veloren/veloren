@@ -294,8 +294,8 @@ impl<'a> BlockGen<'a> {
                 StructureBlock::PalmLeaves => Block::new(
                     1,
                     Lerp::lerp(
-                        Rgb::new(30.0, 100.0, 30.0),
-                        Rgb::new(120.0, 255.0, 0.0),
+                        Rgb::new(25.0, 100.0, 30.0),
+                        Rgb::new(75.0, 255.0, 0.0),
                         lerp,
                     )
                     .map(|e| e as u8),
