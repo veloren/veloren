@@ -3,7 +3,7 @@ use conrod_core::{
     color,
     position::Relative,
     widget::{self, Button, Image, Rectangle, Scrollbar},
-    widget_ids, Colorable, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -36,7 +36,7 @@ pub struct Bag<'a> {
 impl<'a> Bag<'a> {
     pub fn new(inventory_space: usize, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
-            inventory_space,            
+            inventory_space,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -78,21 +78,29 @@ impl<'a> Widget for Bag<'a> {
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
         Image::new(self.imgs.bag_mid)
-            .w_h(61.0 * BAG_SCALE, ((self.inventory_space + 4) / 5) as f64 * 44.0)
+            .w_h(
+                61.0 * BAG_SCALE,
+                ((self.inventory_space + 4) / 5) as f64 * 44.0,
+            )
             .up_from(state.ids.bag_bot, 0.0)
             .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
-            .set(state.ids.bag_top, ui);    
+            .set(state.ids.bag_top, ui);
 
         // Alignment for Grid
-        Rectangle::fill_with([54.0 * BAG_SCALE, ((self.inventory_space + 4) / 5) as f64 * 44.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
-            .scroll_kids()
-            .scroll_kids_vertically()
-            .set(state.ids.inv_alignment, ui);
-
+        Rectangle::fill_with(
+            [
+                54.0 * BAG_SCALE,
+                ((self.inventory_space + 4) / 5) as f64 * 44.0,
+            ],
+            color::TRANSPARENT,
+        )
+        .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
+        .scroll_kids()
+        .scroll_kids_vertically()
+        .set(state.ids.inv_alignment, ui);
 
         // Grid
         /*Image::new(self.imgs.inv_grid)
