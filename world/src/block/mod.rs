@@ -318,6 +318,15 @@ impl<'a> BlockGen<'a> {
                     )
                     .map(|e| e as u8),
                 ),
+                StructureBlock::Acacia => Block::new(
+                    1,
+                    Lerp::lerp(
+                        Rgb::new(60.0, 165.0, 20.0),
+                        Rgb::new(150.0, 245.0, 30.0),
+                        lerp,
+                    )
+                    .map(|e| e as u8),
+                ),
                 StructureBlock::Block(block) => block,
             }
         }

@@ -12,6 +12,7 @@ use vek::*;
 pub enum StructureBlock {
     TemperateLeaves,
     PineLeaves,
+    Acacia,
     PalmLeaves,
     Block(Block),
 }
@@ -90,6 +91,7 @@ impl Asset for Structure {
                     0 => StructureBlock::TemperateLeaves,
                     1 => StructureBlock::PineLeaves,
                     2 => StructureBlock::PalmLeaves,
+                    4 => StructureBlock::Acacia,
                     index => {
                         let color = palette
                             .get(index as usize)
