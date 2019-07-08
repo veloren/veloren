@@ -200,7 +200,7 @@ impl<'a> BlockGen<'a> {
 
         // Sample blocks
 
-        let stone_col = Rgb::new(200, 220, 255);
+        let stone_col = Rgb::new(240, 230, 220);
         // let dirt_col = Rgb::new(79, 67, 60);
 
         let air = Block::empty();
@@ -321,8 +321,8 @@ impl<'a> BlockGen<'a> {
                 StructureBlock::Acacia => Block::new(
                     1,
                     Lerp::lerp(
-                        Rgb::new(60.0, 165.0, 20.0),
-                        Rgb::new(150.0, 245.0, 30.0),
+                        Rgb::new(25.0, 80.0, 20.0),
+                        Rgb::new(100.0, 200.0, 5.0),
                         lerp,
                     )
                     .map(|e| e as u8),
