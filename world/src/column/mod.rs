@@ -75,7 +75,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
-        let water_level = (riverless_alt - 4.0 - 5.0 * chaos).max(CONFIG.sea_level);
+        let water_level = riverless_alt - 4.0 - 5.0 * chaos;
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -103,8 +103,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let warm_grass = Rgb::new(0.18, 0.65, 0.0);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
-        let beach_sand = Rgb::new(0.93, 0.84, 0.4);
-        let desert_sand = Rgb::new(0.98, 0.8, 0.15);
+        let beach_sand = Rgb::new(0.9, 0.85, 0.3);
+        let desert_sand = Rgb::new(1.0, 0.7, 0.15);
         let snow = Rgb::broadcast(1.0);
 
         let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
@@ -115,7 +115,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let tropical = Rgb::lerp(
             grass,
-            Rgb::new(0.95, 0.85, 0.1),
+            Rgb::new(1.0, 0.75, 0.1),
             marble_small.sub(0.5).mul(0.05).add(0.3),
         );
 
@@ -232,16 +232,17 @@ impl<'a> Sampler for ColumnGen<'a> {
                         cliff,
                         snow,
                         (alt - CONFIG.sea_level
-                            - 0.35 * CONFIG.mountain_scale
+                            - 0.4 * CONFIG.mountain_scale
                             - alt_base
                             - temp * 96.0
                             - marble * 24.0)
                             / 12.0,
                     ),
-                    (alt - CONFIG.sea_level - 0.3 * CONFIG.mountain_scale + marble * 128.0) / 100.0,
+                    (alt - CONFIG.sea_level - 0.25 * CONFIG.mountain_scale + marble * 128.0)
+                        / 100.0,
                 ),
                 // Beach
-                ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
+                ((alt - CONFIG.sea_level - 1.0) / 2.0).min(1.0 - river * 2.0),
             ),
             sub_surface_color: dirt,
             tree_density,
