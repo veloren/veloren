@@ -131,7 +131,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     .mul(256.0),
             ),
             Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_temp).mul(32.0)),
-            temp.sub(CONFIG.tropical_temp).mul(64.0),
+            temp.sub(CONFIG.tropical_temp).mul(16.0),
         );
 
         // Work out if we're on a path or near a town
