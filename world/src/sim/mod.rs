@@ -421,10 +421,7 @@ impl SimChunk {
                 && dryness > 0.05
                 && alt > CONFIG.sea_level + 5.0
                 && dryness.abs() > 0.075,
-            near_cliffs: cliff > 0.275
-                && dryness > 0.05
-                && alt > CONFIG.sea_level + 5.0
-                && dryness.abs() > 0.075,
+            near_cliffs: cliff > 0.25,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .mul(1.5)
                 .add(1.0)
