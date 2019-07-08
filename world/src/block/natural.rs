@@ -421,7 +421,7 @@ lazy_static! {
 
     pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
         st_asset("world/structure/natural/tower-ruin.vox", (11, 14, 5)),
-        st_asset("world/structure/natural/witch-hut.vox", (10, 13, 3)),
+        st_asset("world/structure/natural/witch-hut.vox", (10, 13, 9)),
     ];
 
     pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = vec![
