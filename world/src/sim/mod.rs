@@ -439,7 +439,7 @@ impl SimChunk {
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
                     ForestKind::Palm
-                } else if temp > CONFIG.desert_temp {
+                } else if temp > CONFIG.tropical_temp {
                     ForestKind::Savannah
                 } else {
                     ForestKind::Oak

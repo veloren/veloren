@@ -92,7 +92,7 @@ impl World {
 
                 let (min_z, max_z) = z_cache.get_z_limits();
 
-                for z in base_z..(min_z as i32).max(base_z) {
+                for z in base_z..min_z as i32 {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
                 }
 

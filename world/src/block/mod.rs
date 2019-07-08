@@ -366,7 +366,7 @@ pub struct ZCache<'a> {
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self) -> (f32, f32) {
         let cave_depth = if self.sample.cave_xy.abs() > 0.9 {
-            (self.sample.alt - self.sample.cave_alt) + 8.0
+            (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
         } else {
             0.0
         };
