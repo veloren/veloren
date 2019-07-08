@@ -351,7 +351,7 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
-        let temp = gen_ctx.temp_nz.get((wposf.div(15000.0)).into_array()) as f32;
+        let temp = gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32;
 
         let dryness = gen_ctx.dry_nz.get(
             (wposf
@@ -385,11 +385,9 @@ impl SimChunk {
             )
             .max(0.15);
 
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
-        let alt_base = alt_base
-            .mul(0.4)
-            .add(alt_base.mul(128.0).sin().mul(0.005))
-            .mul(400.0);
+        let alt_base = (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+            .mul(250.0)
+            .sub(25.0);
 
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()

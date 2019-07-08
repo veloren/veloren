@@ -164,7 +164,7 @@ impl<'a> BlockGen<'a> {
                     .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
                     as f32)
                     .mul((chaos - 0.1).max(0.0))
-                    .mul(115.0);
+                    .mul(96.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
@@ -195,7 +195,7 @@ impl<'a> BlockGen<'a> {
                     (alt + warp).max(cliff_height)
                 };
 
-                (false, height, water_level + warp)
+                (false, height, (water_level + warp).max(CONFIG.sea_level))
             };
 
         // Sample blocks
@@ -395,8 +395,9 @@ impl<'a> ZCache<'a> {
             },
         ) as f32;
 
-        let max =
-            (self.sample.alt + cliff + structure + warp + 8.0).max(self.sample.water_level + 2.0);
+        let max = (self.sample.alt + cliff + structure + warp + 8.0)
+            .max(self.sample.water_level)
+            .max(CONFIG.sea_level + 2.0);
 
         (min, max)
     }
