@@ -47,6 +47,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         const RIVER_PROPORTION: f32 = 0.025;
 
+        /*
         let river = dryness
             .abs()
             .neg()
@@ -54,6 +55,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             .div(RIVER_PROPORTION)
             .max(0.0)
             .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
+        */
+        let river = 0.0;
 
         let cliff_hill =
             (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32).mul(16.0);

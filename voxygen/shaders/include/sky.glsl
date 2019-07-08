@@ -1,17 +1,17 @@
 const float PI = 3.141592;
 
-const vec3 SKY_DAY_TOP = vec3(0.2, 0.3, 0.9);
-const vec3 SKY_DAY_MID = vec3(0.15, 0.2, 0.8);
+const vec3 SKY_DAY_TOP = vec3(0.35, 0.45, 0.9);
+const vec3 SKY_DAY_MID = vec3(0.25, 0.35, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.02, 0.1, 0.3);
 const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 1.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.1, 0.15, 0.3);
-const vec3 SKY_DUSK_MID = vec3(0.75, 0.3, 0.25);
+const vec3 SKY_DUSK_MID = vec3(0.95, 0.4, 0.25);
 const vec3 SKY_DUSK_BOT = vec3(0.01, 0.05, 0.15);
 const vec3 DUSK_LIGHT   = vec3(0.9, 0.2, 0.1);
 
-const vec3 SKY_NIGHT_TOP = vec3(0.002, 0.002, 0.005);
-const vec3 SKY_NIGHT_MID = vec3(0.002, 0.01, 0.03);
+const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
+const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
 const vec3 SKY_NIGHT_BOT = vec3(0.002, 0.002, 0.005);
 const vec3 NIGHT_LIGHT   = vec3(0.002, 0.01, 0.03);
 
