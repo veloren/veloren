@@ -76,7 +76,7 @@ impl World {
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
 
-        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, meta);
+        let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
 
         let mut sampler = self.sample_blocks();
 
@@ -85,18 +85,6 @@ impl World {
                 let wpos2d = Vec2::new(x, y)
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                /*
-                let min_z = self
-                    .sim
-                    .get_interpolated(wpos2d, |chunk| chunk.get_min_z())
-                    .unwrap_or(0.0) as i32;
-
-                let max_z = self
-                    .sim
-                    .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
-                    .unwrap_or(0.0) as i32;
-                */
-
                 let z_cache = match sampler.get_z_cache(wpos2d) {
                     Some(z_cache) => z_cache,
                     None => continue,
@@ -104,7 +92,7 @@ impl World {
 
                 let (min_z, max_z) = z_cache.get_z_limits();
 
-                for z in base_z - 16..min_z as i32 {
+                for z in base_z..(min_z as i32).max(base_z) {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
                 }
 
