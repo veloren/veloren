@@ -44,7 +44,7 @@ pub fn structure_gen<'a>(
     let st_pos3d = Vec3::new(st_pos.x, st_pos.y, wheight as i32);
 
     let volumes: &'static [_] = if QUIRKY_RAND.get(st_seed) % 64 == 17 {
-        if st_sample.temp > CONFIG.tropical_temp {
+        if st_sample.temp > CONFIG.desert_temp {
             &QUIRKY_DRY
         } else {
             &QUIRKY
