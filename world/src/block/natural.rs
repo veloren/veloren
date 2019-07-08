@@ -9,9 +9,9 @@ use lazy_static::lazy_static;
 use std::sync::Arc;
 use vek::*;
 
-static VOLUME_RAND: RandomPerm = RandomPerm::new(0);
-static UNIT_RAND: RandomPerm = RandomPerm::new(1);
-static QUIRKY_RAND: RandomPerm = RandomPerm::new(2);
+static VOLUME_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
+static UNIT_RAND: RandomPerm = RandomPerm::new(0x700F4EC7);
+static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 pub fn structure_gen<'a>(
     column_gen: &ColumnGen<'a>,
@@ -42,24 +42,41 @@ pub fn structure_gen<'a>(
     let wheight = st_sample.alt.max(cliff_height);
     let st_pos3d = Vec3::new(st_pos.x, st_pos.y, wheight as i32);
 
-    let volumes: &'static [_] = match st_sample.forest_kind {
-        ForestKind::Palm => &PALMS,
-        ForestKind::Savannah => &PALMS,
-        ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 64 == 0 => &QUIRKY,
-        ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 0 => &OAK_STUMPS,
-        ForestKind::Oak => &OAKS,
-        ForestKind::Pine => &PINES,
-        ForestKind::SnowPine => &SNOW_PINES,
+    let volumes: &'static [_] = if QUIRKY_RAND.get(st_seed) % 64 == 17 {
+        &QUIRKY
+    } else {
+        match st_sample.forest_kind {
+            ForestKind::Palm => &PALMS,
+            ForestKind::Savannah => &PALMS,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
+            ForestKind::Oak => &OAKS,
+            ForestKind::Pine => &PINES,
+            ForestKind::SnowPine => &SNOW_PINES,
+        }
     };
 
-    const UNIT_CHOICES: [(Vec2<i32>, Vec2<i32>); 1] = [(Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: 1 })];
+    const UNIT_CHOICES: [(Vec2<i32>, Vec2<i32>); 8] = [
+        (Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: 1 }),
+        (Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: -1 }),
+        (Vec2 { x: -1, y: 0 }, Vec2 { x: 0, y: 1 }),
+        (Vec2 { x: -1, y: 0 }, Vec2 { x: 0, y: -1 }),
+        (Vec2 { x: 0, y: 1 }, Vec2 { x: 1, y: 0 }),
+        (Vec2 { x: 0, y: 1 }, Vec2 { x: -1, y: 0 }),
+        (Vec2 { x: 0, y: -1 }, Vec2 { x: 1, y: 0 }),
+        (Vec2 { x: 0, y: -1 }, Vec2 { x: -1, y: 0 }),
+    ];
 
     Some(StructureInfo {
         pos: st_pos3d,
         seed: st_seed,
         units: UNIT_CHOICES[UNIT_RAND.get(st_seed) as usize % UNIT_CHOICES.len()],
-        volume: &volumes[VOLUME_RAND.get(st_seed) as usize % volumes.len()],
+        volume: &volumes[(VOLUME_RAND.get(st_seed) / 13) as usize % volumes.len()],
     })
+}
+
+fn st_asset(path: &str, offset: impl Into<Vec3<i32>>) -> Arc<Structure> {
+    assets::load_map(path, |s: Structure| s.with_center(offset.into()))
+        .expect("Failed to load structure asset")
 }
 
 lazy_static! {
@@ -330,30 +347,14 @@ lazy_static! {
 
     pub static ref SNOW_PINES: Vec<Arc<Structure>> = vec![
         // snow pines
-        assets::load_map("world/tree/snow_pine/1.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 14)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/2.vox", |s: Structure| s
-            .with_center(Vec3::new(15, 15, 14)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/3.vox", |s: Structure| s
-            .with_center(Vec3::new(17, 15, 12)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/4.vox", |s: Structure| s
-            .with_center(Vec3::new(10, 8, 12)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/5.vox", |s: Structure| s
-            .with_center(Vec3::new(12, 12, 12)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/6.vox", |s: Structure| s
-            .with_center(Vec3::new(11, 10, 12)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/7.vox", |s: Structure| s
-            .with_center(Vec3::new(16, 15, 12)))
-        .unwrap(),
-        assets::load_map("world/tree/snow_pine/8.vox", |s: Structure| s
-            .with_center(Vec3::new(12, 10, 12)))
-        .unwrap(),
+        st_asset("world/tree/snow_pine/1.vox", (15, 15, 14)),
+        st_asset("world/tree/snow_pine/2.vox", (15, 15, 14)),
+        st_asset("world/tree/snow_pine/3.vox", (17, 15, 12)),
+        st_asset("world/tree/snow_pine/4.vox", (10, 8, 12)),
+        st_asset("world/tree/snow_pine/5.vox", (12, 12, 12)),
+        st_asset("world/tree/snow_pine/6.vox", (11, 10, 12)),
+        st_asset("world/tree/snow_pine/7.vox", (16, 15, 12)),
+        st_asset("world/tree/snow_pine/8.vox", (12, 10, 12)),
     ];
         /*
         // snow birches -> need roots!
@@ -404,8 +405,7 @@ lazy_static! {
     */
 
     pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
-        assets::load_map("world/structure/natural/tower_ruin.vox", |s: Structure| s
-            .with_center(Vec3::new(11, 14, 7)))
-        .unwrap(),
+        st_asset("world/structure/natural/tower-ruin.vox", (11, 14, 5)),
+        st_asset("world/structure/natural/witch-hut.vox", (10, 13, 3)),
     ];
 }
