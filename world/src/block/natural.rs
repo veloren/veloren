@@ -3,6 +3,7 @@ use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
     util::{HashCache, RandomPerm, Sampler},
+    CONFIG,
 };
 use common::{assets, terrain::Structure};
 use lazy_static::lazy_static;
@@ -43,11 +44,15 @@ pub fn structure_gen<'a>(
     let st_pos3d = Vec3::new(st_pos.x, st_pos.y, wheight as i32);
 
     let volumes: &'static [_] = if QUIRKY_RAND.get(st_seed) % 64 == 17 {
-        &QUIRKY
+        if st_sample.temp > CONFIG.tropical_temp {
+            &QUIRKY_DRY
+        } else {
+            &QUIRKY
+        }
     } else {
         match st_sample.forest_kind {
             ForestKind::Palm => &PALMS,
-            ForestKind::Savannah => &PALMS,
+            ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
@@ -356,6 +361,16 @@ lazy_static! {
         st_asset("world/tree/snow_pine/7.vox", (16, 15, 12)),
         st_asset("world/tree/snow_pine/8.vox", (12, 10, 12)),
     ];
+
+    pub static ref ACACIAS: Vec<Arc<Structure>> = vec![
+        // snow pines
+        st_asset("world/tree/acacia/1.vox", (16, 17, 1)),
+        st_asset("world/tree/acacia/2.vox", (5, 6, 1)),
+        st_asset("world/tree/acacia/3.vox", (5, 6, 1)),
+        st_asset("world/tree/acacia/4.vox", (15, 16, 1)),
+        st_asset("world/tree/acacia/5.vox", (19, 18, 1)),
+    ];
+
         /*
         // snow birches -> need roots!
         assets::load_map("world/tree/snow_birch/1.vox", |s: Structure| s
@@ -407,5 +422,10 @@ lazy_static! {
     pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
         st_asset("world/structure/natural/tower-ruin.vox", (11, 14, 5)),
         st_asset("world/structure/natural/witch-hut.vox", (10, 13, 3)),
+    ];
+
+    pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = vec![
+        st_asset("world/structure/natural/ribcage-small.vox", (7, 13, 4)),
+        st_asset("world/structure/natural/skull-large.vox", (15, 20, 4)),
     ];
 }
