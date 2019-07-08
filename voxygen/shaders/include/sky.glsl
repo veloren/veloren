@@ -6,7 +6,7 @@ const vec3 SKY_DAY_BOT = vec3(0.02, 0.1, 0.3);
 const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 1.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.1, 0.15, 0.3);
-const vec3 SKY_DUSK_MID = vec3(0.9, 0.3, 0.2);
+const vec3 SKY_DUSK_MID = vec3(0.75, 0.3, 0.25);
 const vec3 SKY_DUSK_BOT = vec3(0.01, 0.05, 0.15);
 const vec3 DUSK_LIGHT   = vec3(0.9, 0.2, 0.1);
 

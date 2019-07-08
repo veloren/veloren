@@ -3,7 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{HashCache, RandomField, Sampler, SamplerMut},
-    World,
+    World, CONFIG,
 };
 use common::{
     terrain::{structure::StructureBlock, Block, Structure},
@@ -52,7 +52,7 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample) if cliff_sample.cliffs && cliff_sample.spawn_rate > 0.5 => {
+                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
@@ -113,7 +113,11 @@ impl<'a> BlockGen<'a> {
             }
         }
 
-        Some(ZCache { sample, structures })
+        Some(ZCache {
+            wpos,
+            sample,
+            structures,
+        })
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
@@ -354,8 +358,42 @@ impl<'a> BlockGen<'a> {
 }
 
 pub struct ZCache<'a> {
+    wpos: Vec2<i32>,
     sample: ColumnSample<'a>,
     structures: [Option<(StructureInfo, ColumnSample<'a>)>; 9],
+}
+
+impl<'a> ZCache<'a> {
+    pub fn get_z_limits(&self) -> (f32, f32) {
+        let cave_depth = if self.sample.cave_xy.abs() > 0.9 {
+            (self.sample.alt - self.sample.cave_alt) + 8.0
+        } else {
+            0.0
+        };
+
+        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth) - 4.0;
+
+        let cliff = if self.sample.near_cliffs { 48.0 } else { 0.0 };
+        let warp = self.sample.chaos * 48.0;
+        let structure = self.structures.iter().filter_map(|st| st.as_ref()).fold(
+            0,
+            |a, (st_info, st_sample)| {
+                let bounds = st_info.volume.get_bounds();
+                let min = Vec2::from(bounds.min + st_info.pos);
+                let max = Vec2::from(bounds.max + st_info.pos);
+                if (Aabr { min, max }).contains_point(self.wpos) {
+                    a.max(bounds.max.z)
+                } else {
+                    a
+                }
+            },
+        ) as f32;
+
+        let max =
+            (self.sample.alt + cliff + structure + warp + 8.0).max(self.sample.water_level + 2.0);
+
+        (min, max)
+    }
 }
 
 pub struct StructureInfo {

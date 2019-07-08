@@ -64,7 +64,8 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(chaos.max(0.15))
                 .mul(64.0);
 
-        let cliffs = sim_chunk.cliffs;
+        let is_cliffs = sim_chunk.is_cliffs;
+        let near_cliffs = sim_chunk.near_cliffs;
 
         let alt = riverless_alt
             - (1.0 - river)
@@ -249,7 +250,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             cave_xy,
             cave_alt,
             rock,
-            cliffs,
+            is_cliffs,
+            near_cliffs,
             cliff_hill,
             close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
@@ -273,7 +275,8 @@ pub struct ColumnSample<'a> {
     pub cave_xy: f32,
     pub cave_alt: f32,
     pub rock: f32,
-    pub cliffs: bool,
+    pub is_cliffs: bool,
+    pub near_cliffs: bool,
     pub cliff_hill: f32,
     pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
