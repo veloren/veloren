@@ -78,7 +78,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let water_level = (riverless_alt - 4.0 - 5.0 * chaos).max(CONFIG.sea_level);
 
         let rock = (sim.gen_ctx.small_nz.get(
-            Vec3::new(wposf.x, wposf.y, alt as f64 * 3.0)
+            Vec3::new(wposf.x, wposf.y, alt as f64)
                 .div(100.0)
                 .into_array(),
         ) as f32)

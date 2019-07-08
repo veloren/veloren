@@ -379,9 +379,15 @@ impl<'a> ZCache<'a> {
             0,
             |a, (st_info, st_sample)| {
                 let bounds = st_info.volume.get_bounds();
-                let min = Vec2::from(bounds.min + st_info.pos);
-                let max = Vec2::from(bounds.max + st_info.pos);
-                if (Aabr { min, max }).contains_point(self.wpos) {
+                let st_area = Aabr {
+                    min: Vec2::from(bounds.min),
+                    max: Vec2::from(bounds.max),
+                };
+
+                let rpos = self.wpos - st_info.pos;
+                let unit_rpos = st_info.units.0 * rpos.x + st_info.units.1 * rpos.y;
+
+                if st_area.contains_point(unit_rpos) {
                     a.max(bounds.max.z)
                 } else {
                     a

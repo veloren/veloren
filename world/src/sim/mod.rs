@@ -423,7 +423,7 @@ impl SimChunk {
                 && dryness > 0.05
                 && alt > CONFIG.sea_level + 5.0
                 && dryness.abs() > 0.075,
-            near_cliffs: cliff > 0.325,
+            near_cliffs: cliff > 0.3,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .mul(1.5)
                 .add(1.0)
@@ -457,7 +457,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - self.chaos * 50.0
+        self.alt - self.chaos * 50.0 - 16.0
     }
 
     pub fn get_name(&self, world: &WorldSim) -> Option<String> {
