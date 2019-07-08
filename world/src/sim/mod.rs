@@ -306,8 +306,6 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (100.0, 128.0);
-
 pub struct SimChunk {
     pub chaos: f32,
     pub alt_base: f32,
@@ -315,7 +313,7 @@ pub struct SimChunk {
     pub temp: f32,
     pub dryness: f32,
     pub rockiness: f32,
-    pub cliffs: bool,
+    pub is_cliffs: bool,
     pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
@@ -421,21 +419,23 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            cliffs: cliff > 0.5
+            is_cliffs: cliff > 0.5
                 && dryness > 0.05
                 && alt > CONFIG.sea_level + 5.0
                 && dryness.abs() > 0.075,
-            near_cliffs: cliff > 0.4,
+            near_cliffs: cliff > 0.325,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
                 .mul(1.2 - chaos * 0.95)
-                .add(0.1)
+                .add(0.05)
                 .mul(if alt > CONFIG.sea_level + 5.0 {
                     1.0
                 } else {
                     0.0
-                }),
+                })
+                .max(0.0),
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
                     ForestKind::Palm
@@ -457,16 +457,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * self.chaos
-    }
-
-    pub fn get_min_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos * 1.2 + 0.3)
-    }
-
-    pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1 * if self.near_cliffs { 1.0 } else { 0.5 })
-            .max(CONFIG.sea_level + 2.0)
+        self.alt - self.chaos * 50.0
     }
 
     pub fn get_name(&self, world: &WorldSim) -> Option<String> {
