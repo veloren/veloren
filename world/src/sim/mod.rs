@@ -374,6 +374,7 @@ impl SimChunk {
             .mul(
                 (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
                     .abs()
+                    .max(0.25)
                     .min(1.0),
             )
             .add(0.15 * hill)
@@ -383,7 +384,8 @@ impl SimChunk {
                     .mul(12.0)
                     .max(0.35)
                     .min(1.0),
-            );
+            )
+            .max(0.15);
 
         let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
         let alt_base = alt_base
