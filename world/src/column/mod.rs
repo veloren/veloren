@@ -118,8 +118,8 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let tropical = Rgb::lerp(
             grass,
-            Rgb::new(1.0, 0.75, 0.1),
-            marble_small.sub(0.5).mul(0.05).add(0.3),
+            Rgb::new(0.85, 0.4, 0.2),
+            marble_small.sub(0.5).mul(0.2).add(0.75),
         );
 
         let ground = Rgb::lerp(
