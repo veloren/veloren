@@ -426,6 +426,7 @@ lazy_static! {
 
     pub static ref QUIRKY_DRY: Vec<Arc<Structure>> = vec![
         st_asset("world/structure/natural/ribcage-small.vox", (7, 13, 4)),
+        st_asset("world/structure/natural/ribcage-large.vox", (13, 19, 8)),
         st_asset("world/structure/natural/skull-large.vox", (15, 20, 4)),
     ];
 }
