@@ -54,6 +54,7 @@ pub fn structure_gen<'a>(
             ForestKind::Palm => &PALMS,
             ForestKind::Savannah => &ACACIAS,
             ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 16 == 7 => &OAK_STUMPS,
+            ForestKind::Oak if QUIRKY_RAND.get(st_seed) % 8 == 7 => &FRUIT_TREES,
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
             ForestKind::SnowPine => &SNOW_PINES,
@@ -369,6 +370,16 @@ lazy_static! {
         st_asset("world/tree/acacia/3.vox", (5, 6, 1)),
         st_asset("world/tree/acacia/4.vox", (15, 16, 1)),
         st_asset("world/tree/acacia/5.vox", (19, 18, 1)),
+    ];
+
+    pub static ref FRUIT_TREES: Vec<Arc<Structure>> = vec![
+        // snow pines
+        st_asset("world/tree/fruit/1.vox", (5, 5, 7)),
+        st_asset("world/tree/fruit/2.vox", (5, 5, 7)),
+        st_asset("world/tree/fruit/3.vox", (5, 5, 7)),
+        st_asset("world/tree/fruit/4.vox", (5, 5, 7)),
+        st_asset("world/tree/fruit/5.vox", (5, 5, 7)),
+        st_asset("world/tree/fruit/6.vox", (5, 5, 7)),
     ];
 
         /*
