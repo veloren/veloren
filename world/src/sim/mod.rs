@@ -393,7 +393,15 @@ impl SimChunk {
             .abs()
             .powf(1.35);
 
-        let alt = CONFIG.sea_level
+        let map_edge_factor = pos
+            .map2(WORLD_SIZE.map(|e| e as i32), |e, sz| {
+                (sz / 2 - (e - sz / 2).abs()) as f32 / 16.0
+            })
+            .reduce_partial_min()
+            .max(0.0)
+            .min(1.0);
+
+        let alt = (CONFIG.sea_level
             + alt_base
             + (0.0
                 + alt_main
@@ -403,7 +411,8 @@ impl SimChunk {
             .add(1.0)
             .mul(0.5)
             .mul(chaos)
-            .mul(CONFIG.mountain_scale);
+            .mul(CONFIG.mountain_scale))
+            * map_edge_factor;
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
