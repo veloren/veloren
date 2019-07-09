@@ -319,7 +319,7 @@ impl<'a> System<'a> for Sys {
             // If the space below us is free, then "snap" to the ground
             if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
-                && vel.0.z > -1.0
+                && vel.0.z > -3.0
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
