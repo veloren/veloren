@@ -38,7 +38,8 @@ pub(crate) struct GenCtx {
     pub cave_0_nz: SuperSimplex,
     pub cave_1_nz: SuperSimplex,
 
-    pub tree_gen: StructureGen2d,
+    pub structure_gen: StructureGen2d,
+    pub region_gen: StructureGen2d,
     pub cliff_gen: StructureGen2d,
 }
 
@@ -75,8 +76,9 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(seed + 13),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 14),
 
-            tree_gen: StructureGen2d::new(seed, 32, 24),
-            cliff_gen: StructureGen2d::new(seed, 80, 56),
+            structure_gen: StructureGen2d::new(seed, 32, 24),
+            region_gen: StructureGen2d::new(seed + 1, 400, 96),
+            cliff_gen: StructureGen2d::new(seed + 2, 80, 56),
         };
 
         let mut chunks = Vec::new();

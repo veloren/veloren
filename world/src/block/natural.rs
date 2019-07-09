@@ -1,4 +1,4 @@
-use super::{BlockGen, StructureInfo, ZCache};
+use super::{BlockGen, StructureInfo, StructureMeta, ZCache};
 use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
@@ -75,8 +75,10 @@ pub fn structure_gen<'a>(
     Some(StructureInfo {
         pos: st_pos3d,
         seed: st_seed,
-        units: UNIT_CHOICES[UNIT_RAND.get(st_seed) as usize % UNIT_CHOICES.len()],
-        volume: &volumes[(VOLUME_RAND.get(st_seed) / 13) as usize % volumes.len()],
+        meta: StructureMeta::Volume {
+            units: UNIT_CHOICES[UNIT_RAND.get(st_seed) as usize % UNIT_CHOICES.len()],
+            volume: &volumes[(VOLUME_RAND.get(st_seed) / 13) as usize % volumes.len()],
+        },
     })
 }
 

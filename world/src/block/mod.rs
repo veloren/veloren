@@ -1,7 +1,7 @@
 mod natural;
 
 use crate::{
-    column::{ColumnGen, ColumnSample},
+    column::{ColumnGen, ColumnSample, StructureData},
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
 };
@@ -88,28 +88,36 @@ impl<'a> BlockGen<'a> {
         // Tree samples
         let mut structure_samples = [None, None, None, None, None, None, None, None, None];
         for i in 0..structure_samples.len() {
-            let st_sample = Self::sample_column(
-                column_gen,
-                column_cache,
-                Vec2::from(sample.close_trees[i].0),
-            );
-            structure_samples[i] = st_sample;
+            if let Some(st) = sample.close_structures[i] {
+                let st_sample = Self::sample_column(column_gen, column_cache, Vec2::from(st.pos));
+                structure_samples[i] = st_sample;
+            }
         }
 
         let mut structures = [None, None, None, None, None, None, None, None, None];
         for i in 0..structures.len() {
-            let (st_pos, st_seed) = sample.close_trees[i];
-            let st_info = natural::structure_gen(
-                column_gen,
-                column_cache,
-                i,
-                st_pos,
-                st_seed,
-                &structure_samples,
-            );
+            if let (Some(st), Some(st_sample)) =
+                (sample.close_structures[i], structure_samples[i].clone())
+            {
+                let st_info = match st.meta {
+                    None => natural::structure_gen(
+                        column_gen,
+                        column_cache,
+                        i,
+                        st.pos,
+                        st.seed,
+                        &structure_samples,
+                    ),
+                    Some(meta) => Some(StructureInfo {
+                        pos: Vec3::from(st.pos) + Vec3::unit_z() * st_sample.alt as i32,
+                        seed: st.seed,
+                        meta,
+                    }),
+                };
 
-            if let (Some(st_info), Some(st_sample)) = (st_info, structure_samples[i].clone()) {
-                structures[i] = Some((st_info, st_sample));
+                if let Some(st_info) = st_info {
+                    structures[i] = Some((st_info, st_sample));
+                }
             }
         }
 
@@ -136,7 +144,7 @@ impl<'a> BlockGen<'a> {
             sub_surface_color,
             //tree_density,
             //forest_kind,
-            close_trees,
+            //close_structures,
             cave_xy,
             cave_alt,
             rock,
@@ -281,57 +289,6 @@ impl<'a> BlockGen<'a> {
             }
         });
 
-        fn block_from_structure(
-            sblock: StructureBlock,
-            pos: Vec3<i32>,
-            structure_pos: Vec2<i32>,
-            structure_seed: u32,
-            _sample: &ColumnSample,
-        ) -> Block {
-            let field = RandomField::new(structure_seed + 0);
-
-            let lerp = 0.5
-                + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.65
-                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
-
-            match sblock {
-                StructureBlock::TemperateLeaves => Block::new(
-                    1,
-                    Lerp::lerp(Rgb::new(0.0, 70.0, 35.0), Rgb::new(100.0, 140.0, 0.0), lerp)
-                        .map(|e| e as u8),
-                ),
-                StructureBlock::PineLeaves => Block::new(
-                    1,
-                    Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
-                        .map(|e| e as u8),
-                ),
-                StructureBlock::PalmLeaves => Block::new(
-                    1,
-                    Lerp::lerp(
-                        Rgb::new(15.0, 100.0, 30.0),
-                        Rgb::new(55.0, 220.0, 0.0),
-                        lerp,
-                    )
-                    .map(|e| e as u8),
-                ),
-                StructureBlock::Acacia => Block::new(
-                    1,
-                    Lerp::lerp(
-                        Rgb::new(35.0, 100.0, 10.0),
-                        Rgb::new(70.0, 190.0, 25.0),
-                        lerp,
-                    )
-                    .map(|e| e as u8),
-                ),
-                StructureBlock::Fruit => Block::new(
-                    1,
-                    Lerp::lerp(Rgb::new(255.0, 0.0, 0.0), Rgb::new(200.0, 255.0, 6.0), lerp)
-                        .map(|e| e as u8),
-                ),
-                StructureBlock::Block(block) => block,
-            }
-        }
-
         let block = if definitely_underground {
             block.unwrap_or(Block::empty())
         } else {
@@ -340,6 +297,9 @@ impl<'a> BlockGen<'a> {
                     structures.iter().find_map(|st| {
                         let (st, st_sample) = st.as_ref()?;
 
+                        st.get(wpos, st_sample)
+
+                        /*
                         let rpos = wpos - st.pos;
                         let block_pos = Vec3::unit_z() * rpos.z
                             + Vec3::from(st.units.0) * rpos.x
@@ -358,6 +318,7 @@ impl<'a> BlockGen<'a> {
                             })
                             .ok()
                             .filter(|block| !block.is_empty())
+                        */
                     })
                 })
                 .unwrap_or(Block::empty())
@@ -388,16 +349,13 @@ impl<'a> ZCache<'a> {
         let structure = self.structures.iter().filter_map(|st| st.as_ref()).fold(
             0,
             |a, (st_info, st_sample)| {
-                let bounds = st_info.volume.get_bounds();
+                let bounds = st_info.get_bounds();
                 let st_area = Aabr {
                     min: Vec2::from(bounds.min),
                     max: Vec2::from(bounds.max),
                 };
 
-                let rpos = self.wpos - st_info.pos;
-                let unit_rpos = st_info.units.0 * rpos.x + st_info.units.1 * rpos.y;
-
-                if st_area.contains_point(unit_rpos) {
+                if st_area.contains_point(self.wpos - st_info.pos) {
                     a.max(bounds.max.z)
                 } else {
                     a
@@ -413,13 +371,6 @@ impl<'a> ZCache<'a> {
     }
 }
 
-pub struct StructureInfo {
-    pos: Vec3<i32>,
-    seed: u32,
-    units: (Vec2<i32>, Vec2<i32>),
-    volume: &'static Structure,
-}
-
 impl<'a> SamplerMut for BlockGen<'a> {
     type Index = Vec3<i32>;
     type Sample = Option<Block>;
@@ -427,5 +378,129 @@ impl<'a> SamplerMut for BlockGen<'a> {
     fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
         let z_cache = self.get_z_cache(wpos.into());
         self.get_with_z_cache(wpos, z_cache.as_ref())
+    }
+}
+
+#[derive(Copy, Clone)]
+pub enum StructureMeta {
+    Pyramid {
+        height: i32,
+    },
+    Volume {
+        units: (Vec2<i32>, Vec2<i32>),
+        volume: &'static Structure,
+    },
+}
+
+pub struct StructureInfo {
+    pos: Vec3<i32>,
+    seed: u32,
+    meta: StructureMeta,
+}
+
+impl StructureInfo {
+    fn get_bounds(&self) -> Aabb<i32> {
+        match self.meta {
+            StructureMeta::Pyramid { height } => {
+                let base = 40;
+                Aabb {
+                    min: Vec3::new(-base - height, -base - height, -base),
+                    max: Vec3::new(base + height, base + height, height),
+                }
+            }
+            StructureMeta::Volume { units, volume } => {
+                let bounds = volume.get_bounds();
+
+                (Aabb {
+                    min: Vec3::from(units.0 * bounds.min.x + units.1 * bounds.min.y)
+                        + Vec3::unit_z() * bounds.min.z,
+                    max: Vec3::from(units.0 * bounds.max.x + units.1 * bounds.max.y)
+                        + Vec3::unit_z() * bounds.max.z,
+                })
+                .made_valid()
+            }
+        }
+    }
+
+    fn get(&self, wpos: Vec3<i32>, sample: &ColumnSample) -> Option<Block> {
+        match self.meta {
+            StructureMeta::Pyramid { height } => {
+                if wpos.z - self.pos.z
+                    < height
+                        - Vec2::from(wpos - self.pos)
+                            .map(|e: i32| (e.abs() / 2) * 2)
+                            .reduce_max()
+                {
+                    Some(Block::new(2, Rgb::new(180, 140, 90)))
+                } else {
+                    None
+                }
+            }
+            StructureMeta::Volume { units, volume } => {
+                let rpos = wpos - self.pos;
+                let block_pos = Vec3::unit_z() * rpos.z
+                    + Vec3::from(units.0) * rpos.x
+                    + Vec3::from(units.1) * rpos.y;
+
+                volume
+                    .get((block_pos * 128) / 128) // Scaling
+                    .map(|b| {
+                        block_from_structure(*b, block_pos, self.pos.into(), self.seed, sample)
+                    })
+                    .ok()
+                    .filter(|block| !block.is_empty())
+            }
+        }
+    }
+}
+
+fn block_from_structure(
+    sblock: StructureBlock,
+    pos: Vec3<i32>,
+    structure_pos: Vec2<i32>,
+    structure_seed: u32,
+    _sample: &ColumnSample,
+) -> Block {
+    let field = RandomField::new(structure_seed + 0);
+
+    let lerp = 0.5
+        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.65
+        + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
+
+    match sblock {
+        StructureBlock::TemperateLeaves => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(0.0, 70.0, 35.0), Rgb::new(100.0, 140.0, 0.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::PineLeaves => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::PalmLeaves => Block::new(
+            1,
+            Lerp::lerp(
+                Rgb::new(15.0, 100.0, 30.0),
+                Rgb::new(55.0, 220.0, 0.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        ),
+        StructureBlock::Acacia => Block::new(
+            1,
+            Lerp::lerp(
+                Rgb::new(35.0, 100.0, 10.0),
+                Rgb::new(70.0, 190.0, 25.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        ),
+        StructureBlock::Fruit => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(255.0, 0.0, 0.0), Rgb::new(200.0, 255.0, 6.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::Block(block) => block,
     }
 }
