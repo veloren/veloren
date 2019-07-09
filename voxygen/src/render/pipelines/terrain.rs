@@ -50,7 +50,7 @@ impl Vertex {
             pos_norm: 0
                 | ((pos.x as u32) & 0x00FF) << 0
                 | ((pos.y as u32) & 0x00FF) << 8
-                | ((pos.z as u32) & 0x1FFF) << 16
+                | ((pos.z.max(0.0).min((1 << 13) as f32) as u32) & 0x1FFF) << 16
                 | ((norm_bits as u32) & 0x7) << 29,
             col_light: 0
                 | ((col.r.mul(200.0) as u32) & 0xFF) << 8
