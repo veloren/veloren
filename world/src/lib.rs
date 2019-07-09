@@ -71,7 +71,14 @@ impl World {
             .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
         {
             Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
-            None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
+            None => {
+                return TerrainChunk::new(
+                    CONFIG.sea_level as i32,
+                    water,
+                    air,
+                    TerrainChunkMeta::void(),
+                )
+            }
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
