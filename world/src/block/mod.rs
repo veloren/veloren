@@ -291,18 +291,14 @@ impl<'a> BlockGen<'a> {
             let field = RandomField::new(structure_seed + 0);
 
             let lerp = 0.5
-                + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.75
-                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.2;
+                + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.4
+                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
 
             match sblock {
                 StructureBlock::TemperateLeaves => Block::new(
                     1,
-                    Lerp::lerp(
-                        Rgb::new(0.0, 80.0, 40.0),
-                        Rgb::new(120.0, 255.0, 10.0),
-                        lerp,
-                    )
-                    .map(|e| e as u8),
+                    Lerp::lerp(Rgb::new(0.0, 70.0, 20.0), Rgb::new(180.0, 190.0, 0.0), lerp)
+                        .map(|e| e as u8),
                 ),
                 StructureBlock::PineLeaves => Block::new(
                     1,
