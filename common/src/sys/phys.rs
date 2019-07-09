@@ -282,6 +282,8 @@ impl<'a> System<'a> for Sys {
                     if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
                         // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
+                        // ...and the vertical resolution direction is sufficiently great...
+                        && -dir.z > 0.5
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                         && (vel.0.z <= 0.0 || terrain
                             .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
@@ -294,7 +296,7 @@ impl<'a> System<'a> for Sys {
                         )
                     {
                         // ...block-hop!
-                        pos.0.z = (pos.0.z + 1.0).ceil();
+                        pos.0.z = (pos.0.z + 0.1).ceil();
                         on_ground = true;
                         break;
                     } else {
@@ -311,8 +313,10 @@ impl<'a> System<'a> for Sys {
 
             if on_ground {
                 let _ = on_grounds.insert(entity, OnGround);
-            // If we're not on the ground but the space below us is free, then "snap" to the ground
-            } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
+            }
+
+            // If the space below us is free, then "snap" to the ground
+            if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
                 && vel.0.z > -1.0
                 && was_on_ground
