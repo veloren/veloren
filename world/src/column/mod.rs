@@ -22,7 +22,7 @@ impl<'a> ColumnGen<'a> {
         Self { world }
     }
 
-    fn get_local_structure(&self, wpos: Vec2<i32>, chunk: &SimChunk) -> Option<StructureData> {
+    fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
         let (pos, seed) = self
             .world
             .sim()
@@ -33,6 +33,8 @@ impl<'a> ColumnGen<'a> {
             .copied()
             .min_by_key(|(pos, _)| pos.distance_squared(wpos))
             .unwrap();
+
+        let chunk = self.world.sim().get(pos)?;
 
         if seed % 5 == 2 && chunk.temp > CONFIG.desert_temp && chunk.alt > CONFIG.sea_level + 5.0 {
             Some(StructureData {
@@ -45,11 +47,7 @@ impl<'a> ColumnGen<'a> {
         }
     }
 
-    fn gen_close_structures(
-        &self,
-        wpos: Vec2<i32>,
-        chunk: &SimChunk,
-    ) -> [Option<StructureData>; 9] {
+    fn gen_close_structures(&self, wpos: Vec2<i32>) -> [Option<StructureData>; 9] {
         let mut metas = [None; 9];
         self.world
             .sim()
@@ -60,7 +58,7 @@ impl<'a> ColumnGen<'a> {
             .copied()
             .enumerate()
             .for_each(|(i, (pos, seed))| {
-                metas[i] = self.get_local_structure(pos, chunk).or(Some(StructureData {
+                metas[i] = self.get_local_structure(pos).or(Some(StructureData {
                     pos,
                     seed,
                     meta: None,
@@ -303,7 +301,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             sub_surface_color: dirt,
             tree_density,
             forest_kind: sim_chunk.forest_kind,
-            close_structures: self.gen_close_structures(wpos, sim_chunk),
+            close_structures: self.gen_close_structures(wpos),
             cave_xy,
             cave_alt,
             rock,
