@@ -1,4 +1,10 @@
-use crate::{all::ForestKind, sim::LocationInfo, util::Sampler, World, CONFIG};
+use crate::{
+    all::ForestKind,
+    block::StructureMeta,
+    sim::{LocationInfo, SimChunk},
+    util::Sampler,
+    World, CONFIG,
+};
 use common::{terrain::TerrainChunkSize, vol::VolSize};
 use noise::NoiseFn;
 use std::{
@@ -14,6 +20,51 @@ pub struct ColumnGen<'a> {
 impl<'a> ColumnGen<'a> {
     pub fn new(world: &'a World) -> Self {
         Self { world }
+    }
+
+    fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
+        let (pos, seed) = self
+            .world
+            .sim()
+            .gen_ctx
+            .region_gen
+            .get(wpos)
+            .iter()
+            .copied()
+            .min_by_key(|(pos, _)| pos.distance_squared(wpos))
+            .unwrap();
+
+        let chunk = self.world.sim().get(pos)?;
+
+        if seed % 5 == 2 && chunk.temp > CONFIG.desert_temp && chunk.alt > CONFIG.sea_level + 5.0 {
+            Some(StructureData {
+                pos,
+                seed,
+                meta: Some(StructureMeta::Pyramid { height: 140 }),
+            })
+        } else {
+            None
+        }
+    }
+
+    fn gen_close_structures(&self, wpos: Vec2<i32>) -> [Option<StructureData>; 9] {
+        let mut metas = [None; 9];
+        self.world
+            .sim()
+            .gen_ctx
+            .structure_gen
+            .get(wpos)
+            .into_iter()
+            .copied()
+            .enumerate()
+            .for_each(|(i, (pos, seed))| {
+                metas[i] = self.get_local_structure(pos).or(Some(StructureData {
+                    pos,
+                    seed,
+                    meta: None,
+                }));
+            });
+        metas
     }
 }
 
@@ -47,6 +98,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         const RIVER_PROPORTION: f32 = 0.025;
 
+        /*
         let river = dryness
             .abs()
             .neg()
@@ -54,6 +106,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             .div(RIVER_PROPORTION)
             .max(0.0)
             .mul((1.0 - (chaos - 0.15) * 20.0).max(0.0).min(1.0));
+        */
+        let river = 0.0;
 
         let cliff_hill =
             (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32).mul(16.0);
@@ -61,10 +115,11 @@ impl<'a> Sampler for ColumnGen<'a> {
         let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
             + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.2))
+                .mul(chaos.max(0.15))
                 .mul(64.0);
 
-        let cliffs = sim_chunk.cliffs;
+        let is_cliffs = sim_chunk.is_cliffs;
+        let near_cliffs = sim_chunk.near_cliffs;
 
         let alt = riverless_alt
             - (1.0 - river)
@@ -74,7 +129,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
-        let water_level = (riverless_alt - 4.0 - 5.0 * chaos).max(CONFIG.sea_level);
+        let water_level = riverless_alt - 4.0 - 5.0 * chaos;
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)
@@ -102,28 +157,32 @@ impl<'a> Sampler for ColumnGen<'a> {
         let warm_grass = Rgb::new(0.18, 0.65, 0.0);
         let cold_stone = Rgb::new(0.55, 0.7, 0.75);
         let warm_stone = Rgb::new(0.65, 0.65, 0.35);
-        let beach_sand = Rgb::new(0.93, 0.84, 0.4);
-        let desert_sand = Rgb::new(0.98, 0.8, 0.15);
+        let beach_sand = Rgb::new(0.9, 0.85, 0.3);
+        let desert_sand = Rgb::new(1.0, 0.7, 0.15);
         let snow = Rgb::broadcast(1.0);
+
+        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
+        let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
-        let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
-
-        let turf = grass;
+        let tropical = Rgb::lerp(
+            grass,
+            Rgb::new(0.85, 0.4, 0.2),
+            marble_small.sub(0.5).mul(0.2).add(0.75),
+        );
 
         let ground = Rgb::lerp(
             Rgb::lerp(
                 snow,
-                turf,
+                grass,
                 temp.sub(CONFIG.snow_temp)
                     .sub((marble - 0.5) * 0.05)
                     .mul(256.0),
             ),
-            sand,
-            temp.sub(CONFIG.desert_temp).mul(32.0),
+            Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_temp).mul(32.0)),
+            temp.sub(CONFIG.tropical_temp).mul(16.0),
         );
 
         // Work out if we're on a path or near a town
@@ -227,25 +286,27 @@ impl<'a> Sampler for ColumnGen<'a> {
                         cliff,
                         snow,
                         (alt - CONFIG.sea_level
-                            - 0.35 * CONFIG.mountain_scale
+                            - 0.4 * CONFIG.mountain_scale
                             - alt_base
                             - temp * 96.0
                             - marble * 24.0)
                             / 12.0,
                     ),
-                    (alt - CONFIG.sea_level - 0.3 * CONFIG.mountain_scale + marble * 128.0) / 100.0,
+                    (alt - CONFIG.sea_level - 0.25 * CONFIG.mountain_scale + marble * 128.0)
+                        / 100.0,
                 ),
                 // Beach
-                ((alt - CONFIG.sea_level - 2.0) / 5.0).min(1.0 - river * 2.0),
+                ((alt - CONFIG.sea_level - 1.0) / 2.0).min(1.0 - river * 2.0),
             ),
             sub_surface_color: dirt,
             tree_density,
             forest_kind: sim_chunk.forest_kind,
-            close_trees: sim.gen_ctx.tree_gen.get(wpos),
+            close_structures: self.gen_close_structures(wpos),
             cave_xy,
             cave_alt,
             rock,
-            cliffs,
+            is_cliffs,
+            near_cliffs,
             cliff_hill,
             close_cliffs: sim.gen_ctx.cliff_gen.get(wpos),
             temp,
@@ -265,14 +326,22 @@ pub struct ColumnSample<'a> {
     pub sub_surface_color: Rgb<f32>,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
-    pub close_trees: [(Vec2<i32>, u32); 9],
+    pub close_structures: [Option<StructureData>; 9],
     pub cave_xy: f32,
     pub cave_alt: f32,
     pub rock: f32,
-    pub cliffs: bool,
+    pub is_cliffs: bool,
+    pub near_cliffs: bool,
     pub cliff_hill: f32,
     pub close_cliffs: [(Vec2<i32>, u32); 9],
     pub temp: f32,
     pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
+}
+
+#[derive(Copy, Clone)]
+pub struct StructureData {
+    pub pos: Vec2<i32>,
+    pub seed: u32,
+    pub meta: Option<StructureMeta>,
 }

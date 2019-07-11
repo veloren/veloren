@@ -6,7 +6,7 @@ pub mod structure;
 // Reexports
 pub use self::{
     hash_cache::HashCache,
-    random::RandomField,
+    random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
     structure::StructureGen2d,
 };

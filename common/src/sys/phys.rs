@@ -219,7 +219,7 @@ impl<'a> System<'a> for Sys {
                 pos.0 += pos_delta / increments;
 
                 // While the player is colliding with the terrain...
-                while collision_with(pos.0, near_iter.clone()) && attempts < 32 {
+                while collision_with(pos.0, near_iter.clone()) && attempts < 16 {
                     // Calculate the player's AABB
                     let player_aabb = Aabb {
                         min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
@@ -279,9 +279,11 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is non-vertical, we must be colliding with a wall
                     // If the space above is free...
-                    if !collision_with(pos.0 + Vec3::unit_z() * 1.1, near_iter.clone())
+                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), near_iter.clone())
                         // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
+                        // ...and the vertical resolution direction is sufficiently great...
+                        && -dir.z > 0.1
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                         && (vel.0.z <= 0.0 || terrain
                             .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
@@ -294,16 +296,19 @@ impl<'a> System<'a> for Sys {
                         )
                     {
                         // ...block-hop!
-                        pos.0.z = (pos.0.z + 1.0).ceil();
+                        pos.0.z = (pos.0.z + 0.1).ceil();
                         on_ground = true;
                         break;
                     } else {
-                        // Resolve the collision normally
-                        pos.0 += resolve_dir;
-                        vel.0 = vel
-                            .0
-                            .map2(resolve_dir, |e, d| if d == 0.0 { e } else { 0.0 });
+                        // Correct the velocity
+                        vel.0 = vel.0.map2(
+                            resolve_dir,
+                            |e, d| if d * e.signum() < 0.0 { 0.0 } else { e },
+                        );
                     }
+
+                    // Resolve the collision normally
+                    pos.0 += resolve_dir;
 
                     attempts += 1;
                 }
@@ -311,10 +316,10 @@ impl<'a> System<'a> for Sys {
 
             if on_ground {
                 let _ = on_grounds.insert(entity, OnGround);
-            // If we're not on the ground but the space below us is free, then "snap" to the ground
+            // If the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
-                && vel.0.z > -1.0
+                && vel.0.z > -1.5
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();

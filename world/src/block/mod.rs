@@ -1,12 +1,12 @@
-mod tree;
+mod natural;
 
 use crate::{
-    column::{ColumnGen, ColumnSample},
+    column::{ColumnGen, ColumnSample, StructureData},
     util::{HashCache, RandomField, Sampler, SamplerMut},
-    World,
+    World, CONFIG,
 };
 use common::{
-    terrain::{structure::StructureBlock, Block},
+    terrain::{structure::StructureBlock, Block, Structure},
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
@@ -52,7 +52,7 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample) if cliff_sample.cliffs && cliff_sample.spawn_rate > 0.5 => {
+                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
@@ -86,18 +86,45 @@ impl<'a> BlockGen<'a> {
         let sample = Self::sample_column(column_gen, column_cache, wpos)?;
 
         // Tree samples
-        let mut tree_samples = [None, None, None, None, None, None, None, None, None];
-        for i in 0..tree_samples.len() {
-            tree_samples[i] = Self::sample_column(
-                column_gen,
-                column_cache,
-                Vec2::from(sample.close_trees[i].0),
-            );
+        let mut structure_samples = [None, None, None, None, None, None, None, None, None];
+        for i in 0..structure_samples.len() {
+            if let Some(st) = sample.close_structures[i] {
+                let st_sample = Self::sample_column(column_gen, column_cache, Vec2::from(st.pos));
+                structure_samples[i] = st_sample;
+            }
+        }
+
+        let mut structures = [None, None, None, None, None, None, None, None, None];
+        for i in 0..structures.len() {
+            if let (Some(st), Some(st_sample)) =
+                (sample.close_structures[i], structure_samples[i].clone())
+            {
+                let st_info = match st.meta {
+                    None => natural::structure_gen(
+                        column_gen,
+                        column_cache,
+                        i,
+                        st.pos,
+                        st.seed,
+                        &structure_samples,
+                    ),
+                    Some(meta) => Some(StructureInfo {
+                        pos: Vec3::from(st.pos) + Vec3::unit_z() * st_sample.alt as i32,
+                        seed: st.seed,
+                        meta,
+                    }),
+                };
+
+                if let Some(st_info) = st_info {
+                    structures[i] = Some((st_info, st_sample));
+                }
+            }
         }
 
         Some(ZCache {
+            wpos,
             sample,
-            tree_samples,
+            structures,
         })
     }
 
@@ -117,7 +144,7 @@ impl<'a> BlockGen<'a> {
             sub_surface_color,
             //tree_density,
             //forest_kind,
-            close_trees,
+            //close_structures,
             cave_xy,
             cave_alt,
             rock,
@@ -128,9 +155,8 @@ impl<'a> BlockGen<'a> {
             ..
         } = &z_cache?.sample;
 
-        let tree_samples = &z_cache?.tree_samples;
+        let structures = &z_cache?.structures;
 
-        let wpos2d = Vec2::from(wpos);
         let wposf = wpos.map(|e| e as f64);
 
         let (definitely_underground, height, water_height) =
@@ -146,7 +172,7 @@ impl<'a> BlockGen<'a> {
                     .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
                     as f32)
                     .mul((chaos - 0.1).max(0.0))
-                    .mul(115.0);
+                    .mul(96.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
@@ -177,12 +203,12 @@ impl<'a> BlockGen<'a> {
                     (alt + warp).max(cliff_height)
                 };
 
-                (false, height, water_level + warp)
+                (false, height, (water_level + warp).max(CONFIG.sea_level))
             };
 
         // Sample blocks
 
-        let stone_col = Rgb::new(200, 220, 255);
+        let stone_col = Rgb::new(240, 230, 220);
         // let dirt_col = Rgb::new(79, 67, 60);
 
         let air = Block::empty();
@@ -193,7 +219,7 @@ impl<'a> BlockGen<'a> {
         // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
         let water = Block::new(1, Rgb::new(100, 150, 255));
 
-        let grass_depth = 2.0;
+        let grass_depth = 1.5 + 2.0 * chaos;
         let block = if (wposf.z as f32) < height - grass_depth {
             let col = Lerp::lerp(
                 sub_surface_color.map(|e| (e * 255.0) as u8),
@@ -263,99 +289,39 @@ impl<'a> BlockGen<'a> {
             }
         });
 
-        fn block_from_structure(
-            sblock: StructureBlock,
-            pos: Vec3<i32>,
-            structure_pos: Vec2<i32>,
-            structure_seed: u32,
-            _sample: &ColumnSample,
-        ) -> Block {
-            let field = RandomField::new(structure_seed + 0);
-
-            let lerp = 0.5
-                + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.75
-                + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.2;
-
-            match sblock {
-                StructureBlock::TemperateLeaves => Block::new(
-                    1,
-                    Lerp::lerp(
-                        Rgb::new(0.0, 80.0, 40.0),
-                        Rgb::new(120.0, 255.0, 10.0),
-                        lerp,
-                    )
-                    .map(|e| e as u8),
-                ),
-                StructureBlock::PineLeaves => Block::new(
-                    1,
-                    Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
-                        .map(|e| e as u8),
-                ),
-                StructureBlock::PalmLeaves => Block::new(
-                    1,
-                    Lerp::lerp(
-                        Rgb::new(30.0, 100.0, 30.0),
-                        Rgb::new(120.0, 255.0, 0.0),
-                        lerp,
-                    )
-                    .map(|e| e as u8),
-                ),
-                StructureBlock::Block(block) => block,
-            }
-        }
-
         let block = if definitely_underground {
             block.unwrap_or(Block::empty())
         } else {
-            match block {
-                Some(block) => block,
-                None => (&close_trees).iter().enumerate().fold(
-                    air,
-                    |block, (tree_idx, (tree_pos, tree_seed))| {
-                        if !block.is_empty() {
-                            block
-                        } else {
-                            match &tree_samples[tree_idx] {
-                                Some(tree_sample)
-                                    if wpos2d.distance_squared(*tree_pos) < 28 * 28
-                                        && tree_sample.tree_density
-                                            > 0.5 + (*tree_seed as f32 / 1000.0).fract() * 0.2
-                                        && tree_sample.alt > tree_sample.water_level
-                                        && tree_sample.spawn_rate > 0.5 =>
-                                {
-                                    let cliff_height = Self::get_cliff_height(
-                                        column_gen,
-                                        column_cache,
-                                        tree_pos.map(|e| e as f32),
-                                        &tree_sample.close_cliffs,
-                                        cliff_hill,
-                                    );
-                                    let height = tree_sample.alt.max(cliff_height);
-                                    let tree_pos3d =
-                                        Vec3::new(tree_pos.x, tree_pos.y, height as i32);
-                                    let rpos = wpos - tree_pos3d;
+            block
+                .or_else(|| {
+                    structures.iter().find_map(|st| {
+                        let (st, st_sample) = st.as_ref()?;
 
-                                    let trees = tree::kinds(tree_sample.forest_kind); // Choose tree kind
+                        st.get(wpos, st_sample)
 
-                                    block.or(trees[*tree_seed as usize % trees.len()]
-                                        .get((rpos * 128) / 128) // Scaling
-                                        .map(|b| {
-                                            block_from_structure(
-                                                *b,
-                                                rpos,
-                                                *tree_pos,
-                                                *tree_seed,
-                                                &tree_sample,
-                                            )
-                                        })
-                                        .unwrap_or(Block::empty()))
-                                }
-                                _ => block,
-                            }
-                        }
-                    },
-                ),
-            }
+                        /*
+                        let rpos = wpos - st.pos;
+                        let block_pos = Vec3::unit_z() * rpos.z
+                            + Vec3::from(st.units.0) * rpos.x
+                            + Vec3::from(st.units.1) * rpos.y;
+
+                        st.volume
+                            .get((block_pos * 128) / 128) // Scaling
+                            .map(|b| {
+                                block_from_structure(
+                                    *b,
+                                    block_pos,
+                                    st.pos.into(),
+                                    st.seed,
+                                    st_sample,
+                                )
+                            })
+                            .ok()
+                            .filter(|block| !block.is_empty())
+                        */
+                    })
+                })
+                .unwrap_or(Block::empty())
         };
 
         Some(block)
@@ -363,8 +329,46 @@ impl<'a> BlockGen<'a> {
 }
 
 pub struct ZCache<'a> {
+    wpos: Vec2<i32>,
     sample: ColumnSample<'a>,
-    tree_samples: [Option<ColumnSample<'a>>; 9],
+    structures: [Option<(StructureInfo, ColumnSample<'a>)>; 9],
+}
+
+impl<'a> ZCache<'a> {
+    pub fn get_z_limits(&self) -> (f32, f32) {
+        let cave_depth = if self.sample.cave_xy.abs() > 0.9 {
+            (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
+        } else {
+            0.0
+        };
+
+        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth) - 4.0;
+
+        let cliff = if self.sample.near_cliffs { 48.0 } else { 0.0 };
+        let warp = self.sample.chaos * 48.0;
+        let structure = self.structures.iter().filter_map(|st| st.as_ref()).fold(
+            0,
+            |a, (st_info, st_sample)| {
+                let bounds = st_info.get_bounds();
+                let st_area = Aabr {
+                    min: Vec2::from(bounds.min),
+                    max: Vec2::from(bounds.max),
+                };
+
+                if st_area.contains_point(self.wpos - st_info.pos) {
+                    a.max(bounds.max.z)
+                } else {
+                    a
+                }
+            },
+        ) as f32;
+
+        let max = (self.sample.alt + cliff + structure + warp + 8.0)
+            .max(self.sample.water_level)
+            .max(CONFIG.sea_level + 2.0);
+
+        (min, max)
+    }
 }
 
 impl<'a> SamplerMut for BlockGen<'a> {
@@ -374,5 +378,129 @@ impl<'a> SamplerMut for BlockGen<'a> {
     fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
         let z_cache = self.get_z_cache(wpos.into());
         self.get_with_z_cache(wpos, z_cache.as_ref())
+    }
+}
+
+#[derive(Copy, Clone)]
+pub enum StructureMeta {
+    Pyramid {
+        height: i32,
+    },
+    Volume {
+        units: (Vec2<i32>, Vec2<i32>),
+        volume: &'static Structure,
+    },
+}
+
+pub struct StructureInfo {
+    pos: Vec3<i32>,
+    seed: u32,
+    meta: StructureMeta,
+}
+
+impl StructureInfo {
+    fn get_bounds(&self) -> Aabb<i32> {
+        match self.meta {
+            StructureMeta::Pyramid { height } => {
+                let base = 40;
+                Aabb {
+                    min: Vec3::new(-base - height, -base - height, -base),
+                    max: Vec3::new(base + height, base + height, height),
+                }
+            }
+            StructureMeta::Volume { units, volume } => {
+                let bounds = volume.get_bounds();
+
+                (Aabb {
+                    min: Vec3::from(units.0 * bounds.min.x + units.1 * bounds.min.y)
+                        + Vec3::unit_z() * bounds.min.z,
+                    max: Vec3::from(units.0 * bounds.max.x + units.1 * bounds.max.y)
+                        + Vec3::unit_z() * bounds.max.z,
+                })
+                .made_valid()
+            }
+        }
+    }
+
+    fn get(&self, wpos: Vec3<i32>, sample: &ColumnSample) -> Option<Block> {
+        match self.meta {
+            StructureMeta::Pyramid { height } => {
+                if wpos.z - self.pos.z
+                    < height
+                        - Vec2::from(wpos - self.pos)
+                            .map(|e: i32| (e.abs() / 2) * 2)
+                            .reduce_max()
+                {
+                    Some(Block::new(2, Rgb::new(180, 140, 90)))
+                } else {
+                    None
+                }
+            }
+            StructureMeta::Volume { units, volume } => {
+                let rpos = wpos - self.pos;
+                let block_pos = Vec3::unit_z() * rpos.z
+                    + Vec3::from(units.0) * rpos.x
+                    + Vec3::from(units.1) * rpos.y;
+
+                volume
+                    .get((block_pos * 128) / 128) // Scaling
+                    .map(|b| {
+                        block_from_structure(*b, block_pos, self.pos.into(), self.seed, sample)
+                    })
+                    .ok()
+                    .filter(|block| !block.is_empty())
+            }
+        }
+    }
+}
+
+fn block_from_structure(
+    sblock: StructureBlock,
+    pos: Vec3<i32>,
+    structure_pos: Vec2<i32>,
+    structure_seed: u32,
+    _sample: &ColumnSample,
+) -> Block {
+    let field = RandomField::new(structure_seed + 0);
+
+    let lerp = 0.5
+        + ((field.get(Vec3::from(structure_pos)) % 256) as f32 / 256.0 - 0.5) * 0.65
+        + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
+
+    match sblock {
+        StructureBlock::TemperateLeaves => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(0.0, 70.0, 35.0), Rgb::new(100.0, 140.0, 0.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::PineLeaves => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::PalmLeaves => Block::new(
+            1,
+            Lerp::lerp(
+                Rgb::new(15.0, 100.0, 30.0),
+                Rgb::new(55.0, 220.0, 0.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        ),
+        StructureBlock::Acacia => Block::new(
+            1,
+            Lerp::lerp(
+                Rgb::new(35.0, 100.0, 10.0),
+                Rgb::new(70.0, 190.0, 25.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        ),
+        StructureBlock::Fruit => Block::new(
+            1,
+            Lerp::lerp(Rgb::new(255.0, 0.0, 0.0), Rgb::new(200.0, 255.0, 6.0), lerp)
+                .map(|e| e as u8),
+        ),
+        StructureBlock::Block(block) => block,
     }
 }

@@ -71,12 +71,19 @@ impl World {
             .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
         {
             Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
-            None => return TerrainChunk::new(0, water, air, TerrainChunkMeta::void()),
+            None => {
+                return TerrainChunk::new(
+                    CONFIG.sea_level as i32,
+                    water,
+                    air,
+                    TerrainChunkMeta::void(),
+                )
+            }
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
 
-        let mut chunk = TerrainChunk::new(base_z - 8, stone, air, meta);
+        let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
 
         let mut sampler = self.sample_blocks();
 
@@ -84,26 +91,24 @@ impl World {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
                 let wpos2d = Vec2::new(x, y)
                     + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
-                let _wposf2d = wpos2d.map(|e| e as f64);
 
-                let min_z = self
-                    .sim
-                    .get_interpolated(wpos2d, |chunk| chunk.get_min_z())
-                    .unwrap_or(0.0) as i32;
+                let z_cache = match sampler.get_z_cache(wpos2d) {
+                    Some(z_cache) => z_cache,
+                    None => continue,
+                };
 
-                let max_z = self
-                    .sim
-                    .get_interpolated(wpos2d, |chunk| chunk.get_max_z())
-                    .unwrap_or(0.0) as i32;
+                let (min_z, max_z) = z_cache.get_z_limits();
 
-                let z_cache = sampler.get_z_cache(wpos2d);
+                for z in base_z..min_z as i32 {
+                    let _ = chunk.set(Vec3::new(x, y, z), stone);
+                }
 
-                for z in min_z..max_z {
+                for z in min_z as i32..max_z as i32 {
                     let lpos = Vec3::new(x, y, z);
                     let wpos =
                         lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
 
-                    if let Some(block) = sampler.get_with_z_cache(wpos, z_cache.as_ref()) {
+                    if let Some(block) = sampler.get_with_z_cache(wpos, Some(&z_cache)) {
                         let _ = chunk.set(lpos, block);
                     }
                 }
