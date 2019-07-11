@@ -6,7 +6,7 @@ pub struct RandomField {
 }
 
 impl RandomField {
-    pub fn new(seed: u32) -> Self {
+    pub const fn new(seed: u32) -> Self {
         Self { seed }
     }
 }
@@ -30,6 +30,31 @@ impl Sampler for RandomField {
         a = a + (a << 3);
         a = a ^ (a >> 4);
         a = a ^ pos.z;
+        a = a * 0x27d4eb2d;
+        a = a ^ (a >> 15);
+        a
+    }
+}
+
+pub struct RandomPerm {
+    seed: u32,
+}
+
+impl RandomPerm {
+    pub const fn new(seed: u32) -> Self {
+        Self { seed }
+    }
+}
+
+impl Sampler for RandomPerm {
+    type Index = u32;
+    type Sample = u32;
+
+    fn get(&self, perm: Self::Index) -> Self::Sample {
+        let mut a = perm;
+        a = (a ^ 61) ^ (a >> 16);
+        a = a + (a << 3);
+        a = a ^ (a >> 4);
         a = a * 0x27d4eb2d;
         a = a ^ (a >> 15);
         a

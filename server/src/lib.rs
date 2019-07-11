@@ -84,7 +84,7 @@ impl Server {
         let mut state = State::default();
         state
             .ecs_mut()
-            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 305.0)));
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
 
         let this = Self {
             state,

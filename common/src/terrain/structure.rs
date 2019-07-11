@@ -1,7 +1,7 @@
 use super::Block;
 use crate::{
     assets::{self, Asset},
-    vol::{BaseVol, ReadVol, Vox, WriteVol},
+    vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::{Dyna, DynaErr},
 };
 use dot_vox::DotVoxData;
@@ -12,7 +12,9 @@ use vek::*;
 pub enum StructureBlock {
     TemperateLeaves,
     PineLeaves,
+    Acacia,
     PalmLeaves,
+    Fruit,
     Block(Block),
 }
 
@@ -43,6 +45,13 @@ impl Structure {
     pub fn with_center(mut self, center: Vec3<i32>) -> Self {
         self.center = center;
         self
+    }
+
+    pub fn get_bounds(&self) -> Aabb<i32> {
+        Aabb {
+            min: -self.center,
+            max: self.vol.get_size().map(|e| e as i32) - self.center,
+        }
     }
 }
 
@@ -83,6 +92,8 @@ impl Asset for Structure {
                     0 => StructureBlock::TemperateLeaves,
                     1 => StructureBlock::PineLeaves,
                     2 => StructureBlock::PalmLeaves,
+                    4 => StructureBlock::Acacia,
+                    7 => StructureBlock::Fruit,
                     index => {
                         let color = palette
                             .get(index as usize)
