@@ -16,7 +16,7 @@ use common::{
 };
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use rand::{prng::XorShiftRng, Rng, SeedableRng};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -38,7 +38,8 @@ pub(crate) struct GenCtx {
     pub cave_0_nz: SuperSimplex,
     pub cave_1_nz: SuperSimplex,
 
-    pub tree_gen: StructureGen2d,
+    pub structure_gen: StructureGen2d,
+    pub region_gen: StructureGen2d,
     pub cliff_gen: StructureGen2d,
 }
 
@@ -75,8 +76,9 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(seed + 13),
             cave_1_nz: SuperSimplex::new().set_seed(seed + 14),
 
-            tree_gen: StructureGen2d::new(seed, 32, 24),
-            cliff_gen: StructureGen2d::new(seed, 80, 56),
+            structure_gen: StructureGen2d::new(seed, 32, 24),
+            region_gen: StructureGen2d::new(seed + 1, 400, 96),
+            cliff_gen: StructureGen2d::new(seed + 2, 80, 56),
         };
 
         let mut chunks = Vec::new();
@@ -306,8 +308,6 @@ impl WorldSim {
     }
 }
 
-const Z_TOLERANCE: (f32, f32) = (100.0, 128.0);
-
 pub struct SimChunk {
     pub chaos: f32,
     pub alt_base: f32,
@@ -315,7 +315,7 @@ pub struct SimChunk {
     pub temp: f32,
     pub dryness: f32,
     pub rockiness: f32,
-    pub cliffs: bool,
+    pub is_cliffs: bool,
     pub near_cliffs: bool,
     pub tree_density: f32,
     pub forest_kind: ForestKind,
@@ -353,6 +353,8 @@ impl SimChunk {
             .add(0.3)
             .max(0.0);
 
+        let temp = gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32;
+
         let dryness = gen_ctx.dry_nz.get(
             (wposf
                 .add(Vec2::new(
@@ -366,44 +368,53 @@ impl SimChunk {
             .into_array(),
         ) as f32;
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(4_000.0)).into_array()) as f32)
+        let chaos = (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
             .mul(
                 (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
-                    .powf(2.0)
-                    .add(0.5)
+                    .abs()
+                    .max(0.25)
                     .min(1.0),
             )
-            .powf(1.5)
-            .add(0.1 * hill);
+            .add(0.15 * hill)
+            .mul(
+                temp.sub(CONFIG.desert_temp)
+                    .neg()
+                    .mul(12.0)
+                    .max(0.35)
+                    .min(1.0),
+            )
+            .max(0.1);
 
-        let chaos = chaos + chaos.mul(16.0).sin().mul(0.02);
-
-        let alt_base = gen_ctx.alt_nz.get((wposf.div(6_000.0)).into_array()) as f32;
-        let alt_base = alt_base
-            .mul(0.4)
-            .add(alt_base.mul(128.0).sin().mul(0.005))
-            .mul(400.0);
+        let alt_base = (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+            .mul(250.0)
+            .sub(25.0);
 
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()
-            .powf(1.8);
+            .powf(1.35);
 
-        let alt = CONFIG.sea_level
+        let map_edge_factor = pos
+            .map2(WORLD_SIZE.map(|e| e as i32), |e, sz| {
+                (sz / 2 - (e - sz / 2).abs()) as f32 / 16.0
+            })
+            .reduce_partial_min()
+            .max(0.0)
+            .min(1.0);
+
+        let alt = (CONFIG.sea_level
             + alt_base
             + (0.0
                 + alt_main
-                + gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32
-                    * alt_main.max(0.1)
-                    * chaos
-                    * 1.6)
-                .add(1.0)
-                .mul(0.5)
-                .mul(chaos)
-                .mul(CONFIG.mountain_scale);
-
-        let temp = gen_ctx.temp_nz.get((wposf.div(8192.0)).into_array()) as f32;
+                + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                    .mul(alt_main.max(0.25))
+                    .mul(1.6))
+            .add(1.0)
+            .mul(0.5)
+            .mul(chaos)
+            .mul(CONFIG.mountain_scale))
+            * map_edge_factor;
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
@@ -417,24 +428,28 @@ impl SimChunk {
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            cliffs: cliff > 0.5
+            is_cliffs: cliff > 0.5
                 && dryness > 0.05
                 && alt > CONFIG.sea_level + 5.0
                 && dryness.abs() > 0.075,
-            near_cliffs: cliff > 0.4,
+            near_cliffs: cliff > 0.25,
             tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
                 .mul(1.2 - chaos * 0.95)
-                .add(0.1)
+                .add(0.05)
                 .mul(if alt > CONFIG.sea_level + 5.0 {
                     1.0
                 } else {
                     0.0
-                }),
+                })
+                .max(0.0),
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
                     ForestKind::Palm
+                } else if temp > CONFIG.tropical_temp {
+                    ForestKind::Savannah
                 } else {
                     ForestKind::Oak
                 }
@@ -451,16 +466,7 @@ impl SimChunk {
     }
 
     pub fn get_base_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * self.chaos
-    }
-
-    pub fn get_min_z(&self) -> f32 {
-        self.alt - Z_TOLERANCE.0 * (self.chaos * 1.2 + 0.3)
-    }
-
-    pub fn get_max_z(&self) -> f32 {
-        (self.alt + Z_TOLERANCE.1 * if self.near_cliffs { 1.0 } else { 0.5 })
-            .max(CONFIG.sea_level + 2.0)
+        self.alt - self.chaos * 50.0 - 16.0
     }
 
     pub fn get_name(&self, world: &WorldSim) -> Option<String> {
