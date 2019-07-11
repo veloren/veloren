@@ -30,6 +30,8 @@ void main() {
 		float((v_col_light >> 24) & 0xFFu)
 	) / 200.0;
 
+	f_pos += sin(f_pos.zxy * 2.0) * 0.35;
+
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 
 	gl_Position =

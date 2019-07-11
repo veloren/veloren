@@ -31,6 +31,7 @@ void main() {
 	f_pos = (model_mat *
 		bones[v_bone_idx].bone_mat *
 		vec4(v_pos, 1)).xyz;
+	f_pos += sin(focus_pos.zyx * 2.0) * 0.25;
 	f_norm = v_norm;
 	f_col = v_col;
 	f_bone_idx = v_bone_idx;
