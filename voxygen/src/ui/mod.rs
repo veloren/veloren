@@ -12,6 +12,7 @@ pub use event::Event;
 pub use graphic::Graphic;
 pub use scale::{Scale, ScaleMode};
 pub use widgets::{
+    image_frame::ImageFrame,
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
     toggle_button::ToggleButton,

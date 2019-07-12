@@ -274,7 +274,6 @@ impl<'a> Widget for Tooltip<'a> {
             .graphics_for(id)
             .parent(id)
             .color(color)
-            //.floating(true)
             .set(state.ids.back_rect, ui);
 
         // Title of tooltip
@@ -286,7 +285,6 @@ impl<'a> Widget for Tooltip<'a> {
             .with_style(self.style.title)
             // Apply transparency
             .color(style.title.color(ui.theme()).alpha(self.transparency))
-            //.floating(true)
             .set(state.ids.title, ui);
 
         // Description of tooltip
@@ -298,7 +296,6 @@ impl<'a> Widget for Tooltip<'a> {
             .with_style(self.style.desc)
             // Apply transparency
             .color(style.desc.color(ui.theme()).alpha(self.transparency))
-            // .floating(true)
             .set(state.ids.desc, ui);
     }
 }
