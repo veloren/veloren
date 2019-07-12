@@ -67,7 +67,7 @@ widget_ids! {
     }
 }
 
-/// Represents the state of the Slider widget.
+/// Represents the state of the ImageSlider widget.
 pub struct State {
     ids: Ids,
 }
