@@ -30,7 +30,7 @@ use std::{
     sync::{mpsc, Arc},
     time::Duration,
 };
-use threadpool::ThreadPool;
+use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::World;
 
@@ -93,9 +93,7 @@ impl Server {
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
 
-            thread_pool: threadpool::Builder::new()
-                .thread_name("veloren-worker".into())
-                .build(),
+            thread_pool: ThreadPoolBuilder::new().name("veloren-worker".into()).build(),
             chunk_tx,
             chunk_rx,
             pending_chunks: HashSet::new(),
