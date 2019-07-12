@@ -153,7 +153,7 @@ impl Terrain {
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
-            if client.thread_pool().queued_count() > 0 {
+            if client.thread_pool().queued_jobs() > 0 {
                 break;
             }
 
