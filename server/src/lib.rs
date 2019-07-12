@@ -17,7 +17,7 @@ use common::{
     comp,
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, TerrainChange, Uid},
+    state::{State, TerrainChange, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
     vol::Vox,
@@ -85,6 +85,9 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
+
+        // Set starting time for the server.
+        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
         let this = Self {
             state,
