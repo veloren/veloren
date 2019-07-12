@@ -22,7 +22,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
-use threadpool::ThreadPool;
+use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
@@ -78,11 +78,11 @@ impl Client {
 
         postbox.send_message(ClientMsg::Ping);
 
-        let mut thread_pool = threadpool::Builder::new()
-            .thread_name("veloren-worker".into())
+        let mut thread_pool = ThreadPoolBuilder::new()
+            .name("veloren-worker".into())
             .build();
         // We reduce the thread count by 1 to keep rendering smooth
-        thread_pool.set_num_threads((thread_pool.max_count() - 1).max(1));
+        thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
         // Set client-only components
         let _ = state
