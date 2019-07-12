@@ -2720,6 +2720,16 @@ version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "uvth"
+version = "3.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "crossbeam-channel 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 1.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "vec_map"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2791,7 +2801,7 @@ dependencies = [
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "scan_fmt 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "threadpool 1.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "uvth 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "vek 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "veloren-common 0.2.0",
  "veloren-world 0.2.0",
@@ -3356,6 +3366,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum unicode-xid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"
 "checksum user32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "4ef4711d107b21b410a3a974b1204d9accc8b10dad75d8324b5d755de1617d47"
 "checksum utf8-ranges 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "9d50aa7650df78abf942826607c62468ce18d9019673d4a2ebe1865dbb96ffde"
+"checksum uvth 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "cb04cfcc1b40fdb315b31778a8495785a436238f8c1d7c440daa0656e8c1f54a"
 "checksum vec_map 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
 "checksum vek 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)" = "41a272c9a959b8d3acd4fdbb83bb20d815976e3ab68b3fa9e0c9519b5dd18478"
 "checksum version_check 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "914b1a6776c4c929a602fafd8bc742e06365d4bcbe48c30f9cca5824f70dc9dd"
