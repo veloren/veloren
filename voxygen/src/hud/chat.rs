@@ -82,7 +82,9 @@ impl<'a> Chat<'a> {
 pub struct State {
     messages: VecDeque<ClientEvent>,
     input: String,
-
+    history: VecDeque<String>,
+    history_pos: usize,
+    history_max: usize,
     ids: Ids,
 }
 
@@ -100,6 +102,9 @@ impl<'a> Widget for Chat<'a> {
         State {
             input: "".to_owned(),
             messages: VecDeque::new(),
+            history: VecDeque::new(),
+            history_pos: 0,
+            history_max: 32,
             ids: Ids::new(id_gen),
         }
     }
@@ -266,8 +271,65 @@ impl<'a> Widget for Chat<'a> {
             })
         {
             let msg = state.input.clone();
-            state.update(|s| s.input.clear());
+            state.update(|s| {
+                s.input.clear();
+                // update the history
+                s.history.push_front(msg.clone());
+                s.history_pos = 0;
+                while s.history.len() > s.history_max {
+                    s.history.pop_back();
+                }
+            });
             Some(Event::SendMessage(msg))
+        }
+        // If up is pressed, use history
+        else if ui
+            .widget_input(state.ids.input)
+            .presses()
+            .key()
+            .any(|key_press| match key_press.key {
+                Key::Up => true,
+                _ => false,
+            })
+        {
+            state.update(|s| {
+                if !s.history.is_empty() {
+                    if s.history_pos < s.history.len() {
+                        s.history_pos += 1;
+                        if let Some(string) = s.history.get(s.history_pos - 1) {
+                            s.input.clear();
+                            s.input.push_str(string);
+                        }
+                    }
+                }
+            });
+            None
+        }
+        // If down is pressed, use history
+        else if ui
+            .widget_input(state.ids.input)
+            .presses()
+            .key()
+            .any(|key_press| match key_press.key {
+                Key::Down => true,
+                _ => false,
+            })
+        {
+            state.update(|s| {
+                if !s.history.is_empty() {
+                    if s.history_pos > 1 {
+                        s.history_pos -= 1;
+                        s.input.clear();
+                        if let Some(string) = s.history.get(s.history_pos - 1) {
+                            s.input.push_str(string);
+                        }
+                    } else {
+                        s.history_pos = 0;
+                        s.input.clear();
+                    }
+                }
+            });
+            None
         } else {
             None
         }
