@@ -93,7 +93,9 @@ impl Server {
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
 
-            thread_pool: ThreadPoolBuilder::new().name("veloren-worker".into()).build(),
+            thread_pool: ThreadPoolBuilder::new()
+                .name("veloren-worker".into())
+                .build(),
             chunk_tx,
             chunk_rx,
             pending_chunks: HashSet::new(),
