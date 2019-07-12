@@ -82,7 +82,7 @@ impl Client {
             .name("veloren-worker".into())
             .build();
         // We reduce the thread count by 1 to keep rendering smooth
-        thread_pool.set_num_threads(num_cpus::get() - 1);
+        thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
         // Set client-only components
         let _ = state
