@@ -309,7 +309,7 @@ impl MainMenuUi {
                     .w_h(400.0, 300.0)
                     .set(self.ids.servers_frame, ui_widgets);
 
-                let net_settings = &global_state.settings.networking;
+                let ref mut net_settings = global_state.settings.networking;
 
                 // TODO: Draw scroll bar or remove it.
                 let (mut items, _scrollbar) = List::flow_down(net_settings.servers.len())
@@ -346,6 +346,7 @@ impl MainMenuUi {
                     {
                         // TODO: Set as current server address
                         self.server_address = net_settings.servers[item.i].clone();
+                        net_settings.default_server = item.i;
                     }
                 }
 
