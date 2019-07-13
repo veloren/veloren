@@ -286,12 +286,15 @@ impl State {
     /// Execute a single tick, simulating the game state by the given duration.
     pub fn tick(&mut self, dt: Duration) {
         // Change the time accordingly.
-        self.ecs.write_resource::<TimeOfDay>().0 += dt.as_secs_f64() * DAY_CYCLE_FACTOR;
-        self.ecs.write_resource::<Time>().0 += dt.as_secs_f64();
+        // TODO: Replace `as_millis() as f64 / 1000.0` with as_secs_f64 when duration_float is stable
+        self.ecs.write_resource::<TimeOfDay>().0 +=
+            dt.as_millis() as f64 / 1000.0 * DAY_CYCLE_FACTOR;
+        self.ecs.write_resource::<Time>().0 += dt.as_millis() as f64 / 1000.0;
 
         // Update delta time.
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events.
-        self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
+        self.ecs.write_resource::<DeltaTime>().0 =
+            (dt.as_millis() as f32 / 1000.0).min(MAX_DELTA_TIME);
 
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.

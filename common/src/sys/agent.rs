@@ -59,8 +59,8 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Agent::Enemy { target } => {
-                    let choose_new = match target.map(|tgt| positions.get(tgt)).flatten() {
-                        Some(tgt_pos) => {
+                    if let Some(target) = target {
+                        if let Some(tgt_pos) = positions.get(*target) {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
                             if dist < 2.0 {
                                 controller.move_dir = Vec2::zero();
@@ -68,24 +68,14 @@ impl<'a> System<'a> for Sys {
                                 if rand::random::<f32>() < 0.2 {
                                     controller.attack = true;
                                 }
-
-                                false
                             } else if dist < 60.0 {
                                 controller.move_dir =
                                     Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
-
-                                false
-                            } else {
-                                true
                             }
-                        }
-                        None => {
+                        } else {
                             controller.move_dir = Vec2::one();
-                            true
                         }
-                    };
-
-                    if choose_new {
+                    } else {
                         let entities = (&entities, &positions)
                             .join()
                             .filter(|(_, e_pos)| {

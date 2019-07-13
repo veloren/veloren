@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"] }
 
-specs = { version = "0.14", features = ["serde", "nightly"] }
+specs = { version = "0.14", features = ["serde"] }
 vek = { version = "0.9", features = ["serde"] }
 dot_vox = "4.0"
 image = "0.21"

@@ -5,10 +5,12 @@ use std::{
 
 const CLOCK_SMOOTHING: f64 = 0.9;
 
+// TODO: When duration_float is stable, replace `as_millis()` with `as_secs_f64()` or
+// something similar
 pub struct Clock {
     last_sys_time: Instant,
     last_delta: Option<Duration>,
-    running_tps_average: f64,
+    running_tps_average: Duration,
     compensation: f64,
 }
 
@@ -17,13 +19,13 @@ impl Clock {
         Self {
             last_sys_time: Instant::now(),
             last_delta: None,
-            running_tps_average: 0.0,
+            running_tps_average: Duration::default(),
             compensation: 1.0,
         }
     }
 
     pub fn get_tps(&self) -> f64 {
-        1.0 / self.running_tps_average
+        1.0 / (self.running_tps_average.as_millis() as f64 / 1000.0)
     }
 
     pub fn get_last_delta(&self) -> Duration {
@@ -31,7 +33,7 @@ impl Clock {
     }
 
     pub fn get_avg_delta(&self) -> Duration {
-        Duration::from_secs_f64(self.running_tps_average)
+        self.running_tps_average
     }
 
     pub fn tick(&mut self, tgt: Duration) {
@@ -39,15 +41,16 @@ impl Clock {
 
         // Attempt to sleep to fill the gap.
         if let Some(sleep_dur) = tgt.checked_sub(delta) {
-            if self.running_tps_average != 0.0 {
-                self.compensation =
-                    (self.compensation + (tgt.as_secs_f64() / self.running_tps_average) - 1.0)
-                        .max(0.0)
+            if self.running_tps_average != Duration::default() {
+                self.compensation = (self.compensation
+                    + tgt.as_millis() as f64 / self.running_tps_average.as_millis() as f64
+                    - 1.0)
+                    .max(0.0);
             }
 
-            let sleep_secs = sleep_dur.as_secs_f64() * self.compensation;
-            if sleep_secs > 0.0 {
-                thread::sleep(Duration::from_secs_f64(sleep_secs));
+            let sleep = (sleep_dur.as_millis() as f64 * self.compensation) as u64;
+            if sleep > 0 {
+                thread::sleep(Duration::from_millis(sleep));
             }
         }
 
@@ -55,11 +58,13 @@ impl Clock {
 
         self.last_sys_time = Instant::now();
         self.last_delta = Some(delta);
-        self.running_tps_average = if self.running_tps_average == 0.0 {
-            delta.as_secs_f64()
+        self.running_tps_average = if self.running_tps_average == Duration::default() {
+            delta
         } else {
-            CLOCK_SMOOTHING * self.running_tps_average
-                + (1.0 - CLOCK_SMOOTHING) * delta.as_secs_f64()
+            Duration::from_millis(
+                (CLOCK_SMOOTHING * self.running_tps_average.as_millis() as f64
+                    + (1.0 - CLOCK_SMOOTHING) * delta.as_millis() as f64) as u64,
+            )
         };
     }
 }

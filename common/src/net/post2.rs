@@ -40,17 +40,22 @@ impl From<mpsc::TryRecvError> for Error {
     }
 }
 
-pub trait PostMsg = Serialize + DeserializeOwned + 'static + Send;
-
 const MAX_MSG_SIZE: usize = 1 << 20;
 
-pub struct PostOffice<S: PostMsg, R: PostMsg> {
+pub struct PostOffice<
+    S: Serialize + DeserializeOwned + 'static + Send,
+    R: Serialize + DeserializeOwned + 'static + Send,
+> {
     listener: TcpListener,
     error: Option<Error>,
     phantom: PhantomData<(S, R)>,
 }
 
-impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
+impl<
+        S: Serialize + DeserializeOwned + 'static + Send,
+        R: Serialize + DeserializeOwned + 'static + Send,
+    > PostOffice<S, R>
+{
     pub fn bind<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
         let listener = TcpListener::bind(addr.into())?;
         listener.set_nonblocking(true)?;
@@ -76,12 +81,14 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
         loop {
             match self.listener.accept() {
                 Ok((stream, _sock)) => new.push(PostBox::from_stream(stream).unwrap()),
-                Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-                Err(e) => {
-                    self.error = Some(e.into());
-                    break;
-                }
+                Err(e) => match e.kind() {
+                    io::ErrorKind::WouldBlock => break,
+                    io::ErrorKind::Interrupted => {}
+                    _ => {
+                        self.error = Some(e.into());
+                        break;
+                    }
+                },
             }
         }
 
@@ -89,7 +96,10 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
     }
 }
 
-pub struct PostBox<S: PostMsg, R: PostMsg> {
+pub struct PostBox<
+    S: Serialize + DeserializeOwned + 'static + Send,
+    R: Serialize + DeserializeOwned + 'static + Send,
+> {
     send_tx: mpsc::Sender<S>,
     recv_rx: mpsc::Receiver<Result<R, Error>>,
     worker: Option<thread::JoinHandle<()>>,
@@ -97,7 +107,11 @@ pub struct PostBox<S: PostMsg, R: PostMsg> {
     error: Option<Error>,
 }
 
-impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
+impl<
+        S: Serialize + DeserializeOwned + 'static + Send,
+        R: Serialize + DeserializeOwned + 'static + Send,
+    > PostBox<S, R>
+{
     pub fn to<A: Into<SocketAddr>>(addr: A) -> Result<Self, Error> {
         Self::from_stream(TcpStream::connect(addr.into())?)
     }
@@ -233,15 +247,15 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                 outgoing_chunks.push_front(chunk.split_off(n));
                                 break;
                             }
-                            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
-                                // Return chunk to the queue to try again later.
-                                outgoing_chunks.push_front(chunk);
-                                break;
-                            }
-                            // Worker error
                             Err(e) => {
-                                recv_tx.send(Err(e.into())).unwrap();
-                                break 'work;
+                                if e.kind() == io::ErrorKind::WouldBlock {
+                                    // Return chunk to the queue to try again later.
+                                    outgoing_chunks.push_front(chunk);
+                                    break;
+                                } else {
+                                    recv_tx.send(Err(e.into())).unwrap();
+                                    break 'work;
+                                }
                             }
                         },
                         None => break,
@@ -254,13 +268,14 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
                     match stream.read(&mut buf) {
                         Ok(n) => incoming_buf.extend_from_slice(&buf[0..n]),
-                        Err(e) if e.kind() == io::ErrorKind::WouldBlock => break,
-                        Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
-                        // Worker error
-                        Err(e) => {
-                            recv_tx.send(Err(e.into())).unwrap();
-                            break 'work;
-                        }
+                        Err(e) => match e.kind() {
+                            io::ErrorKind::WouldBlock => break,
+                            io::ErrorKind::Interrupted => {}
+                            _ => {
+                                recv_tx.send(Err(e.into())).unwrap();
+                                break 'work;
+                            }
+                        },
                     }
                 }
 
@@ -315,7 +330,11 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
     }
 }
 
-impl<S: PostMsg, R: PostMsg> Drop for PostBox<S, R> {
+impl<
+        S: Serialize + DeserializeOwned + 'static + Send,
+        R: Serialize + DeserializeOwned + 'static + Send,
+    > Drop for PostBox<S, R>
+{
     fn drop(&mut self) {
         self.running.store(false, Ordering::Relaxed);
         self.worker.take().map(|handle| handle.join());
@@ -327,7 +346,10 @@ mod tests {
     use super::*;
     use std::time::Instant;
 
-    fn create_postoffice<S: PostMsg, R: PostMsg>(
+    fn create_postoffice<
+        S: Serialize + DeserializeOwned + 'static + Send,
+        R: Serialize + DeserializeOwned + 'static + Send,
+    >(
         id: u16,
     ) -> Result<(PostOffice<S, R>, SocketAddr), Error> {
         let sock = ([0; 4], 12345 + id).into();

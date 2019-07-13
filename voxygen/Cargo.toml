@@ -3,7 +3,7 @@ name = "veloren-voxygen"
 version = "0.2.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
 edition = "2018"
-default-run = "veloren-voxygen"
+#default-run = "veloren-voxygen"
 
 [features]
 gl = ["gfx_device_gl"]

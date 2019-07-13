@@ -183,7 +183,7 @@ impl PlayState for SessionState {
                                     .cast()
                                     .1
                                 {
-                                    self.selected_block = *block;
+                                    self.selected_block = block;
                                 }
                             }
                         } else {

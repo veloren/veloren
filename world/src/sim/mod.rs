@@ -173,8 +173,11 @@ impl WorldSim {
                         let loc = Vec2::new(i as i32 + R_COORDS[idx], j as i32 + R_COORDS[idx + 1])
                             .map(|e| e as usize);
 
-                        loc_grid[j * grid_size.x + i] =
-                            loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
+                        let loc = loc_grid
+                            .get(loc.y * grid_size.x + loc.x)
+                            .cloned()
+                            .unwrap_or(None);
+                        loc_grid[j * grid_size.x + i] = loc;
                     }
                 }
             }

@@ -12,6 +12,7 @@ sphynx::sum_type! {
     }
 }
 impl sphynx::ResPacket for EcsResPacket {}
+
 // Automatically derive From<T> for EcsCompPacket
 // for each variant EcsCompPacket::T(T.)
 sphynx::sum_type! {
@@ -26,6 +27,7 @@ sphynx::sum_type! {
         Stats(comp::Stats),
     }
 }
+
 // Automatically derive From<T> for EcsCompPhantom
 // for each variant EcsCompPhantom::T(PhantomData<T>).
 sphynx::sum_type! {

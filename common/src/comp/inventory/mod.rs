@@ -19,8 +19,8 @@ impl Inventory {
     }
 
     // Get info about an item slot
-    pub fn get(&self, cell: usize) -> Option<Item> {
-        self.slots.get(cell).cloned().flatten()
+    pub fn get(&self, cell: usize) -> Option<Option<Item>> {
+        self.slots.get(cell).cloned()
     }
 
     // Insert an item to a slot if its empty

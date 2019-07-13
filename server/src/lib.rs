@@ -1,5 +1,3 @@
-#![feature(drain_filter, bind_by_move_pattern_guards)]
-
 pub mod client;
 pub mod cmd;
 pub mod error;
@@ -427,18 +425,18 @@ impl Server {
                             ClientState::Pending => {}
                         },
                         // Valid player
-                        ClientMsg::Register { player } if player.is_valid() => {
-                            match client.client_state {
-                                ClientState::Connected => {
-                                    Self::initialize_player(state, entity, client, player);
+                        ClientMsg::Register { player } => {
+                            if player.is_valid() {
+                                match client.client_state {
+                                    ClientState::Connected => {
+                                        Self::initialize_player(state, entity, client, player);
+                                    }
+                                    // Use RequestState instead (No need to send `player` again).
+                                    _ => client.error_state(RequestStateError::Impossible),
                                 }
-                                // Use RequestState instead (No need to send `player` again).
-                                _ => client.error_state(RequestStateError::Impossible),
+                            } else {
+                                client.error_state(RequestStateError::Impossible)
                             }
-                        }
-                        // Invalid player
-                        ClientMsg::Register { .. } => {
-                            client.error_state(RequestStateError::Impossible)
                         }
                         ClientMsg::SetViewDistance(view_distance) => match client.client_state {
                             ClientState::Character { .. } => {

@@ -1,5 +1,3 @@
-#![feature(label_break_value, duration_float, euclidean_division)]
-
 pub mod error;
 
 // Reexports
@@ -40,7 +38,7 @@ pub struct Client {
     postbox: PostBox<ClientMsg, ServerMsg>,
 
     last_server_ping: Instant,
-    last_ping_delta: f64,
+    last_ping_delta: Duration,
 
     tick: u64,
     state: State,
@@ -98,7 +96,7 @@ impl Client {
             postbox,
 
             last_server_ping: Instant::now(),
-            last_ping_delta: 0.0,
+            last_ping_delta: Duration::default(),
 
             tick: 0,
             state,
@@ -165,8 +163,8 @@ impl Client {
                 .cloned()?
                 .0,
         )
-        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| {
-            (e as u32).div_euclid(sz) as i32
+        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz: u32| {
+            (e as u32 / sz) as i32
         });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
@@ -365,9 +363,7 @@ impl Client {
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
-                        self.last_ping_delta = Instant::now()
-                            .duration_since(self.last_server_ping)
-                            .as_secs_f64()
+                        self.last_ping_delta = Instant::now().duration_since(self.last_server_ping)
                     }
                     ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
                     ServerMsg::SetPlayerEntity(uid) => {
@@ -439,8 +435,8 @@ impl Client {
     }
 
     #[allow(dead_code)]
-    pub fn get_ping_ms(&self) -> f64 {
-        self.last_ping_delta * 1000.0
+    pub fn get_ping_ms(&self) -> u128 {
+        self.last_ping_delta.as_millis()
     }
 
     /// Get a reference to the client's worker thread pool. This pool should be used for any

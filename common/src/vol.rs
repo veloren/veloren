@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use vek::*;
 
 /// A voxel.
-pub trait Vox: Sized {
+pub trait Vox: Sized + Clone {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
 

@@ -1,11 +1,4 @@
 #![type_length_limit = "1664759"]
-#![feature(
-    euclidean_division,
-    duration_float,
-    trait_alias,
-    bind_by_move_pattern_guards,
-    option_flattening, // Converts Option<Option<Item>> into Option<Item> TODO: Remove this once this feature becomes stable
-)]
 
 #[macro_use]
 extern crate serde_derive;

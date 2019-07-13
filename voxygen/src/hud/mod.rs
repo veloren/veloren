@@ -113,7 +113,7 @@ font_ids! {
 
 pub struct DebugInfo {
     pub tps: f64,
-    pub ping_ms: f64,
+    pub ping_ms: u128,
     pub coordinates: Option<comp::Pos>,
 }
 

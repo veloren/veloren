@@ -1,9 +1,7 @@
-use crate::vol::{ReadVol, Vox};
+use crate::vol::ReadVol;
 use vek::*;
 
-pub trait RayUntil<V: Vox> = FnMut(&V) -> bool;
-
-pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>> {
+pub struct Ray<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool> {
     vol: &'a V,
     from: Vec3<f32>,
     to: Vec3<f32>,
@@ -12,7 +10,7 @@ pub struct Ray<'a, V: ReadVol, F: RayUntil<V::Vox>> {
     ignore_error: bool,
 }
 
-impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
+impl<'a, V: ReadVol, F: FnMut(&V::Vox) -> bool> Ray<'a, V, F> {
     pub fn new(vol: &'a V, from: Vec3<f32>, to: Vec3<f32>, until: F) -> Self {
         Self {
             vol,
@@ -38,7 +36,7 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
         self
     }
 
-    pub fn cast(mut self) -> (f32, Result<Option<&'a V::Vox>, V::Err>) {
+    pub fn cast(mut self) -> (f32, Result<Option<V::Vox>, V::Err>) {
         // TODO: Fully test this!
 
         const PLANCK: f32 = 0.001;
@@ -57,8 +55,12 @@ impl<'a, V: ReadVol, F: RayUntil<V::Vox>> Ray<'a, V, F> {
             }
 
             match self.vol.get(ipos).map(|vox| (vox, (self.until)(vox))) {
-                Ok((vox, true)) => return (dist, Ok(Some(vox))),
-                Err(err) if !self.ignore_error => return (dist, Err(err)),
+                Ok((vox, true)) => return (dist, Ok(Some(vox.clone()))),
+                Err(err) => {
+                    if !self.ignore_error {
+                        return (dist, Err(err));
+                    }
+                }
                 _ => {}
             }
 

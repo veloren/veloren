@@ -45,14 +45,14 @@ impl<'a> BlockGen<'a> {
         close_cliffs: &[(Vec2<i32>, u32); 9],
         cliff_hill: f32,
     ) -> f32 {
-        close_cliffs.iter().fold(
-            0.0f32,
-            |max_height, (cliff_pos, seed)| match Self::sample_column(
-                column_gen,
-                cache,
-                Vec2::from(*cliff_pos),
-            ) {
-                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
+        close_cliffs
+            .iter()
+            .fold(0.0f32, |max_height, (cliff_pos, seed)| {
+                if let Some(cliff_sample) =
+                    Self::sample_column(column_gen, cache, Vec2::from(*cliff_pos)).filter(
+                        |cliff_sample| cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5,
+                    )
+                {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
@@ -69,10 +69,10 @@ impl<'a> BlockGen<'a> {
                             0.0
                         },
                     )
+                } else {
+                    max_height
                 }
-                _ => max_height,
-            },
-        )
+            })
     }
 
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
