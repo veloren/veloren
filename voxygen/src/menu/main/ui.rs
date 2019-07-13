@@ -344,7 +344,6 @@ impl MainMenuUi {
                         )
                         .was_clicked()
                     {
-                        // TODO: Set as current server address
                         self.server_address = net_settings.servers[item.i].clone();
                         net_settings.default_server = item.i;
                     }
