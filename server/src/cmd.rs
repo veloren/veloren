@@ -416,24 +416,15 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
 
 fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     let ecs = server.state.ecs();
-    let mut npclist = Vec::new();
-    {
-        // Get the npc list, scope read access to prevent
-        // 'Already borrowed: InvalidBorrow' error when setting health stat
-        let entities = ecs.entities();
-        let stats = ecs.read_storage::<comp::Stats>();
-        let players = ecs.read_storage::<comp::Player>();
-        for (npc, stat, ()) in (&entities, &stats, !&players).join() {
-            npclist.push((npc, stat.name.clone()));
-        }
+    let mut stats = ecs.write_storage::<comp::Stats>();
+    let players = ecs.write_storage::<comp::Player>();
+    let mut count = 0;
+    for (npc, ()) in (&mut stats, !&players).join() {
+        count += 1;
+        npc.health.set_to(0, comp::HealthSource::Command);
     }
-    for npc in &npclist {
-        ecs.write_storage::<comp::Stats>()
-            .get_mut(npc.0)
-            .map(|s| s.health.set_to(0, comp::HealthSource::Command));
-    }
-    let text = if npclist.len() > 0 {
-        format!("Destroyed {} NPCs.", npclist.len())
+    let text = if count > 0 {
+        format!("Destroyed {} NPCs.", count)
     } else {
         "No NPCs on server.".to_string()
     };
