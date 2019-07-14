@@ -433,9 +433,8 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
             .map(|s| s.health.set_to(0, comp::HealthSource::Command));
     }
     let text = if npclist.len() > 0 {
-        format!("Destroyed {} NPCs.",npclist.len())
-    }
-    else {
+        format!("Destroyed {} NPCs.", npclist.len())
+    } else {
         "No NPCs on server.".to_string()
     };
     server.clients.notify(entity, ServerMsg::Chat(text));
