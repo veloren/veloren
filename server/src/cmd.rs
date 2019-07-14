@@ -418,7 +418,7 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
     let ecs = server.state.ecs();
     let mut npclist = Vec::new();
     {
-        // get the npc list, scope read access to prevent
+        // Get the npc list, scope read access to prevent
         // 'Already borrowed: InvalidBorrow' error when setting health stat
         let entities = ecs.entities();
         let stats = ecs.read_storage::<comp::Stats>();
@@ -427,12 +427,16 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
             npclist.push((npc, stat.name.clone()));
         }
     }
-    for npc in npclist {
-        let mut text = npc.1.clone();
-        text += " is no more.";
-        server.clients.notify(entity, ServerMsg::Chat(text));
+    for npc in &npclist {
         ecs.write_storage::<comp::Stats>()
             .get_mut(npc.0)
             .map(|s| s.health.set_to(0, comp::HealthSource::Command));
     }
+    let text = if npclist.len() > 0 {
+        format!("Destroyed {} NPCs.",npclist.len())
+    }
+    else {
+        "No NPCs on server.".to_string()
+    };
+    server.clients.notify(entity, ServerMsg::Chat(text));
 }
