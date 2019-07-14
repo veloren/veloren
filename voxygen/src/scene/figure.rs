@@ -153,7 +153,7 @@ impl FigureModelCache {
         let (name, offset) = match (race, body_type) {
             (Human, Male) => (
                 "figure/head/head_human_male.vox",
-                Vec3::new(-7.0, -5.5, -2.25),
+                Vec3::new(-7.0, -5.0, -2.25),
             ),
             (Human, Female) => (
                 "figure/head/head_human_female.vox",
@@ -177,11 +177,11 @@ impl FigureModelCache {
             ),
             (Orc, Male) => (
                 "figure/head/head_orc_male.vox",
-                Vec3::new(-8.0, -6.0, -2.75),
+                Vec3::new(-8.0, -5.0, -2.50),
             ),
             (Orc, Female) => (
                 "figure/head/head_orc_female.vox",
-                Vec3::new(-8.0, -5.5, -2.75),
+                Vec3::new(-8.0, -8.0, -3.5),
             ),
             (Undead, Male) => (
                 "figure/head/head_undead_male.vox",
