@@ -417,11 +417,11 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
 fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     let ecs = server.state.ecs();
     let mut stats = ecs.write_storage::<comp::Stats>();
-    let players = ecs.write_storage::<comp::Player>();
+    let players = ecs.read_storage::<comp::Player>();
     let mut count = 0;
-    for (npc, ()) in (&mut stats, !&players).join() {
+    for (stats, ()) in (&mut stats, !&players).join() {
         count += 1;
-        npc.health.set_to(0, comp::HealthSource::Command);
+        stats.health.set_to(0, comp::HealthSource::Command);
     }
     let text = if count > 0 {
         format!("Destroyed {} NPCs.", count)
