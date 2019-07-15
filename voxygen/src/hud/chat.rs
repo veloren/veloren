@@ -82,15 +82,19 @@ impl<'a> Chat<'a> {
 pub struct State {
     messages: VecDeque<ClientEvent>,
     input: String,
+    ids: Ids,
     history: VecDeque<String>,
+    // Index into the history Vec, history_pos == 0 is history not in use
+    // otherwise index is history_pos -1
     history_pos: usize,
     history_max: usize,
-    ids: Ids,
+    history_command: Option<String>,
 }
 
 pub enum Event {
     SendMessage(String),
     Focus(Id),
+    SetText(String),
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -105,6 +109,7 @@ impl<'a> Widget for Chat<'a> {
             history: VecDeque::new(),
             history_pos: 0,
             history_max: 32,
+            history_command: None,
             ids: Ids::new(id_gen),
         }
     }
@@ -256,80 +261,73 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
+        // Take a key from the input queue
+        let keys = ui.widget_input(state.ids.input).presses().key().take(1);
+
         // If the chat widget is focused, return a focus event to pass the focus to the input box.
         if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
         }
         // If enter is pressed and the input box is not empty, send the current message.
-        else if ui
-            .widget_input(state.ids.input)
-            .presses()
-            .key()
-            .any(|key_press| match key_press.key {
-                Key::Return if !state.input.is_empty() => true,
-                _ => false,
-            })
-        {
+        else if keys.clone().any(|key_press| match key_press.key {
+            Key::Return if !state.input.is_empty() => true,
+            _ => false,
+        }) {
             let msg = state.input.clone();
             state.update(|s| {
                 s.input.clear();
-                // update the history
+                // Update the history
                 s.history.push_front(msg.clone());
                 s.history_pos = 0;
-                while s.history.len() > s.history_max {
-                    s.history.pop_back();
-                }
+                s.history.truncate(s.history_max);
             });
             Some(Event::SendMessage(msg))
         }
         // If up is pressed, use history
-        else if ui
-            .widget_input(state.ids.input)
-            .presses()
-            .key()
-            .any(|key_press| match key_press.key {
-                Key::Up => true,
-                _ => false,
-            })
-        {
-            state.update(|s| {
-                if !s.history.is_empty() {
-                    if s.history_pos < s.history.len() {
+        else if keys.clone().any(|key_press| match key_press.key {
+            Key::Up => true,
+            _ => false,
+        }) {
+            if !state.history.is_empty() {
+                if state.history_pos < state.history.len() {
+                    state.update(|s| {
                         s.history_pos += 1;
-                        if let Some(string) = s.history.get(s.history_pos - 1) {
-                            s.input.clear();
-                            s.input.push_str(string);
+                        s.history_command = match s.history.get(s.history_pos - 1) {
+                            Some(string) => Some(string.to_string()),
+                            None => None,
                         }
-                    }
+                    });
                 }
-            });
-            None
+            }
+            match &state.history_command {
+                Some(string) => Some(Event::SetText(string.to_string())),
+                None => None,
+            }
         }
         // If down is pressed, use history
-        else if ui
-            .widget_input(state.ids.input)
-            .presses()
-            .key()
-            .any(|key_press| match key_press.key {
-                Key::Down => true,
-                _ => false,
-            })
-        {
-            state.update(|s| {
-                if !s.history.is_empty() {
-                    if s.history_pos > 1 {
-                        s.history_pos -= 1;
-                        s.input.clear();
-                        if let Some(string) = s.history.get(s.history_pos - 1) {
-                            s.input.push_str(string);
-                        }
-                    } else {
-                        s.history_pos = 0;
-                        s.input.clear();
+        else if keys.clone().any(|key_press| match key_press.key {
+            Key::Down => true,
+            _ => false,
+        }) {
+            if state.history_pos > 1 {
+                state.update(|s| {
+                    s.history_pos -= 1;
+                    s.history_command = match s.history.get(s.history_pos - 1) {
+                        Some(string) => Some(string.to_string()),
+                        None => None,
                     }
-                }
-            });
-            None
+                });
+            } else {
+                state.update(|s| {
+                    s.history_command = None;
+                    s.history_pos = 0;
+                    s.input.clear();
+                });
+            }
+            match &state.history_command {
+                Some(string) => Some(Event::SetText(string.to_string())),
+                None => None,
+            }
         } else {
             None
         }
