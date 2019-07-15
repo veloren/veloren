@@ -30,7 +30,6 @@ impl<'a> System<'a> for Sys {
             ) {
                 (_, _, true, true, _, _) => impossible_animation("Attack while gliding"),
                 (_, _, true, _, true, _) => impossible_animation("Roll while attacking"),
-                (_, _, _, true, true, _) => impossible_animation("Roll while gliding"),
                 (_, false, _, _, true, _) => impossible_animation("Roll without moving"),
                 (_, true, false, false, true, _) => Animation::Roll,
                 (true, false, false, false, false, false) => Animation::Idle,
@@ -41,6 +40,7 @@ impl<'a> System<'a> for Sys {
                 (false, _, false, false, false, true) => Animation::Cjump,
                 (_, _, false, true, false, _) => Animation::Gliding,
                 (_, _, true, false, false, _) => Animation::Attack,
+                (_, _, _, true, true, _) => Animation::BarrelRoll,
             };
 
             let new_time = animation_infos

@@ -71,7 +71,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide && !a.on_ground && !a.attacking && !a.rolling {
+            if controller.glide && !a.on_ground && !a.attacking {
                 let _ = glidings.insert(entity, Gliding);
                 a.gliding = true;
             } else {
@@ -97,13 +97,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Roll
-            if controller.roll
-                && !a.rolling
-                && a.on_ground
-                && a.moving
-                && !a.attacking
-                && !a.gliding
-            {
+            if controller.roll && !a.rolling && a.moving && !a.attacking {
                 let _ = rollings.insert(entity, Rolling::start());
                 a.rolling = true;
             }

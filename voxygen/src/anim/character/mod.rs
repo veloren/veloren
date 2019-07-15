@@ -1,4 +1,5 @@
 pub mod attack;
+pub mod barrelroll;
 pub mod cidle;
 pub mod cjump;
 pub mod crun;
@@ -10,6 +11,7 @@ pub mod run;
 
 // Reexports
 pub use self::attack::AttackAnimation;
+pub use self::barrelroll::BarrelRollAnimation;
 pub use self::cidle::CidleAnimation;
 pub use self::cjump::CjumpAnimation;
 pub use self::crun::CrunAnimation;

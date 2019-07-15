@@ -114,6 +114,11 @@ impl<'a> System<'a> for Sys {
                         (true, false, true) if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) => {
                             ROLL_ACCEL
                         }
+                        (false, true, true)
+                            if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) =>
+                        {
+                            GLIDE_ACCEL
+                        }
 
                         _ => 0.0,
                     };

@@ -643,6 +643,14 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         }
+                        comp::Animation::BarrelRoll => {
+                            anim::character::BarrelRollAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);

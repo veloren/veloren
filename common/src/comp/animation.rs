@@ -11,6 +11,7 @@ pub enum Animation {
     Crun,
     Cidle,
     Cjump,
+    BarrelRoll,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
