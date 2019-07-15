@@ -758,8 +758,19 @@ impl Hud {
             Some(chat::Event::Focus(focus_id)) => {
                 self.to_focus = Some(Some(focus_id));
             }
+            Some(chat::Event::SetText(text)) => {
+                let mut q = VecDeque::new();
+                let mut chat = Chat::new(&mut q, &self.imgs, &self.fonts);
+                chat = chat.input(text.to_string());
+                chat = chat.cursor_pos(Index {
+                    line: 0,
+                    char: text.len(),
+                });
+                chat.set(self.ids.chat, ui_widgets);
+            }
             None => {}
         }
+
         self.new_messages = VecDeque::new();
 
         // Windows
