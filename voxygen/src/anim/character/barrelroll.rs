@@ -37,7 +37,6 @@ impl Animation for BarrelRollAnimation {
         next.r_hand.ori = Quaternion::rotation_y(roll);
         next.l_foot.ori = Quaternion::rotation_y(roll);
         next.r_foot.ori = Quaternion::rotation_y(roll);
-        next.weapon.ori = Quaternion::rotation_y(roll);
         next.l_shoulder.ori = Quaternion::rotation_y(roll);
         next.r_shoulder.ori = Quaternion::rotation_y(roll);
         next.draw.ori = Quaternion::rotation_y(roll);
