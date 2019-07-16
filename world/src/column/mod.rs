@@ -34,7 +34,10 @@ impl<'a> ColumnGen<'a> {
             .min_by_key(|(pos, _)| pos.distance_squared(wpos))
             .unwrap();
 
-        let chunk = self.world.sim().get(pos)?;
+        let chunk_pos = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            e / sz as i32
+        });
+        let chunk = self.world.sim().get(chunk_pos)?;
 
         if seed % 5 == 2 && chunk.temp > CONFIG.desert_temp && chunk.alt > CONFIG.sea_level + 5.0 {
             Some(StructureData {
