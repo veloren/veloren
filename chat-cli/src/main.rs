@@ -68,7 +68,7 @@ fn main() {
 
         for event in events {
             match event {
-                Event::Chat(msg) => println!("{}", msg),
+                Event::ChatMsg(msg) => println!("{}", msg),
                 Event::Disconnect => {} // TODO
             }
         }

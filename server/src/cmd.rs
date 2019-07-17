@@ -166,13 +166,13 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
                 None => server.clients.notify(
                     entity,
-                    ServerMsg::Chat(String::from("You have no position!")),
+                    ServerMsg::chat(String::from("You have no position!")),
                 ),
             }
         }
         _ => server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
     }
 }
 
@@ -188,12 +188,12 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             }
             _ => server
                 .clients
-                .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+                .notify(entity, ServerMsg::chat(String::from(action.help_string))),
         },
         None => {
             server.clients.notify(
                 entity,
-                ServerMsg::Chat(String::from("You don't have any position!")),
+                ServerMsg::chat(String::from("You don't have any position!")),
             );
         }
     }
@@ -221,14 +221,14 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             Err(_) => {
                 server
                     .clients
-                    .notify(entity, ServerMsg::Chat(format!("'{}' is not a time!", n)));
+                    .notify(entity, ServerMsg::chat(format!("'{}' is not a time!", n)));
                 return;
             }
         },
         None => {
             server.clients.notify(
                 entity,
-                ServerMsg::Chat("You must specify a time!".to_string()),
+                ServerMsg::chat("You must specify a time!".to_string()),
             );
             return;
         }
@@ -249,13 +249,13 @@ fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &
             None => {
                 server.clients.notify(
                     entity,
-                    ServerMsg::Chat(String::from("You must specify health amount!")),
+                    ServerMsg::chat(String::from("You must specify health amount!")),
                 );
             }
         },
         None => server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("You have no position.")),
+            ServerMsg::chat(String::from("You have no position.")),
         ),
     }
 }
@@ -273,7 +273,7 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
         }
         None => server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
     }
 }
 
@@ -295,29 +295,29 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                         }
                         None => server.clients.notify(
                             entity,
-                            ServerMsg::Chat(format!("Unable to teleport to player '{}'!", alias)),
+                            ServerMsg::chat(format!("Unable to teleport to player '{}'!", alias)),
                         ),
                     },
                     None => {
                         server.clients.notify(
                             entity,
-                            ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                            ServerMsg::chat(format!("Player '{}' not found!", alias)),
                         );
                         server
                             .clients
-                            .notify(entity, ServerMsg::Chat(String::from(action.help_string)));
+                            .notify(entity, ServerMsg::chat(String::from(action.help_string)));
                     }
                 },
                 None => {
                     server
                         .clients
-                        .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+                        .notify(entity, ServerMsg::chat(format!("You have no position!")));
                 }
             }
         }
         None => server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
     }
 }
 
@@ -351,17 +351,17 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                     }
                     server.clients.notify(
                         entity,
-                        ServerMsg::Chat(format!("Spawned {} entities", amount).to_owned()),
+                        ServerMsg::chat(format!("Spawned {} entities", amount).to_owned()),
                     );
                 }
                 None => server
                     .clients
-                    .notify(entity, ServerMsg::Chat("You have no position!".to_owned())),
+                    .notify(entity, ServerMsg::chat("You have no position!".to_owned())),
             }
         }
         _ => server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
     }
 }
 
@@ -381,11 +381,11 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 
         server
             .clients
-            .notify(entity, ServerMsg::Chat(header_message + &player_list));
+            .notify(entity, ServerMsg::chat(header_message + &player_list));
     } else {
         server
             .clients
-            .notify(entity, ServerMsg::Chat(header_message));
+            .notify(entity, ServerMsg::chat(header_message));
     }
 }
 
@@ -403,7 +403,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
             .remove(entity);
         server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("Toggled off build mode!")),
+            ServerMsg::chat(String::from("Toggled off build mode!")),
         );
     } else {
         let _ = server
@@ -413,7 +413,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
             .insert(entity, comp::CanBuild);
         server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("Toggled on build mode!")),
+            ServerMsg::chat(String::from("Toggled on build mode!")),
         );
     }
 }
@@ -422,7 +422,7 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
     for cmd in CHAT_COMMANDS.iter() {
         server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(cmd.help_string)));
+            .notify(entity, ServerMsg::chat(String::from(cmd.help_string)));
     }
 }
 
@@ -460,7 +460,7 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
     } else {
         "No NPCs on server.".to_string()
     };
-    server.clients.notify(entity, ServerMsg::Chat(text));
+    server.clients.notify(entity, ServerMsg::chat(text));
 }
 
 fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
@@ -613,29 +613,23 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             let msg = &args[alias.len()..args.len()];
             match opt_player {
                 Some(player) => {
-                    if player != entity {
-                        if msg.len() > 1 {
-                            let opt_name = ecs
-                                .read_storage::<comp::Player>()
-                                .get(entity)
-                                .map(|s| s.alias.clone());
-                            match opt_name {
-                                Some(name) => {
-                                    server.clients.notify(
-                                        player,
-                                        ServerMsg::Chat(format!("{} tells you:{}", name, msg)),
-                                    );
-                                    server.clients.notify(
-                                        entity,
-                                        ServerMsg::Chat(format!("You tell {}:{}", alias, msg)),
-                                    );
-                                }
-                                None => {
-                                    server.clients.notify(
-                                        entity,
-                                        ServerMsg::Chat(String::from("You do not exist!")),
-                                    );
-                                }
+                    if msg.len() > 1 {
+                        let opt_name = ecs
+                            .read_storage::<comp::Player>()
+                            .get(entity)
+                            .map(|s| s.alias.clone());
+                        match opt_name {
+                            Some(name) => {
+                                server.clients.notify(
+                                    player,
+                                    ServerMsg::tell(format!("{} tells you:{}", name, msg)),
+                                );
+                            }
+                            None => {
+                                server.clients.notify(
+                                    entity,
+                                    ServerMsg::chat(String::from("You do not exist!")),
+                                );
                             }
                         } else {
                             server.clients.notify(
@@ -647,21 +641,25 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                             );
                         }
                     } else {
-                        server
-                            .clients
-                            .notify(entity, ServerMsg::Chat(format!("Don't be crazy!")));
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::chat(format!(
+                                "You really should say something to {}!",
+                                alias
+                            )),
+                        );
                     }
                 }
                 None => {
                     server.clients.notify(
                         entity,
-                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                        ServerMsg::chat(format!("Player '{}' not found!", alias)),
                     );
                 }
             }
         }
         None => server
             .clients
-            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
     }
 }
