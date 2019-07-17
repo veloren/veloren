@@ -1,6 +1,6 @@
 use common::clock::Clock;
 use log::info;
-use server::{Event, Input, Server};
+use server::{Event, Input, Server, ServerSettings};
 use std::time::Duration;
 
 const TPS: u64 = 30;
@@ -14,8 +14,11 @@ fn main() {
     // Set up an fps clock
     let mut clock = Clock::start();
 
+    // Load settings
+    let settings = ServerSettings::load();
+
     // Create server
-    let mut server = Server::new().expect("Failed to create server instance!");
+    let mut server = Server::new(settings).expect("Failed to create server instance!");
 
     loop {
         let events = server

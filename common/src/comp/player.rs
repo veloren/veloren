@@ -19,7 +19,6 @@ impl Player {
     pub fn is_valid(&self) -> bool {
         self.alias.chars().all(|c| c.is_alphanumeric() || c == '_')
             && self.alias.len() <= MAX_ALIAS_LEN
-        // TODO: Check view distance here based on server config too
     }
 }
 
