@@ -489,14 +489,17 @@ impl Server {
                             }
                             ClientState::Pending => {}
                         },
-                        ClientMsg::Chat(msg) => match client.client_state {
+                        ClientMsg::ChatMsg {
+                            chat_type: _,
+                            msg: message,
+                        } => match client.client_state {
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs.push((Some(entity), msg)),
+                            | ClientState::Character => new_chat_msgs.push((Some(entity), message)),
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
@@ -589,7 +592,7 @@ impl Server {
                     let argv = String::from(&msg[1..]);
                     self.process_chat_cmd(entity, argv);
                 } else {
-                    self.clients.notify_registered(ServerMsg::Chat(
+                    self.clients.notify_registered(ServerMsg::chat(
                         match self.state.ecs().read_storage::<comp::Player>().get(entity) {
                             Some(player) => format!("[{}] {}", &player.alias, msg),
                             None => format!("[<anon>] {}", msg),
@@ -597,7 +600,7 @@ impl Server {
                     ));
                 }
             } else {
-                self.clients.notify_registered(ServerMsg::Chat(msg.clone()));
+                self.clients.notify_registered(ServerMsg::chat(msg.clone()));
             }
             frontend_events.push(Event::Chat { entity, msg });
         }
@@ -682,7 +685,7 @@ impl Server {
                     }
                     .unwrap_or(format!("{} died", &player.alias));
 
-                    clients.notify_registered(ServerMsg::Chat(msg));
+                    clients.notify_registered(ServerMsg::chat(msg));
                 }
 
                 entity
@@ -812,7 +815,7 @@ impl Server {
             None => {
                 self.clients.notify(
                     entity,
-                    ServerMsg::Chat(format!(
+                    ServerMsg::chat(format!(
                         "Unrecognised command: '/{}'\ntype '/help' for a list of available commands",
                         kwd
                     )),

@@ -1,5 +1,5 @@
 use super::{ClientState, EcsCompPacket, EcsResPacket};
-use crate::{comp, terrain::TerrainChunk};
+use crate::{comp, terrain::TerrainChunk, ChatType};
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,7 +27,10 @@ pub enum ServerMsg {
     ForceState(ClientState),
     Ping,
     Pong,
-    Chat(String),
+    ChatMsg {
+        chat_type: ChatType,
+        msg: String,
+    },
     SetPlayerEntity(u64),
     EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
     EntityPhysics {
@@ -50,4 +53,19 @@ pub enum ServerMsg {
 pub enum ServerError {
     TooManyPlayers,
     //TODO: InvalidAlias,
+}
+
+impl ServerMsg {
+    pub fn chat(message: String) -> crate::msg::server::ServerMsg {
+        crate::msg::server::ServerMsg::ChatMsg {
+            chat_type: ChatType::Chat,
+            msg: message,
+        }
+    }
+    pub fn tell(message: String) -> crate::msg::server::ServerMsg {
+        crate::msg::server::ServerMsg::ChatMsg {
+            chat_type: ChatType::Tell,
+            msg: message,
+        }
+    }
 }

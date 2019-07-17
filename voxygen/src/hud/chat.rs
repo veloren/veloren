@@ -1,4 +1,6 @@
-use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, TELL_COLOR, TEXT_COLOR};
+use client::Event as ClientEvent;
+use common::ChatType;
 use conrod_core::{
     input::Key,
     position::Dimension,
@@ -22,7 +24,7 @@ const MAX_MESSAGES: usize = 100;
 
 #[derive(WidgetCommon)]
 pub struct Chat<'a> {
-    new_messages: &'a mut VecDeque<String>,
+    new_messages: &'a mut VecDeque<ClientEvent>,
     force_input: Option<String>,
     force_cursor: Option<Index>,
 
@@ -34,7 +36,11 @@ pub struct Chat<'a> {
 }
 
 impl<'a> Chat<'a> {
-    pub fn new(new_messages: &'a mut VecDeque<String>, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        new_messages: &'a mut VecDeque<ClientEvent>,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+    ) -> Self {
         Self {
             new_messages,
             force_input: None,
@@ -71,7 +77,7 @@ impl<'a> Chat<'a> {
 }
 
 pub struct State {
-    messages: VecDeque<String>,
+    messages: VecDeque<ClientEvent>,
     input: String,
 
     ids: Ids,
@@ -179,27 +185,44 @@ impl<'a> Widget for Chat<'a> {
         while let Some(item) = items.next(ui) {
             // This would be easier if conrod used the v-metrics from rusttype.
             let widget = if item.i < state.messages.len() {
-                let text = Text::new(&state.messages[item.i])
-                    .font_size(15)
-                    .font_id(self.fonts.opensans)
-                    .w(470.0)
-                    .color(TEXT_COLOR)
-                    .line_spacing(2.0);
-                // Add space between messages.
-                let y = match text.get_y_dimension(ui) {
-                    Dimension::Absolute(y) => y + 2.0,
-                    _ => 0.0,
-                };
-                text.h(y)
+                let msg = &state.messages[item.i];
+                match msg {
+                    ClientEvent::Chat { chat_type, message } => {
+                        let color = match chat_type {
+                            ChatType::Tell => TELL_COLOR,
+                            _ => TEXT_COLOR,
+                        };
+                        let text = Text::new(&message)
+                            .font_size(15)
+                            .font_id(self.fonts.opensans)
+                            .w(470.0)
+                            .color(color)
+                            .line_spacing(2.0);
+                        // Add space between messages.
+                        let y = match text.get_y_dimension(ui) {
+                            Dimension::Absolute(y) => y + 2.0,
+                            _ => 0.0,
+                        };
+                        Some(text.h(y))
+                    }
+                    _ => None,
+                }
             } else {
                 // Spacer at bottom of the last message so that it is not cut off.
                 // Needs to be larger than the space above.
-                Text::new("")
-                    .font_size(6)
-                    .font_id(self.fonts.opensans)
-                    .w(470.0)
+                Some(
+                    Text::new("")
+                        .font_size(6)
+                        .font_id(self.fonts.opensans)
+                        .w(470.0),
+                )
             };
-            item.set(widget, ui);
+            match widget {
+                Some(widget) => {
+                    item.set(widget, ui);
+                }
+                None => {}
+            }
         }
 
         // Chat Arrow

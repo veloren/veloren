@@ -14,6 +14,7 @@ use common::{
     state::State,
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
+    ChatType,
 };
 use log::{info, log_enabled, warn};
 use std::{
@@ -28,7 +29,10 @@ use vek::*;
 const SERVER_TIMEOUT: Duration = Duration::from_secs(20);
 
 pub enum Event {
-    Chat(String),
+    Chat {
+        chat_type: ChatType,
+        message: String,
+    },
     Disconnect,
 }
 
@@ -178,7 +182,7 @@ impl Client {
     /// Send a chat message to the server.
     #[allow(dead_code)]
     pub fn send_chat(&mut self, msg: String) {
-        self.postbox.send_message(ClientMsg::Chat(msg))
+        self.postbox.send_message(ClientMsg::chat(msg))
     }
 
     /// Remove all cached terrain
@@ -376,7 +380,16 @@ impl Client {
                             .duration_since(self.last_server_ping)
                             .as_secs_f64()
                     }
-                    ServerMsg::Chat(msg) => frontend_events.push(Event::Chat(msg)),
+                    ServerMsg::ChatMsg { chat_type, msg } => match chat_type {
+                        ChatType::Chat => frontend_events.push(Event::Chat {
+                            chat_type: ChatType::Chat,
+                            message: msg,
+                        }),
+                        ChatType::Tell => frontend_events.push(Event::Chat {
+                            chat_type: ChatType::Tell,
+                            message: msg,
+                        }),
+                    },
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
                     } // TODO: Don't unwrap here!
