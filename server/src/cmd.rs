@@ -119,10 +119,16 @@ lazy_static! {
             handle_build,
         ),
         ChatCommand::new(
-             "killnpcs",
-             "{}",
-             "/killnpcs : Kill the NPCs",
-             handle_killnpcs,
+            "msg",
+            "{}",
+            "/msg <alias> : Send a message to another player",
+            handle_msg,
+        ),
+        ChatCommand::new(
+            "killnpcs",
+            "{}",
+            "/killnpcs : Kill the NPCs",
+            handle_killnpcs,
          ),
     ];
 }
@@ -429,4 +435,59 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
         "No NPCs on server.".to_string()
     };
     server.clients.notify(entity, ServerMsg::Chat(text));
+}
+
+fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+    match opt_alias {
+        Some(alias) => {
+            let ecs = server.state.ecs();
+            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+                .join()
+                .find(|(_, player)| player.alias == alias)
+                .map(|(entity, _)| entity);
+            let msg = &args[alias.len()..args.len()];
+            match opt_player {
+                Some(player) => {
+                    if msg.len() > 1 {
+                        let opt_name = ecs
+                            .read_storage::<comp::Player>()
+                            .get(entity)
+                            .map(|s| s.alias.clone());
+                        match opt_name {
+                            Some(name) => {
+                                server.clients.notify(
+                                    player,
+                                    ServerMsg::Chat(format!("{} tells you:{}", name, msg)),
+                                );
+                            }
+                            None => {
+                                server.clients.notify(
+                                    entity,
+                                    ServerMsg::Chat(String::from("You do not exist!")),
+                                );
+                            }
+                        }
+                    } else {
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::Chat(format!(
+                                "You really should say something to {}!",
+                                alias
+                            )),
+                        );
+                    }
+                }
+                None => {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::Chat(format!("Player '{}' not found!", alias)),
+                    );
+                }
+            }
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
+    }
 }
