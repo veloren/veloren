@@ -491,4 +491,3 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
 }
-
