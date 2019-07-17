@@ -39,6 +39,4 @@ fn main() {
         // Wait for the next tick.
         clock.tick(Duration::from_millis(1000 / TPS));
     }
-
-    //settings.save_to_file().expect("failed to save the settings!");
 }
