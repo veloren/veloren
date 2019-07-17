@@ -118,6 +118,12 @@ lazy_static! {
             "/build : Toggles build mode on and off",
             handle_build,
         ),
+        ChatCommand::new(
+             "killnpcs",
+             "{}",
+             "/killnpcs : Kill the NPCs",
+             handle_killnpcs,
+         ),
     ];
 }
 
@@ -406,4 +412,21 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
         NpcKind::Pig => comp::Body::Quadruped(comp::quadruped::Body::random()),
         NpcKind::Wolf => comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random()),
     }
+}
+
+fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    let ecs = server.state.ecs();
+    let mut stats = ecs.write_storage::<comp::Stats>();
+    let players = ecs.read_storage::<comp::Player>();
+    let mut count = 0;
+    for (stats, ()) in (&mut stats, !&players).join() {
+        count += 1;
+        stats.health.set_to(0, comp::HealthSource::Command);
+    }
+    let text = if count > 0 {
+        format!("Destroyed {} NPCs.", count)
+    } else {
+        "No NPCs on server.".to_string()
+    };
+    server.clients.notify(entity, ServerMsg::Chat(text));
 }
