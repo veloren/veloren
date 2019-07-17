@@ -4,9 +4,10 @@ pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod input;
+pub mod settings;
 
 // Reexports
-pub use crate::{error::Error, input::Input};
+pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
     client::{Client, Clients},
@@ -14,9 +15,9 @@ use crate::{
 };
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, RequestStateError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, TerrainChange, Uid},
+    state::{State, TerrainChange, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
     vol::Vox,
@@ -35,8 +36,6 @@ use vek::*;
 use world::World;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
-
-const DEFAULT_WORLD_SEED: u32 = 1337;
 
 pub enum Event {
     ClientConnected {
@@ -66,19 +65,20 @@ pub struct Server {
     chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
     pending_chunks: HashSet<Vec2<i32>>,
 
+    server_settings: ServerSettings,
     server_info: ServerInfo,
 }
 
 impl Server {
     /// Create a new `Server` bound to the default socket.
     #[allow(dead_code)]
-    pub fn new() -> Result<Self, Error> {
-        Self::bind(SocketAddr::from(([0; 4], 59003)))
+    pub fn new(settings: ServerSettings) -> Result<Self, Error> {
+        Self::bind(settings.address, settings)
     }
 
     /// Create a new server bound to the given socket.
     #[allow(dead_code)]
-    pub fn bind<A: Into<SocketAddr>>(addrs: A) -> Result<Self, Error> {
+    pub fn bind<A: Into<SocketAddr>>(addrs: A, settings: ServerSettings) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
         let mut state = State::default();
@@ -86,9 +86,12 @@ impl Server {
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
 
+        // Set starting time for the server.
+        state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
+
         let this = Self {
             state,
-            world: Arc::new(World::generate(DEFAULT_WORLD_SEED)),
+            world: Arc::new(World::generate(settings.world_seed)),
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -101,9 +104,10 @@ impl Server {
             pending_chunks: HashSet::new(),
 
             server_info: ServerInfo {
-                name: "Server name".to_owned(),
-                description: "This is the best Veloren server.".to_owned(),
+                name: settings.server_name.clone(),
+                description: settings.server_description.clone(),
             },
+            server_settings: settings,
         };
 
         Ok(this)
@@ -356,16 +360,20 @@ impl Server {
                 last_ping: self.state.get_time(),
             };
 
-            // Return the state of the current world (all of the components that Sphynx tracks).
-            client.notify(ServerMsg::InitialSync {
-                ecs_state: self.state.ecs().gen_state_package(),
-                entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
-                server_info: self.server_info.clone(),
-            });
+            if self.server_settings.max_players <= self.clients.len() {
+                client.notify(ServerMsg::Error(ServerError::TooManyPlayers));
+            } else {
+                // Return the state of the current world (all of the components that Sphynx tracks).
+                client.notify(ServerMsg::InitialSync {
+                    ecs_state: self.state.ecs().gen_state_package(),
+                    entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
+                    server_info: self.server_info.clone(),
+                });
+
+                frontend_events.push(Event::ClientConnected { entity });
+            }
 
             self.clients.add(entity, client);
-
-            frontend_events.push(Event::ClientConnected { entity });
         }
 
         Ok(frontend_events)

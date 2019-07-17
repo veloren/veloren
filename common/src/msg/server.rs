@@ -41,6 +41,13 @@ pub enum ServerMsg {
         key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
+    Error(ServerError),
     Disconnect,
     Shutdown,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ServerError {
+    TooManyPlayers,
+    //TODO: InvalidAlias,
 }

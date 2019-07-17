@@ -124,6 +124,12 @@ lazy_static! {
             "/msg <alias> : Send a message to another player",
             handle_msg,
         ),
+        ChatCommand::new(
+            "killnpcs",
+            "{}",
+            "/killnpcs : Kill the NPCs",
+            handle_killnpcs,
+         ),
     ];
 }
 
@@ -414,6 +420,23 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
     }
 }
 
+fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    let ecs = server.state.ecs();
+    let mut stats = ecs.write_storage::<comp::Stats>();
+    let players = ecs.read_storage::<comp::Player>();
+    let mut count = 0;
+    for (stats, ()) in (&mut stats, !&players).join() {
+        count += 1;
+        stats.health.set_to(0, comp::HealthSource::Command);
+    }
+    let text = if count > 0 {
+        format!("Destroyed {} NPCs.", count)
+    } else {
+        "No NPCs on server.".to_string()
+    };
+    server.clients.notify(entity, ServerMsg::Chat(text));
+}
+
 fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
@@ -468,3 +491,4 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
             .notify(entity, ServerMsg::Chat(String::from(action.help_string))),
     }
 }
+
