@@ -9,7 +9,7 @@ pub use specs::Entity as EcsEntity;
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
     state::State,
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
@@ -72,6 +72,9 @@ impl Client {
                     .entity_from_uid(entity_uid)
                     .ok_or(Error::ServerWentMad)?;
                 (state, entity, server_info)
+            }
+            Some(ServerMsg::Error(ServerError::TooManyPlayers)) => {
+                return Err(Error::TooManyPlayers)
             }
             _ => return Err(Error::ServerWentMad),
         };
@@ -361,8 +364,12 @@ impl Client {
         if new_msgs.len() > 0 {
             for msg in new_msgs {
                 match msg {
-                    ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
+                    ServerMsg::Error(e) => match e {
+                        ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
+                        //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
+                    },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
+                    ServerMsg::InitialSync { .. } => return Err(Error::ServerWentMad),
                     ServerMsg::Ping => self.postbox.send_message(ClientMsg::Pong),
                     ServerMsg::Pong => {
                         self.last_ping_delta = Instant::now()

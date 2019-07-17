@@ -41,6 +41,10 @@ impl Clients {
         }
     }
 
+    pub fn len(&mut self) -> usize {
+        self.clients.len()
+    }
+
     pub fn add(&mut self, entity: EcsEntity, client: Client) {
         self.clients.insert(entity, client);
     }
