@@ -176,6 +176,9 @@ pub struct Settings {
     pub graphics: GraphicsSettings,
     pub audio: AudioSettings,
     pub show_disclaimer: bool,
+    pub send_logon_commands: bool,
+    // TODO: Remove at a later date, for dev testing
+    pub logon_commands: Vec<String>,
 }
 
 impl Default for Settings {
@@ -188,6 +191,8 @@ impl Default for Settings {
             graphics: GraphicsSettings::default(),
             audio: AudioSettings::default(),
             show_disclaimer: true,
+            send_logon_commands: false,
+            logon_commands: Vec::new(),
         }
     }
 }
