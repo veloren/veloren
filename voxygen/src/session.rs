@@ -85,6 +85,13 @@ impl PlayState for SessionState {
         let mut clock = Clock::start();
         self.client.borrow_mut().clear_terrain();
 
+        // Send startup commands to the server
+        if global_state.settings.send_logon_commands {
+            for cmd in &global_state.settings.logon_commands {
+                self.client.borrow_mut().send_chat(cmd.to_string());
+            }
+        }
+
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character | ClientState::Dead =
