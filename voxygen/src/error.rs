@@ -1,6 +1,6 @@
 use crate::render::RenderError;
 use client;
-use std::any;
+use std::fmt::Debug;
 
 /// Represents any error that may be triggered by Voxygen.
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub enum Error {
     /// An error relating to the internal client.
     ClientError(client::Error),
     /// A miscellaneous error relating to a backend dependency.
-    BackendError(Box<dyn any::Any>),
+    BackendError(Box<dyn Debug>),
     /// An error relating the rendering subsystem.
     RenderError(RenderError),
     /// A miscellaneous error with an unknown or unspecified source.
