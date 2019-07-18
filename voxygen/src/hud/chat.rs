@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Fonts, TELL_COLOR, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, PING_COLOR, TELL_COLOR, TEXT_COLOR};
 use client::Event as ClientEvent;
 use common::ChatType;
 use conrod_core::{
@@ -190,6 +190,7 @@ impl<'a> Widget for Chat<'a> {
                     ClientEvent::Chat { chat_type, message } => {
                         let color = match chat_type {
                             ChatType::Tell => TELL_COLOR,
+                            ChatType::Ping => PING_COLOR,
                             _ => TEXT_COLOR,
                         };
                         let text = Text::new(&message)

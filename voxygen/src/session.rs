@@ -8,7 +8,9 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
+use common::{
+    clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol, ChatType,
+};
 use log::{error, warn};
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
@@ -44,11 +46,15 @@ impl SessionState {
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         for event in self.client.borrow_mut().tick(self.controller.clone(), dt)? {
             match event {
-                client::Event::Chat {
-                    chat_type: _,
-                    message: _,
-                } => {
-                    self.hud.new_message(event);
+                client::Event::Chat { chat_type, message } => {
+                    match chat_type {
+                        ChatType::Ping => {
+                            // TODO: Play ping message here
+                        }
+                        _ => {}
+                    }
+                    self.hud
+                        .new_message(client::Event::Chat { chat_type, message });
                 }
                 client::Event::Disconnect => {} // TODO
             }

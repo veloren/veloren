@@ -62,9 +62,17 @@ impl ServerMsg {
             msg: message,
         }
     }
+
     pub fn tell(message: String) -> crate::msg::server::ServerMsg {
         crate::msg::server::ServerMsg::ChatMsg {
             chat_type: ChatType::Tell,
+            msg: message,
+        }
+    }
+
+    pub fn ping(message: String) -> crate::msg::server::ServerMsg {
+        crate::msg::server::ServerMsg::ChatMsg {
+            chat_type: ChatType::Ping,
             msg: message,
         }
     }

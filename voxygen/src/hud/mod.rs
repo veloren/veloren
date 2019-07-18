@@ -50,6 +50,7 @@ const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 const TELL_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+const PING_COLOR: Color = Color::Rgba(1.0, 0.0, 1.0, 1.0);
 
 widget_ids! {
     struct Ids {

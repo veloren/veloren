@@ -121,8 +121,8 @@ lazy_static! {
         ChatCommand::new(
             "tell",
             "{}",
-            "/tell <alias> : Send a message to another player",
-            handle_msg,
+            "/tell <alias> <message>: Send a message to another player",
+            handle_tell,
         ),
         ChatCommand::new(
             "killnpcs",
@@ -130,6 +130,12 @@ lazy_static! {
             "/killnpcs : Kill the NPCs",
             handle_killnpcs,
          ),
+        ChatCommand::new(
+            "ping",
+            "{}",
+            "/ping <alias> [msg]: Ping another player",
+            handle_ping,
+        ),
     ];
 }
 
@@ -437,7 +443,7 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
     server.clients.notify(entity, ServerMsg::chat(text));
 }
 
-fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
         Some(alias) => {
@@ -459,11 +465,11 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                                 Some(name) => {
                                     server.clients.notify(
                                         player,
-                                        ServerMsg::chat(format!("{} tells you:{}", name, msg)),
+                                        ServerMsg::tell(format!("{} tells you:{}", name, msg)),
                                     );
                                     server.clients.notify(
                                         player,
-                                        ServerMsg::chat(format!("You tell {} {}", alias, msg)),
+                                        ServerMsg::tell(format!("You tell {} {}", alias, msg)),
                                     );
                                 }
                                 None => {
@@ -477,7 +483,7 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                             server.clients.notify(
                                 entity,
                                 ServerMsg::chat(format!(
-                                    "You really should say something to {}!",
+                                    "You really should tell {} something!",
                                     alias
                                 )),
                             );
@@ -486,6 +492,65 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                         server
                             .clients
                             .notify(entity, ServerMsg::chat(format!("Don't be crazy!")));
+                    }
+                }
+                None => {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::chat(format!("Player '{}' not found!", alias)),
+                    );
+                }
+            }
+        }
+        None => server
+            .clients
+            .notify(entity, ServerMsg::chat(String::from(action.help_string))),
+    }
+}
+
+fn handle_ping(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
+    match opt_alias {
+        Some(alias) => {
+            let ecs = server.state.ecs();
+            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+                .join()
+                .find(|(_, player)| player.alias == alias)
+                .map(|(entity, _)| entity);
+            let msg = &args[alias.len()..args.len()];
+            match opt_player {
+                Some(player) => {
+                    if player != entity {
+                        let opt_name = ecs
+                            .read_storage::<comp::Player>()
+                            .get(entity)
+                            .map(|s| s.alias.clone());
+                        match opt_name {
+                            Some(name) => {
+                                let message = if msg.is_empty() {
+                                    format!("{} pinged you", name)
+                                } else {
+                                    format!("{} pings you:{}", name, msg)
+                                };
+                                server.clients.notify(player, ServerMsg::ping(message));
+                                let message = if msg.is_empty() {
+                                    format!("You pinged {}", alias)
+                                } else {
+                                    format!("You pinged {} {}", alias, msg)
+                                };
+                                server.clients.notify(entity, ServerMsg::ping(message));
+                            }
+                            None => {
+                                server.clients.notify(
+                                    entity,
+                                    ServerMsg::chat(String::from("You do not exist!")),
+                                );
+                            }
+                        }
+                    } else {
+                        server
+                            .clients
+                            .notify(entity, ServerMsg::ping(format!("Don't be crazy!")));
                     }
                 }
                 None => {

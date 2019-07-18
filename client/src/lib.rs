@@ -389,6 +389,10 @@ impl Client {
                             chat_type: ChatType::Tell,
                             message: msg,
                         }),
+                        ChatType::Ping => frontend_events.push(Event::Chat {
+                            chat_type: ChatType::Ping,
+                            message: msg,
+                        }),
                     },
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()

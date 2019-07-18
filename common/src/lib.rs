@@ -55,4 +55,5 @@ pub mod net;
 pub enum ChatType {
     Chat,
     Tell,
+    Ping,
 }
