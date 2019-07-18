@@ -119,10 +119,10 @@ lazy_static! {
             handle_build,
         ),
         ChatCommand::new(
-            "msg",
+            "tell",
             "{}",
-            "/msg <alias> : Send a message to another player",
-            handle_msg,
+            "/tell <alias> <message>: Send a message to another player",
+            handle_tell,
         ),
         ChatCommand::new(
             "killnpcs",
@@ -437,7 +437,7 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
     server.clients.notify(entity, ServerMsg::Chat(text));
 }
 
-fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
         Some(alias) => {
@@ -462,7 +462,7 @@ fn handle_msg(server: &mut Server, entity: EcsEntity, args: String, action: &Cha
                                         ServerMsg::Chat(format!("{} tells you:{}", name, msg)),
                                     );
                                     server.clients.notify(
-                                        player,
+                                        entity,
                                         ServerMsg::Chat(format!("You tell {} {}", alias, msg)),
                                     );
                                 }
