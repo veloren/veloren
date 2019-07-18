@@ -84,22 +84,22 @@ impl LodConfig for TerrainLodConfig {
     const anchor_layer_id: u8 = 13;
 
     const layer_volume: [Vec3<u32>; 16] = [
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
         Vec3{x: 16, y: 16, z: 16},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 32, y: 32, z: 32},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 16, y: 16, z: 16},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 16, y: 16, z: 16},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
     ];
     const child_layer_id: [Option<u8>; 16] = [
         None,
@@ -119,7 +119,7 @@ impl LodConfig for TerrainLodConfig {
         None,
         None,
     ];
-    const child_len: [usize; 16] = [
+    const layer_len: [usize; 16] = [
         (Self::layer_volume[0].x * Self::layer_volume[0].y * Self::layer_volume[0].z) as usize,
         (Self::layer_volume[1].x * Self::layer_volume[1].y * Self::layer_volume[1].z) as usize,
         (Self::layer_volume[2].x * Self::layer_volume[2].y * Self::layer_volume[2].z) as usize,
@@ -150,7 +150,7 @@ impl LodConfig for TerrainLodConfig {
             4 => {
                 let insert = data.layer0.len();
                 data.layer4[abs.index].child_id = Some(insert as u32);
-                for i in 0..Self::child_len[4] {
+                for i in 0..Self::layer_len[0] {
                     data.layer0[i+insert] = SubBlock_4{
                         material: 0,
                     };
@@ -159,7 +159,7 @@ impl LodConfig for TerrainLodConfig {
             9 => {
                 let insert = data.layer4.len();
                 data.layer9[abs.index].child_id = Some(insert as u32);
-                for i in 0..Self::child_len[9] {
+                for i in 0..Self::layer_len[4] {
                     data.layer4[i+insert] = Block0{
                         material: 0,
                         child_id: None,
@@ -169,7 +169,7 @@ impl LodConfig for TerrainLodConfig {
             13 => {
                 let insert = data.layer9.len();
                     data.layer13[abs.index].child_id = Some(insert as u32);
-                    for i in 0..Self::child_len[13] {
+                    for i in 0..Self::layer_len[9] {
                         data.layer9[i+insert] = Chunk5{
                         precent_air: 0.2,
                         percent_forrest: 0.3,
@@ -192,17 +192,17 @@ impl LodConfig for TerrainLodConfig {
             4 => {
                 let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer4[parent_abs.index].child_id = None;
-                data.layer0.drain(delete..delete+Self::child_len[4]);
+                data.layer0.drain(delete..delete+Self::layer_len[0]);
             },
             9 => {
                 let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer9[parent_abs.index].child_id = None;
-                data.layer4.drain(delete..delete+Self::child_len[9]);
+                data.layer4.drain(delete..delete+Self::layer_len[4]);
             },
             13 => {
                 let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer13[parent_abs.index].child_id = None;
-                data.layer9.drain(delete..delete+Self::child_len[13]);
+                data.layer9.drain(delete..delete+Self::layer_len[9]);
             },
             _ => unreachable!(),
         }

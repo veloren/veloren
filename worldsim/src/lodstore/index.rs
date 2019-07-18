@@ -235,8 +235,9 @@ pub const fn two_pow_u(n: u8) -> u16 {
     1 << n
 }
 
-pub fn relative_to_1d(index: LodIndex, relative_size: Vec3<u32>) -> usize {
-    let index = index.get();
+pub fn relative_to_1d(child_lod: LodIndex, parent_lod: LodIndex, child_layer: u8, relative_size: Vec3<u32>) -> usize {
+    let width = two_pow_u(child_layer) as u32;
+    let index = (child_lod.get() - parent_lod.get()).map(|e| e / width);
     (index[0] * relative_size[2] * relative_size[1] + index[1] * relative_size[2] + index[2]) as usize
 }
 

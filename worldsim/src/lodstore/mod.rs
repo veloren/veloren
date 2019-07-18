@@ -36,9 +36,9 @@ pub trait LodConfig {
 
     const anchor_layer_id: u8;
 
-    const layer_volume: [Vec3<u32>; 16]; // e.g. (1|1|1) for l0 or (4|4|4) for l2 optimization
-    const child_layer_id: [Option<u8>; 16];
-    const child_len: [usize; 16]; //number of childs on this layer, MUST BE 2^(SELF::child_dim*3)
+    const layer_volume: [Vec3<u32>; 16]; // number of elements on this layer as Vec3 (not on child layer!)
+    const child_layer_id: [Option<u8>; 16]; // layer below this one
+    const layer_len: [usize; 16]; // optimisation for layer_volume, total no of elements as usize
 
     fn setup(&mut self);
     fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) where Self: Sized;
@@ -130,8 +130,8 @@ impl<X: LodConfig> LodData<X>
     fn int_get(parent_abs: AbsIndex, child_lod: LodIndex, parent_lod: LodIndex, parent_child_index: usize) -> AbsIndex {
         let child_layer = X::child_layer_id[parent_abs.layer as usize].unwrap();
         let child_lod = child_lod.align_to_layer_id(child_layer);
-        let child_offset = relative_to_1d(child_lod - parent_lod, X::layer_volume[parent_abs.layer as usize]);
-        println!("int_get - parent_abs {} child_lod {} parent_lod {} parent_child_index {} child_offset {}", parent_abs, child_lod, parent_lod, parent_child_index, child_offset);
+        let child_offset = relative_to_1d(child_lod, parent_lod, child_layer, X::layer_volume[child_layer as usize]);
+        println!("{} int_get - parent_abs {} child_lod {} parent_lod {} parent_child_index {} child_offset {}", Self::ppp(parent_abs.layer), parent_abs, child_lod, parent_lod, parent_child_index, child_offset);
         AbsIndex::new(child_layer, parent_child_index + child_offset)
     }
 
@@ -146,7 +146,7 @@ impl<X: LodConfig> LodData<X>
     fn int_recursive_get(&self, parent_abs: AbsIndex, child_lod: LodIndex, target_layer:u8) -> AbsIndex {
         let mut parent_abs = parent_abs;
         while true {
-            println!("int_recursive_get {} - {}", parent_abs, target_layer);
+            println!("{} int_recursive_get {} - {}", Self::ppp(parent_abs.layer), parent_abs, target_layer);
             parent_abs = self.int_get_lockup(parent_abs, child_lod);
             if parent_abs.layer <= target_layer {
                 return parent_abs;
@@ -318,7 +318,6 @@ impl<X: LodConfig> LodData<X>
     fn ppp(level: u8) -> &'static str {
         match level {
             0 => " | ",
-            1 => " - ",
             4 => " ---- ",
             5 => " ----- ",
             9 => " ---------- ",
@@ -337,7 +336,6 @@ impl<X: LodConfig> LodData<X>
         let parent_lod = lower.align_to_layer_id(parent.layer);
         //assert_eq!(parent_lod, parent_lod2);
         println!("{} lower, upper {} {} {} - {:?}", Self::ppp(parent.layer), lower, upper, parent_lod_width, child_layer);
-        println!("{} parent.layer {} child_layer {:?} target_level {}", Self::ppp(parent.layer), parent.layer, child_layer, target_level);
         if parent.layer > target_level {
             // create necessary childs:
             X::drill_down(self, parent);
@@ -349,10 +347,10 @@ impl<X: LodConfig> LodData<X>
                 let child_lower = lower.align_to_layer_id(child_layer);
                 let child_upper = upper.align_to_layer_id(child_layer);
                 let child_base_abs_index = self.int_get_child_index(parent).unwrap();
-                let parent_children = X::layer_volume[parent.layer as usize];
+                let child_volume = X::layer_volume[child_layer as usize];
                 // loop over childs and calculate correct lower and
-                let lower_xyz = child_lower.get().map(|e| e / child_lod_width);
-                let upper_xyz = child_upper.get().map(|e| e / child_lod_width);
+                let lower_xyz = (child_lower.get()-parent_lod.get()).map(|e| e / child_lod_width);
+                let upper_xyz = (child_upper.get()-parent_lod.get()).map(|e| e / child_lod_width);
                 println!("{} lxyz {}", Self::ppp(parent.layer), lower_xyz);
                 println!("{} uxyz {}", Self::ppp(parent.layer), upper_xyz);
                 println!("{} child_lod_width {}", Self::ppp(parent.layer), child_lod_width);
@@ -361,14 +359,13 @@ impl<X: LodConfig> LodData<X>
                         for z in lower_xyz[2]..upper_xyz[2]+1 {
                             println!("{} xyz {} {} {}", Self::ppp(parent.layer), x, y, z);
                             //calculate individual abs values, because we now, how they are ordered in the vec
-                            let child_abs_index = child_base_abs_index + (x * parent_children[2] * parent_children[1] + y * parent_children[2] + z) as usize;
+                            let child_abs_index = child_base_abs_index + (x * child_volume[2] * child_volume[1] + y * child_volume[2] + z) as usize;
                             let child_abs = AbsIndex::new(child_layer, child_abs_index);
                             let child_lower = parent_lod + LodIndex::new(Vec3::new(x * child_lod_width, y * child_lod_width, z * child_lod_width));
                             let child_upper = child_lower + LodIndex::new(Vec3::new(child_lod_width-1, child_lod_width-1, child_lod_width-1));
 
                             let inner_lower = index::max(lower, child_lower);
                             let inner_upper = index::min(upper, child_upper);
-                            println!("{} potential restrict {} {} ", Self::ppp(parent.layer), child_lower, child_upper);
                             println!("{} restrict {} {} to {} {}", Self::ppp(parent.layer), lower, upper, inner_lower, inner_upper);
                             Self::int_make_at_least(self, child_abs, inner_lower, inner_upper, target_level);
                         }
@@ -416,8 +413,6 @@ impl<X: LodConfig> LodData<X>
             }
             x += anchor_width;
         }
-        const p: u8 = 3;
-        let u = X::child_len[7];
     }
     fn make_at_most(&mut self, lower: LodIndex, upper: LodIndex, level: i8) {
 

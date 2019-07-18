@@ -84,23 +84,24 @@ impl LodConfig for ExampleLodConfig {
 
     const anchor_layer_id: u8 = 13;
 
+    // this is not for the children, a layer9 has 32x32x32 childs, not 16x16x16
     const layer_volume: [Vec3<u32>; 16] = [
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
         Vec3{x: 16, y: 16, z: 16},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 32, y: 32, z: 32},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 16, y: 16, z: 16},
-        Vec3{x: 1, y: 1, z: 1},
-        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 16, y: 16, z: 16},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
     ];
     const child_layer_id: [Option<u8>; 16] = [
         None,
@@ -121,7 +122,7 @@ impl LodConfig for ExampleLodConfig {
         None,
     ];
 
-    const child_len: [usize; 16] = [
+    const layer_len: [usize; 16] = [
         (Self::layer_volume[0].x * Self::layer_volume[0].y * Self::layer_volume[0].z) as usize,
         (Self::layer_volume[1].x * Self::layer_volume[1].y * Self::layer_volume[1].z) as usize,
         (Self::layer_volume[2].x * Self::layer_volume[2].y * Self::layer_volume[2].z) as usize,
@@ -153,10 +154,10 @@ impl LodConfig for ExampleLodConfig {
             4 => {
                 if data.layer4[abs.index].child_id.is_some() {return;}
                 let insert = data.layer0.len();
-                data.layer0.reserve(Self::child_len[4]);
+                data.layer0.reserve(Self::layer_len[0]);
                 data.layer4[abs.index].child_id = Some(insert as u32);
-                println!("set0 {:?} = {}", abs, insert);
-                for i in 0..Self::child_len[4] {
+                //debug!("set0 {:?} = {}", abs, insert);
+                for i in 0..Self::layer_len[0] {
                     data.layer0.push(Example_4{
                         data: 0,
                     });
@@ -165,10 +166,10 @@ impl LodConfig for ExampleLodConfig {
             9 => {
                 if data.layer9[abs.index].child_id.is_some() {return;}
                 let insert = data.layer4.len();
-                data.layer4.reserve(Self::child_len[9]);
+                data.layer4.reserve(Self::layer_len[4]);
                 data.layer9[abs.index].child_id = Some(insert as u32);
-                println!("set {:?} = {}", abs, insert);
-                for i in 0..Self::child_len[9] {
+                //debug!("set4 {:?} = {}", abs, insert);
+                for i in 0..Self::layer_len[4] {
                     data.layer4.push(Example0{
                         data: 0,
                         child_id: None,
@@ -178,10 +179,10 @@ impl LodConfig for ExampleLodConfig {
             13 => {
                 if data.layer13[abs.index].child_id.is_some() {return;}
                 let insert = data.layer9.len();
-                data.layer9.reserve(Self::child_len[13]);
+                data.layer9.reserve(Self::layer_len[9]);
                 data.layer13[abs.index].child_id = Some(insert as u32);
-                println!("set13 {:?} = {}", abs, insert);
-                for i in 0..Self::child_len[13] {
+                //debug!("set13 {:?} = {}", abs, insert);
+                for i in 0..Self::layer_len[9] {
                     data.layer9.push(Example5{
                         data: [0; 130],
                         child_id: None,
@@ -201,17 +202,17 @@ impl LodConfig for ExampleLodConfig {
             4 => {
                 let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer4[parent_abs.index].child_id = None;
-                data.layer0.drain(delete..delete+Self::child_len[0]);
+                data.layer0.drain(delete..delete+Self::layer_len[0]);
             },
             9 => {
                 let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer9[parent_abs.index].child_id = None;
-                data.layer4.drain(delete..delete+Self::child_len[5]);
+                data.layer4.drain(delete..delete+Self::layer_len[4]);
             },
             13 => {
                 let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
                 data.layer13[parent_abs.index].child_id = None;
-                data.layer9.drain(delete..delete+Self::child_len[9]);
+                data.layer9.drain(delete..delete+Self::layer_len[9]);
             },
             _ => unreachable!(),
         }
@@ -260,8 +261,6 @@ mod tests {
         for x in 0..8 {
             for y in 0..8 {
                 for z in 0..8 {
-                    println!("{:?}", Vec3::new(x*w9,y*w9,z*w9));
-                    println!("{:?}", LodIndex::new(Vec3::new(x*w9,y*w9,z*w9)));
                     result.anchor.insert(LodIndex::new(Vec3::new(x*w9,y*w9,z*w9)), (x*8*8+y*8+z) as usize);
                 }
             }
@@ -288,7 +287,7 @@ mod tests {
         println!("size {} {} {}", size_of::<Example>(), size_of::<Example9>(), size_of::<Example5>());
         result
     }
-/*
+
     #[test]
     fn reagiontest() {
         let reg = createRegion(0.0015, 0.01, 0.0000001, 0.1);
@@ -303,14 +302,12 @@ mod tests {
         let high = LodIndex::new(Vec3::new(16384, 16384, 16384));
         reg.make_at_least(low,high,4);
     }
-*/
-    /*
+
     #[test]
-    fn access_0() {
+    fn access_0a() {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
-        //thread::sleep(time::Duration::from_secs(10));
         reg.make_at_least(low,high,0);
         reg.get0(LodIndex::new(Vec3::new(0, 0, 0)));
         reg.get0(LodIndex::new(Vec3::new(1, 0, 0)));
@@ -320,24 +317,50 @@ mod tests {
         reg.get0(LodIndex::new(Vec3::new(2, 2, 2)));
         reg.get0(LodIndex::new(Vec3::new(3, 3, 3)));
         reg.get0(LodIndex::new(Vec3::new(4, 4, 4)));
-    }*/
+    }
 
     #[test]
     fn access_0b() {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        reg.make_at_least(low,high,0);
+        reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8704)));
+        reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9000)));
+        reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9001)));
+        reg.get0(LodIndex::new(Vec3::new(9001, 9000, 9000)));
+        reg.get0(LodIndex::new(Vec3::new(9001, 9001, 9001)));
+        reg.get0(LodIndex::new(Vec3::new(9216, 9216, 9216)));
+        reg.get4(LodIndex::new(Vec3::new(9000, 9000, 9000)));
+        reg.get9(LodIndex::new(Vec3::new(9000, 9000, 9000)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn access_0c_fail() {
+        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        reg.make_at_least(low,high,0);
+        reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8703)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn access_0d_fail() {
+        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        reg.make_at_least(low,high,0);
+        reg.get0(LodIndex::new(Vec3::new(10240, 10240, 10240)));
+    }
+
+    #[test]
+    fn access_4() {
+        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
-        //thread::sleep(time::Duration::from_secs(10));
-        reg.make_at_least(low,high,0);
-    }
-/*
-    #[test]
-    fn access_0b() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
-        let low = LodIndex::new(Vec3::new(0, 0, 0));
-        let high = LodIndex::new(Vec3::new(4, 4, 4));
-        reg.make_at_least(low,high,0);
-        reg.get0(LodIndex::new(Vec3::new(5, 5, 5))); //this access is not guaranteed but will work
+        reg.make_at_least(low,high,4);
     }
 
     #[test]
@@ -357,14 +380,13 @@ mod tests {
     }
 
     #[bench]
-    fn access_4(b: &mut Bencher) {
+    fn bench_access_4(b: &mut Bencher) {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let access = LodIndex::new(Vec3::new(9561, 9312, 8412));
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
         reg.make_at_least(low,high,4);
 
-
         b.iter(|| reg.get4(access));
-    }*/
+    }
 }
