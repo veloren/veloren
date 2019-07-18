@@ -613,23 +613,29 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             let msg = &args[alias.len()..args.len()];
             match opt_player {
                 Some(player) => {
-                    if msg.len() > 1 {
-                        let opt_name = ecs
-                            .read_storage::<comp::Player>()
-                            .get(entity)
-                            .map(|s| s.alias.clone());
-                        match opt_name {
-                            Some(name) => {
-                                server.clients.notify(
-                                    player,
-                                    ServerMsg::tell(format!("{} tells you:{}", name, msg)),
-                                );
-                            }
-                            None => {
-                                server.clients.notify(
-                                    entity,
-                                    ServerMsg::chat(String::from("You do not exist!")),
-                                );
+                    if player != entity {
+                        if msg.len() > 1 {
+                            let opt_name = ecs
+                                .read_storage::<comp::Player>()
+                                .get(entity)
+                                .map(|s| s.alias.clone());
+                            match opt_name {
+                                Some(name) => {
+                                    server.clients.notify(
+                                        player,
+                                        ServerMsg::tell(format!("{} tells you:{}", name, msg)),
+                                    );
+                                    server.clients.notify(
+                                        entity,
+                                        ServerMsg::tell(format!("You tell {} {}", alias, msg)),
+                                    );
+                                }
+                                None => {
+                                    server.clients.notify(
+                                        entity,
+                                        ServerMsg::chat(String::from("You do not exist!")),
+                                    );
+                                }
                             }
                         } else {
                             server.clients.notify(
