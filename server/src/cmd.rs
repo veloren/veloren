@@ -463,7 +463,7 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                                     );
                                     server.clients.notify(
                                         entity,
-                                        ServerMsg::Chat(format!("You tell {} {}", alias, msg)),
+                                        ServerMsg::Chat(format!("You tell {}:{}", alias, msg)),
                                     );
                                 }
                                 None => {
