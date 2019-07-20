@@ -401,6 +401,9 @@ impl Client {
                         self.state.insert_chunk(key, *chunk);
                         self.pending_chunks.remove(&key);
                     }
+                    ServerMsg::TerrainBlockUpdates(mut blocks) => blocks
+                        .drain()
+                        .for_each(|(pos, block)| self.state.set_block(pos, block)),
                     ServerMsg::StateAnswer(Ok(state)) => {
                         self.client_state = state;
                     }

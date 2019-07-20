@@ -90,14 +90,14 @@ impl Terrain {
         // Add any recently created or changed chunks to the list of chunks to be meshed.
         for (modified, pos) in client
             .state()
-            .chunk_changes()
+            .terrain_changes()
             .modified_chunks
             .iter()
             .map(|c| (true, c))
             .chain(
                 client
                     .state()
-                    .chunk_changes()
+                    .terrain_changes()
                     .new_chunks
                     .iter()
                     .map(|c| (false, c)),
@@ -137,8 +137,48 @@ impl Terrain {
                 }
             }
         }
+
+        // Add the chunks belonging to recently changed blocks to the list of chunks to be meshed
+        for pos in client
+            .state()
+            .terrain_changes()
+            .modified_blocks
+            .iter()
+            .map(|(p, _)| *p)
+        {
+            let chunk_pos = client.state().terrain().pos_key(pos);
+
+            self.mesh_todo.insert(
+                chunk_pos,
+                ChunkMeshState {
+                    pos: chunk_pos,
+                    started_tick: current_tick,
+                    active_worker: None,
+                },
+            );
+
+            // Handle chunks on chunk borders
+            for x in -1..2 {
+                for y in -1..2 {
+                    let neighbour_pos = pos + Vec3::new(x, y, 0);
+                    let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
+
+                    if neighbour_chunk_pos != chunk_pos {
+                        self.mesh_todo.insert(
+                            neighbour_chunk_pos,
+                            ChunkMeshState {
+                                pos: neighbour_chunk_pos,
+                                started_tick: current_tick,
+                                active_worker: None,
+                            },
+                        );
+                    }
+                }
+            }
+        }
+
         // Remove any models for chunks that have been recently removed.
-        for pos in &client.state().chunk_changes().removed_chunks {
+        for pos in &client.state().terrain_changes().removed_chunks {
             self.chunks.remove(pos);
             self.mesh_todo.remove(pos);
         }
