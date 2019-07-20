@@ -8,6 +8,7 @@ use crate::{
     terrain::{Block, TerrainChunk, TerrainMap},
     vol::WriteVol,
 };
+use fxhash::{FxHashMap, FxHashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
 use specs::{
@@ -16,11 +17,7 @@ use specs::{
     Component, DispatcherBuilder, Entity as EcsEntity,
 };
 use sphynx;
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -45,19 +42,19 @@ pub struct DeltaTime(pub f32);
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 
-pub struct TerrainChange {
-    blocks: HashMap<Vec3<i32>, Block>,
+pub struct BlockChange {
+    blocks: FxHashMap<Vec3<i32>, Block>,
 }
 
-impl Default for TerrainChange {
+impl Default for BlockChange {
     fn default() -> Self {
         Self {
-            blocks: HashMap::new(),
+            blocks: FxHashMap::default(),
         }
     }
 }
 
-impl TerrainChange {
+impl BlockChange {
     pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
         self.blocks.insert(pos, block);
     }
@@ -67,22 +64,25 @@ impl TerrainChange {
     }
 }
 
-pub struct ChunkChanges {
-    pub new_chunks: HashSet<Vec2<i32>>,
-    pub modified_chunks: HashSet<Vec2<i32>>,
-    pub removed_chunks: HashSet<Vec2<i32>>,
+pub struct TerrainChanges {
+    pub new_chunks: FxHashSet<Vec2<i32>>,
+    pub modified_chunks: FxHashSet<Vec2<i32>>,
+    pub removed_chunks: FxHashSet<Vec2<i32>>,
+    pub modified_blocks: FxHashMap<Vec3<i32>, Block>,
 }
 
-impl Default for ChunkChanges {
+impl Default for TerrainChanges {
     fn default() -> Self {
         Self {
-            new_chunks: HashSet::new(),
-            modified_chunks: HashSet::new(),
-            removed_chunks: HashSet::new(),
+            new_chunks: FxHashSet::default(),
+            modified_chunks: FxHashSet::default(),
+            removed_chunks: FxHashSet::default(),
+            modified_blocks: FxHashMap::default(),
         }
     }
 }
-impl ChunkChanges {
+
+impl TerrainChanges {
     pub fn clear(&mut self) {
         self.new_chunks.clear();
         self.modified_chunks.clear();
@@ -162,8 +162,8 @@ impl State {
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
         ecs.add_resource(TerrainMap::new().unwrap());
-        ecs.add_resource(TerrainChange::default());
-        ecs.add_resource(ChunkChanges::default());
+        ecs.add_resource(BlockChange::default());
+        ecs.add_resource(TerrainChanges::default());
     }
 
     /// Register a component with the state's ECS.
@@ -200,9 +200,9 @@ impl State {
         &mut self.ecs
     }
 
-    /// Get a reference to the `Changes` structure of the state. This contains
-    /// information about state that has changed since the last game tick.
-    pub fn chunk_changes(&self) -> Fetch<ChunkChanges> {
+    /// Get a reference to the `TerrainChanges` structure of the state. This contains
+    /// information about terrain state that has changed since the last game tick.
+    pub fn terrain_changes(&self) -> Fetch<TerrainChanges> {
         self.ecs.read_resource()
     }
 
@@ -235,6 +235,11 @@ impl State {
         self.ecs.write_resource()
     }
 
+    /// Get a writable reference to this state's terrain.
+    pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {
+        self.ecs.write_resource::<BlockChange>().set(pos, block);
+    }
+
     /// Removes every chunk of the terrain.
     pub fn clear_terrain(&mut self) {
         let keys = self
@@ -257,12 +262,12 @@ impl State {
             .is_some()
         {
             self.ecs
-                .write_resource::<ChunkChanges>()
+                .write_resource::<TerrainChanges>()
                 .modified_chunks
                 .insert(key);
         } else {
             self.ecs
-                .write_resource::<ChunkChanges>()
+                .write_resource::<TerrainChanges>()
                 .new_chunks
                 .insert(key);
         }
@@ -277,7 +282,7 @@ impl State {
             .is_some()
         {
             self.ecs
-                .write_resource::<ChunkChanges>()
+                .write_resource::<TerrainChanges>()
                 .removed_chunks
                 .insert(key);
         }
@@ -304,24 +309,25 @@ impl State {
 
         // Apply terrain changes
         let mut terrain = self.ecs.write_resource::<TerrainMap>();
-        let mut chunk_changes = self.ecs.write_resource::<ChunkChanges>();
         self.ecs
-            .write_resource::<TerrainChange>()
+            .read_resource::<BlockChange>()
             .blocks
-            .drain()
+            .iter()
             .for_each(|(pos, block)| {
-                if terrain.set(pos, block).is_ok() {
-                    chunk_changes.modified_chunks.insert(terrain.pos_key(pos));
-                } else {
+                if terrain.set(*pos, *block).is_err() {
                     warn!("Tried to modify block outside of terrain at {:?}", pos);
                 }
             });
+        std::mem::swap(
+            &mut self.ecs.write_resource::<BlockChange>().blocks,
+            &mut self.ecs.write_resource::<TerrainChanges>().modified_blocks,
+        )
     }
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
-        self.ecs.write_resource::<TerrainChange>().clear();
-        self.ecs.write_resource::<ChunkChanges>().clear();
+        self.ecs.write_resource::<TerrainChanges>().clear();
+        self.ecs.write_resource::<BlockChange>().clear();
     }
 }
