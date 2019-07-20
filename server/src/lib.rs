@@ -17,7 +17,7 @@ use common::{
     comp,
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, TerrainChange, TimeOfDay, Uid},
+    state::{State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::VolSize,
     vol::Vox,
@@ -300,7 +300,7 @@ impl Server {
         self.sync_clients();
 
         // Sync changed chunks
-        'chunk: for chunk_key in &self.state.chunk_changes().modified_chunks {
+        'chunk: for chunk_key in &self.state.terrain_changes().modified_chunks {
             let terrain = self.state.terrain();
 
             for (entity, player, pos) in (
@@ -326,6 +326,19 @@ impl Server {
                         },
                     );
                 }
+            }
+        }
+        // Sync changed blocks
+        let msg =
+            ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
+        for (entity, player) in (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Player>(),
+        )
+            .join()
+        {
+            if player.view_distance.is_some() {
+                self.clients.notify(entity, msg.clone());
             }
         }
 
@@ -387,6 +400,7 @@ impl Server {
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
         let mut requested_chunks = Vec::new();
+        let mut modified_blocks = Vec::new();
 
         self.clients.remove_if(|entity, client| {
             let mut disconnect = false;
@@ -515,9 +529,7 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                let mut terrain_change =
-                                    state.ecs().write_resource::<TerrainChange>();
-                                terrain_change.set(pos, Block::empty());
+                                modified_blocks.push((pos, Block::empty()));
                             }
                         }
                         ClientMsg::PlaceBlock(pos, block) => {
@@ -527,9 +539,7 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                let mut terrain_change =
-                                    state.ecs().write_resource::<TerrainChange>();
-                                terrain_change.set(pos, block);
+                                modified_blocks.push((pos, block));
                             }
                         }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
@@ -614,6 +624,10 @@ impl Server {
         // Generate requested chunks.
         for key in requested_chunks {
             self.generate_chunk(key);
+        }
+
+        for (pos, block) in modified_blocks {
+            self.state.set_block(pos, block);
         }
 
         Ok(frontend_events)
