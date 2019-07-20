@@ -314,9 +314,7 @@ impl State {
             .blocks
             .iter()
             .for_each(|(pos, block)| {
-                if terrain.set(*pos, *block).is_err() {
-                    warn!("Tried to modify block outside of terrain at {:?}", pos);
-                }
+                let _ = terrain.set(*pos, *block);
             });
         std::mem::swap(
             &mut self.ecs.write_resource::<BlockChange>().blocks,
