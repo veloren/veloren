@@ -141,7 +141,7 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
-            // Set direction based on velocity
+            // Set direction based on velocity when on the ground
             if Vec2::<f32>::from(vel.0).magnitude_squared() > 0.1 {
                 ori.0 = Lerp::lerp(
                     ori.0,
