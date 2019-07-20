@@ -24,7 +24,7 @@ impl MainMenuState {
     }
 }
 
-const DEFAULT_PORT: u16 = 59003;
+const DEFAULT_PORT: u16 = 14004;
 
 impl PlayState for MainMenuState {
     fn play(&mut self, _: Direction, global_state: &mut GlobalState) -> PlayStateResult {

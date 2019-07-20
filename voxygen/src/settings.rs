@@ -101,7 +101,7 @@ impl Default for NetworkingSettings {
     fn default() -> Self {
         Self {
             username: "Username".to_string(),
-            servers: vec!["server.veloren.net:38889".to_string()],
+            servers: vec!["server.veloren.net".to_string()],
             default_server: 0,
         }
     }
