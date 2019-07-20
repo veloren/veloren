@@ -1,5 +1,9 @@
 use super::{ClientState, EcsCompPacket, EcsResPacket};
-use crate::{comp, terrain::TerrainChunk};
+use crate::{
+    comp,
+    terrain::{Block, TerrainChunk},
+};
+use fxhash::FxHashMap;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,6 +45,7 @@ pub enum ServerMsg {
         key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
+    TerrainBlockUpdates(FxHashMap<Vec3<i32>, Block>),
     Error(ServerError),
     Disconnect,
     Shutdown,
