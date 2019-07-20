@@ -17,7 +17,7 @@ pub struct ServerSettings {
 impl Default for ServerSettings {
     fn default() -> Self {
         Self {
-            address: SocketAddr::from(([0; 4], 59003)),
+            address: SocketAddr::from(([0; 4], 14004)),
             world_seed: 1337,
             server_name: "Server name".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
