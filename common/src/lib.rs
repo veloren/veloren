@@ -53,6 +53,9 @@ pub mod net;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChatType {
+    Broadcast,
     Chat,
+    GameUpdate,
+    Private,
     Tell,
 }
