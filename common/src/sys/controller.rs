@@ -113,6 +113,9 @@ impl<'a> System<'a> for Sys {
                 let _ = jumpings.insert(entity, Jumping);
                 a.on_ground = false;
             }
+
+            // Reset the controller ready for the next tick
+            *controller = Controller::default();
         }
     }
 }
