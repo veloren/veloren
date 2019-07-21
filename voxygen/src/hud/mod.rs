@@ -322,10 +322,7 @@ impl Hud {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
 
-        let version = match std::env::var("GIT_HASH") {
-            Ok(hash) => format!("{}-{}", env!("CARGO_PKG_VERSION"), hash),
-            Err(_) => env!("CARGO_PKG_VERSION").to_owned(),
-        };
+        let version = format!("{}-{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH);
 
         // Nametags and healthbars
         if self.show.ingame {
