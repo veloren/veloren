@@ -5,17 +5,21 @@ pub mod terrain;
 use self::{camera::Camera, figure::FigureMgr, terrain::Terrain};
 use crate::{
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, Globals, Model, PostProcessLocals,
+        create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     window::Event,
 };
 use client::Client;
 use common::comp;
+use specs::Join;
 use vek::*;
 
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
+
+const MAX_LIGHT_COUNT: usize = 32;
+const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not be visible
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
@@ -29,6 +33,7 @@ struct PostProcess {
 
 pub struct Scene {
     globals: Consts<Globals>,
+    lights: Consts<Light>,
     camera: Camera,
 
     skybox: Skybox,
@@ -46,6 +51,7 @@ impl Scene {
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
+            lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y),
 
             skybox: Skybox {
@@ -117,8 +123,9 @@ impl Scene {
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
-        self.camera
-            .set_focus_pos(player_pos + Vec3::unit_z() * (3.0 - tilt.min(0.0) * dist * 0.75));
+        self.camera.set_focus_pos(
+            player_pos + Vec3::unit_z() * (1.2 + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
+        );
 
         // Tick camera for interpolation.
         self.camera.update(client.state().get_time());
@@ -127,8 +134,34 @@ impl Scene {
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
 
         // Update chunk loaded distance smoothly for nice shader fog
-        let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0;
+        let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0; // TODO: No magic!
         self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
+
+        // Update light constants
+        let mut lights = (
+            &client.state().ecs().read_storage::<comp::Pos>(),
+            &client.state().ecs().read_storage::<comp::LightEmitter>(),
+        )
+            .join()
+            .filter(|(pos, _)| {
+                (pos.0.distance_squared(player_pos) as f32)
+                    < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
+            })
+            .map(|(pos, light_emitter)| {
+                Light::new(
+                    pos.0 + Vec3::unit_z(),
+                    light_emitter.col,
+                    light_emitter.strength,
+                )
+            }) // TODO: Don't add 1 to z!
+            .collect::<Vec<_>>();
+        lights.sort_by_key(|light| {
+            Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32
+        });
+        lights.truncate(MAX_LIGHT_COUNT);
+        renderer
+            .update_consts(&mut self.lights, &lights)
+            .expect("Failed to update light constants");
 
         // Update global constants.
         renderer
@@ -143,6 +176,7 @@ impl Scene {
                     client.state().get_time_of_day(),
                     client.state().get_time(),
                     renderer.get_resolution(),
+                    lights.len(),
                 )],
             )
             .expect("Failed to update global constants");
@@ -170,8 +204,9 @@ impl Scene {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         // Render terrain and figures.
-        self.terrain.render(renderer, &self.globals);
-        self.figure_mgr.render(renderer, client, &self.globals);
+        self.terrain.render(renderer, &self.globals, &self.lights);
+        self.figure_mgr
+            .render(renderer, client, &self.globals, &self.lights);
 
         renderer.render_post_process(
             &self.postprocess.model,

@@ -130,7 +130,13 @@ lazy_static! {
             "{}",
             "/killnpcs : Kill the NPCs",
             handle_killnpcs,
-         ),
+        ),
+        ChatCommand::new(
+            "object",
+            "{}",
+            "/object : Spawn a random object",
+            handle_object,
+        ),
     ];
 }
 
@@ -442,6 +448,27 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
         "No NPCs on server.".to_string()
     };
     server.clients.notify(entity, ServerMsg::Chat(text));
+}
+
+fn handle_object(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    let pos = server
+        .state
+        .ecs()
+        .read_storage::<comp::Pos>()
+        .get(entity)
+        .copied();
+    if let Some(pos) = pos {
+        server
+            .create_object(pos, comp::object::Body::random())
+            .build();
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+    }
 }
 
 fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
