@@ -389,16 +389,9 @@ impl Client {
                             .duration_since(self.last_server_ping)
                             .as_secs_f64()
                     }
-                    ServerMsg::ChatMsg { chat_type, msg } => match chat_type {
-                        ChatType::Chat => frontend_events.push(Event::Chat {
-                            chat_type: ChatType::Chat,
-                            message: msg,
-                        }),
-                        ChatType::Tell => frontend_events.push(Event::Chat {
-                            chat_type: ChatType::Tell,
-                            message: msg,
-                        }),
-                    },
+                    ServerMsg::ChatMsg { chat_type, message } => {
+                        frontend_events.push(Event::Chat { chat_type, message })
+                    }
                     ServerMsg::SetPlayerEntity(uid) => {
                         self.entity = self.state.ecs().entity_from_uid(uid).unwrap()
                     } // TODO: Don't unwrap here!

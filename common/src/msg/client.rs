@@ -21,7 +21,7 @@ pub enum ClientMsg {
     Pong,
     ChatMsg {
         chat_type: ChatType,
-        msg: String,
+        message: String,
     },
     PlayerPhysics {
         pos: comp::Pos,
@@ -35,16 +35,34 @@ pub enum ClientMsg {
 }
 
 impl ClientMsg {
-    pub fn chat(message: String) -> crate::msg::client::ClientMsg {
-        crate::msg::client::ClientMsg::ChatMsg {
+    pub fn chat(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
             chat_type: ChatType::Chat,
-            msg: message,
+            message,
         }
     }
-    pub fn tell(message: String) -> crate::msg::client::ClientMsg {
-        crate::msg::client::ClientMsg::ChatMsg {
+    pub fn tell(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
             chat_type: ChatType::Tell,
-            msg: message,
+            message,
+        }
+    }
+    pub fn game(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
+            chat_type: ChatType::GameUpdate,
+            message,
+        }
+    }
+    pub fn broadcast(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
+            chat_type: ChatType::Broadcast,
+            message,
+        }
+    }
+    pub fn private(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
+            chat_type: ChatType::Private,
+            message,
         }
     }
 }
