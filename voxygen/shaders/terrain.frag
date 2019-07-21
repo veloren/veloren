@@ -1,7 +1,6 @@
 #version 330 core
 
 #include <globals.glsl>
-#include <sky.glsl>
 
 in vec3 f_pos;
 flat in uint f_pos_norm;
@@ -14,6 +13,9 @@ uniform u_locals {
 };
 
 out vec4 tgt_color;
+
+#include <sky.glsl>
+#include <light.glsl>
 
 void main() {
 	// Calculate normal from packed data
@@ -28,7 +30,7 @@ void main() {
 		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
 	}
 
-	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) * f_light;
+	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) * f_light + light_at(f_pos, f_norm);
 	vec3 surf_color = f_col * light;
 
 	float fog_level = fog(f_pos.xy, focus_pos.xy);

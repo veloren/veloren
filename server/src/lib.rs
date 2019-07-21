@@ -158,6 +158,25 @@ impl Server {
             .with(comp::ForceUpdate)
     }
 
+    /// Build a static object entity
+    #[allow(dead_code)]
+    pub fn create_object(
+        &mut self,
+        pos: comp::Pos,
+        object: comp::object::Body,
+    ) -> EcsEntityBuilder {
+        self.state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::Vel(Vec3::zero()))
+            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Body::Object(object))
+            .with(comp::LightEmitter::default())
+            .with(comp::ActionState::default())
+            .with(comp::ForceUpdate)
+    }
+
     pub fn create_player_character(
         state: &mut State,
         entity: EcsEntity,
@@ -645,12 +664,12 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics
-        for (&uid, &pos, &vel, &ori, &action_state) in (
+        for (&uid, &pos, &vel, &ori, action_state) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::Pos>(),
             &state.ecs().read_storage::<comp::Vel>(),
             &state.ecs().read_storage::<comp::Ori>(),
-            &state.ecs().read_storage::<comp::ActionState>(),
+            state.ecs().read_storage::<comp::ActionState>().maybe(),
         )
             .join()
         {
@@ -659,7 +678,7 @@ impl Server {
                 pos,
                 vel,
                 ori,
-                action_state,
+                action_state: action_state.copied(),
             });
         }
 
@@ -743,13 +762,13 @@ impl Server {
         }
 
         // Sync physics
-        for (entity, &uid, &pos, &vel, &ori, &action_state, force_update) in (
+        for (entity, &uid, &pos, &vel, &ori, action_state, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::Pos>(),
             &self.state.ecs().read_storage::<comp::Vel>(),
             &self.state.ecs().read_storage::<comp::Ori>(),
-            &self.state.ecs().read_storage::<comp::ActionState>(),
+            self.state.ecs().read_storage::<comp::ActionState>().maybe(),
             self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
         )
             .join()
@@ -759,7 +778,7 @@ impl Server {
                 pos,
                 vel,
                 ori,
-                action_state,
+                action_state: action_state.copied(),
             };
 
             let state = &self.state;

@@ -1,17 +1,17 @@
 use crate::{
     anim::{
-        self, character::CharacterSkeleton, quadruped::QuadrupedSkeleton,
+        self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
         quadrupedmedium::QuadrupedMediumSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
-        Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Mesh, Model, Renderer,
+        Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Light, Mesh, Model, Renderer,
     },
 };
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Weapon, quadruped, quadruped_medium, Body},
+    comp::{self, humanoid, item::Weapon, object, quadruped, quadruped_medium, Body},
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -99,6 +99,24 @@ impl FigureModelCache {
                                     Some(Self::load_wolf_foot_rf(body.foot_rf)),
                                     Some(Self::load_wolf_foot_lb(body.foot_lb)),
                                     Some(Self::load_wolf_foot_rb(body.foot_rb)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::Object(object) => [
+                                    Some(Self::load_object(object)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
                                     None,
                                     None,
                                     None,
@@ -493,6 +511,18 @@ impl FigureModelCache {
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
+
+    fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match obj {
+                object::Body::Bomb => "object/bomb.vox",
+                object::Body::Scarecrow => "object/scarecrow.vox",
+                object::Body::Chest => "object/chest_vines.vox",
+                object::Body::Pumpkin => "object/pumpkin.vox",
+            },
+            Vec3::new(-3.5, -3.5, 0.0),
+        )
+    }
 }
 
 pub struct FigureMgr {
@@ -500,6 +530,7 @@ pub struct FigureMgr {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
 impl FigureMgr {
@@ -509,6 +540,7 @@ impl FigureMgr {
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            object_states: HashMap::new(),
         }
     }
 
@@ -534,7 +566,7 @@ impl FigureMgr {
             &ecs.read_storage::<comp::Vel>(),
             &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Body>(),
-            &ecs.read_storage::<comp::AnimationInfo>(),
+            ecs.read_storage::<comp::AnimationInfo>().maybe(),
             ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
@@ -555,6 +587,9 @@ impl FigureMgr {
                     }
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::Object(_) => {
+                        self.object_states.remove(&entity);
                     }
                 }
                 continue;
@@ -583,6 +618,11 @@ impl FigureMgr {
                         .character_states
                         .entry(entity)
                         .or_insert_with(|| FigureState::new(renderer, CharacterSkeleton::new()));
+
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
 
                     let target_skeleton = match animation_info.animation {
                         comp::Animation::Idle => anim::character::IdleAnimation::update_skeleton(
@@ -654,6 +694,11 @@ impl FigureMgr {
                         .entry(entity)
                         .or_insert_with(|| FigureState::new(renderer, QuadrupedSkeleton::new()));
 
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
                     let target_skeleton = match animation_info.animation {
                         comp::Animation::Run => anim::quadruped::RunAnimation::update_skeleton(
                             state.skeleton_mut(),
@@ -689,6 +734,11 @@ impl FigureMgr {
                             FigureState::new(renderer, QuadrupedMediumSkeleton::new())
                         });
 
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
                     let target_skeleton = match animation_info.animation {
                         comp::Animation::Run => {
                             anim::quadrupedmedium::RunAnimation::update_skeleton(
@@ -722,6 +772,15 @@ impl FigureMgr {
                     state.skeleton.interpolate(&target_skeleton, dt);
                     state.update(renderer, pos.0, ori.0, col, dt);
                 }
+                Body::Object(_) => {
+                    let state = self
+                        .object_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
+
+                    state.skeleton = state.skeleton_mut().clone();
+                    state.update(renderer, pos.0, ori.0, col, dt);
+                }
             }
         }
 
@@ -732,6 +791,8 @@ impl FigureMgr {
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.object_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
     }
 
     pub fn render(
@@ -739,6 +800,7 @@ impl FigureMgr {
         renderer: &mut Renderer,
         client: &mut Client,
         globals: &Consts<Globals>,
+        lights: &Consts<Light>,
     ) {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
@@ -752,25 +814,24 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, _, _, _, body, _, _) in (
+        for (entity, _, _, _, body, _) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Pos>(),
             &ecs.read_storage::<comp::Vel>(),
             &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Body>(),
-            &ecs.read_storage::<comp::AnimationInfo>(),
             ecs.read_storage::<comp::Stats>().maybe(),
         )
             .join()
             // Don't render figures outside the vd
-            .filter(|(_, pos, _, _, _, _, _)| {
+            .filter(|(_, pos, _, _, _, _)| {
                 (pos.0 - player_pos)
                     .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
                     .magnitude()
                     < view_distance as f32
             })
             // Don't render dead entities
-            .filter(|(_, _, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
         {
             if let Some((locals, bone_consts)) = match body {
                 Body::Humanoid(_) => self
@@ -785,13 +846,17 @@ impl FigureMgr {
                     .quadruped_medium_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
+                Body::Object(_) => self
+                    .object_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
             } {
                 let model = &self
                     .model_cache
                     .get_or_create_model(renderer, *body, tick)
                     .0;
 
-                renderer.render_figure(model, globals, locals, bone_consts);
+                renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
                 warn!("Body has no saved figure");
             }

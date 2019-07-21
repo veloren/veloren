@@ -25,24 +25,16 @@ gfx_defines! {
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
         tick: [f32; 4] = "tick",
         screen_res: [f32; 4] = "screen_res",
+        light_count: [u32; 4] = "light_count",
+    }
+
+    constant Light {
+        pos: [f32; 4] = "light_pos",
+        col: [f32; 4] = "light_col",
     }
 }
 
 impl Globals {
-    /// Create global consts with default values.
-    pub fn default() -> Self {
-        Self {
-            view_mat: arr_to_mat(Mat4::identity().into_col_array()),
-            proj_mat: arr_to_mat(Mat4::identity().into_col_array()),
-            cam_pos: [0.0; 4],
-            focus_pos: [0.0; 4],
-            view_distance: [0.0; 4],
-            time_of_day: [0.0; 4],
-            tick: [0.0; 4],
-            screen_res: [800.0, 500.0, 0.0, 0.0],
-        }
-    }
-
     /// Create global consts from the provided parameters.
     pub fn new(
         view_mat: Mat4<f32>,
@@ -53,6 +45,7 @@ impl Globals {
         time_of_day: f64,
         tick: f64,
         screen_res: Vec2<u16>,
+        light_count: usize,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -63,6 +56,38 @@ impl Globals {
             time_of_day: [time_of_day as f32; 4],
             tick: [tick as f32; 4],
             screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
+            light_count: [light_count as u32; 4],
         }
+    }
+}
+
+impl Default for Globals {
+    fn default() -> Self {
+        Self::new(
+            Mat4::identity(),
+            Mat4::identity(),
+            Vec3::zero(),
+            Vec3::zero(),
+            0.0,
+            0.0,
+            0.0,
+            Vec2::new(800, 500),
+            0,
+        )
+    }
+}
+
+impl Light {
+    pub fn new(pos: Vec3<f32>, col: Rgb<f32>, strength: f32) -> Self {
+        Self {
+            pos: Vec4::from(pos).into_array(),
+            col: Rgba::new(col.r, col.g, col.b, strength).into_array(),
+        }
+    }
+}
+
+impl Default for Light {
+    fn default() -> Self {
+        Self::new(Vec3::zero(), Rgb::zero(), 0.0)
     }
 }
