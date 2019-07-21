@@ -1,6 +1,6 @@
 use crate::{
     comp::{ActionState, Attacking, Controller, Gliding, OnGround, Rolling, Vel, Wielding},
-    sys::phys::MOVEMENT_THRESHOLD_VEL,
+    sys::movement::MOVEMENT_THRESHOLD_VEL,
 };
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 

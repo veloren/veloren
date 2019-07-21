@@ -1,6 +1,7 @@
 use super::Skeleton;
 use crate::render::FigureBoneData;
 
+#[derive(Clone)]
 pub struct FixtureSkeleton;
 
 impl FixtureSkeleton {
