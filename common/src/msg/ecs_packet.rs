@@ -24,6 +24,7 @@ sphynx::sum_type! {
         Player(comp::Player),
         CanBuild(comp::CanBuild),
         Stats(comp::Stats),
+        LightEmitter(comp::LightEmitter),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -38,6 +39,7 @@ sphynx::sum_type! {
         Player(PhantomData<comp::Player>),
         CanBuild(PhantomData<comp::CanBuild>),
         Stats(PhantomData<comp::Stats>),
+        LightEmitter(PhantomData<comp::LightEmitter>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {

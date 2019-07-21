@@ -9,7 +9,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, Controller>,
+        WriteStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Vel>,
         WriteStorage<'a, ActionState>,
@@ -26,7 +26,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            controllers,
+            mut controllers,
             stats,
             velocities,
             mut action_states,
@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
     ) {
         for (entity, controller, stats, vel, mut a) in (
             &entities,
-            &controllers,
+            &mut controllers,
             &stats,
             &velocities,
             // Although this is changed, it is only kept for this system
