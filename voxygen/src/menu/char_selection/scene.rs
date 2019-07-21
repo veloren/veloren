@@ -5,7 +5,7 @@ use crate::{
         Animation, Skeleton, SkeletonAttr,
     },
     render::{
-        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Model,
+        create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,
         PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
@@ -33,6 +33,7 @@ struct PostProcess {
 
 pub struct Scene {
     globals: Consts<Globals>,
+    lights: Consts<Light>,
     camera: Camera,
 
     skybox: Skybox,
@@ -50,6 +51,7 @@ impl Scene {
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
+            lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y),
 
             skybox: Skybox {
@@ -99,6 +101,7 @@ impl Scene {
                 55800.0,
                 client.state().get_time(),
                 renderer.get_resolution(),
+                0,
             )],
         ) {
             error!("Renderer failed to update: {:?}", err);
@@ -139,6 +142,7 @@ impl Scene {
             &self.globals,
             self.figure_state.locals(),
             self.figure_state.bone_consts(),
+            &self.lights,
         );
 
         renderer.render_figure(
@@ -146,6 +150,7 @@ impl Scene {
             &self.globals,
             self.backdrop_state.locals(),
             self.backdrop_state.bone_consts(),
+            &self.lights,
         );
 
         renderer.render_post_process(

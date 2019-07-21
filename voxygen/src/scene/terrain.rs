@@ -1,6 +1,6 @@
 use crate::{
     mesh::Meshable,
-    render::{Consts, Globals, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
+    render::{Consts, Globals, Light, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
 };
 use client::Client;
 use common::{
@@ -327,10 +327,15 @@ impl Terrain {
         }
     }
 
-    pub fn render(&self, renderer: &mut Renderer, globals: &Consts<Globals>) {
+    pub fn render(
+        &self,
+        renderer: &mut Renderer,
+        globals: &Consts<Globals>,
+        lights: &Consts<Light>,
+    ) {
         for (_pos, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals);
+                renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals, lights);
             }
         }
     }
