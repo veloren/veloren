@@ -5,7 +5,7 @@ use crate::{
     },
     mesh::Meshable,
     render::{
-        Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Mesh, Model, Renderer,
+        Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Light, Mesh, Model, Renderer,
     },
 };
 use client::Client;
@@ -800,6 +800,7 @@ impl FigureMgr {
         renderer: &mut Renderer,
         client: &mut Client,
         globals: &Consts<Globals>,
+        lights: &Consts<Light>,
     ) {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
@@ -855,7 +856,7 @@ impl FigureMgr {
                     .get_or_create_model(renderer, *body, tick)
                     .0;
 
-                renderer.render_figure(model, globals, locals, bone_consts);
+                renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
                 warn!("Body has no saved figure");
             }
