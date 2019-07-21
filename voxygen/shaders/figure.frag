@@ -22,16 +22,6 @@ uniform u_bones {
 	BoneData bones[16];
 };
 
-struct Light {
-	vec4 light_pos;
-	vec4 light_col;
-};
-
-layout (std140)
-uniform u_lights {
-	Light lights[32];
-};
-
 #include <sky.glsl>
 #include <light.glsl>
 

@@ -12,16 +12,6 @@ uniform u_locals {
 	vec3 model_offs;
 };
 
-struct Light {
-	vec4 light_pos;
-	vec4 light_col;
-};
-
-layout (std140)
-uniform u_lights {
-	Light lights[32];
-};
-
 out vec4 tgt_color;
 
 #include <sky.glsl>
