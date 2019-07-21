@@ -55,10 +55,10 @@ impl PlayState for CharSelectionState {
             global_state.window.renderer_mut().clear();
 
             // Maintain the UI.
-            for event in self
+            let events = self
                 .char_selection_ui
-                .maintain(global_state.window.renderer_mut())
-            {
+                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
+            for event in events {
                 match event {
                     ui::Event::Logout => {
                         return PlayStateResult::Pop;
