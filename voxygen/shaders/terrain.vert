@@ -10,16 +10,6 @@ uniform u_locals {
 	vec3 model_offs;
 };
 
-struct Light {
-	vec4 light_pos;
-	vec4 light_col;
-};
-
-layout (std140)
-uniform u_lights {
-	Light lights[32];
-};
-
 out vec3 f_pos;
 flat out uint f_pos_norm;
 out vec3 f_col;
