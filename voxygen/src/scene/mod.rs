@@ -18,6 +18,7 @@ use vek::*;
 // TODO: Don't hard-code this.
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
+const MAX_LIGHT_COUNT: usize = 32;
 const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not be visible
 
 struct Skybox {
@@ -145,11 +146,11 @@ impl Scene {
             })
             .map(|(pos,)| pos.0)
             .map(|pos| Light::new(pos + Vec3::unit_z(), Rgb::broadcast(1.0), 100.0)) // TODO: Don't add 1 to z!
-            .take(32)
             .collect::<Vec<_>>();
         lights.sort_by_key(|light| {
             Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32
         });
+        lights.truncate(MAX_LIGHT_COUNT);
         renderer
             .update_consts(&mut self.lights, &lights)
             .expect("Failed to update light constants");
