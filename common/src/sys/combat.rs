@@ -62,7 +62,7 @@ impl<'a> System<'a> for Sys {
                     attacking.applied = true;
                 }
 
-                if attacking.time > 0.5 {
+                if attacking.time > 2.3 {
                     Some(entity)
                 } else {
                     attacking.time += dt.0;
