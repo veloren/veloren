@@ -38,6 +38,7 @@ impl Body {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 const ALL_OBJECTS: [Body; 24] = [
     Body::Bomb,
     Body::Scarecrow,
@@ -72,10 +73,17 @@ const ALL_OBJECTS: [Body; 5] = [
 =======
 const ALL_OBJECTS: [Body; 12] = [
 >>>>>>> added lanterns and potions
+=======
+const ALL_OBJECTS: [Body; 16] = [
+>>>>>>> MOAR Pumpkins!
     Body::Bomb,
     Body::Scarecrow,
     Body::Chest,
-    Body::Pumpkin,
+    Body::Pumpkin1,
+    Body::Pumpkin2,
+    Body::Pumpkin3,
+    Body::Pumpkin4,
+    Body::Pumpkin5,
     Body::Campfire,
     Body::LanternGround,
     Body::LanternGroundOpen,
