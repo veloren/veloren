@@ -172,6 +172,7 @@ impl Server {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Body::Object(object))
+            //.with(comp::Stats::new("Objecty McObjectface".to_string()))
             .with(comp::ActionState::default())
             .with(comp::ForceUpdate)
     }
