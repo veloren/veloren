@@ -138,14 +138,22 @@ impl Scene {
         self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
 
         // Update light constants
-        let mut lights = (&client.state().ecs().read_storage::<comp::Pos>(),)
+        let mut lights = (
+            &client.state().ecs().read_storage::<comp::Pos>(),
+            &client.state().ecs().read_storage::<comp::LightEmitter>(),
+        )
             .join()
-            .filter(|(pos,)| {
+            .filter(|(pos, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
             })
-            .map(|(pos,)| pos.0)
-            .map(|pos| Light::new(pos + Vec3::unit_z(), Rgb::broadcast(1.0), 100.0)) // TODO: Don't add 1 to z!
+            .map(|(pos, light_emitter)| {
+                Light::new(
+                    pos.0 + Vec3::unit_z(),
+                    light_emitter.col,
+                    light_emitter.strength,
+                )
+            }) // TODO: Don't add 1 to z!
             .collect::<Vec<_>>();
         lights.sort_by_key(|light| {
             Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32
