@@ -35,10 +35,6 @@ impl Body {
     }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 const ALL_OBJECTS: [Body; 24] = [
     Body::Bomb,
     Body::Scarecrow,
@@ -65,32 +61,3 @@ const ALL_OBJECTS: [Body; 24] = [
     Body::PotionGreen,
     Body::Crate,
 ];
-=======
-const ALL_OBJECTS: [Body; 5] = [Body::Bomb, Body::Scarecrow, Body::Chest, Body::Pumpkin, Body::Campfire];
->>>>>>> Add campfire
-=======
-const ALL_OBJECTS: [Body; 5] = [
-=======
-const ALL_OBJECTS: [Body; 12] = [
->>>>>>> added lanterns and potions
-=======
-const ALL_OBJECTS: [Body; 16] = [
->>>>>>> MOAR Pumpkins!
-    Body::Bomb,
-    Body::Scarecrow,
-    Body::Chest,
-    Body::Pumpkin1,
-    Body::Pumpkin2,
-    Body::Pumpkin3,
-    Body::Pumpkin4,
-    Body::Pumpkin5,
-    Body::Campfire,
-    Body::LanternGround,
-    Body::LanternGroundOpen,
-    Body::LanternStanding,
-    Body::LanternStanding2,
-    Body::PotionRed,
-    Body::PotionBlue,
-    Body::PotionGreen,
-];
->>>>>>> formatting
