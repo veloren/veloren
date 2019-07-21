@@ -1,5 +1,10 @@
 use super::{ClientState, EcsCompPacket, EcsResPacket};
-use crate::{comp, terrain::TerrainChunk, ChatType};
+use crate::{
+    comp,
+    terrain::{Block, TerrainChunk},
+    ChatType,
+};
+use fxhash::FxHashMap;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

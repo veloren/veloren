@@ -627,7 +627,7 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                                     );
                                     server.clients.notify(
                                         entity,
-                                        ServerMsg::tell(format!("You tell {} {}", alias, msg)),
+                                        ServerMsg::tell(format!("You tell {}:{}", alias, msg)),
                                     );
                                 }
                                 None => {
@@ -640,20 +640,16 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                         } else {
                             server.clients.notify(
                                 entity,
-                                ServerMsg::Chat(format!(
+                                ServerMsg::chat(format!(
                                     "You really should say something to {}!",
                                     alias
                                 )),
                             );
                         }
                     } else {
-                        server.clients.notify(
-                            entity,
-                            ServerMsg::chat(format!(
-                                "You really should say something to {}!",
-                                alias
-                            )),
-                        );
+                        server
+                            .clients
+                            .notify(entity, ServerMsg::chat(format!("Don't be crazy!")));
                     }
                 }
                 None => {
