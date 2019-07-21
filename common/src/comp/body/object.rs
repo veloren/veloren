@@ -35,6 +35,7 @@ impl Body {
     }
 }
 
+<<<<<<< HEAD
 const ALL_OBJECTS: [Body; 24] = [
     Body::Bomb,
     Body::Scarecrow,
@@ -61,3 +62,6 @@ const ALL_OBJECTS: [Body; 24] = [
     Body::PotionGreen,
     Body::Crate,
 ];
+=======
+const ALL_OBJECTS: [Body; 5] = [Body::Bomb, Body::Scarecrow, Body::Chest, Body::Pumpkin, Body::Campfire];
+>>>>>>> Add campfire
