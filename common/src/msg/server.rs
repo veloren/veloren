@@ -35,7 +35,7 @@ pub enum ServerMsg {
     Pong,
     ChatMsg {
         chat_type: ChatType,
-        msg: String,
+        message: String,
     },
     SetPlayerEntity(u64),
     EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
@@ -63,16 +63,34 @@ pub enum ServerError {
 }
 
 impl ServerMsg {
-    pub fn chat(message: String) -> crate::msg::server::ServerMsg {
-        crate::msg::server::ServerMsg::ChatMsg {
+    pub fn chat(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
             chat_type: ChatType::Chat,
-            msg: message,
+            message,
         }
     }
-    pub fn tell(message: String) -> crate::msg::server::ServerMsg {
-        crate::msg::server::ServerMsg::ChatMsg {
+    pub fn tell(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
             chat_type: ChatType::Tell,
-            msg: message,
+            message,
+        }
+    }
+    pub fn game(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::GameUpdate,
+            message,
+        }
+    }
+    pub fn broadcast(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Broadcast,
+            message,
+        }
+    }
+    pub fn private(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Private,
+            message,
         }
     }
 }

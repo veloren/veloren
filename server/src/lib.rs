@@ -507,7 +507,10 @@ impl Server {
                                 if let Some(player) =
                                     state.ecs().read_storage::<comp::Player>().get(entity)
                                 {
-                                    new_chat_msgs.push((None, format!("{} joined", &player.alias)));
+                                    new_chat_msgs.push((
+                                        None,
+                                        ServerMsg::broadcast(format!("{} joined", &player.alias)),
+                                    ));
                                 }
                             }
                             ClientState::Character => {
@@ -526,17 +529,15 @@ impl Server {
                             }
                             ClientState::Pending => {}
                         },
-                        ClientMsg::ChatMsg {
-                            chat_type: _,
-                            msg: message,
-                        } => match client.client_state {
+                        ClientMsg::ChatMsg { chat_type, message } => match client.client_state {
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
                             }
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs.push((Some(entity), message)),
+                            | ClientState::Character => new_chat_msgs
+                                .push((Some(entity), ServerMsg::ChatMsg { chat_type, message })),
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
@@ -607,7 +608,10 @@ impl Server {
 
             if disconnect {
                 if let Some(player) = state.ecs().read_storage::<comp::Player>().get(entity) {
-                    new_chat_msgs.push((None, format!("{} disconnected", &player.alias)));
+                    new_chat_msgs.push((
+                        None,
+                        ServerMsg::broadcast(format!("{} disconnected", &player.alias)),
+                    ));
                 }
                 disconnected_clients.push(entity);
                 client.postbox.send_message(ServerMsg::Disconnect);
@@ -619,23 +623,31 @@ impl Server {
 
         // Handle new chat messages.
         for (entity, msg) in new_chat_msgs {
-            if let Some(entity) = entity {
-                // Handle chat commands.
-                if msg.starts_with("/") && msg.len() > 1 {
-                    let argv = String::from(&msg[1..]);
-                    self.process_chat_cmd(entity, argv);
-                } else {
-                    self.clients.notify_registered(ServerMsg::chat(
-                        match self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                            Some(player) => format!("[{}] {}", &player.alias, msg),
-                            None => format!("[<anon>] {}", msg),
-                        },
-                    ));
+            match msg {
+                ServerMsg::ChatMsg { chat_type, message } => {
+                    if let Some(entity) = entity {
+                        // Handle chat commands.
+                        if message.starts_with("/") && message.len() > 1 {
+                            let argv = String::from(&message[1..]);
+                            self.process_chat_cmd(entity, argv);
+                        } else {
+                            let message =
+                                match self.state.ecs().read_storage::<comp::Player>().get(entity) {
+                                    Some(player) => format!("[{}] {}", &player.alias, message),
+                                    None => format!("[<anon>] {}", message),
+                                };
+                            self.clients
+                                .notify_registered(ServerMsg::ChatMsg { chat_type, message });
+                        }
+                    } else {
+                        self.clients
+                            .notify_registered(ServerMsg::ChatMsg { chat_type, message });
+                    }
                 }
-            } else {
-                self.clients.notify_registered(ServerMsg::chat(msg.clone()));
+                _ => {
+                    panic!("Invalid message type.");
+                }
             }
-            frontend_events.push(Event::Chat { entity, msg });
         }
 
         // Handle client disconnects.
