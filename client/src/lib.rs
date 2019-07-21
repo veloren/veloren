@@ -66,6 +66,15 @@ impl Client {
                 entity_uid,
                 server_info,
             }) => {
+                // TODO: Voxygen should display this.
+                if server_info.git_hash != common::util::GIT_HASH.to_string() {
+                    log::warn!(
+                        "Git hash mismatch between client and server: {} vs {}",
+                        server_info.git_hash,
+                        common::util::GIT_HASH
+                    );
+                }
+
                 let state = State::from_state_package(ecs_state);
                 let entity = state
                     .ecs()
