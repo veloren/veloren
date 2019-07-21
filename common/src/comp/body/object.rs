@@ -4,8 +4,28 @@ use rand::{seq::SliceRandom, thread_rng};
 pub enum Body {
     Bomb,
     Scarecrow,
+    ChestVines,
     Chest,
-    Pumpkin,
+    ChestDark,
+    ChestDemon,
+    ChestGold,
+    ChestLight,
+    ChestOpen,
+    ChestSkull,
+    Pumpkin1,
+    Pumpkin2,
+    Pumpkin3,
+    Pumpkin4,
+    Pumpkin5,
+    Campfire,
+    LanternGround,
+    LanternGroundOpen,
+    LanternStanding2,
+    LanternStanding,
+    PotionBlue,
+    PotionGreen,
+    PotionRed,
+    Crate,
 }
 
 impl Body {
@@ -15,4 +35,29 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 4] = [Body::Bomb, Body::Scarecrow, Body::Chest, Body::Pumpkin];
+const ALL_OBJECTS: [Body; 24] = [
+    Body::Bomb,
+    Body::Scarecrow,
+    Body::ChestVines,
+    Body::Chest,
+    Body::ChestDark,
+    Body::ChestDemon,
+    Body::ChestGold,
+    Body::ChestLight,
+    Body::ChestOpen,
+    Body::ChestSkull,
+    Body::Pumpkin1,
+    Body::Pumpkin2,
+    Body::Pumpkin3,
+    Body::Pumpkin4,
+    Body::Pumpkin5,
+    Body::Campfire,
+    Body::LanternGround,
+    Body::LanternGroundOpen,
+    Body::LanternStanding,
+    Body::LanternStanding2,
+    Body::PotionRed,
+    Body::PotionBlue,
+    Body::PotionGreen,
+    Body::Crate,
+];

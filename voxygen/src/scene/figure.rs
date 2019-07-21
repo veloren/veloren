@@ -513,15 +513,41 @@ impl FigureModelCache {
     }
 
     fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match obj {
-                object::Body::Bomb => "object/bomb.vox",
-                object::Body::Scarecrow => "object/scarecrow.vox",
-                object::Body::Chest => "object/chest_vines.vox",
-                object::Body::Pumpkin => "object/pumpkin.vox",
-            },
-            Vec3::new(-3.5, -3.5, 0.0),
-        )
+        let (name, offset) = match obj {
+            object::Body::Bomb => ("object/bomb.vox", Vec3::new(-5.5, -5.5, 0.0)),
+            object::Body::Scarecrow => ("object/scarecrow.vox", Vec3::new(-9.5, -4.0, 0.0)),
+            object::Body::ChestVines => ("object/chest_vines.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::Chest => ("object/chest.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestDark => ("object/chest_dark.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestDemon => ("object/chest_demon.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestGold => ("object/chest_gold.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestLight => ("object/chest_light.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestOpen => ("object/chest_open.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::ChestSkull => ("object/chest_skull.vox", Vec3::new(-7.5, -6.0, 0.0)),
+            object::Body::Pumpkin1 => ("object/pumpkin1.vox", Vec3::new(-5.5, -4.0, 0.0)),
+            object::Body::Pumpkin2 => ("object/pumpkin2.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin3 => ("object/pumpkin3.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin4 => ("object/pumpkin4.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin5 => ("object/pumpkin5.vox", Vec3::new(-4.0, -5.0, 0.0)),
+            object::Body::Campfire => ("object/campfire.vox", Vec3::new(-9.0, -10.0, 0.0)),
+            object::Body::LanternGround => {
+                ("object/lantern_ground.vox", Vec3::new(-3.5, -3.5, 0.0))
+            }
+            object::Body::LanternGroundOpen => {
+                ("object/lantern_ground_open.vox", Vec3::new(-3.5, -3.5, 0.0))
+            }
+            object::Body::LanternStanding => {
+                ("object/lantern_standing.vox", Vec3::new(-7.5, -3.5, 0.0))
+            }
+            object::Body::LanternStanding2 => {
+                ("object/lantern_standing_2.vox", Vec3::new(-11.5, -3.5, 0.0))
+            }
+            object::Body::PotionRed => ("object/potion_red.vox", Vec3::new(-2.0, -2.0, 0.0)),
+            object::Body::PotionBlue => ("object/potion_blue.vox", Vec3::new(-2.0, -2.0, 0.0)),
+            object::Body::PotionGreen => ("object/potion_green.vox", Vec3::new(-2.0, -2.0, 0.0)),
+            object::Body::Crate => ("object/crate.vox", Vec3::new(-7.0, -7.0, 0.0)),
+        };
+        Self::load_mesh(name, offset)
     }
 }
 
