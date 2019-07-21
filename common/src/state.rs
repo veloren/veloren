@@ -130,6 +130,7 @@ impl State {
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
         ecs.register_synced::<comp::CanBuild>();
+        ecs.register_synced::<comp::LightEmitter>();
 
         // Register components synced by other means
         ecs.register::<comp::Pos>();
