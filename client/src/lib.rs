@@ -403,7 +403,9 @@ impl Client {
                             self.state.write_component(entity, pos);
                             self.state.write_component(entity, vel);
                             self.state.write_component(entity, ori);
-                            self.state.write_component(entity, action_state);
+                            if let Some(a_s) = action_state {
+                                self.state.write_component(entity, a_s);
+                            }
                         }
                     }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
