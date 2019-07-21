@@ -7,6 +7,7 @@ use crate::{
     },
     window::Window,
 };
+use client::Client;
 use common::comp::{humanoid, item::Weapon};
 use conrod_core::{
     color,
@@ -235,7 +236,7 @@ impl CharSelectionUi {
     }
 
     // TODO: Split this into multiple modules or functions.
-    fn update_layout(&mut self) -> Vec<Event> {
+    fn update_layout(&mut self, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
         let ref mut ui_widgets = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
@@ -270,7 +271,7 @@ impl CharSelectionUi {
                 .rgba(0.0, 0.0, 0., 0.0)
                 .set(self.ids.selection_scrollbar, ui_widgets);
             // Server Name
-            Text::new("Server Name") //TODO: Add in Server Name
+            Text::new(&client.server_info.name)
                 .mid_top_with_margin_on(self.ids.server_frame_bg, 5.0)
                 .font_size(24)
                 .font_id(self.fonts.metamorph)
@@ -1064,8 +1065,8 @@ impl CharSelectionUi {
         self.ui.handle_event(event);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer) -> Vec<Event> {
-        let events = self.update_layout();
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) -> Vec<Event> {
+        let events = self.update_layout(client);
         self.ui.maintain(renderer, None);
         events
     }
