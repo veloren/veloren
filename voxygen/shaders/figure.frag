@@ -1,7 +1,6 @@
 #version 330 core
 
 #include <globals.glsl>
-#include <sky.glsl>
 
 in vec3 f_pos;
 in vec3 f_norm;
@@ -23,6 +22,19 @@ uniform u_bones {
 	BoneData bones[16];
 };
 
+struct Light {
+	vec4 light_pos;
+	vec4 light_col;
+};
+
+layout (std140)
+uniform u_lights {
+	Light lights[32];
+};
+
+#include <sky.glsl>
+#include <light.glsl>
+
 out vec4 tgt_color;
 
 void main() {
@@ -32,7 +44,7 @@ void main() {
 		vec4(f_norm, 0.0)
 	).xyz;
 
-	vec3 light = get_sun_diffuse(world_norm, time_of_day.x);
+	vec3 light = get_sun_diffuse(world_norm, time_of_day.x) + light_at(f_pos, f_norm);
 	vec3 surf_color = model_col.rgb * f_col * 2.0 * light;
 
 	float fog_level = fog(f_pos.xy, focus_pos.xy);

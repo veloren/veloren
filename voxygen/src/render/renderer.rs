@@ -3,7 +3,7 @@ use super::{
     gfx_backend,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, postprocess, skybox, terrain, ui, Globals},
+    pipelines::{figure, postprocess, skybox, terrain, ui, Globals, Light},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -82,10 +82,15 @@ impl Renderer {
             env!("CARGO_MANIFEST_DIR"),
             "/shaders/include/sky.glsl"
         ));
+        let light = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/shaders/include/light.glsl"
+        ));
 
         let mut include_ctx = IncludeContext::new();
         include_ctx.include("globals.glsl", globals);
         include_ctx.include("sky.glsl", sky);
+        include_ctx.include("light.glsl", light);
 
         // Construct a pipeline for rendering skyboxes
         let skybox_pipeline = create_pipeline(
@@ -389,6 +394,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<figure::Locals>,
         bones: &Consts<figure::BoneData>,
+        lights: &Consts<Light>,
     ) {
         self.encoder.draw(
             &model.slice,
@@ -398,6 +404,7 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
+                lights: lights.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -410,6 +417,7 @@ impl Renderer {
         model: &Model<terrain::TerrainPipeline>,
         globals: &Consts<Globals>,
         locals: &Consts<terrain::Locals>,
+        lights: &Consts<Light>,
     ) {
         self.encoder.draw(
             &model.slice,
@@ -418,6 +426,7 @@ impl Renderer {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
+                lights: lights.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
