@@ -1,3 +1,13 @@
+struct Light {
+	vec4 light_pos;
+	vec4 light_col;
+};
+
+layout (std140)
+uniform u_lights {
+	Light lights[32];
+};
+
 float attenuation_strength(vec3 rpos) {
 	return 1.0 / (rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z);
 }
