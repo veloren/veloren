@@ -18,6 +18,7 @@ pub enum RequestStateError {
 pub struct ServerInfo {
     pub name: String,
     pub description: String,
+    pub git_hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

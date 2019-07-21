@@ -106,6 +106,7 @@ impl Server {
             server_info: ServerInfo {
                 name: settings.server_name.clone(),
                 description: settings.server_description.clone(),
+                git_hash: common::util::GIT_HASH.to_string(),
             },
             server_settings: settings,
         };
