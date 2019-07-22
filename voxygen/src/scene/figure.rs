@@ -516,6 +516,7 @@ impl FigureModelCache {
         let (name, offset) = match obj {
             object::Body::Bomb => ("object/bomb.vox", Vec3::new(-5.5, -5.5, 0.0)),
             object::Body::Scarecrow => ("object/scarecrow.vox", Vec3::new(-9.5, -4.0, 0.0)),
+            object::Body::Cauldron => ("object/cauldron.vox", Vec3::new(-10.0, -10.0, 0.0)),
             object::Body::ChestVines => ("object/chest_vines.vox", Vec3::new(-7.5, -6.0, 0.0)),
             object::Body::Chest => ("object/chest.vox", Vec3::new(-7.5, -6.0, 0.0)),
             object::Body::ChestDark => ("object/chest_dark.vox", Vec3::new(-7.5, -6.0, 0.0)),
