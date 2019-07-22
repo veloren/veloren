@@ -1,28 +1,25 @@
 use crate::lodstore::{
     LodData,
-    LayerInfo,
     LodConfig,
     index::LodIndex,
     index::AbsIndex,
 };
 use vek::*;
+use std::u32;
 
 #[derive(Clone)]
 pub struct Example9 {
     data: [u8; 700],
-    child_id: Option<u32>, // Chunk5 2^(7*3), this is valid
 }
 
 #[derive(Clone)]
 pub struct Example5 {
     data: [u8; 130],
-    child_id: Option<u32>, // see Block0 2^(12*3)
 }
 
 #[derive(Debug, Clone)]
 pub struct Example0 {
     data: u32,
-    child_id: Option<u32>,// In reality 2^(16*3) SubBlock_4 should be possible, but 2^48 subblocks would kill anything anyway, so save 2 bytes here
 }
 
 #[derive(Debug, Clone)]
@@ -34,31 +31,8 @@ impl Example9 {
     pub fn new() -> Self {
         Example9{
             data: [0; 700],
-            child_id: None,
         }
     }
-}
-
-impl LayerInfo for Example9 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for Example5 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for Example0 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for Example_4 {
-    fn get_child_index(self: &Self) -> Option<usize> { None }
 }
 
 #[derive(Debug, Clone)]
@@ -81,6 +55,23 @@ impl LodConfig for ExampleLodConfig {
     type L13 = Example9;
     type L14 = ();
     type L15 = ();
+
+    type I0 = ();
+    type I1 = ();
+    type I2 = ();
+    type I3 = ();
+    type I4 = u32; // In reality 2^(16*3) SubBlock_4 should be possible, but 2^48 subblocks would kill anything anyway, so save 2 bytes here
+    type I5 = ();
+    type I6 = ();
+    type I7 = ();
+    type I8 = ();
+    type I9 = u32; // see Block0 2^(12*3)
+    type I10 = ();
+    type I11 = ();
+    type I12 = ();
+    type I13 = u32; // Chunk5 2^(7*3), this is valid
+    type I14 = ();
+    type I15 = ();
 
     const anchor_layer_id: u8 = 13;
 
@@ -152,10 +143,10 @@ impl LodConfig for ExampleLodConfig {
                 panic!("cannot drill down further");
             },
             4 => {
-                if data.layer4[abs.index].child_id.is_some() {return;}
+                if data.child4[abs.index] != u32::MAX {return;}
                 let insert = data.layer0.len();
                 data.layer0.reserve(Self::layer_len[0]);
-                data.layer4[abs.index].child_id = Some(insert as u32);
+                data.child4[abs.index] = insert as u32;
                 //debug!("set0 {:?} = {}", abs, insert);
                 for i in 0..Self::layer_len[0] {
                     data.layer0.push(Example_4{
@@ -164,29 +155,31 @@ impl LodConfig for ExampleLodConfig {
                 }
             },
             9 => {
-                if data.layer9[abs.index].child_id.is_some() {return;}
+                if data.child9[abs.index] != u32::MAX {return;}
                 let insert = data.layer4.len();
                 data.layer4.reserve(Self::layer_len[4]);
-                data.layer9[abs.index].child_id = Some(insert as u32);
+                data.child4.reserve(Self::layer_len[4]);
+                data.child9[abs.index] = insert as u32;
                 //debug!("set4 {:?} = {}", abs, insert);
                 for i in 0..Self::layer_len[4] {
                     data.layer4.push(Example0{
                         data: 0,
-                        child_id: None,
                     });
+                    data.child4.push(u32::MAX);
                 }
             },
             13 => {
-                if data.layer13[abs.index].child_id.is_some() {return;}
+                if data.child13[abs.index] != u32::MAX {return;}
                 let insert = data.layer9.len();
                 data.layer9.reserve(Self::layer_len[9]);
-                data.layer13[abs.index].child_id = Some(insert as u32);
+                data.child9.reserve(Self::layer_len[9]);
+                data.child13[abs.index] = insert as u32;
                 //debug!("set13 {:?} = {}", abs, insert);
                 for i in 0..Self::layer_len[9] {
                     data.layer9.push(Example5{
                         data: [0; 130],
-                        child_id: None,
                     });
+                    data.child9.push(u32::MAX);
                 }
             },
             _ => unreachable!(),
@@ -200,19 +193,22 @@ impl LodConfig for ExampleLodConfig {
                 panic!("SubBlocks_4 does not have children");
             },
             4 => {
-                let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer4[parent_abs.index].child_id = None;
+                let delete = data.child4[parent_abs.index] as usize;
+                data.child4[parent_abs.index] = u32::MAX;
                 data.layer0.drain(delete..delete+Self::layer_len[0]);
+                data.child0.drain(delete..delete+Self::layer_len[0]);
             },
             9 => {
-                let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer9[parent_abs.index].child_id = None;
+                let delete = data.child9[parent_abs.index] as usize;
+                data.child9[parent_abs.index] = u32::MAX;
                 data.layer4.drain(delete..delete+Self::layer_len[4]);
+                data.child4.drain(delete..delete+Self::layer_len[4]);
             },
             13 => {
-                let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer13[parent_abs.index].child_id = None;
+                let delete = data.child13[parent_abs.index] as usize;
+                data.child13[parent_abs.index] = u32::MAX;
                 data.layer9.drain(delete..delete+Self::layer_len[9]);
+                data.child9.drain(delete..delete+Self::layer_len[9]);
             },
             _ => unreachable!(),
         }
@@ -251,13 +247,19 @@ mod tests {
         let abs5 = (index::two_pow_u(15-9) as u64).pow(3);
         let abs0 = (index::two_pow_u(15-4) as u64).pow(3);
         let abs_4 = (index::two_pow_u(15)  as u64).pow(3);
-        let act9 = (abs9 as f32 * (1.0+p_foreign) ) as u32;
-        let act5 = (abs5 as f32 * (p_e5*(1.0+p_foreign))) as u32;
-        let act0 = (abs0 as f32 * (p_e0*(1.0+p_foreign))) as u32;
-        let act_4 = (abs_4 as f32 * (p_e_4*(1.0+p_foreign))) as u32;
+        let p_e9 = 1.0+p_foreign;
+        let p_e5 = p_e9*p_e5;
+        let p_e0 = p_e5*p_e0;
+        let p_e_4 = p_e0*p_e_4;
+        let act9 = (abs9 as f32 * p_e9 ) as u32;
+        let act5 = (abs5 as f32 * p_e5) as u32;
+        let act0 = (abs0 as f32 * p_e0 ) as u32;
+        let act_4 = (abs_4 as f32 * p_e_4 ) as u32;
 
         let w9 = index::two_pow_u(13) as u32;
         result.layer13 = vec![Example9::new(); 8*8*8];
+        result.child13 = vec![u32::MAX; 8*8*8];
+        println!("size test {} -- {}", size_of::<usize>(), size_of::<Option<usize>>());
         for x in 0..8 {
             for y in 0..8 {
                 for z in 0..8 {
@@ -265,6 +267,7 @@ mod tests {
                 }
             }
         }
+
         println!("creating Region with {} 5er, {} 0er, {} -4er", act5, act0 , act_4);
         while result.layer9.len() < act5 as usize {
             let index = randIndex(&mut rng);
@@ -289,10 +292,8 @@ mod tests {
     }
 
     #[test]
-    fn reagiontest() {
-        let reg = createRegion(0.0015, 0.01, 0.0000001, 0.1);
-
-        thread::sleep(time::Duration::from_secs(4));
+    fn regiontest() {
+        let reg = createRegion(0.0015, 0.001, 0.001, 0.1);
     }
 
     #[test]
@@ -376,7 +377,122 @@ mod tests {
 
     #[bench]
     fn bench_region(b: &mut Bencher) {
-        b.iter(|| createRegion(0.00015, 0.0001, 0.00000001, 0.1));
+        b.iter(|| createRegion(0.0015, 0.001, 0.001, 0.1));
+    }
+
+    #[bench]
+    fn bench_clone_region(b: &mut Bencher) {
+        let region = createRegion(0.00015, 0.0001, 0.00000001, 0.1);
+        b.iter(|| region.clone());
+    }
+
+    #[bench]
+    fn bench_make_at_least1(b: &mut Bencher) {
+        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(0, 0, 0));
+        let high = LodIndex::new(Vec3::new(255, 255, 255));
+        b.iter(|| {
+            let mut reg2 = region.clone();
+            reg2.make_at_least(low,high,0);
+        });
+    }
+
+    #[bench]
+    fn bench_make_at_least2(b: &mut Bencher) {
+        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(0, 0, 0));
+        let high = LodIndex::new(Vec3::new(4, 4, 4));
+        b.iter(|| {
+            let mut reg2 = region.clone();
+            reg2.make_at_least(low,high,0);
+        });
+    }
+
+    #[bench]
+    fn bench_make_at_least3(b: &mut Bencher) {
+        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
+        b.iter(|| {
+            let mut reg2 = region.clone();
+            reg2.make_at_least(low,high,4);
+        });
+    }
+
+    #[bench]
+    fn bench_access_0(b: &mut Bencher) {
+        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let access = LodIndex::new(Vec3::new(8561, 8312, 8412));
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
+        reg.make_at_least(low,high,0);
+        b.iter(|| reg.get0(access));
+    }
+
+    #[bench]
+    fn bench_access_0_4_multiple(b: &mut Bencher) {
+        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
+        reg.make_at_least(low,high,0);
+        b.iter(|| {
+            reg.get0(LodIndex::new(Vec3::new(8561, 8312, 8412)));
+            reg.get0(LodIndex::new(Vec3::new(8200, 8599, 8413)));
+            reg.get0(LodIndex::new(Vec3::new(8300, 8782, 8414)));
+            reg.get0(LodIndex::new(Vec3::new(8761, 8352, 8212)));
+            reg.get0(LodIndex::new(Vec3::new(8261, 8282, 8712)));
+            reg.get0(LodIndex::new(Vec3::new(8461, 8752, 8652)));
+            reg.get0(LodIndex::new(Vec3::new(8661, 8512, 8582)));
+            reg.get0(LodIndex::new(Vec3::new(8461, 8612, 8419)));
+            reg.get0(LodIndex::new(Vec3::new(8261, 8192, 8414)));
+            reg.get0(LodIndex::new(Vec3::new(8761, 8192, 8192)));
+            reg.get4(LodIndex::new(Vec3::new(8448, 8704, 8704)));
+            reg.get4(LodIndex::new(Vec3::new(8461, 8448, 8704)));
+            reg.get4(LodIndex::new(Vec3::new(8704, 8192, 8704)));
+            reg.get4(LodIndex::new(Vec3::new(8192, 8704, 8192)));
+        });
+    }
+
+    #[bench]
+    fn bench_access_0_random1(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(9192, 9192, 9192));
+        let mut accesslist = Vec::new();
+        for i in 0..1000000 {
+            let x: u16 = rng.gen();
+            let y: u16 = rng.gen();
+            let z: u16 = rng.gen();
+            accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
+        }
+        reg.make_at_least(low,high,0);
+        b.iter(|| {
+            for i in 0..1000000 {
+                reg.get0(accesslist[i]);
+            }
+        });
+    }
+
+    #[bench]
+    fn bench_access_0_random2(b: &mut Bencher) {
+        let mut rng = rand::thread_rng();
+        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(9192, 9192, 9192));
+        let mut accesslist = Vec::new();
+        for i in 0..9990000 {
+            let x: u16 = rng.gen();
+            let y: u16 = rng.gen();
+            let z: u16 = rng.gen();
+            accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
+        }
+        reg.make_at_least(low,high,0);
+        b.iter(|| {
+            for i in 0..9990000 {
+                reg.get0(accesslist[i]);
+            }
+        });
     }
 
     #[bench]

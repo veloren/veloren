@@ -1,6 +1,5 @@
 use crate::lodstore::{
     LodData,
-    LayerInfo,
     LodConfig,
     index::LodIndex,
     index::AbsIndex,
@@ -13,7 +12,6 @@ pub struct Region9 {
     percent_forrest: f32,
     percent_lava: f32,
     percent_water: f32,
-    child_id: Option<u32>, // Chunk5 2^(7*3), this is valid
 }
 
 #[derive(Debug, Clone)]
@@ -22,42 +20,16 @@ pub struct Chunk5 {
     percent_forrest: f32,
     percent_lava: f32,
     percent_water: f32,
-    child_id: Option<u32>, // see Block0 2^(12*3)
 }
 
 #[derive(Debug, Clone)]
 pub struct Block0 {
     material: u32,
-    child_id: Option<u32>,// In reality 2^(16*3) SubBlock_4 should be possible, but 2^48 subblocks would kill anything anyway, so save 2 bytes here
 }
 
 #[derive(Debug, Clone)]
 pub struct SubBlock_4 {
     material: u32,
-}
-
-impl LayerInfo for Region9 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for Chunk5 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for Block0 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        self.child_id.map(|n| n as usize)
-    }
-}
-
-impl LayerInfo for SubBlock_4 {
-    fn get_child_index(self: &Self) -> Option<usize> {
-        None
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +52,23 @@ impl LodConfig for TerrainLodConfig {
     type L13 = Region9;
     type L14 = ();
     type L15 = ();
+
+    type I0 = ();
+    type I1 = ();
+    type I2 = ();
+    type I3 = ();
+    type I4 = u32; // In reality 2^(16*3) SubBlock_4 should be possible, but 2^48 subblocks would kill anything anyway, so save 2 bytes here
+    type I5 = ();
+    type I6 = ();
+    type I7 = ();
+    type I8 = ();
+    type I9 = u32; // see Block0 2^(12*3)
+    type I10 = ();
+    type I11 = ();
+    type I12 = ();
+    type I13 = u32; // Chunk5 2^(7*3), this is valid
+    type I14 = ();
+    type I15 = ();
 
     const anchor_layer_id: u8 = 13;
 
@@ -149,7 +138,7 @@ impl LodConfig for TerrainLodConfig {
             },
             4 => {
                 let insert = data.layer0.len();
-                data.layer4[abs.index].child_id = Some(insert as u32);
+                data.child4[abs.index] = insert as u32;
                 for i in 0..Self::layer_len[0] {
                     data.layer0[i+insert] = SubBlock_4{
                         material: 0,
@@ -158,25 +147,25 @@ impl LodConfig for TerrainLodConfig {
             },
             9 => {
                 let insert = data.layer4.len();
-                data.layer9[abs.index].child_id = Some(insert as u32);
+                data.child9[abs.index] = insert as u32;
                 for i in 0..Self::layer_len[4] {
                     data.layer4[i+insert] = Block0{
                         material: 0,
-                        child_id: None,
                     };
                 }
             },
             13 => {
                 let insert = data.layer9.len();
-                    data.layer13[abs.index].child_id = Some(insert as u32);
+                    data.child13[abs.index] = insert as u32;
                     for i in 0..Self::layer_len[9] {
                         data.layer9[i+insert] = Chunk5{
-                        precent_air: 0.2,
-                        percent_forrest: 0.3,
-                        percent_lava: 0.4,
-                        percent_water: 0.1,
-                        child_id: None,
-                    };
+                            precent_air: 0.2,
+                            percent_forrest: 0.3,
+                            percent_lava: 0.4,
+                            percent_water: 0.1,
+                        };
+    //ERROR HERE
+    unreachable!("finish this like in example");
                 }
             },
             _ => unreachable!(),
@@ -185,24 +174,25 @@ impl LodConfig for TerrainLodConfig {
     }
 
     fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) {
+    unreachable!("finish this like in example");
         match parent_abs.layer {
             0 => {
                 panic!("SubBlocks_4 does not have children");
             },
             4 => {
-                let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer4[parent_abs.index].child_id = None;
-                data.layer0.drain(delete..delete+Self::layer_len[0]);
+                //let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                //data.layer4[parent_abs.index].child_id = None;
+                //data.layer0.drain(delete..delete+Self::layer_len[0]);
             },
             9 => {
-                let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer9[parent_abs.index].child_id = None;
-                data.layer4.drain(delete..delete+Self::layer_len[4]);
+                //let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                //data.layer9[parent_abs.index].child_id = None;
+                //data.layer4.drain(delete..delete+Self::layer_len[4]);
             },
             13 => {
-                let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
-                data.layer13[parent_abs.index].child_id = None;
-                data.layer9.drain(delete..delete+Self::layer_len[9]);
+                //let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                //data.layer13[parent_abs.index].child_id = None;
+                //data.layer9.drain(delete..delete+Self::layer_len[9]);
             },
             _ => unreachable!(),
         }

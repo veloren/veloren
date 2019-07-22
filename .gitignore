@@ -31,6 +31,9 @@
 # GDB
 .gdb_history
 
+# Valgrind, Callgrind
+callgrind.out.*
+
 # Veloren
 *.rar
 *.log
