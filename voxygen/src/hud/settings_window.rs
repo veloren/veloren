@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use super::{img_ids::Imgs, CrosshairType, Fonts, Show, TEXT_COLOR};
 use crate::{
     audio::base::{AudioDevice, Genre},
     settings::AudioSettings,
@@ -8,7 +8,7 @@ use crate::{
 use conrod_core::{
     color,
     widget::{self, Button, DropDownList, Image, Rectangle, Scrollbar, Text},
-    widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 const FPS_CHOICES: [u32; 11] = [15, 30, 40, 50, 60, 90, 120, 144, 240, 300, 500];
@@ -31,6 +31,7 @@ widget_ids! {
         gameplay,
         controls,
         rectangle,
+        general_txt,
         debug_button,
         debug_button_label,
         interface,
@@ -42,10 +43,20 @@ widget_ids! {
         mouse_zoom_slider,
         mouse_zoom_label,
         mouse_zoom_value,
+        ch_title,
         ch_transp_slider,
         ch_transp_label,
         ch_transp_value,
         ch_transp_text,
+        ch_1_bg,
+        ch_2_bg,
+        ch_3_bg,
+        crosshair_outer_1,
+        crosshair_inner_1,
+        crosshair_outer_2,
+        crosshair_inner_2,
+        crosshair_outer_3,
+        crosshair_inner_3,
         settings_bg,
         sound,
         test,
@@ -118,6 +129,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     MaximumFPS(u32),
     CrosshairTransp(f32),
+    CrosshairType(CrosshairType),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -212,11 +224,21 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Interface = self.show.settings_tab {
+            let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
+            let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
+
+            Text::new("General")
+                .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.general_txt, ui);
+
             // Help
             let show_help =
                 ToggleButton::new(self.show.help, self.imgs.check, self.imgs.check_checked)
                     .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
+                    .down_from(state.ids.general_txt, 20.0)
                     .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
                     .press_images(self.imgs.check_press, self.imgs.check_press)
                     .set(state.ids.button_help, ui);
@@ -277,6 +299,174 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.debug_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
+
+            // Crosshair Options
+            // Crosshair Transparency
+            Text::new("Crosshair")
+                .down_from(state.ids.debug_button, 15.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_title, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                crosshair_transp,
+                0.0,
+                1.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.ch_transp_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.ch_transp_slider, ui)
+            {
+                events.push(Event::CrosshairTransp(new_val));
+            }
+
+            Text::new(&format!("{:.2}", crosshair_transp,))
+                .right_from(state.ids.ch_transp_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_value, ui);
+            Text::new("Transparency")
+                .right_from(state.ids.ch_3_bg, 20.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_text, ui);
+            // Crosshair Types
+            // Round
+            if Button::image(if let CrosshairType::Round = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg
+            })
+            .w_h(15.0 * 4.0, 15.0 * 4.0)
+            .hover_image(if let CrosshairType::Round = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_hover
+            })
+            .press_image(if let CrosshairType::Round = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_press
+            })
+            .down_from(state.ids.ch_title, 20.0)
+            .set(state.ids.ch_1_bg, ui)
+            .was_clicked()
+            {
+                events.push(Event::CrosshairType(CrosshairType::Round));
+            }
+
+            // Crosshair
+            Image::new(self.imgs.crosshair_outer_round)
+                .w_h(20.0 * 1.5, 20.0 * 1.5)
+                .middle_of(state.ids.ch_1_bg)
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    self.global_state.settings.gameplay.crosshair_transp,
+                )))
+                .graphics_for(state.ids.ch_1_bg)
+                .set(state.ids.crosshair_outer_1, ui);
+            Image::new(self.imgs.crosshair_inner)
+                .w_h(21.0 * 2.0, 21.0 * 2.0)
+                .middle_of(state.ids.crosshair_outer_1)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                .graphics_for(state.ids.ch_1_bg)
+                .set(state.ids.crosshair_inner_1, ui);
+
+            // Rounded Edges
+            if Button::image(if let CrosshairType::RoundEdges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg
+            })
+            .w_h(15.0 * 4.0, 15.0 * 4.0)
+            .hover_image(if let CrosshairType::RoundEdges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_hover
+            })
+            .press_image(if let CrosshairType::RoundEdges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_press
+            })
+            .right_from(state.ids.ch_1_bg, 20.0)
+            .set(state.ids.ch_2_bg, ui)
+            .was_clicked()
+            {
+                events.push(Event::CrosshairType(CrosshairType::RoundEdges));
+            }
+
+            // Crosshair
+            Image::new(self.imgs.crosshair_outer_round_edges)
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
+                .middle_of(state.ids.ch_2_bg)
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    self.global_state.settings.gameplay.crosshair_transp,
+                )))
+                .graphics_for(state.ids.ch_2_bg)
+                .set(state.ids.crosshair_outer_2, ui);
+            Image::new(self.imgs.crosshair_inner)
+                .w_h(21.0 * 2.0, 21.0 * 2.0)
+                .middle_of(state.ids.crosshair_outer_2)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                .graphics_for(state.ids.ch_2_bg)
+                .set(state.ids.crosshair_inner_2, ui);
+
+            // Edges
+            if Button::image(if let CrosshairType::Edges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg
+            })
+            .w_h(15.0 * 4.0, 15.0 * 4.0)
+            .hover_image(if let CrosshairType::Edges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_hover
+            })
+            .press_image(if let CrosshairType::Edges = crosshair_type {
+                self.imgs.crosshair_bg_pressed
+            } else {
+                self.imgs.crosshair_bg_press
+            })
+            .right_from(state.ids.ch_2_bg, 20.0)
+            .set(state.ids.ch_3_bg, ui)
+            .was_clicked()
+            {
+                events.push(Event::CrosshairType(CrosshairType::Edges));
+            }
+
+            // Crosshair
+            Image::new(self.imgs.crosshair_outer_edges)
+                .w_h(21.0 * 1.5, 21.0 * 1.5)
+                .middle_of(state.ids.ch_3_bg)
+                .color(Some(Color::Rgba(
+                    1.0,
+                    1.0,
+                    1.0,
+                    self.global_state.settings.gameplay.crosshair_transp,
+                )))
+                .graphics_for(state.ids.ch_3_bg)
+                .set(state.ids.crosshair_outer_3, ui);
+            Image::new(self.imgs.crosshair_inner)
+                .w_h(21.0 * 2.0, 21.0 * 2.0)
+                .middle_of(state.ids.crosshair_outer_3)
+                .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
+                .graphics_for(state.ids.ch_3_bg)
+                .set(state.ids.crosshair_inner_3, ui);
         }
 
         // 2) Gameplay Tab --------------------------------
@@ -310,7 +500,6 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Gameplay = self.show.settings_tab {
             let display_pan = self.global_state.settings.gameplay.pan_sensitivity;
             let display_zoom = self.global_state.settings.gameplay.zoom_sensitivity;
-            let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
 
             // Mouse Pan Sensitivity
             Text::new("Pan Sensitivity")
@@ -375,38 +564,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.mouse_zoom_value, ui);
-
-            // Crosshair Translucency
-            Text::new("Crosshair Transparency")
-                .down_from(state.ids.mouse_zoom_slider, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ch_transp_text, ui);
-
-            if let Some(new_val) = ImageSlider::continuous(
-                crosshair_transp,
-                0.0,
-                1.0,
-                self.imgs.slider_indicator,
-                self.imgs.slider,
-            )
-            .w_h(104.0, 22.0)
-            .down_from(state.ids.ch_transp_text, 8.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(state.ids.ch_transp_slider, ui)
-            {
-                events.push(Event::CrosshairTransp(new_val));
-            }
-
-            Text::new(&format!("{:.2}", crosshair_transp,))
-                .right_from(state.ids.ch_transp_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ch_transp_value, ui);
         }
 
         // 3) Controls Tab --------------------------------
