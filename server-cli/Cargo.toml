@@ -10,3 +10,4 @@ common = { package = "veloren-common", path = "../common" }
 
 log = "0.4"
 pretty_env_logger = "0.3"
+heaptrack = "0.3.0"
