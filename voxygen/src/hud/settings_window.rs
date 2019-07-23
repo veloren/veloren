@@ -1,7 +1,6 @@
 use super::{img_ids::Imgs, CrosshairType, Fonts, Show, TEXT_COLOR};
 use crate::{
-    audio::base::{AudioDevice, Genre},
-    settings::AudioSettings,
+    audio::base::Genre,
     ui::{ImageSlider, ToggleButton},
     GlobalState,
 };
@@ -906,9 +905,8 @@ impl<'a> Widget for SettingsWindow<'a> {
             // Audio Device Selector --------------------------------------------
             match self.global_state.audio.model.get_genre() {
                 Genre::Bgm => {
-                    let init = AudioDevice::new(&AudioSettings::default());
-                    let device = init.get_device();
-                    let device_list = init.list_devices();
+                    let device = &self.global_state.audio.default_device;
+                    let device_list = &self.global_state.audio.device_list;
                     Text::new("Volume")
                         .down_from(state.ids.audio_volume_slider, 10.0)
                         .font_size(14)
@@ -917,7 +915,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                         .set(state.ids.audio_device_text, ui);
 
                     // Get which device is currently selected
-                    let selected = device_list.iter().position(|x| x.contains(&device));
+                    let selected = device_list.iter().position(|x| x.contains(device));
 
                     if let Some(clicked) = DropDownList::new(&device_list, selected)
                         .w_h(400.0, 22.0)
