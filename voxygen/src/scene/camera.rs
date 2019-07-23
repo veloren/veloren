@@ -116,7 +116,7 @@ impl Camera {
     pub fn zoom_by(&mut self, delta: f32) {
         if self.can_zoom {
             // Clamp camera dist to the 0 <= x <= infinity range
-            self.tgt_dist = (self.tgt_dist + delta).max(0.0);
+            self.tgt_dist = (self.tgt_dist + delta).max(2.0);
         }
     }
 
@@ -176,6 +176,9 @@ impl Camera {
         match self.mode {
             CameraMode::ThirdPerson => {
                 self.can_zoom = true;
+                if self.tgt_dist == 0.0 {
+                    self.zoom_by(5.0);
+                }
             },
             CameraMode::FirstPerson => {
                 self.set_distance(0.0);
