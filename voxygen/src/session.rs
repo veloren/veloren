@@ -134,7 +134,7 @@ impl PlayState for SessionState {
                             if b {
                                 let pos =
                                     (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
-                                client.place_block(pos, self.selected_block); // TODO: Handle block color with a command
+                                client.place_block(pos, self.selected_block);
                             }
                         } else {
                             self.controller.attack = state
