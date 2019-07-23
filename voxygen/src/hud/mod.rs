@@ -18,6 +18,7 @@ use esc_menu::EscMenu;
 use img_ids::Imgs;
 use map::Map;
 use minimap::MiniMap;
+use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
 use small_window::{SmallWindow, SmallWindowType};
@@ -116,7 +117,7 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
 }
-
+#[derive(Serialize, Deserialize)]
 pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
@@ -126,6 +127,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     CrosshairTransp(f32),
+    CrosshairType(CrosshairType),
     //UiScale(f32),
     CharacterSelection,
     Logout,
@@ -143,6 +145,13 @@ pub enum Windows {
     None,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum CrosshairType {
+    Round,
+    RoundEdges,
+    Edges,
+}
+
 pub struct Show {
     ui: bool,
     help: bool,
@@ -155,7 +164,6 @@ pub struct Show {
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
-
     want_grab: bool,
 }
 impl Show {
@@ -345,16 +353,23 @@ impl Hud {
             let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Crosshair
-            Image::new(self.imgs.crosshair_outer)
-                .w_h(21.0 * 1.5, 21.0 * 1.5)
-                .middle_of(ui_widgets.window)
-                .color(Some(Color::Rgba(
-                    1.0,
-                    1.0,
-                    1.0,
-                    global_state.settings.gameplay.crosshair_transp,
-                )))
-                .set(self.ids.crosshair_outer, ui_widgets);
+            Image::new(
+                // TODO: Do we want to match on this every frame?
+                match global_state.settings.gameplay.crosshair_type {
+                    CrosshairType::Round => self.imgs.crosshair_outer_round,
+                    CrosshairType::RoundEdges => self.imgs.crosshair_outer_round_edges,
+                    CrosshairType::Edges => self.imgs.crosshair_outer_edges,
+                },
+            )
+            .w_h(21.0 * 1.5, 21.0 * 1.5)
+            .middle_of(ui_widgets.window)
+            .color(Some(Color::Rgba(
+                1.0,
+                1.0,
+                1.0,
+                global_state.settings.gameplay.crosshair_transp,
+            )))
+            .set(self.ids.crosshair_outer, ui_widgets);
             Image::new(self.imgs.crosshair_inner)
                 .w_h(21.0 * 2.0, 21.0 * 2.0)
                 .middle_of(self.ids.crosshair_outer)
@@ -645,6 +660,9 @@ impl Hud {
                     }
                     settings_window::Event::ChangeAudioDevice(name) => {
                         events.push(Event::ChangeAudioDevice(name));
+                    }
+                    settings_window::Event::CrosshairType(crosshair_type) => {
+                        events.push(Event::CrosshairType(crosshair_type));
                     }
                 }
             }
