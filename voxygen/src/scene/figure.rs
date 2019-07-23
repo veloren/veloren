@@ -547,7 +547,7 @@ impl FigureModelCache {
             object::Body::PotionBlue => ("object/potion_blue.vox", Vec3::new(-2.0, -2.0, 0.0)),
             object::Body::PotionGreen => ("object/potion_green.vox", Vec3::new(-2.0, -2.0, 0.0)),
             object::Body::Crate => ("object/crate.vox", Vec3::new(-7.0, -7.0, 0.0)),
-            object::Body::Tent => ("object/tent.vox", Vec3::new(-18.5, -19.5, 0.0)),
+            object::Body::Tent => ("object/tent.vox", Vec3::new(-18.5, -19.5, 0.0)),            
         };
         Self::load_mesh(name, offset)
     }
