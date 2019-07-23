@@ -458,9 +458,12 @@ fn handle_object(server: &mut Server, entity: EcsEntity, _args: String, _action:
         .get(entity)
         .copied();
     if let Some(pos) = pos {
-        server
-            .create_object(pos, comp::object::Body::random())
-            .build();
+        let object_type = match objtype {
+            "Tent" => comp::object::Body::Tent,
+            "Bomb" => comp::object::Body::Bomb,
+            "_" => None
+};
+server.create_object(pos, object_type).build()
         server
             .clients
             .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
