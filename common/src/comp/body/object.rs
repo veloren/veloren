@@ -27,6 +27,7 @@ pub enum Body {
     PotionGreen,
     PotionRed,
     Crate,
+    Tent,
 }
 
 impl Body {
@@ -36,7 +37,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 25] = [
+const ALL_OBJECTS: [Body; 26] = [
     Body::Bomb,
     Body::Scarecrow,
     Body::Cauldron,
@@ -62,4 +63,5 @@ const ALL_OBJECTS: [Body; 25] = [
     Body::PotionBlue,
     Body::PotionGreen,
     Body::Crate,
+    Body::Tent,
 ];
