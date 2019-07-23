@@ -54,14 +54,19 @@ image_ids! {
         chat_arrow_press: "voxygen/element/buttons/arrow_down_press.vox",
 
         // Crosshair
-        crosshair: "voxygen/element/misc_bg/crosshair.vox",
-        //crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
         crosshair_inner: "voxygen/element/misc_bg/crosshair_inner.vox",
 
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
-        crosshair_outer: "voxygen/element/misc_bg/crosshair_outer.vox",
+        crosshair_outer_round: "voxygen/element/misc_bg/crosshair_outer_1.vox",
+        crosshair_outer_round_edges: "voxygen/element/misc_bg/crosshair_outer_2.vox",
+        crosshair_outer_edges: "voxygen/element/misc_bg/crosshair_outer_3.vox",
+
+        crosshair_bg: "voxygen/element/misc_bg/crosshair_bg.vox",
+        crosshair_bg_hover: "voxygen/element/misc_bg/crosshair_bg_hover.vox",
+        crosshair_bg_press: "voxygen/element/misc_bg/crosshair_bg_press.vox",
+        crosshair_bg_pressed: "voxygen/element/misc_bg/crosshair_bg_pressed.vox",
 
         // Buttons
         mmap_closed: "voxygen/element/buttons/button_mmap_closed.vox",
