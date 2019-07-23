@@ -1,4 +1,4 @@
-use crate::window::KeyMouse;
+use crate::{hud::CrosshairType, window::KeyMouse};
 use directories::ProjectDirs;
 use glutin::{MouseButton, VirtualKeyCode};
 use serde_derive::{Deserialize, Serialize};
@@ -76,6 +76,7 @@ pub struct GameplaySettings {
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
     pub crosshair_transp: f32,
+    pub crosshair_type: CrosshairType,
 }
 
 impl Default for GameplaySettings {
@@ -84,6 +85,7 @@ impl Default for GameplaySettings {
             pan_sensitivity: 100,
             zoom_sensitivity: 100,
             crosshair_transp: 0.6,
+            crosshair_type: CrosshairType::Round,
         }
     }
 }
