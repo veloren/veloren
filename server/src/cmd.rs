@@ -313,7 +313,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
     // This should be just an enum handled with scan_fmt!
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
-    let objtype = scan_fmt!(&args, action.arg_fmt, String);
+    let _objtype = scan_fmt!(&args, action.arg_fmt, String);
     // Make sure the amount is either not provided or a valid value
     let opt_amount = opt_amount
         .map_or(Some(1), |a| a.parse().ok())
@@ -487,8 +487,11 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Some("Crate") => comp::object::Body::Crate,
             Some("Tent") => comp::object::Body::Tent,
             Some("Bomb") => comp::object::Body::Bomb,
-            Some(&_) => (return),
-            None => (return),
+            _ => {
+                return server
+                    .clients
+                    .notify(entity, ServerMsg::Chat(String::from("Object not found!")));
+            }
         };
         server.create_object(pos, obj_type).build();
         server
