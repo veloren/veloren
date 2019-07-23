@@ -230,13 +230,18 @@ impl Jukebox {
     }
 }
 
-pub struct AudioDevice {
+struct MonoEmitter {
     device: Device,
-    devices: Vec<Device>,
+    stream: Sink,
 }
 
-impl AudioDevice {
-    pub(crate) fn new(settings: &AudioSettings) -> Self {
+// struct StereoEmitter {
+//     device: Device,
+//     stream: SpatialSink,
+// }
+
+impl MonoEmitter {
+    fn new(settings: &AudioSettings) -> Self {
         let device = match &settings.audio_device {
             Some(dev) => rodio::output_devices()
                 .find(|x| &x.name() == dev)
@@ -244,46 +249,7 @@ impl AudioDevice {
                 .expect("No Audio devices found!"),
             None => rodio::default_output_device().expect("No Audio devices found!"),
         };
-
-        Self {
-            device,
-            devices: list_devices_raw(),
-        }
-    }
-
-    /// Returns a vec of the audio devices available.
-    /// Does not return rodio Device struct in case our audio backend changes.
-    pub(crate) fn list_devices(&self) -> Vec<String> {
-        self.devices.iter().map(|x| x.name()).collect()
-    }
-
-    /// Caches vec of devices for later reference
-    // pub(crate) fn update_devices(&mut self) {
-    //     self.devices = list_devices_raw()
-    // }
-
-    /// Returns the name of the current audio device.
-    /// Does not return rodio Device struct in case our audio backend changes.
-    pub(crate) fn get_device(&self) -> String {
-        self.device.name()
-    }
-}
-
-struct MonoEmitter {
-    device: AudioDevice,
-    stream: Sink,
-}
-
-// struct StereoEmitter {
-//     device: AudioDevice,
-//     stream: SpatialSink,
-// }
-
-impl MonoEmitter {
-    fn new(settings: &AudioSettings) -> Self {
-        let device = AudioDevice::new(settings);
-
-        let sink = Sink::new(&device.device);
+        let sink = Sink::new(&device);
         sink.set_volume(settings.music_volume);
 
         Self {
@@ -291,6 +257,12 @@ impl MonoEmitter {
             stream: sink,
         }
     }
+
+    //    /// Returns the name of the current audio device.
+    //    /// Does not return rodio Device struct in case our audio backend changes.
+    //    fn get_device(&self) -> String {
+    //        self.device.name()
+    //    }
 
     fn play_from(&mut self, path: &str) {
         let bufreader = load_from_path(path).unwrap();
@@ -309,16 +281,21 @@ impl AudioConfig for MonoEmitter {
     /// If the string is an invalid audio device, then no change is made.
     fn set_device(&mut self, name: String) {
         if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
-            self.device.device = dev;
-            self.stream = Sink::new(&self.device.device);
+            self.device = dev;
+            self.stream = Sink::new(&self.device);
         }
     }
 }
 
 // impl StereoEmitter {
 //     fn new(settings: &AudioSettings) -> Self {
-//         let device = AudioDevice::new(settings);
-
+//        let device = match &settings.audio_device {
+//            Some(dev) => rodio::output_devices()
+//                .find(|x| &x.name() == dev)
+//                .or_else(rodio::default_output_device)
+//                .expect("No Audio devices found!"),
+//            None => rodio::default_output_device().expect("No Audio devices found!"),
+//        };
 //         let sink = SpatialSink::new(
 //             &device.device,
 //             [0.0, 0.0, 0.0],
@@ -350,9 +327,9 @@ impl AudioConfig for MonoEmitter {
 //     /// If the string is an invalid audio device, then no change is made.
 //     fn set_device(&mut self, name: String) {
 //         if let Some(dev) = rodio::output_devices().find(|x| x.name() == name) {
-//             self.device.device = dev;
+//             self.device = dev;
 //             self.stream = SpatialSink::new(
-//                 &self.device.device,
+//                 &self.device,
 //                 [0.0, 0.0, 0.0],
 //                 [1.0, 0.0, 0.0],
 //                 [-1.0, 0.0, 0.0],
@@ -419,14 +396,20 @@ pub(crate) fn select_random_music(genre: &Genre) -> String {
     soundtracks[index].clone()
 }
 
-fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
-    tx.send(msg)
-        .expect("Failed on attempting to send a message into audio channel.");
+/// Returns a vec of the audio devices available.
+/// Does not return rodio Device struct in case our audio backend changes.
+pub(crate) fn list_devices() -> Vec<String> {
+    list_devices_raw().iter().map(|x| x.name()).collect()
 }
 
 /// Returns vec of devices
 fn list_devices_raw() -> Vec<Device> {
     rodio::output_devices().collect()
+}
+
+fn send_msg(tx: &mut Sender<AudioPlayerMsg>, msg: AudioPlayerMsg) {
+    tx.send(msg)
+        .expect("Failed on attempting to send a message into audio channel.");
 }
 
 #[test]

@@ -3,12 +3,16 @@ use base::{Genre, Jukebox};
 
 pub struct AudioFrontend {
     pub(crate) model: Jukebox,
+    pub(crate) default_device: String,
+    pub(crate) device_list: Vec<String>,
 }
 
 impl AudioFrontend {
     pub(crate) fn new() -> Self {
         Self {
             model: Jukebox::new(Genre::Bgm),
+            default_device: base::get_default_device(),
+            device_list: base::list_devices(),
         }
     }
 
@@ -30,6 +34,8 @@ impl AudioFrontend {
     pub(crate) fn no_audio() -> Self {
         Self {
             model: Jukebox::new(Genre::None),
+            default_device: "None".to_owned(),
+            device_list: Vec::new(),
         }
     }
 }
