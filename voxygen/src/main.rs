@@ -34,10 +34,13 @@ use crate::{
     audio::base::Genre, audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
     window::Window,
 };
+use heaptrack::track_mem;
 use log::{self, debug, error, info, warn};
 
 use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
+
+track_mem!();
 
 /// A type used to store state that is shared between all play states.
 pub struct GlobalState {
