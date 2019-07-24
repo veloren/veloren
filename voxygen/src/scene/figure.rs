@@ -548,6 +548,17 @@ impl FigureModelCache {
             object::Body::PotionGreen => ("object/potion_green.vox", Vec3::new(-2.0, -2.0, 0.0)),
             object::Body::Crate => ("object/crate.vox", Vec3::new(-7.0, -7.0, 0.0)),
             object::Body::Tent => ("object/tent.vox", Vec3::new(-18.5, -19.5, 0.0)),
+            object::Body::WindowSpooky => ("object/window_spooky.vox", Vec3::new(-15.0, -1.5, 0.0)),
+            object::Body::DoorSpooky => ("object/door_spooky.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Table => ("object/table.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Drawer => ("object/drawer.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::BedBlue => ("object/bed_blue.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Anvil => ("object/anvil.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Gravestone1 => ("object/gravestone1.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Gravestone2 => ("object/gravestone2.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Chair => ("object/chair.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Bench => ("object/bench.vox", Vec3::new(-15.0, -4.5, 0.0)),
+            object::Body::Carpet1 => ("object/carpet1.vox", Vec3::new(-14.0, -14.0, -0.5)),
         };
         Self::load_mesh(name, offset)
     }
