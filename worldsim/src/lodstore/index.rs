@@ -5,22 +5,20 @@ use std::cmp;
 use std::fmt;
 
 /*
-For our LodStructures we need a type that covers the values from 0 - 2047 in steps of 1/32.
-which is 11 bits for the digits before the decimal point and 5 bits for the digits after the decimal point.
-Because for accessing the decimal point makes no difference we use a u16 to represent this value.
-The value needs to be shiftet to get it's "real inworld size",
+A region owns the Values from in (0, 2048) in steps of 1/32.
+But because regions can also subscribe we add support to the range (0, 2048*3).
+which is 13 bits for the digits before the decimal point and 5 bits for the digits after the decimal point.
+We use our own LodIndex type to store and compute based on these values, because u16 arithmetic (inside the owned area) is super easy to archive and allows us to optimize a lot.
 
-Edit: now it actually implements a value from 0 - 3*2048 - 1/32, covering over 3 regions for accessing neighbor region values
 
 -- lower neighbor
 0 -> 0
-1 -> 2047 31/32
+65535 -> 2047 31/32
 -- owned
 65536 -> 2048
 131071 -> 4095 31/32
 -- upper neighbor
 196607 -> 6143 31/32
-
 */
 
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
@@ -40,6 +38,7 @@ const BIT_Y_MASK: u64 = 0b0000_0000_0000_0000_0000_0000_0000_1111_1111_1111_1111
 const BIT_Z_MASK: u64 = 0b0000_0000_0011_1111_1111_1111_1111_0000_0000_0000_0000_0000_0000_0000_0000_0000;
 const BIT_X_MASK32: u32 = 0b0000_0000_0000_0011_1111_1111_1111_1111;
 
+//TODO: Optimize!
 impl LodIndex {
     pub fn new(data: Vec3<u32>) -> Self {
         let mut index = LodIndex {data: 0};
@@ -61,9 +60,9 @@ impl LodIndex {
         self.data = x + y + z;
     }
 
-    pub fn align_to_layer_id(&self, level: u8) -> LodIndex {
+    pub fn align_to_layer_id(&self, layer: u8) -> LodIndex {
         let xyz = self.get();
-        let f = two_pow_u(level) as u32;
+        let f = two_pow_u(layer) as u32;
         LodIndex::new(xyz.map(|i| {
             (i / f) * f
         }))
@@ -104,6 +103,50 @@ impl fmt::Display for AbsIndex {
         write!(f, "[{}:{}]", self.layer, self.index)
     }
 }
+
+impl Sub for LodIndex {
+    type Output = LodIndex;
+    fn sub(self, rhs: LodIndex) -> Self::Output {
+        LodIndex {
+            data: self.data - rhs.data /*fast but has overflow issues*/
+        }
+    }
+}
+
+impl Add for LodIndex {
+    type Output = LodIndex;
+    fn add(self, rhs: LodIndex) -> Self::Output {
+        LodIndex {
+            data: self.data + rhs.data /*fast but has overflow issues*/
+        }
+    }
+}
+
+pub const fn two_pow_u(n: u8) -> u16 {
+    1 << n
+}
+
+pub fn relative_to_1d(child_lod: LodIndex, parent_lod: LodIndex, child_layer: u8, relative_size: Vec3<u32>) -> usize {
+    let width = two_pow_u(child_layer) as u32;
+    let index = (child_lod.get() - parent_lod.get()).map(|e| e / width);
+    (index[0] * relative_size[2] * relative_size[1] + index[1] * relative_size[2] + index[2]) as usize
+}
+
+pub fn min(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
+    let lhs = lhs.get();
+    let rhs = rhs.get();
+    LodIndex::new(lhs.map2(rhs, |a,b| cmp::min(a,b)))
+}
+
+pub fn max(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
+    let lhs = lhs.get();
+    let rhs = rhs.get();
+    LodIndex::new(lhs.map2(rhs, |a,b| cmp::max(a,b)))
+}
+
+/*************
+    TESTS
+**************/
 
 #[cfg(test)]
 mod tests {
@@ -211,45 +254,5 @@ mod tests {
         let i = LodIndex::new(Vec3::new(65536,0,8192));
         assert_eq!(i.get_highest_layer_that_fits(), 13);
     }
-}
-
-impl Sub for LodIndex {
-    type Output = LodIndex;
-    fn sub(self, rhs: LodIndex) -> Self::Output {
-        LodIndex {
-            data: self.data - rhs.data /*fast but has overflow issues*/
-        }
-    }
-}
-
-impl Add for LodIndex {
-    type Output = LodIndex;
-    fn add(self, rhs: LodIndex) -> Self::Output {
-        LodIndex {
-            data: self.data + rhs.data /*fast but has overflow issues*/
-        }
-    }
-}
-
-pub const fn two_pow_u(n: u8) -> u16 {
-    1 << n
-}
-
-pub fn relative_to_1d(child_lod: LodIndex, parent_lod: LodIndex, child_layer: u8, relative_size: Vec3<u32>) -> usize {
-    let width = two_pow_u(child_layer) as u32;
-    let index = (child_lod.get() - parent_lod.get()).map(|e| e / width);
-    (index[0] * relative_size[2] * relative_size[1] + index[1] * relative_size[2] + index[2]) as usize
-}
-
-pub fn min(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
-    let lhs = lhs.get();
-    let rhs = rhs.get();
-    LodIndex::new(lhs.map2(rhs, |a,b| cmp::min(a,b)))
-}
-
-pub fn max(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
-    let lhs = lhs.get();
-    let rhs = rhs.get();
-    LodIndex::new(lhs.map2(rhs, |a,b| cmp::max(a,b)))
 }
 

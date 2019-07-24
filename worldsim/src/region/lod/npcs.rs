@@ -18,7 +18,7 @@ pub struct Region9 {
 }
 
 #[derive(Debug, Clone)]
-pub struct Chunk5 {
+pub struct Chunk6 {
     precent_air: f32,
     percent_forrest: f32,
     percent_lava: f32,
@@ -26,30 +26,20 @@ pub struct Chunk5 {
 }
 
 #[derive(Debug, Clone)]
-pub struct Block0 {
-    material: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct SubBlock_4 {
-    material: u32,
-}
-
-#[derive(Debug, Clone)]
 pub struct TerrainLodConfig {}
 
 impl LodConfig for TerrainLodConfig {
-    type L0 = SubBlock_4;
+    type L0 = ();
     type L1 = ();
     type L2 = ();
     type L3 = ();
-    type L4 = Block0;
+    type L4 = ();
     type L5 = ();
     type L6 = ();
     type L7 = ();
     type L8 = ();
-    type L9 = Chunk5;
-    type L10 = ();
+    type L9 = ();
+    type L10 = Chunk6;
     type L11 = ();
     type L12 = ();
     type L13 = Region9;
@@ -60,16 +50,16 @@ impl LodConfig for TerrainLodConfig {
     type I1 = ();
     type I2 = ();
     type I3 = ();
-    type I4 = u32; // In reality 2^(16*3) SubBlock_4 should be possible, but 2^48 subblocks would kill anything anyway, so save 2 bytes here
+    type I4 = ();
     type I5 = ();
     type I6 = ();
     type I7 = ();
     type I8 = ();
-    type I9 = u32; // see Block0 2^(12*3)
+    type I9 = ();
     type I10 = ();
     type I11 = ();
     type I12 = ();
-    type I13 = u32; // Chunk5 2^(7*3), this is valid
+    type I13 = u16; // Chunk5 2^(6*3), this is valid
     type I14 = ();
     type I15 = ();
 
@@ -79,17 +69,17 @@ impl LodConfig for TerrainLodConfig {
     const anchor_layer_id: u8 = 13;
 
     const layer_volume: [Vec3<u32>; 16] = [
-        Vec3{x: 16, y: 16, z: 16},
-        Vec3{x: 0, y: 0, z: 0},
-        Vec3{x: 0, y: 0, z: 0},
-        Vec3{x: 0, y: 0, z: 0},
-        Vec3{x: 32, y: 32, z: 32},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
-        Vec3{x: 16, y: 16, z: 16},
         Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 0, y: 0, z: 0},
+        Vec3{x: 8, y: 8, z: 8},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 8, y: 8, z: 8},
@@ -101,12 +91,12 @@ impl LodConfig for TerrainLodConfig {
         None,
         None,
         None,
-        Some(0),
         None,
         None,
         None,
         None,
-        Some(5),
+        None,
+        None,
         None,
         None,
         None,

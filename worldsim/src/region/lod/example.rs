@@ -3,6 +3,9 @@ use crate::lodstore::{
     LodConfig,
     index::LodIndex,
     index::AbsIndex,
+    area::LodArea,
+    delta::LodDelta,
+    delta::DefaultLodDelta,
 };
 use vek::*;
 use std::u32;
@@ -73,6 +76,9 @@ impl LodConfig for ExampleLodConfig {
     type I14 = ();
     type I15 = ();
 
+    type Delta = DefaultLodDelta<Self>;
+    type Additional = ();
+
     const anchor_layer_id: u8 = 13;
 
     // this is not for the children, a layer9 has 32x32x32 childs, not 16x16x16
@@ -90,7 +96,7 @@ impl LodConfig for ExampleLodConfig {
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
-        Vec3{x: 16, y: 16, z: 16},
+        Vec3{x: 8, y: 8, z: 8},
         Vec3{x: 0, y: 0, z: 0},
         Vec3{x: 0, y: 0, z: 0},
     ];
@@ -113,31 +119,11 @@ impl LodConfig for ExampleLodConfig {
         None,
     ];
 
-    const layer_len: [usize; 16] = [
-        (Self::layer_volume[0].x * Self::layer_volume[0].y * Self::layer_volume[0].z) as usize,
-        (Self::layer_volume[1].x * Self::layer_volume[1].y * Self::layer_volume[1].z) as usize,
-        (Self::layer_volume[2].x * Self::layer_volume[2].y * Self::layer_volume[2].z) as usize,
-        (Self::layer_volume[3].x * Self::layer_volume[3].y * Self::layer_volume[3].z) as usize,
-        (Self::layer_volume[4].x * Self::layer_volume[4].y * Self::layer_volume[4].z) as usize,
-        (Self::layer_volume[5].x * Self::layer_volume[5].y * Self::layer_volume[5].z) as usize,
-        (Self::layer_volume[6].x * Self::layer_volume[6].y * Self::layer_volume[6].z) as usize,
-        (Self::layer_volume[7].x * Self::layer_volume[7].y * Self::layer_volume[7].z) as usize,
-        (Self::layer_volume[8].x * Self::layer_volume[8].y * Self::layer_volume[8].z) as usize,
-        (Self::layer_volume[9].x * Self::layer_volume[9].y * Self::layer_volume[9].z) as usize,
-        (Self::layer_volume[10].x * Self::layer_volume[10].y * Self::layer_volume[10].z) as usize,
-        (Self::layer_volume[11].x * Self::layer_volume[11].y * Self::layer_volume[11].z) as usize,
-        (Self::layer_volume[12].x * Self::layer_volume[12].y * Self::layer_volume[12].z) as usize,
-        (Self::layer_volume[13].x * Self::layer_volume[13].y * Self::layer_volume[13].z) as usize,
-        (Self::layer_volume[14].x * Self::layer_volume[14].y * Self::layer_volume[14].z) as usize,
-        (Self::layer_volume[15].x * Self::layer_volume[15].y * Self::layer_volume[15].z) as usize,
-    ];
-
-
     fn setup(&mut self) {
 
     }
 
-    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) {
+    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
         match abs.layer {
             0 => {
                 panic!("cannot drill down further");
@@ -148,6 +134,12 @@ impl LodConfig for ExampleLodConfig {
                 data.layer0.reserve(Self::layer_len[0]);
                 data.child4[abs.index] = insert as u32;
                 //debug!("set0 {:?} = {}", abs, insert);
+                // in the future use something like a child_index as parameter and a RawVec for allocations
+                //data.layer0[child_index..child_index+Self::layer_len[0]].iter_mut().map(
+                //                    |e| *e = Example_4{
+                //                        data: 0,
+                //                    }
+                //                );
                 for i in 0..Self::layer_len[0] {
                     data.layer0.push(Example_4{
                         data: 0,
@@ -187,7 +179,7 @@ impl LodConfig for ExampleLodConfig {
 
     }
 
-    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) {
+    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
         match parent_abs.layer {
             0 => {
                 panic!("SubBlocks_4 does not have children");
@@ -214,6 +206,9 @@ impl LodConfig for ExampleLodConfig {
         }
     }
 }
+
+//DELTA
+
 
 #[cfg(test)]
 mod tests {
@@ -272,17 +267,20 @@ mod tests {
         while result.layer9.len() < act5 as usize {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(9);
-            result.make_at_least(low,low,9);
+            let area = LodArea::new(low, low);
+            result.make_at_least(area,9);
         }
         while result.layer4.len() < act0 as usize {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(4);
-            result.make_at_least(low,low,4);
+            let area = LodArea::new(low, low);
+            result.make_at_least(area, 4);
         }
         while result.layer0.len() < act_4 as usize {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(0);
-            result.make_at_least(low,low,0);
+            let area = LodArea::new(low, low);
+            result.make_at_least(area, 0);
         }
 
         println!("creating Region with {} 5er, {} 0er, {} -4er", act5, act0 , act_4);
@@ -301,7 +299,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(16384, 16384, 16384));
-        reg.make_at_least(low,high,4);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 4);
     }
 
     #[test]
@@ -309,7 +308,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         reg.get0(LodIndex::new(Vec3::new(0, 0, 0)));
         reg.get0(LodIndex::new(Vec3::new(1, 0, 0)));
         reg.get0(LodIndex::new(Vec3::new(0, 1, 0)));
@@ -325,7 +325,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8704)));
         reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9000)));
         reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9001)));
@@ -342,7 +343,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8703)));
     }
 
@@ -352,7 +354,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area,0);
         reg.get0(LodIndex::new(Vec3::new(10240, 10240, 10240)));
     }
 
@@ -361,7 +364,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
-        reg.make_at_least(low,high,4);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 4);
     }
 
     #[test]
@@ -370,7 +374,8 @@ mod tests {
         let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         reg.get0(LodIndex::new(Vec3::new(5, 5, 5))); //this access is not guaranteed but will work
         reg.get0(LodIndex::new(Vec3::new(16, 16, 16))); // out of range
     }
@@ -393,7 +398,8 @@ mod tests {
         let high = LodIndex::new(Vec3::new(255, 255, 255));
         b.iter(|| {
             let mut reg2 = region.clone();
-            reg2.make_at_least(low,high,0);
+            let area = LodArea::new(low, high);
+            reg2.make_at_least(area, 0);
         });
     }
 
@@ -404,7 +410,8 @@ mod tests {
         let high = LodIndex::new(Vec3::new(4, 4, 4));
         b.iter(|| {
             let mut reg2 = region.clone();
-            reg2.make_at_least(low,high,0);
+            let area = LodArea::new(low, high);
+            reg2.make_at_least(area, 0);
         });
     }
 
@@ -415,7 +422,8 @@ mod tests {
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
         b.iter(|| {
             let mut reg2 = region.clone();
-            reg2.make_at_least(low,high,4);
+            let area = LodArea::new(low, high);
+            reg2.make_at_least(area, 4);
         });
     }
 
@@ -425,7 +433,8 @@ mod tests {
         let access = LodIndex::new(Vec3::new(8561, 8312, 8412));
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         b.iter(|| reg.get0(access));
     }
 
@@ -434,7 +443,8 @@ mod tests {
         let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         b.iter(|| {
             reg.get0(LodIndex::new(Vec3::new(8561, 8312, 8412)));
             reg.get0(LodIndex::new(Vec3::new(8200, 8599, 8413)));
@@ -466,7 +476,8 @@ mod tests {
             let z: u16 = rng.gen();
             accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
         }
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         b.iter(|| {
             for i in 0..1000000 {
                 reg.get0(accesslist[i]);
@@ -487,7 +498,8 @@ mod tests {
             let z: u16 = rng.gen();
             accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
         }
-        reg.make_at_least(low,high,0);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0);
         b.iter(|| {
             for i in 0..9990000 {
                 reg.get0(accesslist[i]);
@@ -501,8 +513,11 @@ mod tests {
         let access = LodIndex::new(Vec3::new(9561, 9312, 8412));
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
-        reg.make_at_least(low,high,4);
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 4);
 
         b.iter(|| reg.get4(access));
     }
+
+    // DELTA TESTS
 }
