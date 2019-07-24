@@ -28,6 +28,17 @@ pub enum Body {
     PotionRed,
     Crate,
     Tent,
+    WindowSpooky,
+    DoorSpooky,
+    Anvil,
+    Gravestone1,
+    Gravestone2,
+    Bench,
+    Chair,
+    Table,
+    Drawer,
+    BedBlue,
+    Carpet1,
 }
 
 impl Body {
@@ -37,7 +48,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 26] = [
+const ALL_OBJECTS: [Body; 37] = [
     Body::Bomb,
     Body::Scarecrow,
     Body::Cauldron,
@@ -64,4 +75,15 @@ const ALL_OBJECTS: [Body; 26] = [
     Body::PotionGreen,
     Body::Crate,
     Body::Tent,
+    Body::WindowSpooky,
+    Body::DoorSpooky,
+    Body::Anvil,
+    Body::Gravestone1,
+    Body::Gravestone2,
+    Body::Bench,
+    Body::Chair,
+    Body::Table,
+    Body::Drawer,
+    Body::BedBlue,
+    Body::Carpet1,
 ];
