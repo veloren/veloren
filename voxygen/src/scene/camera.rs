@@ -12,7 +12,7 @@ pub const MIN_ZOOM: f32 = 0.1;
 // Possible TODO: Add more modes
 pub enum CameraMode {
     FirstPerson,
-    ThirdPerson
+    ThirdPerson,
 }
 
 pub struct Camera {
@@ -180,11 +180,11 @@ impl Camera {
                 if self.tgt_dist == MIN_ZOOM {
                     self.zoom_by(5.0);
                 }
-            },
+            }
             CameraMode::FirstPerson => {
                 self.set_distance(MIN_ZOOM);
                 self.can_zoom = false;
-            },
+            }
         }
     }
 }

@@ -2,7 +2,11 @@ pub mod camera;
 pub mod figure;
 pub mod terrain;
 
-use self::{camera::{Camera, CameraMode}, figure::FigureMgr, terrain::Terrain};
+use self::{
+    camera::{Camera, CameraMode},
+    figure::FigureMgr,
+    terrain::Terrain,
+};
 use crate::{
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
@@ -203,7 +207,7 @@ impl Scene {
         }
 
         // Maintain the figures.
-        self.figure_mgr.maintain(renderer, client, &self.camera);
+        self.figure_mgr.maintain(renderer, client);
 
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
@@ -217,7 +221,7 @@ impl Scene {
         // Render terrain and figures.
         self.terrain.render(renderer, &self.globals, &self.lights);
         self.figure_mgr
-            .render(renderer, client, &self.globals, &self.lights);
+            .render(renderer, client, &self.globals, &self.lights, &self.camera);
 
         renderer.render_post_process(
             &self.postprocess.model,
