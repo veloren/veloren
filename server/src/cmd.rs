@@ -487,6 +487,16 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Some("Crate") => comp::object::Body::Crate,
             Some("Tent") => comp::object::Body::Tent,
             Some("Bomb") => comp::object::Body::Bomb,
+            Some("Window_Spooky") => comp::object::Body::WindowSpooky,
+            Some("Carpet_1") => comp::object::Body::Carpet1,
+            Some("Table") => comp::object::Body::Table,
+            Some("Drawer") => comp::object::Body::Drawer,
+            Some("Bed_Blue") => comp::object::Body::BedBlue,
+            Some("Anvil") => comp::object::Body::Anvil,
+            Some("Gravestone_1") => comp::object::Body::Gravestone1,
+            Some("Gravestone_2") => comp::object::Body::Gravestone2,
+            Some("Chair") => comp::object::Body::Chair,
+            Some("Bench") => comp::object::Body::Bench,
             _ => {
                 return server
                     .clients
