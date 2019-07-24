@@ -3,6 +3,7 @@
 //! and provide a handler function.
 
 use crate::Server;
+use common::comp::object::Body;
 use common::{
     comp,
     msg::ServerMsg,
@@ -134,7 +135,7 @@ lazy_static! {
         ChatCommand::new(
             "object",
             "{}",
-            "/object : Spawn a random object",
+            "/object [Name]: Spawn an object",
             handle_object,
         ),
     ];
@@ -312,7 +313,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
     let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
     // This should be just an enum handled with scan_fmt!
     let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
-
+    let _objtype = scan_fmt!(&args, action.arg_fmt, String);
     // Make sure the amount is either not provided or a valid value
     let opt_amount = opt_amount
         .map_or(Some(1), |a| a.parse().ok())
@@ -450,7 +451,8 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
     server.clients.notify(entity, ServerMsg::Chat(text));
 }
 
-fn handle_object(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
+    let obj_type = scan_fmt!(&args, _action.arg_fmt, String);
     let pos = server
         .state
         .ecs()
@@ -458,9 +460,50 @@ fn handle_object(server: &mut Server, entity: EcsEntity, _args: String, _action:
         .get(entity)
         .copied();
     if let Some(pos) = pos {
-        server
-            .create_object(pos, comp::object::Body::random())
-            .build();
+        let obj_type = match obj_type.as_ref().map(String::as_str) {
+            Some("Scarecrow") => comp::object::Body::Scarecrow,
+            Some("Cauldron") => comp::object::Body::Cauldron,
+            Some("Chest_Vines") => comp::object::Body::ChestVines,
+            Some("Chest") => comp::object::Body::Chest,
+            Some("Chest_Dark") => comp::object::Body::ChestDark,
+            Some("Chest_Demon") => comp::object::Body::ChestDemon,
+            Some("Chest_Gold") => comp::object::Body::ChestGold,
+            Some("Chest_Light") => comp::object::Body::ChestLight,
+            Some("Chest_Open") => comp::object::Body::ChestOpen,
+            Some("Chest_Skull") => comp::object::Body::ChestSkull,
+            Some("Pumpkin_1") => comp::object::Body::Pumpkin1,
+            Some("Pumpkin_2") => comp::object::Body::Pumpkin2,
+            Some("Pumpkin_3") => comp::object::Body::Pumpkin3,
+            Some("Pumpkin_4") => comp::object::Body::Pumpkin4,
+            Some("Pumpkin_5") => comp::object::Body::Pumpkin5,
+            Some("Campfire") => comp::object::Body::Campfire,
+            Some("Lantern_Ground") => comp::object::Body::LanternGround,
+            Some("Lantern_Ground_Open") => comp::object::Body::LanternGroundOpen,
+            Some("Lantern_Standing_2") => comp::object::Body::LanternStanding2,
+            Some("Lantern_Standing") => comp::object::Body::LanternStanding,
+            Some("Potion_Blue") => comp::object::Body::PotionBlue,
+            Some("Potion_Green") => comp::object::Body::PotionGreen,
+            Some("Potion_Red") => comp::object::Body::PotionRed,
+            Some("Crate") => comp::object::Body::Crate,
+            Some("Tent") => comp::object::Body::Tent,
+            Some("Bomb") => comp::object::Body::Bomb,
+            Some("Window_Spooky") => comp::object::Body::WindowSpooky,
+            Some("Carpet_1") => comp::object::Body::Carpet1,
+            Some("Table") => comp::object::Body::Table,
+            Some("Drawer") => comp::object::Body::Drawer,
+            Some("Bed_Blue") => comp::object::Body::BedBlue,
+            Some("Anvil") => comp::object::Body::Anvil,
+            Some("Gravestone_1") => comp::object::Body::Gravestone1,
+            Some("Gravestone_2") => comp::object::Body::Gravestone2,
+            Some("Chair") => comp::object::Body::Chair,
+            Some("Bench") => comp::object::Body::Bench,
+            _ => {
+                return server
+                    .clients
+                    .notify(entity, ServerMsg::Chat(String::from("Object not found!")));
+            }
+        };
+        server.create_object(pos, obj_type).build();
         server
             .clients
             .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
