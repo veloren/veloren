@@ -7,7 +7,7 @@ use crate::{
     render::{
         Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Light, Mesh, Model, Renderer,
     },
-    scene::camera::{MIN_ZOOM, Camera},
+    scene::camera::{Camera, MIN_ZOOM},
 };
 use client::Client;
 use common::{
@@ -293,7 +293,7 @@ impl FigureModelCache {
     fn load_left_foot(foot: humanoid::Foot) -> Mesh<FigurePipeline> {
         use humanoid::Foot::*;
 
-        Self::load_mesh ( //https://gitlab.com/veloren/veloren/issues/7://gitlab.com/veloren/veloren/issues/79
+        Self::load_mesh(
             match foot {
                 Dark => "armor/foot/foot_dark.vox",
             },
@@ -590,7 +590,7 @@ impl FigureMgr {
         self.model_cache.clean(tick);
     }
 
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, camera: &Camera) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
         let time = client.state().get_time();
         let tick = client.get_tick();
         let ecs = client.state().ecs();
@@ -653,11 +653,6 @@ impl FigureMgr {
                 .model_cache
                 .get_or_create_model(renderer, *body, tick)
                 .1;
-
-            // Don't render the player's body while in first person mode
-            if camera.tgt_dist == MIN_ZOOM && client.state().read_storage::<comp::CanBuild>().get(client.entity()).is_some() {
-                continue;
-            }
 
             match body {
                 Body::Humanoid(_) => {
@@ -848,6 +843,7 @@ impl FigureMgr {
         client: &mut Client,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        camera: &Camera,
     ) {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
@@ -902,6 +898,18 @@ impl FigureMgr {
                     .model_cache
                     .get_or_create_model(renderer, *body, tick)
                     .0;
+
+                // Don't render the player's body while in first person mode
+                if camera.tgt_dist == MIN_ZOOM
+                    && client
+                        .state()
+                        .read_storage::<comp::Body>()
+                        .get(client.entity())
+                        .is_some()
+                    && entity == client.entity()
+                {
+                    continue;
+                }
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
