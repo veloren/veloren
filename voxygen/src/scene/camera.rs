@@ -7,6 +7,7 @@ const NEAR_PLANE: f32 = 0.01;
 const FAR_PLANE: f32 = 10000.0;
 
 const INTERP_TIME: f32 = 0.1;
+pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
 pub enum CameraMode {
@@ -18,7 +19,7 @@ pub struct Camera {
     tgt_focus: Vec3<f32>,
     focus: Vec3<f32>,
     ori: Vec3<f32>,
-    tgt_dist: f32,
+    pub tgt_dist: f32,
     dist: f32,
     fov: f32,
     aspect: f32,
@@ -176,12 +177,12 @@ impl Camera {
         match self.mode {
             CameraMode::ThirdPerson => {
                 self.can_zoom = true;
-                if self.tgt_dist == 0.1 {
+                if self.tgt_dist == MIN_ZOOM {
                     self.zoom_by(5.0);
                 }
             },
             CameraMode::FirstPerson => {
-                self.set_distance(0.1);
+                self.set_distance(MIN_ZOOM);
                 self.can_zoom = false;
             },
         }
