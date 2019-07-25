@@ -3,6 +3,7 @@ use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LightEmitter {
+    pub offset: Vec3<f32>,
     pub col: Rgb<f32>,
     pub strength: f32,
 }
@@ -10,8 +11,9 @@ pub struct LightEmitter {
 impl Default for LightEmitter {
     fn default() -> Self {
         Self {
+            offset: Vec3::zero(),
             col: Rgb::one(),
-            strength: 250.0,
+            strength: 1.0,
         }
     }
 }

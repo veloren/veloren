@@ -401,8 +401,12 @@ impl Client {
                     } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, pos);
-                            self.state.write_component(entity, vel);
-                            self.state.write_component(entity, ori);
+                            if let Some(v) = vel {
+                                self.state.write_component(entity, v);
+                            };
+                            if let Some(o) = ori {
+                                self.state.write_component(entity, o);
+                            };
                             if let Some(a_s) = action_state {
                                 self.state.write_component(entity, a_s);
                             }
