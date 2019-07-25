@@ -192,6 +192,7 @@ impl Server {
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::ActionState::default());
         state.write_component(entity, comp::Inventory::default());
+        state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 

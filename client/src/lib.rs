@@ -4,8 +4,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::join::Join;
-pub use specs::Entity as EcsEntity;
+pub use specs::{join::Join, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,
@@ -186,6 +185,10 @@ impl Client {
         });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
+    }
+
+    pub fn inventories(&self) -> ReadStorage<comp::Inventory> {
+        self.state.read_storage()
     }
 
     /// Send a chat message to the server.

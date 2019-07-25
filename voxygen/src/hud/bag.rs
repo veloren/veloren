@@ -1,4 +1,5 @@
 use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
+use client::Client;
 use conrod_core::{
     color,
     position::Relative,
@@ -25,8 +26,7 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct Bag<'a> {
-    inventory_space: usize,
-
+    client: &'a Client,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -34,9 +34,9 @@ pub struct Bag<'a> {
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(inventory_space: usize, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
-            inventory_space,
+            client,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -72,16 +72,20 @@ impl<'a> Widget for Bag<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
+        let inventory_slots = self
+            .client
+            .inventories()
+            .get(self.client.entity())
+            .map(|inv| inv.slots().len())
+            .unwrap_or(0);
+
         // Bag parts
         Image::new(self.imgs.bag_bot)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
         Image::new(self.imgs.bag_mid)
-            .w_h(
-                61.0 * BAG_SCALE,
-                ((self.inventory_space + 4) / 5) as f64 * 44.0,
-            )
+            .w_h(61.0 * BAG_SCALE, ((inventory_slots + 4) / 5) as f64 * 44.0)
             .up_from(state.ids.bag_bot, 0.0)
             .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
@@ -91,10 +95,7 @@ impl<'a> Widget for Bag<'a> {
 
         // Alignment for Grid
         Rectangle::fill_with(
-            [
-                54.0 * BAG_SCALE,
-                ((self.inventory_space + 4) / 5) as f64 * 44.0,
-            ],
+            [54.0 * BAG_SCALE, ((inventory_slots + 4) / 5) as f64 * 44.0],
             color::TRANSPARENT,
         )
         .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
@@ -117,16 +118,17 @@ impl<'a> Widget for Bag<'a> {
             .thickness(5.0)
             .rgba(0.33, 0.33, 0.33, 1.0)
             .set(state.ids.inv_scrollbar, ui);*/
+
         // Create available inventory slot widgets
-        if state.ids.inv_slot.len() < self.inventory_space {
+        if state.ids.inv_slot.len() < inventory_slots {
             state.update(|s| {
                 s.ids
                     .inv_slot
-                    .resize(self.inventory_space, &mut ui.widget_id_generator());
+                    .resize(inventory_slots, &mut ui.widget_id_generator());
             });
         }
         // "Allowed" max. inventory space should be handled serverside and thus isn't limited in the UI
-        for i in 0..self.inventory_space {
+        for i in 0..inventory_slots {
             let x = i % 5;
             let y = i / 5;
             Button::image(self.imgs.inv_slot)
@@ -140,7 +142,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.inv_slot[i], ui);
         }
         // Test Item
-        if self.inventory_space > 0 {
+        if inventory_slots > 0 {
             Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
                 .w_h(4.0 * 4.4, 7.0 * 4.4) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
                 .middle_of(state.ids.inv_slot[0]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
