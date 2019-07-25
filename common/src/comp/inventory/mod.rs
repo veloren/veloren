@@ -1,11 +1,11 @@
-use specs::{Component, HashMapStorage};
-use specs_idvs::IDVStorage;
-
 //Re-Exports
 pub mod item;
 
-use item::Item;
-use std::mem::swap;
+// Reexports
+pub use self::item::Item;
+
+use specs::{Component, HashMapStorage};
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
@@ -31,14 +31,8 @@ impl Inventory {
     }
 
     // Remove an item from the slot
-    pub fn remove(&mut self, cell: usize, item: Item) -> Option<Item> {
-        let mut tmp_item = Some(item);
-
-        if let Some(old_item) = self.slots.get_mut(cell) {
-            swap(old_item, &mut tmp_item);
-        }
-
-        tmp_item
+    pub fn remove(&mut self, cell: usize) -> Option<Item> {
+        self.slots.get_mut(cell).and_then(|item| item.take())
     }
 }
 
