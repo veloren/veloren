@@ -10,6 +10,7 @@ const INTERP_TIME: f32 = 0.1;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
+#[derive(PartialEq, Clone, Copy)]
 pub enum CameraMode {
     FirstPerson,
     ThirdPerson,
@@ -19,12 +20,11 @@ pub struct Camera {
     tgt_focus: Vec3<f32>,
     focus: Vec3<f32>,
     ori: Vec3<f32>,
-    pub tgt_dist: f32,
+    tgt_dist: f32,
     dist: f32,
     fov: f32,
     aspect: f32,
     mode: CameraMode,
-    can_zoom: bool,
 
     last_time: Option<f64>,
 }
@@ -41,7 +41,6 @@ impl Camera {
             fov: 1.1,
             aspect,
             mode,
-            can_zoom: false,
 
             last_time: None,
         }
@@ -115,10 +114,13 @@ impl Camera {
 
     /// Zoom the camera by the given delta, limiting the input accordingly.
     pub fn zoom_by(&mut self, delta: f32) {
-        if self.can_zoom {
-            // Clamp camera dist to the 0 <= x <= infinity range
-            self.tgt_dist = (self.tgt_dist + delta).max(2.0).min(100.0);
-        }
+        match self.mode {
+            CameraMode::ThirdPerson => {
+                // Clamp camera dist to the 2 <= x <= infinity range
+                self.tgt_dist = (self.tgt_dist + delta).max(2.0);
+            }
+            CameraMode::FirstPerson => {}
+        };
     }
 
     /// Get the distance of the camera from the target
@@ -173,18 +175,21 @@ impl Camera {
 
     /// Set the mode of the camera.
     pub fn set_mode(&mut self, mode: CameraMode) {
-        self.mode = mode;
-        match self.mode {
-            CameraMode::ThirdPerson => {
-                self.can_zoom = true;
-                if self.tgt_dist == MIN_ZOOM {
+        if self.mode != mode {
+            self.mode = mode;
+            match self.mode {
+                CameraMode::ThirdPerson => {
                     self.zoom_by(5.0);
                 }
-            }
-            CameraMode::FirstPerson => {
-                self.set_distance(MIN_ZOOM);
-                self.can_zoom = false;
+                CameraMode::FirstPerson => {
+                    self.set_distance(MIN_ZOOM);
+                }
             }
         }
+    }
+
+    /// Get the mode of the camera
+    pub fn get_mode(&self) -> CameraMode {
+        self.mode
     }
 }

@@ -2,7 +2,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
-    scene::Scene,
+    scene::{camera::Camera, Scene},
     settings::Settings,
     window::{Event, GameInput, Window},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
@@ -91,6 +91,13 @@ impl PlayState for SessionState {
                 self.client.borrow_mut().send_chat(cmd.to_string());
             }
         }
+        // Compute camera data
+        let get_cam_data = |camera: &Camera, client: &Client| {
+            let (view_mat, _, cam_pos) = camera.compute_dependents(client);
+            let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
+
+            (cam_dir, cam_pos)
+        };
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
@@ -121,9 +128,7 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            let cam_pos = self.scene.camera().compute_dependents(&client).2;
-                            let cam_dir =
-                                (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+                            let (cam_dir, cam_pos) = get_cam_data(&self.scene.camera(), &client);
 
                             let (d, b) = {
                                 let terrain = client.state().terrain();
@@ -150,9 +155,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                             {
-                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
-                                let cam_dir =
-                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+                                let (cam_dir, cam_pos) =
+                                    get_cam_data(&self.scene.camera(), &client);
 
                                 let (d, b) = {
                                     let terrain = client.state().terrain();
@@ -179,9 +183,8 @@ impl PlayState for SessionState {
                             .is_some()
                         {
                             if state {
-                                let cam_pos = self.scene.camera().compute_dependents(&client).2;
-                                let cam_dir =
-                                    (self.scene.camera().get_focus_pos() - cam_pos).normalized();
+                                let (cam_dir, cam_pos) =
+                                    get_cam_data(&self.scene.camera(), &client);
 
                                 if let Ok(Some(block)) = client
                                     .state()

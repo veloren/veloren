@@ -7,7 +7,7 @@ use crate::{
     render::{
         Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Light, Mesh, Model, Renderer,
     },
-    scene::camera::{Camera, MIN_ZOOM},
+    scene::camera::{Camera, CameraMode},
 };
 use client::Client;
 use common::{
@@ -900,7 +900,7 @@ impl FigureMgr {
                     .0;
 
                 // Don't render the player's body while in first person mode
-                if camera.tgt_dist == MIN_ZOOM
+                if camera.get_mode() == CameraMode::FirstPerson
                     && client
                         .state()
                         .read_storage::<comp::Body>()
