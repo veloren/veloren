@@ -421,6 +421,9 @@ impl Client {
                             self.state.write_component(entity, action_state);
                         }
                     }
+                    ServerMsg::InventoryUpdate(inventory) => {
+                        self.state.write_component(self.entity, inventory)
+                    }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         self.state.insert_chunk(key, *chunk);
                         self.pending_chunks.remove(&key);

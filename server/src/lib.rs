@@ -191,6 +191,7 @@ impl Server {
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::ActionState::default());
+        state.write_component(entity, comp::Inventory::default());
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
@@ -919,10 +920,26 @@ impl Server {
             }
         }
 
+        // Sync inventories
+        for (entity, inventory, _) in (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Inventory>(),
+            &self.state.ecs().read_storage::<comp::InventoryUpdate>(),
+        )
+            .join()
+        {
+            self.clients
+                .notify(entity, ServerMsg::InventoryUpdate(inventory.clone()));
+        }
+
         // Remove all force flags.
         self.state
             .ecs_mut()
             .write_storage::<comp::ForceUpdate>()
+            .clear();
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::InventoryUpdate>()
             .clear();
     }
 

@@ -4,7 +4,7 @@ pub mod item;
 // Reexports
 pub use self::item::Item;
 
-use specs::{Component, HashMapStorage};
+use specs::{Component, NullStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -40,4 +40,12 @@ impl Default for Inventory {
 
 impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
+}
+
+// ForceUpdate
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct InventoryUpdate;
+
+impl Component for InventoryUpdate {
+    type Storage = NullStorage<Self>;
 }
