@@ -142,6 +142,7 @@ impl State {
         ecs.register::<comp::Pos>();
         ecs.register::<comp::Vel>();
         ecs.register::<comp::Ori>();
+        ecs.register::<comp::Inventory>();
 
         // Register client-local components
         ecs.register::<comp::AnimationInfo>();
@@ -156,6 +157,7 @@ impl State {
         ecs.register::<comp::Respawning>();
         ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
+        ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
         // Controller effects
         ecs.register::<comp::MoveDir>();
