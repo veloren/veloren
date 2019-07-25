@@ -164,6 +164,11 @@ impl Client {
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
+    pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
+        self.postbox
+            .send_message(ClientMsg::SwapInventorySlots(a, b))
+    }
+
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
     }
