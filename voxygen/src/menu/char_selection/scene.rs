@@ -9,7 +9,7 @@ use crate::{
         PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
-        camera::Camera,
+        camera::{Camera, CameraMode},
         figure::{FigureModelCache, FigureState},
     },
 };
@@ -52,7 +52,7 @@ impl Scene {
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
-            camera: Camera::new(resolution.x / resolution.y),
+            camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             skybox: Skybox {
                 model: renderer.create_model(&create_skybox_mesh()).unwrap(),
