@@ -38,8 +38,8 @@ pub enum ServerMsg {
     EntityPhysics {
         entity: u64,
         pos: comp::Pos,
-        vel: comp::Vel,
-        ori: comp::Ori,
+        vel: Option<comp::Vel>,
+        ori: Option<comp::Ori>,
         action_state: Option<comp::ActionState>,
     },
     TerrainChunkUpdate {

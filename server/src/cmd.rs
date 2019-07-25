@@ -138,6 +138,18 @@ lazy_static! {
             "/object [Name]: Spawn an object",
             handle_object,
         ),
+        ChatCommand::new(
+            "light",
+            "{} {} {} {} {} {} {}",
+            "/light <opt:  <<cr> <cg> <cb>> <<ox> <oy> <oz>> <<strenght>>>: Spawn entity with light",
+            handle_light,
+        ),
+        ChatCommand::new(
+            "lantern",
+            "{} ",
+            "/lantern : adds/remove light near player",
+            handle_lantern,
+        ),
     ];
 }
 
@@ -514,6 +526,81 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     }
 }
 
+fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
+        scan_fmt!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
+
+    let mut light_emitter = comp::LightEmitter::default();
+
+    if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
+        light_emitter.col = Rgb::new(r, g, b)
+    };
+    if let (Some(x), Some(y), Some(z)) = (opt_x, opt_y, opt_z) {
+        light_emitter.offset = Vec3::new(x, y, z)
+    };
+    if let Some(s) = opt_s {
+        light_emitter.strength = s
+    };
+    let pos = server
+        .state
+        .ecs()
+        .read_storage::<comp::Pos>()
+        .get(entity)
+        .copied();
+    if let Some(pos) = pos {
+        server
+            .state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(comp::ForceUpdate)
+            .with(light_emitter)
+            .build();
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+    }
+}
+fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    if server
+        .state
+        .read_storage::<comp::LightEmitter>()
+        .get(entity)
+        .is_some()
+    {
+        server
+            .state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .remove(entity);
+        server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("You put out the lantern.")),
+        );
+    } else {
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .insert(
+                entity,
+                comp::LightEmitter {
+                    offset: Vec3::new(1.0, 0.2, 0.8),
+                    col: Rgb::new(0.824, 0.365, 0.196),
+                    strength: 1.5,
+                },
+            );
+
+        server.clients.notify(
+            entity,
+            ServerMsg::Chat(String::from("You lighted your lantern.")),
+        );
+    }
+}
 fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
