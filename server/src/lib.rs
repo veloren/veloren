@@ -172,7 +172,10 @@ impl Server {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Body::Object(object))
-            .with(comp::LightEmitter::default())
+            .with(comp::LightEmitter {
+                offset: Vec3::unit_z(),
+                ..comp::LightEmitter::default()
+            })
             .with(comp::ActionState::default())
             .with(comp::ForceUpdate)
     }
@@ -664,11 +667,11 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics
-        for (&uid, &pos, &vel, &ori, action_state) in (
+        for (&uid, &pos, vel, ori, action_state) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::Pos>(),
-            &state.ecs().read_storage::<comp::Vel>(),
-            &state.ecs().read_storage::<comp::Ori>(),
+            state.ecs().read_storage::<comp::Vel>().maybe(),
+            state.ecs().read_storage::<comp::Ori>().maybe(),
             state.ecs().read_storage::<comp::ActionState>().maybe(),
         )
             .join()
@@ -676,8 +679,8 @@ impl Server {
             client.notify(ServerMsg::EntityPhysics {
                 entity: uid.into(),
                 pos,
-                vel,
-                ori,
+                vel: vel.copied(),
+                ori: ori.copied(),
                 action_state: action_state.copied(),
             });
         }
@@ -762,12 +765,12 @@ impl Server {
         }
 
         // Sync physics
-        for (entity, &uid, &pos, &vel, &ori, action_state, force_update) in (
+        for (entity, &uid, &pos, vel, ori, action_state, force_update) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<Uid>(),
             &self.state.ecs().read_storage::<comp::Pos>(),
-            &self.state.ecs().read_storage::<comp::Vel>(),
-            &self.state.ecs().read_storage::<comp::Ori>(),
+            self.state.ecs().read_storage::<comp::Vel>().maybe(),
+            self.state.ecs().read_storage::<comp::Ori>().maybe(),
             self.state.ecs().read_storage::<comp::ActionState>().maybe(),
             self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
         )
@@ -776,8 +779,8 @@ impl Server {
             let msg = ServerMsg::EntityPhysics {
                 entity: uid.into(),
                 pos,
-                vel,
-                ori,
+                vel: vel.copied(),
+                ori: ori.copied(),
                 action_state: action_state.copied(),
             };
 
