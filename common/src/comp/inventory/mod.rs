@@ -13,12 +13,6 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn new() -> Inventory {
-        Inventory {
-            slots: vec![None; 24],
-        }
-    }
-
     // Get info about an item slot
     pub fn get(&self, cell: usize) -> Option<Item> {
         self.slots.get(cell).cloned().flatten()
@@ -33,6 +27,14 @@ impl Inventory {
     // Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
         self.slots.get_mut(cell).and_then(|item| item.take())
+    }
+}
+
+impl Default for Inventory {
+    fn default() -> Inventory {
+        Inventory {
+            slots: vec![None; 24],
+        }
     }
 }
 
