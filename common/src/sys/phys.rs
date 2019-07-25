@@ -197,7 +197,7 @@ impl<'a> System<'a> for Sys {
                         // ...and the vertical resolution direction is sufficiently great...
                         && -dir.z > 0.1
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                        && (vel.0.z <= 0.0 && terrain
+                        && (vel.0.z > 0.0 || terrain
                             .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
                             .map(|vox| !vox.is_empty())
                             .unwrap_or(false))

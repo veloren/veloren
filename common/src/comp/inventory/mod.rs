@@ -17,6 +17,20 @@ impl Inventory {
         &self.slots
     }
 
+    pub fn len(&self) -> usize {
+        self.slots.len()
+    }
+
+    pub fn insert(&mut self, item: Item) -> Option<Item> {
+        match self.slots.iter_mut().find(|slot| slot.is_none()) {
+            Some(slot) => {
+                *slot = Some(item);
+                None
+            }
+            None => Some(item),
+        }
+    }
+
     // Get info about an item slot
     pub fn get(&self, cell: usize) -> Option<Item> {
         self.slots.get(cell).cloned().flatten()
@@ -28,6 +42,12 @@ impl Inventory {
         self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }
 
+    pub fn swap_slots(&mut self, a: usize, b: usize) {
+        if a.max(b) < self.slots.len() {
+            self.slots.swap(a, b);
+        }
+    }
+
     // Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
         self.slots.get_mut(cell).and_then(|item| item.take())
@@ -36,9 +56,15 @@ impl Inventory {
 
 impl Default for Inventory {
     fn default() -> Inventory {
-        Inventory {
+        let mut this = Inventory {
             slots: vec![None; 8],
-        }
+        };
+
+        this.insert(Item::default());
+        this.insert(Item::default());
+        this.insert(Item::default());
+
+        this
     }
 }
 

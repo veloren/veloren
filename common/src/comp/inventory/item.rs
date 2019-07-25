@@ -38,26 +38,27 @@ pub enum Armor {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Rarity {
-    Common,
-    Uncommon,
-    Rare,
-    Legendary,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Item {
     Weapon {
+        kind: Weapon,
         damage: i32,
         strength: i32,
-        rarity: Rarity,
     },
     Armor {
+        kind: Armor,
         defense: i32,
         health_bonus: i32,
-        rarity: Rarity,
-        variant: Armor,
     },
+}
+
+impl Default for Item {
+    fn default() -> Self {
+        Item::Weapon {
+            kind: Weapon::Hammer,
+            damage: 0,
+            strength: 0,
+        }
+    }
 }
 
 impl Component for Item {
