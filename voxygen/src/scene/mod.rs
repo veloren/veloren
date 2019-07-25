@@ -144,20 +144,28 @@ impl Scene {
         // Update light constants
         let mut lights = (
             &client.state().ecs().read_storage::<comp::Pos>(),
+            client.state().ecs().read_storage::<comp::Ori>().maybe(),
             &client.state().ecs().read_storage::<comp::LightEmitter>(),
         )
             .join()
-            .filter(|(pos, _)| {
+            .filter(|(pos, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
             })
-            .map(|(pos, light_emitter)| {
+            .map(|(pos, ori, light_emitter)| {
+                let rot = {
+                    if let Some(o) = ori {
+                        Mat3::rotation_z(-o.0.x.atan2(o.0.y))
+                    } else {
+                        Mat3::identity()
+                    }
+                };
                 Light::new(
-                    pos.0 + Vec3::unit_z(),
+                    pos.0 + (rot * light_emitter.offset),
                     light_emitter.col,
                     light_emitter.strength,
                 )
-            }) // TODO: Don't add 1 to z!
+            })
             .collect::<Vec<_>>();
         lights.sort_by_key(|light| {
             Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32

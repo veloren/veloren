@@ -26,6 +26,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 
 		light += strength
 			* lights[i].light_col.rgb
+			* lights[i].light_col.a
 			* clamp(dot(normalize(light_pos - wpos), wnorm), LIGHT_AMBIENCE, 1.0);
 	}
 	return light;
