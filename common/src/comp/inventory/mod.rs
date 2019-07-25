@@ -13,6 +13,10 @@ pub struct Inventory {
 }
 
 impl Inventory {
+    pub fn slots(&self) -> &[Option<Item>] {
+        &self.slots
+    }
+
     // Get info about an item slot
     pub fn get(&self, cell: usize) -> Option<Item> {
         self.slots.get(cell).cloned().flatten()
@@ -33,7 +37,7 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         Inventory {
-            slots: vec![None; 24],
+            slots: vec![None; 8],
         }
     }
 }

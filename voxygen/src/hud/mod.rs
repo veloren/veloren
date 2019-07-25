@@ -588,9 +588,7 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
-            match Bag::new(self.inventory_space, &self.imgs, &self.fonts)
-                .set(self.ids.bag, ui_widgets)
-            {
+            match Bag::new(client, &self.imgs, &self.fonts).set(self.ids.bag, ui_widgets) {
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
                     self.force_ungrab = true;

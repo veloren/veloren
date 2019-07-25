@@ -126,6 +126,7 @@ impl<'a> System<'a> for Sys {
             let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
                 .ceil()
                 .max(1.0);
+            let old_pos = pos.0;
             for _ in 0..increments as usize {
                 pos.0 += pos_delta / increments;
 
@@ -196,13 +197,13 @@ impl<'a> System<'a> for Sys {
                         // ...and the vertical resolution direction is sufficiently great...
                         && -dir.z > 0.1
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                        && (vel.0.z <= 0.0 || terrain
+                        && (vel.0.z <= 0.0 && terrain
                             .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
                             .map(|vox| !vox.is_empty())
                             .unwrap_or(false))
                         // ...and there is a collision with a block beneath our current hitbox...
                         && collision_with(
-                            pos.0 + resolve_dir - Vec3::unit_z() * 1.05,
+                            old_pos + resolve_dir - Vec3::unit_z() * 1.05,
                             near_iter.clone(),
                         )
                     {
