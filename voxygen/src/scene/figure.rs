@@ -7,6 +7,7 @@ use crate::{
     render::{
         Consts, FigureBoneData, FigureLocals, FigurePipeline, Globals, Light, Mesh, Model, Renderer,
     },
+    scene::camera::{Camera, CameraMode},
 };
 use client::Client;
 use common::{
@@ -842,6 +843,7 @@ impl FigureMgr {
         client: &mut Client,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        camera: &Camera,
     ) {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
@@ -896,6 +898,18 @@ impl FigureMgr {
                     .model_cache
                     .get_or_create_model(renderer, *body, tick)
                     .0;
+
+                // Don't render the player's body while in first person mode
+                if camera.get_mode() == CameraMode::FirstPerson
+                    && client
+                        .state()
+                        .read_storage::<comp::Body>()
+                        .get(client.entity())
+                        .is_some()
+                    && entity == client.entity()
+                {
+                    continue;
+                }
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
