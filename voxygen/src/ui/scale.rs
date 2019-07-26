@@ -1,7 +1,9 @@
 use crate::{render::Renderer, window::Window};
+use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
 /// Type of scaling to use.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum ScaleMode {
     // Scale against physical size.
     Absolute(f64),
@@ -12,6 +14,7 @@ pub enum ScaleMode {
     RelativeToWindow(Vec2<f64>),
 }
 
+#[derive(Clone, Copy)]
 pub struct Scale {
     mode: ScaleMode,
     // Current dpi factor
@@ -31,8 +34,17 @@ impl Scale {
         }
     }
     // Change the scaling mode.
-    pub fn scaling_mode(&mut self, mode: ScaleMode) {
+    pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
         self.mode = mode;
+    }
+    // Get scaling mode transformed into absolute scaling
+    pub fn scaling_mode_as_absolute(&self) -> ScaleMode {
+        ScaleMode::Absolute(self.scale_factor_physical())
+    }
+    // Get scaling mode transformed to be relative to the window with the same aspect ratio as the current window
+    pub fn scaling_mode_as_relative(&self) -> ScaleMode {
+        let scale = self.scale_factor_logical();
+        ScaleMode::RelativeToWindow(self.window_dims.map(|e| e / scale))
     }
     // Calculate factor to transform between logical coordinates and our scaled coordinates.
     pub fn scale_factor_logical(&self) -> f64 {

@@ -3,9 +3,9 @@ use crate::{
     ui::{
         self,
         img_ids::{ImageGraphic, VoxelGraphic},
-        ImageSlider, ScaleMode, Ui,
+        ImageSlider, Ui,
     },
-    window::Window,
+    GlobalState,
 };
 use client::Client;
 use common::comp::{humanoid, item::Weapon};
@@ -211,10 +211,12 @@ pub struct CharSelectionUi {
 }
 
 impl CharSelectionUi {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
+        let window = &mut global_state.window;
+        let settings = &global_state.settings;
+
         let mut ui = Ui::new(window).unwrap();
-        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-        ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
+        ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images

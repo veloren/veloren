@@ -132,10 +132,15 @@ impl<'a> Widget for Buttons<'a> {
             return Some(Event::ToggleSettings);
         };
 
+        Image::new(self.imgs.social_button)
+            .w_h(25.0, 25.0)
+            .left_from(state.ids.settings_button, 10.0)
+            .set(state.ids.social_button_bg, ui);
+
         // 2 Map
         if Button::image(self.imgs.map_button)
             .w_h(22.0, 25.0)
-            .left_from(state.ids.social_button, 10.0)
+            .left_from(state.ids.social_button_bg, 10.0)
             .hover_image(self.imgs.map_hover)
             .press_image(self.imgs.map_press)
             .label("M")
@@ -149,26 +154,22 @@ impl<'a> Widget for Buttons<'a> {
             return Some(Event::ToggleMap);
         };
 
-        // Other Windows can only be accessed when `Settings` is closed.
-        // Opening `Settings` will close all other Windows, including the `Bag`.
-        // Opening the `Map` won't close the previously displayed windows.
-        Image::new(self.imgs.social_button)
-            .w_h(25.0, 25.0)
-            .left_from(state.ids.settings_button, 10.0)
-            .set(state.ids.social_button_bg, ui);
         Image::new(self.imgs.spellbook_button)
             .w_h(28.0, 25.0)
             .left_from(state.ids.map_button, 10.0)
             .set(state.ids.spellbook_button_bg, ui);
         Image::new(self.imgs.character_button)
             .w_h(27.0, 25.0)
-            .left_from(state.ids.spellbook_button, 10.0)
+            .left_from(state.ids.spellbook_button_bg, 10.0)
             .set(state.ids.character_button_bg, ui);
         Image::new(self.imgs.qlog_button)
             .w_h(23.0, 25.0)
-            .left_from(state.ids.character_button, 10.0)
+            .left_from(state.ids.character_button_bg, 10.0)
             .set(state.ids.qlog_button_bg, ui);
 
+        // Other Windows can only be accessed when `Settings` is closed.
+        // Opening `Settings` will close all other Windows, including the `Bag`.
+        // Opening the `Map` won't close the previously displayed windows.
         if !(*self.open_windows == Windows::Settings) && self.show_map == false {
             // 1 Social
             if Button::image(self.imgs.social_button)
