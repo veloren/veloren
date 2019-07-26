@@ -17,6 +17,17 @@ pub struct Health {
     pub last_change: Option<(i32, f64, HealthSource)>,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Exp {
+    current: f64,
+    maximum: f64,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct Level {
+    amount: u32,
+}
+
 impl Health {
     pub fn get_current(&self) -> u32 {
         self.current
@@ -35,11 +46,56 @@ impl Health {
     }
 }
 
+impl Exp {
+    pub fn get_current(&self) -> f64 {
+        self.current
+    }
+
+    pub fn get_maximum(&self) -> f64 {
+        self.maximum
+    }
+
+    pub fn set_current(&mut self, current: f64) {
+        if self.current < self.maximum {
+            self.current = current;
+        }
+    }
+
+    pub fn set_maximum(&mut self, maximum: f64) {
+        self.maximum = maximum;
+    }
+
+    pub fn change_current_by(&mut self, current: f64) {
+        if self.current < self.maximum {
+            self.current + current;
+        }
+    }
+
+    pub fn change_maximum_by(&mut self, maximum: f64) {
+        self.maximum + maximum;
+    }
+}
+
+impl Level {
+    pub fn set_level(&mut self, level: u32) {
+        self.amount = level;
+    }
+
+    pub fn get_level(&self) -> u32 {
+        self.amount
+    }
+
+    pub fn change_by(&mut self, level: u32) {
+        self.amount + level;
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub name: String,
     pub health: Health,
-    pub xp: u32,
+    pub level: Level,
+    pub exp: Exp,
     pub is_dead: bool,
 }
 
@@ -64,7 +120,11 @@ impl Stats {
                 maximum: 100,
                 last_change: None,
             },
-            xp: 0,
+            level: Level { amount: 1 },
+            exp: Exp {
+                current: 0.0,
+                maximum: 50.0,
+            },
             is_dead: false,
         }
     }
