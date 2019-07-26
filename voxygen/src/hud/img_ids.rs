@@ -145,6 +145,7 @@ image_ids! {
         <ImageGraphic>
 
         charwindow_gradient:"voxygen/element/misc_bg/charwindow.png",
+        nothing: "voxygen/element/nothing.png",
 
         // Spell Book Window
         spellbook_icon: "voxygen/element/icons/spellbook.png",
