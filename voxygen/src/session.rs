@@ -3,13 +3,12 @@ use crate::{
     key_state::KeyState,
     render::Renderer,
     scene::{camera::Camera, Scene},
-    settings::Settings,
-    window::{Event, GameInput, Window},
+    window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
-use log::{error, warn};
+use log::error;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
@@ -25,15 +24,15 @@ pub struct SessionState {
 /// Represents an active game session (i.e., the one being played).
 impl SessionState {
     /// Create a new `SessionState`.
-    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>, _settings: Settings) -> Self {
+    pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         // Create a scene for this session. The scene handles visible elements of the game world.
-        let scene = Scene::new(window.renderer_mut());
+        let scene = Scene::new(global_state.window.renderer_mut());
         Self {
             scene,
             client,
             key_state: KeyState::new(),
             controller: comp::Controller::default(),
-            hud: Hud::new(window),
+            hud: Hud::new(global_state),
             selected_block: Block::new(1, Rgb::broadcast(255)),
         }
     }
@@ -276,59 +275,48 @@ impl PlayState for SessionState {
                     HudEvent::AdjustMousePan(sensitivity) => {
                         global_state.window.pan_sensitivity = sensitivity;
                         global_state.settings.gameplay.pan_sensitivity = sensitivity;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::AdjustMouseZoom(sensitivity) => {
                         global_state.window.zoom_sensitivity = sensitivity;
                         global_state.settings.gameplay.zoom_sensitivity = sensitivity;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::AdjustViewDistance(view_distance) => {
                         self.client.borrow_mut().set_view_distance(view_distance);
 
                         global_state.settings.graphics.view_distance = view_distance;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::CrosshairTransp(crosshair_transp) => {
                         global_state.settings.gameplay.crosshair_transp = crosshair_transp;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::CrosshairType(crosshair_type) => {
                         global_state.settings.gameplay.crosshair_type = crosshair_type;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::UiScale(scale_change) => {
+                        global_state.settings.gameplay.ui_scale =
+                            self.hud.scale_change(scale_change);
+                        global_state.settings.save_to_file_warn();
                     }
 
                     HudEvent::AdjustVolume(volume) => {
                         global_state.audio.model.player.set_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings: {:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ChangeAudioDevice(name) => {
                         global_state.audio.model.player.set_device(&name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings!\n{:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
-                        if let Err(err) = global_state.settings.save_to_file() {
-                            warn!("Failed to save settings!\n{:?}", err);
-                        }
+                        global_state.settings.save_to_file_warn();
                     }
                 }
             }
