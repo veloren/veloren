@@ -30,6 +30,11 @@ widget_ids! {
         ui_scale_label,
         ui_scale_slider,
         ui_scale_button,
+        ui_scale_value,
+        relative_to_win_button,
+        relative_to_win_text,
+        absolute_scale_button,
+        absolute_scale_text,
         gameplay,
         controls,
         rectangle,
@@ -93,6 +98,9 @@ pub struct SettingsWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
 
+    rel_to_win: bool,
+    absolute: bool,
+
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -103,6 +111,8 @@ impl<'a> SettingsWindow<'a> {
         show: &'a Show,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
+        rel_to_win: bool,
+        absolute: bool,
     ) -> Self {
         Self {
             global_state,
@@ -110,6 +120,8 @@ impl<'a> SettingsWindow<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            rel_to_win,
+            absolute,
         }
     }
 }
@@ -311,19 +323,15 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.debug_button_label, ui);
 
             // Ui Scale
-            Text::new(match ui_scale {
-                ScaleMode::Absolute(_) => "Ui Scale (Absolute)",
-                ScaleMode::DpiFactor => "Ui Scale (Dpi based)",
-                ScaleMode::RelativeToWindow(_) => "Ui Scale (Relative to window size)",
-            })
-            .down_from(state.ids.debug_button, 15.0)
-            .font_size(18)
-            .font_id(self.fonts.opensans)
-            .color(TEXT_COLOR)
-            .set(state.ids.ui_scale_label, ui);
+            Text::new("UI-Scale")
+                .down_from(state.ids.debug_button, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ui_scale_label, ui);
 
             // TODO: change button image
-            if Button::image(self.imgs.settings_button)
+            /*if Button::image(self.imgs.settings_button)
                 .w_h(31.0 * 6.0, 12.0 * 3.0)
                 .hover_image(self.imgs.settings_button_hover)
                 .press_image(self.imgs.settings_button_press)
@@ -345,18 +353,59 @@ impl<'a> Widget for SettingsWindow<'a> {
                         events.push(Event::UiScale(ScaleChange::ToAbsolute))
                     }
                 }
+            }*/
+
+            // rel to win button
+            let rel_to_win =
+                ToggleButton::new(self.rel_to_win, self.imgs.check, self.imgs.check_checked)
+                    .w_h(288.0 / 24.0, 288.0 / 24.0)
+                    .down_from(state.ids.ui_scale_label, 20.0)
+                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                    .press_images(self.imgs.check_press, self.imgs.check_press)
+                    .set(state.ids.relative_to_win_button, ui);
+            if self.rel_to_win != rel_to_win {
+                events.push(Event::UiScale(ScaleChange::ToRelative));
             }
 
+            Text::new("Relative to Window")
+                .right_from(state.ids.relative_to_win_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.relative_to_win_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.relative_to_win_text, ui);
+
+            // absolute scale button
+            let absolute =
+                ToggleButton::new(self.absolute, self.imgs.check, self.imgs.check_checked)
+                    .w_h(288.0 / 24.0, 288.0 / 24.0)
+                    .down_from(state.ids.relative_to_win_button, 20.0)
+                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
+                    .press_images(self.imgs.check_press, self.imgs.check_press)
+                    .set(state.ids.absolute_scale_button, ui);
+            if self.absolute != absolute {
+                events.push(Event::UiScale(ScaleChange::ToAbsolute));
+            }
+
+            Text::new("Free Scaling")
+                .right_from(state.ids.absolute_scale_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.absolute_scale_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.absolute_scale_text, ui);
+
+            // Slider -> Inactive when "Relative to window" is selected
             if let ScaleMode::Absolute(scale) = ui_scale {
                 if let Some(new_val) = ImageSlider::continuous(
                     scale.log(2.0),
-                    -1.0,
-                    2.0,
+                    -0.5,
+                    1.2,
                     self.imgs.slider_indicator,
                     self.imgs.slider,
                 )
-                .w_h(550.0, 22.0)
-                .down_from(state.ids.ui_scale_button, 10.0)
+                .w_h(208.0, 22.0)
+                .right_from(state.ids.absolute_scale_text, 10.0)
                 .track_breadth(30.0)
                 .slider_length(10.0)
                 .pad_track((5.0, 5.0))
@@ -364,12 +413,28 @@ impl<'a> Widget for SettingsWindow<'a> {
                 {
                     events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
                 }
+                Text::new(&format!("{:?}", ui_scale))
+                .right_from(state.ids.ui_scale_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ui_scale_value, ui);
+            } else {
+                if let Some(_val) =
+                    ImageSlider::continuous(5.0, 0.0, 10.0, self.imgs.nothing, self.imgs.slider)
+                        .w_h(208.0, 22.0)
+                        .right_from(state.ids.absolute_scale_text, 10.0)
+                        .track_breadth(30.0)
+                        .slider_length(10.0)
+                        .pad_track((5.0, 5.0))
+                        .set(state.ids.ui_scale_slider, ui)
+                {}
             }
 
             // Crosshair Options
             // Crosshair Transparency
             Text::new("Crosshair")
-                .down(15.0)
+                .down_from(state.ids.absolute_scale_button, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
