@@ -419,6 +419,7 @@ impl Server {
         let mut disconnected_clients = Vec::new();
         let mut requested_chunks = Vec::new();
         let mut modified_blocks = Vec::new();
+        let mut dropped_items = Vec::new();
 
         self.clients.remove_if(|entity, client| {
             let mut disconnect = false;
@@ -499,12 +500,19 @@ impl Server {
                             state.write_component(entity, comp::InventoryUpdate);
                         }
                         ClientMsg::DropInventorySlot(x) => {
-                            state
+                            let item = state
                                 .ecs()
                                 .write_storage::<comp::Inventory>()
                                 .get_mut(entity)
-                                .map(|inv| inv.remove(x)); // TODO: Spawn an item drop entity
+                                .and_then(|inv| inv.remove(x));
+
                             state.write_component(entity, comp::InventoryUpdate);
+
+                            if let (Some(pos), Some(item)) =
+                                (state.ecs().read_storage::<comp::Pos>().get(entity), item)
+                            {
+                                dropped_items.push((*pos, item));
+                            }
                         }
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.
@@ -680,6 +688,12 @@ impl Server {
 
         for (pos, block) in modified_blocks {
             self.state.set_block(pos, block);
+        }
+
+        for (pos, item) in dropped_items {
+            self.create_object(pos, comp::object::Body::Crate)
+                .with(item)
+                .build();
         }
 
         Ok(frontend_events)

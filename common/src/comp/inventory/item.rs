@@ -1,4 +1,4 @@
-use specs::Component;
+use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -62,5 +62,5 @@ impl Default for Item {
 }
 
 impl Component for Item {
-    type Storage = IDVStorage<Self>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
