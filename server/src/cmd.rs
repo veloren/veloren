@@ -212,14 +212,14 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
     let time = scan_fmt!(&args, action.arg_fmt, String);
     let new_time = match time.as_ref().map(|s| s.as_str())
     {
-        Some("day") => 12.0 * 3600.0,
-        Some("night") => 24.0 * 3600.0,
-        Some("dawn") => 5.0 * 3600.0,
-        Some("dusk") => 17.0 * 3600.0,
+        Some("night") => NaiveTime::from_hms(0, 0, 0),
+        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
+        Some("day") => NaiveTime::from_hms(12, 0, 0),
+        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
         Some(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
-                Ok(time) => time.num_seconds_from_midnight() as f64,
+                Ok(time) => time,
                 Err(_) => {
                     server
                         .clients
@@ -237,13 +237,11 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         }
     };
 
-    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = new_time;
-
-    let naive_time = NaiveTime::from_num_seconds_from_midnight(new_time as u32, 0);
+    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = new_time.num_seconds_from_midnight() as f64;
 
     server.clients.notify(
         entity,
-        ServerMsg::private(format!("Time changed to: {}", naive_time.format("%H:%M").to_string()))
+        ServerMsg::private(format!("Time changed to: {}", new_time.format("%H:%M").to_string()))
     );
 }
 
