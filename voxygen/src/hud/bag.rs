@@ -86,14 +86,14 @@ impl<'a> Widget for Bag<'a> {
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
-        Image::new(self.imgs.bag_mid)
-            .w_h(61.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0)
-            .up_from(state.ids.bag_bot, 0.0)
-            .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
             .set(state.ids.bag_top, ui);
+        Image::new(self.imgs.bag_mid)
+            .w_h(61.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0)
+            .up_from(state.ids.bag_bot, 0.0)
+            .set(state.ids.bag_mid, ui);
 
         // Alignment for Grid
         Rectangle::fill_with(
@@ -104,23 +104,6 @@ impl<'a> Widget for Bag<'a> {
         .scroll_kids()
         .scroll_kids_vertically()
         .set(state.ids.inv_alignment, ui);
-
-        // Grid
-        /*Image::new(self.imgs.inv_grid)
-            .w_h(61.0 * BAG_SCALE, 111.0 * BAG_SCALE)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.5)))
-            .mid_top_with_margin_on(state.ids.inv_alignment, 0.0)
-            .set(state.ids.inv_grid_1, ui);
-        Image::new(self.imgs.inv_grid)
-            .w_h(61.0 * BAG_SCALE, 111.0 * BAG_SCALE)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.5)))
-            .mid_top_with_margin_on(state.ids.inv_alignment, 110.0 * BAG_SCALE)
-            .set(state.ids.inv_grid_2, ui);
-        Scrollbar::y_axis(state.ids.inv_alignment)
-            .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
-            .set(state.ids.inv_scrollbar, ui);*/
-
         // Create available inventory slot widgets
 
         if state.ids.inv_slots.len() < inventory.len() {
@@ -157,6 +140,7 @@ impl<'a> Widget for Bag<'a> {
                 .set(state.ids.inv_slots[i], ui)
                 .was_clicked()
             {
+                println!("Swapped!");
                 event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(0, i)));
             }
 
@@ -171,7 +155,8 @@ impl<'a> Widget for Bag<'a> {
                     .label_x(Relative::Scalar(10.0))
                     .label_y(Relative::Scalar(-10.0))
                     .label_color(TEXT_COLOR)
-                    .parent(state.ids.inv_slots[i])
+                    .no_parent()
+                    //.parent(state.ids.inv_slots[i])
                     .set(state.ids.items[i], ui);
             }
         }
