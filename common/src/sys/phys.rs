@@ -16,8 +16,8 @@ const FRIC_AIR: f32 = 0.015;
 // lv = linear velocity
 // damp = linear damping
 // Friction is a type of damping.
-fn integrate_forces(dt: f32, mut lv: Vec3<f32>, damp: f32) -> Vec3<f32> {
-    lv.z = (lv.z - GRAVITY * dt).max(-50.0);
+fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f32> {
+    lv.z = (lv.z - grav * dt).max(-50.0);
 
     let linear_damp = (1.0 - dt * damp).max(0.0);
 
@@ -64,7 +64,7 @@ impl<'a> System<'a> for Sys {
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0 * if a.on_ground { FRIC_GROUND } else { FRIC_AIR };
-            vel.0 = integrate_forces(dt.0, vel.0, friction);
+            vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
 
             // Basic collision with terrain
             let player_rad = 0.3f32; // half-width of the player's AABB
@@ -197,8 +197,8 @@ impl<'a> System<'a> for Sys {
                         // ...and the vertical resolution direction is sufficiently great...
                         && -dir.z > 0.1
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                        && (vel.0.z > 0.0 || terrain
-                            .get((pos.0 - Vec3::unit_z()).map(|e| e.floor() as i32))
+                        && (vel.0.z <= 0.0 || terrain
+                            .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                             .map(|vox| !vox.is_empty())
                             .unwrap_or(false))
                         // ...and there is a collision with a block beneath our current hitbox...
