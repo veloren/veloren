@@ -135,12 +135,12 @@ impl<'a> Widget for Bag<'a> {
                     4.0 + y as f64 * (40.0 + 4.0),
                     4.0 + x as f64 * (40.0 + 4.0),
                 ) // conrod uses a (y,x) format for placing...
-                .parent(state.ids.bag_mid) // Avoids the background overlapping available slots
+                .parent(state.ids.inv_alignment) // Avoids the background overlapping available slots
                 .w_h(40.0, 40.0)
+                .floating(true)
                 .set(state.ids.inv_slots[i], ui)
                 .was_clicked()
             {
-                println!("Swapped!");
                 event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(0, i)));
             }
 
@@ -155,8 +155,8 @@ impl<'a> Widget for Bag<'a> {
                     .label_x(Relative::Scalar(10.0))
                     .label_y(Relative::Scalar(-10.0))
                     .label_color(TEXT_COLOR)
-                    .no_parent()
-                    //.parent(state.ids.inv_slots[i])
+                    .parent(state.ids.inv_slots[i])
+                    .graphics_for(state.ids.inv_slots[i])
                     .set(state.ids.items[i], ui);
             }
         }
