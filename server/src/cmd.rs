@@ -3,7 +3,6 @@
 //! and provide a handler function.
 
 use crate::Server;
-use common::comp::object::Body;
 use common::{
     comp,
     msg::ServerMsg,
@@ -517,17 +516,17 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             _ => {
                 return server
                     .clients
-                    .notify(entity, ServerMsg::Chat(String::from("Object not found!")));
+                    .notify(entity, ServerMsg::chat(String::from("Object not found!")));
             }
         };
         server.create_object(pos, obj_type).build();
         server
             .clients
-            .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
+            .notify(entity, ServerMsg::chat(format!("Spawned object.")));
     } else {
         server
             .clients
-            .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+            .notify(entity, ServerMsg::chat(format!("You have no position!")));
     }
 }
 
@@ -563,11 +562,11 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .build();
         server
             .clients
-            .notify(entity, ServerMsg::Chat(format!("Spawned object.")));
+            .notify(entity, ServerMsg::chat(format!("Spawned object.")));
     } else {
         server
             .clients
-            .notify(entity, ServerMsg::Chat(format!("You have no position!")));
+            .notify(entity, ServerMsg::chat(format!("You have no position!")));
     }
 }
 fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
@@ -584,7 +583,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action
             .remove(entity);
         server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("You put out the lantern.")),
+            ServerMsg::chat(String::from("You put out the lantern.")),
         );
     } else {
         let _ = server
@@ -602,7 +601,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action
 
         server.clients.notify(
             entity,
-            ServerMsg::Chat(String::from("You lighted your lantern.")),
+            ServerMsg::chat(String::from("You lighted your lantern.")),
         );
     }
 }
