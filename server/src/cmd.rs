@@ -210,7 +210,7 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let time = scan_fmt!(&args, action.arg_fmt, String);
-    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = match time.as_ref().map(|s| s.as_str())
+    let new_time = match time.as_ref().map(|s| s.as_str())
     {
         Some("day") => 12.0 * 3600.0,
         Some("night") => 24.0 * 3600.0,
@@ -236,6 +236,15 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             return;
         }
     };
+
+    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = new_time;
+
+    let naive_time = NaiveTime::from_num_seconds_from_midnight(new_time as u32, 0);
+
+    server.clients.notify(
+        entity,
+        ServerMsg::private(format!("Time changed to: {}", naive_time.format("%H:%M").to_string()))
+    );
 }
 
 fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
