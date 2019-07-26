@@ -498,6 +498,14 @@ impl Server {
                                 .map(|inv| inv.swap_slots(a, b));
                             state.write_component(entity, comp::InventoryUpdate);
                         }
+                        ClientMsg::DropInventorySlot(x) => {
+                            state
+                                .ecs()
+                                .write_storage::<comp::Inventory>()
+                                .get_mut(entity)
+                                .map(|inv| inv.remove(x)); // TODO: Spawn an item drop entity
+                            state.write_component(entity, comp::InventoryUpdate);
+                        }
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.
                             ClientState::Connected => {

@@ -321,6 +321,9 @@ impl PlayState for SessionState {
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
                     }
+                    HudEvent::DropInventorySlot(x) => {
+                        self.client.borrow_mut().drop_inventory_slot(x)
+                    }
                 }
             }
 

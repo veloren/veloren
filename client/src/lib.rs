@@ -169,6 +169,10 @@ impl Client {
             .send_message(ClientMsg::SwapInventorySlots(a, b))
     }
 
+    pub fn drop_inventory_slot(&mut self, x: usize) {
+        self.postbox.send_message(ClientMsg::DropInventorySlot(x))
+    }
+
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
     }
