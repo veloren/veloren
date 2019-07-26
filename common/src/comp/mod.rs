@@ -22,5 +22,5 @@ pub use inputs::{
 pub use inventory::{item, Inventory};
 pub use phys::{ForceUpdate, Ori, Pos, Vel};
 pub use player::Player;
-pub use stats::{Dying, HealthSource, Stats};
+pub use stats::{Dying, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;
