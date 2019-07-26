@@ -44,8 +44,11 @@ impl SessionState {
     fn tick(&mut self, dt: Duration) -> Result<(), Error> {
         for event in self.client.borrow_mut().tick(self.controller.clone(), dt)? {
             match event {
-                client::Event::Chat(msg) => {
-                    self.hud.new_message(msg);
+                client::Event::Chat {
+                    chat_type: _,
+                    message: _,
+                } => {
+                    self.hud.new_message(event);
                 }
                 client::Event::Disconnect => {} // TODO
             }
