@@ -31,7 +31,7 @@ use crate::{
     window::{Event as WinEvent, GameInput, Window},
     GlobalState,
 };
-use client::Client;
+use client::{Client, Event as ClientEvent};
 use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
 use conrod_core::{
     text::cursor::Index,
@@ -50,6 +50,10 @@ const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
+const TELL_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+const BROADCAST_COLOR: Color = Color::Rgba(0.0, 1.0, 0.0, 1.0);
+const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 
 widget_ids! {
     struct Ids {
@@ -269,7 +273,7 @@ pub struct Hud {
     ids: Ids,
     imgs: Imgs,
     fonts: Fonts,
-    new_messages: VecDeque<String>,
+    new_messages: VecDeque<ClientEvent>,
     inventory_space: usize,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
@@ -743,7 +747,7 @@ impl Hud {
         events
     }
 
-    pub fn new_message(&mut self, msg: String) {
+    pub fn new_message(&mut self, msg: ClientEvent) {
         self.new_messages.push_back(msg);
     }
 
