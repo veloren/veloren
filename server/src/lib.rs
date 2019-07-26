@@ -710,7 +710,7 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // Sync deaths.
+        // Handle deaths.
         let ecs = &self.state.ecs();
         let clients = &mut self.clients;
         let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
@@ -735,6 +735,30 @@ impl Server {
                     .unwrap_or(format!("{} died", &player.alias));
 
                     clients.notify_registered(ServerMsg::chat(msg));
+                }
+
+                // Give EXP to the client
+                if let Some(_enemy) = ecs.read_storage::<comp::Body>().get(entity) {
+                    if let comp::HealthSource::Attack { by } = dying.cause {
+                        ecs.entity_from_uid(by.into()).and_then(|attacker| {
+                            let mut stats = ecs.write_storage::<comp::Stats>();
+                            let attacker_stats = stats.get_mut(attacker).unwrap();
+
+                            // TODO: Discuss whether we should give EXP by Player Killing or not.
+                            if attacker_stats.exp.get_current() >= attacker_stats.exp.get_maximum()
+                            {
+                                attacker_stats.exp.change_maximum_by(25.0);
+                                attacker_stats.exp.set_current(0.0);
+                                attacker_stats.level.change_by(1);
+                            } else {
+                                // TODO: Don't make this a single value and make it depend on
+                                // slayed entity's level
+                                attacker_stats.exp.change_current_by(1.0);
+                            };
+
+                            ecs.read_storage::<comp::Player>().get(attacker).cloned()
+                        });
+                    }
                 }
 
                 entity

@@ -56,37 +56,35 @@ impl Exp {
     }
 
     pub fn set_current(&mut self, current: f64) {
-        if self.current < self.maximum {
-            self.current = current;
-        }
+        self.current = current;
     }
 
-    pub fn set_maximum(&mut self, maximum: f64) {
-        self.maximum = maximum;
-    }
+    // TODO: Uncomment when needed
+    // pub fn set_maximum(&mut self, maximum: f64) {
+    // self.maximum = maximum;
+    // }
 
     pub fn change_current_by(&mut self, current: f64) {
-        if self.current < self.maximum {
-            self.current + current;
-        }
+        self.current = self.current + current;
     }
 
     pub fn change_maximum_by(&mut self, maximum: f64) {
-        self.maximum + maximum;
+        self.maximum = self.maximum + maximum;
     }
 }
 
 impl Level {
-    pub fn set_level(&mut self, level: u32) {
-        self.amount = level;
-    }
+    // TODO: Uncomment when needed
+    // pub fn set_level(&mut self, level: u32) {
+    // self.amount = level;
+    // }
 
     pub fn get_level(&self) -> u32 {
         self.amount
     }
 
     pub fn change_by(&mut self, level: u32) {
-        self.amount + level;
+        self.amount = self.amount + level;
     }
 }
 
