@@ -1,7 +1,7 @@
 use super::{img_ids::Imgs, CrosshairType, Fonts, Show, TEXT_COLOR};
 use crate::{
     audio::base::Genre,
-    ui::{ImageSlider, ToggleButton},
+    ui::{ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -27,6 +27,9 @@ widget_ids! {
         button_help,
         button_help2,
         show_help_label,
+        ui_scale_label,
+        ui_scale_slider,
+        ui_scale_button,
         gameplay,
         controls,
         rectangle,
@@ -129,6 +132,13 @@ pub enum Event {
     MaximumFPS(u32),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
+    UiScale(ScaleChange),
+}
+
+pub enum ScaleChange {
+    ToAbsolute,
+    ToRelative,
+    Adjust(f64),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -225,6 +235,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Interface = self.show.settings_tab {
             let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
             let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
+            let ui_scale = self.global_state.settings.gameplay.ui_scale;
 
             Text::new("General")
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
@@ -299,10 +310,66 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
 
+            // Ui Scale
+            Text::new(match ui_scale {
+                ScaleMode::Absolute(_) => "Ui Scale (Absolute)",
+                ScaleMode::DpiFactor => "Ui Scale (Dpi based)",
+                ScaleMode::RelativeToWindow(_) => "Ui Scale (Relative to window size)",
+            })
+            .down_from(state.ids.debug_button, 15.0)
+            .font_size(18)
+            .font_id(self.fonts.opensans)
+            .color(TEXT_COLOR)
+            .set(state.ids.ui_scale_label, ui);
+
+            // TODO: change button image
+            if Button::image(self.imgs.settings_button)
+                .w_h(31.0 * 6.0, 12.0 * 3.0)
+                .hover_image(self.imgs.settings_button_hover)
+                .press_image(self.imgs.settings_button_press)
+                .down_from(state.ids.ui_scale_label, 10.0)
+                .label(match ui_scale {
+                    ScaleMode::Absolute(_) => "Make relative to current window",
+                    ScaleMode::DpiFactor => "Switch to absolute scaling",
+                    ScaleMode::RelativeToWindow(_) => "Switch to absolute scaling",
+                })
+                .label_font_size(8)
+                .label_color(TEXT_COLOR)
+                .set(state.ids.ui_scale_button, ui)
+                .was_clicked()
+            {
+                match ui_scale {
+                    ScaleMode::Absolute(_) => events.push(Event::UiScale(ScaleChange::ToRelative)),
+                    ScaleMode::DpiFactor => events.push(Event::UiScale(ScaleChange::ToAbsolute)),
+                    ScaleMode::RelativeToWindow(_) => {
+                        events.push(Event::UiScale(ScaleChange::ToAbsolute))
+                    }
+                }
+            }
+
+            if let ScaleMode::Absolute(scale) = ui_scale {
+                if let Some(new_val) = ImageSlider::continuous(
+                    scale.log(2.0),
+                    -1.0,
+                    2.0,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(550.0, 22.0)
+                .down_from(state.ids.ui_scale_button, 10.0)
+                .track_breadth(30.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.ui_scale_slider, ui)
+                {
+                    events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
+                }
+            }
+
             // Crosshair Options
             // Crosshair Transparency
             Text::new("Crosshair")
-                .down_from(state.ids.debug_button, 15.0)
+                .down(15.0)
                 .font_size(18)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)

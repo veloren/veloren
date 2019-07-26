@@ -2,9 +2,7 @@ mod scene;
 mod ui;
 
 use crate::{
-    session::SessionState,
-    window::{Event, Window},
-    Direction, GlobalState, PlayState, PlayStateResult,
+    session::SessionState, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, msg::ClientState};
@@ -21,11 +19,11 @@ pub struct CharSelectionState {
 
 impl CharSelectionState {
     /// Create a new `CharSelectionState`.
-    pub fn new(window: &mut Window, client: Rc<RefCell<Client>>) -> Self {
+    pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         Self {
-            char_selection_ui: CharSelectionUi::new(window),
+            char_selection_ui: CharSelectionUi::new(global_state),
             client,
-            scene: Scene::new(window.renderer_mut()),
+            scene: Scene::new(global_state.window.renderer_mut()),
         }
     }
 }
@@ -69,9 +67,8 @@ impl PlayState for CharSelectionState {
                             comp::Body::Humanoid(self.char_selection_ui.character_body),
                         );
                         return PlayStateResult::Push(Box::new(SessionState::new(
-                            &mut global_state.window,
+                            global_state,
                             self.client.clone(),
-                            global_state.settings.clone(),
                         )));
                     }
                 }

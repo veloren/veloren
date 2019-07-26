@@ -55,7 +55,7 @@ impl PlayState for MainMenuState {
                 Some(Ok(client)) => {
                     self.main_menu_ui.connected();
                     return PlayStateResult::Push(Box::new(CharSelectionState::new(
-                        &mut global_state.window,
+                        global_state,
                         std::rc::Rc::new(std::cell::RefCell::new(client)),
                     )));
                 }
