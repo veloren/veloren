@@ -97,7 +97,7 @@ pub struct SettingsWindow<'a> {
     show: &'a Show,
 
     imgs: &'a Imgs,
-    fonts: &'a Fonts,    
+    fonts: &'a Fonts,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -117,7 +117,7 @@ impl<'a> SettingsWindow<'a> {
             show,
             imgs,
             fonts,
-            common: widget::CommonBuilder::default(),            
+            common: widget::CommonBuilder::default(),
         }
     }
 }
@@ -243,8 +243,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Interface = self.show.settings_tab {
             let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
             let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
-            let ui_scale = self.global_state.settings.gameplay.ui_scale;      
-              
+            let ui_scale = self.global_state.settings.gameplay.ui_scale;
 
             Text::new("General")
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
@@ -350,42 +349,37 @@ impl<'a> Widget for SettingsWindow<'a> {
                         events.push(Event::UiScale(ScaleChange::ToAbsolute))
                     }
                 }
-            }*/            
-            
-
+            }*/
 
             /* Intended function:
             Checking one button unchecks the other one
             Buttons can't be unchecked by clicking them
             Slider switches to active state (display of indicator and value) when absolute scaling is checked
             */
-            
-
-            let mut scaling_method = ScaleChange::ToRelative;
 
             // Relative Scaling Button
-            
-            if Button::image(match ui_scale {            
+
+            if Button::image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check_checked,
                 ScaleMode::DpiFactor => self.imgs.check_checked,
-                })
+            })
             .w_h(288.0 / 24.0, 288.0 / 24.0)
             .down_from(state.ids.ui_scale_label, 20.0)
-            .hover_image(match ui_scale {            
+            .hover_image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check_mo,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check_checked,
                 ScaleMode::DpiFactor => self.imgs.check_checked,
-                })
-            .press_image(match ui_scale {            
+            })
+            .press_image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check_press,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check_checked,
                 ScaleMode::DpiFactor => self.imgs.check_checked,
-                })
+            })
             .set(state.ids.relative_to_win_button, ui)
             .was_clicked()
             {
-                events.push(Event::UiScale(ScaleChange::ToRelative));                 
+                events.push(Event::UiScale(ScaleChange::ToRelative));
             }
 
             Text::new("Relative Scaling")
@@ -396,30 +390,29 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.relative_to_win_text, ui);
 
-
             // Absolute Scaling Button
 
-            if Button::image(match ui_scale {            
+            if Button::image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check_checked,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check,
                 ScaleMode::DpiFactor => self.imgs.check,
-                })
+            })
             .w_h(288.0 / 24.0, 288.0 / 24.0)
             .down_from(state.ids.relative_to_win_button, 20.0)
-            .hover_image(match ui_scale {            
+            .hover_image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check_checked,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check_mo,
                 ScaleMode::DpiFactor => self.imgs.check_mo,
-                })
-            .press_image(match ui_scale {            
+            })
+            .press_image(match ui_scale {
                 ScaleMode::Absolute(_) => self.imgs.check_checked,
                 ScaleMode::RelativeToWindow(_) => self.imgs.check_press,
                 ScaleMode::DpiFactor => self.imgs.check_press,
-                })
+            })
             .set(state.ids.absolute_scale_button, ui)
             .was_clicked()
             {
-                events.push(Event::UiScale(ScaleChange::ToAbsolute));                
+                events.push(Event::UiScale(ScaleChange::ToAbsolute));
             }
 
             Text::new("Custom Scaling")
@@ -448,16 +441,16 @@ impl<'a> Widget for SettingsWindow<'a> {
                 {
                     events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
                 }
-                Text::new(&format!("{:?}", ui_scale))
-                .right_from(state.ids.ui_scale_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ui_scale_value, ui);
+                Text::new(&format!("{:.2}", scale))
+                    .right_from(state.ids.ui_scale_slider, 8.0)
+                    .font_size(14)
+                    .font_id(self.fonts.opensans)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.ui_scale_value, ui);
             } else {
                 if let Some(_val) =
                     ImageSlider::continuous(5.0, 0.0, 10.0, self.imgs.nothing, self.imgs.slider)
-                        .w_h(208.0, 22.0)
+                        .w_h(210.0, 22.0)
                         .right_from(state.ids.absolute_scale_text, 10.0)
                         .track_breadth(12.0)
                         .slider_length(10.0)
