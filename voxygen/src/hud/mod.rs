@@ -142,6 +142,7 @@ pub enum Event {
     UiScale(ScaleChange),
     CharacterSelection,
     SwapInventorySlots(usize, usize),
+    DropInventorySlot(usize),
     Logout,
     Quit,
 }

@@ -46,6 +46,7 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
+    selected_slot: Option<usize>,
 }
 
 const BAG_SCALE: f64 = 4.0;
@@ -63,6 +64,7 @@ impl<'a> Widget for Bag<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
+            selected_slot: None,
         }
     }
 
@@ -128,6 +130,8 @@ impl<'a> Widget for Bag<'a> {
             let x = i % 5;
             let y = i / 5;
 
+            let is_selected = Some(i) == state.selected_slot;
+
             // Slot
             if Button::image(self.imgs.inv_slot)
                 .top_left_with_margins_on(
@@ -137,11 +141,28 @@ impl<'a> Widget for Bag<'a> {
                 ) // conrod uses a (y,x) format for placing...
                 .parent(state.ids.inv_alignment) // Avoids the background overlapping available slots
                 .w_h(40.0, 40.0)
+                .image_color(if is_selected {
+                    color::WHITE
+                } else {
+                    color::DARK_YELLOW
+                })
                 .floating(true)
                 .set(state.ids.inv_slots[i], ui)
                 .was_clicked()
             {
-                event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(0, i)));
+                let selected_slot = match state.selected_slot {
+                    Some(a) => {
+                        if a == i {
+                            event = Some(Event::HudEvent(HudEvent::DropInventorySlot(i)));
+                        } else {
+                            event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
+                        }
+                        None
+                    }
+                    None if item.is_some() => Some(i),
+                    None => None,
+                };
+                state.update(|s| s.selected_slot = selected_slot);
             }
 
             // Item

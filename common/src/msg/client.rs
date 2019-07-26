@@ -29,6 +29,7 @@ pub enum ClientMsg {
         ori: comp::Ori,
     },
     SwapInventorySlots(usize, usize),
+    DropInventorySlot(usize),
     TerrainChunkRequest {
         key: Vec2<i32>,
     },
