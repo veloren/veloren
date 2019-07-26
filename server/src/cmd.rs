@@ -3,6 +3,7 @@
 //! and provide a handler function.
 
 use crate::Server;
+use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
     msg::ServerMsg,
@@ -15,6 +16,7 @@ use vek::*;
 
 use lazy_static::lazy_static;
 use scan_fmt::scan_fmt;
+
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommand {
     /// The keyword used to invoke the command, omitting the leading '/'.
@@ -209,21 +211,23 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let time = scan_fmt!(&args, action.arg_fmt, String);
-    server.state.ecs_mut().write_resource::<TimeOfDay>().0 = match time.as_ref().map(|s| s.as_str())
-    {
-        Some("day") => 12.0 * 3600.0,
-        Some("night") => 24.0 * 3600.0,
-        Some("dawn") => 5.0 * 3600.0,
-        Some("dusk") => 17.0 * 3600.0,
+    let new_time = match time.as_ref().map(|s| s.as_str()) {
+        Some("night") => NaiveTime::from_hms(0, 0, 0),
+        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
+        Some("day") => NaiveTime::from_hms(12, 0, 0),
+        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
         Some(n) => match n.parse() {
             Ok(n) => n,
-            Err(_) => {
-                server.clients.notify(
-                    entity,
-                    ServerMsg::private(format!("'{}' is not a time!", n)),
-                );
-                return;
-            }
+            Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
+                Ok(time) => time,
+                Err(_) => {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::private(format!("'{}' is not a valid time.", n)),
+                    );
+                    return;
+                }
+            },
         },
         None => {
             server.clients.notify(
@@ -233,6 +237,17 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             return;
         }
     };
+
+    server.state.ecs_mut().write_resource::<TimeOfDay>().0 =
+        new_time.num_seconds_from_midnight() as f64;
+
+    server.clients.notify(
+        entity,
+        ServerMsg::private(format!(
+            "Time changed to: {}",
+            new_time.format("%H:%M").to_string()
+        )),
+    );
 }
 
 fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
@@ -569,6 +584,7 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .notify(entity, ServerMsg::chat(format!("You have no position!")));
     }
 }
+
 fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     if server
         .state
@@ -605,6 +621,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action
         );
     }
 }
+
 fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
