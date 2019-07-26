@@ -281,7 +281,7 @@ pub struct Hud {
     inventory_space: usize,
     show: Show,
     to_focus: Option<Option<widget::Id>>,
-    force_ungrab: bool,    
+    force_ungrab: bool,
     force_chat_input: Option<String>,
     force_chat_cursor: Option<Index>,
 }
@@ -304,7 +304,7 @@ impl Hud {
             ui,
             imgs,
             fonts,
-            ids,                        
+            ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
             show: Show {
@@ -638,8 +638,15 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts, self.show.rel_to_win, self.show.absolute)
-                .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(
+                &global_state,
+                &self.show,
+                &self.imgs,
+                &self.fonts,
+                self.show.rel_to_win,
+                self.show.absolute,
+            )
+            .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::ToggleHelp => self.show.toggle_help(),
