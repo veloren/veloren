@@ -9,6 +9,7 @@ use common::{
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
 };
+use chrono::{NaiveTime, Timelike};
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
@@ -217,12 +218,14 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         Some("dusk") => 17.0 * 3600.0,
         Some(n) => match n.parse() {
             Ok(n) => n,
-            Err(_) => {
-                server.clients.notify(
-                    entity,
-                    ServerMsg::private(format!("'{}' is not a time!", n)),
-                );
-                return;
+            Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
+                Ok(time) => time.num_seconds_from_midnight() as f64,
+                Err(_) => {
+                    server
+                        .clients
+                        .notify(entity, ServerMsg::private(format!("'{}' is not a valid time.", n)));
+                    return;
+                }
             }
         },
         None => {
