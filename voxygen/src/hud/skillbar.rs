@@ -72,10 +72,9 @@ impl<'a> Widget for Skillbar<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let level = (self.stats.level.get_level()).to_string();
-        let next_level = self.stats.level.get_level() + 1;
-        // TODO: We need a max xp value
-        let xp_percentage = self.stats.exp.get_current();
-        let max_xp = self.stats.exp.get_maximum();
+        let next_level = (self.stats.level.get_level() + 1).to_string();
+
+        let exp_percentage = self.stats.exp.get_current() / self.stats.exp.get_maximum();
 
         let hp_percentage =
             self.stats.health.get_current() as f64 / self.stats.health.get_maximum() as f64;
@@ -94,7 +93,7 @@ impl<'a> Widget for Skillbar<'a> {
             .mid_bottom_of(ui.window)
             .set(state.ids.xp_bar, ui);
 
-        Rectangle::fill_with([406.0 * (xp_percentage), 5.0], XP_COLOR) // "W=406*[Exp. %]"
+        Rectangle::fill_with([406.0 * (exp_percentage), 5.0], XP_COLOR) // "W=406*[Exp. %]"
             .top_left_with_margins_on(state.ids.xp_bar, 5.0, 21.0)
             .set(state.ids.xp_bar_progress, ui);
 
@@ -173,7 +172,7 @@ impl<'a> Widget for Skillbar<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.level_text, ui);
 
-        Text::new(&next_level.to_string())
+        Text::new(&next_level)
             .right_from(state.ids.xp_bar, -15.0)
             .font_size(10)
             .color(TEXT_COLOR)
