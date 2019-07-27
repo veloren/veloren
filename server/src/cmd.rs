@@ -108,7 +108,7 @@ lazy_static! {
              handle_players,
          ),
         ChatCommand::new(
-            "help", "", "/help: Display this message", handle_help),
+            "help", "{}", "/help : Displays help details for commands.", handle_help),
         ChatCommand::new(
             "health",
             "{}",
@@ -437,11 +437,43 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
     }
 }
 
-fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    for cmd in CHAT_COMMANDS.iter() {
-        server
-            .clients
-            .notify(entity, ServerMsg::private(String::from(cmd.help_string)));
+fn handle_help(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let help_section = scan_fmt!(&args, action.arg_fmt, String);
+    match help_section.as_ref().map(|s| s.as_str()) {
+        Some("list") => {
+            for cmd in CHAT_COMMANDS.iter() {
+                server
+                    .clients
+                    .notify(entity, ServerMsg::private(String::from(cmd.help_string)));
+            }
+        }
+        Some("time") => {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(format!("You can change the time by typing:")),
+            );
+            server.clients.notify(
+                entity,
+                ServerMsg::private(format!("/time night|dawn|day|dusk|HH:MM")),
+            );
+        }
+        Some(section) => {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(format!(
+                    "There's currently not any detailed help section for '{}'",
+                    section
+                )),
+            );
+        }
+        None => {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(format!(
+                    "Specify the section you would like help with. e.g. /help time",
+                )),
+            );
+        }
     }
 }
 
