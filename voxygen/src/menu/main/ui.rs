@@ -2,7 +2,7 @@ use crate::{
     render::Renderer,
     ui::{
         self,
-        img_ids::{ImageGraphic, VoxelGraphic},
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         Ui,
     },
     GlobalState,
@@ -70,7 +70,9 @@ image_ids! {
         <ImageGraphic>
         bg: "voxygen/background/bg_main.png",
         error_frame: "voxygen/element/frames/window_2.png",
-        nothing: "voxygen/element/nothing.png",
+
+        <BlankGraphic>
+        nothing: (),
     }
 
 }

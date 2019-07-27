@@ -2,7 +2,7 @@ use crate::{
     render::{Consts, Globals, Renderer},
     ui::{
         self,
-        img_ids::{ImageGraphic, VoxelGraphic},
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
         ImageSlider, Ui,
     },
     GlobalState,
@@ -180,7 +180,9 @@ image_ids! {
         icon_border_mo: "voxygen/element/buttons/border_mo.png",
         icon_border_press: "voxygen/element/buttons/border_press.png",
         icon_border_pressed: "voxygen/element/buttons/border_pressed.png",
-        nothing: "voxygen/element/nothing.png",
+
+        <BlankGraphic>
+        nothing: (),
     }
 }
 
