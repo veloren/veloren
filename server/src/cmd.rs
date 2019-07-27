@@ -450,11 +450,9 @@ fn handle_help(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         Some("time") => {
             server.clients.notify(
                 entity,
-                ServerMsg::private(format!("You can change the time by typing:")),
-            );
-            server.clients.notify(
-                entity,
-                ServerMsg::private(format!("/time night|dawn|day|dusk|HH:MM")),
+                ServerMsg::private(format!(
+                    "You can change the time by typing:\n/time night|dawn|day|dusk|HH:MM"
+                )),
             );
         }
         Some(section) => {
