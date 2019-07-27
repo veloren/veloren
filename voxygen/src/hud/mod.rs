@@ -690,7 +690,10 @@ impl Hud {
 
         // Character Window
         if let Windows::CharacterAnd(small) = self.show.open_windows {
-            match CharacterWindow::new(&self.imgs, &self.fonts)
+            let ecs = client.state().ecs();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let player_stats = stats.get(client.entity()).unwrap();
+            match CharacterWindow::new(&self.imgs, &self.fonts, &player_stats)
                 .set(self.ids.character_window, ui_widgets)
             {
                 Some(character_window::Event::Close) => {
