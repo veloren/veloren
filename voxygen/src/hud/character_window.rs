@@ -1,4 +1,5 @@
 use super::{img_ids::Imgs, Fonts, TEXT_COLOR, XP_COLOR};
+use common::comp::Stats;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -69,16 +70,18 @@ widget_ids! {
 pub struct CharacterWindow<'a> {
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    stats: &'a Stats,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> CharacterWindow<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: &'a Stats) -> Self {
         Self {
             imgs,
             fonts,
+            stats,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -104,8 +107,13 @@ impl<'a> Widget for CharacterWindow<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        // TODO: Read from parameter/character struct.
-        let xp_percentage = 0.4;
+        let xp_percentage = self.stats.exp.get_current() / self.stats.exp.get_maximum();
+        let xp_treshold = format!(
+            "{}/{}",
+            self.stats.exp.get_current(),
+            self.stats.exp.get_maximum()
+        );
+        let level = (self.stats.level.get_level()).to_string();
 
         // Frame
         Image::new(self.imgs.window_3)
@@ -330,8 +338,8 @@ impl<'a> Widget for CharacterWindow<'a> {
         //.label_font_size(14)
         //.set(state.charwindow_tab1, ui);
 
-        // TODO: Use an actual character level.
-        Text::new("1")
+        // Level
+        Text::new(&level)
             .mid_top_with_margin_on(state.charwindow_rectangle, 10.0)
             .font_id(self.fonts.opensans)
             .font_size(30)
@@ -355,8 +363,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_tab1_expbar, ui);
 
         // Exp-Text
-        // TODO: Shows current Exp over the next threshold Exp.
-        Text::new("120/170")
+        Text::new(&xp_treshold)
             .mid_top_with_margin_on(state.charwindow_tab1_expbar, 10.0)
             .font_id(self.fonts.opensans)
             .font_size(15)
