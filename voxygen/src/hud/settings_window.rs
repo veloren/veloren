@@ -108,9 +108,7 @@ impl<'a> SettingsWindow<'a> {
         global_state: &'a GlobalState,
         show: &'a Show,
         imgs: &'a Imgs,
-        fonts: &'a Fonts,
-        rel_to_win: bool,
-        absolute: bool,
+        fonts: &'a Fonts,        
     ) -> Self {
         Self {
             global_state,
@@ -396,13 +394,13 @@ impl<'a> Widget for SettingsWindow<'a> {
             if let ScaleMode::Absolute(scale) = ui_scale {
                 if let Some(new_val) = ImageSlider::continuous(
                     scale.log(2.0),
-                    -0.5,
-                    1.2,
+                    0.5f64.log(2.0),
+                    1.2f64.log(2.0),
                     self.imgs.slider_indicator,
                     self.imgs.slider,
                 )
                 .w_h(208.0, 22.0)
-                .right_from(state.ids.absolute_scale_text, 10.0)
+                .right_from(state.ids.absolute_scale_text, 12.0)
                 .track_breadth(30.0)
                 .slider_length(10.0)
                 .pad_track((5.0, 5.0))
