@@ -642,9 +642,7 @@ impl Hud {
                 &global_state,
                 &self.show,
                 &self.imgs,
-                &self.fonts,
-                self.show.rel_to_win,
-                self.show.absolute,
+                &self.fonts,               
             )
             .set(self.ids.settings_window, ui_widgets)
             {
