@@ -123,7 +123,7 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
 }
-//#[derive(Serialize, Deserialize)]
+
 pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
@@ -167,8 +167,6 @@ pub struct Show {
     open_windows: Windows,
     map: bool,
     inventory_test_button: bool,
-    rel_to_win: bool,
-    absolute: bool,
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
@@ -320,8 +318,6 @@ impl Hud {
                 settings_tab: SettingsTab::Interface,
                 want_grab: true,
                 ingame: true,
-                rel_to_win: true,
-                absolute: false,
             },
             to_focus: None,
             force_ungrab: false,
@@ -638,13 +634,8 @@ impl Hud {
 
         // Settings
         if let Windows::Settings = self.show.open_windows {
-            for event in SettingsWindow::new(
-                &global_state,
-                &self.show,
-                &self.imgs,
-                &self.fonts,               
-            )
-            .set(self.ids.settings_window, ui_widgets)
+            for event in SettingsWindow::new(&global_state, &self.show, &self.imgs, &self.fonts)
+                .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
                     settings_window::Event::ToggleHelp => self.show.toggle_help(),
