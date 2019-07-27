@@ -324,38 +324,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_size(18)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
-                .set(state.ids.ui_scale_label, ui);
-
-            // TODO: change button image
-            /*if Button::image(self.imgs.settings_button)
-                .w_h(31.0 * 6.0, 12.0 * 3.0)
-                .hover_image(self.imgs.settings_button_hover)
-                .press_image(self.imgs.settings_button_press)
-                .down_from(state.ids.ui_scale_label, 10.0)
-                .label(match ui_scale {
-                    ScaleMode::Absolute(_) => "Make relative to current window",
-                    ScaleMode::DpiFactor => "Switch to absolute scaling",
-                    ScaleMode::RelativeToWindow(_) => "Switch to absolute scaling",
-                })
-                .label_font_size(8)
-                .label_color(TEXT_COLOR)
-                .set(state.ids.ui_scale_button, ui)
-                .was_clicked()
-            {
-                match ui_scale {
-                    ScaleMode::Absolute(_) => events.push(Event::UiScale(ScaleChange::ToRelative)),
-                    ScaleMode::DpiFactor => events.push(Event::UiScale(ScaleChange::ToAbsolute)),
-                    ScaleMode::RelativeToWindow(_) => {
-                        events.push(Event::UiScale(ScaleChange::ToAbsolute))
-                    }
-                }
-            }*/
-
-            /* Intended function:
-            Checking one button unchecks the other one
-            Buttons can't be unchecked by clicking them
-            Slider switches to active state (display of indicator and value) when absolute scaling is checked
-            */
+                .set(state.ids.ui_scale_label, ui);            
 
             // Relative Scaling Button
 
@@ -442,7 +411,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                     events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
                 }
                 Text::new(&format!("{:.2}", scale))
-                    .right_from(state.ids.ui_scale_slider, 8.0)
+                    .up_from(state.ids.ch_transp_value, 75.0)                                   
                     .font_size(14)
                     .font_id(self.fonts.opensans)
                     .color(TEXT_COLOR)
