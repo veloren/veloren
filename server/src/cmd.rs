@@ -589,15 +589,18 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
         scan_fmt!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
-
+   
     if let (Some(r), Some(g), Some(b)) = (opt_r, opt_g, opt_b) {
+        let r = clamp(r,0.0,1.0);
+        let g = clamp(g,0.0,1.0);
+        let b = clamp(b,0.0,1.0);
         light_emitter.col = Rgb::new(r, g, b)
     };
     if let (Some(x), Some(y), Some(z)) = (opt_x, opt_y, opt_z) {
         light_emitter.offset = Vec3::new(x, y, z)
     };
     if let Some(s) = opt_s {
-        light_emitter.strength = s
+        light_emitter.strength =  clamp(s,0.0,100.0)
     };
     let pos = server
         .state
@@ -624,22 +627,39 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
     }
 }
 
-fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let opt_s = scan_fmt!(&args, action.arg_fmt, f32);
+
     if server
         .state
         .read_storage::<comp::LightEmitter>()
         .get(entity)
         .is_some()
     {
-        server
-            .state
-            .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .remove(entity);
-        server.clients.notify(
-            entity,
-            ServerMsg::chat(String::from("You put out the lantern.")),
-        );
+        if let Some(s) = opt_s {
+            if let Some(light) = server
+                .state
+                .ecs()
+                .write_storage::<comp::LightEmitter>()
+                .get_mut(entity)
+            {
+                light.strength = clamp(s,0.0,100.0);
+                server.clients.notify(
+                    entity,
+                    ServerMsg::chat(String::from("You played with flame strength.")),
+                );
+            }
+        } else {
+            server
+                .state
+                .ecs()
+                .write_storage::<comp::LightEmitter>()
+                .remove(entity);
+            server.clients.notify(
+                entity,
+                ServerMsg::chat(String::from("You put out the lantern.")),
+            );
+        }
     } else {
         let _ = server
             .state
@@ -650,7 +670,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, _args: String, _action
                 comp::LightEmitter {
                     offset: Vec3::new(1.0, 0.2, 0.8),
                     col: Rgb::new(0.824, 0.365, 0.196),
-                    strength: 1.5,
+                    strength: if let Some(s) = opt_s { clamp(s,0.0,100.0) } else { 2.0 },
                 },
             );
 
@@ -726,3 +746,16 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             .notify(entity, ServerMsg::private(String::from(action.help_string))),
     }
 }
+//#region Helper
+    fn clamp(value: f32,min:f32,max:f32) -> f32 {
+        if value >= min {
+            if value > max {
+                max
+            } else {
+                value
+            }
+        } else {
+            min
+        }
+    }
+    //#endregion
