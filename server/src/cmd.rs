@@ -555,7 +555,8 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     .create_object(pos, ori, obj_type)
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
-        let obj_type = match obj_type.as_ref().map(String::as_str) {
+        let obj_str_res = obj_type.as_ref().map(String::as_str);
+        let obj_type = match obj_str_res {
             Ok("scarecrow") => comp::object::Body::Scarecrow,
             Ok("cauldron") => comp::object::Body::Cauldron,
             Ok("chest_vines") => comp::object::Body::ChestVines,
@@ -624,9 +625,10 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
                     .normalized(),
             ))
             .build();
-        server
-            .clients
-            .notify(entity, ServerMsg::private(format!("Spawned object.")));
+        server.clients.notify(
+            entity,
+            ServerMsg::private(format!("Spawned object: {}", obj_str_res.unwrap())),
+        );
     } else {
         server
             .clients
