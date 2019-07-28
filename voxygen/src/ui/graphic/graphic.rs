@@ -226,7 +226,7 @@ impl GraphicCache {
             if let Some(image) = self.soft_cache.get(&key) {
                 cacher(
                     target_aarb,
-                    &image.pixels().map(|p| p.data).collect::<Vec<[u8; 4]>>(),
+                    &image.pixels().map(|p| p.0).collect::<Vec<[u8; 4]>>(),
                 );
             } else {
                 error!("Image queued for transfer to gpu cache but it doesn't exist (this should never occur)");
