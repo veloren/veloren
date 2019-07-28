@@ -74,7 +74,7 @@ pub enum KeyMouse {
 pub struct Window {
     events_loop: glutin::EventsLoop,
     renderer: Renderer,
-    window: glutin::GlWindow,
+    window: glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
@@ -193,7 +193,7 @@ impl Window {
 
         self.events_loop.poll_events(|event| {
             // Get events for ui.
-            if let Some(event) = ui::Event::try_from(event.clone(), &window) {
+            if let Some(event) = ui::Event::try_from(event.clone(), window) {
                 events.push(Event::Ui(event));
             }
 
@@ -202,7 +202,7 @@ impl Window {
                     glutin::WindowEvent::CloseRequested => events.push(Event::Close),
                     glutin::WindowEvent::Resized(glutin::dpi::LogicalSize { width, height }) => {
                         let (mut color_view, mut depth_view) = renderer.win_views_mut();
-                        gfx_window_glutin::update_views(&window, &mut color_view, &mut depth_view);
+                        gfx_window_glutin::update_views(window, &mut color_view, &mut depth_view);
                         renderer.on_resize().unwrap();
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     }
@@ -317,8 +317,8 @@ impl Window {
 
     pub fn grab_cursor(&mut self, grab: bool) {
         self.cursor_grabbed = grab;
-        self.window.hide_cursor(grab);
-        let _ = self.window.grab_cursor(grab);
+        self.window.window().hide_cursor(grab);
+        let _ = self.window.window().grab_cursor(grab);
     }
 
     pub fn is_fullscreen(&self) -> bool {
@@ -326,12 +326,12 @@ impl Window {
     }
 
     pub fn fullscreen(&mut self, fullscreen: bool) {
+        let window = self.window.window();
         self.fullscreen = fullscreen;
         if fullscreen {
-            self.window
-                .set_fullscreen(Some(self.window.get_current_monitor()));
+            window.set_fullscreen(Some(window.get_current_monitor()));
         } else {
-            self.window.set_fullscreen(None);
+            window.set_fullscreen(None);
         }
     }
 
@@ -342,6 +342,7 @@ impl Window {
     pub fn logical_size(&self) -> Vec2<f64> {
         let (w, h) = self
             .window
+            .window()
             .get_inner_size()
             .unwrap_or(glutin::dpi::LogicalSize::new(0.0, 0.0))
             .into();
