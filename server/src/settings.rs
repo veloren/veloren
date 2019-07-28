@@ -22,7 +22,7 @@ impl Default for ServerSettings {
             server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
-            start_time: 12.0 * 3600.0,
+            start_time: 9.0 * 3600.0,
         }
     }
 }
