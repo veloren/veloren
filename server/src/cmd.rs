@@ -627,7 +627,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             .build();
         server.clients.notify(
             entity,
-            ServerMsg::private(format!("Spawned object: {}", obj_str_res.unwrap())),
+            ServerMsg::private(format!("Spawned: {}", obj_str_res.unwrap())),
         );
     } else {
         server
