@@ -150,7 +150,6 @@ impl Body {
             Body::CarpetHumanSquare => "carpet_human_square",
             Body::CarpetHumanSquare2 => "carpet_human_square_2",
             Body::CarpetHumanSquircle => "carpet_human_squircle",
-            _ => "<Unknown>",
         };
         String::from(object_str)
     }
