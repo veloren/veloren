@@ -163,12 +163,14 @@ impl Server {
     pub fn create_object(
         &mut self,
         pos: comp::Pos,
+        ori: comp::Ori,
         object: comp::object::Body,
     ) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
+            .with(ori)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Body::Object(object))
@@ -176,6 +178,7 @@ impl Server {
                 offset: Vec3::unit_z(),
                 ..comp::LightEmitter::default()
             })
+            //.with(comp::LightEmitter::default())
             .with(comp::ActionState::default())
             .with(comp::ForceUpdate)
     }

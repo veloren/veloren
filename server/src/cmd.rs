@@ -484,57 +484,91 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
 
 fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
     let obj_type = scan_fmt!(&args, _action.arg_fmt, String);
+
     let pos = server
         .state
         .ecs()
         .read_storage::<comp::Pos>()
         .get(entity)
         .copied();
-    if let Some(pos) = pos {
+    let ori = server
+        .state
+        .ecs()
+        .read_storage::<comp::Ori>()
+        .get(entity)
+        .copied();
+    /*let builder = server
+    .create_object(pos, ori, obj_type)
+    .with(ori);*/
+    if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_type = match obj_type.as_ref().map(String::as_str) {
-            Some("Scarecrow") => comp::object::Body::Scarecrow,
-            Some("Cauldron") => comp::object::Body::Cauldron,
-            Some("Chest_Vines") => comp::object::Body::ChestVines,
-            Some("Chest") => comp::object::Body::Chest,
-            Some("Chest_Dark") => comp::object::Body::ChestDark,
-            Some("Chest_Demon") => comp::object::Body::ChestDemon,
-            Some("Chest_Gold") => comp::object::Body::ChestGold,
-            Some("Chest_Light") => comp::object::Body::ChestLight,
-            Some("Chest_Open") => comp::object::Body::ChestOpen,
-            Some("Chest_Skull") => comp::object::Body::ChestSkull,
-            Some("Pumpkin_1") => comp::object::Body::Pumpkin1,
-            Some("Pumpkin_2") => comp::object::Body::Pumpkin2,
-            Some("Pumpkin_3") => comp::object::Body::Pumpkin3,
-            Some("Pumpkin_4") => comp::object::Body::Pumpkin4,
-            Some("Pumpkin_5") => comp::object::Body::Pumpkin5,
-            Some("Campfire") => comp::object::Body::Campfire,
-            Some("Lantern_Ground") => comp::object::Body::LanternGround,
-            Some("Lantern_Ground_Open") => comp::object::Body::LanternGroundOpen,
-            Some("Lantern_Standing_2") => comp::object::Body::LanternStanding2,
-            Some("Lantern_Standing") => comp::object::Body::LanternStanding,
-            Some("Potion_Blue") => comp::object::Body::PotionBlue,
-            Some("Potion_Green") => comp::object::Body::PotionGreen,
-            Some("Potion_Red") => comp::object::Body::PotionRed,
-            Some("Crate") => comp::object::Body::Crate,
-            Some("Tent") => comp::object::Body::Tent,
-            Some("Bomb") => comp::object::Body::Bomb,
-            Some("Window_Spooky") => comp::object::Body::WindowSpooky,
-            Some("Carpet_1") => comp::object::Body::Carpet1,
-            Some("Table") => comp::object::Body::Table,
-            Some("Drawer") => comp::object::Body::Drawer,
-            Some("Bed_Blue") => comp::object::Body::BedBlue,
-            Some("Anvil") => comp::object::Body::Anvil,
-            Some("Gravestone_1") => comp::object::Body::Gravestone1,
-            Some("Gravestone_2") => comp::object::Body::Gravestone2,
-            Some("Chair") => comp::object::Body::Chair,
-            Some("Bench") => comp::object::Body::Bench,
+            Some("scarecrow") => comp::object::Body::Scarecrow,
+            Some("cauldron") => comp::object::Body::Cauldron,
+            Some("chest_vines") => comp::object::Body::ChestVines,
+            Some("chest") => comp::object::Body::Chest,
+            Some("chest_dark") => comp::object::Body::ChestDark,
+            Some("chest_demon") => comp::object::Body::ChestDemon,
+            Some("chest_gold") => comp::object::Body::ChestGold,
+            Some("chest_light") => comp::object::Body::ChestLight,
+            Some("chest_open") => comp::object::Body::ChestOpen,
+            Some("chest_skull") => comp::object::Body::ChestSkull,
+            Some("pumpkin") => comp::object::Body::Pumpkin,
+            Some("pumpkin_2") => comp::object::Body::Pumpkin2,
+            Some("pumpkin_3") => comp::object::Body::Pumpkin3,
+            Some("pumpkin_4") => comp::object::Body::Pumpkin4,
+            Some("pumpkin_5") => comp::object::Body::Pumpkin5,
+            Some("campfire") => comp::object::Body::Campfire,
+            Some("lantern_ground") => comp::object::Body::LanternGround,
+            Some("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
+            Some("lantern_2") => comp::object::Body::LanternStanding2,
+            Some("lantern") => comp::object::Body::LanternStanding,
+            Some("potion_blue") => comp::object::Body::PotionBlue,
+            Some("potion_green") => comp::object::Body::PotionGreen,
+            Some("potion_red") => comp::object::Body::PotionRed,
+            Some("crate") => comp::object::Body::Crate,
+            Some("tent") => comp::object::Body::Tent,
+            Some("bomb") => comp::object::Body::Bomb,
+            Some("window_spooky") => comp::object::Body::WindowSpooky,
+            Some("door_spooky") => comp::object::Body::DoorSpooky,
+            Some("carpet") => comp::object::Body::Carpet,
+            Some("table_human") => comp::object::Body::Table,
+            Some("table_human_2") => comp::object::Body::Table2,
+            Some("table_human_3") => comp::object::Body::Table3,
+            Some("drawer") => comp::object::Body::Drawer,
+            Some("bed_human_blue") => comp::object::Body::BedBlue,
+            Some("anvil") => comp::object::Body::Anvil,
+            Some("gravestone") => comp::object::Body::Gravestone,
+            Some("gravestone_2") => comp::object::Body::Gravestone2,
+            Some("chair") => comp::object::Body::Chair,
+            Some("chair_2") => comp::object::Body::Chair2,
+            Some("chair_3") => comp::object::Body::Chair3,
+            Some("bench_human") => comp::object::Body::Bench,
+            Some("bedroll") => comp::object::Body::Bedroll,
+            Some("carpet_human_round") => comp::object::Body::CarpetHumanRound,
+            Some("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
+            Some("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
+            Some("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
             _ => {
                 return server
                     .clients
                     .notify(entity, ServerMsg::chat(String::from("Object not found!")));
             }
         };
-        server.create_object(pos, obj_type).build();
+        server
+            .create_object(pos, ori, obj_type)
+            .with(comp::Ori(
+                // converts player orientation into a 90° rotation for the object by using the axis with the highest value
+                ori.0
+                    .map(|e| {
+                        if e.abs() == ori.0.map(|e| e.abs()).reduce_partial_max() {
+                            e
+                        } else {
+                            0.0
+                        }
+                    })
+                    .normalized(),
+            ))
+            .build();
         server
             .clients
             .notify(entity, ServerMsg::chat(format!("Spawned object.")));
@@ -668,9 +702,10 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                             );
                         }
                     } else {
-                        server
-                            .clients
-                            .notify(entity, ServerMsg::private(format!("Don't be crazy!")));
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::private(format!("You can't /tell yourself.")),
+                        );
                     }
                 }
                 None => {
