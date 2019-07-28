@@ -516,9 +516,15 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
                 }
             },
             None => {
+                // TODO: Move to /help object when/if #365 is approved. https://gitlab.com/veloren/veloren/merge_requests/365
+                let mut objects_string = String::from("List of objects:\n");
+                for enum_value in comp::object::Body::all().iter() {
+                    objects_string.push_str(format!("{}\n", enum_value.to_string()).as_ref());
+                }
+
                 return server
                     .clients
-                    .notify(entity, ServerMsg::chat(String::from("Object not found!")));
+                    .notify(entity, ServerMsg::chat(objects_string));
             }
         };
         server

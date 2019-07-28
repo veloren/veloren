@@ -1,6 +1,6 @@
 use rand::{seq::SliceRandom, thread_rng};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, EnumIter, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Body {
     Bomb,
     Scarecrow,
@@ -153,20 +153,22 @@ impl Body {
         };
         String::from(object_str)
     }
+    pub fn all() -> [Body; 46] {
+        ALL_OBJECTS
+    }
 }
 #[cfg(test)]
 mod body_tests {
-    use strum::IntoEnumIterator;
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
     fn test_body_enum_to_string_and_string_to_enum() {
-        for enum_value in Body::iter() {
+        for enum_value in Body::all().iter() {
             let enum_str: String = enum_value.to_string();
             let new_enum = Body::find(&enum_str)
                 .expect(format!("Should be able to find: {}", enum_str).as_ref());
-            assert_eq!(enum_value, new_enum);
+            assert_eq!(enum_value, &new_enum);
         }
     }
 }
