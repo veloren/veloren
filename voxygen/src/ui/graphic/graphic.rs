@@ -175,9 +175,13 @@ impl GraphicCache {
                                     // Deallocate
                                     self.atlas.deallocate(alloc_id);
                                     // Try to allocate
-                                    allocation = self
+                                    if let Some(alloc) = self
                                         .atlas
-                                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)));
+                                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                                    {
+                                        allocation = Some(alloc);
+                                        break;
+                                    }
                                 }
                             }
                         }
