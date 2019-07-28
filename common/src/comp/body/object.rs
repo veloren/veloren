@@ -1,6 +1,6 @@
 use rand::{seq::SliceRandom, thread_rng};
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, EnumIter, Hash, Serialize, Deserialize)]
 pub enum Body {
     Bomb,
     Scarecrow,
@@ -21,11 +21,11 @@ pub enum Body {
     Campfire,
     LanternGround,
     LanternGroundOpen,
-    LanternStanding2,
     LanternStanding,
-    PotionBlue,
-    PotionGreen,
+    LanternStanding2,
     PotionRed,
+    PotionGreen,
+    PotionBlue,
     Crate,
     Tent,
     WindowSpooky,
@@ -48,6 +48,128 @@ pub enum Body {
     CarpetHumanSquare,
     CarpetHumanSquare2,
     CarpetHumanSquircle,
+}
+impl Body {
+    pub fn find(request_object: &str) -> Option<Body> {
+        let obj = match request_object {
+            "bomb" => Body::Bomb,
+            "scarecrow" => Body::Scarecrow,
+            "cauldron" => Body::Cauldron,
+            "chest_vines" => Body::ChestVines,
+            "chest" => Body::Chest,
+            "chest_dark" => Body::ChestDark,
+            "chest_demon" => Body::ChestDemon,
+            "chest_gold" => Body::ChestGold,
+            "chest_light" => Body::ChestLight,
+            "chest_open" => Body::ChestOpen,
+            "chest_skull" => Body::ChestSkull,
+            "pumpkin" => Body::Pumpkin,
+            "pumpkin_2" => Body::Pumpkin2,
+            "pumpkin_3" => Body::Pumpkin3,
+            "pumpkin_4" => Body::Pumpkin4,
+            "pumpkin_5" => Body::Pumpkin5,
+            "campfire" => Body::Campfire,
+            "lantern_ground" => Body::LanternGround,
+            "lantern_ground_open" => Body::LanternGroundOpen,
+            "lantern" => Body::LanternStanding,
+            "lantern_2" => Body::LanternStanding2,
+            "potion_red" => Body::PotionRed,
+            "potion_green" => Body::PotionGreen,
+            "potion_blue" => Body::PotionBlue,
+            "crate" => Body::Crate,
+            "tent" => Body::Tent,
+            "window_spooky" => Body::WindowSpooky,
+            "door_spooky" => Body::DoorSpooky,
+            "anvil" => Body::Anvil,
+            "gravestone" => Body::Gravestone,
+            "gravestone_2" => Body::Gravestone2,
+            "bench" => Body::Bench,
+            "chair" => Body::Chair,
+            "chair_2" => Body::Chair2,
+            "chair_3" => Body::Chair3,
+            "table_human" => Body::Table,
+            "table_human_2" => Body::Table2,
+            "table_human_3" => Body::Table3,
+            "drawer" => Body::Drawer,
+            "bed_human_blue" => Body::BedBlue,
+            "carpet" => Body::Carpet,
+            "bedroll" => Body::Bedroll,
+            "carpet_human_round" => Body::CarpetHumanRound,
+            "carpet_human_square" => Body::CarpetHumanSquare,
+            "carpet_human_square_2" => Body::CarpetHumanSquare2,
+            "carpet_human_squircle" => Body::CarpetHumanSquircle,
+            _ => return None,
+        };
+        Some(obj)
+    }
+    pub fn to_string(&self) -> String {
+        let object_str = match self {
+            Body::Bomb => "bomb",
+            Body::Scarecrow => "scarecrow",
+            Body::Cauldron => "cauldron",
+            Body::ChestVines => "chest_vines",
+            Body::Chest => "chest",
+            Body::ChestDark => "chest_dark",
+            Body::ChestDemon => "chest_demon",
+            Body::ChestGold => "chest_gold",
+            Body::ChestLight => "chest_light",
+            Body::ChestOpen => "chest_open",
+            Body::ChestSkull => "chest_skull",
+            Body::Pumpkin => "pumpkin",
+            Body::Pumpkin2 => "pumpkin_2",
+            Body::Pumpkin3 => "pumpkin_3",
+            Body::Pumpkin4 => "pumpkin_4",
+            Body::Pumpkin5 => "pumpkin_5",
+            Body::Campfire => "campfire",
+            Body::LanternGround => "lantern_ground",
+            Body::LanternGroundOpen => "lantern_ground_open",
+            Body::LanternStanding => "lantern",
+            Body::LanternStanding2 => "lantern_2",
+            Body::PotionRed => "potion_red",
+            Body::PotionGreen => "potion_green",
+            Body::PotionBlue => "potion_blue",
+            Body::Crate => "crate",
+            Body::Tent => "tent",
+            Body::WindowSpooky => "window_spooky",
+            Body::DoorSpooky => "door_spooky",
+            Body::Anvil => "anvil",
+            Body::Gravestone => "gravestone",
+            Body::Gravestone2 => "gravestone_2",
+            Body::Bench => "bench",
+            Body::Chair => "chair",
+            Body::Chair2 => "chair_2",
+            Body::Chair3 => "chair_3",
+            Body::Table => "table_human",
+            Body::Table2 => "table_human_2",
+            Body::Table3 => "table_human_3",
+            Body::Drawer => "drawer",
+            Body::BedBlue => "bed_human_blue",
+            Body::Carpet => "carpet",
+            Body::Bedroll => "bedroll",
+            Body::CarpetHumanRound => "carpet_human_round",
+            Body::CarpetHumanSquare => "carpet_human_square",
+            Body::CarpetHumanSquare2 => "carpet_human_square_2",
+            Body::CarpetHumanSquircle => "carpet_human_squircle",
+            _ => "<Unknown>",
+        };
+        String::from(object_str)
+    }
+}
+#[cfg(test)]
+mod body_tests {
+    use strum::IntoEnumIterator;
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_body_enum_to_string_and_string_to_enum() {
+        for enum_value in Body::iter() {
+            let enum_str: String = enum_value.to_string();
+            let new_enum = Body::find(&enum_str)
+                .expect(format!("Should be able to find: {}", enum_str).as_ref());
+            assert_eq!(enum_value, new_enum);
+        }
+    }
 }
 
 impl Body {

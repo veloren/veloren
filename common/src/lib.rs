@@ -12,6 +12,10 @@ extern crate serde_derive;
 #[macro_use]
 extern crate log;
 
+extern crate strum;
+#[macro_use]
+extern crate strum_macros;
+
 pub mod assets;
 pub mod clock;
 pub mod comp;

@@ -507,53 +507,15 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_type = match obj_type.as_ref().map(String::as_str) {
-            Some("scarecrow") => comp::object::Body::Scarecrow,
-            Some("cauldron") => comp::object::Body::Cauldron,
-            Some("chest_vines") => comp::object::Body::ChestVines,
-            Some("chest") => comp::object::Body::Chest,
-            Some("chest_dark") => comp::object::Body::ChestDark,
-            Some("chest_demon") => comp::object::Body::ChestDemon,
-            Some("chest_gold") => comp::object::Body::ChestGold,
-            Some("chest_light") => comp::object::Body::ChestLight,
-            Some("chest_open") => comp::object::Body::ChestOpen,
-            Some("chest_skull") => comp::object::Body::ChestSkull,
-            Some("pumpkin") => comp::object::Body::Pumpkin,
-            Some("pumpkin_2") => comp::object::Body::Pumpkin2,
-            Some("pumpkin_3") => comp::object::Body::Pumpkin3,
-            Some("pumpkin_4") => comp::object::Body::Pumpkin4,
-            Some("pumpkin_5") => comp::object::Body::Pumpkin5,
-            Some("campfire") => comp::object::Body::Campfire,
-            Some("lantern_ground") => comp::object::Body::LanternGround,
-            Some("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
-            Some("lantern_2") => comp::object::Body::LanternStanding2,
-            Some("lantern") => comp::object::Body::LanternStanding,
-            Some("potion_blue") => comp::object::Body::PotionBlue,
-            Some("potion_green") => comp::object::Body::PotionGreen,
-            Some("potion_red") => comp::object::Body::PotionRed,
-            Some("crate") => comp::object::Body::Crate,
-            Some("tent") => comp::object::Body::Tent,
-            Some("bomb") => comp::object::Body::Bomb,
-            Some("window_spooky") => comp::object::Body::WindowSpooky,
-            Some("door_spooky") => comp::object::Body::DoorSpooky,
-            Some("carpet") => comp::object::Body::Carpet,
-            Some("table_human") => comp::object::Body::Table,
-            Some("table_human_2") => comp::object::Body::Table2,
-            Some("table_human_3") => comp::object::Body::Table3,
-            Some("drawer") => comp::object::Body::Drawer,
-            Some("bed_human_blue") => comp::object::Body::BedBlue,
-            Some("anvil") => comp::object::Body::Anvil,
-            Some("gravestone") => comp::object::Body::Gravestone,
-            Some("gravestone_2") => comp::object::Body::Gravestone2,
-            Some("chair") => comp::object::Body::Chair,
-            Some("chair_2") => comp::object::Body::Chair2,
-            Some("chair_3") => comp::object::Body::Chair3,
-            Some("bench_human") => comp::object::Body::Bench,
-            Some("bedroll") => comp::object::Body::Bedroll,
-            Some("carpet_human_round") => comp::object::Body::CarpetHumanRound,
-            Some("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
-            Some("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
-            Some("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
-            _ => {
+            Some(obj_str) => match comp::object::Body::find(obj_str) {
+                Some(body_obj) => body_obj,
+                None => {
+                    return server
+                        .clients
+                        .notify(entity, ServerMsg::chat(String::from("Object not found!")));
+                }
+            },
+            None => {
                 return server
                     .clients
                     .notify(entity, ServerMsg::chat(String::from("Object not found!")));
