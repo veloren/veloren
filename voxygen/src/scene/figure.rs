@@ -526,11 +526,11 @@ impl FigureModelCache {
             object::Body::ChestLight => ("object/chest_light.vox", Vec3::new(-7.5, -6.0, 0.0)),
             object::Body::ChestOpen => ("object/chest_open.vox", Vec3::new(-7.5, -6.0, 0.0)),
             object::Body::ChestSkull => ("object/chest_skull.vox", Vec3::new(-7.5, -6.0, 0.0)),
-            object::Body::Pumpkin1 => ("object/pumpkin1.vox", Vec3::new(-5.5, -4.0, 0.0)),
-            object::Body::Pumpkin2 => ("object/pumpkin2.vox", Vec3::new(-5.0, -4.0, 0.0)),
-            object::Body::Pumpkin3 => ("object/pumpkin3.vox", Vec3::new(-5.0, -4.0, 0.0)),
-            object::Body::Pumpkin4 => ("object/pumpkin4.vox", Vec3::new(-5.0, -4.0, 0.0)),
-            object::Body::Pumpkin5 => ("object/pumpkin5.vox", Vec3::new(-4.0, -5.0, 0.0)),
+            object::Body::Pumpkin => ("object/pumpkin.vox", Vec3::new(-5.5, -4.0, 0.0)),
+            object::Body::Pumpkin2 => ("object/pumpkin_2.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin3 => ("object/pumpkin_3.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin4 => ("object/pumpkin_4.vox", Vec3::new(-5.0, -4.0, 0.0)),
+            object::Body::Pumpkin5 => ("object/pumpkin_5.vox", Vec3::new(-4.0, -5.0, 0.0)),
             object::Body::Campfire => ("object/campfire.vox", Vec3::new(-9.0, -10.0, 0.0)),
             object::Body::LanternGround => {
                 ("object/lantern_ground.vox", Vec3::new(-3.5, -3.5, 0.0))
@@ -553,15 +553,36 @@ impl FigureModelCache {
                 ("object/window_spooky.vox", Vec3::new(-15.0, -1.5, -1.0))
             }
             object::Body::DoorSpooky => ("object/door_spooky.vox", Vec3::new(-15.0, -4.5, 0.0)),
-            object::Body::Table => ("object/table.vox", Vec3::new(-12.0, -6.0, 0.0)),
-            object::Body::Drawer => ("object/drawer.vox", Vec3::new(-6.5, -6.5, 0.0)),
-            object::Body::BedBlue => ("object/bed_blue.vox", Vec3::new(-8.5, -5.0, 0.0)),
+            object::Body::Table => ("object/table.vox", Vec3::new(-12.0, -8.0, 0.0)),
+            object::Body::Table2 => ("object/table_2.vox", Vec3::new(-8.0, -8.0, 0.0)),
+            object::Body::Table3 => ("object/table_3.vox", Vec3::new(-10.0, -10.0, 0.0)),
+            object::Body::Drawer => ("object/drawer.vox", Vec3::new(-11.0, -7.5, 0.0)),
+            object::Body::BedBlue => ("object/bed_human_blue.vox", Vec3::new(-11.0, -15.0, 0.0)),
             object::Body::Anvil => ("object/anvil.vox", Vec3::new(-3.0, -7.0, 0.0)),
-            object::Body::Gravestone1 => ("object/gravestone1.vox", Vec3::new(-5.0, -2.0, 0.0)),
-            object::Body::Gravestone2 => ("object/gravestone2.vox", Vec3::new(-8.5, -3.0, 0.0)),
-            object::Body::Chair => ("object/chair.vox", Vec3::new(-3.5, -4.0, 0.0)),
+            object::Body::Gravestone => ("object/gravestone.vox", Vec3::new(-5.0, -2.0, 0.0)),
+            object::Body::Gravestone2 => ("object/gravestone_2.vox", Vec3::new(-8.5, -3.0, 0.0)),
+            object::Body::Chair => ("object/chair.vox", Vec3::new(-5.0, -4.5, 0.0)),
+            object::Body::Chair2 => ("object/chair_2.vox", Vec3::new(-5.0, -4.5, 0.0)),
+            object::Body::Chair3 => ("object/chair_3.vox", Vec3::new(-5.0, -4.5, 0.0)),
             object::Body::Bench => ("object/bench.vox", Vec3::new(-8.8, -5.0, 0.0)),
-            object::Body::Carpet1 => ("object/carpet1.vox", Vec3::new(-14.0, -14.0, -0.5)),
+            object::Body::Carpet => ("object/carpet.vox", Vec3::new(-14.0, -14.0, -0.5)),
+            object::Body::Bedroll => ("object/bedroll.vox", Vec3::new(-11.0, -19.5, -0.5)),
+            object::Body::CarpetHumanRound => (
+                "object/carpet_human_round.vox",
+                Vec3::new(-14.0, -14.0, -0.5),
+            ),
+            object::Body::CarpetHumanSquare => (
+                "object/carpet_human_square.vox",
+                Vec3::new(-13.5, -14.0, -0.5),
+            ),
+            object::Body::CarpetHumanSquare2 => (
+                "object/carpet_human_square_2.vox",
+                Vec3::new(-13.5, -14.0, -0.5),
+            ),
+            object::Body::CarpetHumanSquircle => (
+                "object/carpet_human_squircle.vox",
+                Vec3::new(-21.0, -21.0, -0.5),
+            ),
         };
         Self::load_mesh(name, offset)
     }

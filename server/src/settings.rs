@@ -19,10 +19,10 @@ impl Default for ServerSettings {
         Self {
             address: SocketAddr::from(([0; 4], 14004)),
             world_seed: 1337,
-            server_name: "Server name".to_owned(),
+            server_name: "Veloren Alpha".to_owned(),
             server_description: "This is the best Veloren server.".to_owned(),
-            max_players: 16,
-            start_time: 0.0,
+            max_players: 100,
+            start_time: 12.0 * 3600.0,
         }
     }
 }
