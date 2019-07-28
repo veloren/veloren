@@ -230,9 +230,14 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             },
         },
         None => {
+            let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
+            let current_time = NaiveTime::from_num_seconds_from_midnight(time_in_seconds as u32, 0);
             server.clients.notify(
                 entity,
-                ServerMsg::private("You must specify a time!".to_string()),
+                ServerMsg::private(format!(
+                    "Current time is: {}",
+                    current_time.format("%H:%M").to_string()
+                )),
             );
             return;
         }
