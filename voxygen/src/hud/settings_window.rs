@@ -1,7 +1,7 @@
 use super::{img_ids::Imgs, CrosshairType, Fonts, Show, TEXT_COLOR};
 use crate::{
     audio::base::Genre,
-    ui::{ImageSlider, ToggleButton},
+    ui::{ImageSlider, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -27,6 +27,14 @@ widget_ids! {
         button_help,
         button_help2,
         show_help_label,
+        ui_scale_label,
+        ui_scale_slider,
+        ui_scale_button,
+        ui_scale_value,
+        relative_to_win_button,
+        relative_to_win_text,
+        absolute_scale_button,
+        absolute_scale_text,
         gameplay,
         controls,
         rectangle,
@@ -129,6 +137,13 @@ pub enum Event {
     MaximumFPS(u32),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
+    UiScale(ScaleChange),
+}
+
+pub enum ScaleChange {
+    ToAbsolute,
+    ToRelative,
+    Adjust(f64),
 }
 
 impl<'a> Widget for SettingsWindow<'a> {
@@ -225,6 +240,7 @@ impl<'a> Widget for SettingsWindow<'a> {
         if let SettingsTab::Interface = self.show.settings_tab {
             let crosshair_transp = self.global_state.settings.gameplay.crosshair_transp;
             let crosshair_type = self.global_state.settings.gameplay.crosshair_type;
+            let ui_scale = self.global_state.settings.gameplay.ui_scale;
 
             Text::new("General")
                 .top_left_with_margins_on(state.ids.settings_content, 5.0, 5.0)
@@ -299,10 +315,124 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.debug_button_label, ui);
 
+            // Ui Scale
+            Text::new("UI-Scale")
+                .down_from(state.ids.debug_button, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ui_scale_label, ui);
+
+            // Relative Scaling Button
+            let (check_img, check_mo_img, check_press_img, relative_selected) = match ui_scale {
+                ScaleMode::RelativeToWindow(_) => (
+                    self.imgs.check_checked,
+                    self.imgs.check_checked,
+                    self.imgs.check_checked,
+                    true,
+                ),
+                ScaleMode::Absolute(_) | ScaleMode::DpiFactor => (
+                    self.imgs.check,
+                    self.imgs.check_mo,
+                    self.imgs.check_press,
+                    false,
+                ),
+            };
+            if Button::image(check_img)
+                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .down_from(state.ids.ui_scale_label, 20.0)
+                .hover_image(check_mo_img)
+                .press_image(check_press_img)
+                .set(state.ids.relative_to_win_button, ui)
+                .was_clicked()
+                && !relative_selected
+            {
+                events.push(Event::UiScale(ScaleChange::ToRelative));
+            }
+
+            Text::new("Relative Scaling")
+                .right_from(state.ids.relative_to_win_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.relative_to_win_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.relative_to_win_text, ui);
+
+            // Absolute Scaling Button
+            let (check_img, check_mo_img, check_press_img, absolute_selected) = match ui_scale {
+                ScaleMode::Absolute(_) => (
+                    self.imgs.check_checked,
+                    self.imgs.check_checked,
+                    self.imgs.check_checked,
+                    true,
+                ),
+                ScaleMode::RelativeToWindow(_) | ScaleMode::DpiFactor => (
+                    self.imgs.check,
+                    self.imgs.check_mo,
+                    self.imgs.check_press,
+                    false,
+                ),
+            };
+            if Button::image(check_img)
+                .w_h(288.0 / 24.0, 288.0 / 24.0)
+                .down_from(state.ids.relative_to_win_button, 20.0)
+                .hover_image(check_mo_img)
+                .press_image(check_press_img)
+                .set(state.ids.absolute_scale_button, ui)
+                .was_clicked()
+                && !absolute_selected
+            {
+                events.push(Event::UiScale(ScaleChange::ToAbsolute));
+            }
+
+            Text::new("Custom Scaling")
+                .right_from(state.ids.absolute_scale_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.absolute_scale_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.absolute_scale_text, ui);
+
+            // Slider -> Inactive when "Relative to window" is selected
+            if let ScaleMode::Absolute(scale) = ui_scale {
+                if let Some(new_val) = ImageSlider::continuous(
+                    scale.log(2.0),
+                    0.5f64.log(2.0),
+                    1.2f64.log(2.0),
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(208.0, 22.0)
+                .right_from(state.ids.absolute_scale_text, 12.0)
+                .track_breadth(30.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.ui_scale_slider, ui)
+                {
+                    events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
+                }
+                Text::new(&format!("{:.2}", scale))
+                    .up_from(state.ids.ch_transp_value, 75.0)
+                    .font_size(14)
+                    .font_id(self.fonts.opensans)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.ui_scale_value, ui);
+            } else {
+                ImageSlider::continuous(0.0, 0.0, 1.0, self.imgs.nothing, self.imgs.slider)
+                    .w_h(208.0, 22.0)
+                    .right_from(state.ids.absolute_scale_text, 10.0)
+                    .track_breadth(12.0)
+                    .slider_length(10.0)
+                    .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                    .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                    .pad_track((5.0, 5.0))
+                    .set(state.ids.ui_scale_slider, ui);
+            }
+
             // Crosshair Options
             // Crosshair Transparency
             Text::new("Crosshair")
-                .down_from(state.ids.debug_button, 15.0)
+                .down_from(state.ids.absolute_scale_button, 20.0)
                 .font_size(18)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)

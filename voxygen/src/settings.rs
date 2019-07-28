@@ -1,6 +1,7 @@
-use crate::{hud::CrosshairType, window::KeyMouse};
+use crate::{hud::CrosshairType, ui::ScaleMode, window::KeyMouse};
 use directories::ProjectDirs;
 use glutin::{MouseButton, VirtualKeyCode};
+use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::{fs, io::prelude::*, path::PathBuf};
 
@@ -77,6 +78,7 @@ pub struct GameplaySettings {
     pub zoom_sensitivity: u32,
     pub crosshair_transp: f32,
     pub crosshair_type: CrosshairType,
+    pub ui_scale: ScaleMode,
 }
 
 impl Default for GameplaySettings {
@@ -86,6 +88,7 @@ impl Default for GameplaySettings {
             zoom_sensitivity: 100,
             crosshair_transp: 0.6,
             crosshair_type: CrosshairType::Round,
+            ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
         }
     }
 }
@@ -208,6 +211,12 @@ impl Settings {
             ron::de::from_reader(file).expect("Error parsing settings")
         } else {
             Self::default()
+        }
+    }
+
+    pub fn save_to_file_warn(&self) {
+        if let Err(err) = self.save_to_file() {
+            warn!("Failed to save settings: {:?}", err);
         }
     }
 

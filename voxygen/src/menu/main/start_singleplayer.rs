@@ -54,7 +54,7 @@ impl PlayState for StartSingleplayerState {
                 };
 
                 PlayStateResult::Push(Box::new(CharSelectionState::new(
-                    &mut global_state.window,
+                    global_state,
                     std::rc::Rc::new(std::cell::RefCell::new(client)),
                 )))
             }
