@@ -195,6 +195,6 @@ image_ids! {
         social_icon: "voxygen/element/icons/social.png",
 
         <BlankGraphic>
-        blank: (),
+        nothing: (),
     }
 }

@@ -11,7 +11,7 @@ mod font_ids;
 
 pub use event::Event;
 pub use graphic::Graphic;
-pub use scale::ScaleMode;
+pub use scale::{Scale, ScaleMode};
 pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
@@ -40,7 +40,6 @@ use conrod_core::{
 };
 use graphic::Id as GraphicId;
 use log::warn;
-use scale::Scale;
 use std::{
     io::{BufReader, Read},
     ops::Range,
@@ -132,11 +131,18 @@ impl Ui {
     }
 
     // Set the scaling mode of the ui.
-    pub fn scaling_mode(&mut self, mode: ScaleMode) {
-        self.scale.scaling_mode(mode);
+    pub fn set_scaling_mode(&mut self, mode: ScaleMode) {
+        self.scale.set_scaling_mode(mode);
+        // To clear the cache (it won't be resized in this case)
+        self.need_cache_resize = true;
         // Give conrod the new size.
         let (w, h) = self.scale.scaled_window_size().into_tuple();
         self.ui.handle_event(Input::Resize(w, h));
+    }
+
+    // Get a copy of Scale
+    pub fn scale(&self) -> Scale {
+        self.scale
     }
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
