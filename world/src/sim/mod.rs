@@ -15,7 +15,7 @@ use common::{
     vol::VolSize,
 };
 use noise::{BasicMulti, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
-use rand::{prng::XorShiftRng, Rng, SeedableRng};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use vek::*;
 
@@ -49,7 +49,7 @@ pub struct WorldSim {
     pub(crate) locations: Vec<Location>,
 
     pub(crate) gen_ctx: GenCtx,
-    pub rng: XorShiftRng,
+    pub rng: StdRng,
 }
 
 impl WorldSim {
@@ -93,8 +93,12 @@ impl WorldSim {
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: XorShiftRng::from_seed([
+            rng: StdRng::from_seed([
                 (seed >> 0) as u8,
+                0,
+                0,
+                0,
+                0,
                 0,
                 0,
                 0,
@@ -102,11 +106,23 @@ impl WorldSim {
                 0,
                 0,
                 0,
+                0,
+                0,
+                0,
+                0,
                 (seed >> 16) as u8,
                 0,
                 0,
                 0,
+                0,
+                0,
+                0,
+                0,
                 (seed >> 24) as u8,
+                0,
+                0,
+                0,
+                0,
                 0,
                 0,
                 0,
