@@ -92,7 +92,7 @@ lazy_static! {
         ChatCommand::new(
             "time",
             "{} {s}",
-            "/time : Set the time of day",
+            "/time <XY:XY> or [Time of day] : Set the time of day",
             handle_time,
         ),
         ChatCommand::new(
@@ -104,7 +104,7 @@ lazy_static! {
         ChatCommand::new(
              "players",
              "{}",
-             "/players : Show the online players list",
+             "/players : Lists players currently online",
              handle_players,
          ),
         ChatCommand::new(
@@ -142,7 +142,7 @@ lazy_static! {
         ChatCommand::new(
             "light",
             "{} {} {} {} {} {} {}",
-            "/light <opt:  <<cr> <cg> <cb>> <<ox> <oy> <oz>> <<strenght>>>: Spawn entity with light",
+            "/light <opt:  <<cr> <cg> <cb>> <<ox> <oy> <oz>> <<strength>>>: Spawn entity with light",
             handle_light,
         ),
         ChatCommand::new(
@@ -563,9 +563,10 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
             Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
             _ => {
-                return server
-                    .clients
-                    .notify(entity, ServerMsg::chat(String::from("Object not found!")));
+                return server.clients.notify(
+                    entity,
+                    ServerMsg::private(String::from("Object not found!")),
+                );
             }
         };
         server
@@ -585,11 +586,11 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             .build();
         server
             .clients
-            .notify(entity, ServerMsg::chat(format!("Spawned object.")));
+            .notify(entity, ServerMsg::private(format!("Spawned object.")));
     } else {
         server
             .clients
-            .notify(entity, ServerMsg::chat(format!("You have no position!")));
+            .notify(entity, ServerMsg::private(format!("You have no position!")));
     }
 }
 
@@ -628,11 +629,11 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .build();
         server
             .clients
-            .notify(entity, ServerMsg::chat(format!("Spawned object.")));
+            .notify(entity, ServerMsg::private(format!("Spawned object.")));
     } else {
         server
             .clients
-            .notify(entity, ServerMsg::chat(format!("You have no position!")));
+            .notify(entity, ServerMsg::private(format!("You have no position!")));
     }
 }
 
@@ -655,7 +656,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 light.strength = s.max(0.1).min(20.0);
                 server.clients.notify(
                     entity,
-                    ServerMsg::chat(String::from("You played with the lantern intensity.")),
+                    ServerMsg::private(String::from("You played with flame strength.")),
                 );
             }
         } else {
@@ -666,7 +667,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 .remove(entity);
             server.clients.notify(
                 entity,
-                ServerMsg::chat(String::from("You snuff out your lantern.")),
+                ServerMsg::private(String::from("You put out the lantern.")),
             );
         }
     } else {
@@ -685,7 +686,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 
         server.clients.notify(
             entity,
-            ServerMsg::chat(String::from("You light your lantern.")),
+            ServerMsg::private(String::from("You lighted your lantern.")),
         );
     }
 }
@@ -712,27 +713,24 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                                 Some(name) => {
                                     server.clients.notify(
                                         player,
-                                        ServerMsg::tell(format!("{} tells you:{}", name, msg)),
+                                        ServerMsg::tell(format!("[{}] tells you:{}", name, msg)),
                                     );
                                     server.clients.notify(
                                         entity,
-                                        ServerMsg::tell(format!("You tell {}:{}", alias, msg)),
+                                        ServerMsg::tell(format!("You tell [{}]:{}", alias, msg)),
                                     );
                                 }
                                 None => {
                                     server.clients.notify(
                                         entity,
-                                        ServerMsg::private(String::from("You do not exist!")),
+                                        ServerMsg::private(String::from("Failed to send message.")),
                                     );
                                 }
                             }
                         } else {
                             server.clients.notify(
                                 entity,
-                                ServerMsg::private(format!(
-                                    "You really should say something to {}!",
-                                    alias
-                                )),
+                                ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
                             );
                         }
                     } else {

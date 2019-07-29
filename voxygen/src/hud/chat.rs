@@ -1,5 +1,6 @@
 use super::{
-    img_ids::Imgs, Fonts, BROADCAST_COLOR, GAME_UPDATE_COLOR, PRIVATE_COLOR, TELL_COLOR, TEXT_COLOR,
+    img_ids::Imgs, Fonts, BROADCAST_COLOR, FACTION_COLOR, GAME_UPDATE_COLOR, GROUP_COLOR,
+    KILL_COLOR, META_COLOR, PRIVATE_COLOR, SAY_COLOR, TELL_COLOR, TEXT_COLOR,
 };
 use client::Event as ClientEvent;
 use common::ChatType;
@@ -191,11 +192,16 @@ impl<'a> Widget for Chat<'a> {
                 match msg {
                     ClientEvent::Chat { chat_type, message } => {
                         let color = match chat_type {
+                            ChatType::Meta => META_COLOR,
                             ChatType::Tell => TELL_COLOR,
                             ChatType::Chat => TEXT_COLOR,
                             ChatType::Private => PRIVATE_COLOR,
                             ChatType::Broadcast => BROADCAST_COLOR,
                             ChatType::GameUpdate => GAME_UPDATE_COLOR,
+                            ChatType::Say => SAY_COLOR,
+                            ChatType::Group => GROUP_COLOR,
+                            ChatType::Faction => FACTION_COLOR,
+                            ChatType::Kill => KILL_COLOR,
                         };
                         let text = Text::new(&message)
                             .font_size(15)
