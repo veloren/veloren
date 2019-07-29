@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use common::comp::item::Weapon;
+use common::comp::item::Tool;
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
 
@@ -61,9 +61,9 @@ impl Animation for CidleAnimation {
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
-        match Weapon::Hammer {
+        match Tool::Hammer {
             //TODO: Inventory
-            Weapon::Sword => {
+            Tool::Sword => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -88,7 +88,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Axe => {
+            Tool::Axe => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -113,7 +113,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Hammer => {
+            Tool::Hammer => {
                 next.l_hand.offset = Vec3::new(-7.0, 8.25, 2.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.2)
@@ -134,7 +134,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(wave_ultra_slow * 0.2);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Staff => {
+            Tool::Staff => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -159,7 +159,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::SwordShield => {
+            Tool::SwordShield => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -184,7 +184,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Bow => {
+            Tool::Bow => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
@@ -209,7 +209,7 @@ impl Animation for CidleAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Daggers => {
+            Tool::Daggers => {
                 next.l_hand.offset = Vec3::new(
                     -6.0 + wave_ultra_slow_cos * 1.0,
                     3.5 + wave_ultra_slow_cos * 0.5,
