@@ -4,13 +4,13 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::{join::Join, Entity as EcsEntity, ReadStorage};
+pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
-    state::State,
+    state::{State, Uid},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
     ChatType,
@@ -171,6 +171,12 @@ impl Client {
 
     pub fn drop_inventory_slot(&mut self, x: usize) {
         self.postbox.send_message(ClientMsg::DropInventorySlot(x))
+    }
+
+    pub fn pick_up(&mut self, entity: EcsEntity) {
+        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+            self.postbox.send_message(ClientMsg::PickUp(uid.id()));
+        }
     }
 
     pub fn view_distance(&self) -> Option<u32> {

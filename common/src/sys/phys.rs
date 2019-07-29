@@ -63,7 +63,12 @@ impl<'a> System<'a> for Sys {
         {
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
-            let friction = 50.0 * if a.on_ground { FRIC_GROUND } else { FRIC_AIR };
+            let friction = 50.0
+                * if on_grounds.get(entity).is_some() {
+                    FRIC_GROUND
+                } else {
+                    FRIC_AIR
+                };
             vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
 
             // Basic collision with terrain

@@ -30,6 +30,7 @@ pub enum ClientMsg {
     },
     SwapInventorySlots(usize, usize),
     DropInventorySlot(usize),
+    PickUp(u64),
     TerrainChunkRequest {
         key: Vec2<i32>,
     },
