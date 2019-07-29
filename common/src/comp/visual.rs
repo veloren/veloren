@@ -1,6 +1,6 @@
 use specs::{Component, FlaggedStorage};
-use vek::*;
 use specs_idvs::IDVStorage;
+use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LightEmitter {
