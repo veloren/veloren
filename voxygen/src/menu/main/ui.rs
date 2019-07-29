@@ -3,7 +3,7 @@ use crate::{
     ui::{
         self,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        Ui,
+        Tooltip, Tooltipable, Ui,
     },
     GlobalState,
 };
@@ -139,7 +139,7 @@ impl MainMenuUi {
 
     fn update_layout(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
-        let ref mut ui_widgets = self.ui.set_widgets();
+        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
@@ -427,6 +427,14 @@ impl MainMenuUi {
                     .label_color(TEXT_COLOR)
                     .label_font_size(24)
                     .label_y(Relative::Scalar(5.0))
+                    .with_tooltip(
+                        tooltip_manager,
+                        Tooltip::new("Login", "Click to login with the entered details")
+                            .title_font_size(15)
+                            .desc_font_size(10)
+                            .title_text_color(TEXT_COLOR)
+                            .desc_text_color(TEXT_COLOR_2),
+                    )
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()
                 {
