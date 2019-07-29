@@ -1,6 +1,6 @@
 use specs::{Component, FlaggedStorage};
-use vek::*;
 use specs_idvs::IDVStorage;
+use vek::*;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
