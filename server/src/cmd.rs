@@ -643,10 +643,10 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 .write_storage::<comp::LightEmitter>()
                 .get_mut(entity)
             {
-                light.strength = s.max(0.1);
+                light.strength = s.max(0.1).min(20.0);
                 server.clients.notify(
                     entity,
-                    ServerMsg::chat(String::from("You played with flame strength.")),
+                    ServerMsg::chat(String::from("You played with the lantern intensity.")),
                 );
             }
         } else {
@@ -657,7 +657,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 .remove(entity);
             server.clients.notify(
                 entity,
-                ServerMsg::chat(String::from("You put out the lantern.")),
+                ServerMsg::chat(String::from("You snuff out your lantern.")),
             );
         }
     } else {
@@ -668,15 +668,15 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
             .insert(
                 entity,
                 comp::LightEmitter {
-                    offset: Vec3::new(1.0, 0.2, 0.8),
-                    col: Rgb::new(0.824, 0.365, 0.196),
-                    strength: if let Some(s) = opt_s { s.max(0.0) } else { 2.0 },
+                    offset: Vec3::new(0.5, 0.2, 0.8),
+                    col: Rgb::new(1.0, 0.75, 0.3),
+                    strength: if let Some(s) = opt_s { s.max(0.0) } else { 6.0 },
                 },
             );
 
         server.clients.notify(
             entity,
-            ServerMsg::chat(String::from("You lighted your lantern.")),
+            ServerMsg::chat(String::from("You light your lantern.")),
         );
     }
 }
