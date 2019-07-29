@@ -37,7 +37,7 @@ use crate::{
 use heaptrack::track_mem;
 use log::{self, debug, error, info, warn};
 
-use simplelog::{CombinedLogger, Config, TermLogger, WriteLogger};
+use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
 track_mem!();
@@ -121,7 +121,7 @@ fn main() {
         .and_then(|s| log::LevelFilter::from_str(&s).ok())
         .unwrap_or(log::LevelFilter::Warn);
     CombinedLogger::init(vec![
-        TermLogger::new(term_log_level, Config::default()).unwrap(),
+        TermLogger::new(term_log_level, Config::default(), TerminalMode::Mixed).unwrap(),
         WriteLogger::new(
             log::LevelFilter::Info,
             Config::default(),

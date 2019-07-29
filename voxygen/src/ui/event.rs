@@ -4,7 +4,10 @@ use vek::*;
 #[derive(Clone)]
 pub struct Event(pub Input);
 impl Event {
-    pub fn try_from(event: glutin::Event, window: &glutin::GlWindow) -> Option<Self> {
+    pub fn try_from(
+        event: glutin::Event,
+        window: &glutin::ContextWrapper<glutin::PossiblyCurrent, winit::Window>,
+    ) -> Option<Self> {
         use conrod_winit::*;
         // A wrapper around the winit window that allows us to implement the trait necessary for
         // enabling the winit <-> conrod conversion functions.

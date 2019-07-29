@@ -10,6 +10,8 @@ mod settings_window;
 mod skillbar;
 mod small_window;
 
+pub use settings_window::ScaleChange;
+
 use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
@@ -28,7 +30,7 @@ use crate::{
     scene::camera::Camera,
     settings::ControlSettings,
     ui::{Ingameable, ScaleMode, Ui},
-    window::{Event as WinEvent, GameInput, Window},
+    window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
@@ -121,7 +123,7 @@ pub struct DebugInfo {
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
 }
-#[derive(Serialize, Deserialize)]
+
 pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
@@ -132,7 +134,7 @@ pub enum Event {
     ChangeMaxFPS(u32),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
-    //UiScale(f32),
+    UiScale(ScaleChange),
     CharacterSelection,
     Logout,
     Quit,
@@ -283,13 +285,12 @@ pub struct Hud {
 }
 
 impl Hud {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
+        let window = &mut global_state.window;
+        let settings = &global_state.settings;
+
         let mut ui = Ui::new(window).unwrap();
-        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-        let ui_scale = 0.7;
-        ui.scaling_mode(ScaleMode::RelativeToWindow(
-            window.renderer().get_resolution().map(|e| e as f64) / ui_scale as f64,
-        ));
+        ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
         // Load images.
@@ -668,6 +669,9 @@ impl Hud {
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
                     }
+                    settings_window::Event::UiScale(scale_change) => {
+                        events.push(Event::UiScale(scale_change));
+                    }
                 }
             }
         }
@@ -752,6 +756,16 @@ impl Hud {
 
     pub fn new_message(&mut self, msg: ClientEvent) {
         self.new_messages.push_back(msg);
+    }
+
+    pub fn scale_change(&mut self, scale_change: ScaleChange) -> ScaleMode {
+        let scale_mode = match scale_change {
+            ScaleChange::Adjust(scale) => ScaleMode::Absolute(scale),
+            ScaleChange::ToAbsolute => self.ui.scale().scaling_mode_as_absolute(),
+            ScaleChange::ToRelative => self.ui.scale().scaling_mode_as_relative(),
+        };
+        self.ui.set_scaling_mode(scale_mode);
+        scale_mode
     }
 
     // Checks if a TextEdit widget has the keyboard captured.
