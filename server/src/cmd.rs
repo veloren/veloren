@@ -505,9 +505,10 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     /*let builder = server
     .create_object(pos, ori, obj_type)
     .with(ori);*/
+    let body_elements = comp::object::BodyElements::new();
     if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_type = match obj_type.as_ref().map(String::as_str) {
-            Some(obj_str) => match comp::object::Body::find(obj_str) {
+            Some(obj_str) => match body_elements.get_body(obj_str) {
                 Some(body_obj) => body_obj,
                 None => {
                     return server
@@ -518,8 +519,8 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             None => {
                 // TODO: Move to /help object when/if #365 is approved. https://gitlab.com/veloren/veloren/merge_requests/365
                 let mut objects_string = String::from("List of objects:\n");
-                for enum_value in comp::object::Body::all().iter() {
-                    objects_string.push_str(format!("{}\n", enum_value.to_string()).as_ref());
+                for (string_name, _) in body_elements.0 {
+                    objects_string.push_str(format!("{}\n", string_name.to_string()).as_ref());
                 }
 
                 return server

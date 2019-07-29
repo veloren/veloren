@@ -1,3 +1,4 @@
+use bimap::BiMap;
 use rand::{seq::SliceRandom, thread_rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -49,114 +50,74 @@ pub enum Body {
     CarpetHumanSquare2,
     CarpetHumanSquircle,
 }
+
+pub struct BodyElements<L: Eq, R: Eq>(pub BiMap<L, R>);
+
+impl BodyElements<&str, Body> {
+    pub fn new() -> Self {
+        let mut elements = BiMap::new();
+        elements.insert("bomb", Body::Bomb);
+        elements.insert("scarecrow", Body::Scarecrow);
+        elements.insert("cauldron", Body::Cauldron);
+        elements.insert("chest_vines", Body::ChestVines);
+        elements.insert("chest", Body::Chest);
+        elements.insert("chest_dark", Body::ChestDark);
+        elements.insert("chest_demon", Body::ChestDemon);
+        elements.insert("chest_gold", Body::ChestGold);
+        elements.insert("chest_light", Body::ChestLight);
+        elements.insert("chest_open", Body::ChestOpen);
+        elements.insert("chest_skull", Body::ChestSkull);
+        elements.insert("pumpkin", Body::Pumpkin);
+        elements.insert("pumpkin_2", Body::Pumpkin2);
+        elements.insert("pumpkin_3", Body::Pumpkin3);
+        elements.insert("pumpkin_4", Body::Pumpkin4);
+        elements.insert("pumpkin_5", Body::Pumpkin5);
+        elements.insert("campfire", Body::Campfire);
+        elements.insert("lantern_ground", Body::LanternGround);
+        elements.insert("lantern_ground_open", Body::LanternGroundOpen);
+        elements.insert("lantern", Body::LanternStanding);
+        elements.insert("lantern_2", Body::LanternStanding2);
+        elements.insert("potion_red", Body::PotionRed);
+        elements.insert("potion_green", Body::PotionGreen);
+        elements.insert("potion_blue", Body::PotionBlue);
+        elements.insert("crate", Body::Crate);
+        elements.insert("tent", Body::Tent);
+        elements.insert("window_spooky", Body::WindowSpooky);
+        elements.insert("door_spooky", Body::DoorSpooky);
+        elements.insert("anvil", Body::Anvil);
+        elements.insert("gravestone", Body::Gravestone);
+        elements.insert("gravestone_2", Body::Gravestone2);
+        elements.insert("bench", Body::Bench);
+        elements.insert("chair", Body::Chair);
+        elements.insert("chair_2", Body::Chair2);
+        elements.insert("chair_3", Body::Chair3);
+        elements.insert("table_human", Body::Table);
+        elements.insert("table_human_2", Body::Table2);
+        elements.insert("table_human_3", Body::Table3);
+        elements.insert("drawer", Body::Drawer);
+        elements.insert("bed_human_blue", Body::BedBlue);
+        elements.insert("carpet", Body::Carpet);
+        elements.insert("bedroll", Body::Bedroll);
+        elements.insert("carpet_human_round", Body::CarpetHumanRound);
+        elements.insert("carpet_human_square", Body::CarpetHumanSquare);
+        elements.insert("carpet_human_square_2", Body::CarpetHumanSquare2);
+        elements.insert("carpet_human_squircle", Body::CarpetHumanSquircle);
+        BodyElements(elements)
+    }
+    pub fn get_body(&self, request_object: &str) -> Option<Body> {
+        self.0.get_by_left(&request_object).map(|x| x.to_owned())
+    }
+    pub fn to_string(&self, request_body: &Body) -> Option<String> {
+        self.0.get_by_right(&request_body).map(|s| s.to_string())
+    }
+}
+
 impl Body {
-    pub fn find(request_object: &str) -> Option<Body> {
-        let obj = match request_object {
-            "bomb" => Body::Bomb,
-            "scarecrow" => Body::Scarecrow,
-            "cauldron" => Body::Cauldron,
-            "chest_vines" => Body::ChestVines,
-            "chest" => Body::Chest,
-            "chest_dark" => Body::ChestDark,
-            "chest_demon" => Body::ChestDemon,
-            "chest_gold" => Body::ChestGold,
-            "chest_light" => Body::ChestLight,
-            "chest_open" => Body::ChestOpen,
-            "chest_skull" => Body::ChestSkull,
-            "pumpkin" => Body::Pumpkin,
-            "pumpkin_2" => Body::Pumpkin2,
-            "pumpkin_3" => Body::Pumpkin3,
-            "pumpkin_4" => Body::Pumpkin4,
-            "pumpkin_5" => Body::Pumpkin5,
-            "campfire" => Body::Campfire,
-            "lantern_ground" => Body::LanternGround,
-            "lantern_ground_open" => Body::LanternGroundOpen,
-            "lantern" => Body::LanternStanding,
-            "lantern_2" => Body::LanternStanding2,
-            "potion_red" => Body::PotionRed,
-            "potion_green" => Body::PotionGreen,
-            "potion_blue" => Body::PotionBlue,
-            "crate" => Body::Crate,
-            "tent" => Body::Tent,
-            "window_spooky" => Body::WindowSpooky,
-            "door_spooky" => Body::DoorSpooky,
-            "anvil" => Body::Anvil,
-            "gravestone" => Body::Gravestone,
-            "gravestone_2" => Body::Gravestone2,
-            "bench" => Body::Bench,
-            "chair" => Body::Chair,
-            "chair_2" => Body::Chair2,
-            "chair_3" => Body::Chair3,
-            "table_human" => Body::Table,
-            "table_human_2" => Body::Table2,
-            "table_human_3" => Body::Table3,
-            "drawer" => Body::Drawer,
-            "bed_human_blue" => Body::BedBlue,
-            "carpet" => Body::Carpet,
-            "bedroll" => Body::Bedroll,
-            "carpet_human_round" => Body::CarpetHumanRound,
-            "carpet_human_square" => Body::CarpetHumanSquare,
-            "carpet_human_square_2" => Body::CarpetHumanSquare2,
-            "carpet_human_squircle" => Body::CarpetHumanSquircle,
-            _ => return None,
-        };
-        Some(obj)
-    }
-    pub fn to_string(&self) -> String {
-        let object_str = match self {
-            Body::Bomb => "bomb",
-            Body::Scarecrow => "scarecrow",
-            Body::Cauldron => "cauldron",
-            Body::ChestVines => "chest_vines",
-            Body::Chest => "chest",
-            Body::ChestDark => "chest_dark",
-            Body::ChestDemon => "chest_demon",
-            Body::ChestGold => "chest_gold",
-            Body::ChestLight => "chest_light",
-            Body::ChestOpen => "chest_open",
-            Body::ChestSkull => "chest_skull",
-            Body::Pumpkin => "pumpkin",
-            Body::Pumpkin2 => "pumpkin_2",
-            Body::Pumpkin3 => "pumpkin_3",
-            Body::Pumpkin4 => "pumpkin_4",
-            Body::Pumpkin5 => "pumpkin_5",
-            Body::Campfire => "campfire",
-            Body::LanternGround => "lantern_ground",
-            Body::LanternGroundOpen => "lantern_ground_open",
-            Body::LanternStanding => "lantern",
-            Body::LanternStanding2 => "lantern_2",
-            Body::PotionRed => "potion_red",
-            Body::PotionGreen => "potion_green",
-            Body::PotionBlue => "potion_blue",
-            Body::Crate => "crate",
-            Body::Tent => "tent",
-            Body::WindowSpooky => "window_spooky",
-            Body::DoorSpooky => "door_spooky",
-            Body::Anvil => "anvil",
-            Body::Gravestone => "gravestone",
-            Body::Gravestone2 => "gravestone_2",
-            Body::Bench => "bench",
-            Body::Chair => "chair",
-            Body::Chair2 => "chair_2",
-            Body::Chair3 => "chair_3",
-            Body::Table => "table_human",
-            Body::Table2 => "table_human_2",
-            Body::Table3 => "table_human_3",
-            Body::Drawer => "drawer",
-            Body::BedBlue => "bed_human_blue",
-            Body::Carpet => "carpet",
-            Body::Bedroll => "bedroll",
-            Body::CarpetHumanRound => "carpet_human_round",
-            Body::CarpetHumanSquare => "carpet_human_square",
-            Body::CarpetHumanSquare2 => "carpet_human_square_2",
-            Body::CarpetHumanSquircle => "carpet_human_squircle",
-        };
-        String::from(object_str)
-    }
     pub fn all() -> [Body; 46] {
         ALL_OBJECTS
     }
 }
+
 #[cfg(test)]
 mod body_tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -164,11 +125,17 @@ mod body_tests {
 
     #[test]
     fn test_body_enum_to_string_and_string_to_enum() {
-        for enum_value in Body::all().iter() {
-            let enum_str: String = enum_value.to_string();
-            let new_enum = Body::find(&enum_str)
+        let body = BodyElements::new();
+        for (enum_str, body_value) in &body.0 {
+            let cmp_enum_body = body
+                .get_body(&enum_str)
                 .expect(format!("Should be able to find: {}", enum_str).as_ref());
-            assert_eq!(enum_value, &new_enum);
+            let cmp_enum_str_from_body = body
+                .to_string(&body_value)
+                .expect("Should find string from Body");
+
+            assert_eq!(body_value, &cmp_enum_body);
+            assert_eq!(cmp_enum_str_from_body, enum_str.to_string());
         }
     }
 }
