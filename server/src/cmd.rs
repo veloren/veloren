@@ -547,7 +547,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             }
         };
         server
-            .create_object(pos, ori, obj_type)
+            .create_object(pos, obj_type)
             .with(comp::Ori(
                 // converts player orientation into a 90° rotation for the object by using the axis with the highest value
                 ori.0
