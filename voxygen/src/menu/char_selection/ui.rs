@@ -242,7 +242,7 @@ impl CharSelectionUi {
     // TODO: Split this into multiple modules or functions.
     fn update_layout(&mut self, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
-        let ref mut ui_widgets = self.ui.set_widgets();
+        let ref mut ui_widgets = self.ui.set_widgets().0;
         let version = env!("CARGO_PKG_VERSION");
 
         // Character Selection /////////////////

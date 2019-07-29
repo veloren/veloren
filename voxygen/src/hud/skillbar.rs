@@ -9,6 +9,7 @@ widget_ids! {
     struct Ids {
         health_bar,
         health_bar_color,
+        health_tooltip,
         l_click,
         level_text,
         mana_bar,
