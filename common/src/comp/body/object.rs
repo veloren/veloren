@@ -112,12 +112,6 @@ impl BodyElements<&str, Body> {
     }
 }
 
-impl Body {
-    pub fn all() -> [Body; 46] {
-        ALL_OBJECTS
-    }
-}
-
 #[cfg(test)]
 mod body_tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
