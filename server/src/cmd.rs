@@ -15,7 +15,7 @@ use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
 use lazy_static::lazy_static;
-use scan_fmt::scan_fmt;
+use scan_fmt::{scan_fmt, scan_fmt_some};
 
 /// Struct representing a command that a user can run from server chat.
 pub struct ChatCommand {
@@ -155,7 +155,8 @@ lazy_static! {
 }
 
 fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+    let (opt_x, opt_y, opt_z) = scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32);
+
     match (opt_x, opt_y, opt_z) {
         (Some(x), Some(y), Some(z)) => {
             match server.state.read_component_cloned::<comp::Pos>(entity) {
@@ -178,7 +179,14 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 }
 
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (opt_x, opt_y, opt_z) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32);
+    let (mut opt_x, mut opt_y, mut opt_z) = (None, None, None);
+
+    if let Ok((opt_x1, opt_y1, opt_z1)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
+        opt_x = Some(opt_x1);
+        opt_y = Some(opt_y1);
+        opt_z = Some(opt_z1);
+    }
+
     match server.state.read_component_cloned::<comp::Pos>(entity) {
         Some(_pos) => match (opt_x, opt_y, opt_z) {
             (Some(x), Some(y), Some(z)) => {
@@ -212,11 +220,11 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let time = scan_fmt!(&args, action.arg_fmt, String);
     let new_time = match time.as_ref().map(|s| s.as_str()) {
-        Some("night") => NaiveTime::from_hms(0, 0, 0),
-        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Some("day") => NaiveTime::from_hms(12, 0, 0),
-        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
-        Some(n) => match n.parse() {
+        Ok("night") => NaiveTime::from_hms(0, 0, 0),
+        Ok("dawn") => NaiveTime::from_hms(5, 0, 0),
+        Ok("day") => NaiveTime::from_hms(12, 0, 0),
+        Ok("dusk") => NaiveTime::from_hms(17, 0, 0),
+        Ok(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
                 Ok(time) => time,
@@ -229,7 +237,7 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
             },
         },
-        None => {
+        Err(_) => {
             let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
             let current_time = NaiveTime::from_num_seconds_from_midnight(time_in_seconds as u32, 0);
             server.clients.notify(
@@ -265,8 +273,8 @@ fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &
         .get_mut(entity)
     {
         Some(stats) => match opt_hp {
-            Some(hp) => stats.health.set_to(hp, comp::HealthSource::Command),
-            None => {
+            Ok(hp) => stats.health.set_to(hp, comp::HealthSource::Command),
+            Err(_) => {
                 server.clients.notify(
                     entity,
                     ServerMsg::private(String::from("You must specify health amount!")),
@@ -283,7 +291,7 @@ fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
-        Some(alias) => {
+        Ok(alias) => {
             server
                 .state
                 .ecs_mut()
@@ -291,7 +299,7 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
                 .get_mut(entity)
                 .map(|player| player.alias = alias);
         }
-        None => server
+        Err(_) => server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string))),
     }
@@ -300,7 +308,7 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
 fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
-        Some(alias) => {
+        Ok(alias) => {
             let ecs = server.state.ecs();
             let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
@@ -338,54 +346,55 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 }
             }
         }
-        None => server
+        Err(_) => server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string))),
     }
 }
 
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (opt_align, opt_id, opt_amount) = scan_fmt!(&args, action.arg_fmt, String, NpcKind, String);
-    // This should be just an enum handled with scan_fmt!
-    let opt_agent = alignment_to_agent(&opt_align.unwrap_or(String::new()), entity);
-    let _objtype = scan_fmt!(&args, action.arg_fmt, String);
-    // Make sure the amount is either not provided or a valid value
-    let opt_amount = opt_amount
-        .map_or(Some(1), |a| a.parse().ok())
-        .and_then(|a| if a > 0 { Some(a) } else { None });
+    match scan_fmt!(&args, action.arg_fmt, String, NpcKind, String) {
+        Ok((opt_align, id, opt_amount)) => {
+            if let Some(agent) = alignment_to_agent(&opt_align, entity) {
+                let _objtype = scan_fmt!(&args, action.arg_fmt, String);
+                let amount = Some(opt_amount)
+                    .map_or(Some(1), |a| a.parse().ok())
+                    .and_then(|a| if a > 0 { Some(a) } else { None })
+                    .unwrap();
 
-    match (opt_agent, opt_id, opt_amount) {
-        (Some(agent), Some(id), Some(amount)) => {
-            match server.state.read_component_cloned::<comp::Pos>(entity) {
-                Some(pos) => {
-                    for _ in 0..amount {
-                        let vel = Vec3::new(
-                            rand::thread_rng().gen_range(-2.0, 3.0),
-                            rand::thread_rng().gen_range(-2.0, 3.0),
-                            10.0,
+                match server.state.read_component_cloned::<comp::Pos>(entity) {
+                    Some(pos) => {
+                        for _ in 0..amount {
+                            let vel = Vec3::new(
+                                rand::thread_rng().gen_range(-2.0, 3.0),
+                                rand::thread_rng().gen_range(-2.0, 3.0),
+                                10.0,
+                            );
+
+                            let body = kind_to_body(id);
+                            server
+                                .create_npc(pos, get_npc_name(id), body)
+                                .with(comp::Vel(vel))
+                                .with(agent)
+                                .build();
+                        }
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::private(format!("Spawned {} entities", amount).to_owned()),
                         );
-
-                        let body = kind_to_body(id);
-                        server
-                            .create_npc(pos, get_npc_name(id), body)
-                            .with(comp::Vel(vel))
-                            .with(agent)
-                            .build();
                     }
-                    server.clients.notify(
+                    None => server.clients.notify(
                         entity,
-                        ServerMsg::private(format!("Spawned {} entities", amount).to_owned()),
-                    );
+                        ServerMsg::private("You have no position!".to_owned()),
+                    ),
                 }
-                None => server.clients.notify(
-                    entity,
-                    ServerMsg::private("You have no position!".to_owned()),
-                ),
             }
         }
-        _ => server
-            .clients
-            .notify(entity, ServerMsg::private(String::from(action.help_string))),
+        Err(_) => {
+            server
+                .clients
+                .notify(entity, ServerMsg::private(String::from(action.help_string)));
+        }
     }
 }
 
@@ -507,52 +516,52 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
         let obj_type = match obj_type.as_ref().map(String::as_str) {
-            Some("scarecrow") => comp::object::Body::Scarecrow,
-            Some("cauldron") => comp::object::Body::Cauldron,
-            Some("chest_vines") => comp::object::Body::ChestVines,
-            Some("chest") => comp::object::Body::Chest,
-            Some("chest_dark") => comp::object::Body::ChestDark,
-            Some("chest_demon") => comp::object::Body::ChestDemon,
-            Some("chest_gold") => comp::object::Body::ChestGold,
-            Some("chest_light") => comp::object::Body::ChestLight,
-            Some("chest_open") => comp::object::Body::ChestOpen,
-            Some("chest_skull") => comp::object::Body::ChestSkull,
-            Some("pumpkin") => comp::object::Body::Pumpkin,
-            Some("pumpkin_2") => comp::object::Body::Pumpkin2,
-            Some("pumpkin_3") => comp::object::Body::Pumpkin3,
-            Some("pumpkin_4") => comp::object::Body::Pumpkin4,
-            Some("pumpkin_5") => comp::object::Body::Pumpkin5,
-            Some("campfire") => comp::object::Body::Campfire,
-            Some("lantern_ground") => comp::object::Body::LanternGround,
-            Some("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
-            Some("lantern_2") => comp::object::Body::LanternStanding2,
-            Some("lantern") => comp::object::Body::LanternStanding,
-            Some("potion_blue") => comp::object::Body::PotionBlue,
-            Some("potion_green") => comp::object::Body::PotionGreen,
-            Some("potion_red") => comp::object::Body::PotionRed,
-            Some("crate") => comp::object::Body::Crate,
-            Some("tent") => comp::object::Body::Tent,
-            Some("bomb") => comp::object::Body::Bomb,
-            Some("window_spooky") => comp::object::Body::WindowSpooky,
-            Some("door_spooky") => comp::object::Body::DoorSpooky,
-            Some("carpet") => comp::object::Body::Carpet,
-            Some("table_human") => comp::object::Body::Table,
-            Some("table_human_2") => comp::object::Body::Table2,
-            Some("table_human_3") => comp::object::Body::Table3,
-            Some("drawer") => comp::object::Body::Drawer,
-            Some("bed_human_blue") => comp::object::Body::BedBlue,
-            Some("anvil") => comp::object::Body::Anvil,
-            Some("gravestone") => comp::object::Body::Gravestone,
-            Some("gravestone_2") => comp::object::Body::Gravestone2,
-            Some("chair") => comp::object::Body::Chair,
-            Some("chair_2") => comp::object::Body::Chair2,
-            Some("chair_3") => comp::object::Body::Chair3,
-            Some("bench_human") => comp::object::Body::Bench,
-            Some("bedroll") => comp::object::Body::Bedroll,
-            Some("carpet_human_round") => comp::object::Body::CarpetHumanRound,
-            Some("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
-            Some("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
-            Some("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
+            Ok("scarecrow") => comp::object::Body::Scarecrow,
+            Ok("cauldron") => comp::object::Body::Cauldron,
+            Ok("chest_vines") => comp::object::Body::ChestVines,
+            Ok("chest") => comp::object::Body::Chest,
+            Ok("chest_dark") => comp::object::Body::ChestDark,
+            Ok("chest_demon") => comp::object::Body::ChestDemon,
+            Ok("chest_gold") => comp::object::Body::ChestGold,
+            Ok("chest_light") => comp::object::Body::ChestLight,
+            Ok("chest_open") => comp::object::Body::ChestOpen,
+            Ok("chest_skull") => comp::object::Body::ChestSkull,
+            Ok("pumpkin") => comp::object::Body::Pumpkin,
+            Ok("pumpkin_2") => comp::object::Body::Pumpkin2,
+            Ok("pumpkin_3") => comp::object::Body::Pumpkin3,
+            Ok("pumpkin_4") => comp::object::Body::Pumpkin4,
+            Ok("pumpkin_5") => comp::object::Body::Pumpkin5,
+            Ok("campfire") => comp::object::Body::Campfire,
+            Ok("lantern_ground") => comp::object::Body::LanternGround,
+            Ok("lantern_ground_open") => comp::object::Body::LanternGroundOpen,
+            Ok("lantern_2") => comp::object::Body::LanternStanding2,
+            Ok("lantern") => comp::object::Body::LanternStanding,
+            Ok("potion_blue") => comp::object::Body::PotionBlue,
+            Ok("potion_green") => comp::object::Body::PotionGreen,
+            Ok("potion_red") => comp::object::Body::PotionRed,
+            Ok("crate") => comp::object::Body::Crate,
+            Ok("tent") => comp::object::Body::Tent,
+            Ok("bomb") => comp::object::Body::Bomb,
+            Ok("window_spooky") => comp::object::Body::WindowSpooky,
+            Ok("door_spooky") => comp::object::Body::DoorSpooky,
+            Ok("carpet") => comp::object::Body::Carpet,
+            Ok("table_human") => comp::object::Body::Table,
+            Ok("table_human_2") => comp::object::Body::Table2,
+            Ok("table_human_3") => comp::object::Body::Table3,
+            Ok("drawer") => comp::object::Body::Drawer,
+            Ok("bed_human_blue") => comp::object::Body::BedBlue,
+            Ok("anvil") => comp::object::Body::Anvil,
+            Ok("gravestone") => comp::object::Body::Gravestone,
+            Ok("gravestone_2") => comp::object::Body::Gravestone2,
+            Ok("chair") => comp::object::Body::Chair,
+            Ok("chair_2") => comp::object::Body::Chair2,
+            Ok("chair_3") => comp::object::Body::Chair3,
+            Ok("bench_human") => comp::object::Body::Bench,
+            Ok("bedroll") => comp::object::Body::Bedroll,
+            Ok("carpet_human_round") => comp::object::Body::CarpetHumanRound,
+            Ok("carpet_human_square") => comp::object::Body::CarpetHumanSquare,
+            Ok("carpet_human_square_2") => comp::object::Body::CarpetHumanSquare2,
+            Ok("carpet_human_squircle") => comp::object::Body::CarpetHumanSquircle,
             _ => {
                 return server
                     .clients
@@ -586,7 +595,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
 
 fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
-        scan_fmt!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
+        scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
 
     let mut light_emitter = comp::LightEmitter::default();
 
@@ -636,7 +645,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
         .get(entity)
         .is_some()
     {
-        if let Some(s) = opt_s {
+        if let Ok(s) = opt_s {
             if let Some(light) = server
                 .state
                 .ecs()
@@ -670,7 +679,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 comp::LightEmitter {
                     offset: Vec3::new(0.5, 0.2, 0.8),
                     col: Rgb::new(1.0, 0.75, 0.3),
-                    strength: if let Some(s) = opt_s { s.max(0.0) } else { 6.0 },
+                    strength: if let Ok(s) = opt_s { s.max(0.0) } else { 6.0 },
                 },
             );
 
@@ -684,7 +693,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
     match opt_alias {
-        Some(alias) => {
+        Ok(alias) => {
             let ecs = server.state.ecs();
             let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
                 .join()
@@ -741,7 +750,7 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
             }
         }
-        None => server
+        Err(_) => server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string))),
     }
