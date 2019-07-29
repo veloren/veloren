@@ -16,6 +16,7 @@ pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
     toggle_button::ToggleButton,
+    tooltip::{Tooltip, Tooltipable},
 };
 
 use crate::{
@@ -44,9 +45,11 @@ use std::{
     io::{BufReader, Read},
     ops::Range,
     sync::Arc,
+    time::Duration,
 };
 use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
+use widgets::tooltip::TooltipManager;
 
 #[derive(Debug)]
 pub enum UiError {
@@ -106,6 +109,8 @@ pub struct Ui {
     need_cache_resize: bool,
     // Scaling of the ui
     scale: Scale,
+    // Tooltips
+    tooltip_manager: TooltipManager,
 }
 
 impl Ui {
@@ -115,8 +120,16 @@ impl Ui {
 
         let renderer = window.renderer_mut();
 
+        let mut ui = UiBuilder::new(win_dims).build();
+        let tooltip_manager = TooltipManager::new(
+            ui.widget_id_generator(),
+            Duration::from_millis(1000),
+            Duration::from_millis(1000),
+            scale.scale_factor_logical(),
+        );
+
         Ok(Self {
-            ui: UiBuilder::new(win_dims).build(),
+            ui,
             image_map: Map::new(),
             cache: Cache::new(renderer)?,
             draw_commands: vec![],
@@ -127,6 +140,7 @@ impl Ui {
             window_resized: None,
             need_cache_resize: false,
             scale,
+            tooltip_manager,
         })
     }
 
@@ -157,8 +171,8 @@ impl Ui {
         self.ui.widget_id_generator()
     }
 
-    pub fn set_widgets(&mut self) -> UiCell {
-        self.ui.set_widgets()
+    pub fn set_widgets(&mut self) -> (UiCell, &mut TooltipManager) {
+        (self.ui.set_widgets(), &mut self.tooltip_manager)
     }
 
     // Accepts Option so widget can be unfocused.
@@ -221,6 +235,10 @@ impl Ui {
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, cam_params: Option<(Mat4<f32>, f32)>) {
+        // Maintain tooltip manager
+        self.tooltip_manager
+            .maintain(self.ui.global_input(), self.scale.scale_factor_logical());
+
         // Regenerate draw commands and associated models only if the ui changed
         let mut primitives = match self.ui.draw_if_changed() {
             Some(primitives) => primitives,
