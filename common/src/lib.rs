@@ -58,4 +58,9 @@ pub enum ChatType {
     GameUpdate,
     Private,
     Tell,
+    Say,
+    Group,
+    Faction,
+    Meta,
+    Kill,
 }

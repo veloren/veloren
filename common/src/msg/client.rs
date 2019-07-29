@@ -65,4 +65,10 @@ impl ClientMsg {
             message,
         }
     }
+    pub fn kill(message: String) -> ClientMsg {
+        ClientMsg::ChatMsg {
+            chat_type: ChatType::Private,
+            message,
+        }
+    }
 }
