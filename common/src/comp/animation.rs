@@ -1,4 +1,5 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
+use specs_idvs::IDVStorage;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Animation {
@@ -29,5 +30,5 @@ impl Default for AnimationInfo {
 }
 
 impl Component for AnimationInfo {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

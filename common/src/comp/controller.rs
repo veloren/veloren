@@ -1,5 +1,6 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
 use vek::*;
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Controller {
@@ -12,5 +13,5 @@ pub struct Controller {
 }
 
 impl Component for Controller {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

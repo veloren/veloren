@@ -1,12 +1,13 @@
-use specs::{Component, NullStorage, VecStorage};
+use specs::{Component, NullStorage};
 use vek::*;
+use specs_idvs::IDVStorage;
 
 // Position
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Pos(pub Vec3<f32>);
 
 impl Component for Pos {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
 
 // Velocity
@@ -14,7 +15,7 @@ impl Component for Pos {
 pub struct Vel(pub Vec3<f32>);
 
 impl Component for Vel {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
 
 // Orientation
@@ -22,7 +23,7 @@ impl Component for Vel {
 pub struct Ori(pub Vec3<f32>);
 
 impl Component for Ori {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
 
 // ForceUpdate

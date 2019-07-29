@@ -1,4 +1,5 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use specs::{Component, FlaggedStorage, NullStorage};
+use specs_idvs::IDVStorage;
 
 const MAX_ALIAS_LEN: usize = 32;
 
@@ -23,7 +24,7 @@ impl Player {
 }
 
 impl Component for Player {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

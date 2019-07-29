@@ -1,5 +1,6 @@
-use specs::{Component, Entity as EcsEntity, VecStorage};
+use specs::{Component, Entity as EcsEntity};
 use vek::*;
+use specs_idvs::IDVStorage;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Agent {
@@ -14,5 +15,5 @@ pub enum Agent {
 }
 
 impl Component for Agent {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
