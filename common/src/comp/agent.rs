@@ -1,6 +1,6 @@
 use specs::{Component, Entity as EcsEntity};
-use vek::*;
 use specs_idvs::IDVStorage;
+use vek::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Agent {

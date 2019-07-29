@@ -1,6 +1,6 @@
 use specs::{Component, FlaggedStorage, NullStorage};
-use vek::*;
 use specs_idvs::IDVStorage;
+use vek::*;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Respawning;

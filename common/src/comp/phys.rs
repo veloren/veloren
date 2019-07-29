@@ -1,6 +1,6 @@
 use specs::{Component, NullStorage};
-use vek::*;
 use specs_idvs::IDVStorage;
+use vek::*;
 
 // Position
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
