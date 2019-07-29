@@ -9,6 +9,7 @@ use crate::{
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
 use log::error;
+use specs::Join;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 
@@ -211,6 +212,35 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
                         self.controller.glide = state;
+                    }
+                    Event::InputUpdate(GameInput::Interact, state) => {
+                        let mut client = self.client.borrow_mut();
+
+                        let player_pos = client
+                            .state()
+                            .read_storage::<comp::Pos>()
+                            .get(client.entity())
+                            .copied();
+
+                        if let (Some(player_pos), true) = (player_pos, state) {
+                            let entity = (
+                                &client.state().ecs().entities(),
+                                &client.state().ecs().read_storage::<comp::Pos>(),
+                                &client.state().ecs().read_storage::<comp::Item>(),
+                            )
+                                .join()
+                                .filter(|(_, pos, _)| {
+                                    pos.0.distance_squared(player_pos.0) < 3.0 * 3.0
+                                })
+                                .min_by_key(|(_, pos, _)| {
+                                    (pos.0.distance_squared(player_pos.0) * 1000.0) as i32
+                                })
+                                .map(|(entity, _, _)| entity);
+
+                            if let Some(entity) = entity {
+                                client.pick_up(entity);
+                            }
+                        }
                     }
 
                     // Pass all other events to the scene

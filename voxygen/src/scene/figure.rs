@@ -583,6 +583,7 @@ impl FigureModelCache {
                 "object/carpet_human_squircle.vox",
                 Vec3::new(-21.0, -21.0, -0.5),
             ),
+            object::Body::Pouch => ("object/pouch.vox", Vec3::new(-5.5, -4.5, 0.0)),
         };
         Self::load_mesh(name, offset)
     }
@@ -970,8 +971,13 @@ impl<S: Skeleton> FigureState<S> {
         dt: f32,
     ) {
         // Update interpolation values
-        self.pos = Lerp::lerp(self.pos, pos, 15.0 * dt);
-        self.ori = Slerp::slerp(self.ori, ori, 7.5 * dt);
+        if self.pos.distance_squared(pos) < 64.0 * 64.0 {
+            self.pos = Lerp::lerp(self.pos, pos, 15.0 * dt);
+            self.ori = Slerp::slerp(self.ori, ori, 7.5 * dt);
+        } else {
+            self.pos = pos;
+            self.ori = ori;
+        }
 
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
