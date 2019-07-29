@@ -52,10 +52,15 @@ const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
-const TELL_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
-const BROADCAST_COLOR: Color = Color::Rgba(0.0, 1.0, 0.0, 1.0);
+const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
+const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
+const BROADCAST_COLOR: Color = Color::Rgba(0.28, 0.83, 0.71, 1.0);
 const GAME_UPDATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
+const SAY_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
+const GROUP_COLOR: Color = Color::Rgba(0.47, 0.84, 1.0, 1.0);
+const FACTION_COLOR: Color = Color::Rgba(0.24, 1.0, 0.48, 1.0);
+const KILL_COLOR: Color = Color::Rgba(1.0, 0.17, 0.17, 1.0);
 
 widget_ids! {
     struct Ids {
