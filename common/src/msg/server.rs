@@ -93,4 +93,10 @@ impl ServerMsg {
             message,
         }
     }
+    pub fn kill(message: String) -> ServerMsg {
+        ServerMsg::ChatMsg {
+            chat_type: ChatType::Kill,
+            message,
+        }
+    }
 }

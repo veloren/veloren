@@ -512,7 +512,10 @@ impl Server {
                                 {
                                     new_chat_msgs.push((
                                         None,
-                                        ServerMsg::broadcast(format!("{} joined", &player.alias)),
+                                        ServerMsg::broadcast(format!(
+                                            "[{}] is now online.",
+                                            &player.alias
+                                        )),
                                     ));
                                 }
                             }
@@ -613,7 +616,7 @@ impl Server {
                 if let Some(player) = state.ecs().read_storage::<comp::Player>().get(entity) {
                     new_chat_msgs.push((
                         None,
-                        ServerMsg::broadcast(format!("{} disconnected", &player.alias)),
+                        ServerMsg::broadcast(format!("{} went offline.", &player.alias)),
                     ));
                 }
                 disconnected_clients.push(entity);
@@ -637,7 +640,7 @@ impl Server {
                             let message =
                                 match self.state.ecs().read_storage::<comp::Player>().get(entity) {
                                     Some(player) => format!("[{}] {}", &player.alias, message),
-                                    None => format!("[<anon>] {}", message),
+                                    None => format!("[<Unknown>] {}", message),
                                 };
                             self.clients
                                 .notify_registered(ServerMsg::ChatMsg { chat_type, message });
@@ -737,7 +740,7 @@ impl Server {
                     }
                     .unwrap_or(format!("{} died", &player.alias));
 
-                    clients.notify_registered(ServerMsg::chat(msg));
+                    clients.notify_registered(ServerMsg::kill(msg));
                 }
 
                 // Give EXP to the client
