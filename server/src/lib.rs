@@ -23,6 +23,7 @@ use common::{
     vol::Vox,
 };
 use log::debug;
+use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
@@ -726,10 +727,13 @@ impl Server {
         }
 
         for (pos, ori, item) in dropped_items {
+            let vel = ori.0.normalized() * 5.0
+                + Vec3::unit_z() * 10.0
+                + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
             self.create_object(Default::default(), comp::object::Body::Pouch)
-                .with(comp::Pos(pos.0 + Vec3::unit_z() * 1.0))
+                .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
                 .with(item)
-                .with(comp::Vel(ori.0.normalized() * 2.0 + Vec3::unit_z() * 2.0))
+                .with(comp::Vel(vel))
                 .build();
         }
 
