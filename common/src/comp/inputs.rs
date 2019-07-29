@@ -1,5 +1,6 @@
-use specs::{Component, FlaggedStorage, NullStorage, VecStorage};
+use specs::{Component, FlaggedStorage, NullStorage};
 use vek::*;
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Respawning;
@@ -69,19 +70,19 @@ impl Rolling {
 }
 
 impl Component for MoveDir {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
 
 impl Component for Wielding {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 impl Component for Attacking {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 impl Component for Rolling {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 impl Component for OnGround {

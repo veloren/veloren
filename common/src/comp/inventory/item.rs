@@ -1,4 +1,5 @@
-use specs::{Component, VecStorage};
+use specs::Component;
+use specs_idvs::IDVStorage;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Weapon {
@@ -60,5 +61,5 @@ pub enum Item {
 }
 
 impl Component for Item {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }

@@ -1,5 +1,6 @@
 use crate::state::Uid;
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum HealthSource {
@@ -129,7 +130,7 @@ impl Stats {
 }
 
 impl Component for Stats {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -138,5 +139,5 @@ pub struct Dying {
 }
 
 impl Component for Dying {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
