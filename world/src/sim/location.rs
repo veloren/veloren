@@ -1,5 +1,6 @@
 use super::Settlement;
 use fxhash::FxHashSet;
+use rand::seq::SliceRandom;
 use rand::Rng;
 use vek::*;
 
@@ -37,7 +38,7 @@ pub struct Kingdom {
     region_name: String,
 }
 
-fn generate_name<R: Rng>(rng: &mut R) -> String {
+fn generate_name(rng: &mut impl Rng) -> String {
     let firstsyl = [
         "Eri", "Val", "Gla", "Wilde", "Cold", "Deep", "Dura", "Ester", "Fay", "Dark", "West",
         "East", "North", "South", "Ray", "Eri", "Dal", "Som", "Sommer", "Black", "Iron", "Grey",
@@ -56,13 +57,13 @@ fn generate_name<R: Rng>(rng: &mut R) -> String {
 
     let mut name = String::new();
     if rng.gen() {
-        name += rng.choose(&firstsyl).unwrap();
-        name += rng.choose(&mid).unwrap();
-        name += rng.choose(&tails).unwrap();
+        name += firstsyl.choose(rng).unwrap();
+        name += mid.choose(rng).unwrap();
+        name += tails.choose(rng).unwrap();
         name
     } else {
-        name += rng.choose(&firstsyl).unwrap();
-        name += rng.choose(&tails).unwrap();
+        name += firstsyl.choose(rng).unwrap();
+        name += tails.choose(rng).unwrap();
         name
     }
 }
