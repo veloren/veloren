@@ -1,4 +1,5 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ActionState {
@@ -24,5 +25,5 @@ impl Default for ActionState {
 }
 
 impl Component for ActionState {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

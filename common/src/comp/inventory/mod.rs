@@ -1,4 +1,5 @@
-use specs::{Component, VecStorage};
+use specs::Component;
+use specs_idvs::IDVStorage;
 
 //Re-Exports
 pub mod item;
@@ -42,5 +43,5 @@ impl Inventory {
 }
 
 impl Component for Inventory {
-    type Storage = VecStorage<Self>;
+    type Storage = IDVStorage<Self>;
 }
