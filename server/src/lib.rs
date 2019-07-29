@@ -748,16 +748,16 @@ impl Server {
                             let attacker_stats = stats.get_mut(attacker).unwrap();
 
                             // TODO: Discuss whether we should give EXP by Player Killing or not.
+                            // TODO: Don't make this a single value and make it depend on
+                            // slayed entity's level
+                            attacker_stats.exp.change_current_by(1.0);
+
                             if attacker_stats.exp.get_current() >= attacker_stats.exp.get_maximum()
                             {
                                 attacker_stats.exp.change_maximum_by(25.0);
                                 attacker_stats.exp.set_current(0.0);
                                 attacker_stats.level.change_by(1);
-                            } else {
-                                // TODO: Don't make this a single value and make it depend on
-                                // slayed entity's level
-                                attacker_stats.exp.change_current_by(1.0);
-                            };
+                            }
 
                             ecs.read_storage::<comp::Player>().get(attacker).cloned()
                         });
