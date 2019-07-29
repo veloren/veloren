@@ -48,6 +48,7 @@ pub enum Body {
     CarpetHumanSquare,
     CarpetHumanSquare2,
     CarpetHumanSquircle,
+    Pouch,
 }
 
 impl Body {

@@ -506,11 +506,48 @@ impl Server {
 
                             state.write_component(entity, comp::InventoryUpdate);
 
-                            if let (Some(pos), Some(item)) =
-                                (state.ecs().read_storage::<comp::Pos>().get(entity), item)
+                            if let (Some(item), Some(pos)) =
+                                (item, state.ecs().read_storage::<comp::Pos>().get(entity))
                             {
-                                dropped_items.push((*pos, item));
+                                dropped_items.push((
+                                    *pos,
+                                    state
+                                        .ecs()
+                                        .read_storage::<comp::Ori>()
+                                        .get(entity)
+                                        .copied()
+                                        .unwrap_or(comp::Ori(Vec3::unit_y())),
+                                    item,
+                                ));
                             }
+                        }
+                        ClientMsg::PickUp(uid) => {
+                            let item_entity = state.ecs_mut().entity_from_uid(uid);
+
+                            let ecs = state.ecs_mut();
+
+                            let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
+                                item_entity.and_then(|item_entity| {
+                                    ecs.write_storage::<comp::Item>()
+                                        .get_mut(item_entity)
+                                        .map(|item| (*item, item_entity))
+                                }),
+                                ecs.write_storage::<comp::Inventory>().get_mut(entity),
+                            ) {
+                                if inv.insert(item).is_none() {
+                                    Some(item_entity)
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            };
+
+                            if let Some(item_entity) = item_entity {
+                                let _ = ecs.delete_entity_synced(item_entity);
+                            }
+
+                            state.write_component(entity, comp::InventoryUpdate);
                         }
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.
@@ -688,9 +725,11 @@ impl Server {
             self.state.set_block(pos, block);
         }
 
-        for (pos, item) in dropped_items {
-            self.create_object(pos, comp::object::Body::Crate)
+        for (pos, ori, item) in dropped_items {
+            self.create_object(Default::default(), comp::object::Body::Pouch)
+                .with(comp::Pos(pos.0 + Vec3::unit_z() * 1.0))
                 .with(item)
+                .with(comp::Vel(ori.0.normalized() * 2.0 + Vec3::unit_z() * 2.0))
                 .build();
         }
 
