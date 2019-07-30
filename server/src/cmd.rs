@@ -155,56 +155,43 @@ lazy_static! {
 }
 
 fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (opt_x, opt_y, opt_z) = scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32);
-
-    match (opt_x, opt_y, opt_z) {
-        (Some(x), Some(y), Some(z)) => {
-            match server.state.read_component_cloned::<comp::Pos>(entity) {
-                Some(current_pos) => {
-                    server
-                        .state
-                        .write_component(entity, comp::Pos(current_pos.0 + Vec3::new(x, y, z)));
-                    server.state.write_component(entity, comp::ForceUpdate);
-                }
-                None => server.clients.notify(
-                    entity,
-                    ServerMsg::private(String::from("You have no position!")),
-                ),
+    if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
+        match server.state.read_component_cloned::<comp::Pos>(entity) {
+            Some(current_pos) => {
+                server
+                    .state
+                    .write_component(entity, comp::Pos(current_pos.0 + Vec3::new(x, y, z)));
+                server.state.write_component(entity, comp::ForceUpdate);
             }
+            None => server.clients.notify(
+                entity,
+                ServerMsg::private(String::from("You have no position!")),
+            ),
         }
-        _ => server
-            .clients
-            .notify(entity, ServerMsg::private(String::from(action.help_string))),
     }
 }
 
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let (mut opt_x, mut opt_y, mut opt_z) = (None, None, None);
-
-    if let Ok((opt_x1, opt_y1, opt_z1)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
-        opt_x = Some(opt_x1);
-        opt_y = Some(opt_y1);
-        opt_z = Some(opt_z1);
-    }
-
-    match server.state.read_component_cloned::<comp::Pos>(entity) {
-        Some(_pos) => match (opt_x, opt_y, opt_z) {
-            (Some(x), Some(y), Some(z)) => {
-                server
-                    .state
-                    .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
-                server.state.write_component(entity, comp::ForceUpdate);
-            }
-            _ => server
-                .clients
-                .notify(entity, ServerMsg::private(String::from(action.help_string))),
-        },
-        None => {
+    if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
+        if server
+            .state
+            .read_component_cloned::<comp::Pos>(entity)
+            .is_some()
+        {
+            server
+                .state
+                .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
+            server.state.write_component(entity, comp::ForceUpdate);
+        } else {
             server.clients.notify(
                 entity,
-                ServerMsg::private(String::from("You don't have any position!")),
+                ServerMsg::private(String::from("You don't have a position!")),
             );
         }
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
     }
 }
 
@@ -218,13 +205,13 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 }
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let time = scan_fmt!(&args, action.arg_fmt, String);
+    let time = scan_fmt_some!(&args, action.arg_fmt, String);
     let new_time = match time.as_ref().map(|s| s.as_str()) {
-        Ok("night") => NaiveTime::from_hms(0, 0, 0),
-        Ok("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Ok("day") => NaiveTime::from_hms(12, 0, 0),
-        Ok("dusk") => NaiveTime::from_hms(17, 0, 0),
-        Ok(n) => match n.parse() {
+        Some("night") => NaiveTime::from_hms(0, 0, 0),
+        Some("dawn") => NaiveTime::from_hms(5, 0, 0),
+        Some("day") => NaiveTime::from_hms(12, 0, 0),
+        Some("dusk") => NaiveTime::from_hms(17, 0, 0),
+        Some(n) => match n.parse() {
             Ok(n) => n,
             Err(_) => match NaiveTime::parse_from_str(n, "%H:%M") {
                 Ok(time) => time,
@@ -237,7 +224,7 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 }
             },
         },
-        Err(_) => {
+        None => {
             let time_in_seconds = server.state.ecs_mut().read_resource::<TimeOfDay>().0;
             let current_time = NaiveTime::from_num_seconds_from_midnight(time_in_seconds as u32, 0);
             server.clients.notify(
@@ -264,100 +251,90 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 }
 
 fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let opt_hp = scan_fmt!(&args, action.arg_fmt, u32);
-
-    match server
-        .state
-        .ecs_mut()
-        .write_storage::<comp::Stats>()
-        .get_mut(entity)
-    {
-        Some(stats) => match opt_hp {
-            Ok(hp) => stats.health.set_to(hp, comp::HealthSource::Command),
-            Err(_) => {
-                server.clients.notify(
-                    entity,
-                    ServerMsg::private(String::from("You must specify health amount!")),
-                );
-            }
-        },
-        None => server.clients.notify(
+    if let Ok(hp) = scan_fmt!(&args, action.arg_fmt, u32) {
+        if let Some(stats) = server
+            .state
+            .ecs_mut()
+            .write_storage::<comp::Stats>()
+            .get_mut(entity)
+        {
+            stats.health.set_to(hp, comp::HealthSource::Command);
+        } else {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(String::from("You have no position.")),
+            );
+        }
+    } else {
+        server.clients.notify(
             entity,
-            ServerMsg::private(String::from("You have no position.")),
-        ),
+            ServerMsg::private(String::from("You must specify health amount!")),
+        );
     }
 }
 
 fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
-    match opt_alias {
-        Ok(alias) => {
-            server
-                .state
-                .ecs_mut()
-                .write_storage::<comp::Player>()
-                .get_mut(entity)
-                .map(|player| player.alias = alias);
-        }
-        Err(_) => server
+    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+        server
+            .state
+            .ecs_mut()
+            .write_storage::<comp::Player>()
+            .get_mut(entity)
+            .map(|player| player.alias = alias);
+    } else {
+        server
             .clients
-            .notify(entity, ServerMsg::private(String::from(action.help_string))),
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
     }
 }
 
 fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
-    match opt_alias {
-        Ok(alias) => {
-            let ecs = server.state.ecs();
-            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-                .join()
-                .find(|(_, player)| player.alias == alias)
-                .map(|(entity, _)| entity);
-            match server.state.read_component_cloned::<comp::Pos>(entity) {
-                Some(_pos) => match opt_player {
-                    Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
-                        Some(pos) => {
-                            server.state.write_component(entity, pos);
-                            server.state.write_component(entity, comp::ForceUpdate);
-                        }
-                        None => server.clients.notify(
-                            entity,
-                            ServerMsg::private(format!(
-                                "Unable to teleport to player '{}'!",
-                                alias
-                            )),
-                        ),
-                    },
-                    None => {
-                        server.clients.notify(
-                            entity,
-                            ServerMsg::private(format!("Player '{}' not found!", alias)),
-                        );
-                        server
-                            .clients
-                            .notify(entity, ServerMsg::private(String::from(action.help_string)));
+    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+        let ecs = server.state.ecs();
+        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity);
+        match server.state.read_component_cloned::<comp::Pos>(entity) {
+            Some(_pos) => match opt_player {
+                Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
+                    Some(pos) => {
+                        server.state.write_component(entity, pos);
+                        server.state.write_component(entity, comp::ForceUpdate);
                     }
+                    None => server.clients.notify(
+                        entity,
+                        ServerMsg::private(format!("Unable to teleport to player '{}'!", alias)),
+                    ),
                 },
                 None => {
+                    server.clients.notify(
+                        entity,
+                        ServerMsg::private(format!("Player '{}' not found!", alias)),
+                    );
                     server
                         .clients
-                        .notify(entity, ServerMsg::private(format!("You have no position!")));
+                        .notify(entity, ServerMsg::private(String::from(action.help_string)));
                 }
+            },
+            None => {
+                server
+                    .clients
+                    .notify(entity, ServerMsg::private(format!("You have no position!")));
             }
         }
-        Err(_) => server
+    } else {
+        server
             .clients
-            .notify(entity, ServerMsg::private(String::from(action.help_string))),
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
     }
 }
 
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    match scan_fmt!(&args, action.arg_fmt, String, NpcKind, String) {
-        Ok((opt_align, id, opt_amount)) => {
+    match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
+        (Some(opt_align), Some(id), opt_amount) => {
             if let Some(agent) = alignment_to_agent(&opt_align, entity) {
-                let _objtype = scan_fmt!(&args, action.arg_fmt, String);
-                let amount = Some(opt_amount)
+                let amount = opt_amount
                     .map_or(Some(1), |a| a.parse().ok())
                     .and_then(|a| if a > 0 { Some(a) } else { None })
                     .unwrap();
@@ -390,7 +367,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                 }
             }
         }
-        Err(_) => {
+        _ => {
             server
                 .clients
                 .notify(entity, ServerMsg::private(String::from(action.help_string)));
@@ -638,7 +615,7 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
 }
 
 fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let opt_s = scan_fmt!(&args, action.arg_fmt, f32);
+    let opt_s = scan_fmt_some!(&args, action.arg_fmt, f32);
 
     if server
         .state
@@ -646,7 +623,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
         .get(entity)
         .is_some()
     {
-        if let Ok(s) = opt_s {
+        if let Some(s) = opt_s {
             if let Some(light) = server
                 .state
                 .ecs()
@@ -680,7 +657,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 comp::LightEmitter {
                     offset: Vec3::new(0.5, 0.2, 0.8),
                     col: Rgb::new(1.0, 0.75, 0.3),
-                    strength: if let Ok(s) = opt_s { s.max(0.0) } else { 6.0 },
+                    strength: if let Some(s) = opt_s { s.max(0.0) } else { 6.0 },
                 },
             );
 
@@ -692,64 +669,56 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
 }
 
 fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    let opt_alias = scan_fmt!(&args, action.arg_fmt, String);
-    match opt_alias {
-        Ok(alias) => {
-            let ecs = server.state.ecs();
-            let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
-                .join()
-                .find(|(_, player)| player.alias == alias)
-                .map(|(entity, _)| entity);
-            let msg = &args[alias.len()..args.len()];
-            match opt_player {
-                Some(player) => {
-                    if player != entity {
-                        if msg.len() > 1 {
-                            let opt_name = ecs
-                                .read_storage::<comp::Player>()
-                                .get(entity)
-                                .map(|s| s.alias.clone());
-                            match opt_name {
-                                Some(name) => {
-                                    server.clients.notify(
-                                        player,
-                                        ServerMsg::tell(format!("[{}] tells you:{}", name, msg)),
-                                    );
-                                    server.clients.notify(
-                                        entity,
-                                        ServerMsg::tell(format!("You tell [{}]:{}", alias, msg)),
-                                    );
-                                }
-                                None => {
-                                    server.clients.notify(
-                                        entity,
-                                        ServerMsg::private(String::from("Failed to send message.")),
-                                    );
-                                }
-                            }
-                        } else {
-                            server.clients.notify(
-                                entity,
-                                ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
-                            );
-                        }
+    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+        let ecs = server.state.ecs();
+        let msg = &args[alias.len()..args.len()];
+        if let Some(player) = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity)
+        {
+            if player != entity {
+                if msg.len() > 1 {
+                    if let Some(name) = ecs
+                        .read_storage::<comp::Player>()
+                        .get(entity)
+                        .map(|s| s.alias.clone())
+                    {
+                        server.clients.notify(
+                            player,
+                            ServerMsg::tell(format!("[{}] tells you:{}", name, msg)),
+                        );
+                        server.clients.notify(
+                            entity,
+                            ServerMsg::tell(format!("You tell [{}]:{}", alias, msg)),
+                        );
                     } else {
                         server.clients.notify(
                             entity,
-                            ServerMsg::private(format!("You can't /tell yourself.")),
+                            ServerMsg::private(String::from("Failed to send message.")),
                         );
                     }
-                }
-                None => {
+                } else {
                     server.clients.notify(
                         entity,
-                        ServerMsg::private(format!("Player '{}' not found!", alias)),
+                        ServerMsg::private(format!("[{}] wants to talk to you.", alias)),
                     );
                 }
+            } else {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::private(format!("You can't /tell yourself.")),
+                );
             }
+        } else {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(format!("Player '{}' not found!", alias)),
+            );
         }
-        Err(_) => server
+    } else {
+        server
             .clients
-            .notify(entity, ServerMsg::private(String::from(action.help_string))),
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
     }
 }
