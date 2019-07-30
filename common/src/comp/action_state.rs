@@ -1,6 +1,6 @@
 use specs::{Component, FlaggedStorage, VecStorage};
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ActionState {
     pub moving: bool,
     pub on_ground: bool,
