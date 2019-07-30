@@ -816,68 +816,71 @@ impl Server {
             let clients = &mut self.clients;
 
             let in_vd_and_changed = |entity| {
-                let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
-                let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
-                let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
-                let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
-
-                if let (
-                    Some(client_pos),
-                    Some(client_vel),
-                    Some(client_ori),
-                    Some(client_action_state),
-                    Some(client_vd),
-                ) = (
+                if let (Some(client_pos), Some(client_vd)) = (
                     ecs.read_storage::<comp::Pos>().get(entity),
-                    ecs.read_storage::<comp::Vel>().get(entity),
-                    ecs.read_storage::<comp::Ori>().get(entity),
-                    ecs.read_storage::<comp::ActionState>().get(entity),
                     ecs.read_storage::<comp::Player>()
                         .get(entity)
                         .map(|pl| pl.view_distance)
                         .and_then(|v| v),
                 ) {
-                    // If nothing changed...
-                    if last_pos
-                        .get(entity)
-                        .map(|&l| l == *client_pos)
-                        .unwrap_or(false)
-                        && last_vel
-                            .get(entity)
-                            .map(|&l| l == *client_vel)
-                            .unwrap_or(false)
-                        && last_ori
-                            .get(entity)
-                            .map(|&l| l == *client_ori)
-                            .unwrap_or(false)
-                        && last_action_state
-                            .get(entity)
-                            .map(|&l| l == *client_action_state)
-                            .unwrap_or(false)
                     {
-                        return false;
+                        // Check if the entity is in the client's range
+                        (pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                                (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
+                            })
+                            .magnitude_squared()
+                            < client_vd.pow(2)
                     }
-
-                    let _ = last_pos.insert(entity, comp::Last(*client_pos));
-                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
-                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
-                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
-
-                    // Check if the entity is in the client's range
-                    (pos.0 - client_pos.0)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| {
-                            (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
-                        })
-                        .magnitude_squared()
-                        < client_vd.pow(2)
                 } else {
                     false
                 }
             };
 
-            match force_update {
-                Some(_) => clients.notify_ingame_if(msg, in_vd_and_changed),
-                None => clients.notify_ingame_if_except(entity, msg, in_vd_and_changed),
+            let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
+            let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
+            let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
+            let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
+
+            if let (
+                Some(client_pos),
+                Some(client_vel),
+                Some(client_ori),
+                Some(client_action_state),
+            ) = (
+                ecs.read_storage::<comp::Pos>().get(entity),
+                ecs.read_storage::<comp::Vel>().get(entity),
+                ecs.read_storage::<comp::Ori>().get(entity),
+                ecs.read_storage::<comp::ActionState>().get(entity),
+            ) {
+                // If nothing changed...
+                if last_pos
+                    .get(entity)
+                    .map(|&l| l != *client_pos)
+                    .unwrap_or(true)
+                    || last_vel
+                        .get(entity)
+                        .map(|&l| l != *client_vel)
+                        .unwrap_or(true)
+                    || last_ori
+                        .get(entity)
+                        .map(|&l| l != *client_ori)
+                        .unwrap_or(true)
+                    || last_action_state
+                        .get(entity)
+                        .map(|&l| l != *client_action_state)
+                        .unwrap_or(true)
+                {
+                    let _ = last_pos.insert(entity, comp::Last(*client_pos));
+                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
+                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
+                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd_and_changed),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd_and_changed),
+                    }
+                }
             }
         }
 
