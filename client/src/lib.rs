@@ -398,24 +398,27 @@ impl Client {
                     ServerMsg::EcsSync(sync_package) => {
                         self.state.ecs_mut().sync_with_package(sync_package)
                     }
-                    ServerMsg::EntityPhysics {
+                    ServerMsg::EntityPos { entity, pos } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, pos);
+                        }
+                    }
+                    ServerMsg::EntityVel { entity, vel } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, vel);
+                        }
+                    }
+                    ServerMsg::EntityOri { entity, ori } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, ori);
+                        }
+                    }
+                    ServerMsg::EntityActionState {
                         entity,
-                        pos,
-                        vel,
-                        ori,
                         action_state,
                     } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, pos);
-                            if let Some(v) = vel {
-                                self.state.write_component(entity, v);
-                            };
-                            if let Some(o) = ori {
-                                self.state.write_component(entity, o);
-                            };
-                            if let Some(a_s) = action_state {
-                                self.state.write_component(entity, a_s);
-                            }
+                            self.state.write_component(entity, action_state);
                         }
                     }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
