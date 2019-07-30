@@ -125,36 +125,45 @@ impl State {
 
     // Create a new Sphynx ECS world.
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
-        // Register server->client synced components.
+        // Register server -> all clients synced components.
         ecs.register_synced::<comp::Body>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
         ecs.register_synced::<comp::CanBuild>();
         ecs.register_synced::<comp::LightEmitter>();
 
-        // Register components synced by other means
+        // Register components send from clients -> server
+        ecs.register::<comp::Controller>();
+
+        // Register components send directly from server -> all but one client
+        ecs.register::<comp::ActionState>();
+
+        // Register components synced from client -> server -> all other clients
         ecs.register::<comp::Pos>();
         ecs.register::<comp::Vel>();
         ecs.register::<comp::Ori>();
-        ecs.register::<comp::MoveDir>();
-        ecs.register::<comp::OnGround>();
-        ecs.register::<comp::Controller>();
-        ecs.register::<comp::Attacking>();
-        ecs.register::<comp::Wielding>();
-        ecs.register::<comp::Rolling>();
-        ecs.register::<comp::Gliding>();
-        ecs.register::<comp::ActionState>();
 
         // Register client-local components
         ecs.register::<comp::AnimationInfo>();
         ecs.register::<comp::Jumping>();
 
         // Register server-local components
+        ecs.register::<comp::Last<comp::Pos>>();
+        ecs.register::<comp::Last<comp::Vel>>();
+        ecs.register::<comp::Last<comp::Ori>>();
+        ecs.register::<comp::Last<comp::ActionState>>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::Respawning>();
         ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::Inventory>();
+        // Controller effects
+        ecs.register::<comp::MoveDir>();
+        ecs.register::<comp::OnGround>();
+        ecs.register::<comp::Attacking>();
+        ecs.register::<comp::Wielding>();
+        ecs.register::<comp::Rolling>();
+        ecs.register::<comp::Gliding>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));
