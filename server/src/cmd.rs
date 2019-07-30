@@ -519,7 +519,7 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
             None => {
                 // TODO: Move to /help object when/if #365 is approved. https://gitlab.com/veloren/veloren/merge_requests/365
                 let mut objects_string = String::from("List of objects:\n");
-                for (string_name, _) in body_elements.0 {
+                for (string_name, _) in body_elements.iter() {
                     objects_string.push_str(format!("{}\n", string_name.to_string()).as_ref());
                 }
 

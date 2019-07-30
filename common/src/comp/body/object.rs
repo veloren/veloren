@@ -50,8 +50,7 @@ pub enum Body {
     CarpetHumanSquare2,
     CarpetHumanSquircle,
 }
-
-pub struct BodyElements<L: Eq, R: Eq>(pub BiMap<L, R>);
+pub struct BodyElements<L: Eq, R: Eq>(BiMap<L, R>);
 
 impl BodyElements<&str, Body> {
     pub fn new() -> Self {
@@ -105,10 +104,16 @@ impl BodyElements<&str, Body> {
         BodyElements(elements)
     }
     pub fn get_body(&self, request_object: &str) -> Option<Body> {
-        self.0.get_by_left(&request_object).map(|x| x.to_owned())
+        self.0.get_by_left(&request_object).map(|x| *x)
+    }
+    pub fn to_str(&self, request_body: &Body) -> Option<&str> {
+        self.0.get_by_right(&request_body).map(|x| *x)
     }
     pub fn to_string(&self, request_body: &Body) -> Option<String> {
-        self.0.get_by_right(&request_body).map(|s| s.to_string())
+        self.0.get_by_right(&request_body).map(|x| x.to_string())
+    }
+    pub fn iter(&self) -> BiMap<&str, Body> {
+        self.0.clone()
     }
 }
 
@@ -120,17 +125,24 @@ mod body_tests {
     #[test]
     fn test_body_enum_to_string_and_string_to_enum() {
         let body = BodyElements::new();
-        for (enum_str, body_value) in &body.0 {
+        for (enum_str, body_value) in &body.iter() {
             let cmp_enum_body = body
                 .get_body(&enum_str)
                 .expect(format!("Should be able to find: {}", enum_str).as_ref());
             let cmp_enum_str_from_body = body
                 .to_string(&body_value)
-                .expect("Should find string from Body");
+                .expect("Should find &str from Body");
 
             assert_eq!(body_value, &cmp_enum_body);
             assert_eq!(cmp_enum_str_from_body, enum_str.to_string());
         }
+    }
+    #[test]
+    fn test_get_body_twice() {
+        let body_elements = BodyElements::new();
+        let x = body_elements.get_body("chest");
+        let y = body_elements.get_body("chest");
+        assert_eq!(x, y);
     }
 }
 
