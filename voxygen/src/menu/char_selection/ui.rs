@@ -2,10 +2,10 @@ use crate::{
     render::{Consts, Globals, Renderer},
     ui::{
         self,
-        img_ids::{ImageGraphic, VoxelGraphic},
-        ImageSlider, ScaleMode, Ui,
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
+        ImageSlider, Ui,
     },
-    window::Window,
+    GlobalState,
 };
 use client::Client;
 use common::comp::{humanoid, item::Weapon};
@@ -180,7 +180,9 @@ image_ids! {
         icon_border_mo: "voxygen/element/buttons/border_mo.png",
         icon_border_press: "voxygen/element/buttons/border_press.png",
         icon_border_pressed: "voxygen/element/buttons/border_pressed.png",
-        nothing: "voxygen/element/nothing.png",
+
+        <BlankGraphic>
+        nothing: (),
     }
 }
 
@@ -211,10 +213,12 @@ pub struct CharSelectionUi {
 }
 
 impl CharSelectionUi {
-    pub fn new(window: &mut Window) -> Self {
+    pub fn new(global_state: &mut GlobalState) -> Self {
+        let window = &mut global_state.window;
+        let settings = &global_state.settings;
+
         let mut ui = Ui::new(window).unwrap();
-        // TODO: Adjust/remove this, right now it is used to demonstrate window scaling functionality.
-        ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
+        ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images

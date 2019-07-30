@@ -175,9 +175,13 @@ impl GraphicCache {
                                     // Deallocate
                                     self.atlas.deallocate(alloc_id);
                                     // Try to allocate
-                                    allocation = self
+                                    if let Some(alloc) = self
                                         .atlas
-                                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)));
+                                        .allocate(size2(i32::from(dims.x), i32::from(dims.y)))
+                                    {
+                                        allocation = Some(alloc);
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -226,7 +230,7 @@ impl GraphicCache {
             if let Some(image) = self.soft_cache.get(&key) {
                 cacher(
                     target_aarb,
-                    &image.pixels().map(|p| p.data).collect::<Vec<[u8; 4]>>(),
+                    &image.pixels().map(|p| p.0).collect::<Vec<[u8; 4]>>(),
                 );
             } else {
                 error!("Image queued for transfer to gpu cache but it doesn't exist (this should never occur)");

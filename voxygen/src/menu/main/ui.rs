@@ -2,8 +2,8 @@ use crate::{
     render::Renderer,
     ui::{
         self,
-        img_ids::{ImageGraphic, VoxelGraphic},
-        ScaleMode, Ui,
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
+        Ui,
     },
     GlobalState,
 };
@@ -70,7 +70,9 @@ image_ids! {
         <ImageGraphic>
         bg: "voxygen/background/bg_main.png",
         error_frame: "voxygen/element/frames/window_2.png",
-        nothing: "voxygen/element/nothing.png",
+
+        <BlankGraphic>
+        nothing: (),
     }
 
 }
@@ -110,9 +112,10 @@ impl MainMenuUi {
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let networking = &global_state.settings.networking;
+        let gameplay = &global_state.settings.gameplay;
+
         let mut ui = Ui::new(window).unwrap();
-        // TODO: adjust/remove this, right now it is used to demonstrate window scaling functionality
-        ui.scaling_mode(ScaleMode::RelativeToWindow([1920.0, 1080.0].into()));
+        ui.set_scaling_mode(gameplay.ui_scale);
         // Generate ids
         let ids = Ids::new(ui.id_generator());
         // Load images

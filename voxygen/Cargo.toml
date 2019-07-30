@@ -17,45 +17,45 @@ client = { package = "veloren-client", path = "../client" }
 server = { package = "veloren-server", path = "../server" }
 
 # Graphics
-gfx = "0.17"
-gfx_device_gl = { version = "0.15", optional = true }
-gfx_window_glutin = "0.28"
-glutin = "0.19"
-winit = {version = "0.18", features = ["serde"]}
+gfx = "0.18.1"
+gfx_device_gl = { version = "0.16.1", optional = true }
+gfx_window_glutin = "0.31.0"
+glutin = "0.21.0"
+winit = { version = "0.19.1", features = ["serde"] }
 conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
-euc = "0.2"
+euc = "0.3.0"
 
 # ECS
-specs = "0.14"
+specs = "0.14.2"
 
 # Mathematics
-vek = "0.9"
+vek = "0.9.8"
 
 # discord
 discord-rpc-sdk = { git = "https://github.com/Songtronix/rust-discord-rpc.git", optional = true }
 
 # Utility
-glsl-include = "0.3"
-failure = "0.1"
-lazy_static = "1.1"
-log = "0.4"
-dot_vox = "4.0"
-image = "0.21"
-serde = "1.0"
-serde_derive = "1.0"
+glsl-include = "0.3.1"
+failure = "0.1.5"
+lazy_static = "1.3.0"
+log = "0.4.7"
+dot_vox = "4.0.0"
+image = "0.22.0"
+serde = "1.0.97"
+serde_derive = "1.0.97"
 ron = "0.5.1"
-guillotiere = "0.4"
-fnv = "1.0"
-simplelog = "0.5"
+guillotiere = "0.4.2"
+fnv = "1.0.6"
+simplelog = "0.6.0"
 msgbox = { git = "https://github.com/bekker/msgbox-rs.git" }
-directories = "1.0"
-portpicker = "0.1"
-num = "0.2"
-backtrace = "0.3"
-rand = "0.5"
+directories = "2.0.2"
+portpicker = "0.1.0"
+num = "0.2.0"
+backtrace = "0.3.33"
+rand = "0.7.0"
 frustum_query = "0.1.2"
 rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "dd93f905c1afefaac03c496a666ecab27d3e391b"  }
-crossbeam = "^0.7.1"
-fxhash = "0.2"
+crossbeam = "0.7.2"
+fxhash = "0.2.1"
 heaptrack = "0.3.0"
