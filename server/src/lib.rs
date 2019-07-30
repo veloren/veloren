@@ -677,23 +677,38 @@ impl Server {
         // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync physics
+        // Sync physics of all entities
         for (&uid, &pos, vel, ori, action_state) in (
             &state.ecs().read_storage::<Uid>(),
-            &state.ecs().read_storage::<comp::Pos>(),
+            &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
             state.ecs().read_storage::<comp::Vel>().maybe(),
             state.ecs().read_storage::<comp::Ori>().maybe(),
             state.ecs().read_storage::<comp::ActionState>().maybe(),
         )
             .join()
         {
-            client.notify(ServerMsg::EntityPhysics {
+            client.notify(ServerMsg::EntityPos {
                 entity: uid.into(),
                 pos,
-                vel: vel.copied(),
-                ori: ori.copied(),
-                action_state: action_state.copied(),
             });
+            if let Some(vel) = vel.copied() {
+                client.notify(ServerMsg::EntityVel {
+                    entity: uid.into(),
+                    vel,
+                });
+            }
+            if let Some(ori) = ori.copied() {
+                client.notify(ServerMsg::EntityOri {
+                    entity: uid.into(),
+                    ori,
+                });
+            }
+            if let Some(action_state) = action_state.copied() {
+                client.notify(ServerMsg::EntityActionState {
+                    entity: uid.into(),
+                    action_state,
+                });
+            }
         }
 
         // Tell the client its request was successful.
@@ -794,28 +809,17 @@ impl Server {
         }
 
         // Sync physics
-        for (entity, &uid, &pos, vel, ori, action_state, force_update) in (
+        for (entity, &uid, &pos, force_update) in (
             &ecs.entities(),
             &ecs.read_storage::<Uid>(),
             &ecs.read_storage::<comp::Pos>(),
-            ecs.read_storage::<comp::Vel>().maybe(),
-            ecs.read_storage::<comp::Ori>().maybe(),
-            ecs.read_storage::<comp::ActionState>().maybe(),
             ecs.read_storage::<comp::ForceUpdate>().maybe(),
         )
             .join()
         {
-            let msg = ServerMsg::EntityPhysics {
-                entity: uid.into(),
-                pos,
-                vel: vel.copied(),
-                ori: ori.copied(),
-                action_state: action_state.copied(),
-            };
-
             let clients = &mut self.clients;
 
-            let in_vd_and_changed = |entity| {
+            let in_vd = |entity| {
                 if let (Some(client_pos), Some(client_vd)) = (
                     ecs.read_storage::<comp::Pos>().get(entity),
                     ecs.read_storage::<comp::Player>()
@@ -858,27 +862,71 @@ impl Server {
                     .get(entity)
                     .map(|&l| l != *client_pos)
                     .unwrap_or(true)
-                    || last_vel
-                        .get(entity)
-                        .map(|&l| l != *client_vel)
-                        .unwrap_or(true)
-                    || last_ori
-                        .get(entity)
-                        .map(|&l| l != *client_ori)
-                        .unwrap_or(true)
-                    || last_action_state
-                        .get(entity)
-                        .map(|&l| l != *client_action_state)
-                        .unwrap_or(true)
                 {
                     let _ = last_pos.insert(entity, comp::Last(*client_pos));
-                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
-                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
-                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
+
+                    let msg = ServerMsg::EntityPos {
+                        entity: uid.into(),
+                        pos: *client_pos,
+                    };
 
                     match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd_and_changed),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd_and_changed),
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_vel
+                    .get(entity)
+                    .map(|&l| l != *client_vel)
+                    .unwrap_or(true)
+                {
+                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
+
+                    let msg = ServerMsg::EntityVel {
+                        entity: uid.into(),
+                        vel: *client_vel,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_ori
+                    .get(entity)
+                    .map(|&l| l != *client_ori)
+                    .unwrap_or(true)
+                {
+                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
+
+                    let msg = ServerMsg::EntityOri {
+                        entity: uid.into(),
+                        ori: *client_ori,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_action_state
+                    .get(entity)
+                    .map(|&l| l != *client_action_state)
+                    .unwrap_or(true)
+                {
+                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
+
+                    let msg = ServerMsg::EntityActionState {
+                        entity: uid.into(),
+                        action_state: *client_action_state,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
                 }
             }

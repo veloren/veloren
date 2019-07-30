@@ -190,7 +190,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 }
 
                 // Try getting messages from the send channel.
-                for _ in 0..100 {
+                for _ in 0..1000 {
                     match send_rx.try_recv() {
                         Ok(send_msg) => {
                             // Serialize message
@@ -225,7 +225,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 }
 
                 // Try sending bytes through the TCP stream.
-                for _ in 0..100 {
+                for _ in 0..1000 {
                     match outgoing_chunks.pop_front() {
                         Some(mut chunk) => match stream.write(&chunk) {
                             Ok(n) if n == chunk.len() => {}
@@ -249,7 +249,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 }
 
                 // Try receiving bytes from the TCP stream.
-                for _ in 0..100 {
+                for _ in 0..1000 {
                     let mut buf = [0; 4096];
 
                     match stream.read(&mut buf) {
@@ -265,7 +265,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                 }
 
                 // Try turning bytes into messages.
-                for _ in 0..100 {
+                for _ in 0..1000 {
                     match incoming_buf.get(0..9) {
                         Some(len_bytes) => {
                             let len =
