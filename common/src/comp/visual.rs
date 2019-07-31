@@ -1,4 +1,5 @@
-use specs::{Component, FlaggedStorage, VecStorage};
+use specs::{Component, FlaggedStorage};
+use specs_idvs::IDVStorage;
 use vek::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -19,5 +20,5 @@ impl Default for LightEmitter {
 }
 
 impl Component for LightEmitter {
-    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
