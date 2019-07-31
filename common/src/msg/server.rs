@@ -39,12 +39,21 @@ pub enum ServerMsg {
     },
     SetPlayerEntity(u64),
     EcsSync(sphynx::SyncPackage<EcsCompPacket, EcsResPacket>),
-    EntityPhysics {
+    EntityPos {
         entity: u64,
         pos: comp::Pos,
-        vel: Option<comp::Vel>,
-        ori: Option<comp::Ori>,
-        action_state: Option<comp::ActionState>,
+    },
+    EntityVel {
+        entity: u64,
+        vel: comp::Vel,
+    },
+    EntityOri {
+        entity: u64,
+        ori: comp::Ori,
+    },
+    EntityActionState {
+        entity: u64,
+        action_state: comp::ActionState,
     },
     TerrainChunkUpdate {
         key: Vec2<i32>,

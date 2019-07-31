@@ -5,6 +5,7 @@ mod body;
 mod controller;
 mod inputs;
 mod inventory;
+mod last;
 mod phys;
 mod player;
 mod stats;
@@ -20,6 +21,7 @@ pub use inputs::{
     Attacking, CanBuild, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling, Wielding,
 };
 pub use inventory::{item, Inventory};
+pub use last::Last;
 pub use phys::{ForceUpdate, Ori, Pos, Vel};
 pub use player::Player;
 pub use stats::{Dying, Exp, HealthSource, Level, Stats};
