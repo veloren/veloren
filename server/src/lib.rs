@@ -846,84 +846,71 @@ impl Server {
             let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
             let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
 
-            if let (
-                Some(client_pos),
-                Some(client_vel),
-                Some(client_ori),
-                Some(client_action_state),
-            ) = (
-                ecs.read_storage::<comp::Pos>().get(entity),
-                ecs.read_storage::<comp::Vel>().get(entity),
-                ecs.read_storage::<comp::Ori>().get(entity),
-                ecs.read_storage::<comp::ActionState>().get(entity),
-            ) {
-                // If nothing changed...
+            if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if last_pos
                     .get(entity)
                     .map(|&l| l != *client_pos)
                     .unwrap_or(true)
                 {
                     let _ = last_pos.insert(entity, comp::Last(*client_pos));
-
                     let msg = ServerMsg::EntityPos {
                         entity: uid.into(),
                         pos: *client_pos,
                     };
-
                     match force_update {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
                 }
+            }
 
+            if let Some(client_vel) = ecs.read_storage::<comp::Vel>().get(entity) {
                 if last_vel
                     .get(entity)
                     .map(|&l| l != *client_vel)
                     .unwrap_or(true)
                 {
                     let _ = last_vel.insert(entity, comp::Last(*client_vel));
-
                     let msg = ServerMsg::EntityVel {
                         entity: uid.into(),
                         vel: *client_vel,
                     };
-
                     match force_update {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
                 }
+            }
 
+            if let Some(client_ori) = ecs.read_storage::<comp::Ori>().get(entity) {
                 if last_ori
                     .get(entity)
                     .map(|&l| l != *client_ori)
                     .unwrap_or(true)
                 {
                     let _ = last_ori.insert(entity, comp::Last(*client_ori));
-
                     let msg = ServerMsg::EntityOri {
                         entity: uid.into(),
                         ori: *client_ori,
                     };
-
                     match force_update {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
                 }
+            }
 
+            if let Some(client_action_state) = ecs.read_storage::<comp::ActionState>().get(entity) {
                 if last_action_state
                     .get(entity)
                     .map(|&l| l != *client_action_state)
                     .unwrap_or(true)
                 {
                     let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
-
                     let msg = ServerMsg::EntityActionState {
                         entity: uid.into(),
                         action_state: *client_action_state,
                     };
-
                     match force_update {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
