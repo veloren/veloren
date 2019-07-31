@@ -71,13 +71,11 @@ pub struct Server {
 
 impl Server {
     /// Create a new `Server` bound to the default socket.
-    #[allow(dead_code)]
     pub fn new(settings: ServerSettings) -> Result<Self, Error> {
         Self::bind(settings.address, settings)
     }
 
     /// Create a new server bound to the given socket.
-    #[allow(dead_code)]
     pub fn bind<A: Into<SocketAddr>>(addrs: A, settings: ServerSettings) -> Result<Self, Error> {
         let (chunk_tx, chunk_rx) = mpsc::channel();
 
@@ -114,31 +112,26 @@ impl Server {
         Ok(this)
     }
 
-    #[allow(dead_code)]
     pub fn with_thread_pool(mut self, thread_pool: ThreadPool) -> Self {
         self.thread_pool = thread_pool;
         self
     }
 
     /// Get a reference to the server's game state.
-    #[allow(dead_code)]
     pub fn state(&self) -> &State {
         &self.state
     }
     /// Get a mutable reference to the server's game state.
-    #[allow(dead_code)]
     pub fn state_mut(&mut self) -> &mut State {
         &mut self.state
     }
 
     /// Get a reference to the server's world.
-    #[allow(dead_code)]
     pub fn world(&self) -> &World {
         &self.world
     }
 
     /// Build a non-player character.
-    #[allow(dead_code)]
     pub fn create_npc(
         &mut self,
         pos: comp::Pos,
@@ -159,7 +152,6 @@ impl Server {
     }
 
     /// Build a static object entity
-    #[allow(dead_code)]
     pub fn create_object(
         &mut self,
         pos: comp::Pos,
@@ -207,7 +199,6 @@ impl Server {
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
-    #[allow(dead_code)]
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         // This tick function is the centre of the Veloren universe. Most server-side things are
         // managed from here, and as such it's important that it stays organised. Please consult
@@ -381,7 +372,6 @@ impl Server {
     }
 
     /// Clean up the server after a tick.
-    #[allow(dead_code)]
     pub fn cleanup(&mut self) {
         // Cleanup the local state
         self.state.cleanup();
@@ -687,23 +677,38 @@ impl Server {
         // Save player metadata (for example the username).
         state.write_component(entity, player);
 
-        // Sync physics
+        // Sync physics of all entities
         for (&uid, &pos, vel, ori, action_state) in (
             &state.ecs().read_storage::<Uid>(),
-            &state.ecs().read_storage::<comp::Pos>(),
+            &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
             state.ecs().read_storage::<comp::Vel>().maybe(),
             state.ecs().read_storage::<comp::Ori>().maybe(),
             state.ecs().read_storage::<comp::ActionState>().maybe(),
         )
             .join()
         {
-            client.notify(ServerMsg::EntityPhysics {
+            client.notify(ServerMsg::EntityPos {
                 entity: uid.into(),
                 pos,
-                vel: vel.copied(),
-                ori: ori.copied(),
-                action_state: action_state.copied(),
             });
+            if let Some(vel) = vel.copied() {
+                client.notify(ServerMsg::EntityVel {
+                    entity: uid.into(),
+                    vel,
+                });
+            }
+            if let Some(ori) = ori.copied() {
+                client.notify(ServerMsg::EntityOri {
+                    entity: uid.into(),
+                    ori,
+                });
+            }
+            if let Some(action_state) = action_state.copied() {
+                client.notify(ServerMsg::EntityActionState {
+                    entity: uid.into(),
+                    action_state,
+                });
+            }
         }
 
         // Tell the client its request was successful.
@@ -716,8 +721,9 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
+        // TODO: Move this into some new method like `handle_sys_outputs` right after ticking the world
         // Handle deaths.
-        let ecs = &self.state.ecs();
+        let ecs = self.state.ecs_mut();
         let clients = &mut self.clients;
         let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
             .join()
@@ -774,20 +780,17 @@ impl Server {
         // Actually kill them
         for entity in todo_kill {
             if let Some(client) = self.clients.get_mut(&entity) {
-                self.state.write_component(entity, comp::Vel(Vec3::zero()));
-                self.state.write_component(entity, comp::ForceUpdate);
+                let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
+                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
                 client.force_state(ClientState::Dead);
             } else {
-                let _ = self.state.ecs_mut().delete_entity_synced(entity);
+                let _ = ecs.delete_entity_synced(entity);
                 continue;
             }
         }
 
         // Handle respawns
-        let todo_respawn = (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<comp::Respawning>(),
-        )
+        let todo_respawn = (&ecs.entities(), &ecs.read_storage::<comp::Respawning>())
             .join()
             .map(|(entity, _)| entity)
             .collect::<Vec<EcsEntity>>();
@@ -795,69 +798,137 @@ impl Server {
         for entity in todo_respawn {
             if let Some(client) = self.clients.get_mut(&entity) {
                 client.allow_state(ClientState::Character);
-                self.state
-                    .ecs_mut()
-                    .write_storage::<comp::Stats>()
+                ecs.write_storage::<comp::Stats>()
                     .get_mut(entity)
                     .map(|stats| stats.revive());
-                self.state
-                    .ecs_mut()
-                    .write_storage::<comp::Pos>()
+                ecs.write_storage::<comp::Pos>()
                     .get_mut(entity)
                     .map(|pos| pos.0.z += 20.0);
-                self.state.write_component(entity, comp::ForceUpdate);
+                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
             }
         }
 
         // Sync physics
-        for (entity, &uid, &pos, vel, ori, action_state, force_update) in (
-            &self.state.ecs().entities(),
-            &self.state.ecs().read_storage::<Uid>(),
-            &self.state.ecs().read_storage::<comp::Pos>(),
-            self.state.ecs().read_storage::<comp::Vel>().maybe(),
-            self.state.ecs().read_storage::<comp::Ori>().maybe(),
-            self.state.ecs().read_storage::<comp::ActionState>().maybe(),
-            self.state.ecs().read_storage::<comp::ForceUpdate>().maybe(),
+        for (entity, &uid, &pos, force_update) in (
+            &ecs.entities(),
+            &ecs.read_storage::<Uid>(),
+            &ecs.read_storage::<comp::Pos>(),
+            ecs.read_storage::<comp::ForceUpdate>().maybe(),
         )
             .join()
         {
-            let msg = ServerMsg::EntityPhysics {
-                entity: uid.into(),
-                pos,
-                vel: vel.copied(),
-                ori: ori.copied(),
-                action_state: action_state.copied(),
-            };
-
-            let state = &self.state;
             let clients = &mut self.clients;
 
             let in_vd = |entity| {
-                // Get client position.
-                let client_pos = match state.ecs().read_storage::<comp::Pos>().get(entity) {
-                    Some(pos) => pos.0,
-                    None => return false,
-                };
-                // Get client view distance
-                let client_vd = match state.ecs().read_storage::<comp::Player>().get(entity) {
-                    Some(comp::Player {
-                        view_distance: Some(vd),
-                        ..
-                    }) => *vd,
-                    _ => return false,
-                };
-
-                (pos.0 - client_pos)
-                    .map2(TerrainChunkSize::SIZE, |d, sz| {
-                        (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
-                    })
-                    .magnitude_squared()
-                    < client_vd.pow(2)
+                if let (Some(client_pos), Some(client_vd)) = (
+                    ecs.read_storage::<comp::Pos>().get(entity),
+                    ecs.read_storage::<comp::Player>()
+                        .get(entity)
+                        .map(|pl| pl.view_distance)
+                        .and_then(|v| v),
+                ) {
+                    {
+                        // Check if the entity is in the client's range
+                        (pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                                (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
+                            })
+                            .magnitude_squared()
+                            < client_vd.pow(2)
+                    }
+                } else {
+                    false
+                }
             };
 
-            match force_update {
-                Some(_) => clients.notify_ingame_if(msg, in_vd),
-                None => clients.notify_ingame_if_except(entity, msg, in_vd),
+            let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
+            let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
+            let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
+            let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
+
+            if let (
+                Some(client_pos),
+                Some(client_vel),
+                Some(client_ori),
+                Some(client_action_state),
+            ) = (
+                ecs.read_storage::<comp::Pos>().get(entity),
+                ecs.read_storage::<comp::Vel>().get(entity),
+                ecs.read_storage::<comp::Ori>().get(entity),
+                ecs.read_storage::<comp::ActionState>().get(entity),
+            ) {
+                // If nothing changed...
+                if last_pos
+                    .get(entity)
+                    .map(|&l| l != *client_pos)
+                    .unwrap_or(true)
+                {
+                    let _ = last_pos.insert(entity, comp::Last(*client_pos));
+
+                    let msg = ServerMsg::EntityPos {
+                        entity: uid.into(),
+                        pos: *client_pos,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_vel
+                    .get(entity)
+                    .map(|&l| l != *client_vel)
+                    .unwrap_or(true)
+                {
+                    let _ = last_vel.insert(entity, comp::Last(*client_vel));
+
+                    let msg = ServerMsg::EntityVel {
+                        entity: uid.into(),
+                        vel: *client_vel,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_ori
+                    .get(entity)
+                    .map(|&l| l != *client_ori)
+                    .unwrap_or(true)
+                {
+                    let _ = last_ori.insert(entity, comp::Last(*client_ori));
+
+                    let msg = ServerMsg::EntityOri {
+                        entity: uid.into(),
+                        ori: *client_ori,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
+
+                if last_action_state
+                    .get(entity)
+                    .map(|&l| l != *client_action_state)
+                    .unwrap_or(true)
+                {
+                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
+
+                    let msg = ServerMsg::EntityActionState {
+                        entity: uid.into(),
+                        action_state: *client_action_state,
+                    };
+
+                    match force_update {
+                        Some(_) => clients.notify_ingame_if(msg, in_vd),
+                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
+                    }
+                }
             }
         }
 
