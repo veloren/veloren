@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage};
+use specs::{Component, FlaggedStorage, HashMapStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -25,5 +25,5 @@ impl Default for ActionState {
 }
 
 impl Component for ActionState {
-    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+    type Storage = FlaggedStorage<Self, HashMapStorage<Self>>;
 }

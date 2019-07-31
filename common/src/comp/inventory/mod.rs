@@ -43,5 +43,5 @@ impl Inventory {
 }
 
 impl Component for Inventory {
-    type Storage = IDVStorage<Self>;
+    type Storage = HashMapStorage<Self>;
 }

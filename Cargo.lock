@@ -2601,7 +2601,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
-source = "git+http://gitlab.nebulanet.cc/xacrimon/specs-idvs.git#282b0b573ba485fe71b5800d6c354adeb19a3c1b"
+source = "git+http://gitlab.nebulanet.cc/xacrimon/specs-idvs.git#0a61720de65311840804cce31b4344747dff1df0"
 dependencies = [
  "hibitset 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
