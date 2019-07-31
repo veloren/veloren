@@ -1,4 +1,4 @@
-use specs::Component;
+use specs::{Component, HashMapStorage};
 use specs_idvs::IDVStorage;
 
 //Re-Exports
