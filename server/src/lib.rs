@@ -24,9 +24,7 @@ use common::{
 };
 use log::debug;
 use rand::Rng;
-use specs::{
-    join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, WorldExt,
-};
+use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
     i32,
@@ -85,7 +83,7 @@ impl Server {
         let mut state = State::default();
         state
             .ecs_mut()
-            .insert(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
+            .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
