@@ -1048,7 +1048,7 @@ impl Server {
             None => {
                 self.clients.notify(
                     entity,
-                    ServerMsg::chat(format!(
+                    ServerMsg::private(format!(
                         "Unrecognised command: '/{}'\ntype '/help' for a list of available commands",
                         kwd
                     )),

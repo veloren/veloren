@@ -149,10 +149,10 @@ impl MainMenuUi {
             .set(self.ids.bg, ui_widgets);
         Image::new(self.imgs.v_logo)
             .w_h(123.0 * 3.0, 35.0 * 3.0)
-            .top_left_with_margins(30.0, 30.0)
+            .top_right_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
         Text::new(version)
-            .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+            .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
             .font_id(self.fonts.opensans)
             .color(TEXT_COLOR)
