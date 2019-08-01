@@ -58,7 +58,12 @@ impl<'a> Pipeline for Voxel {
     }
 }
 
-pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u8>) -> RgbaImage {
+pub fn draw_vox(
+    segment: &Segment,
+    output_size: Vec2<u16>,
+    ori: Option<Quaternion<f32>>,
+    min_samples: Option<u8>,
+) -> RgbaImage {
     let scale = min_samples.map_or(1.0, |s| s as f32).sqrt().ceil() as usize;
     let dims = output_size.map(|e| e as usize * scale).into_array();
     let mut color = Buffer2d::new(dims, [0; 4]);
@@ -73,7 +78,8 @@ pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u
         top: 1.0,
         near: 0.0,
         far: 1.0,
-    }) * Mat4::rotation_x(-std::f32::consts::PI / 2.0)
+    })  * Mat4::from(ori.unwrap_or(Quaternion::identity()))
+        * Mat4::rotation_x(-std::f32::consts::PI / 2.0) // TODO: remove
         * Mat4::scaling_3d([2.0 / w, 2.0 / h, 2.0 / d])
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(

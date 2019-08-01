@@ -3,7 +3,7 @@ use crate::{
     ui::{
         self,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        Tooltip, Tooltipable, Ui,
+        ImageFrame, Tooltip, Tooltipable, Ui,
     },
     GlobalState,
 };
@@ -58,6 +58,11 @@ widget_ids! {
         error_frame,
         button_ok,
         version,
+
+
+        // TODO remove
+        frame_test,
+        test2,
     }
 }
 
@@ -78,7 +83,16 @@ image_ids! {
         <BlankGraphic>
         nothing: (),
     }
+}
 
+rotation_image_ids! {
+    pub struct ImgsRot {
+        <VoxelGraphic>
+
+        // Tooltip Test
+        tt_side: "voxygen/element/frames/tt_test_edge.vox",
+        tt_corner: "voxygen/element/frames/tt_test_corner_tr.vox",
+    }
 }
 
 font_ids! {
@@ -104,6 +118,7 @@ pub struct MainMenuUi {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
+    rot_imgs: ImgsRot,
     fonts: Fonts,
     username: String,
     password: String,
@@ -126,6 +141,7 @@ impl MainMenuUi {
         let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images");
+        let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
         // Load fonts
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts");
 
@@ -133,6 +149,7 @@ impl MainMenuUi {
             ui,
             ids,
             imgs,
+            rot_imgs,
             fonts,
             username: networking.username.clone(),
             password: "".to_owned(),
@@ -158,6 +175,27 @@ impl MainMenuUi {
             .w_h(123.0 * 3.0, 35.0 * 3.0)
             .top_right_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
+
+        Image::new(self.rot_imgs.tt_side.cw90)
+            .w_h(50.0, 50.0)
+            .top_left_with_margins_on(ui_widgets.window, 25.0, 25.0)
+            .set(self.ids.test2, ui_widgets);
+        // TODO: remove me
+        // Test image frame
+        // Edge images [t, b, r, l]
+        // Corner images [tr, tl, br, bl]
+        let edge = &self.rot_imgs.tt_side;
+        let corner = &self.rot_imgs.tt_corner;
+        ImageFrame::new(
+            [edge.cw180, edge.none, edge.cw270, edge.cw90],
+            [corner.none, corner.cw270, corner.cw90, corner.cw180],
+            Color::Rgba(0.8, 0.7, 0.4, 1.0),
+            30.0,
+        )
+        .w_h(250.0, 200.0)
+        .down(5.0)
+        .set(self.ids.frame_test, ui_widgets);
+
         Text::new(version)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
             .font_size(14)
