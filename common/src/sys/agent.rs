@@ -46,7 +46,7 @@ impl<'a> System<'a> for Sys {
                                 Vec2::from(pos.0 - tgt_pos).normalized()
                             } else {
                                 Vec2::zero()
-                            } * -10.0;
+                            };
                         }
                         _ => controller.move_dir = Vec2::zero(),
                     }

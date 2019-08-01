@@ -77,8 +77,7 @@ impl<'a> Widget for Skillbar<'a> {
 
         let exp_percentage = self.stats.exp.get_current() / self.stats.exp.get_maximum();
 
-        let hp_percentage =
-            self.stats.health.get_current() as f64 / self.stats.health.get_maximum() as f64;
+        let hp_percentage = self.stats.health.current() as f64 / self.stats.health.maximum() as f64;
         let mana_percentage = 1.0;
 
         // TODO: Only show while aiming with a bow or when casting a spell.

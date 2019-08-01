@@ -429,7 +429,7 @@ impl Hud {
                 .filter(|(entity, _, stats)| {
                     *entity != me
                         && !stats.is_dead
-                        && stats.health.get_current() != stats.health.get_maximum()
+                        && stats.health.current() != stats.health.maximum()
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _)| {
@@ -457,9 +457,7 @@ impl Hud {
                 // % HP Filling
                 Rectangle::fill_with(
                     [
-                        120.0
-                            * (stats.health.get_current() as f64
-                                / stats.health.get_maximum() as f64),
+                        120.0 * (stats.health.current() as f64 / stats.health.maximum() as f64),
                         8.0,
                     ],
                     HP_COLOR,
