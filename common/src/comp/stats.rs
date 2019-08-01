@@ -8,6 +8,7 @@ pub enum HealthSource {
     Suicide,
     Revive,
     Command,
+    LevelUp,
     Unknown,
 }
 
@@ -30,10 +31,10 @@ pub struct Level {
 }
 
 impl Health {
-    pub fn get_current(&self) -> u32 {
+    pub fn current(&self) -> u32 {
         self.current
     }
-    pub fn get_maximum(&self) -> u32 {
+    pub fn maximum(&self) -> u32 {
         self.maximum
     }
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
@@ -44,6 +45,10 @@ impl Health {
     pub fn change_by(&mut self, amount: i32, cause: HealthSource) {
         self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
         self.last_change = Some((amount, 0.0, cause));
+    }
+    pub fn set_maximum(&mut self, amount: u32) {
+        self.maximum = amount;
+        self.current = self.current.min(self.maximum);
     }
 }
 
@@ -105,7 +110,7 @@ impl Stats {
     }
     pub fn revive(&mut self) {
         self.health
-            .set_to(self.health.get_maximum(), HealthSource::Revive);
+            .set_to(self.health.maximum(), HealthSource::Revive);
         self.is_dead = false;
     }
 }
