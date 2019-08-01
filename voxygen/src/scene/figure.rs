@@ -19,7 +19,7 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use log::warn;
-use specs::{Entity as EcsEntity, Join, WorldExt};
+use specs::{Entity as EcsEntity, Join};
 use std::{collections::HashMap, f32};
 use vek::*;
 
