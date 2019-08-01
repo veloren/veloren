@@ -38,6 +38,7 @@ pub enum GameInput {
     SecondAttack,
     Roll,
     Respawn,
+    Interact,
 }
 
 /// Represents an incoming event from the window.
@@ -143,6 +144,7 @@ impl Window {
         key_map.insert(settings.controls.attack, GameInput::Attack);
         key_map.insert(settings.controls.second_attack, GameInput::SecondAttack);
         key_map.insert(settings.controls.roll, GameInput::Roll);
+        key_map.insert(settings.controls.interact, GameInput::Interact);
 
         let keypress_map = HashMap::new();
 

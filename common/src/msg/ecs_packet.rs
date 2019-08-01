@@ -25,6 +25,7 @@ sphynx::sum_type! {
         CanBuild(comp::CanBuild),
         Stats(comp::Stats),
         LightEmitter(comp::LightEmitter),
+        Item(comp::Item),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -40,6 +41,7 @@ sphynx::sum_type! {
         CanBuild(PhantomData<comp::CanBuild>),
         Stats(PhantomData<comp::Stats>),
         LightEmitter(PhantomData<comp::LightEmitter>),
+        Item(PhantomData<comp::Item>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {

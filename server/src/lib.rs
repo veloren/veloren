@@ -23,6 +23,7 @@ use common::{
     vol::Vox,
 };
 use log::debug;
+use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
     collections::HashSet,
@@ -155,14 +156,12 @@ impl Server {
     pub fn create_object(
         &mut self,
         pos: comp::Pos,
-        ori: comp::Ori,
         object: comp::object::Body,
     ) -> EcsEntityBuilder {
         self.state
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(ori)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Body::Object(object))
@@ -191,6 +190,8 @@ impl Server {
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
         state.write_component(entity, comp::ActionState::default());
+        state.write_component(entity, comp::Inventory::default());
+        state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
@@ -417,6 +418,7 @@ impl Server {
         let mut disconnected_clients = Vec::new();
         let mut requested_chunks = Vec::new();
         let mut modified_blocks = Vec::new();
+        let mut dropped_items = Vec::new();
 
         self.clients.remove_if(|entity, client| {
             let mut disconnect = false;
@@ -488,6 +490,66 @@ impl Server {
                             }
                             _ => {}
                         },
+                        ClientMsg::SwapInventorySlots(a, b) => {
+                            state
+                                .ecs()
+                                .write_storage::<comp::Inventory>()
+                                .get_mut(entity)
+                                .map(|inv| inv.swap_slots(a, b));
+                            state.write_component(entity, comp::InventoryUpdate);
+                        }
+                        ClientMsg::DropInventorySlot(x) => {
+                            let item = state
+                                .ecs()
+                                .write_storage::<comp::Inventory>()
+                                .get_mut(entity)
+                                .and_then(|inv| inv.remove(x));
+
+                            state.write_component(entity, comp::InventoryUpdate);
+
+                            if let (Some(item), Some(pos)) =
+                                (item, state.ecs().read_storage::<comp::Pos>().get(entity))
+                            {
+                                dropped_items.push((
+                                    *pos,
+                                    state
+                                        .ecs()
+                                        .read_storage::<comp::Ori>()
+                                        .get(entity)
+                                        .copied()
+                                        .unwrap_or(comp::Ori(Vec3::unit_y())),
+                                    item,
+                                ));
+                            }
+                        }
+                        ClientMsg::PickUp(uid) => {
+                            let item_entity = state.ecs_mut().entity_from_uid(uid);
+
+                            let ecs = state.ecs_mut();
+
+                            let item_entity = if let (Some((item, item_entity)), Some(inv)) = (
+                                item_entity.and_then(|item_entity| {
+                                    ecs.write_storage::<comp::Item>()
+                                        .get_mut(item_entity)
+                                        .map(|item| (*item, item_entity))
+                                }),
+                                ecs.write_storage::<comp::Inventory>().get_mut(entity),
+                            ) {
+                                if inv.insert(item).is_none() {
+                                    Some(item_entity)
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            };
+
+                            if let Some(item_entity) = item_entity {
+                                let _ = ecs.delete_entity_synced(item_entity);
+                            }
+
+                            state.write_component(entity, comp::InventoryUpdate);
+                        }
                         ClientMsg::Character { name, body } => match client.client_state {
                             // Become Registered first.
                             ClientState::Connected => {
@@ -662,6 +724,17 @@ impl Server {
 
         for (pos, block) in modified_blocks {
             self.state.set_block(pos, block);
+        }
+
+        for (pos, ori, item) in dropped_items {
+            let vel = ori.0.normalized() * 5.0
+                + Vec3::unit_z() * 10.0
+                + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0;
+            self.create_object(Default::default(), comp::object::Body::Pouch)
+                .with(comp::Pos(pos.0 + Vec3::unit_z() * 0.25))
+                .with(item)
+                .with(comp::Vel(vel))
+                .build();
         }
 
         Ok(frontend_events)
@@ -919,10 +992,26 @@ impl Server {
             }
         }
 
+        // Sync inventories
+        for (entity, inventory, _) in (
+            &self.state.ecs().entities(),
+            &self.state.ecs().read_storage::<comp::Inventory>(),
+            &self.state.ecs().read_storage::<comp::InventoryUpdate>(),
+        )
+            .join()
+        {
+            self.clients
+                .notify(entity, ServerMsg::InventoryUpdate(inventory.clone()));
+        }
+
         // Remove all force flags.
         self.state
             .ecs_mut()
             .write_storage::<comp::ForceUpdate>()
+            .clear();
+        self.state
+            .ecs_mut()
+            .write_storage::<comp::InventoryUpdate>()
             .clear();
     }
 
