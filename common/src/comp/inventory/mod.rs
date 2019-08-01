@@ -57,12 +57,12 @@ impl Inventory {
 impl Default for Inventory {
     fn default() -> Inventory {
         let mut this = Inventory {
-            slots: vec![None; 8],
+            slots: vec![None; 24],
         };
 
-        this.insert(Item::default());
-        this.insert(Item::default());
-        this.insert(Item::default());
+        for _ in 0..18 {
+            this.insert(Item::default());
+        }
 
         this
     }
