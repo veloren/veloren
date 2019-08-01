@@ -4,7 +4,7 @@ pub mod item;
 // Reexports
 pub use self::item::Item;
 
-use specs::{Component, NullStorage, HashMapStorage};
+use specs::{Component, HashMapStorage, NullStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
