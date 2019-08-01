@@ -1,8 +1,6 @@
 //! A widget for selecting a single value along some linear range.
 use conrod_core::{
     builder_methods, image,
-    position::Range,
-    utils,
     widget::{self, Image, Rectangle},
     widget_ids, Color, Colorable, Positionable, Rect, Sizeable, UiCell, Widget, WidgetCommon,
 };
@@ -34,7 +32,7 @@ pub struct ImageFrame {
     // TODO: would it be useful to have an optional close button be a part of this?
 }
 
-enum Center {
+pub enum Center {
     Plain(Color),
     Image(image::Id, Option<Rect>),
 }
@@ -54,19 +52,19 @@ impl From<(image::Id, Rect)> for Center {
     }
 }
 
-struct BorderSize {
+pub struct BorderSize {
     top: f64,
     bottom: f64,
     right: f64,
     left: f64,
 }
 impl From<f64> for BorderSize {
-    fn from(width: f64) -> Self {
+    fn from(thickness: f64) -> Self {
         BorderSize {
-            top: width,
-            bottom: width,
-            right: width,
-            left: width,
+            top: thickness,
+            bottom: thickness,
+            right: thickness,
+            left: thickness,
         }
     }
 }
@@ -112,7 +110,7 @@ pub struct State {
 }
 
 impl ImageFrame {
-    fn new(
+    pub fn new(
         edges: [image::Id; 4],
         corners: [image::Id; 4],
         center: impl Into<Center>,
@@ -222,6 +220,7 @@ impl Widget for ImageFrame {
                 .wh(rect.dim())
                 .parent(id)
                 .graphics_for(id)
+                .and_then(maybe_src_rect, |w, r| w.source_rectangle(r))
                 .color(maybe_color)
                 .set(widget_id, ui);
         };

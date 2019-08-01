@@ -39,7 +39,7 @@ use conrod_core::{
     widget::{self, id::Generator},
     Rect, UiBuilder, UiCell,
 };
-use graphic::Id as GraphicId;
+use graphic::Rotation;
 use log::warn;
 use std::{
     fs::File,
@@ -93,7 +93,7 @@ impl assets::Asset for Font {
 
 pub struct Ui {
     ui: conrod_core::Ui,
-    image_map: Map<GraphicId>,
+    image_map: Map<(graphic::Id, Rotation)>,
     cache: Cache,
     // Draw commands for the next render
     draw_commands: Vec<DrawCommand>,
@@ -133,7 +133,7 @@ impl Ui {
             ui,
             image_map: Map::new(),
             cache: Cache::new(renderer)?,
-            draw_commands: vec![],
+            draw_commands: Vec::new(),
             model: renderer.create_dynamic_model(100)?,
             interface_locals: renderer.create_consts(&[UiLocals::default()])?,
             default_globals: renderer.create_consts(&[Globals::default()])?,
@@ -161,7 +161,18 @@ impl Ui {
     }
 
     pub fn add_graphic(&mut self, graphic: Graphic) -> image::Id {
-        self.image_map.insert(self.cache.add_graphic(graphic))
+        self.image_map
+            .insert((self.cache.add_graphic(graphic), Rotation::None))
+    }
+
+    pub fn add_graphic_with_rotations(&mut self, graphic: Graphic) -> img_ids::Rotations {
+        let graphic_id = self.cache.add_graphic(graphic);
+        img_ids::Rotations {
+            none: self.image_map.insert((graphic_id, Rotation::None)),
+            cw90: self.image_map.insert((graphic_id, Rotation::Cw90)),
+            cw180: self.image_map.insert((graphic_id, Rotation::Cw180)),
+            cw270: self.image_map.insert((graphic_id, Rotation::Cw270)),
+        }
     }
 
     pub fn new_font(&mut self, font: Arc<Font>) -> font::Id {
@@ -257,6 +268,15 @@ impl Ui {
 
         self.draw_commands.clear();
         let mut mesh = Mesh::new();
+
+        let (half_res, x_align, y_align) = {
+            let res = renderer.get_resolution();
+            (
+                res.map(|e| e as f32 / 2.0),
+                (res.x & 1) as f32 * 0.5,
+                (res.y & 1) as f32 * 0.5,
+            )
+        };
 
         // TODO: this could be removed entirely if the draw call just used both textures,
         //  however this allows for flexibility if we want to interweave other draw calls later.
@@ -373,10 +393,15 @@ impl Ui {
             let vy = |y: f64| (y / ui_win_h * 2.0) as f32;
             let gl_aabr = |rect: Rect| {
                 let (l, r, b, t) = rect.l_r_b_t();
-                Aabr {
-                    min: Vec2::new(vx(l), vy(b)),
-                    max: Vec2::new(vx(r), vy(t)),
-                }
+                let min = Vec2::new(
+                    ((vx(l) * half_res.x + x_align).round() - x_align) / half_res.x,
+                    ((vy(b) * half_res.y + y_align).round() - y_align) / half_res.y,
+                );
+                let max = Vec2::new(
+                    ((vx(r) * half_res.x + x_align).round() - x_align) / half_res.x,
+                    ((vy(t) * half_res.y + y_align).round() - y_align) / half_res.y,
+                );
+                Aabr { min, max }
             };
 
             match kind {
@@ -385,7 +410,7 @@ impl Ui {
                     color,
                     source_rect: _, // TODO: <-- use this
                 } => {
-                    let graphic_id = self
+                    let (graphic_id, rotation) = self
                         .image_map
                         .get(&image_id)
                         .expect("Image does not exist in image map");
@@ -407,9 +432,10 @@ impl Ui {
                     let color =
                         srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
+                    let gl_aabr = gl_aabr(rect);
                     let resolution = Vec2::new(
-                        (rect.w() * p_scale_factor).round() as u16,
-                        (rect.h() * p_scale_factor).round() as u16,
+                        (gl_aabr.size().w * half_res.x).round() as u16,
+                        (gl_aabr.size().h * half_res.y).round() as u16,
                     );
                     // Transform the source rectangle into uv coordinate.
                     // TODO: Make sure this is right.
@@ -435,22 +461,26 @@ impl Ui {
                         cache_tex.get_dimensions().map(|e| e as f32).into_tuple();
 
                     // Cache graphic at particular resolution.
-                    let uv_aabr =
-                        match graphic_cache.queue_res(*graphic_id, resolution, source_aabr) {
-                            Some(aabr) => Aabr {
-                                min: Vec2::new(
-                                    aabr.min.x as f32 / cache_w,
-                                    aabr.max.y as f32 / cache_h,
-                                ),
-                                max: Vec2::new(
-                                    aabr.max.x as f32 / cache_w,
-                                    aabr.min.y as f32 / cache_h,
-                                ),
-                            },
-                            None => continue,
-                        };
+                    let uv_aabr = match graphic_cache.queue_res(
+                        *graphic_id,
+                        resolution,
+                        source_aabr,
+                        *rotation,
+                    ) {
+                        Some(aabr) => Aabr {
+                            min: Vec2::new(
+                                (aabr.min.x as f32) / cache_w,
+                                (aabr.max.y as f32) / cache_h,
+                            ),
+                            max: Vec2::new(
+                                (aabr.max.x as f32) / cache_w,
+                                (aabr.min.y as f32) / cache_h,
+                            ),
+                        },
+                        None => continue,
+                    };
 
-                    mesh.push_quad(create_ui_quad(gl_aabr(rect), uv_aabr, color, UiMode::Image));
+                    mesh.push_quad(create_ui_quad(gl_aabr, uv_aabr, color, UiMode::Image));
                 }
                 PrimitiveKind::Text {
                     color,
