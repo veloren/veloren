@@ -839,6 +839,13 @@ impl Server {
                                 attacker_stats.exp.change_maximum_by(25.0);
                                 attacker_stats.exp.set_current(0.0);
                                 attacker_stats.level.change_by(1);
+                                attacker_stats
+                                    .health
+                                    .set_maximum(attacker_stats.health.maximum() + 10);
+                                attacker_stats.health.set_to(
+                                    attacker_stats.health.maximum(),
+                                    comp::HealthSource::LevelUp,
+                                )
                             }
 
                             ecs.read_storage::<comp::Player>().get(attacker).cloned()
