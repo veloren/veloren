@@ -16,7 +16,7 @@ use crate::{
 };
 use client::Client;
 use common::comp;
-use specs::{Join, WorldExt};
+use specs::Join;
 use vek::*;
 
 // TODO: Don't hard-code this.

@@ -11,7 +11,7 @@ use common::{
     state::TimeOfDay,
 };
 use rand::Rng;
-use specs::{Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{Builder, Entity as EcsEntity, Join};
 use vek::*;
 
 use lazy_static::lazy_static;
