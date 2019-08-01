@@ -131,6 +131,7 @@ impl State {
         ecs.register_synced::<comp::Stats>();
         ecs.register_synced::<comp::CanBuild>();
         ecs.register_synced::<comp::LightEmitter>();
+        ecs.register_synced::<comp::Item>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -142,6 +143,7 @@ impl State {
         ecs.register::<comp::Pos>();
         ecs.register::<comp::Vel>();
         ecs.register::<comp::Ori>();
+        ecs.register::<comp::Inventory>();
 
         // Register client-local components
         ecs.register::<comp::AnimationInfo>();
@@ -156,6 +158,7 @@ impl State {
         ecs.register::<comp::Respawning>();
         ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
+        ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
         // Controller effects
         ecs.register::<comp::MoveDir>();

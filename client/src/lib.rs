@@ -4,14 +4,13 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::join::Join;
-pub use specs::Entity as EcsEntity;
+pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,
     msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
-    state::State,
+    state::{State, Uid},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
     ChatType,
@@ -165,6 +164,21 @@ impl Client {
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap())); // Can't fail
     }
 
+    pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
+        self.postbox
+            .send_message(ClientMsg::SwapInventorySlots(a, b))
+    }
+
+    pub fn drop_inventory_slot(&mut self, x: usize) {
+        self.postbox.send_message(ClientMsg::DropInventorySlot(x))
+    }
+
+    pub fn pick_up(&mut self, entity: EcsEntity) {
+        if let Some(uid) = self.state.ecs().read_storage::<Uid>().get(entity).copied() {
+            self.postbox.send_message(ClientMsg::PickUp(uid.id()));
+        }
+    }
+
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
     }
@@ -186,6 +200,10 @@ impl Client {
         });
 
         self.state.terrain().get_key_arc(chunk_pos).cloned()
+    }
+
+    pub fn inventories(&self) -> ReadStorage<comp::Inventory> {
+        self.state.read_storage()
     }
 
     /// Send a chat message to the server.
@@ -420,6 +438,9 @@ impl Client {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
                             self.state.write_component(entity, action_state);
                         }
+                    }
+                    ServerMsg::InventoryUpdate(inventory) => {
+                        self.state.write_component(self.entity, inventory)
                     }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
                         self.state.insert_chunk(key, *chunk);

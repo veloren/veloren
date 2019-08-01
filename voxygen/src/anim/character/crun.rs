@@ -2,7 +2,7 @@ use super::{
     super::{Animation, SkeletonAttr},
     CharacterSkeleton,
 };
-use common::comp::item::Weapon;
+use common::comp::item::Tool;
 use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
@@ -61,9 +61,9 @@ impl Animation for CrunAnimation {
         next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
         next.shorts.scale = Vec3::one();
 
-        match Weapon::Hammer {
+        match Tool::Hammer {
             //TODO: Inventory
-            Weapon::Sword => {
+            Tool::Sword => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.75, 0.25);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -80,7 +80,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Axe => {
+            Tool::Axe => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -97,7 +97,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Hammer => {
+            Tool::Hammer => {
                 next.l_hand.offset = Vec3::new(-7.0, 8.25, 3.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.2)
@@ -118,7 +118,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(wave * -0.25);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Staff => {
+            Tool::Staff => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -135,7 +135,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::SwordShield => {
+            Tool::SwordShield => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -152,7 +152,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Bow => {
+            Tool::Bow => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
@@ -169,7 +169,7 @@ impl Animation for CrunAnimation {
                     * Quaternion::rotation_z(0.0);
                 next.weapon.scale = Vec3::one();
             }
-            Weapon::Daggers => {
+            Tool::Daggers => {
                 next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;

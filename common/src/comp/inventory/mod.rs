@@ -1,11 +1,11 @@
-use specs::{Component, HashMapStorage};
-use specs_idvs::IDVStorage;
-
 //Re-Exports
 pub mod item;
 
-use item::Item;
-use std::mem::swap;
+// Reexports
+pub use self::item::Item;
+
+use specs::{Component, HashMapStorage, NullStorage};
+use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
@@ -13,9 +13,21 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn new() -> Inventory {
-        Inventory {
-            slots: vec![None; 24],
+    pub fn slots(&self) -> &[Option<Item>] {
+        &self.slots
+    }
+
+    pub fn len(&self) -> usize {
+        self.slots.len()
+    }
+
+    pub fn insert(&mut self, item: Item) -> Option<Item> {
+        match self.slots.iter_mut().find(|slot| slot.is_none()) {
+            Some(slot) => {
+                *slot = Some(item);
+                None
+            }
+            None => Some(item),
         }
     }
 
@@ -30,18 +42,40 @@ impl Inventory {
         self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }
 
-    // Remove an item from the slot
-    pub fn remove(&mut self, cell: usize, item: Item) -> Option<Item> {
-        let mut tmp_item = Some(item);
+    pub fn swap_slots(&mut self, a: usize, b: usize) {
+        if a.max(b) < self.slots.len() {
+            self.slots.swap(a, b);
+        }
+    }
 
-        if let Some(old_item) = self.slots.get_mut(cell) {
-            swap(old_item, &mut tmp_item);
+    // Remove an item from the slot
+    pub fn remove(&mut self, cell: usize) -> Option<Item> {
+        self.slots.get_mut(cell).and_then(|item| item.take())
+    }
+}
+
+impl Default for Inventory {
+    fn default() -> Inventory {
+        let mut this = Inventory {
+            slots: vec![None; 24],
+        };
+
+        for _ in 0..18 {
+            this.insert(Item::default());
         }
 
-        tmp_item
+        this
     }
 }
 
 impl Component for Inventory {
     type Storage = HashMapStorage<Self>;
+}
+
+// ForceUpdate
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+pub struct InventoryUpdate;
+
+impl Component for InventoryUpdate {
+    type Storage = NullStorage<Self>;
 }
