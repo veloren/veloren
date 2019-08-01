@@ -14,7 +14,7 @@ use serde_derive::{Deserialize, Serialize};
 use specs::{
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Component, DispatcherBuilder, Entity as EcsEntity,
+    Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
 use sphynx;
 use std::{sync::Arc, time::Duration};
@@ -169,14 +169,14 @@ impl State {
         ecs.register::<comp::Gliding>();
 
         // Register synced resources used by the ECS.
-        ecs.add_resource_synced(TimeOfDay(0.0));
+        ecs.insert_synced(TimeOfDay(0.0));
 
         // Register unsynced resources used by the ECS.
-        ecs.add_resource(Time(0.0));
-        ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainMap::new().unwrap());
-        ecs.add_resource(BlockChange::default());
-        ecs.add_resource(TerrainChanges::default());
+        ecs.insert(Time(0.0));
+        ecs.insert(DeltaTime(0.0));
+        ecs.insert(TerrainMap::new().unwrap());
+        ecs.insert(BlockChange::default());
+        ecs.insert(TerrainChanges::default());
     }
 
     /// Register a component with the state's ECS.
@@ -316,7 +316,7 @@ impl State {
         let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
         sys::add_local_systems(&mut dispatch_builder);
         // This dispatches all the systems in parallel.
-        dispatch_builder.build().dispatch(&self.ecs.res);
+        dispatch_builder.build().dispatch(&self.ecs);
 
         self.ecs.maintain();
 
