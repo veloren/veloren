@@ -1,4 +1,5 @@
-use super::{img_ids::Imgs, Fonts, TEXT_COLOR};
+use super::{img_ids::Imgs, Event as HudEvent, Fonts, TEXT_COLOR};
+use client::Client;
 use conrod_core::{
     color,
     position::Relative,
@@ -16,17 +17,16 @@ widget_ids! {
         inv_grid_1,
         inv_grid_2,
         inv_scrollbar,
-        inv_slot_0,
+        inv_slots_0,
         map_title,
-        inv_slot[],
-        item1,
+        inv_slots[],
+        items[],
     }
 }
 
 #[derive(WidgetCommon)]
 pub struct Bag<'a> {
-    inventory_space: usize,
-
+    client: &'a Client,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     #[conrod(common_builder)]
@@ -34,9 +34,9 @@ pub struct Bag<'a> {
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(inventory_space: usize, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
-            inventory_space,
+            client,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
@@ -46,11 +46,13 @@ impl<'a> Bag<'a> {
 
 pub struct State {
     ids: Ids,
+    selected_slot: Option<usize>,
 }
 
 const BAG_SCALE: f64 = 4.0;
 
 pub enum Event {
+    HudEvent(HudEvent),
     Close,
 }
 
@@ -62,6 +64,7 @@ impl<'a> Widget for Bag<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
+            selected_slot: None,
         }
     }
 
@@ -72,87 +75,115 @@ impl<'a> Widget for Bag<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
+        let mut event = None;
+
+        let invs = self.client.inventories();
+        let inventory = match invs.get(self.client.entity()) {
+            Some(inv) => inv,
+            None => return None,
+        };
+
         // Bag parts
         Image::new(self.imgs.bag_bot)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
-        Image::new(self.imgs.bag_mid)
-            .w_h(
-                61.0 * BAG_SCALE,
-                ((self.inventory_space + 4) / 5) as f64 * 44.0,
-            )
-            .up_from(state.ids.bag_bot, 0.0)
-            .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
             .set(state.ids.bag_top, ui);
+        Image::new(self.imgs.bag_mid)
+            .w_h(61.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0)
+            .up_from(state.ids.bag_bot, 0.0)
+            .set(state.ids.bag_mid, ui);
 
         // Alignment for Grid
         Rectangle::fill_with(
-            [
-                54.0 * BAG_SCALE,
-                ((self.inventory_space + 4) / 5) as f64 * 44.0,
-            ],
+            [54.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0],
             color::TRANSPARENT,
         )
         .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
         .scroll_kids()
         .scroll_kids_vertically()
         .set(state.ids.inv_alignment, ui);
-
-        // Grid
-        /*Image::new(self.imgs.inv_grid)
-            .w_h(61.0 * BAG_SCALE, 111.0 * BAG_SCALE)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.5)))
-            .mid_top_with_margin_on(state.ids.inv_alignment, 0.0)
-            .set(state.ids.inv_grid_1, ui);
-        Image::new(self.imgs.inv_grid)
-            .w_h(61.0 * BAG_SCALE, 111.0 * BAG_SCALE)
-            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.5)))
-            .mid_top_with_margin_on(state.ids.inv_alignment, 110.0 * BAG_SCALE)
-            .set(state.ids.inv_grid_2, ui);
-        Scrollbar::y_axis(state.ids.inv_alignment)
-            .thickness(5.0)
-            .rgba(0.33, 0.33, 0.33, 1.0)
-            .set(state.ids.inv_scrollbar, ui);*/
         // Create available inventory slot widgets
-        if state.ids.inv_slot.len() < self.inventory_space {
+
+        if state.ids.inv_slots.len() < inventory.len() {
             state.update(|s| {
                 s.ids
-                    .inv_slot
-                    .resize(self.inventory_space, &mut ui.widget_id_generator());
+                    .inv_slots
+                    .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
-        // "Allowed" max. inventory space should be handled serverside and thus isn't limited in the UI
-        for i in 0..self.inventory_space {
+
+        if state.ids.items.len() < inventory.len() {
+            state.update(|s| {
+                s.ids
+                    .items
+                    .resize(inventory.len(), &mut ui.widget_id_generator());
+            });
+        }
+
+        // Display inventory contents
+
+        for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 5;
             let y = i / 5;
-            Button::image(self.imgs.inv_slot)
+
+            let is_selected = Some(i) == state.selected_slot;
+
+            // Slot
+            if Button::image(self.imgs.inv_slot)
                 .top_left_with_margins_on(
                     state.ids.inv_alignment,
                     4.0 + y as f64 * (40.0 + 4.0),
                     4.0 + x as f64 * (40.0 + 4.0),
                 ) // conrod uses a (y,x) format for placing...
-                .parent(state.ids.bag_mid) // Avoids the background overlapping available slots
+                .parent(state.ids.inv_alignment) // Avoids the background overlapping available slots
                 .w_h(40.0, 40.0)
-                .set(state.ids.inv_slot[i], ui);
+                .image_color(if is_selected {
+                    color::WHITE
+                } else {
+                    color::DARK_YELLOW
+                })
+                .floating(true)
+                .set(state.ids.inv_slots[i], ui)
+                .was_clicked()
+            {
+                let selected_slot = match state.selected_slot {
+                    Some(a) => {
+                        if a == i {
+                            event = Some(Event::HudEvent(HudEvent::DropInventorySlot(i)));
+                        } else {
+                            event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
+                        }
+                        None
+                    }
+                    None if item.is_some() => Some(i),
+                    None => None,
+                };
+                state.update(|s| s.selected_slot = selected_slot);
+            }
+
+            // Item
+            if item.is_some() {
+                Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
+                    .w_h(4.0 * 4.4, 7.0 * 4.4) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
+                    .middle_of(state.ids.inv_slots[i]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
+                    .label("5x") // TODO: Quantity goes here...
+                    .label_font_id(self.fonts.opensans)
+                    .label_font_size(12)
+                    .label_x(Relative::Scalar(10.0))
+                    .label_y(Relative::Scalar(-10.0))
+                    .label_color(TEXT_COLOR)
+                    .parent(state.ids.inv_slots[i])
+                    .graphics_for(state.ids.inv_slots[i])
+                    .set(state.ids.items[i], ui);
+            }
         }
-        // Test Item
-        if self.inventory_space > 0 {
-            Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
-                .w_h(4.0 * 4.4, 7.0 * 4.4) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
-                .middle_of(state.ids.inv_slot[0]) // TODO: Items need to be assigned to a certain slot and then placed like in this example
-                .label("5x") // TODO: Quantity goes here...
-                .label_font_id(self.fonts.opensans)
-                .label_font_size(12)
-                .label_x(Relative::Scalar(10.0))
-                .label_y(Relative::Scalar(-10.0))
-                .label_color(TEXT_COLOR)
-                .set(state.ids.item1, ui); // TODO: Add widget_id generator for displayed items
-        }
-        // X-button
+
+        // Close button
+
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
@@ -161,9 +192,9 @@ impl<'a> Widget for Bag<'a> {
             .set(state.ids.bag_close, ui)
             .was_clicked()
         {
-            Some(Event::Close)
-        } else {
-            None
+            event = Some(Event::Close);
         }
+
+        event
     }
 }

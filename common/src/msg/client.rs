@@ -28,6 +28,9 @@ pub enum ClientMsg {
         vel: comp::Vel,
         ori: comp::Ori,
     },
+    SwapInventorySlots(usize, usize),
+    DropInventorySlot(usize),
+    PickUp(u64),
     TerrainChunkRequest {
         key: Vec2<i32>,
     },
