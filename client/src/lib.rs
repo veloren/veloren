@@ -4,7 +4,7 @@ pub mod error;
 
 // Reexports
 pub use crate::error::Error;
-pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage, WorldExt};
+pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,

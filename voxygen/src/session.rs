@@ -9,7 +9,7 @@ use crate::{
 use client::{self, Client};
 use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
 use log::error;
-use specs::{Join, WorldExt};
+use specs::Join;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
 

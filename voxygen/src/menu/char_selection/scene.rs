@@ -19,7 +19,6 @@ use common::{
     state::DeltaTime,
 };
 use log::error;
-use specs::WorldExt;
 use vek::*;
 
 struct Skybox {
