@@ -48,13 +48,13 @@ impl<'a> System<'a> for Sys {
                         if entity != b
                             && !stat_b.is_dead
                             && pos.0.distance_squared(pos_b.0) < 50.0
-                            && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 70.0
+                            && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 90.0
                         {
                             // Deal damage
                             stat_b
                                 .health
                                 .change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                            vel_b.0.z = 7.0;
+                            vel_b.0.z = 4.0;
                             let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }
