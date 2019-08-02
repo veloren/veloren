@@ -43,7 +43,7 @@ pub fn structure_gen<'a>(
     let wheight = st_sample.alt.max(cliff_height);
     let st_pos3d = Vec3::new(st_pos.x, st_pos.y, wheight as i32);
 
-    let volumes: &'static [_] = if QUIRKY_RAND.get(st_seed) % 64 == 17 {
+    let volumes: &'static [_] = if QUIRKY_RAND.get(st_seed) % 512 == 17 {
         if st_sample.temp > CONFIG.desert_temp {
             &QUIRKY_DRY
         } else {

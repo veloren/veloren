@@ -270,6 +270,17 @@ impl Server {
 
             // Handle chunk supplement
             for npc in supplement.npcs {
+                let mut stats = comp::Stats::new("Test".to_string());
+                let mut body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
+                let mut scale = 1.0;
+
+                if npc.boss {
+                    stats.health.set_maximum(400);
+                    stats.health.set_current(400);
+                    scale = 2.5;
+                    body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                }
+
                 self.state
                     .ecs_mut()
                     .create_entity_synced()
@@ -277,11 +288,11 @@ impl Server {
                     .with(comp::Vel(Vec3::zero()))
                     .with(comp::Ori(Vec3::unit_y()))
                     .with(comp::Controller::default())
-                    .with(comp::Body::Humanoid(comp::humanoid::Body::random()))
-                    .with(comp::Stats::new("Test".to_string()))
+                    .with(body)
+                    .with(stats)
                     .with(comp::ActionState::default())
-                    .with(comp::Agent::Enemy { target: None })
-                    .with(comp::ForceUpdate)
+                    .with(comp::Agent::enemy())
+                    .with(comp::Scale(scale))
                     .build();
             }
         }
