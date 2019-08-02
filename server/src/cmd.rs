@@ -438,7 +438,7 @@ fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 
 fn alignment_to_agent(alignment: &str, target: EcsEntity) -> Option<comp::Agent> {
     match alignment {
-        "hostile" => Some(comp::Agent::Enemy { target: None }),
+        "hostile" => Some(comp::Agent::enemy()),
         "friendly" => Some(comp::Agent::Pet {
             target,
             offset: Vec2::zero(),

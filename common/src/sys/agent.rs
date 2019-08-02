@@ -58,7 +58,7 @@ impl<'a> System<'a> for Sys {
                                 * 10.0;
                     }
                 }
-                Agent::Enemy { target } => {
+                Agent::Enemy { bearing, target } => {
                     let choose_new = match target.map(|tgt| positions.get(tgt)).flatten() {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
@@ -80,7 +80,16 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                         None => {
-                            controller.move_dir = Vec2::one();
+                            *bearing +=
+                                Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
+                                    * 0.1
+                                    - *bearing * 0.01;
+
+                            controller.move_dir = if bearing.magnitude_squared() > 0.5 {
+                                bearing.normalized()
+                            } else {
+                                Vec2::zero()
+                            };
                             true
                         }
                     };
