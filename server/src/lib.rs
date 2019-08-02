@@ -34,7 +34,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::World;
+use world::{ChunkSupplement, World};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -62,8 +62,8 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: mpsc::Sender<(Vec2<i32>, TerrainChunk)>,
-    chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
+    chunk_tx: mpsc::Sender<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
+    chunk_rx: mpsc::Receiver<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
     pending_chunks: HashSet<Vec2<i32>>,
 
     server_settings: ServerSettings,
@@ -237,7 +237,7 @@ impl Server {
 
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
-        if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
+        if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
             for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
@@ -267,6 +267,23 @@ impl Server {
 
             self.state.insert_chunk(key, chunk);
             self.pending_chunks.remove(&key);
+
+            // Handle chunk supplement
+            for npc in supplement.npcs {
+                self.state
+                    .ecs_mut()
+                    .create_entity_synced()
+                    .with(comp::Pos(npc.pos))
+                    .with(comp::Vel(Vec3::zero()))
+                    .with(comp::Ori(Vec3::unit_y()))
+                    .with(comp::Controller::default())
+                    .with(comp::Body::Humanoid(comp::humanoid::Body::random()))
+                    .with(comp::Stats::new("Test".to_string()))
+                    .with(comp::ActionState::default())
+                    .with(comp::Agent::Enemy { target: None })
+                    .with(comp::ForceUpdate)
+                    .build();
+            }
         }
 
         fn chunk_in_vd(
