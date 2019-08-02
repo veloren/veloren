@@ -10,8 +10,18 @@ pub enum Agent {
         offset: Vec2<f32>,
     },
     Enemy {
+        bearing: Vec2<f32>,
         target: Option<EcsEntity>,
     },
+}
+
+impl Agent {
+    pub fn enemy() -> Self {
+        Agent::Enemy {
+            bearing: Vec2::zero(),
+            target: None,
+        }
+    }
 }
 
 impl Component for Agent {

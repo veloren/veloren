@@ -131,10 +131,12 @@ impl World {
         };
 
         const SPAWN_RATE: f32 = 0.1;
+        const BOSS_RATE: f32 = 0.1;
         let supplement = ChunkSupplement {
             npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE && sim_chunk.chaos < 0.5 {
                 vec![NpcInfo {
                     pos: gen_entity_pos(),
+                    boss: rand::thread_rng().gen::<f32>() < BOSS_RATE,
                 }]
             } else {
                 Vec::new()
@@ -147,6 +149,7 @@ impl World {
 
 pub struct NpcInfo {
     pub pos: Vec3<f32>,
+    pub boss: bool,
 }
 
 pub struct ChunkSupplement {
