@@ -270,14 +270,17 @@ impl Server {
 
             // Handle chunk supplement
             for npc in supplement.npcs {
-                let mut stats = comp::Stats::new("Test".to_string());
+                let mut stats = comp::Stats::new("Wolf".to_string());
                 let mut body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
                 let mut scale = 1.0;
 
                 if npc.boss {
+                    if rand::random::<f32>() < 0.8 {
+                        stats = comp::Stats::new("Humanoid".to_string());
+                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                    }
                     stats = stats.with_max_health(300 + rand::random::<u32>() % 400);
-                    scale = 1.8 + rand::random::<f32>().fract();
-                    body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                    scale = 1.8 + rand::random::<f32>();
                 }
 
                 self.state
