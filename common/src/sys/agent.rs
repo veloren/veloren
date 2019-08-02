@@ -59,6 +59,8 @@ impl<'a> System<'a> for Sys {
                     }
                 }
                 Agent::Enemy { bearing, target } => {
+                    const SIGHT_DIST: f32 = 30.0;
+
                     let choose_new = match target.map(|tgt| positions.get(tgt)).flatten() {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
@@ -72,7 +74,7 @@ impl<'a> System<'a> for Sys {
                                 }
 
                                 false
-                            } else if dist < 60.0 {
+                            } else if dist < SIGHT_DIST {
                                 controller.move_dir =
                                     Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized();
 
@@ -100,7 +102,7 @@ impl<'a> System<'a> for Sys {
                         let entities = (&entities, &positions)
                             .join()
                             .filter(|(e, e_pos)| {
-                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < 30.0
+                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < SIGHT_DIST
                                     && *e != entity
                             })
                             .map(|(e, _)| e)
