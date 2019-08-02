@@ -275,9 +275,8 @@ impl Server {
                 let mut scale = 1.0;
 
                 if npc.boss {
-                    stats.health.set_maximum(400);
-                    stats.health.set_current(400);
-                    scale = 2.5;
+                    stats = stats.with_max_health(300 + rand::random::<u32>() % 400);
+                    scale = 1.8 + rand::random::<f32>().fract();
                     body = comp::Body::Humanoid(comp::humanoid::Body::random());
                 }
 
