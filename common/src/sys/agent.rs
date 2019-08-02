@@ -63,16 +63,22 @@ impl<'a> System<'a> for Sys {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
                             if dist < 2.0 {
-                                controller.move_dir = Vec2::zero();
+                                controller.move_dir = if dist < 0.001 {
+                                    Vec2::zero()
+                                } else {
+                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized()
+                                };
 
-                                if rand::random::<f32>() < 0.2 {
+                                if rand::random::<f32>() < 0.05 {
                                     controller.attack = true;
+                                } else {
+                                    controller.attack = false;
                                 }
 
                                 false
                             } else if dist < 60.0 {
                                 controller.move_dir =
-                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
+                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized();
 
                                 false
                             } else {
@@ -83,9 +89,9 @@ impl<'a> System<'a> for Sys {
                             *bearing +=
                                 Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
                                     * 0.1
-                                    - *bearing * 0.01;
+                                    - *bearing * 0.005;
 
-                            controller.move_dir = if bearing.magnitude_squared() > 0.5 {
+                            controller.move_dir = if bearing.magnitude_squared() > 0.1 {
                                 bearing.normalized()
                             } else {
                                 Vec2::zero()
@@ -94,7 +100,7 @@ impl<'a> System<'a> for Sys {
                         }
                     };
 
-                    if choose_new {
+                    if choose_new && rand::random::<f32>() < 0.1 {
                         let entities = (&entities, &positions)
                             .join()
                             .filter(|(e, e_pos)| {
