@@ -63,11 +63,7 @@ impl<'a> System<'a> for Sys {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
                             if dist < 2.0 {
-                                controller.move_dir = if dist < 0.001 {
-                                    Vec2::zero()
-                                } else {
-                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized()
-                                };
+                                controller.move_dir = Vec2::zero();
 
                                 if rand::random::<f32>() < 0.05 {
                                     controller.attack = true;
