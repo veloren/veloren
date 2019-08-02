@@ -14,7 +14,7 @@ impl<'a> System<'a> for Sys {
     );
 
     fn run(&mut self, (entities, mut agents, positions, mut controllers): Self::SystemData) {
-        for (_entity, agent, pos, controller) in
+        for (entity, agent, pos, controller) in
             (&entities, &mut agents, &positions, &mut controllers).join()
         {
             match agent {
@@ -88,8 +88,9 @@ impl<'a> System<'a> for Sys {
                     if choose_new {
                         let entities = (&entities, &positions)
                             .join()
-                            .filter(|(_, e_pos)| {
+                            .filter(|(e, e_pos)| {
                                 Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < 30.0
+                                    && *e != entity
                             })
                             .map(|(e, _)| e)
                             .collect::<Vec<_>>();
