@@ -132,7 +132,7 @@ impl World {
 
         const SPAWN_RATE: f32 = 0.1;
         let supplement = ChunkSupplement {
-            npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE {
+            npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE && sim_chunk.chaos < 0.5 {
                 vec![NpcInfo {
                     pos: gen_entity_pos(),
                 }]

@@ -19,8 +19,8 @@ use common::{
     net::PostOffice,
     state::{State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
-    vol::VolSize,
     vol::Vox,
+    vol::{ReadVol, VolSize},
 };
 use log::debug;
 use rand::Rng;
@@ -363,6 +363,7 @@ impl Server {
                 }
             }
         }
+
         // Sync changed blocks
         let msg =
             ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
@@ -375,6 +376,23 @@ impl Server {
             if player.view_distance.is_some() {
                 self.clients.notify(entity, msg.clone());
             }
+        }
+
+        // Remove NPCs that are outside the view distances of all players
+        let to_delete = {
+            let terrain = self.state.terrain();
+            (
+                &self.state.ecs().entities(),
+                &self.state.ecs().read_storage::<comp::Pos>(),
+                &self.state.ecs().read_storage::<comp::Agent>(),
+            )
+                .join()
+                .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
+                .map(|(entity, _, _)| entity)
+                .collect::<Vec<_>>()
+        };
+        for entity in to_delete {
+            let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
         // 7) Finish the tick, pass control back to the frontend.
