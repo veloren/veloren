@@ -50,10 +50,6 @@ impl Health {
         self.last_change = Some((amount, 0.0, cause));
     }
 
-    pub fn set_current(&mut self, amount: u32) {
-        self.current = amount.min(self.maximum);
-    }
-
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
@@ -139,6 +135,12 @@ impl Stats {
             },
             is_dead: false,
         }
+    }
+
+    pub fn with_max_health(mut self, amount: u32) -> Self {
+        self.health.maximum = amount;
+        self.health.current = amount;
+        self
     }
 }
 
