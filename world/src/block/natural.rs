@@ -2,7 +2,7 @@ use super::{BlockGen, StructureInfo, StructureMeta, ZCache};
 use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
-    util::{HashCache, RandomPerm, Sampler},
+    util::{HashCache, RandomPerm, Sampler, UnitChooser},
     CONFIG,
 };
 use common::{assets, terrain::Structure};
@@ -11,7 +11,7 @@ use std::sync::Arc;
 use vek::*;
 
 static VOLUME_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
-static UNIT_RAND: RandomPerm = RandomPerm::new(0x700F4EC7);
+static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 pub fn structure_gen<'a>(
@@ -61,22 +61,11 @@ pub fn structure_gen<'a>(
         }
     };
 
-    const UNIT_CHOICES: [(Vec2<i32>, Vec2<i32>); 8] = [
-        (Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: 1 }),
-        (Vec2 { x: 1, y: 0 }, Vec2 { x: 0, y: -1 }),
-        (Vec2 { x: -1, y: 0 }, Vec2 { x: 0, y: 1 }),
-        (Vec2 { x: -1, y: 0 }, Vec2 { x: 0, y: -1 }),
-        (Vec2 { x: 0, y: 1 }, Vec2 { x: 1, y: 0 }),
-        (Vec2 { x: 0, y: 1 }, Vec2 { x: -1, y: 0 }),
-        (Vec2 { x: 0, y: -1 }, Vec2 { x: 1, y: 0 }),
-        (Vec2 { x: 0, y: -1 }, Vec2 { x: -1, y: 0 }),
-    ];
-
     Some(StructureInfo {
         pos: st_pos3d,
         seed: st_seed,
         meta: StructureMeta::Volume {
-            units: UNIT_CHOICES[UNIT_RAND.get(st_seed) as usize % UNIT_CHOICES.len()],
+            units: UNIT_CHOOSER.get(st_seed),
             volume: &volumes[(VOLUME_RAND.get(st_seed) / 13) as usize % volumes.len()],
         },
     })
