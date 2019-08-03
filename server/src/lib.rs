@@ -878,18 +878,19 @@ impl Server {
                 }
 
                 // Give EXP to the client
-                if let comp::HealthSource::Attack { by } = dying.cause {
-                    ecs.entity_from_uid(by.into()).map(|attacker| {
-                        let mut stats = ecs.write_storage::<comp::Stats>();
-                        let entity_stats = stats.get(entity).unwrap().clone();
-                        let attacker_stats = stats.get_mut(attacker).unwrap();
-
-                        // TODO: Discuss whether we should give EXP by Player Killing or not.
-                        attacker_stats.exp.change_by(
-                            entity_stats.health.maximum() as f64 / 10.0
-                                * entity_stats.level.level() as f64,
-                        );
-                    });
+                let mut stats = ecs.write_storage::<comp::Stats>();
+                if let Some(entity_stats) = stats.get(entity).cloned() {
+                    if let comp::HealthSource::Attack { by } = dying.cause {
+                        ecs.entity_from_uid(by.into()).map(|attacker| {
+                            if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                attacker_stats.exp.change_by(
+                                    entity_stats.health.maximum() as f64 / 10.0
+                                        * entity_stats.level.level() as f64,
+                                );
+                            }
+                        });
+                    }
                 }
 
                 entity
