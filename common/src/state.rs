@@ -132,6 +132,7 @@ impl State {
         ecs.register_synced::<comp::CanBuild>();
         ecs.register_synced::<comp::LightEmitter>();
         ecs.register_synced::<comp::Item>();
+        ecs.register_synced::<comp::Scale>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

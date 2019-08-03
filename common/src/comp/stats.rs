@@ -34,18 +34,22 @@ impl Health {
     pub fn current(&self) -> u32 {
         self.current
     }
+
     pub fn maximum(&self) -> u32 {
         self.maximum
     }
+
     pub fn set_to(&mut self, amount: u32, cause: HealthSource) {
         let amount = amount.min(self.maximum);
         self.last_change = Some((amount as i32 - self.current as i32, 0.0, cause));
         self.current = amount;
     }
+
     pub fn change_by(&mut self, amount: i32, cause: HealthSource) {
         self.current = ((self.current as i32 + amount).max(0) as u32).min(self.maximum);
         self.last_change = Some((amount, 0.0, cause));
     }
+
     pub fn set_maximum(&mut self, amount: u32) {
         self.maximum = amount;
         self.current = self.current.min(self.maximum);
@@ -131,6 +135,12 @@ impl Stats {
             },
             is_dead: false,
         }
+    }
+
+    pub fn with_max_health(mut self, amount: u32) -> Self {
+        self.health.maximum = amount;
+        self.health.current = amount;
+        self
     }
 }
 

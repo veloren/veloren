@@ -22,7 +22,7 @@ pub use inputs::{
 };
 pub use inventory::{item, Inventory, InventoryUpdate, Item};
 pub use last::Last;
-pub use phys::{ForceUpdate, Ori, Pos, Vel};
+pub use phys::{ForceUpdate, Ori, Pos, Scale, Vel};
 pub use player::Player;
 pub use stats::{Dying, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;

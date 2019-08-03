@@ -19,8 +19,8 @@ use common::{
     net::PostOffice,
     state::{State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
-    vol::VolSize,
     vol::Vox,
+    vol::{ReadVol, VolSize},
 };
 use log::debug;
 use rand::Rng;
@@ -34,7 +34,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::World;
+use world::{ChunkSupplement, World};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -62,8 +62,8 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: mpsc::Sender<(Vec2<i32>, TerrainChunk)>,
-    chunk_rx: mpsc::Receiver<(Vec2<i32>, TerrainChunk)>,
+    chunk_tx: mpsc::Sender<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
+    chunk_rx: mpsc::Receiver<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
     pending_chunks: HashSet<Vec2<i32>>,
 
     server_settings: ServerSettings,
@@ -237,7 +237,7 @@ impl Server {
 
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
-        if let Ok((key, chunk)) = self.chunk_rx.try_recv() {
+        if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
             for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
@@ -267,6 +267,36 @@ impl Server {
 
             self.state.insert_chunk(key, chunk);
             self.pending_chunks.remove(&key);
+
+            // Handle chunk supplement
+            for npc in supplement.npcs {
+                let mut stats = comp::Stats::new("Wolf".to_string());
+                let mut body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
+                let mut scale = 1.0;
+
+                if npc.boss {
+                    if rand::random::<f32>() < 0.8 {
+                        stats = comp::Stats::new("Humanoid".to_string());
+                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                    }
+                    stats = stats.with_max_health(300 + rand::random::<u32>() % 400);
+                    scale = 1.8 + rand::random::<f32>();
+                }
+
+                self.state
+                    .ecs_mut()
+                    .create_entity_synced()
+                    .with(comp::Pos(npc.pos))
+                    .with(comp::Vel(Vec3::zero()))
+                    .with(comp::Ori(Vec3::unit_y()))
+                    .with(comp::Controller::default())
+                    .with(body)
+                    .with(stats)
+                    .with(comp::ActionState::default())
+                    .with(comp::Agent::enemy())
+                    .with(comp::Scale(scale))
+                    .build();
+            }
         }
 
         fn chunk_in_vd(
@@ -346,6 +376,7 @@ impl Server {
                 }
             }
         }
+
         // Sync changed blocks
         let msg =
             ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
@@ -358,6 +389,23 @@ impl Server {
             if player.view_distance.is_some() {
                 self.clients.notify(entity, msg.clone());
             }
+        }
+
+        // Remove NPCs that are outside the view distances of all players
+        let to_delete = {
+            let terrain = self.state.terrain();
+            (
+                &self.state.ecs().entities(),
+                &self.state.ecs().read_storage::<comp::Pos>(),
+                &self.state.ecs().read_storage::<comp::Agent>(),
+            )
+                .join()
+                .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
+                .map(|(entity, _, _)| entity)
+                .collect::<Vec<_>>()
+        };
+        for entity in to_delete {
+            let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
         // 7) Finish the tick, pass control back to the frontend.
