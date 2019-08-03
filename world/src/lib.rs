@@ -17,8 +17,9 @@ use crate::{
 };
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
-    vol::{VolSize, Vox, WriteVol},
+    vol::{ReadVol, VolSize, Vox, WriteVol},
 };
+use rand::Rng;
 use std::time::Duration;
 use vek::*;
 
@@ -56,7 +57,7 @@ impl World {
         BlockGen::new(self, ColumnGen::new(self))
     }
 
-    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> TerrainChunk {
+    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
         let air = Block::empty();
         let stone = Block::new(2, Rgb::new(200, 220, 255));
         let water = Block::new(5, Rgb::new(100, 150, 255));
@@ -72,21 +73,24 @@ impl World {
         {
             Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
             None => {
-                return TerrainChunk::new(
-                    CONFIG.sea_level as i32,
-                    water,
-                    air,
-                    TerrainChunkMeta::void(),
+                return (
+                    TerrainChunk::new(
+                        CONFIG.sea_level as i32,
+                        water,
+                        air,
+                        TerrainChunkMeta::void(),
+                    ),
+                    ChunkSupplement::default(),
                 )
             }
         };
 
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
-
-        let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
-
         let mut sampler = self.sample_blocks();
 
+        let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+
+        let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for x in 0..TerrainChunkSize::SIZE.x as i32 {
             for y in 0..TerrainChunkSize::SIZE.y as i32 {
                 let wpos2d = Vec2::new(x, y)
@@ -105,8 +109,7 @@ impl World {
 
                 for z in min_z as i32..max_z as i32 {
                     let lpos = Vec3::new(x, y, z);
-                    let wpos =
-                        lpos + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+                    let wpos = chunk_block_pos + lpos;
 
                     if let Some(block) = sampler.get_with_z_cache(wpos, Some(&z_cache)) {
                         let _ = chunk.set(lpos, block);
@@ -115,6 +118,46 @@ impl World {
             }
         }
 
-        chunk
+        let gen_entity_pos = || {
+            let lpos2d = Vec2::from(TerrainChunkSize::SIZE)
+                .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz));
+            let mut lpos = Vec3::new(lpos2d.x as i32, lpos2d.y as i32, 0);
+
+            while chunk.get(lpos).map(|vox| !vox.is_empty()).unwrap_or(false) {
+                lpos.z += 1;
+            }
+
+            (chunk_block_pos + lpos).map(|e| e as f32) + 0.5
+        };
+
+        const SPAWN_RATE: f32 = 0.1;
+        const BOSS_RATE: f32 = 0.1;
+        let supplement = ChunkSupplement {
+            npcs: if rand::thread_rng().gen::<f32>() < SPAWN_RATE && sim_chunk.chaos < 0.5 {
+                vec![NpcInfo {
+                    pos: gen_entity_pos(),
+                    boss: rand::thread_rng().gen::<f32>() < BOSS_RATE,
+                }]
+            } else {
+                Vec::new()
+            },
+        };
+
+        (chunk, supplement)
+    }
+}
+
+pub struct NpcInfo {
+    pub pos: Vec3<f32>,
+    pub boss: bool,
+}
+
+pub struct ChunkSupplement {
+    pub npcs: Vec<NpcInfo>,
+}
+
+impl Default for ChunkSupplement {
+    fn default() -> Self {
+        Self { npcs: Vec::new() }
     }
 }

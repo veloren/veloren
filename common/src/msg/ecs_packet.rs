@@ -26,6 +26,7 @@ sphynx::sum_type! {
         Stats(comp::Stats),
         LightEmitter(comp::LightEmitter),
         Item(comp::Item),
+        Scale(comp::Scale),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -42,6 +43,7 @@ sphynx::sum_type! {
         Stats(PhantomData<comp::Stats>),
         LightEmitter(PhantomData<comp::LightEmitter>),
         Item(PhantomData<comp::Item>),
+        Scale(PhantomData<comp::Scale>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {

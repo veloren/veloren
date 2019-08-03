@@ -1,4 +1,4 @@
-use specs::{Component, NullStorage};
+use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
 
@@ -24,6 +24,14 @@ pub struct Ori(pub Vec3<f32>);
 
 impl Component for Ori {
     type Storage = IDVStorage<Self>;
+}
+
+// Scale
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Scale(pub f32);
+
+impl Component for Scale {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
 // ForceUpdate

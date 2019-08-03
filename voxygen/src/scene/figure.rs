@@ -624,11 +624,12 @@ impl FigureMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        for (entity, pos, vel, ori, body, animation_info, stats) in (
+        for (entity, pos, vel, ori, scale, body, animation_info, stats) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Pos>(),
             &ecs.read_storage::<comp::Vel>(),
             &ecs.read_storage::<comp::Ori>(),
+            ecs.read_storage::<comp::Scale>().maybe(),
             &ecs.read_storage::<comp::Body>(),
             ecs.read_storage::<comp::AnimationInfo>().maybe(),
             ecs.read_storage::<comp::Stats>().maybe(),
@@ -670,6 +671,8 @@ impl FigureMgr {
                             .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
+
+            let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             let skeleton_attr = &self
                 .model_cache
@@ -750,7 +753,7 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);
-                    state.update(renderer, pos.0, ori.0, col, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
                 Body::Quadruped(_) => {
                     let state = self
@@ -788,7 +791,7 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);
-                    state.update(renderer, pos.0, ori.0, col, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
                 Body::QuadrupedMedium(_) => {
                     let state = self
@@ -834,7 +837,7 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);
-                    state.update(renderer, pos.0, ori.0, col, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
                 Body::Object(_) => {
                     let state = self
@@ -843,7 +846,7 @@ impl FigureMgr {
                         .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
 
                     state.skeleton = state.skeleton_mut().clone();
-                    state.update(renderer, pos.0, ori.0, col, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
             }
         }
@@ -967,6 +970,7 @@ impl<S: Skeleton> FigureState<S> {
         renderer: &mut Renderer,
         pos: Vec3<f32>,
         ori: Vec3<f32>,
+        scale: f32,
         col: Rgba<f32>,
         dt: f32,
     ) {
@@ -982,7 +986,7 @@ impl<S: Skeleton> FigureState<S> {
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
             * Mat4::rotation_z(-ori.x.atan2(ori.y))
-            * Mat4::scaling_3d(Vec3::from(0.8));
+            * Mat4::scaling_3d(Vec3::from(0.8 * scale));
 
         let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
