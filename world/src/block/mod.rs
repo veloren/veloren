@@ -289,40 +289,14 @@ impl<'a> BlockGen<'a> {
             }
         });
 
-        let block = if definitely_underground {
-            block.unwrap_or(Block::empty())
-        } else {
-            block
-                .or_else(|| {
-                    structures.iter().find_map(|st| {
-                        let (st, st_sample) = st.as_ref()?;
-
-                        st.get(wpos, st_sample)
-
-                        /*
-                        let rpos = wpos - st.pos;
-                        let block_pos = Vec3::unit_z() * rpos.z
-                            + Vec3::from(st.units.0) * rpos.x
-                            + Vec3::from(st.units.1) * rpos.y;
-
-                        st.volume
-                            .get((block_pos * 128) / 128) // Scaling
-                            .map(|b| {
-                                block_from_structure(
-                                    *b,
-                                    block_pos,
-                                    st.pos.into(),
-                                    st.seed,
-                                    st_sample,
-                                )
-                            })
-                            .ok()
-                            .filter(|block| !block.is_empty())
-                        */
-                    })
-                })
-                .unwrap_or(Block::empty())
-        };
+        let block = structures
+            .iter()
+            .find_map(|st| {
+                let (st, st_sample) = st.as_ref()?;
+                st.get(wpos, st_sample)
+            })
+            .or(block)
+            .unwrap_or(Block::empty());
 
         Some(block)
     }
@@ -346,9 +320,11 @@ impl<'a> ZCache<'a> {
 
         let cliff = if self.sample.near_cliffs { 48.0 } else { 0.0 };
         let warp = self.sample.chaos * 48.0;
-        let structure = self.structures.iter().filter_map(|st| st.as_ref()).fold(
-            0,
-            |a, (st_info, st_sample)| {
+        let (structure_min, structure_max) = self
+            .structures
+            .iter()
+            .filter_map(|st| st.as_ref())
+            .fold((0.0f32, 0.0f32), |(min, max), (st_info, st_sample)| {
                 let bounds = st_info.get_bounds();
                 let st_area = Aabr {
                     min: Vec2::from(bounds.min),
@@ -356,14 +332,14 @@ impl<'a> ZCache<'a> {
                 };
 
                 if st_area.contains_point(self.wpos - st_info.pos) {
-                    a.max(bounds.max.z)
+                    (min.min(bounds.min.z as f32), max.max(bounds.max.z as f32))
                 } else {
-                    a
+                    (min, max)
                 }
-            },
-        ) as f32;
+            });
 
-        let max = (self.sample.alt + cliff + structure + warp + 8.0)
+        let min = min + structure_min;
+        let max = (self.sample.alt + cliff + structure_max + warp + 8.0)
             .max(self.sample.water_level)
             .max(CONFIG.sea_level + 2.0);
 
@@ -444,11 +420,10 @@ impl StructureInfo {
 
                 volume
                     .get((block_pos * 128) / 128) // Scaling
-                    .map(|b| {
+                    .ok()
+                    .and_then(|b| {
                         block_from_structure(*b, block_pos, self.pos.into(), self.seed, sample)
                     })
-                    .ok()
-                    .filter(|block| !block.is_empty())
             }
         }
     }
@@ -460,7 +435,7 @@ fn block_from_structure(
     structure_pos: Vec2<i32>,
     structure_seed: u32,
     _sample: &ColumnSample,
-) -> Block {
+) -> Option<Block> {
     let field = RandomField::new(structure_seed + 0);
 
     let lerp = 0.5
@@ -468,17 +443,17 @@ fn block_from_structure(
         + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
 
     match sblock {
-        StructureBlock::TemperateLeaves => Block::new(
+        StructureBlock::TemperateLeaves => Some(Block::new(
             1,
             Lerp::lerp(Rgb::new(0.0, 70.0, 35.0), Rgb::new(100.0, 140.0, 0.0), lerp)
                 .map(|e| e as u8),
-        ),
-        StructureBlock::PineLeaves => Block::new(
+        )),
+        StructureBlock::PineLeaves => Some(Block::new(
             1,
             Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
                 .map(|e| e as u8),
-        ),
-        StructureBlock::PalmLeaves => Block::new(
+        )),
+        StructureBlock::PalmLeaves => Some(Block::new(
             1,
             Lerp::lerp(
                 Rgb::new(15.0, 100.0, 30.0),
@@ -486,8 +461,8 @@ fn block_from_structure(
                 lerp,
             )
             .map(|e| e as u8),
-        ),
-        StructureBlock::Acacia => Block::new(
+        )),
+        StructureBlock::Acacia => Some(Block::new(
             1,
             Lerp::lerp(
                 Rgb::new(35.0, 100.0, 10.0),
@@ -495,12 +470,13 @@ fn block_from_structure(
                 lerp,
             )
             .map(|e| e as u8),
-        ),
-        StructureBlock::Fruit => Block::new(
+        )),
+        StructureBlock::Fruit => Some(Block::new(
             1,
             Lerp::lerp(Rgb::new(255.0, 0.0, 0.0), Rgb::new(200.0, 255.0, 6.0), lerp)
                 .map(|e| e as u8),
-        ),
-        StructureBlock::Block(block) => block,
+        )),
+        StructureBlock::Hollow => Some(Block::empty()),
+        StructureBlock::Block(block) => Some(block).filter(|block| !block.is_empty()),
     }
 }
