@@ -5,16 +5,31 @@ use crate::{
     util::Sampler,
     World, CONFIG,
 };
-use common::{terrain::TerrainChunkSize, vol::VolSize};
+use common::{
+    assets,
+    terrain::{Structure, TerrainChunkSize},
+    vol::VolSize,
+};
+use lazy_static::lazy_static;
 use noise::NoiseFn;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
 };
 use vek::*;
 
 pub struct ColumnGen<'a> {
     world: &'a World,
+}
+
+lazy_static! {
+    pub static ref DUNGEONS: Vec<Arc<Structure>> = vec![
+        // green oaks
+        assets::load_map("world/structure/dungeon/ruins.vox", |s: Structure| s
+            .with_center(Vec3::new(57, 58, 62)))
+        .unwrap(),
+    ];
 }
 
 impl<'a> ColumnGen<'a> {
@@ -44,6 +59,15 @@ impl<'a> ColumnGen<'a> {
                 pos,
                 seed,
                 meta: Some(StructureMeta::Pyramid { height: 140 }),
+            })
+        } else if seed % 17 == 2 && chunk.chaos < 0.2 {
+            Some(StructureData {
+                pos,
+                seed,
+                meta: Some(StructureMeta::Volume {
+                    units: (Vec2::unit_x(), Vec2::unit_y()),
+                    volume: &DUNGEONS[0],
+                }),
             })
         } else {
             None

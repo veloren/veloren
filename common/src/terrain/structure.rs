@@ -15,6 +15,7 @@ pub enum StructureBlock {
     Acacia,
     PalmLeaves,
     Fruit,
+    Hollow,
     Block(Block),
 }
 
@@ -94,6 +95,7 @@ impl Asset for Structure {
                     2 => StructureBlock::PalmLeaves,
                     4 => StructureBlock::Acacia,
                     7 => StructureBlock::Fruit,
+                    15 => StructureBlock::Hollow,
                     index => {
                         let color = palette
                             .get(index as usize)
