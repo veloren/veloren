@@ -3,7 +3,7 @@
 #include <globals.glsl>
 
 in vec3 f_pos;
-flat in uint f_pos_norm;
+flat in vec3 f_norm;
 in vec3 f_col;
 in float f_light;
 
@@ -18,18 +18,6 @@ out vec4 tgt_color;
 #include <light.glsl>
 
 void main() {
-	// Calculate normal from packed data
-	vec3 f_norm;
-	uint norm_axis = (f_pos_norm >> 30) & 0x3u;
-	float norm_dir = float((f_pos_norm >> 29) & 0x1u) * 2.0 - 1.0;
-	if (norm_axis == 0u) {
-		f_norm = vec3(1.0, 0.0, 0.0) * norm_dir;
-	} else if (norm_axis == 1u) {
-		f_norm = vec3(0.0, 1.0, 0.0) * norm_dir;
-	} else {
-		f_norm = vec3(0.0, 0.0, 1.0) * norm_dir;
-	}
-
 	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) * f_light + light_at(f_pos, f_norm);
 	vec3 surf_color = f_col * light;
 

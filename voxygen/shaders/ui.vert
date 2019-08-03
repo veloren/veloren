@@ -24,7 +24,7 @@ void main() {
 
     if (w_pos.w == 1.0) {
         // In-game element
-        gl_Position = proj_mat * (view_mat * w_pos + vec4(v_pos, 0.0, 0.0));
+        gl_Position = proj_mat * view_mat * w_pos + vec4(v_pos, 0.0, 0.0);
     } else {
         // Interface element
         gl_Position = vec4(v_pos, 0.0, 1.0);
