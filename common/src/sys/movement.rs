@@ -116,8 +116,11 @@ impl<'a> System<'a> for Sys {
                 } else {
                     move_dir.0
                 };
-                if ori_dir.magnitude_squared() > 0.0001 {
-                    ori.0 = Lerp::lerp(ori.0, Vec3::from(ori_dir.normalized()), 4.0 * dt.0);
+                if ori_dir.magnitude_squared() > 0.0001
+                    && (ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
+                        > 0.01
+                {
+                    ori.0 = vek::ops::Slerp::slerp(ori.0, ori_dir.into(), 5.0 * dt.0);
                 }
             }
 
