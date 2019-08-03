@@ -767,24 +767,30 @@ impl FigureMgr {
                     };
 
                     let target_skeleton = match animation_info.animation {
-                        comp::Animation::Run => anim::quadruped::RunAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            (vel.0.magnitude(), time),
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Idle => anim::quadruped::IdleAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Jump => anim::quadruped::JumpAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            (vel.0.magnitude(), time),
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
+                        comp::Animation::Run | comp::Animation::Crun => {
+                            anim::quadruped::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Idle | comp::Animation::Cidle => {
+                            anim::quadruped::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Jump | comp::Animation::Cjump => {
+                            anim::quadruped::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
 
                         // TODO!
                         _ => state.skeleton_mut().clone(),
@@ -807,7 +813,7 @@ impl FigureMgr {
                     };
 
                     let target_skeleton = match animation_info.animation {
-                        comp::Animation::Run => {
+                        comp::Animation::Run | comp::Animation::Crun => {
                             anim::quadrupedmedium::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
@@ -815,7 +821,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         }
-                        comp::Animation::Idle => {
+                        comp::Animation::Idle | comp::Animation::Cidle => {
                             anim::quadrupedmedium::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
@@ -823,7 +829,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         }
-                        comp::Animation::Jump => {
+                        comp::Animation::Jump | comp::Animation::Cjump => {
                             anim::quadrupedmedium::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 (vel.0.magnitude(), time),
