@@ -3,9 +3,8 @@
 #include <globals.glsl>
 
 in vec3 f_pos;
-in vec3 f_norm;
 in vec3 f_col;
-flat in uint f_bone_idx;
+flat in vec3 f_norm;
 
 layout (std140)
 uniform u_locals {
@@ -28,13 +27,7 @@ uniform u_bones {
 out vec4 tgt_color;
 
 void main() {
-	vec3 world_norm = (
-		model_mat *
-		bones[f_bone_idx].bone_mat *
-		vec4(f_norm, 0.0)
-	).xyz;
-
-	vec3 light = get_sun_diffuse(world_norm, time_of_day.x) + light_at(f_pos, world_norm);
+	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) + light_at(f_pos, f_norm);
 	vec3 surf_color = model_col.rgb * f_col * 2.0 * light;
 
 	float fog_level = fog(f_pos.xy, focus_pos.xy);

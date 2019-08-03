@@ -16,19 +16,32 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 	const float LIGHT_AMBIENCE = 0.025;
 
 	vec3 light = vec3(0);
-	for (uint i = 0u; i < light_count.x; i ++) {
-		vec3 light_pos = lights[i].light_pos.xyz;
-		float strength = attenuation_strength(wpos - light_pos);
 
-		vec3 color = strength
-			* lights[i].light_col.rgb
-			* lights[i].light_col.a;
+	for (uint i = 0u; i < light_count.x; i++) {
 
-		if (max(max(color.r, color.g), color.b) < 0.002) {
-			continue;
-		}
+		// Only access the array once
+		Light L = lights[i];
 
-		light += color * clamp(dot(normalize(light_pos - wpos), wnorm), LIGHT_AMBIENCE, 1.0);
+		vec3 light_pos = L.light_pos.xyz;
+
+		// Pre-calculate difference between light and fragment
+		vec3 difference = light_pos - wpos;
+
+		float strength = attenuation_strength(difference);
+
+		// Multiply the vec3 only once
+		vec3 color = L.light_col.rgb * (strength * L.light_col.a);
+
+		// This is commented out to avoid conditional branching. See here: https://community.khronos.org/t/glsl-float-multiply-by-zero/104391
+		// if (max(max(color.r, color.g), color.b) < 0.002) {
+		// 	continue;
+		// }
+
+		// Old: light += color * clamp(dot(normalize(difference), wnorm), LIGHT_AMBIENCE, 1.0);
+
+		// The dot product cannot be greater than one, so no need to clamp max value
+		// Also, rather than checking if it is smaller than LIGHT_AMBIENCE, add LIGHT_AMBIENCE instead
+		light += color * (max(0, dot(normalize(difference), wnorm)) + LIGHT_AMBIENCE);
 	}
 	return light;
 }
