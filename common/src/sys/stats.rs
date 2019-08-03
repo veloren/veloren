@@ -35,6 +35,15 @@ impl<'a> System<'a> for Sys {
             if let Some(change) = &mut stat.health.last_change {
                 change.1 += f64::from(dt.0);
             }
+
+            if stat.exp.current() >= stat.exp.maximum() {
+                stat.exp.change_by(-stat.exp.maximum());
+                stat.exp.change_maximum_by(25.0);
+                stat.level.change_by(1);
+                stat.health.set_maximum(stat.health.maximum() + 10);
+                stat.health
+                    .set_to(stat.health.maximum(), HealthSource::LevelUp)
+            }
         }
     }
 }
