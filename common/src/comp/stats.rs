@@ -57,11 +57,11 @@ impl Health {
 }
 
 impl Exp {
-    pub fn get_current(&self) -> f64 {
+    pub fn current(&self) -> f64 {
         self.current
     }
 
-    pub fn get_maximum(&self) -> f64 {
+    pub fn maximum(&self) -> f64 {
         self.maximum
     }
 
@@ -74,7 +74,7 @@ impl Exp {
     // self.maximum = maximum;
     // }
 
-    pub fn change_current_by(&mut self, current: f64) {
+    pub fn change_by(&mut self, current: f64) {
         self.current = self.current + current;
     }
 
@@ -89,7 +89,7 @@ impl Level {
     // self.amount = level;
     // }
 
-    pub fn get_level(&self) -> u32 {
+    pub fn level(&self) -> u32 {
         self.amount
     }
 
