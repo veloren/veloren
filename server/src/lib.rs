@@ -878,32 +878,17 @@ impl Server {
                 }
 
                 // Give EXP to the client
-                if let Some(_enemy) = ecs.read_storage::<comp::Body>().get(entity) {
+                let mut stats = ecs.write_storage::<comp::Stats>();
+                if let Some(entity_stats) = stats.get(entity).cloned() {
                     if let comp::HealthSource::Attack { by } = dying.cause {
-                        ecs.entity_from_uid(by.into()).and_then(|attacker| {
-                            let mut stats = ecs.write_storage::<comp::Stats>();
-                            let attacker_stats = stats.get_mut(attacker).unwrap();
-
-                            // TODO: Discuss whether we should give EXP by Player Killing or not.
-                            // TODO: Don't make this a single value and make it depend on
-                            // slayed entity's level
-                            attacker_stats.exp.change_current_by(1.0);
-
-                            if attacker_stats.exp.get_current() >= attacker_stats.exp.get_maximum()
-                            {
-                                attacker_stats.exp.change_maximum_by(25.0);
-                                attacker_stats.exp.set_current(0.0);
-                                attacker_stats.level.change_by(1);
-                                attacker_stats
-                                    .health
-                                    .set_maximum(attacker_stats.health.maximum() + 10);
-                                attacker_stats.health.set_to(
-                                    attacker_stats.health.maximum(),
-                                    comp::HealthSource::LevelUp,
-                                )
+                        ecs.entity_from_uid(by.into()).map(|attacker| {
+                            if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                attacker_stats.exp.change_by(
+                                    entity_stats.health.maximum() as f64 / 10.0
+                                        + entity_stats.level.level() as f64 * 10.0,
+                                );
                             }
-
-                            ecs.read_storage::<comp::Player>().get(attacker).cloned()
                         });
                     }
                 }
