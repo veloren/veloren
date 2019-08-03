@@ -268,6 +268,8 @@ impl<'a> System<'a> for Sys {
 
                 if diff.magnitude_squared() > 0.0
                     && diff.magnitude_squared() < collision_dist.powf(2.0)
+                    && pos.0.z + 1.6 * scale > pos_other.0.z
+                    && pos.0.z < pos_other.0.z + 1.6 * scale_other
                 {
                     vel.0 +=
                         Vec3::from(diff.normalized()) * (collision_dist - diff.magnitude()) * 5.0;

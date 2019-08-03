@@ -74,7 +74,7 @@ impl<'a> System<'a> for Sys {
                             controller.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.5;
 
-                            if rand::random::<f32>() < 0.1 {
+                            if rand::random::<f32>() < 0.05 {
                                 controller.attack = true;
                             } else {
                                 controller.attack = false;
