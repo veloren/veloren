@@ -58,21 +58,25 @@ impl<'a> System<'a> for Sys {
                                 * 10.0;
                     }
                 }
-                Agent::Enemy { target } => {
+                Agent::Enemy { bearing, target } => {
+                    const SIGHT_DIST: f32 = 30.0;
+
                     let choose_new = match target.map(|tgt| positions.get(tgt)).flatten() {
                         Some(tgt_pos) => {
                             let dist = Vec2::<f32>::from(tgt_pos.0 - pos.0).magnitude();
                             if dist < 2.0 {
                                 controller.move_dir = Vec2::zero();
 
-                                if rand::random::<f32>() < 0.2 {
+                                if rand::random::<f32>() < 0.05 {
                                     controller.attack = true;
+                                } else {
+                                    controller.attack = false;
                                 }
 
                                 false
-                            } else if dist < 60.0 {
+                            } else if dist < SIGHT_DIST {
                                 controller.move_dir =
-                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized() * 0.96;
+                                    Vec2::<f32>::from(tgt_pos.0 - pos.0).normalized();
 
                                 false
                             } else {
@@ -80,16 +84,25 @@ impl<'a> System<'a> for Sys {
                             }
                         }
                         None => {
-                            controller.move_dir = Vec2::one();
+                            *bearing +=
+                                Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
+                                    * 0.1
+                                    - *bearing * 0.005;
+
+                            controller.move_dir = if bearing.magnitude_squared() > 0.1 {
+                                bearing.normalized()
+                            } else {
+                                Vec2::zero()
+                            };
                             true
                         }
                     };
 
-                    if choose_new {
+                    if choose_new && rand::random::<f32>() < 0.1 {
                         let entities = (&entities, &positions)
                             .join()
                             .filter(|(e, e_pos)| {
-                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < 30.0
+                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < SIGHT_DIST
                                     && *e != entity
                             })
                             .map(|(e, _)| e)
