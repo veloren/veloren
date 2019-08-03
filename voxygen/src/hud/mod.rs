@@ -349,7 +349,8 @@ impl Hud {
             let ecs = client.state().ecs();
             let pos = ecs.read_storage::<comp::Pos>();
             let stats = ecs.read_storage::<comp::Stats>();
-            let player = ecs.read_storage::<comp::Player>();
+            let players = ecs.read_storage::<comp::Player>();
+            let scales = ecs.read_storage::<comp::Scale>();
             let entities = ecs.entities();
             let me = client.entity();
             let view_distance = client.view_distance().unwrap_or(1);
@@ -389,17 +390,17 @@ impl Hud {
                 .set(self.ids.crosshair_inner, ui_widgets);
 
             // Render Name Tags
-            for (pos, name) in (&entities, &pos, &stats, player.maybe())
+            for (pos, name, scale) in (&entities, &pos, &stats, players.maybe(), scales.maybe())
                 .join()
-                .filter(|(entity, _, stats, _)| *entity != me && !stats.is_dead)
+                .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _, _)| {
+                .filter(|(_, pos, _, _, _)| {
                     (pos.0 - player_pos)
                         .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
                         .magnitude()
                         < view_distance as f32
                 })
-                .map(|(_, pos, stats, player)| {
+                .map(|(_, pos, stats, player, scale)| {
                     // TODO: This is temporary
                     // If the player used the default character name display their name instead
                     let name = if stats.name == "Character Name" {
@@ -407,9 +408,11 @@ impl Hud {
                     } else {
                         &stats.name
                     };
-                    (pos.0, name)
+                    (pos.0, name, scale)
                 })
             {
+                let scale = scale.map(|s| s.0).unwrap_or(1.0);
+
                 let id = name_id_walker.next(
                     &mut self.ids.name_tags,
                     &mut ui_widgets.widget_id_generator(),
@@ -418,27 +421,29 @@ impl Hud {
                     .font_size(20)
                     .color(Color::Rgba(0.61, 0.61, 0.89, 1.0))
                     .x_y(0.0, 0.0)
-                    .position_ingame(pos + Vec3::new(0.0, 0.0, 3.0))
+                    .position_ingame(pos + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(id, ui_widgets);
             }
 
             // Render Health Bars
-            for (_entity, pos, stats) in (&entities, &pos, &stats)
+            for (_entity, pos, stats, scale) in (&entities, &pos, &stats, scales.maybe())
                 .join()
-                .filter(|(entity, _, stats)| {
+                .filter(|(entity, _, stats, _)| {
                     *entity != me
                         && !stats.is_dead
                         && stats.health.current() != stats.health.maximum()
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
-                .filter(|(_, pos, _)| {
+                .filter(|(_, pos, _, _)| {
                     (pos.0 - player_pos)
                         .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
                         .magnitude()
                         < view_distance as f32
                 })
             {
+                let scale = scale.map(|s| s.0).unwrap_or(1.0);
+
                 let back_id = health_back_id_walker.next(
                     &mut self.ids.health_bar_backs,
                     &mut ui_widgets.widget_id_generator(),
@@ -450,7 +455,7 @@ impl Hud {
                 // Background
                 Rectangle::fill_with([120.0, 8.0], Color::Rgba(0.3, 0.3, 0.3, 0.5))
                     .x_y(0.0, -25.0)
-                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
+                    .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                     .resolution(100.0)
                     .set(back_id, ui_widgets);
 
@@ -463,7 +468,7 @@ impl Hud {
                     HP_COLOR,
                 )
                 .x_y(0.0, -25.0)
-                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 3.0))
+                .position_ingame(pos.0 + Vec3::new(0.0, 0.0, 1.5 * scale + 1.5))
                 .resolution(100.0)
                 .set(bar_id, ui_widgets);
             }
