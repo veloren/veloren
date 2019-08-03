@@ -1,5 +1,8 @@
 use crate::{
-    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel, Wielding},
+    comp::{
+        ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
+        Wielding,
+    },
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -32,6 +35,8 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, ActionState>,
+        ReadStorage<'a, Scale>,
+        ReadStorage<'a, Body>,
         WriteStorage<'a, OnGround>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -45,6 +50,8 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             action_states,
+            scales,
+            bodies,
             mut on_grounds,
             mut positions,
             mut velocities,
@@ -52,15 +59,19 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, a, mut pos, mut vel, mut ori) in (
+        for (entity, a, scale, _, mut pos, mut vel, mut ori) in (
             &entities,
             &action_states,
+            scales.maybe(),
+            &bodies,
             &mut positions,
             &mut velocities,
             &mut orientations,
         )
             .join()
         {
+            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
@@ -72,8 +83,8 @@ impl<'a> System<'a> for Sys {
             vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
 
             // Basic collision with terrain
-            let player_rad = 0.3f32; // half-width of the player's AABB
-            let player_height = 1.5f32;
+            let player_rad = 0.3 * scale; // half-width of the player's AABB
+            let player_height = 1.5 * scale;
 
             // Probe distances
             let hdist = player_rad.ceil() as i32;
@@ -241,6 +252,26 @@ impl<'a> System<'a> for Sys {
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
                 let _ = on_grounds.insert(entity, OnGround);
+            }
+        }
+
+        // Apply pushback
+        for (pos, scale, mut vel, _) in
+            (&positions, scales.maybe(), &mut velocities, &bodies).join()
+        {
+            let scale = scale.map(|s| s.0).unwrap_or(1.0);
+            for (pos_other, scale_other, _) in (&positions, scales.maybe(), &bodies).join() {
+                let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
+                let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
+
+                let collision_dist = 0.3 * (scale + scale_other);
+
+                if diff.magnitude_squared() > 0.0
+                    && diff.magnitude_squared() < collision_dist.powf(2.0)
+                {
+                    vel.0 +=
+                        Vec3::from(diff.normalized()) * (collision_dist - diff.magnitude()) * 5.0;
+                }
             }
         }
     }
