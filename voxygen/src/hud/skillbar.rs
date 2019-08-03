@@ -72,10 +72,10 @@ impl<'a> Widget for Skillbar<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let level = (self.stats.level.get_level()).to_string();
-        let next_level = (self.stats.level.get_level() + 1).to_string();
+        let level = (self.stats.level.level()).to_string();
+        let next_level = (self.stats.level.level() + 1).to_string();
 
-        let exp_percentage = self.stats.exp.get_current() / self.stats.exp.get_maximum();
+        let exp_percentage = self.stats.exp.current() / self.stats.exp.maximum();
 
         let hp_percentage = self.stats.health.current() as f64 / self.stats.health.maximum() as f64;
         let mana_percentage = 1.0;

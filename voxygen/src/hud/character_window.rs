@@ -107,13 +107,9 @@ impl<'a> Widget for CharacterWindow<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        let xp_percentage = self.stats.exp.get_current() / self.stats.exp.get_maximum();
-        let xp_treshold = format!(
-            "{}/{}",
-            self.stats.exp.get_current(),
-            self.stats.exp.get_maximum()
-        );
-        let level = (self.stats.level.get_level()).to_string();
+        let xp_percentage = self.stats.exp.current() / self.stats.exp.maximum();
+        let xp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
+        let level = (self.stats.level.level()).to_string();
 
         // Frame
         Image::new(self.imgs.window_3)
