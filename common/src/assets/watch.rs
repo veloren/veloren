@@ -1,7 +1,7 @@
 use crossbeam::channel::{select, unbounded, Receiver, Sender};
 use lazy_static::lazy_static;
 use log::warn;
-use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
+use notify::{event::Flag, Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -16,7 +16,7 @@ use std::{
 type Handler = Box<dyn Fn() + Send>;
 
 lazy_static! {
-    static ref WATCHER: Mutex<Sender<(PathBuf, Handler, Weak<AtomicBool>)>> =
+    static ref WATCHER_TX: Mutex<Sender<(PathBuf, Handler, Weak<AtomicBool>)>> =
         Mutex::new(Watcher::new().run());
 }
 
@@ -47,14 +47,19 @@ impl Watcher {
                 }
             }
             None => {
-                // TODO handle this result
-                self.watcher.watch(path.clone(), RecursiveMode::Recursive);
+                if let Err(err) = self.watcher.watch(path.clone(), RecursiveMode::Recursive) {
+                    warn!("Could not start watching {:#?} due to: {}", &path, err);
+                    return;
+                }
                 self.watching.insert(path, (handler, vec![signal]));
             }
         }
     }
     fn handle_event(&mut self, event: Event) {
-        // TODO: consider using specific modify variant
+        // Skip notice events
+        if let Some(Flag::Notice) = event.flag() {
+            return;
+        }
         if let Event {
             kind: EventKind::Modify(_),
             paths,
@@ -78,15 +83,17 @@ impl Watcher {
                         }
                         // If there is no one to signal stop watching this path
                         if signals.is_empty() {
-                            // TODO: handle this result
-                            self.watcher.unwatch(&path);
+                            if let Err(err) = self.watcher.unwatch(&path) {
+                                warn!("Error unwatching: {}", err);
+                            }
                             self.watching.remove(&path);
                         }
                     }
                     None => {
                         warn!("Watching {:#?} but there are no signals for this path. The path will be unwatched.", path);
-                        // TODO: handle this result
-                        self.watcher.unwatch(path);
+                        if let Err(err) = self.watcher.unwatch(&path) {
+                            warn!("Error unwatching: {}", err);
+                        }
                     }
                 }
             }
@@ -97,7 +104,6 @@ impl Watcher {
 
         thread::spawn(move || {
             loop {
-                // TODO: handle errors
                 select! {
                     recv(watch_rx) -> res => match res {
                         Ok((path, handler, signal)) => self.watch(path, handler, signal),
@@ -107,7 +113,7 @@ impl Watcher {
                     recv(self.event_rx) -> res => match res {
                         Ok(Ok(event)) => self.handle_event(event),
                         // Notify Error
-                        Ok(Err(_)) => (),
+                        Ok(Err(err)) => error!("Notify error: {}", err),
                         // Disconnected
                         Err(_) => (),
                     },
@@ -143,11 +149,17 @@ impl ReloadIndicator {
             self.paths.push(path.clone());
         };
 
-        // TODO: handle result
-        WATCHER
+        let mut path = super::ASSETS_PATH.clone();
+        path.push(specifier);
+
+        if WATCHER_TX
             .lock()
             .unwrap()
-            .send((path, Box::new(reloader), Arc::downgrade(&self.reloaded)));
+            .send((path, Box::new(reloader), Arc::downgrade(&self.reloaded)))
+            .is_err()
+        {
+            error!("Could not add. Asset watcher channel disconnected.");
+        }
     }
     // Returns true if the watched file was changed
     pub fn reloaded(&self) -> bool {

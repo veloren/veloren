@@ -5,6 +5,7 @@ use dot_vox::DotVoxData;
 use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
+use log::error;
 use serde_json::Value;
 use std::{
     any::Any,
@@ -101,6 +102,8 @@ pub fn load_watched<A: Asset + 'static>(
     specifier: &str,
     indicator: &mut watch::ReloadIndicator,
 ) -> Result<Arc<A>, Error> {
+    let asset = load(specifier)?;
+
     // Determine path to watch
     let mut path = unpack_specifier(specifier);
     let mut file_exists = false;
@@ -117,13 +120,14 @@ pub fn load_watched<A: Asset + 'static>(
         return Err(Error::NotFound(path.to_string_lossy().into_owned()));
     }
 
-    // Start watching first to detect any changes while the file is being loaded
     let owned_specifier = specifier.to_string();
-    indicator.add(path, move || {
-        // TODO: handle result
-        reload::<A>(&owned_specifier);
+    indicator.add(specifier, move || {
+        if let Err(err) = reload::<A>(&owned_specifier) {
+            error!("Error reloading {}: {:#?}", &owned_specifier, err);
+        }
     });
-    load(specifier)
+
+    Ok(asset)
 }
 
 /// The Asset trait, which is implemented by all structures that have their data stored in the
