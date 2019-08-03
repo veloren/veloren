@@ -7,12 +7,14 @@ use super::{
     texture::Texture,
     Pipeline, RenderError,
 };
+use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
     self,
     handle::Sampler,
     traits::{Device, Factory, FactoryExt},
 };
 use glsl_include::Context as IncludeContext;
+use log::error;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
@@ -64,6 +66,8 @@ pub struct Renderer {
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
+
+    shader_reload_indicator: ReloadIndicator,
 }
 
 impl Renderer {
@@ -74,74 +78,10 @@ impl Renderer {
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
     ) -> Result<Self, RenderError> {
-        let globals = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/include/globals.glsl"
-        ));
-        let sky = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/include/sky.glsl"
-        ));
-        let light = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/shaders/include/light.glsl"
-        ));
+        let mut shader_reload_indicator = ReloadIndicator::new();
 
-        let mut include_ctx = IncludeContext::new();
-        include_ctx.include("globals.glsl", globals);
-        include_ctx.include("sky.glsl", sky);
-        include_ctx.include("light.glsl", light);
-
-        // Construct a pipeline for rendering skyboxes
-        let skybox_pipeline = create_pipeline(
-            &mut factory,
-            skybox::pipe::new(),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.vert")),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/skybox.frag")),
-            &include_ctx,
-        )?;
-
-        // Construct a pipeline for rendering figures
-        let figure_pipeline = create_pipeline(
-            &mut factory,
-            figure::pipe::new(),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.vert")),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/figure.frag")),
-            &include_ctx,
-        )?;
-
-        // Construct a pipeline for rendering terrain
-        let terrain_pipeline = create_pipeline(
-            &mut factory,
-            terrain::pipe::new(),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.vert")),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/terrain.frag")),
-            &include_ctx,
-        )?;
-
-        // Construct a pipeline for rendering UI elements
-        let ui_pipeline = create_pipeline(
-            &mut factory,
-            ui::pipe::new(),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.vert")),
-            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/ui.frag")),
-            &include_ctx,
-        )?;
-
-        // Construct a pipeline for rendering our post-processing
-        let postprocess_pipeline = create_pipeline(
-            &mut factory,
-            postprocess::pipe::new(),
-            include_str!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/shaders/postprocess.vert"
-            )),
-            include_str!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/shaders/postprocess.frag"
-            )),
-            &include_ctx,
-        )?;
+        let (skybox_pipeline, figure_pipeline, terrain_pipeline, ui_pipeline, postprocess_pipeline) =
+            create_pipelines(&mut factory, &mut shader_reload_indicator)?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
@@ -168,6 +108,8 @@ impl Renderer {
             terrain_pipeline,
             ui_pipeline,
             postprocess_pipeline,
+
+            shader_reload_indicator,
         })
     }
 
@@ -242,6 +184,29 @@ impl Renderer {
     pub fn flush(&mut self) {
         self.encoder.flush(&mut self.device);
         self.device.cleanup();
+
+        // If the shaders files were changed attempt to recreate the shaders
+        if self.shader_reload_indicator.reloaded() {
+            match create_pipelines(&mut self.factory, &mut self.shader_reload_indicator) {
+                Ok((
+                    skybox_pipeline,
+                    figure_pipeline,
+                    terrain_pipline,
+                    ui_pipeline,
+                    postprocess_pipeline,
+                )) => {
+                    self.skybox_pipeline = skybox_pipeline;
+                    self.figure_pipeline = figure_pipeline;
+                    self.terrain_pipeline = terrain_pipline;
+                    self.ui_pipeline = ui_pipeline;
+                    self.postprocess_pipeline = postprocess_pipeline;
+                }
+                Err(e) => error!(
+                    "Could not recreate shaders from assets due to an error: {:#?}",
+                    e
+                ),
+            }
+        }
     }
 
     /// Create a new set of constants with the provided values.
@@ -486,6 +451,105 @@ impl Renderer {
 
 struct GfxPipeline<P: gfx::pso::PipelineInit> {
     pso: gfx::pso::PipelineState<gfx_backend::Resources, P::Meta>,
+}
+
+/// Create new the pipelines used by the renderer.
+fn create_pipelines(
+    factory: &mut gfx_backend::Factory,
+    shader_reload_indicator: &mut ReloadIndicator,
+) -> Result<
+    (
+        GfxPipeline<skybox::pipe::Init<'static>>,
+        GfxPipeline<figure::pipe::Init<'static>>,
+        GfxPipeline<terrain::pipe::Init<'static>>,
+        GfxPipeline<ui::pipe::Init<'static>>,
+        GfxPipeline<postprocess::pipe::Init<'static>>,
+    ),
+    RenderError,
+> {
+    let globals =
+        assets::load_watched::<String>("voxygen.shaders.include.globals", shader_reload_indicator)
+            .unwrap();
+    let sky =
+        assets::load_watched::<String>("voxygen.shaders.include.sky", shader_reload_indicator)
+            .unwrap();
+    let light =
+        assets::load_watched::<String>("voxygen.shaders.include.light", shader_reload_indicator)
+            .unwrap();
+
+    let mut include_ctx = IncludeContext::new();
+    include_ctx.include("globals.glsl", &globals);
+    include_ctx.include("sky.glsl", &sky);
+    include_ctx.include("light.glsl", &light);
+
+    // Construct a pipeline for rendering skyboxes
+    let skybox_pipeline = create_pipeline(
+        factory,
+        skybox::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.skybox.vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.skybox.frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+    )?;
+
+    // Construct a pipeline for rendering figures
+    let figure_pipeline = create_pipeline(
+        factory,
+        figure::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.figure.vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.figure.frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+    )?;
+
+    // Construct a pipeline for rendering terrain
+    let terrain_pipeline = create_pipeline(
+        factory,
+        terrain::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.terrain.vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.terrain.frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+    )?;
+
+    // Construct a pipeline for rendering UI elements
+    let ui_pipeline = create_pipeline(
+        factory,
+        ui::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.ui.vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.ui.frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+    )?;
+
+    // Construct a pipeline for rendering our post-processing
+    let postprocess_pipeline = create_pipeline(
+        factory,
+        postprocess::pipe::new(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.postprocess.vert",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &assets::load_watched::<String>(
+            "voxygen.shaders.postprocess.frag",
+            shader_reload_indicator,
+        )
+        .unwrap(),
+        &include_ctx,
+    )?;
+
+    Ok((
+        skybox_pipeline,
+        figure_pipeline,
+        terrain_pipeline,
+        ui_pipeline,
+        postprocess_pipeline,
+    ))
 }
 
 /// Create a new pipeline from the provided vertex shader and fragment shader.
