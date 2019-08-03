@@ -111,8 +111,13 @@ impl<'a> System<'a> for Sys {
                     };
 
                 // Set direction based on move direction when on the ground
-                if Vec2::<f32>::from(move_dir.0).magnitude_squared() > 0.0001 {
-                    ori.0 = Lerp::lerp(ori.0, Vec3::from(move_dir.0.normalized()), 4.0 * dt.0);
+                let ori_dir = if a.gliding || a.rolling {
+                    Vec2::from(vel.0)
+                } else {
+                    move_dir.0
+                };
+                if ori_dir.magnitude_squared() > 0.0001 {
+                    ori.0 = Lerp::lerp(ori.0, Vec3::from(ori_dir.normalized()), 4.0 * dt.0);
                 }
             }
 
