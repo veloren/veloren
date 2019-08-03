@@ -109,6 +109,11 @@ impl<'a> System<'a> for Sys {
                         }
                         _ => 0.0,
                     };
+
+                // Set direction based on move direction when on the ground
+                if Vec2::<f32>::from(move_dir.0).magnitude_squared() > 0.0001 {
+                    ori.0 = Lerp::lerp(ori.0, Vec3::from(move_dir.0.normalized()), 4.0 * dt.0);
+                }
             }
 
             // Jump
@@ -131,15 +136,6 @@ impl<'a> System<'a> for Sys {
                 if *time > 0.6 || !a.moving {
                     rollings.remove(entity);
                 }
-            }
-
-            // Set direction based on velocity when on the ground
-            if Vec2::<f32>::from(vel.0).magnitude_squared() > 0.0001 {
-                ori.0 = Lerp::lerp(
-                    ori.0,
-                    vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0),
-                    10.0 * dt.0,
-                );
             }
         }
     }
