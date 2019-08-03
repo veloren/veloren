@@ -69,7 +69,7 @@ impl<'a> System<'a> for Sys {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
-                        } else if dist < 4.0 {
+                        } else if dist < 6.0 {
                             // Fight and slowly move closer
                             controller.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.5;
