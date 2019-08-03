@@ -886,7 +886,7 @@ impl Server {
                                 // TODO: Discuss whether we should give EXP by Player Killing or not.
                                 attacker_stats.exp.change_by(
                                     entity_stats.health.maximum() as f64 / 10.0
-                                        * entity_stats.level.level() as f64,
+                                        + entity_stats.level.level() as f64 * 10.0,
                                 );
                             }
                         });
