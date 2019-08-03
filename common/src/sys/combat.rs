@@ -54,8 +54,8 @@ impl<'a> System<'a> for Sys {
                             stat_b
                                 .health
                                 .change_by(-10, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                            vel_b.0 += (pos_b.0 - pos.0).normalized() * 5.0;
-                            vel_b.0.z = 10.0;
+                            vel_b.0 += (pos_b.0 - pos.0).normalized() * 2.0;
+                            vel_b.0.z = 2.0;
                             let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }
