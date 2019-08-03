@@ -264,7 +264,7 @@ impl<'a> System<'a> for Sys {
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
                 let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
 
-                let collision_dist = 0.3 * (scale + scale_other);
+                let collision_dist = 0.95 * (scale + scale_other);
 
                 if diff.magnitude_squared() > 0.0
                     && diff.magnitude_squared() < collision_dist.powf(2.0)
@@ -272,7 +272,7 @@ impl<'a> System<'a> for Sys {
                     && pos.0.z < pos_other.0.z + 1.6 * scale_other
                 {
                     vel.0 +=
-                        Vec3::from(diff.normalized()) * (collision_dist - diff.magnitude()) * 5.0;
+                        Vec3::from(diff.normalized()) * (collision_dist - diff.magnitude()) * 1.0;
                 }
             }
         }
