@@ -9,10 +9,12 @@ use vek::*;
 
 const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
+const WIELD_ACCEL: f32 = 60.0;
+const WIELD_SPEED: f32 = 100.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 18.0;
-const ROLL_ACCEL: f32 = 120.0;
+const ROLL_ACCEL: f32 = 160.0;
 const ROLL_SPEED: f32 = 550.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
@@ -79,26 +81,32 @@ impl<'a> System<'a> for Sys {
             if let Some(move_dir) = move_dir {
                 vel.0 += Vec2::broadcast(dt.0)
                     * move_dir.0
-                    * match (a.on_ground, a.gliding, a.rolling) {
-                        (true, false, false)
+                    * match (a.on_ground, a.gliding, a.rolling, a.wielding) {
+                        (true, false, false, false)
                             if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) =>
                         {
                             HUMANOID_ACCEL
                         }
-                        (false, true, false)
+                        (false, true, false, false)
                             if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) =>
                         {
                             GLIDE_ACCEL
                         }
-                        (false, false, false)
+                        (false, false, false, false)
                             if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
                         {
                             HUMANOID_AIR_ACCEL
                         }
-                        (true, false, true) if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) => {
+                        (true, false, true, false)
+                            if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) =>
+                        {
                             ROLL_ACCEL
                         }
-
+                        (true, false, false, true)
+                            if vel.0.magnitude_squared() < WIELD_SPEED.powf(2.0) =>
+                        {
+                            WIELD_ACCEL
+                        }
                         _ => 0.0,
                     };
             }
@@ -120,7 +128,7 @@ impl<'a> System<'a> for Sys {
             if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
                 let _ = wieldings.remove(entity);
                 *time += dt.0;
-                if *time > 0.55 || !a.moving {
+                if *time > 0.6 || !a.moving {
                     rollings.remove(entity);
                 }
             }

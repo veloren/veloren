@@ -24,8 +24,10 @@ impl Animation for CrunAnimation {
         let wave = (anim_time as f32 * 12.0).sin();
         let wave_cos = (anim_time as f32 * 12.0).cos();
         let wave_diff = (anim_time as f32 * 12.0 + PI / 2.0).sin();
-        let wave_cos_dub = (anim_time as f32 * 24.0).cos();
-        let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0).sin();
+        let wave_dub = (anim_time as f32 * 16.0).sin();
+        let wave_cos_dub = (anim_time as f32 * 16.0).cos();
+        let wave_cos_foot = (anim_time as f32 * 14.0).cos();
+        let wave_stop = (anim_time as f32 * 5.0).min(PI / 2.0).sin();
 
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 2.0)
@@ -42,7 +44,7 @@ impl Animation for CrunAnimation {
 
         next.head.offset = Vec3::new(
             0.0,
-            -1.0 + skeleton_attr.neck_forward,
+            0.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 15.0 + wave_cos * 1.3,
         );
         next.head.ori = Quaternion::rotation_z(head_look.x + wave * 0.1)
@@ -54,11 +56,11 @@ impl Animation for CrunAnimation {
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0, 0.0, 5.0 + wave_cos * 1.1);
-        next.belt.ori = Quaternion::rotation_z(wave * 0.25);
+        next.belt.ori = Quaternion::rotation_z(wave * 0.18);
         next.belt.scale = Vec3::one();
 
         next.shorts.offset = Vec3::new(0.0, 0.0, 2.0 + wave_cos * 1.1);
-        next.shorts.ori = Quaternion::rotation_z(wave * 0.6);
+        next.shorts.ori = Quaternion::rotation_z(wave * 0.4);
         next.shorts.scale = Vec3::one();
 
         match Tool::Hammer {
@@ -187,12 +189,12 @@ impl Animation for CrunAnimation {
                 next.weapon.scale = Vec3::one();
             }
         }
-        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
-        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.5);
+        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 7.2 - wave_dub * 0.25);
+        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos_foot * 0.6);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
-        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
+        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 7.2 - wave_cos_dub * 0.25);
+        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos_foot * 0.6);
         next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
@@ -207,10 +209,9 @@ impl Animation for CrunAnimation {
         next.draw.ori = Quaternion::rotation_y(0.0);
         next.draw.scale = Vec3::one() * 0.0;
 
-        next.torso.offset =
-            Vec3::new(0.0, -0.2 + wave * -0.08, 0.4 + wave_cos_dub * 0.11) * skeleton_attr.scaler;
+        next.torso.offset = Vec3::new(0.0, -0.2 + wave * -0.08, 0.2) * skeleton_attr.scaler;
         next.torso.ori =
-            Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005);
+            Quaternion::rotation_x(wave_stop * velocity * -0.04 + wave_diff * velocity * -0.005);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next
