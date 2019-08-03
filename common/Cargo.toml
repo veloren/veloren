@@ -27,3 +27,4 @@ hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
 find_folder = "0.3.0"
 parking_lot = "0.9.0"
 crossbeam = "0.7.2"
+notify = "5.0.0-pre.1"

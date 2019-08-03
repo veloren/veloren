@@ -1,4 +1,5 @@
 //! Load assets (images or voxel data) from files
+pub mod watch;
 
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
@@ -60,7 +61,7 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     f: F,
 ) -> Result<Arc<A>, Error> {
     let mut assets_write = ASSETS.write().unwrap();
-    match assets_write.get(&(specifier.to_owned() + A::ENDINGS[0])) {
+    match assets_write.get(specifier) {
         Some(asset) => Ok(Arc::clone(asset).downcast()?),
         None => {
             let asset = Arc::new(f(A::parse(load_file(specifier, A::ENDINGS)?)?));
@@ -95,8 +96,53 @@ pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
 }
 
+/// Load an asset while registering it to be watched and reloaded when it changes
+pub fn load_watched<A: Asset + 'static>(
+    specifier: &str,
+    indicator: &mut watch::ReloadIndicator,
+) -> Result<Arc<A>, Error> {
+    // Determine path to watch
+    let mut path = unpack_specifier(specifier);
+    let mut file_exists = false;
+    for ending in A::ENDINGS {
+        let mut path = path.clone();
+        path.set_extension(ending);
+
+        if path.exists() {
+            file_exists = true;
+            break;
+        }
+    }
+    if !file_exists {
+        return Err(Error::NotFound(path.to_string_lossy().into_owned()));
+    }
+
+    // Start watching first to detect any changes while the file is being loaded
+    let owned_specifier = specifier.to_string();
+    indicator.add(path, move || {
+        // TODO: handle result
+        reload::<A>(&owned_specifier);
+    });
+    load(specifier)
+}
+
 /// The Asset trait, which is implemented by all structures that have their data stored in the
 /// filesystem.
+fn reload<A: Asset + 'static>(specifier: &str) -> Result<(), Error> {
+    let asset = Arc::new(A::parse(load_file(specifier, A::ENDINGS)?)?);
+    let clone = Arc::clone(&asset);
+    let mut assets_write = ASSETS.write().unwrap();
+    match assets_write.get_mut(specifier) {
+        Some(a) => *a = clone,
+        None => {
+            assets_write.insert(specifier.to_owned(), clone);
+        }
+    }
+
+    Ok(())
+}
+
+/// Asset Trait
 pub trait Asset: Send + Sync + Sized {
     const ENDINGS: &'static [&'static str];
     /// Parse the input file and return the correct Asset.
@@ -129,53 +175,64 @@ impl Asset for Value {
     }
 }
 
-/// Function to find where the asset/ directory is.
-fn assets_dir() -> PathBuf {
-    let mut paths = Vec::new();
-
-    // VELOREN_ASSETS environment variable
-    if let Ok(var) = std::env::var("VELOREN_ASSETS") {
-        paths.push(var.to_owned().into());
+impl Asset for String {
+    const ENDINGS: &'static [&'static str] = &["glsl"];
+    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
+        let mut string = String::new();
+        buf_reader.read_to_string(&mut string)?;
+        Ok(string)
     }
+}
 
-    // Executable path
-    if let Ok(mut path) = std::env::current_exe() {
-        path.pop();
-        paths.push(path);
-    }
+/// Lazy static to find and cache where the asset directory is.
+lazy_static! {
+    static ref ASSETS_PATH: PathBuf = {
+        let mut paths = Vec::new();
 
-    // Working path
-    if let Ok(path) = std::env::current_dir() {
-        paths.push(path);
-    }
-
-    // System paths
-    #[cfg(target_os = "linux")]
-    paths.push("/usr/share/veloren/assets".into());
-
-    for path in paths.clone() {
-        match find_folder::Search::ParentsThenKids(3, 1)
-            .of(path)
-            .for_folder("assets")
-        {
-            Ok(assets_path) => return assets_path,
-            Err(_) => continue,
+        // VELOREN_ASSETS environment variable
+        if let Ok(var) = std::env::var("VELOREN_ASSETS") {
+            paths.push(var.to_owned().into());
         }
-    }
 
-    panic!(
-        "Asset directory not found. In attempting to find it, we searched:\n{})",
-        paths.iter().fold(String::new(), |mut a, path| {
-            a += &path.to_string_lossy();
-            a += "\n";
-            a
-        }),
-    );
+        // Executable path
+        if let Ok(mut path) = std::env::current_exe() {
+            path.pop();
+            paths.push(path);
+        }
+
+        // Working path
+        if let Ok(path) = std::env::current_dir() {
+            paths.push(path);
+        }
+
+        // System paths
+        #[cfg(target_os = "linux")]
+        paths.push("/usr/share/veloren/assets".into());
+
+        for path in paths.clone() {
+            match find_folder::Search::ParentsThenKids(3, 1)
+                .of(path)
+                .for_folder("assets")
+            {
+                Ok(assets_path) => return assets_path,
+                Err(_) => continue,
+            }
+        }
+
+        panic!(
+            "Asset directory not found. In attempting to find it, we searched:\n{})",
+            paths.iter().fold(String::new(), |mut a, path| {
+                a += &path.to_string_lossy();
+                a += "\n";
+                a
+            }),
+        );
+    };
 }
 
 /// Converts a specifier like "core.backgrounds.city" to ".../veloren/assets/core/backgrounds/city".
 fn unpack_specifier(specifier: &str) -> PathBuf {
-    let mut path = assets_dir();
+    let mut path = ASSETS_PATH.clone();
     path.push(specifier.replace(".", "/"));
     path
 }
