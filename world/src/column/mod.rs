@@ -2,7 +2,7 @@ use crate::{
     all::ForestKind,
     block::StructureMeta,
     sim::{LocationInfo, SimChunk},
-    util::Sampler,
+    util::{Sampler, UnitChooser},
     World, CONFIG,
 };
 use common::{
@@ -22,6 +22,8 @@ use vek::*;
 pub struct ColumnGen<'a> {
     world: &'a World,
 }
+
+static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 
 lazy_static! {
     pub static ref DUNGEONS: Vec<Arc<Structure>> = vec![
@@ -65,7 +67,7 @@ impl<'a> ColumnGen<'a> {
                 pos,
                 seed,
                 meta: Some(StructureMeta::Volume {
-                    units: (Vec2::unit_x(), Vec2::unit_y()),
+                    units: UNIT_CHOOSER.get(seed),
                     volume: &DUNGEONS[0],
                 }),
             })

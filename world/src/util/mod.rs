@@ -2,6 +2,7 @@ pub mod hash_cache;
 pub mod random;
 pub mod sampler;
 pub mod structure;
+pub mod unit_chooser;
 
 // Reexports
 pub use self::{
@@ -9,4 +10,5 @@ pub use self::{
     random::{RandomField, RandomPerm},
     sampler::{Sampler, SamplerMut},
     structure::StructureGen2d,
+    unit_chooser::UnitChooser,
 };
