@@ -109,6 +109,19 @@ impl<'a> System<'a> for Sys {
                         }
                         _ => 0.0,
                     };
+
+                // Set direction based on move direction when on the ground
+                let ori_dir = if a.gliding || a.rolling {
+                    Vec2::from(vel.0)
+                } else {
+                    move_dir.0
+                };
+                if ori_dir.magnitude_squared() > 0.0001
+                    && (ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
+                        > 0.001
+                {
+                    ori.0 = vek::ops::Slerp::slerp(ori.0, ori_dir.into(), 5.0 * dt.0);
+                }
             }
 
             // Jump
@@ -131,15 +144,6 @@ impl<'a> System<'a> for Sys {
                 if *time > 0.6 || !a.moving {
                     rollings.remove(entity);
                 }
-            }
-
-            // Set direction based on velocity when on the ground
-            if Vec2::<f32>::from(vel.0).magnitude_squared() > 0.0001 {
-                ori.0 = Lerp::lerp(
-                    ori.0,
-                    vel.0.normalized() * Vec3::new(1.0, 1.0, 0.0),
-                    10.0 * dt.0,
-                );
             }
         }
     }
