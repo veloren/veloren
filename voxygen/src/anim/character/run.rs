@@ -76,11 +76,11 @@ impl Animation for RunAnimation {
         next.r_hand.ori = Quaternion::rotation_x(wave_cos * -0.8);
         next.r_hand.scale = Vec3::one();
 
-        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
+        next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0 - wave_cos_dub * 0.7);
         next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.5);
         next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0 - wave_cos_dub * 0.11);
+        next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0 - wave_cos_dub * 0.7);
         next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
         next.r_foot.scale = Vec3::one();
 
@@ -106,7 +106,7 @@ impl Animation for RunAnimation {
         next.draw.scale = Vec3::one() * 0.0;
 
         next.torso.offset =
-            Vec3::new(0.0, -0.2 + wave * -0.08, 0.4 + wave_cos_dub * 0.11) * skeleton_attr.scaler;
+            Vec3::new(0.0, -0.2 + wave * -0.08, 0.4 + wave_cos_dub * 0.07) * skeleton_attr.scaler;
         next.torso.ori =
             Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
