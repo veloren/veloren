@@ -37,17 +37,20 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 
 	float sun_light = get_sun_brightness(sun_dir);
 
+	// clamp() changed to max() as sun_dir.z is produced from a cos() function and therefore never greater than 1
+
 	vec3 sun_color = normalize(mix(
 		mix(
 			DUSK_LIGHT,
 			NIGHT_LIGHT,
-			clamp(sun_dir.z, 0, 1)
+			max(sun_dir.z, 0)
 		),
 		DAY_LIGHT,
-		clamp(-sun_dir.z, 0, 1)
+		max(-sun_dir.z, 0)
 	));
 
-	vec3 diffuse_light = (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0) * sun_color) * sun_light + PERSISTENT_AMBIANCE;
+	// Multiply floats together before multiplying with sun_color (1 multiplication vs 3)
+	vec3 diffuse_light = sun_color * (max(dot(-norm, sun_dir), 0.0) * sun_light + SUN_AMBIANCE) + PERSISTENT_AMBIANCE;
 
 	return diffuse_light;
 }
@@ -56,73 +59,74 @@ vec3 rand_offs(vec3 pos) {
 	return sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5));
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day) {
-
+// The loop has been removed as the result was always 1, not an accumulation of values
+float is_star_at(vec3 dir) {	
 	// Stars
-	float star_scale = 30.0;
-	float star = 0.0;
-	for (int i = 0; i < 2; i ++) {
-		for (int j = 0; j < 2; j ++) {
-			for (int k = 0; k < 2; k ++) {
-				// Star positions
-				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
+	float star_scale = 15.0;
 
-				// Noisy offsets
-				pos += 3.0 * rand_offs(pos) / star_scale;
+	// Star positions
+	vec3 pos = floor(dir * star_scale) / star_scale;
 
-				// Find distance to fragment
-				float dist = length(normalize(pos) - dir);
+	pos += rand_offs(pos) / star_scale;
 
-				// Star threshold
-				if (dist < 0.0015) {
-					star = 1.0;
-				}
-			}
-		}
+	// Find distance to fragment
+	float dist = length(normalize(pos) - dir);
+
+	// Star threshold
+	if (dist < 0.0015) {
+		return 1.0;
 	}
 
-	// Sky color
+	return 0.0;
+}
 
+vec3 get_sky_color(vec3 dir, float time_of_day) {
+	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
+
+	// Add white dots for stars. Note these flicker and jump due to FXAA
+	float star = is_star_at(dir);
+
+	// Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
 	vec3 sky_top = mix(
 		mix(
 			SKY_DUSK_TOP,
 			SKY_NIGHT_TOP,
-			clamp(sun_dir.z, 0, 1)
-		) + star,
+			max(sun_dir.z, 0)
+		),
 		SKY_DAY_TOP,
-		clamp(-sun_dir.z, 0, 1)
-	);
+		max(-sun_dir.z, 0)
+	) + star;
 
 	vec3 sky_mid = mix(
 		mix(
 			SKY_DUSK_MID,
 			SKY_NIGHT_MID,
-			clamp(sun_dir.z, 0, 1)
+			max(sun_dir.z, 0)
 		),
 		SKY_DAY_MID,
-		clamp(-sun_dir.z, 0, 1)
+		max(-sun_dir.z, 0)
 	);
 
 	vec3 sky_bot = mix(
 		mix(
 			SKY_DUSK_BOT,
 			SKY_NIGHT_BOT,
-			clamp(sun_dir.z, 0, 1)
+			max(sun_dir.z, 0)
 		),
 		SKY_DAY_BOT,
-		clamp(-sun_dir.z, 0, 1)
+		max(-sun_dir.z, 0)
 	);
 
 	vec3 sky_color = mix(
 		mix(
 			sky_mid,
 			sky_bot,
-			pow(clamp(-dir.z, 0, 1), 0.4)
+			pow(max(-dir.z, 0), 0.4)
 		),
 		sky_top,
-		pow(clamp(dir.z, 0, 1), 1.0)
+		max(dir.z, 0)
 	);
 
 	// Sun
@@ -139,8 +143,9 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 
 float fog(vec2 f_pos, vec2 focus_pos) {
 	float dist = distance(f_pos, focus_pos) / view_distance.x;
-	float min_fog = 0.5;
-	float max_fog = 1.0;
+	const float min_fog = 0.5;
+	const float max_fog = 1.0;
+	const float diff_fog = 0.5; // max - min
 
-	return pow(clamp((dist - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
+	return pow(clamp((dist - min_fog) / (diff_fog), 0.0, 1.0), 1.7);
 }

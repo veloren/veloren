@@ -18,12 +18,12 @@ use vek::*;
 /// Represents the format of the pre-processed color target.
 pub type TgtColorFmt = gfx::format::Rgba16F;
 /// Represents the format of the pre-processed depth target.
-pub type TgtDepthFmt = gfx::format::DepthStencil;
+pub type TgtDepthFmt = gfx::format::Depth;
 
 /// Represents the format of the window's color target.
 pub type WinColorFmt = gfx::format::Rgba8;
 /// Represents the format of the window's depth target.
-pub type WinDepthFmt = gfx::format::DepthStencil;
+pub type WinDepthFmt = gfx::format::Depth;
 
 /// A handle to a pre-processed color target.
 pub type TgtColorView = gfx::handle::RenderTargetView<gfx_backend::Resources, TgtColorFmt>;
