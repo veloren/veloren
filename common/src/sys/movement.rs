@@ -118,7 +118,7 @@ impl<'a> System<'a> for Sys {
                 };
                 if ori_dir.magnitude_squared() > 0.0001
                     && (ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-                        > 0.01
+                        > 0.001
                 {
                     ori.0 = vek::ops::Slerp::slerp(ori.0, ori_dir.into(), 5.0 * dt.0);
                 }
