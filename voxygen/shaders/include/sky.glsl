@@ -49,8 +49,7 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 		max(-sun_dir.z, 0)
 	));
 
-	// Multiply floats together before multiplying with sun_color (1 multiplication vs 3)
-	vec3 diffuse_light = sun_color * (max(dot(-norm, sun_dir), 0.0) * sun_light + SUN_AMBIANCE) + PERSISTENT_AMBIANCE;
+	vec3 diffuse_light = (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0) * sun_color) * sun_light + PERSISTENT_AMBIANCE;
 
 	return diffuse_light;
 }
@@ -60,7 +59,7 @@ vec3 rand_offs(vec3 pos) {
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
-float is_star_at(vec3 dir) {	
+float is_star_at(vec3 dir) {
 	float star_scale = 30.0;
 
 	for (int i = 0; i < 2; i ++) {
