@@ -96,7 +96,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 
 	vec3 sky_top = mix(
 		mix(
-			SKY_DUSK_TOP,
+			SKY_DUSK_TOP + star,
 			SKY_NIGHT_TOP + star,
 			max(sun_dir.z, 0)
 		),
