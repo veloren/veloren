@@ -23,17 +23,24 @@ uniform u_bones {
 };
 
 out vec3 f_pos;
-out vec3 f_norm;
 out vec3 f_col;
-flat out uint f_bone_idx;
+flat out vec3 f_norm;
 
 void main() {
-	f_pos = (model_mat *
-		bones[v_bone_idx].bone_mat *
+	// Pre-calculate bone matrix
+	mat4 combined_mat = model_mat * bones[v_bone_idx].bone_mat;
+
+	f_pos = (
+		combined_mat * 
 		vec4(v_pos, 1)).xyz;
-	f_norm = v_norm;
+
 	f_col = v_col;
-	f_bone_idx = v_bone_idx;
+
+	// Calculate normal here rather than for each pixel in the fragment shader
+	f_norm = (
+		combined_mat * 
+		vec4(v_norm, 0.0)
+	).xyz;
 
 	gl_Position = proj_mat * view_mat * vec4(f_pos, 1);
 }
