@@ -1,6 +1,6 @@
 use crate::comp::{
-    ActionState, Attacking, Controller, Gliding, Jumping, MoveDir, Respawning, Rolling, Stats, Vel,
-    Wielding,
+    ActionState, Attacking, Body, Controller, Gliding, Jumping, MoveDir, Respawning, Rolling,
+    Stats, Vel, Wielding,
 };
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
@@ -11,6 +11,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
         WriteStorage<'a, ActionState>,
         WriteStorage<'a, MoveDir>,
@@ -28,6 +29,7 @@ impl<'a> System<'a> for Sys {
             entities,
             mut controllers,
             stats,
+            bodies,
             velocities,
             mut action_states,
             mut move_dirs,
@@ -39,10 +41,11 @@ impl<'a> System<'a> for Sys {
             mut glidings,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, vel, mut a) in (
+        for (entity, controller, stats, body, vel, mut a) in (
             &entities,
             &mut controllers,
             &stats,
+            &bodies,
             &velocities,
             // Although this is changed, it is only kept for this system
             // as it will be replaced in the action state system
@@ -71,7 +74,8 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if controller.glide && !a.on_ground && !a.attacking && !a.rolling {
+            if controller.glide && !a.on_ground && !a.attacking && !a.rolling && body.is_humanoid()
+            {
                 let _ = glidings.insert(entity, Gliding);
                 a.gliding = true;
             } else {
