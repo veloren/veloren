@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
                         let entities = (&entities, &positions, &stats)
                             .join()
                             .filter(|(e, e_pos, e_stats)| {
-                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < SIGHT_DIST
+                                (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
                                     && *e != entity
                                     && !e_stats.is_dead
                             })
