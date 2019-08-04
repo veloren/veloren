@@ -54,9 +54,9 @@ impl Vertex {
                 | ((pos.z.max(0.0).min((1 << 13) as f32) as u32) & 0x1FFF) << 16
                 | ((norm_bits as u32) & 0x7) << 29,
             col_light: 0
-                | ((col.r.mul(200.0) as u32) & 0xFF) << 8
-                | ((col.g.mul(200.0) as u32) & 0xFF) << 16
-                | ((col.b.mul(200.0) as u32) & 0xFF) << 24
+                | ((col.r.mul(255.0) as u32) & 0xFF) << 8
+                | ((col.g.mul(255.0) as u32) & 0xFF) << 16
+                | ((col.b.mul(255.0) as u32) & 0xFF) << 24
                 | ((light.mul(255.0) as u32) & 0xFF) << 0,
         }
     }

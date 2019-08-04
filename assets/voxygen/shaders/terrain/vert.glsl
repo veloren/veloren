@@ -38,7 +38,7 @@ void main() {
 		float((v_col_light >>  8) & 0xFFu),
 		float((v_col_light >> 16) & 0xFFu),
 		float((v_col_light >> 24) & 0xFFu)
-	) / 200.0;
+	) / 255.0;
 
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 

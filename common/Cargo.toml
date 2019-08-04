@@ -1,7 +1,7 @@
 [package]
 name = "veloren-common"
 version = "0.3.0"
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Maciej Ćwięka <mckol363@gmail.com>, Imbris <imbrisf@gmail.com>"]
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Maciej Ćwięka <mckol363@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 
 [dependencies]

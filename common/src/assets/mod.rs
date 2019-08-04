@@ -121,7 +121,7 @@ pub fn load_watched<A: Asset + 'static>(
     }
 
     let owned_specifier = specifier.to_string();
-    indicator.add(specifier, move || {
+    indicator.add(path, move || {
         if let Err(err) = reload::<A>(&owned_specifier) {
             error!("Error reloading {}: {:#?}", &owned_specifier, err);
         }
