@@ -1,7 +1,7 @@
 [package]
 name = "veloren-voxygen"
 version = "0.3.0"
-authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
+authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 edition = "2018"
 default-run = "veloren-voxygen"
 
