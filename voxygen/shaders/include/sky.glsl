@@ -59,22 +59,28 @@ vec3 rand_offs(vec3 pos) {
 	return sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5));
 }
 
-// The loop has been removed as the result was always 1, not an accumulation of values
+// This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {	
-	// Stars
-	float star_scale = 15.0;
+	float star_scale = 30.0;
 
-	// Star positions
-	vec3 pos = floor(dir * star_scale) / star_scale;
+	for (int i = 0; i < 2; i ++) {
+		for (int j = 0; j < 2; j ++) {
+			for (int k = 0; k < 2; k ++) {
+				// Star positions
+				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
 
-	pos += rand_offs(pos) / star_scale;
+				// Noisy offsets
+				pos += (3.0 / star_scale) * rand_offs(pos);
 
-	// Find distance to fragment
-	float dist = length(normalize(pos) - dir);
+				// Find distance to fragment
+				float dist = length(normalize(pos) - dir);
 
-	// Star threshold
-	if (dist < 0.0015) {
-		return 1.0;
+				// Star threshold
+				if (dist < 0.0015) {
+					return 1.0;
+				}
+			}
+		}
 	}
 
 	return 0.0;
