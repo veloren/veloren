@@ -286,8 +286,8 @@ impl Server {
                         stats = comp::Stats::new("Humanoid".to_string());
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
-                    stats = stats.with_max_health(300 + rand::random::<u32>() % 400);
-                    scale = 1.8 + rand::random::<f32>();
+                    stats = stats.with_max_health(500 + rand::random::<u32>() % 400);
+                    scale = 2.5 + rand::random::<f32>();
                 }
 
                 self.state
