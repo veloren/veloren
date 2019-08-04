@@ -11,9 +11,12 @@ uniform u_locals {
 };
 
 out vec3 f_pos;
-flat out uint f_pos_norm;
+flat out vec3 f_norm;
 out vec3 f_col;
 out float f_light;
+
+// First 3 normals are negative, next 3 are positive
+vec3 normals[6] = vec3[]( vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) );
 
 void main() {
 	f_pos = vec3(
@@ -22,7 +25,14 @@ void main() {
 		float((v_pos_norm >> 16) & 0x1FFFu)
 	) + model_offs;
 
-	f_pos_norm = v_pos_norm;
+	// TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
+	uint norm_axis = (v_pos_norm >> 30) & 0x3u;
+
+	// Increase array access by 3 to access positive values
+	uint norm_dir = ((v_pos_norm >> 29) & 0x1u) * 3u;
+
+	// Use an array to avoid conditional branching
+	f_norm = normals[norm_axis + norm_dir];
 
 	f_col = vec3(
 		float((v_col_light >>  8) & 0xFFu),
