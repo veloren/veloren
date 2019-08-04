@@ -214,6 +214,58 @@ optional:windows-debug:
     expire_in: 1 week
 
 #############
+# Optional release build
+#############
+
+.optional-release: &optional-release
+  stage: executable
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  except:
+    - schedules
+  when: manual
+  only:
+    refs:
+      - r*.*
+
+optional-release:linux-debug:
+  <<: *optional-release
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
+    - rm -r -f optional-release-build
+    - mkdir optional-release-build
+    - cp target/debug/veloren-server-cli optional-release-build
+    - cp target/debug/veloren-voxygen optional-release-build
+    - cp -r assets optional-release-build/
+    - cp -r voxygen/shaders optional-release-build/
+    - tar -cvjSf bin/optional-release-linux-debug.tar.bz2 optional-release-build
+    - cp bin/optional-release-linux-debug.tar.bz2 $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - optional-release-linux-debug.tar.bz2
+    expire_in: 1 month
+
+optional-release:windows-debug:
+  <<: *optional-release
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
+    - rm -r -f optional-release-build
+    - mkdir optional-release-build
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-release-build
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe optional-release-build
+    - cp -r assets optional-release-build/
+    - cp -r voxygen/shaders optional-release-build/
+    - zip -r bin/optional-release-windows-debug.zip optional-release-build
+    - cp bin/optional-release-windows-debug.zip $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - optional-windows-release-debug.zip
+    expire_in: 1 month
+
+#############
 # NIGHTLY
 #############
 
