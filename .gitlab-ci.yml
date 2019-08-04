@@ -259,7 +259,7 @@ optional-release:windows-debug:
     - cp bin/optional-release-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
     paths:
-      - optional-windows-release-debug.zip
+      - optional-release-windows-debug.zip
     expire_in: 1 month
 
 #############
