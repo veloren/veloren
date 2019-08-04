@@ -93,7 +93,7 @@ impl Window {
 
         let win_builder = glutin::WindowBuilder::new()
             .with_title("Veloren")
-            .with_dimensions(glutin::dpi::LogicalSize::new(1366.0, 768.0))
+            .with_dimensions(glutin::dpi::LogicalSize::new(1920.0, 1080.0))
             .with_maximized(true);
 
         let ctx_builder = glutin::ContextBuilder::new()
