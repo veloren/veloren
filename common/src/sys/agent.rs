@@ -1,4 +1,4 @@
-use crate::comp::{Agent, Controller, Pos, Stats};
+use crate::comp::{ActionState, Agent, Controller, Pos, Stats};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -10,11 +10,15 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, ActionState>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
     );
 
-    fn run(&mut self, (entities, positions, stats, mut agents, mut controllers): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, positions, stats, action_states, mut agents, mut controllers): Self::SystemData,
+    ) {
         for (entity, pos, agent, controller) in
             (&entities, &positions, &mut agents, &mut controllers).join()
         {
@@ -63,8 +67,14 @@ impl<'a> System<'a> for Sys {
                     const SIGHT_DIST: f32 = 30.0;
                     let mut choose_new = false;
 
-                    if let Some((Some(target_pos), Some(target_stats))) =
-                        target.map(|target| (positions.get(target), stats.get(target)))
+                    if let Some((Some(target_pos), Some(target_stats), Some(a))) =
+                        target.map(|target| {
+                            (
+                                positions.get(target),
+                                stats.get(target),
+                                action_states.get(target),
+                            )
+                        })
                     {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
@@ -85,6 +95,11 @@ impl<'a> System<'a> for Sys {
 
                             if rand::random::<f32>() < 0.02 {
                                 controller.roll = true;
+                            }
+
+                            if a.gliding && target_pos.0.z > pos.0.z + 5.0 {
+                                controller.glide = true;
+                                controller.jump = true;
                             }
                         } else {
                             choose_new = true;
@@ -108,7 +123,7 @@ impl<'a> System<'a> for Sys {
                         let entities = (&entities, &positions, &stats)
                             .join()
                             .filter(|(e, e_pos, e_stats)| {
-                                Vec2::<f32>::from(e_pos.0 - pos.0).magnitude() < SIGHT_DIST
+                                (e_pos.0 - pos.0).magnitude() < SIGHT_DIST
                                     && *e != entity
                                     && !e_stats.is_dead
                             })
