@@ -170,6 +170,7 @@ impl FigureModelCache {
         use humanoid::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
             (Human, Male) => (
                 "figure/head/head_human_male.vox",
                 Vec3::new(-7.0, -5.0, -2.25),
@@ -216,7 +217,7 @@ impl FigureModelCache {
             ),
             (Danari, Female) => (
                 "figure/head/head_danari_female.vox",
-                Vec3::new(-9.0, -5.5, -2.5),
+                Vec3::new(-9.0, -7.5, -3.0),
             ),
         };
         Self::load_mesh(name, offset)
