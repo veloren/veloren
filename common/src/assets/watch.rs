@@ -149,9 +149,6 @@ impl ReloadIndicator {
             self.paths.push(path.clone());
         };
 
-        let mut path = super::ASSETS_PATH.clone();
-        path.push(specifier);
-
         if WATCHER_TX
             .lock()
             .unwrap()

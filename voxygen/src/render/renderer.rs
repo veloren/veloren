@@ -18,7 +18,7 @@ use log::error;
 use vek::*;
 
 /// Represents the format of the pre-processed color target.
-pub type TgtColorFmt = gfx::format::Rgba16F;
+pub type TgtColorFmt = gfx::format::Srgba8;
 /// Represents the format of the pre-processed depth target.
 pub type TgtDepthFmt = gfx::format::Depth;
 
@@ -476,11 +476,15 @@ fn create_pipelines(
     let light =
         assets::load_watched::<String>("voxygen.shaders.include.light", shader_reload_indicator)
             .unwrap();
+    let srgb =
+        assets::load_watched::<String>("voxygen.shaders.include.srgb", shader_reload_indicator)
+            .unwrap();
 
     let mut include_ctx = IncludeContext::new();
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
     include_ctx.include("light.glsl", &light);
+    include_ctx.include("srgb.glsl", &srgb);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(

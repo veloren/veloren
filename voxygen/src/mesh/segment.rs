@@ -4,6 +4,7 @@ use crate::{
 };
 use common::{
     figure::Segment,
+    util::{linear_to_srgb, srgb_to_linear},
     vol::{ReadVol, SizedVol},
 };
 use vek::*;
@@ -28,7 +29,12 @@ impl Meshable for Segment {
                     offs + pos.map(|e| e as f32),
                     col,
                     |origin, norm, col, ao, light| {
-                        FigureVertex::new(origin, norm, col * ao * light, 0)
+                        FigureVertex::new(
+                            origin,
+                            norm,
+                            linear_to_srgb(srgb_to_linear(col) * ao * light),
+                            0,
+                        )
                     },
                     true,
                     &[[[1.0; 3]; 3]; 3],

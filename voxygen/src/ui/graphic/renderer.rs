@@ -1,6 +1,6 @@
-use super::super::{linear_to_srgb, srgb_to_linear};
 use common::{
     figure::Segment,
+    util::{linear_to_srgba, srgba_to_linear},
     vol::{ReadVol, SizedVol, Vox},
 };
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
@@ -46,13 +46,13 @@ impl<'a> Pipeline for Voxel {
         }: &Self::Vertex,
     ) -> ([f32; 3], Self::VsOut) {
         let light = Rgba::from_opaque(Rgb::from(*ao_level as f32 / 4.0 + 0.25));
-        let color = light * srgb_to_linear(Rgba::from_opaque(*col));
+        let color = light * srgba_to_linear(Rgba::from_opaque(*col));
         let position = Vec3::from(self.mvp * Vec4::from_point(*pos)).into_array();
         (position, color)
     }
     #[inline(always)]
     fn frag(&self, color: &Self::VsOut) -> Self::Pixel {
-        linear_to_srgb(*color)
+        linear_to_srgba(*color)
             .map(|e| (e * 255.0) as u8)
             .into_array()
     }
