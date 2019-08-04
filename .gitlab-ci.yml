@@ -225,9 +225,6 @@ optional:windows-debug:
   except:
     - schedules
   when: manual
-  only:
-    refs:
-      - r*.*
 
 optional-release:linux-debug:
   <<: *optional-release
