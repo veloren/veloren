@@ -14,6 +14,15 @@ pub enum Body {
     Object(object::Body),
 }
 
+impl Body {
+    pub fn is_humanoid(&self) -> bool {
+        match self {
+            Body::Humanoid(_) => true,
+            _ => false,
+        }
+    }
+}
+
 impl Component for Body {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }

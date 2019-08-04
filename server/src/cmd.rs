@@ -335,9 +335,10 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
         (Some(opt_align), Some(id), opt_amount) => {
             if let Some(agent) = alignment_to_agent(&opt_align, entity) {
                 let amount = opt_amount
-                    .map_or(Some(1), |a| a.parse().ok())
-                    .and_then(|a| if a > 0 { Some(a) } else { None })
-                    .unwrap();
+                    .and_then(|a| a.parse().ok())
+                    .filter(|x| *x > 0)
+                    .unwrap_or(1)
+                    .min(10);
 
                 match server.state.read_component_cloned::<comp::Pos>(entity) {
                     Some(pos) => {
