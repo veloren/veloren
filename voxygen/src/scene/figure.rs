@@ -551,7 +551,7 @@ impl FigureModelCache {
     }
     /////Elementals
     
-        fn load_head(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        fn load_elemental_head(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -576,7 +576,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_upper_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_upper_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -601,7 +601,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_lower_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_lower_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -626,7 +626,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_left_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -651,7 +651,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_right_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -676,7 +676,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_feet(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_feet(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -701,7 +701,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_left_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
@@ -726,7 +726,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+    fn load_elemental_right_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
         use elemental::{BodyType::*, Race::*};
 
         let (name, offset) = match (race, body_type) {
