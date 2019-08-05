@@ -38,7 +38,7 @@ impl Camera {
             ori: Vec3::zero(),
             tgt_dist: 10.0,
             dist: 10.0,
-            fov: 1.3,
+            fov: 1.1,
             aspect,
             mode,
 
@@ -180,7 +180,7 @@ impl Camera {
 
     /// Set the FOV in degrees
     pub fn set_fov_deg(&mut self, fov: u16) {
-        //Magic value comes from p/180; no use recalculating.
+        //Magic value comes from pi/180; no use recalculating.
         self.set_fov((fov as f32) * 0.01745329)
     }
 
