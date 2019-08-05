@@ -1,3 +1,7 @@
+// This module contains a few functions and utilities for expanding a seed into more data for use in worldgen.
+
+// Very standard substitution box. Takes one number and gives back another. This one works per byte.
+// Standard component in diffusion functions.
 static SBOX: [u8; 256] = [
     206, 21, 212, 69, 54, 234, 13, 42, 184, 48, 92, 64, 196, 55, 225, 235, 229, 120, 135, 72, 32,
     147, 74, 142, 197, 79, 139, 164, 110, 57, 176, 47, 192, 174, 178, 49, 193, 71, 78, 18, 237, 81,
@@ -14,6 +18,7 @@ static SBOX: [u8; 256] = [
     216, 33, 165, 86, 222, 199, 208, 201,
 ];
 
+// Helper function to work with the box above. Takes a u64 and runs each byte through the box.
 fn sbox(x: u64) -> u64 {
     let mut bytes = x.to_ne_bytes();
     for byte in &mut bytes {
@@ -22,7 +27,8 @@ fn sbox(x: u64) -> u64 {
     u64::from_ne_bytes(bytes)
 }
 
-// chaotic bijective function
+// A bijective diffusion function with chaotic behaviour. It essentially mixes numbers.
+// A 1 bit change somewhere will affect a large portion of the other bits after running through this function.
 fn diffuse_rnd(mut x: u64) -> u64 {
     x = x.wrapping_mul(0x6eed0e9da4d94a4f);
     let a = x >> 32;
@@ -32,6 +38,7 @@ fn diffuse_rnd(mut x: u64) -> u64 {
     sbox(x)
 }
 
+// Helper for running diffuse_rnd 4 times, enough to mix the bits around properly.
 fn diffuse(mut x: u64) -> u64 {
     for _ in 0..4 {
         x = diffuse_rnd(x);
@@ -39,11 +46,13 @@ fn diffuse(mut x: u64) -> u64 {
     x
 }
 
+// Expands a 32 bit state into at 64 bit state.
 fn initial_expand(x: u32) -> u64 {
     let f = (x as u64).wrapping_mul(0x2f72b4215a3d8caf);
     f.wrapping_mul(f)
 }
 
+// Truncate a 64 bit state to a 32 bit seed.
 fn truncate(x: u64) -> u32 {
     let xb = x.to_ne_bytes();
     let nb = [
@@ -55,6 +64,8 @@ fn truncate(x: u64) -> u32 {
     u32::from_ne_bytes(nb)
 }
 
+// Generates a sequence of diffused (mixed) numbers from one seed.
+// Used for generating a lot of initial seeds for the noise algorithms in worldgen.
 pub fn diffused_field(seed: u32, amount: u32) -> Vec<u32> {
     let mut field = Vec::new();
     for i in 0..=amount {
@@ -64,14 +75,20 @@ pub fn diffused_field(seed: u32, amount: u32) -> Vec<u32> {
     field
 }
 
+// Expand a 32 bit seed into a 32 byte state for the RNG used in worldgen.
 pub fn expand_seed_to_rng(seed: u32) -> [u8; 32] {
+    // Create a new empty ChaChaRng state.
     let mut r: [u64; 4] = [0; 4];
+
+    // Create a new empty internal state.
     let mut state: u64 = initial_expand(seed);
 
+    // Fill the ChaChaRng state with random bits from repeatedly running mixing the state.
     for i in 0..4 {
         state = diffuse(state);
         r[i] = state;
     }
 
+    // Convert the ChaChaRng state to bytes. Uses unsafe here because the safe code for it would be much longer.
     unsafe { std::mem::transmute(r) }
 }
