@@ -2,6 +2,7 @@ pub mod character;
 pub mod fixture;
 pub mod object;
 pub mod quadruped;
+pub mod elemental;
 pub mod quadrupedmedium;
 
 use crate::render::FigureBoneData;
