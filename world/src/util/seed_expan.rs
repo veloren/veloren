@@ -46,7 +46,7 @@ fn diffuse(mut x: u64) -> u64 {
     x
 }
 
-// Expands a 32 bit state into at 64 bit state.
+// Expands a 32 bit state into a 64 bit state.
 fn initial_expand(x: u32) -> u64 {
     let f = (x as u64).wrapping_mul(0x2f72b4215a3d8caf);
     f.wrapping_mul(f)
