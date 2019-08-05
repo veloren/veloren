@@ -56,7 +56,7 @@ fn truncate(x: u64) -> u32 {
 
 pub fn diffused_field(seed: u32, amount: u32) -> Vec<u32> {
     let mut field = Vec::new();
-    for i in 0..amount {
+    for i in 0..=amount {
         let n = truncate(diffuse(initial_expand(seed + i)));
         field.push(n);
     }
