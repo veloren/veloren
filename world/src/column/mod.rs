@@ -188,15 +188,15 @@ impl<'a> Sampler for ColumnGen<'a> {
             .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
-        let cold_grass = Rgb::new(0.0, 0.25, 0.13);
-        let warm_grass = Rgb::new(0.18, 0.65, 0.0);
-        let cold_stone = Rgb::new(0.55, 0.7, 0.75);
-        let warm_stone = Rgb::new(0.65, 0.65, 0.35);
-        let beach_sand = Rgb::new(0.9, 0.85, 0.3);
-        let desert_sand = Rgb::new(1.0, 0.7, 0.15);
-        let snow = Rgb::broadcast(1.0);
+        let cold_grass = Rgb::new(0.0, 0.21, 0.06);
+        let warm_grass = Rgb::new(0.0, 0.55, 0.0);
+        let cold_stone = Rgb::new(0.39, 0.58, 0.64);
+        let warm_stone = Rgb::new(0.55, 0.55, 0.18);
+        let beach_sand = Rgb::new(0.77, 0.70, 0.03);
+        let desert_sand = Rgb::new(0.85, 0.48, 0.0);
+        let snow = Rgb::broadcast(0.85);
 
-        let dirt = Lerp::lerp(Rgb::new(0.2, 0.1, 0.05), Rgb::new(0.4, 0.25, 0.0), marble);
+        let dirt = Lerp::lerp(Rgb::new(0.17, 0.05, 0.0), Rgb::new(0.34, 0.16, 0.0), marble);
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble);
@@ -204,7 +204,7 @@ impl<'a> Sampler for ColumnGen<'a> {
 
         let tropical = Rgb::lerp(
             grass,
-            Rgb::new(0.85, 0.4, 0.2),
+            Rgb::new(0.72, 0.17, 0.0),
             marble_small.sub(0.5).mul(0.2).add(0.75),
         );
 
