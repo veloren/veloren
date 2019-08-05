@@ -1,7 +1,8 @@
 // This module contains a few functions and utilities for expanding a seed into more data for use in worldgen.
 
 // Very standard substitution box. Takes one number and gives back another. This one works per byte.
-// Standard component in diffusion functions.
+// Standard component in diffusion functions. The numbers here are totally random and could be whatever.
+// Onlu rule is each index has to match an unique number.
 static SBOX: [u8; 256] = [
     206, 21, 212, 69, 54, 234, 13, 42, 184, 48, 92, 64, 196, 55, 225, 235, 229, 120, 135, 72, 32,
     147, 74, 142, 197, 79, 139, 164, 110, 57, 176, 47, 192, 174, 178, 49, 193, 71, 78, 18, 237, 81,
@@ -83,7 +84,7 @@ pub fn expand_seed_to_rng(seed: u32) -> [u8; 32] {
     // Create a new empty internal state.
     let mut state: u64 = initial_expand(seed);
 
-    // Fill the ChaChaRng state with random bits from repeatedly running mixing the state.
+    // Fill the ChaChaRng state with random bits from repeatedly mixing the state.
     for i in 0..4 {
         state = diffuse(state);
         r[i] = state;
