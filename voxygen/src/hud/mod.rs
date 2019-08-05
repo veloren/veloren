@@ -137,6 +137,7 @@ pub enum Event {
     AdjustVolume(f32),
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
+    ChangeFOV(u16),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
     UiScale(ScaleChange),
@@ -680,6 +681,9 @@ impl Hud {
                     }
                     settings_window::Event::UiScale(scale_change) => {
                         events.push(Event::UiScale(scale_change));
+                    }
+                    settings_window::Event::AdjustFOV(new_fov) => {
+                        events.push(Event::ChangeFOV(new_fov));
                     }
                 }
             }
