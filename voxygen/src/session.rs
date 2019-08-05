@@ -27,7 +27,8 @@ impl SessionState {
     /// Create a new `SessionState`.
     pub fn new(global_state: &mut GlobalState, client: Rc<RefCell<Client>>) -> Self {
         // Create a scene for this session. The scene handles visible elements of the game world.
-        let scene = Scene::new(global_state.window.renderer_mut());
+        let mut scene = Scene::new(global_state.window.renderer_mut());
+        scene.camera_mut().set_fov_deg(global_state.settings.graphics.fov);
         Self {
             scene,
             client,
@@ -353,6 +354,11 @@ impl PlayState for SessionState {
                     }
                     HudEvent::DropInventorySlot(x) => {
                         self.client.borrow_mut().drop_inventory_slot(x)
+                    }
+                    HudEvent::ChangeFOV(new_fov) => {
+                        global_state.settings.graphics.fov = new_fov;
+                        global_state.settings.save_to_file_warn();
+                        &self.scene.camera_mut().set_fov_deg(new_fov);
                     }
                 }
             }
