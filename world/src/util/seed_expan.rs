@@ -40,7 +40,8 @@ fn diffuse(mut x: u64) -> u64 {
 }
 
 fn initial_expand(x: u32) -> u64 {
-    (x as u64).wrapping_mul(0x2f72b4215a3d8caf).pow(2)
+    let f = (x as u64).wrapping_mul(0x2f72b4215a3d8caf);
+    f.wrapping_mul(f)
 }
 
 fn truncate(x: u64) -> u32 {
