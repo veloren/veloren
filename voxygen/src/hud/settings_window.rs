@@ -980,7 +980,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_value, ui);
-            
+
             // FOV
             Text::new("Field of View (deg)")
                 .down_from(state.ids.max_fps_slider, 10.0)
@@ -1006,15 +1006,12 @@ impl<'a> Widget for SettingsWindow<'a> {
                 events.push(Event::AdjustFOV(new_val));
             }
 
-            Text::new(&format!(
-                "{}",
-                self.global_state.settings.graphics.fov
-            ))
-            .right_from(state.ids.fov_slider, 8.0)
-            .font_size(14)
-            .font_id(self.fonts.opensans)
-            .color(TEXT_COLOR)
-            .set(state.ids.fov_value, ui);
+            Text::new(&format!("{}", self.global_state.settings.graphics.fov))
+                .right_from(state.ids.fov_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.fov_value, ui);
         }
 
         // 5) Sound Tab -----------------------------------
