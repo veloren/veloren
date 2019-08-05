@@ -80,8 +80,8 @@ impl Scene {
     }
 
     /// Get a reference to the scene's camera.
-    pub fn camera(&self) -> &Camera {
-        &self.camera
+    pub fn camera(&mut self) -> &mut Camera {
+        &mut self.camera
     }
 
     /// Get a mutable reference to the scene's camera.

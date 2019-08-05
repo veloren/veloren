@@ -74,6 +74,9 @@ widget_ids! {
         max_fps_slider,
         max_fps_text,
         max_fps_value,
+        fov_slider,
+        fov_text,
+        fov_value,
         audio_volume_slider,
         audio_volume_text,
         audio_device_list,
@@ -132,6 +135,7 @@ pub enum Event {
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
+    AdjustFOV(u16),
     AdjustVolume(f32),
     ChangeAudioDevice(String),
     MaximumFPS(u32),
@@ -976,6 +980,41 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.max_fps_value, ui);
+            
+            // FOV
+            Text::new("Field of View (deg)")
+                .down_from(state.ids.max_fps_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.fov_text, ui);
+
+            if let Some(new_val) = ImageSlider::discrete(
+                self.global_state.settings.graphics.fov,
+                30,
+                120,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.fov_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.fov_slider, ui)
+            {
+                events.push(Event::AdjustFOV(new_val));
+            }
+
+            Text::new(&format!(
+                "{}",
+                self.global_state.settings.graphics.fov
+            ))
+            .right_from(state.ids.fov_slider, 8.0)
+            .font_size(14)
+            .font_id(self.fonts.opensans)
+            .color(TEXT_COLOR)
+            .set(state.ids.fov_value, ui);
         }
 
         // 5) Sound Tab -----------------------------------
