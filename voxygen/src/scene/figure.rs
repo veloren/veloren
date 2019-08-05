@@ -12,7 +12,7 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body},
+    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, elemental, Body},
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -100,6 +100,42 @@ impl FigureModelCache {
                                     Some(Self::load_wolf_foot_rf(body.foot_rf)),
                                     Some(Self::load_wolf_foot_lb(body.foot_lb)),
                                     Some(Self::load_wolf_foot_rb(body.foot_rb)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::IceElemental(body) => [
+                                    Some(Self::load_ice_elemental_head(body.head)),
+                                    Some(Self::load_ice_elemental_upper_torso(body.upper_torso)),
+                                    Some(Self::load_ice_elemental_lower_torso(body.lower_torso)),
+                                    Some(Self::load_ice_elemental_left_shoulder(body.left_shoulder)),
+                                    Some(Self::load_ice_elemental_right_shoulder(body.right_shoulder)),
+                                    Some(Self::load_ice_elemental_hand(body.left_hand)),
+                                    Some(Self::load_ice_elemental_hand(body.right_hand)),
+                                    Some(Self::load_ice_elemental_feet(body.feet)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::EarthElemental(body) => [
+                                    Some(Self::load_earth_elemental_head(body.head)),
+                                    Some(Self::load_earth_elemental_upper_torso(body.upper_torso)),
+                                    Some(Self::load_earth_elemental_lower_torso(body.lower_torso)),
+                                    Some(Self::load_earth_elemental_left_shoulder(body.left_shoulder)),
+                                    Some(Self::load_earth_elemental_right_shoulder(body.right_shoulder)),
+                                    Some(Self::load_earth_elemental_hand(body.left_hand)),
+                                    Some(Self::load_earth_elemental_hand(body.right_hand)),
+                                    Some(Self::load_earth_elemental_feet(body.feet)),
+                                    None,
+                                    None,
+                                    None,
                                     None,
                                     None,
                                     None,
@@ -360,7 +396,7 @@ impl FigureModelCache {
     //    )
     //}
 
-    /////////
+    /////////Pig
     fn load_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head {
@@ -414,7 +450,7 @@ impl FigureModelCache {
             Vec3::new(0.0, -1.0, -1.5),
         )
     }
-    //////
+    //////Wolf
     fn load_wolf_head_upper(upper_head: quadruped_medium::HeadUpper) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match upper_head {
@@ -513,6 +549,209 @@ impl FigureModelCache {
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
+    /////Elementals
+    
+        fn load_head(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_head.vox",
+                Vec3::new(-7.0, -5.0, -2.25),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_head.vox",
+                Vec3::new(-8.0, -5.0, -2.25),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_head.vox",
+                Vec3::new(-6.0, -5.0, -12.5),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_head.vox",
+                Vec3::new(-8.0, -5.0, -2.50),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_upper_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_upper_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_upper_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_upper_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_upper_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_lower_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_lower_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_lower_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_lower_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_lower_torso.vox",
+                Vec3::new(-6.0, -3.5, 0.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_left_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_right_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_hand.vox",
+                Vec3::new(-2.0, -2.5, -2.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_feet(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_feet.vox",
+                Vec3::new(-2.5, -3.5, -9.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_feet.vox",
+                Vec3::new(-2.5, -3.5, -9.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_feet.vox",
+                Vec3::new(-2.5, -3.5, -9.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_feet.vox",
+                Vec3::new(-2.5, -3.5, -9.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_left_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_left_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_left_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_left_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_left_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    fn load_right_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
+        use elemental::{BodyType::*, Race::*};
+
+        let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the .vox total z
+            (ice, Male) => (
+                "npc/ice_elemental/ice_elemental_right_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (earth, Male) => (
+                "npc/earth_elemental/earth_elemental_right_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (fire, Male) => (
+                "npc/fire_elemental/fire_elemental_right_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+            (rock, Male) => (
+                "npc/rock_elemental/rock_elemental_right_shoulder.vox",
+                Vec3::new(2.5, -0.5, 0.0),
+            ),
+        };
+        Self::load_mesh(name, offset)
+    }
+
+    /////
 
     fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
         let (name, offset) = match obj {
@@ -653,6 +892,9 @@ impl FigureMgr {
                     }
                     Body::QuadrupedMedium(_) => {
                         self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::Elemental(_) => {
+                        self.elemental_states.remove(&entity);
                     }
                     Body::Object(_) => {
                         self.object_states.remove(&entity);
@@ -846,6 +1088,49 @@ impl FigureMgr {
                     state.skeleton.interpolate(&target_skeleton, dt);
                     state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
+                Body::Elemental(_) => {
+                    let state = self
+                        .elemental_states
+                        .entry(entity)
+                        .or_insert_with(|| FigureState::new(renderer, elementalSkeleton::new()));
+
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
+                    let target_skeleton = match animation_info.animation {
+                        comp::Animation::Idle => anim::elemental::IdleAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Run => anim::elemental::RunAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            (vel.0.magnitude(), time),
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Jump => anim::elemental::JumpAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Attack => {
+                            anim::elemental::AttackAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                    };
+
+                    state.skeleton.interpolate(&target_skeleton, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -864,6 +1149,8 @@ impl FigureMgr {
         self.quadruped_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.elemental_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -919,6 +1206,10 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::QuadrupedMedium(_) => self
                     .quadruped_medium_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::Elemental(_) => self
+                    .elemental_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self
