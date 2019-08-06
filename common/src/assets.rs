@@ -1,17 +1,19 @@
 //! Load assets (images or voxel data) from files
 
-use dot_vox::DotVoxData;
-use hashbrown::HashMap;
-use image::DynamicImage;
-use lazy_static::lazy_static;
-use serde_json::Value;
-use std::{
-    any::Any,
-    env,
-    fs::{self, read_link, File, ReadDir},
-    io::{BufReader, Read},
-    path::{Path, PathBuf},
-    sync::{Arc, RwLock},
+use {
+    dot_vox::DotVoxData,
+    image::DynamicImage,
+    lazy_static::lazy_static,
+    serde_json::Value,
+    std::{
+        any::Any,
+        collections::HashMap,
+        env,
+        fs::{self, read_link, File, ReadDir},
+        io::{BufReader, Read},
+        path::{Path, PathBuf},
+        sync::{Arc, RwLock},
+    },
 };
 
 /// The error returned by asset loading functions
