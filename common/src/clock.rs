@@ -1,3 +1,5 @@
+//! This module contains a Clock, which can make sure that each frame has the same length.
+
 use std::{
     thread,
     time::{Duration, Instant},
@@ -5,6 +7,7 @@ use std::{
 
 const CLOCK_SMOOTHING: f64 = 0.9;
 
+/// The clock. After you start it each tick will last the duration specified in Clock::tick.
 pub struct Clock {
     last_sys_time: Instant,
     last_delta: Option<Duration>,
@@ -13,6 +16,7 @@ pub struct Clock {
 }
 
 impl Clock {
+    /// Create a new clock.
     pub fn start() -> Self {
         Self {
             last_sys_time: Instant::now(),
@@ -22,18 +26,22 @@ impl Clock {
         }
     }
 
+    /// Get the number of ticks per second.
     pub fn get_tps(&self) -> f64 {
         1.0 / self.running_tps_average
     }
 
+    /// Get the duration between the last two ticks.
     pub fn get_last_delta(&self) -> Duration {
         self.last_delta.unwrap_or_else(|| Duration::new(0, 0))
     }
 
+    /// Get the running average number of ticks per second.
     pub fn get_avg_delta(&self) -> Duration {
         Duration::from_secs_f64(self.running_tps_average)
     }
 
+    /// Tick the clock. This will sleep so that each tick should last the duration specified in `tgt`.
     pub fn tick(&mut self, tgt: Duration) {
         let delta = Instant::now().duration_since(self.last_sys_time);
 
