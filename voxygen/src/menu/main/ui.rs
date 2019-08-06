@@ -60,16 +60,16 @@ widget_ids! {
 image_ids! {
     struct Imgs {
         <VoxelGraphic>
-        v_logo: "voxygen/element/v_logo.vox",
-        input_bg: "voxygen/element/misc_bg/textbox.vox",
-        button: "voxygen/element/buttons/button.vox",
-        button_hover: "voxygen/element/buttons/button_hover.vox",
-        button_press: "voxygen/element/buttons/button_press.vox",
-        disclaimer: "voxygen/element/frames/disclaimer.vox",
+        v_logo: "voxygen.element.v_logo",
+        input_bg: "voxygen.element.misc_bg.textbox",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        disclaimer: "voxygen.element.frames.disclaimer",
 
         <ImageGraphic>
-        bg: "voxygen/background/bg_main.png",
-        error_frame: "voxygen/element/frames/window_2.png",
+        bg: "voxygen.background.bg_main",
+        error_frame: "voxygen.element.frames.window_2",
 
         <BlankGraphic>
         nothing: (),
@@ -79,8 +79,8 @@ image_ids! {
 
 font_ids! {
     pub struct Fonts {
-        opensans: "voxygen/font/OpenSans-Regular.ttf",
-        metamorph: "voxygen/font/Metamorphous-Regular.ttf",
+        opensans: "voxygen.font.OpenSans-Regular",
+        metamorph: "voxygen.font.Metamorphous-Regular",
     }
 }
 

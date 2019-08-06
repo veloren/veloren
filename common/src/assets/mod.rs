@@ -1,3 +1,5 @@
+//! Load assets (images or voxel data) from files
+
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
@@ -6,12 +8,13 @@ use std::{
     any::Any,
     collections::HashMap,
     env,
-    fs::{read_dir, read_link, File, ReadDir},
+    fs::{self, read_link, File, ReadDir},
     io::{BufReader, Read},
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
 
+/// The error returned by asset loading functions
 #[derive(Debug, Clone)]
 pub enum Error {
     /// An asset of a different type has already been loaded with this specifier.
@@ -33,19 +36,22 @@ impl From<std::io::Error> for Error {
 }
 
 lazy_static! {
+    /// The HashMap where all loaded assets are stored in.
     static ref ASSETS: RwLock<HashMap<String, Arc<dyn Any + 'static + Sync + Send>>> =
         RwLock::new(HashMap::new());
 }
 
-/// Function used to load assets. Permits manipulating the loaded asset with a mapping function.
-/// Loaded assets are cached in a global singleton hashmap.
+// TODO: Remove this function. It's only used in world/ in a really ugly way.To do this properly
+// assets should have all their necessary data in one file. A ron file could be used to combine
+// voxel data with positioning data for example.
+/// Function used to load assets from the filesystem or the cache. Permits manipulating the loaded asset with a mapping function.
 /// Example usage:
-/// ```no_run=
+/// ```no_run
 /// use veloren_common::{assets, terrain::Structure};
 /// use vek::*;
 ///
 /// let my_tree_structure = assets::load_map(
-///        "world/tree/oak_green/1.vox",
+///        "world.tree.oak_green.1",
 ///        |s: Structure| s.with_center(Vec3::new(15, 18, 14)),
 ///    ).unwrap();
 /// ```
@@ -54,10 +60,10 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     f: F,
 ) -> Result<Arc<A>, Error> {
     let mut assets_write = ASSETS.write().unwrap();
-    match assets_write.get(specifier) {
+    match assets_write.get(&(specifier.to_owned() + A::ENDINGS[0])) {
         Some(asset) => Ok(Arc::clone(asset).downcast()?),
         None => {
-            let asset = Arc::new(f(A::load(load_from_path(specifier)?)?));
+            let asset = Arc::new(f(A::parse(load_file(specifier, A::ENDINGS)?)?));
             let clone = Arc::clone(&asset);
             assets_write.insert(specifier.to_owned(), clone);
             Ok(asset)
@@ -65,8 +71,7 @@ pub fn load_map<A: Asset + 'static, F: FnOnce(A) -> A>(
     }
 }
 
-/// Function used to load assets.
-/// Loaded assets are cached in a global singleton hashmap.
+/// Function used to load assets from the filesystem or the cache.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -78,9 +83,7 @@ pub fn load<A: Asset + 'static>(specifier: &str) -> Result<Arc<A>, Error> {
     load_map(specifier, |x| x)
 }
 
-/// Function used to load assets that will panic if the asset is not found.
-/// Use this to load essential assets.
-/// Loaded assets are cached in a global singleton hashmap.
+/// Function used to load essential assets from the filesystem or the cache. It will panic if the asset is not found.
 /// Example usage:
 /// ```no_run
 /// use image::DynamicImage;
@@ -92,13 +95,17 @@ pub fn load_expect<A: Asset + 'static>(specifier: &str) -> Arc<A> {
     load(specifier).unwrap_or_else(|_| panic!("Failed loading essential asset: {}", specifier))
 }
 
-/// Asset Trait
+/// The Asset trait, which is implemented by all structures that have their data stored in the
+/// filesystem.
 pub trait Asset: Send + Sync + Sized {
-    fn load(buf_reader: BufReader<impl Read>) -> Result<Self, Error>;
+    const ENDINGS: &'static [&'static str];
+    /// Parse the input file and return the correct Asset.
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, Error>;
 }
 
 impl Asset for DynamicImage {
-    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
+    const ENDINGS: &'static [&'static str] = &["png", "jpg"];
+    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         Ok(image::load_from_memory(&buf).unwrap())
@@ -106,26 +113,29 @@ impl Asset for DynamicImage {
 }
 
 impl Asset for DotVoxData {
-    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
+    const ENDINGS: &'static [&'static str] = &["vox"];
+    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         Ok(dot_vox::load_bytes(&buf).unwrap())
     }
 }
 
+// Read a JSON file
 impl Asset for Value {
-    fn load(buf_reader: BufReader<impl Read>) -> Result<Self, Error> {
+    const ENDINGS: &'static [&'static str] = &["json"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, Error> {
         Ok(serde_json::from_reader(buf_reader).unwrap())
     }
 }
 
-// TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
-fn assets_folder() -> PathBuf {
+/// Function to find where the asset/ directory is.
+fn assets_dir() -> PathBuf {
     let mut paths = Vec::new();
 
     // VELOREN_ASSETS environment variable
     if let Ok(var) = std::env::var("VELOREN_ASSETS") {
-        paths.push(var.to_string().into());
+        paths.push(var.to_owned().into());
     }
 
     // Executable path
@@ -156,53 +166,42 @@ fn assets_folder() -> PathBuf {
     panic!(
         "Asset directory not found. In attempting to find it, we searched:\n{})",
         paths.iter().fold(String::new(), |mut a, path| {
-            a += path.to_str().unwrap_or("<invalid>");
+            a += &path.to_string_lossy();
             a += "\n";
             a
         }),
     );
 }
 
-// TODO: System to load file from specifiers (e.g.: "core.ui.backgrounds.city").
-pub fn load_from_path(name: &str) -> Result<BufReader<File>, Error> {
-    debug!("Trying to access \"{}\"", name);
+/// Converts a specifier like "core.backgrounds.city" to ".../veloren/assets/core/backgrounds/city".
+fn unpack_specifier(specifier: &str) -> PathBuf {
+    let mut path = assets_dir();
+    path.push(specifier.replace(".", "/"));
+    path
+}
 
-    let mut path = assets_folder();
-    path.push(name);
+/// Loads a file based on the specifier and possible extensions
+pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
+    let mut path = unpack_specifier(specifier);
+    for ending in endings {
+        let mut path = path.clone();
+        path.set_extension(ending);
 
-    match File::open(path) {
-        Ok(file) => Ok(BufReader::new(file)),
-        Err(_) => Err(Error::NotFound(name.to_owned())),
+        debug!("Trying to access \"{:?}\"", path);
+        if let Ok(file) = File::open(path) {
+            return Ok(BufReader::new(file));
+        }
     }
+
+    Err(Error::NotFound(path.to_string_lossy().into_owned()))
 }
 
 /// Read directory from `veloren/assets/*`
-pub fn read_from_assets(dir_name: &str) -> Result<ReadDir, Error> {
-    let mut entry = assets_folder();
-    entry.push(dir_name);
-    match Path::new(&entry).exists() {
-        true => Ok(read_dir(entry).expect("`read_dir` failed.")),
-        false => Err(Error::NotFound(entry.to_str().unwrap().to_owned())),
-    }
-}
-
-/// Returns the cargo manifest directory when running the executable with cargo
-/// or the directory in which the executable resides otherwise,
-/// traversing symlinks if necessary.
-pub fn application_root_dir() -> String {
-    match env::var("PROFILE") {
-        Ok(_) => String::from(env!("CARGO_MANIFEST_DIR")),
-        Err(_) => {
-            let mut path = env::current_exe().expect("Failed to find executable path.");
-            while let Ok(target) = read_link(path.clone()) {
-                path = target;
-            }
-            String::from(
-                path.parent()
-                    .expect("Failed to get parent directory of the executable.")
-                    .to_str()
-                    .unwrap(),
-            )
-        }
+pub fn read_dir(specifier: &str) -> Result<ReadDir, Error> {
+    let dir_name = unpack_specifier(specifier);
+    if dir_name.exists() {
+        Ok(fs::read_dir(dir_name).expect("`read_dir` failed."))
+    } else {
+        Err(Error::NotFound(dir_name.to_string_lossy().into_owned()))
     }
 }

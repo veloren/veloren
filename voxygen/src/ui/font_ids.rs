@@ -3,10 +3,10 @@
 ///
 /// Example usage:
 /// ```
-/// image_ids! {
-///     pub struct Imgs {
-///         font1: "filename1.vox",
-///         font2: "filename2.vox",
+/// font_ids! {
+///     pub struct Fonts {
+///         font1: "filename1",
+///         font2: "filename2",
 ///     }
 /// }
 /// ```
