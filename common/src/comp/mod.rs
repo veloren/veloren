@@ -15,7 +15,7 @@ mod visual;
 pub use action_state::ActionState;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
-pub use body::{humanoid, object, quadruped, quadruped_medium, Body};
+pub use body::{humanoid, object, quadruped, quadruped_medium, elemental, Body};
 pub use controller::Controller;
 pub use inputs::{
     Attacking, CanBuild, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling, Wielding,

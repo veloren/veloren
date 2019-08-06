@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, Animation, Skeleton, SkeletonAttr,
+        quadrupedmedium::QuadrupedMediumSkeleton, elemental::ElementalSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -106,33 +106,15 @@ impl FigureModelCache {
                                     None,
                                     None,
                                 ],
-                                Body::IceElemental(body) => [
-                                    Some(Self::load_ice_elemental_head(body.head)),
-                                    Some(Self::load_ice_elemental_upper_torso(body.upper_torso)),
-                                    Some(Self::load_ice_elemental_lower_torso(body.lower_torso)),
-                                    Some(Self::load_ice_elemental_left_shoulder(body.left_shoulder)),
-                                    Some(Self::load_ice_elemental_right_shoulder(body.right_shoulder)),
-                                    Some(Self::load_ice_elemental_hand(body.left_hand)),
-                                    Some(Self::load_ice_elemental_hand(body.right_hand)),
-                                    Some(Self::load_ice_elemental_feet(body.feet)),
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                ],
-                                Body::EarthElemental(body) => [
-                                    Some(Self::load_earth_elemental_head(body.head)),
-                                    Some(Self::load_earth_elemental_upper_torso(body.upper_torso)),
-                                    Some(Self::load_earth_elemental_lower_torso(body.lower_torso)),
-                                    Some(Self::load_earth_elemental_left_shoulder(body.left_shoulder)),
-                                    Some(Self::load_earth_elemental_right_shoulder(body.right_shoulder)),
-                                    Some(Self::load_earth_elemental_hand(body.left_hand)),
-                                    Some(Self::load_earth_elemental_hand(body.right_hand)),
-                                    Some(Self::load_earth_elemental_feet(body.feet)),
+                                Body::elemental(body) => [
+                                    Some(Self::load_elemental_head(body.head)),
+                                    Some(Self::load_elemental_upper_torso(body.upper_torso)),
+                                    Some(Self::load_elemental_lower_torso(body.lower_torso)),
+                                    Some(Self::load_elemental_left_shoulder(body.left_shoulder)),
+                                    Some(Self::load_elemental_right_shoulder(body.right_shoulder)),
+                                    Some(Self::load_elemental_hand(body.left_hand)),
+                                    Some(Self::load_elemental_hand(body.right_hand)),
+                                    Some(Self::load_elemental_feet(body.feet)),
                                     None,
                                     None,
                                     None,
@@ -551,24 +533,24 @@ impl FigureModelCache {
     }
     /////Elementals
     
-        fn load_head(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+        fn load_head(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_head.vox",
                 Vec3::new(-7.0, -5.0, -2.25),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_head.vox",
                 Vec3::new(-8.0, -5.0, -2.25),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_head.vox",
                 Vec3::new(-6.0, -5.0, -12.5),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_head.vox",
                 Vec3::new(-8.0, -5.0, -2.50),
             ),
@@ -576,24 +558,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_upper_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_upper_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
@@ -601,24 +583,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_lower_torso(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_lower_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
@@ -626,24 +608,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_left_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
@@ -651,24 +633,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_hand(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_right_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{ Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
@@ -676,24 +658,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_feet(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_feet(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{ Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
@@ -701,24 +683,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_left_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{ Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
@@ -726,24 +708,24 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_shoulder(race: elemental::Race, body_type: elemental::BodyType) -> Mesh<FigurePipeline> {
-        use elemental::{BodyType::*, Race::*};
+    fn load_right_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
+        use elemental::{Race::*};
 
-        let (name, offset) = match (race, body_type) {
+        let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            (ice, Male) => (
+            ice => (
                 "npc/ice_elemental/ice_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (earth, Male) => (
+            earth => (
                 "npc/earth_elemental/earth_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (fire, Male) => (
+            fire => (
                 "npc/fire_elemental/fire_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            (rock, Male) => (
+            rock => (
                 "npc/rock_elemental/rock_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
@@ -834,6 +816,7 @@ pub struct FigureMgr {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    elemental_states: HashMap<EcsEntity, FigureState<ElementalSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
