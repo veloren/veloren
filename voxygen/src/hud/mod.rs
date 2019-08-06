@@ -82,6 +82,7 @@ widget_ids! {
         fps_counter,
         ping,
         coordinates,
+        velocity,
         loaded_distance,
 
         // Game Version
@@ -127,6 +128,7 @@ pub struct DebugInfo {
     pub tps: f64,
     pub ping_ms: f64,
     pub coordinates: Option<comp::Pos>,
+    pub velocity: Option<comp::Vel>,
 }
 
 pub enum Event {
@@ -498,7 +500,7 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.ping, ui_widgets);
-            // Players position
+            // Player's position
             let coordinates_text = match debug_info.coordinates {
                 Some(coordinates) => format!("Coordinates: {:.1}", coordinates.0),
                 None => "Player has no Pos component".to_owned(),
@@ -509,13 +511,24 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.coordinates, ui_widgets);
+            //Player's velocity
+            let velocity_text = match debug_info.velocity {
+                Some(velocity) => format!("Velocity: {:.1}", velocity.0),
+                None => "Player has no Vel component".to_owned(),
+            };
+            Text::new(&velocity_text)
+                .color(TEXT_COLOR)
+                .down_from(self.ids.coordinates, 5.0)
+                .font_id(self.fonts.opensans)
+                .font_size(14)
+                .set(self.ids.velocity, ui_widgets);
             // Loaded distance
             Text::new(&format!(
                 "View distance: {} chunks",
                 client.loaded_distance().unwrap_or(0)
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.coordinates, 5.0)
+            .down_from(self.ids.velocity, 5.0)
             .font_id(self.fonts.opensans)
             .font_size(14)
             .set(self.ids.loaded_distance, ui_widgets);
