@@ -22,6 +22,7 @@ pub use self::{
             create_quad as create_ui_quad, create_tri as create_ui_tri, Locals as UiLocals,
             Mode as UiMode, UiPipeline,
         },
+        fluid::{Locals as FluidLocals, FluidPipeline},
         Globals, Light,
     },
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
