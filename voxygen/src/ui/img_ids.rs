@@ -64,11 +64,11 @@ impl<'a> GraphicCreator<'a> for VoxelMs9Graphic {
 /// image_ids! {
 ///     pub struct Imgs {
 ///         <VoxelGraphic>
-///         button1: "filename1.vox",
-///         button2: "filename2.vox",
+///         button1: "specifier1",
+///         button2: "specifier2",
 ///
 ///         <ImageGraphic>
-///         background: "background.png",
+///         background: "background",
 ///
 ///         <BlankGraphic>
 ///         blank: (),
