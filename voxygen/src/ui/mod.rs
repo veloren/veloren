@@ -42,6 +42,7 @@ use conrod_core::{
 use graphic::Id as GraphicId;
 use log::warn;
 use std::{
+    fs::File,
     io::{BufReader, Read},
     ops::Range,
     sync::Arc,
@@ -83,7 +84,8 @@ impl DrawCommand {
 
 pub struct Font(text::Font);
 impl assets::Asset for Font {
-    fn load(mut buf_reader: BufReader<impl Read>) -> Result<Self, assets::Error> {
+    const ENDINGS: &'static [&'static str] = &["ttf"];
+    fn parse(mut buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
         let mut buf = Vec::new();
         buf_reader.read_to_end(&mut buf)?;
         Ok(Font(text::Font::from_bytes(buf.clone()).unwrap()))

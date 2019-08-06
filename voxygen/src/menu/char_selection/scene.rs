@@ -69,7 +69,7 @@ impl Scene {
 
             backdrop_model: renderer
                 .create_model(&FigureModelCache::load_mesh(
-                    "fixture/selection_bg.vox",
+                    "fixture.selection_bg",
                     Vec3::new(-55.0, -49.5, -2.0),
                 ))
                 .unwrap(),
