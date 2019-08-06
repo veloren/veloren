@@ -55,32 +55,41 @@ pub struct WorldSim {
 
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
-        let seeds = seed_expan::diffused_field(seed, 17);
         let mut gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new().set_seed(seeds[0]),
-            turb_y_nz: SuperSimplex::new().set_seed(seeds[1]),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(seeds[2]),
-            hill_nz: SuperSimplex::new().set_seed(seeds[3]),
+            turb_x_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed)),
+            turb_y_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed + 1)),
+            chaos_nz: RidgedMulti::new()
+                .set_octaves(7)
+                .set_seed(seed_expan::diffuse(seed + 2)),
+            hill_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed + 3)),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
                 .set_persistence(0.1)
-                .set_seed(seeds[4]),
-            temp_nz: SuperSimplex::new().set_seed(seeds[5]),
-            dry_nz: BasicMulti::new().set_seed(seeds[6]),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(seeds[7]),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(seeds[8]),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(seeds[9]),
-            warp_nz: BasicMulti::new().set_octaves(3).set_seed(seeds[10]),
+                .set_seed(seed_expan::diffuse(seed + 4)),
+            temp_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed + 5)),
+            dry_nz: BasicMulti::new().set_seed(seed_expan::diffuse(seed + 6)),
+            small_nz: BasicMulti::new()
+                .set_octaves(2)
+                .set_seed(seed_expan::diffuse(seed + 7)),
+            rock_nz: HybridMulti::new()
+                .set_persistence(0.3)
+                .set_seed(seed_expan::diffuse(seed + 8)),
+            cliff_nz: HybridMulti::new()
+                .set_persistence(0.3)
+                .set_seed(seed_expan::diffuse(seed + 9)),
+            warp_nz: BasicMulti::new()
+                .set_octaves(3)
+                .set_seed(seed_expan::diffuse(seed + 10)),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
-                .set_seed(seeds[11]),
-            cave_0_nz: SuperSimplex::new().set_seed(seeds[12]),
-            cave_1_nz: SuperSimplex::new().set_seed(seeds[13]),
+                .set_seed(seed_expan::diffuse(seed + 11)),
+            cave_0_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed + 12)),
+            cave_1_nz: SuperSimplex::new().set_seed(seed_expan::diffuse(seed + 13)),
 
-            structure_gen: StructureGen2d::new(seeds[14], 32, 24),
-            region_gen: StructureGen2d::new(seeds[15], 400, 96),
-            cliff_gen: StructureGen2d::new(seeds[17], 80, 56),
+            structure_gen: StructureGen2d::new(seed_expan::diffuse(seed + 14), 32, 24),
+            region_gen: StructureGen2d::new(seed_expan::diffuse(seed + 15), 400, 96),
+            cliff_gen: StructureGen2d::new(seed_expan::diffuse(seed + 16), 80, 56),
         };
 
         let mut chunks = Vec::new();
@@ -95,7 +104,7 @@ impl WorldSim {
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: ChaChaRng::from_seed(seed_expan::expand_seed_to_rng(seed)),
+            rng: ChaChaRng::from_seed(seed_expan::rng_state(seed)),
         };
 
         this.seed_elements();
