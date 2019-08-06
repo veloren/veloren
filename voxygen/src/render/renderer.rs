@@ -3,7 +3,7 @@ use super::{
     gfx_backend,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, postprocess, skybox, terrain, ui, Globals, Light},
+    pipelines::{figure, postprocess, skybox, terrain, ui, Globals, Light, fluid},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -82,6 +82,15 @@ impl Renderer {
 
         let (skybox_pipeline, figure_pipeline, terrain_pipeline, ui_pipeline, postprocess_pipeline) =
             create_pipelines(&mut factory, &mut shader_reload_indicator)?;
+
+        // Construct a pipeline for rendering fluids
+        let fluid_pipeline = create_pipeline(
+            &mut factory,
+            fluid::pipe::new(),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/fluid.vert")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/shaders/fluid.frag")),
+            &include_ctx,
+        )?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
