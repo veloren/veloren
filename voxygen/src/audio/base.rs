@@ -1,5 +1,5 @@
 use crate::settings::{AudioSettings, Settings};
-use common::assets::{load_from_path, read_from_assets};
+use common::assets::read_dir;
 use crossbeam::{
     atomic::AtomicCell,
     channel::{unbounded, Sender},
@@ -7,6 +7,8 @@ use crossbeam::{
     sync::ShardedLock,
 };
 use rodio::{Decoder, Device, Sink};
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 
@@ -265,7 +267,7 @@ impl MonoEmitter {
     //    }
 
     fn play_from(&mut self, path: &str) {
-        let bufreader = load_from_path(path).unwrap();
+        let bufreader = BufReader::new(File::open(path).unwrap());
         let src = Decoder::new(bufreader).unwrap();
         self.stream.append(src);
     }
@@ -350,12 +352,12 @@ pub(crate) fn get_default_device() -> String {
 pub(crate) fn load_soundtracks(genre: &Genre) -> Vec<String> {
     match *genre {
         Genre::Bgm => {
-            let assets = read_from_assets("voxygen/audio/soundtrack/").unwrap();
+            let assets = read_dir("voxygen.audio.soundtrack").unwrap();
             let soundtracks = assets
                 .filter_map(|entry| {
                     entry.ok().map(|f| {
                         let path = f.path();
-                        (*path.into_os_string().to_string_lossy()).to_owned()
+                        path.to_string_lossy().into_owned()
                     })
                 })
                 .collect::<Vec<String>>();
@@ -363,7 +365,7 @@ pub(crate) fn load_soundtracks(genre: &Genre) -> Vec<String> {
             soundtracks
         }
         Genre::Sfx => {
-            let assets = read_from_assets("voxygen/audio/soundtrack/").unwrap();
+            let assets = read_dir("voxygen.audio.soundtrack").unwrap();
             let soundtracks = assets
                 //.filter_map(|entry| {
                 //    entry.ok().and_then(|f| {
