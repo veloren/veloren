@@ -127,8 +127,18 @@ impl Scene {
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
+        let up = if client
+            .state()
+            .read_storage::<comp::CanBuild>()
+            .get(client.entity())
+            .is_some()
+        {
+            1.5
+        } else {
+            1.2
+        };
         self.camera.set_focus_pos(
-            player_pos + Vec3::unit_z() * (1.2 + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
+            player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
         );
 
         // Tick camera for interpolation.
