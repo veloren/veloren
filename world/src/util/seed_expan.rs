@@ -1,8 +1,12 @@
 /// Simple non-cryptographic diffusion function.
 pub fn diffuse(mut x: u32) -> u32 {
-    x ^= 2281701376;
-    x = x.rotate_left(7);
-    x.wrapping_mul(0x811c9dc5)
+    x = x.wrapping_add(0x7ed55d16).wrapping_add(x << 12);
+    x = (x ^ 0xc761c23c) ^ (x >> 19);
+    x = x.wrapping_add(0x165667b1).wrapping_add(x << 5);
+    x = x.wrapping_add(0xd3a2646c) ^ (x << 9);
+    x = x.wrapping_add(0xfd7046c5).wrapping_add(x << 3);
+    x = (x ^ 0xb55a4f09) ^ (x >> 16);
+    x
 }
 
 /// Expand a 32 bit seed into a 32 byte RNG state.
