@@ -28,10 +28,10 @@ static DUNGEON_RAND: RandomPerm = RandomPerm::new(0x42782335);
 
 lazy_static! {
     pub static ref DUNGEONS: Vec<Arc<Structure>> = vec![
-        assets::load_map("world/structure/dungeon/ruins.vox", |s: Structure| s
+        assets::load_map("world.structure.dungeon.ruins", |s: Structure| s
             .with_center(Vec3::new(57, 58, 62)))
         .unwrap(),
-        assets::load_map("world/structure/dungeon/ruins-2.vox", |s: Structure| s
+        assets::load_map("world.structure.dungeon.ruins-2", |s: Structure| s
             .with_center(Vec3::new(53, 57, 60)))
         .unwrap(),
     ];

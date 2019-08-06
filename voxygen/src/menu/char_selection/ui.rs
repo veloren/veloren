@@ -140,46 +140,46 @@ widget_ids! {
 image_ids! {
     struct Imgs {
         <VoxelGraphic>
-        button: "voxygen/element/buttons/button.vox",
-        button_hover: "voxygen/element/buttons/button_hover.vox",
-        button_press: "voxygen/element/buttons/button_press.vox",
-        name_input: "voxygen/element/misc_bg/textbox.vox",
-        charlist_frame: "voxygen/element/frames/window_4.vox",
-        server_frame: "voxygen/element/frames/server_frame.vox",
-        selection: "voxygen/element/frames/selection.vox",
+        button: "voxygen.element.buttons.button",
+        button_hover: "voxygen.element.buttons.button_hover",
+        button_press: "voxygen.element.buttons.button_press",
+        name_input: "voxygen.element.misc_bg.textbox",
+        charlist_frame: "voxygen.element.frames.window_4",
+        server_frame: "voxygen.element.frames.server_frame",
+        selection: "voxygen.element.frames.selection",
 
         <ImageGraphic>
-        slider_range: "voxygen/element/slider/track.png",
-        slider_indicator: "voxygen/element/slider/indicator.png",
+        slider_range: "voxygen.element.slider.track",
+        slider_indicator: "voxygen.element.slider.indicator",
 
         // Tool Icons
-        daggers: "voxygen/element/icons/daggers.png",
-        sword: "voxygen/element/icons/sword.png",
-        axe: "voxygen/element/icons/axe.png",
-        hammer: "voxygen/element/icons/hammer.png",
-        bow: "voxygen/element/icons/bow.png",
-        staff: "voxygen/element/icons/staff.png",
+        daggers: "voxygen.element.icons.daggers",
+        sword: "voxygen.element.icons.sword",
+        axe: "voxygen.element.icons.axe",
+        hammer: "voxygen.element.icons.hammer",
+        bow: "voxygen.element.icons.bow",
+        staff: "voxygen.element.icons.staff",
 
         // Race Icons
-        male: "voxygen/element/icons/male.png",
-        female: "voxygen/element/icons/female.png",
-        human_m: "voxygen/element/icons/human_m.png",
-        human_f: "voxygen/element/icons/human_f.png",
-        orc_m: "voxygen/element/icons/orc_m.png",
-        orc_f: "voxygen/element/icons/orc_f.png",
-        dwarf_m: "voxygen/element/icons/dwarf_m.png",
-        dwarf_f: "voxygen/element/icons/dwarf_f.png",
-        undead_m: "voxygen/element/icons/ud_m.png",
-        undead_f: "voxygen/element/icons/ud_f.png",
-        elf_m: "voxygen/element/icons/elf_m.png",
-        elf_f: "voxygen/element/icons/elf_f.png",
-        danari_m: "voxygen/element/icons/danari_m.png",
-        danari_f: "voxygen/element/icons/danari_f.png",
+        male: "voxygen.element.icons.male",
+        female: "voxygen.element.icons.female",
+        human_m: "voxygen.element.icons.human_m",
+        human_f: "voxygen.element.icons.human_f",
+        orc_m: "voxygen.element.icons.orc_m",
+        orc_f: "voxygen.element.icons.orc_f",
+        dwarf_m: "voxygen.element.icons.dwarf_m",
+        dwarf_f: "voxygen.element.icons.dwarf_f",
+        undead_m: "voxygen.element.icons.ud_m",
+        undead_f: "voxygen.element.icons.ud_f",
+        elf_m: "voxygen.element.icons.elf_m",
+        elf_f: "voxygen.element.icons.elf_f",
+        danari_m: "voxygen.element.icons.danari_m",
+        danari_f: "voxygen.element.icons.danari_f",
         // Icon Borders
-        icon_border: "voxygen/element/buttons/border.png",
-        icon_border_mo: "voxygen/element/buttons/border_mo.png",
-        icon_border_press: "voxygen/element/buttons/border_press.png",
-        icon_border_pressed: "voxygen/element/buttons/border_pressed.png",
+        icon_border: "voxygen.element.buttons.border",
+        icon_border_mo: "voxygen.element.buttons.border_mo",
+        icon_border_press: "voxygen.element.buttons.border_press",
+        icon_border_pressed: "voxygen.element.buttons.border_pressed",
 
         <BlankGraphic>
         nothing: (),
@@ -188,8 +188,8 @@ image_ids! {
 
 font_ids! {
     pub struct Fonts {
-        opensans: "voxygen/font/OpenSans-Regular.ttf",
-        metamorph: "voxygen/font/Metamorphous-Regular.ttf",
+        opensans: "voxygen.font.OpenSans-Regular",
+        metamorph: "voxygen.font.Metamorphous-Regular",
     }
 }
 
