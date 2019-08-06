@@ -146,8 +146,10 @@ impl<'a> System<'a> for Sys {
             for _ in 0..increments as usize {
                 pos.0 += pos_delta / increments;
 
+                const MAX_ATTEMPTS: usize = 16;
+
                 // While the player is colliding with the terrain...
-                while collision_with(pos.0, near_iter.clone()) && attempts < 16 {
+                while collision_with(pos.0, near_iter.clone()) && attempts < MAX_ATTEMPTS {
                     // Calculate the player's AABB
                     let player_aabb = Aabb {
                         min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
@@ -180,9 +182,11 @@ impl<'a> System<'a> for Sys {
                         })
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
                         .max_by_key(|(_, block_aabb)| {
-                            ((player_aabb.collision_vector_with_aabb(*block_aabb) / vel.0)
+                            ((player_aabb
+                                .collision_vector_with_aabb(*block_aabb)
                                 .map(|e| e.abs())
-                                .reduce_partial_min()
+                                .product()
+                                + block_aabb.min.z)
                                 * 1_000_000.0) as i32
                         })
                         .expect("Collision detected, but no colliding blocks found!");
@@ -239,6 +243,11 @@ impl<'a> System<'a> for Sys {
                     pos.0 += resolve_dir;
 
                     attempts += 1;
+                }
+
+                if attempts == MAX_ATTEMPTS {
+                    pos.0 = old_pos;
+                    break;
                 }
             }
 
