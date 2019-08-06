@@ -6,6 +6,7 @@ use specs_idvs::IDVStorage;
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
+    World, //ZA WARUDO!
     Revive,
     Command,
     LevelUp,
