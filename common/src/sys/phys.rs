@@ -210,10 +210,9 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is pointing upwards, we must be on the ground
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
-                        //check for fall damage
+                        // Check for fall damage
                         let falldmg = (vel.0.z / 1.5 + 6.0) as i32;
                         if falldmg < 0 {
-                            //println!("fall damage: {}", falldmg);
                             stat.health.change_by(falldmg, HealthSource::World);
                         }
                         on_ground = true;
