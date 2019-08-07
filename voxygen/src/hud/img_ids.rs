@@ -26,6 +26,14 @@ image_ids! {
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
         window_frame: "voxygen.element.frames.window2",
 
+        // Social Window
+        social_button: "voxygen.element.buttons.social_tab",
+        social_button_pressed: "voxygen.element.buttons.social_tab_pressed",
+        social_button_hover: "voxygen.element.buttons.social_tab_hover",
+        social_button_press: "voxygen.element.buttons.social_tab_press",
+        social_frame: "voxygen.element.frames.social_frame",
+
+
         // Settings Window
         settings_frame_r: "voxygen.element.frames.settings_r",
         settings_frame_l: "voxygen.element.frames.settings_l",
@@ -85,7 +93,7 @@ image_ids! {
         settings_hover: "voxygen.element.buttons.settings_hover",
         settings_press: "voxygen.element.buttons.settings_press",
 
-        social_button: "voxygen.element.buttons.social",
+        social: "voxygen.element.buttons.social",
         social_hover: "voxygen.element.buttons.social_hover",
         social_press: "voxygen.element.buttons.social_press",
 
