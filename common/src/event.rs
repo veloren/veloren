@@ -4,6 +4,7 @@ use vek::*;
 
 pub enum Event {
     LandOnGround { entity: EcsEntity, vel: Vec3<f32> },
+    Explosion { pos: Vec3<f32>, radius: f32 },
 }
 
 #[derive(Default)]
@@ -17,6 +18,10 @@ impl EventBus {
             bus: self,
             events: VecDeque::new(),
         }
+    }
+
+    pub fn emit(&self, event: Event) {
+        self.queue.lock().unwrap().push_front(event);
     }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = Event> {
