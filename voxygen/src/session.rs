@@ -7,7 +7,9 @@ use crate::{
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
 use client::{self, Client};
-use common::{clock::Clock, comp, comp::Pos, msg::ClientState, terrain::Block, vol::ReadVol};
+use common::{
+    clock::Clock, comp, comp::Pos, comp::Vel, msg::ClientState, terrain::Block, vol::ReadVol,
+};
 use log::error;
 use specs::Join;
 use std::{cell::RefCell, rc::Rc, time::Duration};
@@ -285,6 +287,14 @@ impl PlayState for SessionState {
                         .state()
                         .ecs()
                         .read_storage::<Pos>()
+                        .get(self.client.borrow().entity())
+                        .cloned(),
+                    velocity: self
+                        .client
+                        .borrow()
+                        .state()
+                        .ecs()
+                        .read_storage::<Vel>()
                         .get(self.client.borrow().entity())
                         .cloned(),
                 },
