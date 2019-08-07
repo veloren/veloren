@@ -54,34 +54,34 @@ impl Animation for IdleAnimation {
         next.lower_torso.ori = Quaternion::rotation_x(0.0);
         next.lower_torso.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
+        next.hand_l.offset = Vec3::new(
             -7.5,
             0.0 + wave_ultra_slow_cos * 0.15,
             0.0 + wave_ultra_slow * 0.5,
         );
 
-        next.l_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
+        next.hand_r.offset = Vec3::new(
             7.5,
             0.0 + wave_ultra_slow_cos * 0.15,
             0.0 + wave_ultra_slow * 0.5,
         );
-        next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
-        next.r_hand.scale = Vec3::one();
+        next.hand_r.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
+        next.hand_r.scale = Vec3::one();
 
         next.feet.offset = Vec3::new(3.4, -0.1, 8.0);
         next.feet.ori = Quaternion::identity();
         next.feet.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
-        next.l_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.04;
+        next.shoulder_l.offset = Vec3::new(-10.0, -3.2, 2.5);
+        next.shoulder_l.ori = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = Vec3::one() * 1.04;
 
-        next.r_shoulder.offset = Vec3::new(0.0, -3.2, 2.5);
-        next.r_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.04;
+        next.shoulder_r.offset = Vec3::new(0.0, -3.2, 2.5);
+        next.shoulder_r.ori = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = Vec3::one() * 1.04;
 
         next
     }

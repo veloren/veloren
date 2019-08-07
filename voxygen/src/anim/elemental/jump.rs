@@ -9,11 +9,11 @@ pub struct JumpAnimation;
 
 impl Animation for JumpAnimation {
     type Skeleton = ElementalSkeleton;
-    type Dependency = f64;
+    type Dependency = (f32, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        _global_time: f64,
+        (_velocity, _global_time): Self::Dependency,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -39,33 +39,33 @@ impl Animation for JumpAnimation {
         next.lower_torso.ori = Quaternion::rotation_z(0.0);
         next.lower_torso.scale = Vec3::one();
 
-        next.l_hand.offset = Vec3::new(
+        next.hand_l.offset = Vec3::new(
             -8.0,
             0.0 + wave_stop * 3.8,
             0.0 + wave_stop * 3.2 - wave * 0.4,
         );
-        next.l_hand.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
-        next.l_hand.scale = Vec3::one();
+        next.hand_l.ori = Quaternion::rotation_x(wave_stop_alt * 0.6);
+        next.hand_l.scale = Vec3::one();
 
-        next.r_hand.offset = Vec3::new(
+        next.hand_r.offset = Vec3::new(
             8.0,
             0.0 + wave_stop * -3.8,
             0.0 + wave_stop * 3.2 - wave * 0.4,
         );
-        next.r_hand.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
-        next.r_hand.scale = Vec3::one();
+        next.hand_r.ori = Quaternion::rotation_x(-wave_stop_alt * 0.6);
+        next.hand_r.scale = Vec3::one();
 
         next.feet.offset = Vec3::new(3.4, -1.0, 6.0);
         next.feet.ori = Quaternion::rotation_x(wave_stop * 1.2 + wave_slow * 0.2);
         next.feet.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
-        next.l_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.04;
+        next.shoulder_l.offset = Vec3::new(-10.0, -3.2, 2.5);
+        next.shoulder_l.ori = Quaternion::rotation_x(0.0);
+        next.shoulder_l.scale = Vec3::one() * 1.04;
 
-        next.r_shoulder.offset = Vec3::new(0.0, -3.2, 2.5);
-        next.r_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.04;
+        next.shoulder_r.offset = Vec3::new(0.0, -3.2, 2.5);
+        next.shoulder_r.ori = Quaternion::rotation_x(0.0);
+        next.shoulder_r.scale = Vec3::one() * 1.04;
 
         next
     }

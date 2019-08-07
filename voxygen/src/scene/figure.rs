@@ -106,7 +106,7 @@ impl FigureModelCache {
                                     None,
                                     None,
                                 ],
-                                Body::elemental(body) => [
+                                Body::Elemental(body) => [
                                     Some(Self::load_elemental_head(body.head)),
                                     Some(Self::load_elemental_upper_torso(body.upper_torso)),
                                     Some(Self::load_elemental_lower_torso(body.lower_torso)),
@@ -533,7 +533,7 @@ impl FigureModelCache {
     }
     /////Elementals
     
-        fn load_head(race: elemental::Race) -> Mesh<FigurePipeline> {
+        fn load_elemental_head(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{Race::*};
 
         let (name, offset) = match race {
@@ -558,7 +558,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_upper_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_upper_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{Race::*};
 
         let (name, offset) = match race {
@@ -583,7 +583,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_lower_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_lower_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{Race::*};
 
         let (name, offset) = match race {
@@ -608,7 +608,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_left_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{Race::*};
 
         let (name, offset) = match race {
@@ -633,7 +633,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_right_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{ Race::*};
 
         let (name, offset) = match race {
@@ -658,7 +658,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_feet(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_feet(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{ Race::*};
 
         let (name, offset) = match race {
@@ -683,7 +683,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_left_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_left_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{ Race::*};
 
         let (name, offset) = match race {
@@ -708,7 +708,7 @@ impl FigureModelCache {
         Self::load_mesh(name, offset)
     }
 
-    fn load_right_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
+    fn load_elemental_right_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
         use elemental::{Race::*};
 
         let (name, offset) = match race {
@@ -1075,7 +1075,9 @@ impl FigureMgr {
                     let state = self
                         .elemental_states
                         .entry(entity)
-                        .or_insert_with(|| FigureState::new(renderer, elementalSkeleton::new()));
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, ElementalSkeleton::new())
+                        });
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,
@@ -1083,32 +1085,33 @@ impl FigureMgr {
                     };
 
                     let target_skeleton = match animation_info.animation {
-                        comp::Animation::Idle => anim::elemental::IdleAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Run => anim::elemental::RunAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            (vel.0.magnitude(), time),
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Jump => anim::elemental::JumpAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Attack => {
-                            anim::elemental::AttackAnimation::update_skeleton(
+                        comp::Animation::Run | comp::Animation::Crun => {
+                            anim::elemental::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Idle | comp::Animation::Cidle => {
+                            anim::elemental::IdleAnimation::update_skeleton(
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,
                                 skeleton_attr,
                             )
                         }
+                        comp::Animation::Jump | comp::Animation::Cjump => {
+                            anim::elemental::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);
