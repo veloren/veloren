@@ -19,6 +19,7 @@ pub enum Error {
     NoAddress,
     // Parsing/host name resolution successful but could not connect.
     ConnectionFailed(ClientError),
+    InvalidAuth,
     ClientCrashed,
     ServerIsFull,
 }
@@ -80,6 +81,9 @@ impl ClientInit {
                                     ClientError::TooManyPlayers => {
                                         last_err = Some(Error::ServerIsFull);
                                         break;
+                                    }
+                                    ClientError::InvalidAuth => {
+                                        last_err = Some(Error::InvalidAuth);
                                     }
                                     // TODO: Handle errors?
                                     _ => panic!(

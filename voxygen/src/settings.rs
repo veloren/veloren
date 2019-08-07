@@ -100,6 +100,7 @@ impl Default for GameplaySettings {
 #[serde(default)]
 pub struct NetworkingSettings {
     pub username: String,
+    pub password: String,
     pub servers: Vec<String>,
     pub default_server: usize,
 }
@@ -108,6 +109,7 @@ impl Default for NetworkingSettings {
     fn default() -> Self {
         Self {
             username: "Username".to_string(),
+            password: String::default(),
             servers: vec!["server.veloren.net".to_string()],
             default_server: 0,
         }
