@@ -40,6 +40,7 @@ impl Animation for JumpAnimation {
         next.lower_torso.scale = Vec3::one();
 
         next.hand_l.offset = Vec3::new(
+
             -8.0,
             0.0 + wave_stop * 3.8,
             0.0 + wave_stop * 3.2 - wave * 0.4,

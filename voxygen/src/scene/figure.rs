@@ -1075,9 +1075,13 @@ impl FigureMgr {
                     let state = self
                         .elemental_states
                         .entry(entity)
+<<<<<<< HEAD
                         .or_insert_with(|| {
                             FigureState::new(renderer, ElementalSkeleton::new())
                         });
+=======
+                        .or_insert_with(|| FigureState::new(renderer, elementalSkeleton::new()));
+>>>>>>> 7a12421481d84594a1aced62362df30b218b085d
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,
@@ -1085,6 +1089,7 @@ impl FigureMgr {
                     };
 
                     let target_skeleton = match animation_info.animation {
+<<<<<<< HEAD
                         comp::Animation::Run | comp::Animation::Crun => {
                             anim::elemental::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
@@ -1095,12 +1100,35 @@ impl FigureMgr {
                         }
                         comp::Animation::Idle | comp::Animation::Cidle => {
                             anim::elemental::IdleAnimation::update_skeleton(
+=======
+                        comp::Animation::Idle => anim::elemental::IdleAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Run => anim::elemental::RunAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            (vel.0.magnitude(), time),
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Jump => anim::elemental::JumpAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
+                        comp::Animation::Attack => {
+                            anim::elemental::AttackAnimation::update_skeleton(
+>>>>>>> 7a12421481d84594a1aced62362df30b218b085d
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,
                                 skeleton_attr,
                             )
                         }
+<<<<<<< HEAD
                         comp::Animation::Jump | comp::Animation::Cjump => {
                             anim::elemental::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
@@ -1112,6 +1140,8 @@ impl FigureMgr {
 
                         // TODO!
                         _ => state.skeleton_mut().clone(),
+=======
+>>>>>>> 7a12421481d84594a1aced62362df30b218b085d
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);

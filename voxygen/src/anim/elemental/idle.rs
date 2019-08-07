@@ -82,7 +82,7 @@ impl Animation for IdleAnimation {
         next.shoulder_r.offset = Vec3::new(0.0, -3.2, 2.5);
         next.shoulder_r.ori = Quaternion::rotation_x(0.0);
         next.shoulder_r.scale = Vec3::one() * 1.04;
-
+        
         next
     }
 }
