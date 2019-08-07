@@ -1,16 +1,8 @@
-<<<<<<< HEAD
-=======
-pub mod attack;
->>>>>>> 7a12421481d84594a1aced62362df30b218b085d
 pub mod idle;
 pub mod jump;
 pub mod run;
 
 // Reexports
-<<<<<<< HEAD
-=======
-pub use self::attack::AttackAnimation;
->>>>>>> 7a12421481d84594a1aced62362df30b218b085d
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::run::RunAnimation;
