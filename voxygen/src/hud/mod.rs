@@ -6,9 +6,11 @@ mod esc_menu;
 mod img_ids;
 mod map;
 mod minimap;
+mod quest;
 mod settings_window;
 mod skillbar;
-mod small_window;
+mod social;
+mod spell;
 
 pub use settings_window::ScaleChange;
 
@@ -20,10 +22,12 @@ use esc_menu::EscMenu;
 use img_ids::Imgs;
 use map::Map;
 use minimap::MiniMap;
+use quest::Quest;
 use serde::{Deserialize, Serialize};
 use settings_window::{SettingsTab, SettingsWindow};
 use skillbar::Skillbar;
-use small_window::{SmallWindow, SmallWindowType};
+use social::{Social, SocialTab};
+use spell::Spell;
 
 use crate::{
     render::{Consts, Globals, Renderer},
@@ -50,6 +54,7 @@ use crate::{discord, discord::DiscordUpdate};
 const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
+const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
 const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
 const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
@@ -109,10 +114,14 @@ widget_ids! {
         character_window,
         minimap,
         bag,
+        social,
+        quest,
+        spell,
         skillbar,
         buttons,
         esc_menu,
         small_window,
+        social_window,
         settings_window,
     }
 }
@@ -155,9 +164,7 @@ pub enum Event {
 // `map` is not here because it currently is displayed over the top of other open windows.
 #[derive(PartialEq)]
 pub enum Windows {
-    Settings,                              // Display settings window.
-    CharacterAnd(Option<SmallWindowType>), // Show character window + optionally another.
-    Small(SmallWindowType),
+    Settings, // Display settings window.
     None,
 }
 
@@ -173,6 +180,10 @@ pub struct Show {
     help: bool,
     debug: bool,
     bag: bool,
+    social: bool,
+    spell: bool,
+    quest: bool,
+    character_window: bool,
     esc_menu: bool,
     open_windows: Windows,
     map: bool,
@@ -180,6 +191,8 @@ pub struct Show {
     mini_map: bool,
     ingame: bool,
     settings_tab: SettingsTab,
+    social_tab: SocialTab,
+
     want_grab: bool,
 }
 impl Show {
@@ -195,6 +208,29 @@ impl Show {
         self.bag = false;
         self.want_grab = !open;
     }
+    fn character_window(&mut self, open: bool) {
+        self.character_window = open;
+        self.bag = false;
+        self.want_grab = !open;
+    }
+    fn social(&mut self, open: bool) {
+        self.social = open;
+        self.spell = false;
+        self.quest = false;
+        self.want_grab = !open;
+    }
+    fn spell(&mut self, open: bool) {
+        self.social = false;
+        self.spell = open;
+        self.quest = false;
+        self.want_grab = !open;
+    }
+    fn quest(&mut self, open: bool) {
+        self.social = false;
+        self.spell = false;
+        self.quest = open;
+        self.want_grab = !open;
+    }
     fn toggle_map(&mut self) {
         self.map(!self.map)
     }
@@ -203,28 +239,8 @@ impl Show {
         self.mini_map = !self.mini_map;
     }
 
-    fn toggle_small(&mut self, target: SmallWindowType) {
-        self.open_windows = match self.open_windows {
-            Windows::Small(small) if small == target => Windows::None,
-            Windows::None | Windows::Small(_) => Windows::Small(target),
-            Windows::CharacterAnd(small) => match small {
-                Some(small) if small == target => Windows::CharacterAnd(None),
-                _ => Windows::CharacterAnd(Some(target)),
-            },
-            Windows::Settings => Windows::Settings,
-        };
-    }
-
     fn toggle_char_window(&mut self) {
-        self.open_windows = match self.open_windows {
-            Windows::CharacterAnd(small) => match small {
-                Some(small) => Windows::Small(small),
-                None => Windows::None,
-            },
-            Windows::Small(small) => Windows::CharacterAnd(Some(small)),
-            Windows::None => Windows::CharacterAnd(None),
-            Windows::Settings => Windows::Settings,
-        }
+        self.character_window = !self.character_window
     }
 
     fn settings(&mut self, open: bool) {
@@ -234,6 +250,9 @@ impl Show {
             Windows::None
         };
         self.bag = false;
+        self.social = false;
+        self.spell = false;
+        self.quest = false;
         self.want_grab = !open;
     }
     fn toggle_settings(&mut self) {
@@ -255,6 +274,10 @@ impl Show {
         if self.bag
             || self.esc_menu
             || self.map
+            || self.social
+            || self.quest
+            || self.spell
+            || self.character_window
             || match self.open_windows {
                 Windows::None => false,
                 _ => true,
@@ -263,6 +286,10 @@ impl Show {
             self.bag = false;
             self.esc_menu = false;
             self.map = false;
+            self.social = false;
+            self.quest = false;
+            self.spell = false;
+            self.character_window = false;
             self.open_windows = Windows::None;
             self.want_grab = true;
         } else {
@@ -277,6 +304,30 @@ impl Show {
         self.settings_tab = tab;
         self.bag = false;
         self.want_grab = false;
+    }
+
+    fn toggle_social(&mut self) {
+        self.social = !self.social;
+        self.spell = false;
+        self.quest = false;
+    }
+
+    fn open_social_tab(&mut self, social_tab: SocialTab) {
+        self.social_tab = social_tab;
+        self.spell = false;
+        self.quest = false;
+    }
+
+    fn toggle_spell(&mut self) {
+        self.spell = !self.spell;
+        self.social = false;
+        self.quest = false;
+    }
+
+    fn toggle_quest(&mut self) {
+        self.quest = !self.quest;
+        self.spell = false;
+        self.social = false;
     }
 }
 
@@ -323,9 +374,14 @@ impl Hud {
                 open_windows: Windows::None,
                 map: false,
                 ui: true,
+                social: false,
+                quest: false,
+                spell: false,
+                character_window: false,
                 inventory_test_button: false,
                 mini_map: false,
                 settings_tab: SettingsTab::Interface,
+                social_tab: SocialTab::Online,
                 want_grab: true,
                 ingame: true,
             },
@@ -347,27 +403,7 @@ impl Hud {
 
         let version = format!("{}-{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH);
 
-        // Nametags and healthbars
         if self.show.ingame {
-            let ecs = client.state().ecs();
-            let pos = ecs.read_storage::<comp::Pos>();
-            let stats = ecs.read_storage::<comp::Stats>();
-            let players = ecs.read_storage::<comp::Player>();
-            let scales = ecs.read_storage::<comp::Scale>();
-            let entities = ecs.entities();
-            let me = client.entity();
-            let view_distance = client.view_distance().unwrap_or(1);
-            // Get player position.
-            let player_pos = client
-                .state()
-                .ecs()
-                .read_storage::<comp::Pos>()
-                .get(client.entity())
-                .map_or(Vec3::zero(), |pos| pos.0);
-            let mut name_id_walker = self.ids.name_tags.walk();
-            let mut health_id_walker = self.ids.health_bars.walk();
-            let mut health_back_id_walker = self.ids.health_bar_backs.walk();
-
             // Crosshair
             Image::new(
                 // TODO: Do we want to match on this every frame?
@@ -391,6 +427,26 @@ impl Hud {
                 .middle_of(self.ids.crosshair_outer)
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
                 .set(self.ids.crosshair_inner, ui_widgets);
+
+            // Nametags and healthbars
+            let ecs = client.state().ecs();
+            let pos = ecs.read_storage::<comp::Pos>();
+            let stats = ecs.read_storage::<comp::Stats>();
+            let players = ecs.read_storage::<comp::Player>();
+            let scales = ecs.read_storage::<comp::Scale>();
+            let entities = ecs.entities();
+            let me = client.entity();
+            let view_distance = client.view_distance().unwrap_or(1);
+            // Get player position.
+            let player_pos = client
+                .state()
+                .ecs()
+                .read_storage::<comp::Pos>()
+                .get(client.entity())
+                .map_or(Vec3::zero(), |pos| pos.0);
+            let mut name_id_walker = self.ids.name_tags.walk();
+            let mut health_id_walker = self.ids.health_bars.walk();
+            let mut health_back_id_walker = self.ids.health_bar_backs.walk();
 
             // Render Name Tags
             for (pos, name, scale) in (&entities, &pos, &stats, players.maybe(), scales.maybe())
@@ -592,7 +648,9 @@ impl Hud {
             Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
             Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(),
             Some(buttons::Event::ToggleCharacter) => self.show.toggle_char_window(),
-            Some(buttons::Event::ToggleSmall(small)) => self.show.toggle_small(small),
+            Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
+            Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
+            Some(buttons::Event::ToggleQuest) => self.show.toggle_quest(),
             Some(buttons::Event::ToggleMap) => self.show.toggle_map(),
             None => {}
         }
@@ -702,40 +760,66 @@ impl Hud {
             }
         }
 
-        // Small Window
-        if let Windows::Small(small) | Windows::CharacterAnd(Some(small)) = self.show.open_windows {
-            match SmallWindow::new(small, &self.show, &self.imgs, &self.fonts)
-                .set(self.ids.small_window, ui_widgets)
+        // Social Window
+        if self.show.social {
+            for event in Social::new(
+                /*&global_state,*/ &self.show,
+                client,
+                &self.imgs,
+                &self.fonts,
+            )
+            .set(self.ids.social_window, ui_widgets)
             {
-                Some(small_window::Event::Close) => {
-                    self.show.open_windows = match self.show.open_windows {
-                        Windows::Small(_) => Windows::None,
-                        Windows::CharacterAnd(_) => Windows::CharacterAnd(None),
-                        _ => Windows::Settings,
+                match event {
+                    social::Event::Close => self.show.social(false),
+                    social::Event::ChangeSocialTab(social_tab) => {
+                        self.show.open_social_tab(social_tab)
                     }
                 }
-                None => {}
             }
         }
 
         // Character Window
-        if let Windows::CharacterAnd(small) = self.show.open_windows {
+        if self.show.character_window {
             let ecs = client.state().ecs();
             let stats = ecs.read_storage::<comp::Stats>();
             let player_stats = stats.get(client.entity()).unwrap();
-            match CharacterWindow::new(&self.imgs, &self.fonts, &player_stats)
+            match CharacterWindow::new(&self.show, &player_stats, &self.imgs, &self.fonts)
                 .set(self.ids.character_window, ui_widgets)
             {
                 Some(character_window::Event::Close) => {
-                    self.show.open_windows = match small {
-                        Some(small) => Windows::Small(small),
-                        None => Windows::None,
-                    }
+                    self.show.character_window(false);
+                    self.force_ungrab = true;
                 }
                 None => {}
             }
         }
 
+        // Spellbook
+        if self.show.spell {
+            match Spell::new(&self.show, client, &self.imgs, &self.fonts)
+                .set(self.ids.spell, ui_widgets)
+            {
+                Some(spell::Event::Close) => {
+                    self.show.spell(false);
+                    self.force_ungrab = true;
+                }
+                None => {}
+            }
+        }
+
+        // Quest Log
+        if self.show.quest {
+            match Quest::new(&self.show, client, &self.imgs, &self.fonts)
+                .set(self.ids.quest, ui_widgets)
+            {
+                Some(quest::Event::Close) => {
+                    self.show.quest(false);
+                    self.force_ungrab = true;
+                }
+                None => {}
+            }
+        }
         // Map
         if self.show.map {
             match Map::new(&self.show, client, &self.imgs, &self.fonts)
@@ -866,7 +950,7 @@ impl Hud {
                     true
                 }
                 GameInput::QuestLog => {
-                    self.show.toggle_small(SmallWindowType::QuestLog);
+                    self.show.toggle_quest();
                     true
                 }
                 GameInput::CharacterWindow => {
@@ -874,11 +958,11 @@ impl Hud {
                     true
                 }
                 GameInput::Social => {
-                    self.show.toggle_small(SmallWindowType::Social);
+                    self.show.toggle_social();
                     true
                 }
                 GameInput::Spellbook => {
-                    self.show.toggle_small(SmallWindowType::Spellbook);
+                    self.show.toggle_spell();
                     true
                 }
                 GameInput::Settings => {

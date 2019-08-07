@@ -3,7 +3,7 @@ use conrod_core::{
     widget_ids, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, small_window::SmallWindowType, Fonts, Windows, TEXT_COLOR};
+use super::{img_ids::Imgs, Fonts, Windows, TEXT_COLOR};
 use crate::ui::ToggleButton;
 
 widget_ids! {
@@ -63,7 +63,9 @@ pub enum Event {
     ToggleBag,
     ToggleSettings,
     ToggleMap,
-    ToggleSmall(SmallWindowType),
+    ToggleSocial,
+    ToggleSpell,
+    ToggleQuest,
     ToggleCharacter,
 }
 
@@ -154,6 +156,13 @@ impl<'a> Widget for Buttons<'a> {
             return Some(Event::ToggleMap);
         };
 
+        // Other Windows can only be accessed when `Settings` is closed.
+        // Opening `Settings` will close all other Windows, including the `Bag`.
+        // Opening the `Map` won't close the previously displayed windows.
+        Image::new(self.imgs.social)
+            .w_h(25.0, 25.0)
+            .left_from(state.ids.settings_button, 10.0)
+            .set(state.ids.social_button_bg, ui);
         Image::new(self.imgs.spellbook_button)
             .w_h(28.0, 25.0)
             .left_from(state.ids.map_button, 10.0)
@@ -172,7 +181,7 @@ impl<'a> Widget for Buttons<'a> {
         // Opening the `Map` won't close the previously displayed windows.
         if !(*self.open_windows == Windows::Settings) && self.show_map == false {
             // 1 Social
-            if Button::image(self.imgs.social_button)
+            if Button::image(self.imgs.social)
                 .w_h(25.0, 25.0)
                 .left_from(state.ids.settings_button, 10.0)
                 .hover_image(self.imgs.social_hover)
@@ -185,7 +194,7 @@ impl<'a> Widget for Buttons<'a> {
                 .set(state.ids.social_button, ui)
                 .was_clicked()
             {
-                return Some(Event::ToggleSmall(SmallWindowType::Social));
+                return Some(Event::ToggleSocial);
             }
 
             // 3 Spellbook
@@ -202,7 +211,7 @@ impl<'a> Widget for Buttons<'a> {
                 .set(state.ids.spellbook_button, ui)
                 .was_clicked()
             {
-                return Some(Event::ToggleSmall(SmallWindowType::Spellbook));
+                return Some(Event::ToggleSpell);
             }
 
             // 4 Char-Window
@@ -236,7 +245,7 @@ impl<'a> Widget for Buttons<'a> {
                 .set(state.ids.qlog_button, ui)
                 .was_clicked()
             {
-                return Some(Event::ToggleSmall(SmallWindowType::QuestLog));
+                return Some(Event::ToggleQuest);
             }
         }
 
