@@ -315,16 +315,15 @@ impl State {
             .for_each(|(pos, block)| {
                 let _ = terrain.set(*pos, *block);
             });
-        std::mem::swap(
+        self.ecs.write_resource::<TerrainChanges>().modified_blocks = std::mem::replace(
             &mut self.ecs.write_resource::<BlockChange>().blocks,
-            &mut self.ecs.write_resource::<TerrainChanges>().modified_blocks,
-        )
+            Default::default(),
+        );
     }
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
         self.ecs.write_resource::<TerrainChanges>().clear();
-        self.ecs.write_resource::<BlockChange>().clear();
     }
 }

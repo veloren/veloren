@@ -18,7 +18,7 @@ use common::{
     event::{Event as GameEvent, EventBus},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{State, TimeOfDay, Uid},
+    state::{BlockChange, State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
     vol::Vox,
     vol::{ReadVol, VolSize},
@@ -203,6 +203,8 @@ impl Server {
 
     /// Handle events coming through via the event bus
     fn handle_events(&mut self) {
+        let terrain = self.state.ecs().read_resource::<TerrainMap>();
+        let mut block_change = self.state.ecs().write_resource::<BlockChange>();
         let mut stats = self.state.ecs().write_storage::<comp::Stats>();
 
         for event in self.state.ecs().read_resource::<EventBus>().recv_all() {
@@ -213,6 +215,24 @@ impl Server {
                         if falldmg < 0 {
                             stats.health.change_by(falldmg, comp::HealthSource::World);
                         }
+                    }
+                }
+                GameEvent::Explosion { pos, radius } => {
+                    const RAYS: usize = 500;
+
+                    for _ in 0..RAYS {
+                        let dir = Vec3::new(
+                            rand::random::<f32>() - 0.5,
+                            rand::random::<f32>() - 0.5,
+                            rand::random::<f32>() - 0.5,
+                        )
+                        .normalized();
+
+                        let _ = terrain
+                            .ray(pos, pos + dir * radius)
+                            .until(|_| rand::random::<f32>() < 0.05)
+                            .for_each(|pos| block_change.set(pos, Block::empty()))
+                            .cast();
                     }
                 }
             }
@@ -248,6 +268,9 @@ impl Server {
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
         frontend_events.append(&mut self.handle_new_messages()?);
+
+        // Handle game events
+        self.handle_events();
 
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
@@ -370,9 +393,6 @@ impl Server {
         for key in chunks_to_remove {
             self.state.remove_chunk(key);
         }
-
-        // Handle events
-        self.handle_events();
 
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
