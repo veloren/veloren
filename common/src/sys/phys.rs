@@ -1,8 +1,8 @@
 use crate::{
     comp::HealthSource,
     comp::{
-        ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
-        Wielding,
+        ActionState, Body, EntityEvent, Events, Jumping, MoveDir, OnGround, Ori, Pos, Rolling,
+        Scale, Stats, Vel, Wielding,
     },
     state::DeltaTime,
     terrain::TerrainMap,
@@ -42,7 +42,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        WriteStorage<'a, Stats>,
+        WriteStorage<'a, Events>,
     );
 
     fn run(
@@ -58,11 +58,11 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
-            mut stats,
+            mut events,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, a, scale, b, mut pos, mut vel, mut ori, mut stat) in (
+        for (entity, a, scale, b, mut pos, mut vel, mut ori) in (
             &entities,
             &action_states,
             scales.maybe(),
@@ -70,7 +70,6 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
-            &mut stats,
         )
             .join()
         {
@@ -210,12 +209,18 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is pointing upwards, we must be on the ground
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
-                        // Check for fall damage
-                        let falldmg = (vel.0.z / 1.5 + 6.0) as i32;
-                        if falldmg < 0 {
-                            stat.health.change_by(falldmg, HealthSource::World);
-                        }
                         on_ground = true;
+
+                        // Hitting the ground
+                        const COLLISION_VEL: f32 = GRAVITY * 0.75; // Falling for 0.75 seconds
+                        if vel.0.z < -COLLISION_VEL {
+                            if events.get(entity).is_none() {
+                                events.insert(entity, Events::default());
+                            }
+                            events
+                                .get_mut(entity) // TODO: Use get_mut_or_default when updating to SPECS 15
+                                .map(|e| e.push(EntityEvent::HitGround { vel: vel.0 }));
+                        }
                     }
 
                     // When the resolution direction is non-vertical, we must be colliding with a wall

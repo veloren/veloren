@@ -3,6 +3,7 @@ mod agent;
 mod animation;
 mod body;
 mod controller;
+mod event;
 mod inputs;
 mod inventory;
 mod last;
@@ -17,6 +18,7 @@ pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
 pub use body::{humanoid, object, quadruped, quadruped_medium, Body};
 pub use controller::Controller;
+pub use event::{EntityEvent, Events};
 pub use inputs::{
     Attacking, CanBuild, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling, Wielding,
 };
