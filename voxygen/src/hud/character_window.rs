@@ -1,4 +1,4 @@
-use super::{img_ids::Imgs, Fonts, TEXT_COLOR, XP_COLOR};
+use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR, XP_COLOR};
 use common::comp::Stats;
 use conrod_core::{
     color,
@@ -68,6 +68,7 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct CharacterWindow<'a> {
+    _show: &'a Show,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
     stats: &'a Stats,
@@ -77,8 +78,9 @@ pub struct CharacterWindow<'a> {
 }
 
 impl<'a> CharacterWindow<'a> {
-    pub fn new(imgs: &'a Imgs, fonts: &'a Fonts, stats: &'a Stats) -> Self {
+    pub fn new(_show: &'a Show, stats: &'a Stats, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
         Self {
+            _show,
             imgs,
             fonts,
             stats,
@@ -86,6 +88,10 @@ impl<'a> CharacterWindow<'a> {
         }
     }
 }
+
+/*pub struct State {
+    ids: Ids,
+}*/
 
 pub enum Event {
     Close,
@@ -114,7 +120,7 @@ impl<'a> Widget for CharacterWindow<'a> {
         // Frame
         Image::new(self.imgs.window_3)
             .middle_of(id)
-            .top_left_with_margins_on(ui.window, 212.0, 215.0)
+            .top_left_with_margins_on(ui.window, 200.0, 215.0)
             .w_h(103.0 * 4.0, 122.0 * 4.0)
             .set(state.charwindow_frame, ui);
 
