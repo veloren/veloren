@@ -1,4 +1,5 @@
 use crate::{
+    comp::HealthSource,
     comp::{
         ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
         Wielding,
@@ -41,6 +42,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        WriteStorage<'a, Stats>,
     );
 
     fn run(
@@ -56,10 +58,11 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mut stats,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, a, scale, _, mut pos, mut vel, mut ori) in (
+        for (entity, a, scale, b, mut pos, mut vel, mut ori, mut stat) in (
             &entities,
             &action_states,
             scales.maybe(),
@@ -67,6 +70,7 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
+            &mut stats,
         )
             .join()
         {
@@ -206,6 +210,11 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is pointing upwards, we must be on the ground
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
+                        // Check for fall damage
+                        let falldmg = (vel.0.z / 1.5 + 6.0) as i32;
+                        if falldmg < 0 {
+                            stat.health.change_by(falldmg, HealthSource::World);
+                        }
                         on_ground = true;
                     }
 
