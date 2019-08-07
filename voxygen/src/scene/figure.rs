@@ -107,14 +107,14 @@ impl FigureModelCache {
                                     None,
                                 ],
                                 Body::Elemental(body) => [
-                                    Some(Self::load_elemental_head(body.head)),
-                                    Some(Self::load_elemental_upper_torso(body.upper_torso)),
-                                    Some(Self::load_elemental_lower_torso(body.lower_torso)),
-                                    Some(Self::load_elemental_left_shoulder(body.left_shoulder)),
-                                    Some(Self::load_elemental_right_shoulder(body.right_shoulder)),
-                                    Some(Self::load_elemental_hand(body.left_hand)),
-                                    Some(Self::load_elemental_hand(body.right_hand)),
-                                    Some(Self::load_elemental_feet(body.feet)),
+                                    Some(Self::load_elemental_head(body.race)),
+                                    Some(Self::load_elemental_upper_torso(body.race)),
+                                    Some(Self::load_elemental_lower_torso(body.race)),
+                                    Some(Self::load_elemental_left_shoulder(body.race)),
+                                    Some(Self::load_elemental_right_shoulder(body.race),
+                                    Some(Self::load_elemental_left_hand(body.race)),
+                                    Some(Self::load_elemental_right_hand(body.race)),
+                                    Some(Self::load_elemental_feet(body.race)),
                                     None,
                                     None,
                                     None,
@@ -559,7 +559,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_upper_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -584,7 +584,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_lower_torso(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -609,7 +609,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_left_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -634,7 +634,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_right_hand(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{ Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -659,7 +659,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_feet(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{ Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -684,7 +684,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_left_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{ Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -709,7 +709,7 @@ impl FigureModelCache {
     }
 
     fn load_elemental_right_shoulder(race: elemental::Race) -> Mesh<FigurePipeline> {
-        use elemental::{Race::*};
+        use elemental::Race::*;
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
@@ -827,6 +827,7 @@ impl FigureMgr {
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            elemental_states: Hashmap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -1075,13 +1076,9 @@ impl FigureMgr {
                     let state = self
                         .elemental_states
                         .entry(entity)
-<<<<<<< HEAD
                         .or_insert_with(|| {
                             FigureState::new(renderer, ElementalSkeleton::new())
                         });
-=======
-                        .or_insert_with(|| FigureState::new(renderer, elementalSkeleton::new()));
->>>>>>> 7a12421481d84594a1aced62362df30b218b085d
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,
@@ -1089,7 +1086,6 @@ impl FigureMgr {
                     };
 
                     let target_skeleton = match animation_info.animation {
-<<<<<<< HEAD
                         comp::Animation::Run | comp::Animation::Crun => {
                             anim::elemental::RunAnimation::update_skeleton(
                                 state.skeleton_mut(),
@@ -1100,35 +1096,12 @@ impl FigureMgr {
                         }
                         comp::Animation::Idle | comp::Animation::Cidle => {
                             anim::elemental::IdleAnimation::update_skeleton(
-=======
-                        comp::Animation::Idle => anim::elemental::IdleAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Run => anim::elemental::RunAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            (vel.0.magnitude(), time),
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Jump => anim::elemental::JumpAnimation::update_skeleton(
-                            state.skeleton_mut(),
-                            time,
-                            animation_info.time,
-                            skeleton_attr,
-                        ),
-                        comp::Animation::Attack => {
-                            anim::elemental::AttackAnimation::update_skeleton(
->>>>>>> 7a12421481d84594a1aced62362df30b218b085d
                                 state.skeleton_mut(),
                                 time,
                                 animation_info.time,
                                 skeleton_attr,
                             )
                         }
-<<<<<<< HEAD
                         comp::Animation::Jump | comp::Animation::Cjump => {
                             anim::elemental::JumpAnimation::update_skeleton(
                                 state.skeleton_mut(),
@@ -1140,8 +1113,6 @@ impl FigureMgr {
 
                         // TODO!
                         _ => state.skeleton_mut().clone(),
-=======
->>>>>>> 7a12421481d84594a1aced62362df30b218b085d
                     };
 
                     state.skeleton.interpolate(&target_skeleton, dt);
