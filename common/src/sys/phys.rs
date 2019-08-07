@@ -1,9 +1,10 @@
 use crate::{
     comp::HealthSource,
     comp::{
-        ActionState, Body, EntityEvent, Events, Jumping, MoveDir, OnGround, Ori, Pos, Rolling,
-        Scale, Stats, Vel, Wielding,
+        ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
+        Wielding,
     },
+    event::{Event, EventBus},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -35,6 +36,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
+        Read<'a, EventBus>,
         ReadStorage<'a, ActionState>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
@@ -42,7 +44,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        WriteStorage<'a, Events>,
     );
 
     fn run(
@@ -51,6 +52,7 @@ impl<'a> System<'a> for Sys {
             entities,
             terrain,
             dt,
+            event_bus,
             action_states,
             scales,
             bodies,
@@ -58,9 +60,10 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
-            mut events,
         ): Self::SystemData,
     ) {
+        let mut event_emitter = event_bus.emitter();
+
         // Apply movement inputs
         for (entity, a, scale, b, mut pos, mut vel, mut ori) in (
             &entities,
@@ -211,15 +214,8 @@ impl<'a> System<'a> for Sys {
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
                         on_ground = true;
 
-                        // Hitting the ground
-                        const COLLISION_VEL: f32 = GRAVITY * 0.75; // Falling for 0.75 seconds
-                        if vel.0.z < -COLLISION_VEL {
-                            if events.get(entity).is_none() {
-                                events.insert(entity, Events::default());
-                            }
-                            events
-                                .get_mut(entity) // TODO: Use get_mut_or_default when updating to SPECS 15
-                                .map(|e| e.push(EntityEvent::HitGround { vel: vel.0 }));
+                        if !was_on_ground {
+                            event_emitter.emit(Event::LandOnGround { entity, vel: vel.0 });
                         }
                     }
 
