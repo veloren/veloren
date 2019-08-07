@@ -8,7 +8,7 @@ mod inventory;
 mod last;
 mod phys;
 mod player;
-pub mod stats;
+mod stats;
 mod visual;
 
 // Reexports
