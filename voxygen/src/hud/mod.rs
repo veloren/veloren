@@ -511,7 +511,7 @@ impl Hud {
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.coordinates, ui_widgets);
-            //Player's velocity
+            // Player's velocity
             let velocity_text = match debug_info.velocity {
                 Some(velocity) => format!("Velocity: {:.1}", velocity.0),
                 None => "Player has no Vel component".to_owned(),
