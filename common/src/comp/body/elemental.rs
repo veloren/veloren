@@ -33,21 +33,21 @@ impl Body {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Race {
     Ice,
-    Fire,
     Earth,
+    Fire,
     Rock,
-    Wind,
-    Death,
-    Storm,
+    //Wind,
+    //Death,
+    //Storm,
 }
-pub const ALL_RACES: [Race; 7] = [
+pub const ALL_RACES: [Race; 4] = [
     Race::Ice,
-    Race::Fire,
     Race::Earth,
+    Race::Fire,
     Race::Rock,
-    Race::Wind,
-    Race::Death,
-    Race::Storm,
+    //Race::Wind,
+    //Race::Death,
+    //Race::Storm,
 ];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

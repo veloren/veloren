@@ -538,19 +538,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_head.vox",
                 Vec3::new(-7.0, -5.0, -2.25),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_head.vox",
                 Vec3::new(-8.0, -5.0, -2.25),
             ),
-            fire => (
+            Eire => (
                 "npc/fire_elemental/fire_elemental_head.vox",
                 Vec3::new(-6.0, -5.0, -12.5),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_head.vox",
                 Vec3::new(-8.0, -5.0, -2.50),
             ),
@@ -563,19 +563,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            earth => (
+            Rarth => (
                 "npc/earth_elemental/earth_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_upper_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
@@ -588,19 +588,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_lower_torso.vox",
                 Vec3::new(-6.0, -3.5, 0.0),
             ),
@@ -613,19 +613,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
@@ -638,19 +638,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_hand.vox",
                 Vec3::new(-2.0, -2.5, -2.0),
             ),
@@ -663,19 +663,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_feet.vox",
                 Vec3::new(-2.5, -3.5, -9.0),
             ),
@@ -688,19 +688,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_left_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
@@ -713,19 +713,19 @@ impl FigureModelCache {
 
         let (name, offset) = match race {
             // z-value should be 0.25 of the .vox total z
-            ice => (
+            Ice => (
                 "npc/ice_elemental/ice_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            earth => (
+            Earth => (
                 "npc/earth_elemental/earth_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            fire => (
+            Fire => (
                 "npc/fire_elemental/fire_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
-            rock => (
+            Rock => (
                 "npc/rock_elemental/rock_elemental_right_shoulder.vox",
                 Vec3::new(2.5, -0.5, 0.0),
             ),
