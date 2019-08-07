@@ -3,7 +3,6 @@ pub mod agent;
 pub mod animation;
 pub mod combat;
 pub mod controller;
-mod event_handler;
 pub mod movement;
 pub mod phys;
 mod stats;
@@ -20,7 +19,6 @@ const MOVEMENT_SYS: &str = "movement_sys";
 const COMBAT_SYS: &str = "combat_sys";
 const ANIMATION_SYS: &str = "animation_sys";
 const STATS_SYS: &str = "stats_sys";
-const EVENT_HANDLER_SYS: &str = "event_handler_sys";
 
 pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(agent::Sys, AGENT_SYS, &[]);
@@ -35,9 +33,4 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(combat::Sys, COMBAT_SYS, &[ACTION_STATE_SYS]);
     dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[ACTION_STATE_SYS]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[COMBAT_SYS]);
-    dispatch_builder.add(
-        event_handler::Sys,
-        EVENT_HANDLER_SYS,
-        &[AGENT_SYS, PHYS_SYS, ACTION_STATE_SYS, COMBAT_SYS],
-    );
 }

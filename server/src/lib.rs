@@ -15,6 +15,7 @@ use crate::{
 };
 use common::{
     comp,
+    event::{Event as GameEvent, EventBus},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{State, TimeOfDay, Uid},
@@ -84,6 +85,7 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 380.0)));
+        state.ecs_mut().add_resource(EventBus::default());
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -197,6 +199,24 @@ impl Server {
 
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
+    }
+
+    /// Handle events coming through via the event bus
+    fn handle_events(&mut self) {
+        let mut stats = self.state.ecs().write_storage::<comp::Stats>();
+
+        for event in self.state.ecs().read_resource::<EventBus>().recv_all() {
+            match event {
+                GameEvent::LandOnGround { entity, vel } => {
+                    if let Some(stats) = stats.get_mut(entity) {
+                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
+                        if falldmg < 0 {
+                            stats.health.change_by(falldmg, comp::HealthSource::World);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// Execute a single server tick, handle input and update the game state by the given duration.
@@ -350,6 +370,9 @@ impl Server {
         for key in chunks_to_remove {
             self.state.remove_chunk(key);
         }
+
+        // Handle events
+        self.handle_events();
 
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
