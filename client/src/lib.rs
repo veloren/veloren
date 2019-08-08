@@ -132,9 +132,10 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
+    pub fn register(&mut self, player: comp::Player, password: String) /*-> Result<(), Error>*/ {
         self.postbox.send_message(ClientMsg::Register { player, password });
-        loop { 
+        self.client_state = ClientState::Pending;
+        /*loop { 
             match self.postbox.next_message() {
                 Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
                     println!("Got a bad");
@@ -150,7 +151,7 @@ impl Client {
                 None => { println!("Got nothing?"); },
                 
             }
-        }
+        }*/
     }
 
     /// Request a state transition to `ClientState::Character`.
@@ -470,6 +471,10 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
+                        if error == RequestStateError::Denied {
+                            warn!("Connection denied!");
+                            return Err(Error::InvalidAuth);
+                        }
                         warn!(
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
