@@ -569,7 +569,10 @@ impl Hud {
                 .set(self.ids.coordinates, ui_widgets);
             // Player's velocity
             let velocity_text = match debug_info.velocity {
-                Some(velocity) => format!("Velocity: {:.1}", velocity.0),
+                Some(velocity) => format!(
+                    "Velocity: ({:.3}, {:.3}, {:.3})",
+                    velocity.0.x, velocity.0.y, velocity.0.z
+                ),
                 None => "Player has no Vel component".to_owned(),
             };
             Text::new(&velocity_text)
