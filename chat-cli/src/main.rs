@@ -48,9 +48,7 @@ fn main() {
 
     println!("Players online: {:?}", client.get_players());
 
-    client
-        .register(comp::Player::new(username, None), password)
-        .unwrap();
+    client.register(comp::Player::new(username, None), password);
 
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || loop {
