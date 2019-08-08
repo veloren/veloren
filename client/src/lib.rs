@@ -140,17 +140,12 @@ impl Client {
         /*loop {
             match self.postbox.next_message() {
                 Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
-                    println!("Got a bad");
                     break Err(Error::InvalidAuth)
                 },
                 Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => {
-                    println!("Got a good");
                     break Ok(())
                 }
-                Some(x) => {
-                    println!("Got unusual message: {:?}", x);
-                }
-                None => { println!("Got nothing?"); },
+                _ => {}
 
             }
         }*/
