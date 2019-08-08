@@ -3,6 +3,7 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use gilrs::Gilrs;
 use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
@@ -65,6 +66,8 @@ pub enum Event {
     Zoom(f32),
     /// A key that the game recognises has been pressed or released.
     InputUpdate(GameInput, bool),
+    /// An analog movement input with values from -1.0 to 1.0.
+    AnalogMovement(Vec2<f32>),
     /// Event that the ui uses.
     Ui(ui::Event),
     /// The view distance has changed.
@@ -79,9 +82,34 @@ pub type MouseButton = winit::MouseButton;
 pub type PressState = winit::ElementState;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub enum KeyMouse {
+pub enum DigitalInput {
     Key(glutin::VirtualKeyCode),
     Mouse(glutin::MouseButton),
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ConAxisInput {
+    key: gilrs::ev::Axis,
+    value: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ConButtonInput {
+    key: gilrs::ev::Button,
+    value: f32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum ConAxisAction {
+    CameraPanX,
+    CameraPanY,
+    MovementX,
+    MovementY,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub enum ConButtonAction {
+    GameInput(GameInput),
 }
 
 pub struct Window {
@@ -93,10 +121,13 @@ pub struct Window {
     pub zoom_sensitivity: u32,
     fullscreen: bool,
     needs_refresh_resize: bool,
-    key_map: HashMap<KeyMouse, Vec<GameInput>>,
+    key_map: HashMap<DigitalInput, Vec<GameInput>>,
+    con_axis_map: HashMap<gilrs::ev::Axis, Vec<ConAxisAction>>,
+    con_button_map: HashMap<gilrs::ev::Button, Vec<ConButtonAction>>,
     keypress_map: HashMap<GameInput, glutin::ElementState>,
     supplement_events: Vec<Event>,
     focused: bool,
+    gilrs: Option<Gilrs>,
 }
 
 impl Window {
@@ -120,108 +151,166 @@ impl Window {
             )
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
-        let mut map: HashMap<_, Vec<_>> = HashMap::new();
-        map.entry(settings.controls.primary)
+        let mut key_map: HashMap<_, Vec<_>> = HashMap::new();
+        key_map
+            .entry(settings.controls.primary)
             .or_default()
             .push(GameInput::Primary);
-        map.entry(settings.controls.secondary)
+        key_map
+            .entry(settings.controls.secondary)
             .or_default()
             .push(GameInput::Secondary);
-        map.entry(settings.controls.toggle_cursor)
+        key_map
+            .entry(settings.controls.toggle_cursor)
             .or_default()
             .push(GameInput::ToggleCursor);
-        map.entry(settings.controls.escape)
+        key_map
+            .entry(settings.controls.escape)
             .or_default()
             .push(GameInput::Escape);
-        map.entry(settings.controls.enter)
+        key_map
+            .entry(settings.controls.enter)
             .or_default()
             .push(GameInput::Enter);
-        map.entry(settings.controls.command)
+        key_map
+            .entry(settings.controls.command)
             .or_default()
             .push(GameInput::Command);
-        map.entry(settings.controls.move_forward)
+        key_map
+            .entry(settings.controls.move_forward)
             .or_default()
             .push(GameInput::MoveForward);
-        map.entry(settings.controls.move_left)
+        key_map
+            .entry(settings.controls.move_left)
             .or_default()
             .push(GameInput::MoveLeft);
-        map.entry(settings.controls.move_back)
+        key_map
+            .entry(settings.controls.move_back)
             .or_default()
             .push(GameInput::MoveBack);
-        map.entry(settings.controls.move_right)
+        key_map
+            .entry(settings.controls.move_right)
             .or_default()
             .push(GameInput::MoveRight);
-        map.entry(settings.controls.jump)
+        key_map
+            .entry(settings.controls.jump)
             .or_default()
             .push(GameInput::Jump);
-        map.entry(settings.controls.sit)
+        key_map
+            .entry(settings.controls.sit)
             .or_default()
             .push(GameInput::Sit);
-        map.entry(settings.controls.glide)
+        key_map
+            .entry(settings.controls.glide)
             .or_default()
             .push(GameInput::Glide);
-        map.entry(settings.controls.climb)
+        key_map
+            .entry(settings.controls.climb)
             .or_default()
             .push(GameInput::Climb);
-        map.entry(settings.controls.climb_down)
+        key_map
+            .entry(settings.controls.climb_down)
             .or_default()
             .push(GameInput::ClimbDown);
-        map.entry(settings.controls.wall_leap)
+        key_map
+            .entry(settings.controls.wall_leap)
             .or_default()
             .push(GameInput::WallLeap);
-        map.entry(settings.controls.mount)
+        key_map
+            .entry(settings.controls.mount)
             .or_default()
             .push(GameInput::Mount);
-        map.entry(settings.controls.map)
+        key_map
+            .entry(settings.controls.map)
             .or_default()
             .push(GameInput::Map);
-        map.entry(settings.controls.bag)
+        key_map
+            .entry(settings.controls.bag)
             .or_default()
             .push(GameInput::Bag);
-        map.entry(settings.controls.quest_log)
+        key_map
+            .entry(settings.controls.quest_log)
             .or_default()
             .push(GameInput::QuestLog);
-        map.entry(settings.controls.character_window)
+        key_map
+            .entry(settings.controls.character_window)
             .or_default()
             .push(GameInput::CharacterWindow);
-        map.entry(settings.controls.social)
+        key_map
+            .entry(settings.controls.social)
             .or_default()
             .push(GameInput::Social);
-        map.entry(settings.controls.spellbook)
+        key_map
+            .entry(settings.controls.spellbook)
             .or_default()
             .push(GameInput::Spellbook);
-        map.entry(settings.controls.settings)
+        key_map
+            .entry(settings.controls.settings)
             .or_default()
             .push(GameInput::Settings);
-        map.entry(settings.controls.help)
+        key_map
+            .entry(settings.controls.help)
             .or_default()
             .push(GameInput::Help);
-        map.entry(settings.controls.toggle_interface)
+        key_map
+            .entry(settings.controls.toggle_interface)
             .or_default()
             .push(GameInput::ToggleInterface);
-        map.entry(settings.controls.toggle_debug)
+        key_map
+            .entry(settings.controls.toggle_debug)
             .or_default()
             .push(GameInput::ToggleDebug);
-        map.entry(settings.controls.fullscreen)
+        key_map
+            .entry(settings.controls.fullscreen)
             .or_default()
             .push(GameInput::Fullscreen);
-        map.entry(settings.controls.screenshot)
+        key_map
+            .entry(settings.controls.screenshot)
             .or_default()
             .push(GameInput::Screenshot);
-        map.entry(settings.controls.toggle_ingame_ui)
+        key_map
+            .entry(settings.controls.toggle_ingame_ui)
             .or_default()
             .push(GameInput::ToggleIngameUi);
-        map.entry(settings.controls.roll)
+        key_map
+            .entry(settings.controls.roll)
             .or_default()
             .push(GameInput::Roll);
-        map.entry(settings.controls.respawn)
+        key_map
+            .entry(settings.controls.respawn)
             .or_default()
             .push(GameInput::Respawn);
-        map.entry(settings.controls.interact)
+        key_map
+            .entry(settings.controls.interact)
             .or_default()
             .push(GameInput::Interact);
 
+        let mut con_axis_map: HashMap<_, Vec<_>> = HashMap::new();
+        let mut con_button_map: HashMap<_, Vec<_>> = HashMap::new();
+
+        con_axis_map
+            .entry(gilrs::ev::Axis::RightStickX)
+            .or_default()
+            .push(ConAxisAction::CameraPanX);
+        con_axis_map
+            .entry(gilrs::ev::Axis::RightStickY)
+            .or_default()
+            .push(ConAxisAction::CameraPanY);
+        con_axis_map
+            .entry(gilrs::ev::Axis::LeftStickX)
+            .or_default()
+            .push(ConAxisAction::MovementX);
+        con_axis_map
+            .entry(gilrs::ev::Axis::LeftStickY)
+            .or_default()
+            .push(ConAxisAction::MovementY);
+
         let keypress_map = HashMap::new();
+
+        let gilrs = match Gilrs::new() {
+            Ok(x) => Some(x),
+            Err(_e) => None,
+        };
 
         Ok(Self {
             events_loop,
@@ -238,10 +327,13 @@ impl Window {
             zoom_sensitivity: settings.gameplay.zoom_sensitivity,
             fullscreen: false,
             needs_refresh_resize: false,
-            key_map: map,
-            keypress_map,
+            key_map: key_map,
+            keypress_map: keypress_map,
+            con_axis_map: con_axis_map,
+            con_button_map: con_button_map,
             supplement_events: vec![],
             focused: true,
+            gilrs: gilrs,
         })
     }
 
@@ -292,7 +384,7 @@ impl Window {
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } => {
                         if let (true, Some(game_inputs)) =
-                            (cursor_grabbed, key_map.get(&KeyMouse::Mouse(button)))
+                            (cursor_grabbed, key_map.get(&DigitalInput::Mouse(button)))
                         {
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(
@@ -306,7 +398,7 @@ impl Window {
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
                         Some(key) => {
-                            let game_inputs = key_map.get(&KeyMouse::Key(key));
+                            let game_inputs = key_map.get(&DigitalInput::Key(key));
                             if let Some(game_inputs) = game_inputs {
                                 for game_input in game_inputs {
                                     match game_input {
@@ -387,6 +479,10 @@ impl Window {
 
         if toggle_fullscreen {
             self.fullscreen(!self.is_fullscreen());
+        }
+
+        if let Some(gilrs) = &mut self.gilrs {
+            while let Some(event) = gilrs.next_event() {}
         }
 
         events

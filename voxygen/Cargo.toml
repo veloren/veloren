@@ -26,6 +26,9 @@ conrod_core = { git = "https://gitlab.com/veloren/conrod.git" }
 conrod_winit = { git = "https://gitlab.com/veloren/conrod.git" }
 euc = "0.3.0"
 
+# Controller input
+gilrs = "0.7.1"
+
 # ECS
 specs = "0.14.2"
 
