@@ -132,23 +132,19 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player, password: String) /*-> Result<(), Error>*/
-    {
+    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
         self.postbox
             .send_message(ClientMsg::Register { player, password });
         self.client_state = ClientState::Pending;
-        /*loop {
+        loop {
             match self.postbox.next_message() {
                 Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
                     break Err(Error::InvalidAuth)
-                },
-                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => {
-                    break Ok(())
                 }
+                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => break Ok(()),
                 _ => {}
-
             }
-        }*/
+        }
     }
 
     /// Request a state transition to `ClientState::Character`.
