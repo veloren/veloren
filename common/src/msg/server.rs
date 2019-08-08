@@ -7,7 +7,7 @@ use crate::{
 use fxhash::FxHashMap;
 use vek::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RequestStateError {
     Denied,
     Already,
