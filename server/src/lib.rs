@@ -1,5 +1,6 @@
 #![feature(drain_filter, bind_by_move_pattern_guards)]
 
+pub mod auth_provider;
 pub mod client;
 pub mod cmd;
 pub mod error;
@@ -10,6 +11,7 @@ pub mod settings;
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
+    auth_provider::AuthProvider,
     client::{Client, Clients},
     cmd::CHAT_COMMANDS,
 };
@@ -26,7 +28,7 @@ use log::debug;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     i32,
     net::SocketAddr,
     sync::{mpsc, Arc},
@@ -70,7 +72,7 @@ pub struct Server {
     server_info: ServerInfo,
 
     // TODO: anything but this
-    accounts: HashMap<String, String>,
+    accounts: AuthProvider,
 }
 
 impl Server {
@@ -110,7 +112,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
-            accounts: HashMap::new(),
+            accounts: AuthProvider::new(),
             server_settings: settings,
         };
 
@@ -529,13 +531,9 @@ impl Server {
                         },
                         // Valid player
                         ClientMsg::Register { player, password } if player.is_valid() => {
-                            if let Some(pass) = accounts.get(&player.alias) {
-                                if pass != &password {
-                                    client.error_state(RequestStateError::Denied);
-                                    break;
-                                }
-                            } else {
-                                accounts.insert(player.alias.clone(), password);
+                            if !accounts.query(player.alias.clone(), password) {
+                                client.error_state(RequestStateError::Denied);
+                                break;
                             }
                             match client.client_state {
                                 ClientState::Connected => {
