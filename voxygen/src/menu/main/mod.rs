@@ -64,7 +64,7 @@ impl PlayState for MainMenuState {
                     self.main_menu_ui.login_error(
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
-                            InitError::InvalidAuth => "Invalid username or password",
+                            InitError::InvalidAuth => "Invalid credentials",
                             InitError::ServerIsFull => "Server is Full!",
                             InitError::ConnectionFailed(_) => "Connection failed",
                             InitError::ClientCrashed => "Client crashed",
