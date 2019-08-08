@@ -8,7 +8,7 @@ pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg, RequestStateError},
     net::PostBox,
     state::{State, Uid},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
@@ -134,11 +134,23 @@ impl Client {
     /// Request a state transition to `ClientState::Registered`.
     pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
         self.postbox.send_message(ClientMsg::Register { player, password });
-        /*match self.postbox.next_message() {
-
+        loop { 
+            match self.postbox.next_message() {
+                Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
+                    println!("Got a bad");
+                    break Err(Error::InvalidAuth)
+                },
+                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => {
+                    println!("Got a good");
+                    break Ok(())
+                }
+                Some(x) => {
+                    println!("Got unusual message: {:?}", x);
+                }
+                None => { println!("Got nothing?"); },
+                
+            }
         }
-        self.client_state = ClientState::Pending;*/
-        Err(Error::InvalidAuth)
     }
 
     /// Request a state transition to `ClientState::Character`.
