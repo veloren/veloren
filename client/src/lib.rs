@@ -132,9 +132,13 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player) {
-        self.postbox.send_message(ClientMsg::Register { player });
-        self.client_state = ClientState::Pending;
+    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
+        self.postbox.send_message(ClientMsg::Register { player, password });
+        /*match self.postbox.next_message() {
+
+        }
+        self.client_state = ClientState::Pending;*/
+        Err(Error::InvalidAuth)
     }
 
     /// Request a state transition to `ClientState::Character`.
@@ -397,6 +401,7 @@ impl Client {
                 match msg {
                     ServerMsg::Error(e) => match e {
                         ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
+                        ServerError::InvalidAuth => return Err(Error::InvalidAuth),
                         //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),

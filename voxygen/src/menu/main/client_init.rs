@@ -30,7 +30,7 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(connection_args: (String, u16, bool), player: comp::Player, wait: bool) -> Self {
+    pub fn new(connection_args: (String, u16, bool), player: comp::Player, password: String, wait: bool) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
 
         let (tx, rx) = channel();
@@ -57,7 +57,13 @@ impl ClientInit {
                     for socket_addr in first_addrs.into_iter().chain(second_addrs) {
                         match Client::new(socket_addr, player.view_distance) {
                             Ok(mut client) => {
-                                client.register(player);
+                                match client.register(player, password) {
+                                    Err(ClientError::InvalidAuth) => {
+                                        last_err = Some(Error::InvalidAuth);
+                                        break;
+                                    }
+                                    _ => {}
+                                }
                                 let _ = tx.send(Ok(client));
 
                                 #[cfg(feature = "discord")]

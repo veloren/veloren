@@ -106,6 +106,7 @@ impl PlayState for MainMenuState {
                             client_init = client_init.or(Some(ClientInit::new(
                                 (server_address, DEFAULT_PORT, false),
                                 player,
+                                password,
                                 false,
                             )));
                         } else {
