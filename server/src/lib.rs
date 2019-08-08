@@ -26,7 +26,7 @@ use log::debug;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
-    collections::{HashSet, HashMap},
+    collections::{HashMap, HashSet},
     i32,
     net::SocketAddr,
     sync::{mpsc, Arc},
@@ -535,7 +535,6 @@ impl Server {
                                     break;
                                 }
                             } else {
-                                    player.alias, password);
                                 accounts.insert(player.alias.clone(), password);
                             }
                             match client.client_state {

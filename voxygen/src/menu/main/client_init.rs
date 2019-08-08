@@ -30,7 +30,12 @@ pub struct ClientInit {
     rx: Receiver<Result<Client, Error>>,
 }
 impl ClientInit {
-    pub fn new(connection_args: (String, u16, bool), player: comp::Player, password: String, wait: bool) -> Self {
+    pub fn new(
+        connection_args: (String, u16, bool),
+        player: comp::Player,
+        password: String,
+        wait: bool,
+    ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
 
         let (tx, rx) = channel();
