@@ -530,11 +530,16 @@ impl Server {
                         // Valid player
                         ClientMsg::Register { player, password } if player.is_valid() => {
                             if let Some(pass) = accounts.get(&player.alias) {
+                                println!("Verifying {} with {} against {}",
+                                    player.alias, password, pass);
                                 if pass != &password {
                                     client.error_state(RequestStateError::Denied);
                                     break;
                                 }
                             } else {
+                                
+                                println!("Adding user {} with password {}",
+                                    player.alias, password);
                                 accounts.insert(player.alias.clone(), password);
                             }
                             println!("{:?}", accounts);
@@ -545,6 +550,7 @@ impl Server {
                                 // Use RequestState instead (No need to send `player` again).
                                 _ => client.error_state(RequestStateError::Impossible),
                             }
+                            //client.allow_state(ClientState::Registered);
                         }
                         // Invalid player
                         ClientMsg::Register { .. } => {

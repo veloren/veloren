@@ -64,6 +64,7 @@ impl ClientInit {
                                     }
                                     _ => {}
                                 }
+                                println!("Auth success");
                                 let _ = tx.send(Ok(client));
 
                                 #[cfg(feature = "discord")]
