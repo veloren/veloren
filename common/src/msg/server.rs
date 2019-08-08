@@ -69,6 +69,7 @@ pub enum ServerMsg {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerError {
     TooManyPlayers,
+    InvalidAuth,
     //TODO: InvalidAlias,
 }
 

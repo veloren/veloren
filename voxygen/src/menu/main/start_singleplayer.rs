@@ -38,6 +38,7 @@ impl PlayState for StartSingleplayerState {
                         username.clone(),
                         Some(global_state.settings.graphics.view_distance),
                     ),
+                    String::default(),
                     true,
                 );
 

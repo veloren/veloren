@@ -26,7 +26,7 @@ use log::debug;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
-    collections::HashSet,
+    collections::{HashSet, HashMap},
     i32,
     net::SocketAddr,
     sync::{mpsc, Arc},
@@ -68,6 +68,9 @@ pub struct Server {
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
+
+    // TODO: anything but this
+    accounts: HashMap<String, String>,
 }
 
 impl Server {
@@ -107,6 +110,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
+            accounts: HashMap::new(),
             server_settings: settings,
         };
 
@@ -468,6 +472,8 @@ impl Server {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
+        let accounts = &mut self.accounts;
+
         let state = &mut self.state;
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
@@ -522,7 +528,16 @@ impl Server {
                             ClientState::Pending => {}
                         },
                         // Valid player
-                        ClientMsg::Register { player } if player.is_valid() => {
+                        ClientMsg::Register { player, password } if player.is_valid() => {
+                            if let Some(pass) = accounts.get(&player.alias) {
+                                if pass != &password {
+                                    client.error_state(RequestStateError::Denied);
+                                    break;
+                                }
+                            } else {
+                                accounts.insert(player.alias.clone(), password);
+                            }
+                            println!("{:?}", accounts);
                             match client.client_state {
                                 ClientState::Connected => {
                                     Self::initialize_player(state, entity, client, player);
