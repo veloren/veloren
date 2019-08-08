@@ -62,11 +62,13 @@ impl ClientInit {
                     for socket_addr in first_addrs.into_iter().chain(second_addrs) {
                         match Client::new(socket_addr, player.view_distance) {
                             Ok(mut client) => {
-                                /*if let Err(ClientError::InvalidAuth) == client.register(player, password) {
+                                if let Err(ClientError::InvalidAuth) =
+                                    client.register(player, password)
+                                {
                                     last_err = Some(Error::InvalidAuth);
                                     break;
-                                }*/
-                                client.register(player, password);
+                                }
+                                //client.register(player, password);
                                 let _ = tx.send(Ok(client));
 
                                 #[cfg(feature = "discord")]
