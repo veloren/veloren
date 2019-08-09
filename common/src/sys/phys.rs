@@ -4,6 +4,7 @@ use crate::{
         ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
         Wielding,
     },
+    event::{Event, EventBus},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -35,6 +36,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
+        Read<'a, EventBus>,
         ReadStorage<'a, ActionState>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
@@ -42,7 +44,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        WriteStorage<'a, Stats>,
     );
 
     fn run(
@@ -51,6 +52,7 @@ impl<'a> System<'a> for Sys {
             entities,
             terrain,
             dt,
+            event_bus,
             action_states,
             scales,
             bodies,
@@ -58,11 +60,12 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
-            mut stats,
         ): Self::SystemData,
     ) {
+        let mut event_emitter = event_bus.emitter();
+
         // Apply movement inputs
-        for (entity, a, scale, b, mut pos, mut vel, mut ori, mut stat) in (
+        for (entity, a, scale, b, mut pos, mut vel, mut ori) in (
             &entities,
             &action_states,
             scales.maybe(),
@@ -70,7 +73,6 @@ impl<'a> System<'a> for Sys {
             &mut positions,
             &mut velocities,
             &mut orientations,
-            &mut stats,
         )
             .join()
         {
@@ -210,12 +212,11 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is pointing upwards, we must be on the ground
                     if resolve_dir.z > 0.0 && vel.0.z <= 0.0 {
-                        // Check for fall damage
-                        let falldmg = (vel.0.z / 1.5 + 6.0) as i32;
-                        if falldmg < 0 {
-                            stat.health.change_by(falldmg, HealthSource::World);
-                        }
                         on_ground = true;
+
+                        if !was_on_ground {
+                            event_emitter.emit(Event::LandOnGround { entity, vel: vel.0 });
+                        }
                     }
 
                     // When the resolution direction is non-vertical, we must be colliding with a wall
