@@ -30,6 +30,9 @@ fn main() {
     println!("Enter the server address");
     let server_addr = read_input();
 
+    println!("Enter your password");
+    let password = read_input();
+
     // Create a client.
     let mut client = Client::new(
         server_addr
@@ -45,7 +48,9 @@ fn main() {
 
     println!("Players online: {:?}", client.get_players());
 
-    client.register(comp::Player::new(username, None));
+    client
+        .register(comp::Player::new(username, None), password)
+        .unwrap();
 
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || loop {

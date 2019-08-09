@@ -8,7 +8,7 @@ pub use specs::{join::Join, saveload::Marker, Entity as EcsEntity, ReadStorage};
 
 use common::{
     comp,
-    msg::{ClientMsg, ClientState, ServerError, ServerInfo, ServerMsg},
+    msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
     state::{State, Uid},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
@@ -132,9 +132,19 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Registered`.
-    pub fn register(&mut self, player: comp::Player) {
-        self.postbox.send_message(ClientMsg::Register { player });
+    pub fn register(&mut self, player: comp::Player, password: String) -> Result<(), Error> {
+        self.postbox
+            .send_message(ClientMsg::Register { player, password });
         self.client_state = ClientState::Pending;
+        loop {
+            match self.postbox.next_message() {
+                Some(ServerMsg::StateAnswer(Err((RequestStateError::Denied, _)))) => {
+                    break Err(Error::InvalidAuth)
+                }
+                Some(ServerMsg::StateAnswer(Ok(ClientState::Registered))) => break Ok(()),
+                _ => {}
+            }
+        }
     }
 
     /// Request a state transition to `ClientState::Character`.
@@ -397,6 +407,7 @@ impl Client {
                 match msg {
                     ServerMsg::Error(e) => match e {
                         ServerError::TooManyPlayers => return Err(Error::ServerWentMad),
+                        ServerError::InvalidAuth => return Err(Error::InvalidAuth),
                         //TODO: ServerError::InvalidAlias => return Err(Error::InvalidAlias),
                     },
                     ServerMsg::Shutdown => return Err(Error::ServerShutdown),
@@ -453,6 +464,10 @@ impl Client {
                         self.client_state = state;
                     }
                     ServerMsg::StateAnswer(Err((error, state))) => {
+                        if error == RequestStateError::Denied {
+                            warn!("Connection denied!");
+                            return Err(Error::InvalidAuth);
+                        }
                         warn!(
                             "StateAnswer: {:?}. Server thinks client is in state {:?}.",
                             error, state
