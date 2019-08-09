@@ -10,6 +10,7 @@ mod phys;
 mod player;
 mod stats;
 mod visual;
+mod admin;
 
 // Reexports
 pub use action_state::ActionState;
@@ -26,3 +27,4 @@ pub use phys::{ForceUpdate, Ori, Pos, Scale, Vel};
 pub use player::Player;
 pub use stats::{Dying, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;
+pub use admin::AdminPerms;
