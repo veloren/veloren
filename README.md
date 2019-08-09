@@ -2,6 +2,7 @@
 	<img alt="Veloren logo on a screenshot" src="https://i.redd.it/balynnef4x531.png">
 </p>
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/24b78d216f154079af78b8488a74e75d)](https://app.codacy.com/app/AngelOnFira/veloren?utm_source=github.com&utm_medium=referral&utm_content=veloren/veloren&utm_campaign=Badge_Grade_Dashboard)
 [![pipeline status](https://gitlab.com/veloren/veloren/badges/master/pipeline.svg)](https://gitlab.com/veloren/veloren/commits/master)
 [![coverage report](https://gitlab.com/veloren/veloren/badges/master/coverage.svg)](https://gitlab.com/veloren/veloren/commits/master)
 [![license](https://img.shields.io/github/license/veloren/veloren.svg)](https://gitlab.com/veloren/veloren/blob/master/LICENSE)
