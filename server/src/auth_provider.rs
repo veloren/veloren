@@ -13,19 +13,20 @@ impl AuthProvider {
     }
 
     pub fn query(&mut self, username: String, password: String) -> bool {
-        if let Some(pass) = self.accounts.get(&username) {
-            if pass != &password {
-                warn!(
-                    "User '{}' attempted to log in with invalid password '{}'!",
-                    username, password
-                );
-                return false;
-            }
+        let pwd = password.clone();
+        if self.accounts.entry(username.clone()).or_insert_with(|| {
+            info!("Registered new user '{}'", &username);
+            pwd
+        }) == &password
+        {
             info!("User '{}' successfully authenticated", username);
+            true
         } else {
-            info!("Registered new user '{}'", username);
-            self.accounts.insert(username, password);
+            warn!(
+                "User '{}' attempted to log in with invalid password '{}'!",
+                username, password
+            );
+            false
         }
-        true
     }
 }
