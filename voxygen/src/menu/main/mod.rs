@@ -64,6 +64,7 @@ impl PlayState for MainMenuState {
                     self.main_menu_ui.login_error(
                         match err {
                             InitError::BadAddress(_) | InitError::NoAddress => "Server not found",
+                            InitError::InvalidAuth => "Invalid credentials",
                             InitError::ServerIsFull => "Server is Full!",
                             InitError::ConnectionFailed(_) => "Connection failed",
                             InitError::ClientCrashed => "Client crashed",
@@ -82,10 +83,12 @@ impl PlayState for MainMenuState {
                 match event {
                     MainMenuEvent::LoginAttempt {
                         username,
+                        password,
                         server_address,
                     } => {
                         let mut net_settings = &mut global_state.settings.networking;
                         net_settings.username = username.clone();
+                        net_settings.password = password.clone();
                         if !net_settings.servers.contains(&server_address) {
                             net_settings.servers.push(server_address.clone());
                         }
@@ -103,11 +106,12 @@ impl PlayState for MainMenuState {
                             client_init = client_init.or(Some(ClientInit::new(
                                 (server_address, DEFAULT_PORT, false),
                                 player,
+                                password,
                                 false,
                             )));
                         } else {
                             self.main_menu_ui
-                                .login_error("Invalid username".to_string());
+                                .login_error("Invalid username or password".to_string());
                         }
                     }
                     MainMenuEvent::StartSingleplayer => {

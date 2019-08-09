@@ -1,5 +1,6 @@
 #![feature(drain_filter, bind_by_move_pattern_guards)]
 
+pub mod auth_provider;
 pub mod client;
 pub mod cmd;
 pub mod error;
@@ -10,6 +11,7 @@ pub mod settings;
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
 
 use crate::{
+    auth_provider::AuthProvider,
     client::{Client, Clients},
     cmd::CHAT_COMMANDS,
 };
@@ -68,6 +70,9 @@ pub struct Server {
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
+
+    // TODO: anything but this
+    accounts: AuthProvider,
 }
 
 impl Server {
@@ -107,6 +112,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
+            accounts: AuthProvider::new(),
             server_settings: settings,
         };
 
@@ -468,6 +474,8 @@ impl Server {
     fn handle_new_messages(&mut self) -> Result<Vec<Event>, Error> {
         let mut frontend_events = Vec::new();
 
+        let accounts = &mut self.accounts;
+
         let state = &mut self.state;
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
@@ -522,7 +530,11 @@ impl Server {
                             ClientState::Pending => {}
                         },
                         // Valid player
-                        ClientMsg::Register { player } if player.is_valid() => {
+                        ClientMsg::Register { player, password } if player.is_valid() => {
+                            if !accounts.query(player.alias.clone(), password) {
+                                client.error_state(RequestStateError::Denied);
+                                break;
+                            }
                             match client.client_state {
                                 ClientState::Connected => {
                                     Self::initialize_player(state, entity, client, player);
@@ -530,6 +542,7 @@ impl Server {
                                 // Use RequestState instead (No need to send `player` again).
                                 _ => client.error_state(RequestStateError::Impossible),
                             }
+                            //client.allow_state(ClientState::Registered);
                         }
                         // Invalid player
                         ClientMsg::Register { .. } => {
