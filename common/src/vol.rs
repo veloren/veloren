@@ -76,7 +76,11 @@ pub trait ReadVol: BaseVol {
         self.get(pos).unwrap()
     }
 
-    fn ray(&self, from: Vec3<f32>, to: Vec3<f32>) -> Ray<Self, fn(&Self::Vox) -> bool>
+    fn ray(
+        &self,
+        from: Vec3<f32>,
+        to: Vec3<f32>,
+    ) -> Ray<Self, fn(&Self::Vox) -> bool, fn(Vec3<i32>)>
     where
         Self: Sized,
     {

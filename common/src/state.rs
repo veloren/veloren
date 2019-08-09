@@ -3,6 +3,7 @@ pub use sphynx::Uid;
 
 use crate::{
     comp,
+    event::EventBus,
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{Block, TerrainChunk, TerrainMap},
@@ -42,16 +43,9 @@ pub struct DeltaTime(pub f32);
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 
+#[derive(Default)]
 pub struct BlockChange {
     blocks: FxHashMap<Vec3<i32>, Block>,
-}
-
-impl Default for BlockChange {
-    fn default() -> Self {
-        Self {
-            blocks: FxHashMap::default(),
-        }
-    }
 }
 
 impl BlockChange {
@@ -64,22 +58,12 @@ impl BlockChange {
     }
 }
 
+#[derive(Default)]
 pub struct TerrainChanges {
     pub new_chunks: FxHashSet<Vec2<i32>>,
     pub modified_chunks: FxHashSet<Vec2<i32>>,
     pub removed_chunks: FxHashSet<Vec2<i32>>,
     pub modified_blocks: FxHashMap<Vec3<i32>, Block>,
-}
-
-impl Default for TerrainChanges {
-    fn default() -> Self {
-        Self {
-            new_chunks: FxHashSet::default(),
-            modified_chunks: FxHashSet::default(),
-            removed_chunks: FxHashSet::default(),
-            modified_blocks: FxHashMap::default(),
-        }
-    }
 }
 
 impl TerrainChanges {
@@ -178,6 +162,7 @@ impl State {
         ecs.add_resource(TerrainMap::new().unwrap());
         ecs.add_resource(BlockChange::default());
         ecs.add_resource(TerrainChanges::default());
+        ecs.add_resource(EventBus::default());
     }
 
     /// Register a component with the state's ECS.
@@ -330,16 +315,15 @@ impl State {
             .for_each(|(pos, block)| {
                 let _ = terrain.set(*pos, *block);
             });
-        std::mem::swap(
+        self.ecs.write_resource::<TerrainChanges>().modified_blocks = std::mem::replace(
             &mut self.ecs.write_resource::<BlockChange>().blocks,
-            &mut self.ecs.write_resource::<TerrainChanges>().modified_blocks,
-        )
+            Default::default(),
+        );
     }
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
         self.ecs.write_resource::<TerrainChanges>().clear();
-        self.ecs.write_resource::<BlockChange>().clear();
     }
 }
