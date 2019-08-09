@@ -6,6 +6,7 @@ use crate::Server;
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
+    event::{Event as GameEvent, EventBus},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
@@ -147,9 +148,15 @@ lazy_static! {
         ),
         ChatCommand::new(
             "lantern",
-            "{} ",
+            "{}",
             "/lantern : adds/remove light near player",
             handle_lantern,
+        ),
+        ChatCommand::new(
+            "explosion",
+            "{}",
+            "/explosion <radius> : Explodes the ground around you",
+            handle_explosion,
         ),
     ];
 }
@@ -673,6 +680,22 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
             entity,
             ServerMsg::private(String::from("You lighted your lantern.")),
         );
+    }
+}
+
+fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let radius = scan_fmt!(&args, action.arg_fmt, f32).unwrap_or(8.0);
+
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
+        Some(pos) => server
+            .state
+            .ecs()
+            .read_resource::<EventBus>()
+            .emit(GameEvent::Explosion { pos: pos.0, radius }),
+        None => server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no position!")),
+        ),
     }
 }
 
