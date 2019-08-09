@@ -38,10 +38,14 @@ widget_ids! {
         username_text,
         username_bg,
         username_field,
+        password_text,
+        password_bg,
+        password_field,
         singleplayer_button,
         singleplayer_text,
         usrnm_bg,
         srvr_bg,
+        passwd_bg,
         // Server list
         servers_button,
         servers_frame,
@@ -87,6 +91,7 @@ font_ids! {
 pub enum Event {
     LoginAttempt {
         username: String,
+        password: String,
         server_address: String,
     },
     StartSingleplayer,
@@ -101,6 +106,7 @@ pub struct MainMenuUi {
     imgs: Imgs,
     fonts: Fonts,
     username: String,
+    password: String,
     server_address: String,
     login_error: Option<String>,
     connecting: Option<std::time::Instant>,
@@ -129,6 +135,7 @@ impl MainMenuUi {
             imgs,
             fonts,
             username: networking.username.clone(),
+            password: "".to_owned(),
             server_address: networking.servers[networking.default_server].clone(),
             login_error: None,
             connecting: None,
@@ -227,6 +234,7 @@ impl MainMenuUi {
                     self.connecting = Some(std::time::Instant::now());
                     events.push(Event::LoginAttempt {
                         username: self.username.clone(),
+                        password: self.password.clone(),
                         server_address: self.server_address.clone(),
                     });
                 };
@@ -240,6 +248,7 @@ impl MainMenuUi {
                     events.push(Event::StartSingleplayer);
                     events.push(Event::LoginAttempt {
                         username: "singleplayer".to_string(),
+                        password: String::default(),
                         server_address: "localhost".to_string(),
                     });
                 };
@@ -268,6 +277,35 @@ impl MainMenuUi {
                     TextBoxEvent::Update(username) => {
                         // Note: TextBox limits the input string length to what fits in it
                         self.username = username.to_string();
+                    }
+                    TextBoxEvent::Enter => {
+                        login!();
+                    }
+                }
+            }
+            // Password
+            Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
+                .down_from(self.ids.usrnm_bg, 30.0)
+                .set(self.ids.passwd_bg, ui_widgets);
+            Image::new(self.imgs.input_bg)
+                .w_h(337.0, 67.0)
+                .middle_of(self.ids.passwd_bg)
+                .set(self.ids.password_bg, ui_widgets);
+            for event in TextBox::new(&self.password)
+                .w_h(290.0, 30.0)
+                .mid_bottom_with_margin_on(self.ids.password_bg, 44.0 / 2.0)
+                .font_size(22)
+                .font_id(self.fonts.opensans)
+                .text_color(TEXT_COLOR)
+                // transparent background
+                .color(TRANSPARENT)
+                .border_color(TRANSPARENT)
+                .set(self.ids.password_field, ui_widgets)
+            {
+                match event {
+                    TextBoxEvent::Update(password) => {
+                        // Note: TextBox limits the input string length to what fits in it
+                        self.password = password;
                     }
                     TextBoxEvent::Enter => {
                         login!();
@@ -369,7 +407,7 @@ impl MainMenuUi {
             }
             // Server address
             Rectangle::fill_with([320.0, 50.0], color::rgba(0.0, 0.0, 0.0, 0.97))
-                .down_from(self.ids.usrnm_bg, 30.0)
+                .down_from(self.ids.passwd_bg, 30.0)
                 .set(self.ids.srvr_bg, ui_widgets);
             Image::new(self.imgs.input_bg)
                 .w_h(337.0, 67.0)

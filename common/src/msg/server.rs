@@ -7,7 +7,7 @@ use crate::{
 use fxhash::FxHashMap;
 use vek::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum RequestStateError {
     Denied,
     Already,
@@ -69,6 +69,7 @@ pub enum ServerMsg {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ServerError {
     TooManyPlayers,
+    InvalidAuth,
     //TODO: InvalidAlias,
 }
 
