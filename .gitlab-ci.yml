@@ -180,16 +180,14 @@ clean-code:
   script:
     - cargo fmt --all -- --check
 
-# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
-# # https://github.com/rust-lang/rust/issues/58375
-# coverage:
-#   stage: post-build
-#   image: registry.gitlab.com/veloren/veloren-docker-ci
-#   tags:
-#     - veloren-docker
-#   script:
-#     - cargo tarpaulin --all
-#   allow_failure: true
+coverage:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - cargo tarpaulin --all
+  allow_failure: true
 
 # For now, Clippy will just care about performance improvements as much of the
 # codebase is not in a place that cleaning warnings will be benificial
