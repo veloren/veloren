@@ -1,9 +1,9 @@
-use fxhash::FxHashMap;
+use hashbrown::HashMap;
 use std::hash::Hash;
 
 pub struct HashCache<K: Hash + Eq + Clone, V> {
     capacity: usize,
-    map: FxHashMap<K, (usize, V)>,
+    map: HashMap<K, (usize, V)>,
     counter: usize,
 }
 
@@ -17,7 +17,7 @@ impl<K: Hash + Eq + Clone, V> HashCache<K, V> {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             capacity,
-            map: FxHashMap::default(),
+            map: HashMap::default(),
             counter: 0,
         }
     }
