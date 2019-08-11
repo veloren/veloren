@@ -18,9 +18,10 @@ use common::{
     vol::VolSize,
 };
 use dot_vox::DotVoxData;
+use hashbrown::HashMap;
 use log::warn;
 use specs::{Entity as EcsEntity, Join};
-use std::{collections::HashMap, f32};
+use std::f32;
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
