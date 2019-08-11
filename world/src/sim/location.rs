@@ -1,5 +1,5 @@
 use super::Settlement;
-use fxhash::FxHashSet;
+use hashbrown::HashSet;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use vek::*;
@@ -9,7 +9,7 @@ pub struct Location {
     pub(crate) name: String,
     pub(crate) center: Vec2<i32>,
     pub(crate) kingdom: Option<Kingdom>,
-    pub(crate) neighbours: FxHashSet<usize>,
+    pub(crate) neighbours: HashSet<usize>,
     pub(crate) settlement: Settlement,
 }
 
@@ -19,7 +19,7 @@ impl Location {
             name: generate_name(rng),
             center,
             kingdom: None,
-            neighbours: FxHashSet::default(),
+            neighbours: HashSet::default(),
             settlement: Settlement::generate(rng),
         }
     }
