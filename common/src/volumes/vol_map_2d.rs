@@ -2,8 +2,8 @@ use crate::{
     vol::{BaseVol, ReadVol, SampleVol, VolSize, WriteVol},
     volumes::dyna::DynaErr,
 };
-use fxhash::FxHashMap;
-use std::{collections::hash_map, fmt::Debug, marker::PhantomData, sync::Arc};
+use hashbrown::{hash_map, HashMap};
+use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug, Clone)]
@@ -19,7 +19,7 @@ pub enum VolMap2dErr<V: BaseVol> {
 // M = Chunk metadata
 #[derive(Clone)]
 pub struct VolMap2d<V: BaseVol, S: VolSize> {
-    chunks: FxHashMap<Vec2<i32>, Arc<V>>,
+    chunks: HashMap<Vec2<i32>, Arc<V>>,
     phantom: PhantomData<S>,
 }
 
@@ -122,7 +122,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
             .reduce_and()
         {
             Ok(Self {
-                chunks: FxHashMap::default(),
+                chunks: HashMap::default(),
                 phantom: PhantomData,
             })
         } else {
@@ -177,7 +177,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
 }
 
 pub struct ChunkIter<'a, V: BaseVol> {
-    iter: std::collections::hash_map::Iter<'a, Vec2<i32>, Arc<V>>,
+    iter: hash_map::Iter<'a, Vec2<i32>, Arc<V>>,
 }
 
 impl<'a, V: BaseVol> Iterator for ChunkIter<'a, V> {

@@ -1,12 +1,12 @@
 //! Load assets (images or voxel data) from files
 
 use dot_vox::DotVoxData;
+use hashbrown::HashMap;
 use image::DynamicImage;
 use lazy_static::lazy_static;
 use serde_json::Value;
 use std::{
     any::Any,
-    collections::HashMap,
     env,
     fs::{self, read_link, File, ReadDir},
     io::{BufReader, Read},

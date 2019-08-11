@@ -2,7 +2,8 @@ use crate::{
     vol::{BaseVol, ReadVol, SampleVol, VolSize, WriteVol},
     volumes::dyna::DynaErr,
 };
-use std::{collections::HashMap, fmt::Debug, marker::PhantomData, sync::Arc};
+use hashbrown::{hash_map, HashMap};
+use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]
@@ -161,7 +162,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
 }
 
 pub struct ChunkIter<'a, V: BaseVol> {
-    iter: std::collections::hash_map::Iter<'a, Vec3<i32>, Arc<V>>,
+    iter: hash_map::Iter<'a, Vec3<i32>, Arc<V>>,
 }
 
 impl<'a, V: BaseVol> Iterator for ChunkIter<'a, V> {
