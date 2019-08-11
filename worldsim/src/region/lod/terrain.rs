@@ -3,6 +3,7 @@ use crate::lodstore::{
     LayerInfo,
     LodConfig,
     index::LodIndex,
+    index::AbsIndex,
 };
 use vek::*;
 
@@ -39,36 +40,24 @@ impl LayerInfo for Region9 {
     fn get_child_index(self: &Self) -> Option<usize> {
         self.child_id.map(|n| n as usize)
     }
-    const child_layer_id: Option<u8> = Some(9);
-    const layer_volume: Vec3<u32> = Vec3{x: 16, y: 16, z: 16};
-    const child_len: usize = 4096;//2_usize.pow(Self::child_dim*3);
 }
 
 impl LayerInfo for Chunk5 {
     fn get_child_index(self: &Self) -> Option<usize> {
         self.child_id.map(|n| n as usize)
     }
-    const child_layer_id: Option<u8> = Some(4);
-    const layer_volume: Vec3<u32> = Vec3{x: 32, y: 32, z: 32};
-    const child_len: usize = 32768;//2_usize.pow(Self::child_dim*3);
 }
 
 impl LayerInfo for Block0 {
     fn get_child_index(self: &Self) -> Option<usize> {
         self.child_id.map(|n| n as usize)
     }
-    const child_layer_id: Option<u8> = Some(0);
-    const layer_volume: Vec3<u32> = Vec3{x: 16, y: 16, z: 16};
-    const child_len: usize = 4096;//2_usize.pow(Self::child_dim*3);
 }
 
 impl LayerInfo for SubBlock_4 {
     fn get_child_index(self: &Self) -> Option<usize> {
         None
     }
-    const child_layer_id: Option<u8> = None;
-    const layer_volume: Vec3<u32> = Vec3{x: 1, y: 1, z: 1};
-    const child_len: usize = 0;
 }
 
 #[derive(Debug, Clone)]
@@ -94,19 +83,74 @@ impl LodConfig for TerrainLodConfig {
 
     const anchor_layer_id: u8 = 13;
 
+    const layer_volume: [Vec3<u32>; 16] = [
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 16, y: 16, z: 16},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 32, y: 32, z: 32},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 16, y: 16, z: 16},
+        Vec3{x: 1, y: 1, z: 1},
+        Vec3{x: 1, y: 1, z: 1},
+    ];
+    const child_layer_id: [Option<u8>; 16] = [
+        None,
+        None,
+        None,
+        None,
+        Some(0),
+        None,
+        None,
+        None,
+        None,
+        Some(5),
+        None,
+        None,
+        None,
+        Some(9),
+        None,
+        None,
+    ];
+    const child_len: [usize; 16] = [
+        (Self::layer_volume[0].x * Self::layer_volume[0].y * Self::layer_volume[0].z) as usize,
+        (Self::layer_volume[1].x * Self::layer_volume[1].y * Self::layer_volume[1].z) as usize,
+        (Self::layer_volume[2].x * Self::layer_volume[2].y * Self::layer_volume[2].z) as usize,
+        (Self::layer_volume[3].x * Self::layer_volume[3].y * Self::layer_volume[3].z) as usize,
+        (Self::layer_volume[4].x * Self::layer_volume[4].y * Self::layer_volume[4].z) as usize,
+        (Self::layer_volume[5].x * Self::layer_volume[5].y * Self::layer_volume[5].z) as usize,
+        (Self::layer_volume[6].x * Self::layer_volume[6].y * Self::layer_volume[6].z) as usize,
+        (Self::layer_volume[7].x * Self::layer_volume[7].y * Self::layer_volume[7].z) as usize,
+        (Self::layer_volume[8].x * Self::layer_volume[8].y * Self::layer_volume[8].z) as usize,
+        (Self::layer_volume[9].x * Self::layer_volume[9].y * Self::layer_volume[9].z) as usize,
+        (Self::layer_volume[10].x * Self::layer_volume[10].y * Self::layer_volume[10].z) as usize,
+        (Self::layer_volume[11].x * Self::layer_volume[11].y * Self::layer_volume[11].z) as usize,
+        (Self::layer_volume[12].x * Self::layer_volume[12].y * Self::layer_volume[12].z) as usize,
+        (Self::layer_volume[13].x * Self::layer_volume[13].y * Self::layer_volume[13].z) as usize,
+        (Self::layer_volume[14].x * Self::layer_volume[14].y * Self::layer_volume[14].z) as usize,
+        (Self::layer_volume[15].x * Self::layer_volume[15].y * Self::layer_volume[15].z) as usize,
+    ];
+
     fn setup(&mut self) {
 
     }
 
-    fn drill_down(data: &mut LodData::<Self>, level: u8, index: usize) {
-        match level {
+    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) {
+        match abs.layer {
             0 => {
                 panic!("cannot drill down further");
             },
             4 => {
                 let insert = data.layer0.len();
-                data.layer4[index].child_id = Some(insert as u32);
-                for i in 0..Block0::child_len {
+                data.layer4[abs.index].child_id = Some(insert as u32);
+                for i in 0..Self::child_len[4] {
                     data.layer0[i+insert] = SubBlock_4{
                         material: 0,
                     };
@@ -114,8 +158,8 @@ impl LodConfig for TerrainLodConfig {
             },
             9 => {
                 let insert = data.layer4.len();
-                data.layer9[index].child_id = Some(insert as u32);
-                for i in 0..Chunk5::child_len {
+                data.layer9[abs.index].child_id = Some(insert as u32);
+                for i in 0..Self::child_len[9] {
                     data.layer4[i+insert] = Block0{
                         material: 0,
                         child_id: None,
@@ -124,8 +168,8 @@ impl LodConfig for TerrainLodConfig {
             },
             13 => {
                 let insert = data.layer9.len();
-                    data.layer13[index].child_id = Some(insert as u32);
-                    for i in 0..Region9::child_len {
+                    data.layer13[abs.index].child_id = Some(insert as u32);
+                    for i in 0..Self::child_len[13] {
                         data.layer9[i+insert] = Chunk5{
                         precent_air: 0.2,
                         percent_forrest: 0.3,
@@ -140,25 +184,25 @@ impl LodConfig for TerrainLodConfig {
 
     }
 
-    fn drill_up(data: &mut LodData::<Self>, level: u8, parent_index: usize) {
-        match level {
+    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) {
+        match parent_abs.layer {
             0 => {
                 panic!("SubBlocks_4 does not have children");
             },
             4 => {
-                let delete = data.layer4[parent_index].child_id.expect("has no childs to drill up") as usize;
-                data.layer4[parent_index].child_id = None;
-                data.layer0.drain(delete..delete+Block0::child_len);
+                let delete = data.layer4[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                data.layer4[parent_abs.index].child_id = None;
+                data.layer0.drain(delete..delete+Self::child_len[4]);
             },
             9 => {
-                let delete = data.layer9[parent_index].child_id.expect("has no childs to drill up") as usize;
-                data.layer9[parent_index].child_id = None;
-                data.layer4.drain(delete..delete+Chunk5::child_len);
+                let delete = data.layer9[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                data.layer9[parent_abs.index].child_id = None;
+                data.layer4.drain(delete..delete+Self::child_len[9]);
             },
             13 => {
-                let delete = data.layer13[parent_index].child_id.expect("has no childs to drill up") as usize;
-                data.layer13[parent_index].child_id = None;
-                data.layer9.drain(delete..delete+Region9::child_len);
+                let delete = data.layer13[parent_abs.index].child_id.expect("has no childs to drill up") as usize;
+                data.layer13[parent_abs.index].child_id = None;
+                data.layer9.drain(delete..delete+Self::child_len[13]);
             },
             _ => unreachable!(),
         }

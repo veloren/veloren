@@ -28,6 +28,9 @@
 **/*.swp
 **/*.vi
 
+# GDB
+.gdb_history
+
 # Veloren
 *.rar
 *.log

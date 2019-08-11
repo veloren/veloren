@@ -1,6 +1,8 @@
 use vek::*;
 use std::ops::Sub;
 use std::ops::Add;
+use std::cmp;
+use std::fmt;
 
 /*
 For our LodStructures we need a type that covers the values from 0 - 2047 in steps of 1/32.
@@ -66,8 +68,42 @@ impl LodIndex {
             (i / f) * f
         }))
     }
+
+    pub fn get_highest_layer_that_fits(&self) -> u8 {
+        let pos = self.get();
+        cmp::min( cmp::min(cmp::min(pos[0].trailing_zeros(),
+                pos[1].trailing_zeros()), pos[2].trailing_zeros()), 15) as u8
+    }
 }
 
+impl fmt::Display for LodIndex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let xyz = self.get();
+        //write!(f, "({}|{}|{}) <{}>", xyz[0], xyz[1], xyz[2], self.data)
+        write!(f, "({}|{}|{})", xyz[0], xyz[1], xyz[2])
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
+pub struct AbsIndex {
+    pub layer: u8,
+    pub index: usize,
+}
+
+impl AbsIndex {
+    pub fn new(layer: u8, index: usize) -> Self {
+        AbsIndex {
+            layer,
+            index,
+        }
+    }
+}
+
+impl fmt::Display for AbsIndex {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}:{}]", self.layer, self.index)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -102,6 +138,79 @@ mod tests {
         let i = LodIndex::new(Vec3::new(42,1337,69));
         assert_eq!(i.get(), Vec3::new(42,1337,69));
     }
+
+    #[test]
+    fn align() {
+        let i = LodIndex::new(Vec3::new(1337,0,0)).align_to_layer_id(4);
+        assert_eq!(i.get(), Vec3::new(1328,0,0));
+
+        let i = LodIndex::new(Vec3::new(1337,1800,0)).align_to_layer_id(5);
+        assert_eq!(i.get(), Vec3::new(1312,1792,0));
+
+        let i = LodIndex::new(Vec3::new(1337,0,50)).align_to_layer_id(3);
+        assert_eq!(i.get(), Vec3::new(1336,0,48));
+
+        let i = LodIndex::new(Vec3::new(1335,0,0)).align_to_layer_id(3);
+        assert_eq!(i.get(), Vec3::new(1328,0,0));
+
+        let i = LodIndex::new(Vec3::new(31337,22000,25000)).align_to_layer_id(7);
+        assert_eq!(i.get(), Vec3::new(31232,21888,24960));
+
+        let i = LodIndex::new(Vec3::new(31337,22000,25000)).align_to_layer_id(0);
+        assert_eq!(i.get(), Vec3::new(31337,22000,25000));
+
+        let i = LodIndex::new(Vec3::new(0,0,0)).align_to_layer_id(4);
+        assert_eq!(i.get(), Vec3::new(0,0,0));
+    }
+
+    #[test]
+    fn get_highest_layer_that_fits() {
+        let i = LodIndex::new(Vec3::new(0,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 15);
+        let i = LodIndex::new(Vec3::new(1,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 0);
+        let i = LodIndex::new(Vec3::new(2,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 1);
+        let i = LodIndex::new(Vec3::new(3,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 0);
+        let i = LodIndex::new(Vec3::new(4,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 2);
+        let i = LodIndex::new(Vec3::new(5,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 0);
+
+        let i = LodIndex::new(Vec3::new(1337,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 0);
+
+        let i = LodIndex::new(Vec3::new(1337,1800,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 0);
+
+        let i = LodIndex::new(Vec3::new(1338,0,50));
+        assert_eq!(i.get_highest_layer_that_fits(), 1);
+
+        let i = LodIndex::new(Vec3::new(1336,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 3);
+
+        let i = LodIndex::new(Vec3::new(31348,22000,25000));
+        assert_eq!(i.get_highest_layer_that_fits(), 2);
+
+        let i = LodIndex::new(Vec3::new(0,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 15);
+
+        let i = LodIndex::new(Vec3::new(65536,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 15);
+
+        let i = LodIndex::new(Vec3::new(32768,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 15);
+
+        let i = LodIndex::new(Vec3::new(16384,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 14);
+
+        let i = LodIndex::new(Vec3::new(8192,0,0));
+        assert_eq!(i.get_highest_layer_that_fits(), 13);
+
+        let i = LodIndex::new(Vec3::new(65536,0,8192));
+        assert_eq!(i.get_highest_layer_that_fits(), 13);
+    }
 }
 
 impl Sub for LodIndex {
@@ -122,51 +231,24 @@ impl Add for LodIndex {
     }
 }
 
-
-/*
-impl LodIndex {
-    pub fn new(pos: Vec3<i32>) -> Self {
-        Self {
-            data: pos.map(|x| (x * 32 + 65535) as u32),
-        }
-    }
-
-    pub fn newf(pos: Vec3<f32>) -> Self {
-        Self {
-            data: pos.map(|x| (x * 32.0).round() as u32 + 65535),
-        }
-    }
-
-    pub fn to_pos_i(&self) -> Vec3<i32> { self.data.map(|x| (x / 32 - 2048) as i32) }
-
-    pub fn to_pos_f(&self) -> Vec3<f32> {
-        self.data.map(|x| x as f32 / 32.0 - 2048.0)
-    }
-}
-
-pub const LEVEL_LENGTH_POW_MAX: i8 = 11;
-pub const LEVEL_LENGTH_POW_MIN: i8 = -4;
-
-pub const LEVEL_INDEX_POW_MAX: u8 = 15;
-pub const LEVEL_INDEX_POW_MIN: u8 = 0;
-
-pub const fn length_to_index(n: i8) -> u8 { (n+4) as u8 }
-
-pub const fn two_pow_u(n: u8) -> u16 {
-    1 << n
-}
-
-pub fn two_pow_i(n: i8) -> f32 {
-    2.0_f32.powi(n as i32)
-}
-
-*/
-
 pub const fn two_pow_u(n: u8) -> u16 {
     1 << n
 }
 
 pub fn relative_to_1d(index: LodIndex, relative_size: Vec3<u32>) -> usize {
     let index = index.get();
-    (index[0] + index[1] * relative_size[0] + index[2] * relative_size[0] * relative_size[1]) as usize
+    (index[0] * relative_size[2] * relative_size[1] + index[1] * relative_size[2] + index[2]) as usize
 }
+
+pub fn min(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
+    let lhs = lhs.get();
+    let rhs = rhs.get();
+    LodIndex::new(lhs.map2(rhs, |a,b| cmp::min(a,b)))
+}
+
+pub fn max(lhs: LodIndex, rhs: LodIndex) -> LodIndex {
+    let lhs = lhs.get();
+    let rhs = rhs.get();
+    LodIndex::new(lhs.map2(rhs, |a,b| cmp::max(a,b)))
+}
+
