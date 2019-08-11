@@ -233,7 +233,7 @@ impl Default for Settings {
 impl Settings {
     pub fn load() -> Self {
         let path = Settings::get_settings_path();
-        
+
         if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
                 Ok(s) => s,
@@ -252,7 +252,6 @@ impl Settings {
         let default_settings = Self::default();
         default_settings.save_to_file_warn();
         default_settings
-
     }
 
     pub fn save_to_file_warn(&self) {
