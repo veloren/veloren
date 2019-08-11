@@ -63,9 +63,7 @@ impl WorldSim {
         let mut gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(gen_seed()),
             turb_y_nz: SuperSimplex::new().set_seed(gen_seed()),
-            chaos_nz: RidgedMulti::new()
-                .set_octaves(7)
-                .set_seed(gen_seed()),
+            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed()),
             hill_nz: SuperSimplex::new().set_seed(gen_seed()),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
@@ -73,18 +71,10 @@ impl WorldSim {
                 .set_seed(gen_seed()),
             temp_nz: SuperSimplex::new().set_seed(gen_seed()),
             dry_nz: BasicMulti::new().set_seed(gen_seed()),
-            small_nz: BasicMulti::new()
-                .set_octaves(2)
-                .set_seed(gen_seed()),
-            rock_nz: HybridMulti::new()
-                .set_persistence(0.3)
-                .set_seed(gen_seed()),
-            cliff_nz: HybridMulti::new()
-                .set_persistence(0.3)
-                .set_seed(gen_seed()),
-            warp_nz: BasicMulti::new()
-                .set_octaves(3)
-                .set_seed(gen_seed()),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
+            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
+            warp_nz: BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
