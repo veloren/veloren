@@ -301,7 +301,6 @@ impl Client {
             }
 
             // Request chunks from the server.
-            let mut all_loaded = true;
             'outer: for dist in 0..=view_distance as i32 {
                 // Only iterate through chunks that need to be loaded for circular vd
                 // The (dist - 2) explained:
@@ -338,14 +337,9 @@ impl Client {
                                     break 'outer;
                                 }
                             }
-
-                            all_loaded = false;
+                            self.loaded_distance = Some((dist - 1).max(0) as u32);
                         }
                     }
-                }
-
-                if all_loaded {
-                    self.loaded_distance = Some((dist - 1).max(0) as u32);
                 }
             }
 
