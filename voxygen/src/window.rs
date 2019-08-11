@@ -3,9 +3,9 @@ use crate::{
     settings::Settings,
     ui, Error,
 };
+use hashbrown::HashMap;
 use log::{error, warn};
 use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
 use vek::*;
 
 /// Represents a key that the game recognises after keyboard mapping.

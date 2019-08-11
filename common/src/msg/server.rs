@@ -4,7 +4,7 @@ use crate::{
     terrain::{Block, TerrainChunk},
     ChatType,
 };
-use fxhash::FxHashMap;
+use hashbrown::HashMap;
 use vek::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -60,7 +60,7 @@ pub enum ServerMsg {
         key: Vec2<i32>,
         chunk: Box<TerrainChunk>,
     },
-    TerrainBlockUpdates(FxHashMap<Vec3<i32>, Block>),
+    TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     Error(ServerError),
     Disconnect,
     Shutdown,
