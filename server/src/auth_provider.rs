@@ -1,5 +1,5 @@
+use hashbrown::HashMap;
 use log::{info, warn};
-use std::collections::HashMap;
 
 pub struct AuthProvider {
     accounts: HashMap<String, String>,
