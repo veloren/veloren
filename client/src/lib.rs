@@ -15,9 +15,9 @@ use common::{
     vol::VolSize,
     ChatType,
 };
+use hashbrown::HashMap;
 use log::{info, log_enabled, warn};
 use std::{
-    collections::HashMap,
     net::SocketAddr,
     sync::Arc,
     time::{Duration, Instant},
