@@ -3,7 +3,7 @@ use crate::{
     vol::{BaseVol, ReadVol, VolSize, WriteVol},
     volumes::chunk::{Chunk, ChunkErr},
 };
-use fxhash::FxHashMap;
+use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
 use std::ops::Add;
 use vek::*;
@@ -179,7 +179,7 @@ impl WriteVol for Chonk {
             // Can't fail
             SubChunk::Homogeneous(cblock) if block == *cblock => Ok(()),
             SubChunk::Homogeneous(cblock) => {
-                let mut map = FxHashMap::default();
+                let mut map = HashMap::default();
                 map.insert(rpos.map(|e| e as u8), block);
 
                 self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
@@ -238,7 +238,7 @@ impl VolSize for SubChunkSize {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum SubChunk {
     Homogeneous(Block),
-    Hash(Block, FxHashMap<Vec3<u8>, Block>),
+    Hash(Block, HashMap<Vec3<u8>, Block>),
     Heterogeneous(Chunk<Block, SubChunkSize, ()>),
 }
 

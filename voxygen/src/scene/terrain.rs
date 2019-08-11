@@ -9,7 +9,7 @@ use common::{
     volumes::vol_map_2d::VolMap2dErr,
 };
 use frustum_query::frustum::Frustum;
-use fxhash::FxHashMap;
+use hashbrown::HashMap;
 use std::{i32, ops::Mul, sync::mpsc, time::Duration};
 use vek::*;
 
@@ -52,13 +52,13 @@ fn mesh_worker(
 }
 
 pub struct Terrain {
-    chunks: FxHashMap<Vec2<i32>, TerrainChunk>,
+    chunks: HashMap<Vec2<i32>, TerrainChunk>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
     // We keep the sender component for no reason other than to clone it and send it to new workers.
     mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
     mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
-    mesh_todo: FxHashMap<Vec2<i32>, ChunkMeshState>,
+    mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 }
 
 impl Terrain {
@@ -68,10 +68,10 @@ impl Terrain {
         let (send, recv) = mpsc::channel();
 
         Self {
-            chunks: FxHashMap::default(),
+            chunks: HashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
-            mesh_todo: FxHashMap::default(),
+            mesh_todo: HashMap::default(),
         }
     }
 
