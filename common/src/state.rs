@@ -9,7 +9,7 @@ use crate::{
     terrain::{Block, TerrainChunk, TerrainMap},
     vol::WriteVol,
 };
-use fxhash::{FxHashMap, FxHashSet};
+use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
 use specs::{
@@ -45,7 +45,7 @@ const MAX_DELTA_TIME: f32 = 1.0;
 
 #[derive(Default)]
 pub struct BlockChange {
-    blocks: FxHashMap<Vec3<i32>, Block>,
+    blocks: HashMap<Vec3<i32>, Block>,
 }
 
 impl BlockChange {
@@ -60,10 +60,10 @@ impl BlockChange {
 
 #[derive(Default)]
 pub struct TerrainChanges {
-    pub new_chunks: FxHashSet<Vec2<i32>>,
-    pub modified_chunks: FxHashSet<Vec2<i32>>,
-    pub removed_chunks: FxHashSet<Vec2<i32>>,
-    pub modified_blocks: FxHashMap<Vec3<i32>, Block>,
+    pub new_chunks: HashSet<Vec2<i32>>,
+    pub modified_chunks: HashSet<Vec2<i32>>,
+    pub removed_chunks: HashSet<Vec2<i32>>,
+    pub modified_blocks: HashMap<Vec3<i32>, Block>,
 }
 
 impl TerrainChanges {
