@@ -233,13 +233,26 @@ impl Default for Settings {
 impl Settings {
     pub fn load() -> Self {
         let path = Settings::get_settings_path();
-
-        // If file doesn't exist, use the default settings.
-        if let Ok(file) = fs::File::open(path) {
-            ron::de::from_reader(file).expect("Error parsing settings")
-        } else {
-            Self::default()
+        
+        if let Ok(file) = fs::File::open(&path) {
+            match ron::de::from_reader(file) {
+                Ok(s) => s,
+                Err(e) => {
+                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    // Rename the corrupted settings file
+                    let mut new_path = path.to_owned();
+                    new_path.pop();
+                    new_path.push("settings.invalid.ron");
+                    if let Err(err) = std::fs::rename(path, new_path) {
+                        log::warn!("Failed to rename settings file. {}", err);
+                    }
+                }
+            }
         }
+        let default_settings = Self::default();
+        default_settings.save_to_file_warn();
+        default_settings
+
     }
 
     pub fn save_to_file_warn(&self) {
