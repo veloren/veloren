@@ -2,8 +2,8 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerMsg},
     net::PostBox,
 };
+use hashbrown::HashMap;
 use specs::Entity as EcsEntity;
-use std::collections::HashMap;
 
 pub struct Client {
     pub client_state: ClientState,
