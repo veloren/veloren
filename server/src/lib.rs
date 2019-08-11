@@ -25,11 +25,11 @@ use common::{
     vol::Vox,
     vol::{ReadVol, VolSize},
 };
+use hashbrown::HashSet;
 use log::debug;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::{
-    collections::HashSet,
     i32,
     net::SocketAddr,
     sync::{mpsc, Arc},
