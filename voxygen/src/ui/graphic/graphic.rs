@@ -1,6 +1,6 @@
 use dot_vox::DotVoxData;
-use fnv::FnvHashMap;
 use guillotiere::{size2, AllocId, Allocation, AtlasAllocator};
+use hashbrown::HashMap;
 use image::{DynamicImage, RgbaImage};
 use log::{error, warn};
 use std::sync::Arc;
@@ -28,28 +28,28 @@ pub struct CachedDetails {
 }
 
 pub struct GraphicCache {
-    graphic_map: FnvHashMap<Id, Graphic>,
+    graphic_map: HashMap<Id, Graphic>,
     next_id: u32,
 
     atlas: AtlasAllocator,
-    cache_map: FnvHashMap<Parameters, CachedDetails>,
+    cache_map: HashMap<Parameters, CachedDetails>,
     // The current frame
     current_frame: u32,
     unused_entries_this_frame: Option<Vec<Option<(u32, Parameters)>>>,
 
-    soft_cache: FnvHashMap<Parameters, RgbaImage>,
+    soft_cache: HashMap<Parameters, RgbaImage>,
     transfer_ready: Vec<(Parameters, Aabr<u16>)>,
 }
 impl GraphicCache {
     pub fn new(size: Vec2<u16>) -> Self {
         Self {
-            graphic_map: FnvHashMap::default(),
+            graphic_map: HashMap::default(),
             next_id: 0,
             atlas: AtlasAllocator::new(size2(i32::from(size.x), i32::from(size.y))),
-            cache_map: FnvHashMap::default(),
+            cache_map: HashMap::default(),
             current_frame: 0,
             unused_entries_this_frame: None,
-            soft_cache: FnvHashMap::default(),
+            soft_cache: HashMap::default(),
             transfer_ready: Vec::new(),
         }
     }
