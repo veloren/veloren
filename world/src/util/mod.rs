@@ -1,6 +1,7 @@
 pub mod hash_cache;
 pub mod random;
 pub mod sampler;
+pub mod seed_expan;
 pub mod structure;
 pub mod unit_chooser;
 
