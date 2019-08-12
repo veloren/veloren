@@ -3,7 +3,7 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.02, 0.01, 0.3);
-const vec3 DAY_LIGHT   = vec3(0.5, 0.5, 1.0);
+const vec3 DAY_LIGHT   = vec3(0.70, 0.70, 1.0);
 
 const vec3 SKY_DUSK_TOP = vec3(0.21, 0.28, 0.50);
 const vec3 SKY_DUSK_MID = vec3(0.68, 0.03, 0.0);
