@@ -188,11 +188,12 @@ impl Server {
         client: &mut Client,
         name: String,
         body: comp::Body,
+        server_settings: &ServerSettings,
     ) {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name));
+        state.write_component(entity, comp::Stats::new(name.to_string()));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -203,6 +204,16 @@ impl Server {
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
+        let settings = server_settings.clone();
+        // Give the AdminPerms component to the player if their name exists in admin list
+        if settings.admins.contains(&name) {
+            state.write_component(entity, comp::AdminPerms);
+            dbg!("Given admin perms to an user");
+            dbg!(settings.admins);
+        } else {
+            dbg!(settings.admins);
+            dbg!("The new user isn't an admin");
+        }
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
     }
@@ -518,6 +529,7 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         let accounts = &mut self.accounts;
+        let server_settings = &self.server_settings;
 
         let state = &mut self.state;
         let mut new_chat_msgs = Vec::new();
@@ -669,7 +681,14 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead => {
-                                Self::create_player_character(state, entity, client, name, body);
+                                Self::create_player_character(
+                                    state,
+                                    entity,
+                                    client,
+                                    name,
+                                    body,
+                                    &server_settings,
+                                );
                                 if let Some(player) =
                                     state.ecs().read_storage::<comp::Player>().get(entity)
                                 {

@@ -1,4 +1,5 @@
 mod action_state;
+mod admin;
 mod agent;
 mod animation;
 mod body;
@@ -10,10 +11,10 @@ mod phys;
 mod player;
 mod stats;
 mod visual;
-mod admin;
 
 // Reexports
 pub use action_state::ActionState;
+pub use admin::AdminPerms;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
 pub use body::{humanoid, object, quadruped, quadruped_medium, Body};
@@ -27,4 +28,3 @@ pub use phys::{ForceUpdate, Ori, Pos, Scale, Vel};
 pub use player::Player;
 pub use stats::{Dying, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;
-pub use admin::AdminPerms;
