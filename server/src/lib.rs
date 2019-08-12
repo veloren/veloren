@@ -193,7 +193,7 @@ impl Server {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name.to_string()));
+        state.write_component(entity, comp::Stats::new(name));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -204,15 +204,16 @@ impl Server {
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
-        let settings = server_settings.clone();
         // Give the AdminPerms component to the player if their name exists in admin list
-        if settings.admins.contains(&name) {
+        if server_settings.admins.contains(
+            &state
+                .ecs()
+                .read_storage::<comp::Player>()
+                .get(entity)
+                .unwrap()
+                .alias,
+        ) {
             state.write_component(entity, comp::AdminPerms);
-            dbg!("Given admin perms to an user");
-            dbg!(settings.admins);
-        } else {
-            dbg!(settings.admins);
-            dbg!("The new user isn't an admin");
         }
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
@@ -821,7 +822,17 @@ impl Server {
                         } else {
                             let message =
                                 match self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                                    Some(player) => format!("[{}] {}", &player.alias, message),
+                                    Some(player) => match self
+                                        .state
+                                        .ecs()
+                                        .read_storage::<comp::AdminPerms>()
+                                        .get(entity)
+                                    {
+                                        Some(_perms) => {
+                                            format!("[ADMIN][{}] {}", &player.alias, message)
+                                        }
+                                        None => format!("[{}] {}", &player.alias, message),
+                                    },
                                     None => format!("[<Unknown>] {}", message),
                                 };
                             self.clients
