@@ -148,12 +148,3 @@ impl Stats {
 impl Component for Stats {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Dying {
-    pub cause: HealthSource,
-}
-
-impl Component for Dying {
-    type Storage = IDVStorage<Self>;
-}

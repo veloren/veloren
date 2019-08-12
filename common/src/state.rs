@@ -113,7 +113,6 @@ impl State {
         ecs.register_synced::<comp::Body>();
         ecs.register_synced::<comp::Player>();
         ecs.register_synced::<comp::Stats>();
-        ecs.register_synced::<comp::CanBuild>();
         ecs.register_synced::<comp::LightEmitter>();
         ecs.register_synced::<comp::Item>();
         ecs.register_synced::<comp::Scale>();
@@ -122,7 +121,14 @@ impl State {
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::ActionState>();
+        // Note: Some of these are only send on big changes, not just the timer
+        ecs.register::<comp::Ability<comp::Build>>();
+        ecs.register::<comp::Ability<comp::MoveDir>>();
+        ecs.register::<comp::Ability<comp::Attack>>();
+        ecs.register::<comp::Ability<comp::Wield>>();
+        ecs.register::<comp::Ability<comp::Roll>>();
+        ecs.register::<comp::Ability<comp::Glide>>();
+        ecs.register::<comp::Ability<comp::Respawn>>();
 
         // Register components synced from client -> server -> all other clients
         ecs.register::<comp::Pos>();
@@ -131,27 +137,19 @@ impl State {
         ecs.register::<comp::Inventory>();
 
         // Register client-local components
+        ecs.register::<comp::Ability<comp::Jump>>(); // TODO Make the server have more control over this
+        ecs.register::<comp::PhysicsState>();
         ecs.register::<comp::AnimationInfo>();
-        ecs.register::<comp::Jumping>();
 
         // Register server-local components
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::ActionState>>();
+        ecs.register::<comp::Last<comp::PhysicsState>>();
         ecs.register::<comp::Agent>();
-        ecs.register::<comp::Respawning>();
-        ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
-        // Controller effects
-        ecs.register::<comp::MoveDir>();
-        ecs.register::<comp::OnGround>();
-        ecs.register::<comp::Attacking>();
-        ecs.register::<comp::Wielding>();
-        ecs.register::<comp::Rolling>();
-        ecs.register::<comp::Gliding>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));

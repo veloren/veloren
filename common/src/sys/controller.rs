@@ -1,125 +1,124 @@
-use crate::comp::{
-    ActionState, Attacking, Body, Controller, Gliding, Jumping, MoveDir, Respawning, Rolling,
-    Stats, Vel, Wielding,
+use {
+    crate::comp::{
+        Ability, Attack, Body, Controller, Glide, Jump, MoveDir, PhysicsState, Respawn, Roll,
+        Stats, Vel, Wield,
+    },
+    specs::{Entities, Join, ReadStorage, System, WriteStorage},
 };
-use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 /// This system is responsible for validating controller inputs
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        WriteStorage<'a, Controller>,
+        ReadStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
-        ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
-        WriteStorage<'a, ActionState>,
-        WriteStorage<'a, MoveDir>,
-        WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Attacking>,
-        WriteStorage<'a, Wielding>,
-        WriteStorage<'a, Rolling>,
-        WriteStorage<'a, Respawning>,
-        WriteStorage<'a, Gliding>,
+        ReadStorage<'a, PhysicsState>,
+        WriteStorage<'a, Ability<MoveDir>>,
+        WriteStorage<'a, Ability<Jump>>,
+        WriteStorage<'a, Ability<Attack>>,
+        WriteStorage<'a, Ability<Wield>>,
+        WriteStorage<'a, Ability<Roll>>,
+        WriteStorage<'a, Ability<Respawn>>,
+        WriteStorage<'a, Ability<Glide>>,
     );
 
     fn run(
         &mut self,
         (
             entities,
-            mut controllers,
+            controllers,
             stats,
-            bodies,
             velocities,
-            mut action_states,
+            physics_states,
             mut move_dirs,
-            mut jumpings,
-            mut attackings,
-            mut wieldings,
-            mut rollings,
+            mut jumps,
+            mut attacks,
+            mut wields,
+            mut rolls,
             mut respawns,
-            mut glidings,
+            mut glides,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, body, vel, mut a) in (
+        for (entity, controller, stats, vel, physics_state) in (
             &entities,
-            &mut controllers,
+            &controllers,
             &stats,
-            &bodies,
             &velocities,
-            // Although this is changed, it is only kept for this system
-            // as it will be replaced in the action state system
-            &mut action_states,
+            &physics_states,
         )
             .join()
         {
             if stats.is_dead {
                 // Respawn
                 if controller.respawn {
-                    let _ = respawns.insert(entity, Respawning);
+                    //TODO
                 }
                 continue;
             }
 
             // Move dir
-            if !a.rolling {
-                let _ = move_dirs.insert(
-                    entity,
-                    MoveDir(if controller.move_dir.magnitude_squared() > 1.0 {
+            if !rolls.get(entity).filter(|r| r.started()).is_some() {
+                if let Some(move_dir) = move_dirs.get_mut(entity) {
+                    move_dir.try_start();
+                    move_dir.0 = if controller.move_dir.magnitude_squared() > 1.0 {
                         controller.move_dir.normalized()
                     } else {
                         controller.move_dir
-                    }),
-                );
+                    };
+                }
             }
 
             // Glide
-            if controller.glide && !a.on_ground && !a.attacking && !a.rolling && body.is_humanoid()
+            if controller.glide
+                && !physics_state.on_ground
+                && !attacks.get(entity).filter(|a| a.started()).is_some()
+                && !rolls.get(entity).filter(|r| r.started()).is_some()
             {
-                let _ = glidings.insert(entity, Gliding);
-                a.gliding = true;
+                glides.get_mut(entity).map(|g| g.try_start());
             } else {
-                let _ = glidings.remove(entity);
-                a.gliding = false;
+                glides.get_mut(entity).map(|g| g.stop());
             }
 
-            // Wield
-            if controller.attack && !a.wielding && !a.gliding && !a.rolling {
-                let _ = wieldings.insert(entity, Wielding::start());
-                a.wielding = true;
-            }
-
-            // Attack
+            // Combat
             if controller.attack
-                && !a.attacking
-                && wieldings.get(entity).map(|w| w.applied).unwrap_or(false)
-                && !a.gliding
-                && !a.rolling
+                && !glides.get(entity).filter(|g| g.started()).is_some()
+                && !rolls.get(entity).filter(|r| r.started()).is_some()
             {
-                let _ = attackings.insert(entity, Attacking::start());
-                a.attacking = true;
+                let mut ready = false;
+
+                if let Some(wield) = wields.get_mut(entity) {
+                    if wield.applied {
+                        // TODO: Adjust value
+                        ready = true;
+                    } else if !wield.started() {
+                        wield.try_start();
+                    }
+                } else {
+                    // No need to wield
+                    ready = true;
+                }
+
+                if ready {
+                    attacks.get_mut(entity).map(|a| a.try_start());
+                }
             }
 
             // Roll
             if controller.roll
-                && !a.rolling
-                && a.on_ground
-                && a.moving
-                && !a.attacking
-                && !a.gliding
+                && physics_state.on_ground
+                && vel.0.magnitude_squared() > 0.2
+                && !attacks.get(entity).filter(|a| a.started()).is_some()
+                && !glides.get(entity).filter(|g| g.started()).is_some()
             {
-                let _ = rollings.insert(entity, Rolling::start());
-                a.rolling = true;
+                rolls.get_mut(entity).map(|roll| roll.try_start());
             }
 
             // Jump
-            if controller.jump && a.on_ground && vel.0.z <= 0.0 {
-                let _ = jumpings.insert(entity, Jumping);
-                a.on_ground = false;
+            if controller.jump && physics_state.on_ground && vel.0.z <= 0.0 {
+                jumps.get_mut(entity).map(|j| j.try_start());
             }
-
-            // Reset the controller ready for the next tick
-            *controller = Controller::default();
         }
     }
 }

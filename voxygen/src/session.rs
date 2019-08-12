@@ -126,14 +126,15 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Attack, state) => {
                         self.controller.respawn = state; // TODO: Move this into separate GameInput
 
-                        // Check the existence of CanBuild component. If it's here, use LMB to
+                        // Check the existence of Build Ability. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
                         if state
                             && client
                                 .state()
-                                .read_storage::<comp::CanBuild>()
+                                .read_storage::<comp::Ability<comp::Build>>()
                                 .get(client.entity())
+                                .filter(|b| b.started())
                                 .is_some()
                         {
                             let (cam_dir, cam_pos) = get_cam_data(&self.scene.camera(), &client);
@@ -159,8 +160,9 @@ impl PlayState for SessionState {
                             let mut client = self.client.borrow_mut();
                             if client
                                 .state()
-                                .read_storage::<comp::CanBuild>()
+                                .read_storage::<comp::Ability<comp::Build>>()
                                 .get(client.entity())
+                                .filter(|b| b.started())
                                 .is_some()
                             {
                                 let (cam_dir, cam_pos) =
@@ -186,8 +188,9 @@ impl PlayState for SessionState {
                         let client = self.client.borrow();
                         if client
                             .state()
-                            .read_storage::<comp::CanBuild>()
+                            .read_storage::<comp::Ability<comp::Build>>()
                             .get(client.entity())
+                            .filter(|b| b.started())
                             .is_some()
                         {
                             if state {

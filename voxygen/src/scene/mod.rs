@@ -129,8 +129,9 @@ impl Scene {
         let dist = self.camera.get_distance();
         let up = if client
             .state()
-            .read_storage::<comp::CanBuild>()
+            .read_storage::<comp::Ability<comp::Build>>()
             .get(client.entity())
+            .filter(|b| b.started())
             .is_some()
         {
             1.5
@@ -215,8 +216,9 @@ impl Scene {
 
         if client
             .state()
-            .read_storage::<comp::CanBuild>()
+            .read_storage::<comp::Ability<comp::Build>>()
             .get(client.entity())
+            .filter(|b| b.started())
             .is_some()
         {
             self.camera.set_mode(CameraMode::FirstPerson);

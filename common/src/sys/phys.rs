@@ -1,16 +1,14 @@
-use crate::{
-    comp::HealthSource,
-    comp::{
-        ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
-        Wielding,
+use {
+    crate::{
+        comp::{Body, Jump, MoveDir, Ori, PhysicsState, Pos, Roll, Scale, Stats, Vel, Wield},
+        event::{Event, EventBus},
+        state::DeltaTime,
+        terrain::TerrainMap,
+        vol::{ReadVol, Vox},
     },
-    event::{Event, EventBus},
-    state::DeltaTime,
-    terrain::TerrainMap,
-    vol::{ReadVol, Vox},
+    specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+    vek::*,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
 
 const GRAVITY: f32 = 9.81 * 4.0;
 const FRIC_GROUND: f32 = 0.15;
@@ -37,10 +35,9 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus>,
-        ReadStorage<'a, ActionState>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        WriteStorage<'a, OnGround>,
+        WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -53,10 +50,9 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             event_bus,
-            action_states,
             scales,
             bodies,
-            mut on_grounds,
+            mut physics_states,
             mut positions,
             mut velocities,
             mut orientations,
@@ -65,9 +61,8 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, a, scale, b, mut pos, mut vel, mut ori) in (
+        for (entity, scale, b, mut pos, mut vel, mut ori) in (
             &entities,
-            &action_states,
             scales.maybe(),
             &bodies,
             &mut positions,
@@ -76,12 +71,13 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
-                * if on_grounds.get(entity).is_some() {
+                * if physics_state.on_ground {
                     FRIC_GROUND
                 } else {
                     FRIC_AIR
@@ -128,8 +124,8 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
-            let was_on_ground = a.on_ground;
-            on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
+            let was_on_ground = physics_state.on_ground;
+            physics_state.on_ground = false;
 
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
@@ -262,7 +258,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if on_ground {
-                let _ = on_grounds.insert(entity, OnGround);
+                physics_state.on_ground = true
             // If the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
@@ -270,8 +266,10 @@ impl<'a> System<'a> for Sys {
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
-                let _ = on_grounds.insert(entity, OnGround);
+                physics_state.on_ground = true;
             }
+
+            let _ = physics_states.insert(entity, physics_state);
         }
 
         // Apply pushback

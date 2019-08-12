@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel, Wielding},
+    comp::{Ability, Glide, Jump, MoveDir, Ori, PhysicsState, Pos, Roll, Stats, Vel, Wield},
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
@@ -23,20 +23,20 @@ const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 
-/// This system applies forces and calculates new positions and velocities.
+/// This system applies movement inputs
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, MoveDir>,
+        ReadStorage<'a, Ability<MoveDir>>,
         ReadStorage<'a, Stats>,
-        ReadStorage<'a, ActionState>,
-        WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Wielding>,
-        WriteStorage<'a, Rolling>,
-        WriteStorage<'a, OnGround>,
+        WriteStorage<'a, Ability<Jump>>,
+        WriteStorage<'a, Ability<Glide>>,
+        WriteStorage<'a, Ability<Wield>>,
+        WriteStorage<'a, Ability<Roll>>,
+        WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -50,38 +50,41 @@ impl<'a> System<'a> for Sys {
             dt,
             move_dirs,
             stats,
-            action_states,
-            mut jumpings,
-            mut wieldings,
-            mut rollings,
-            mut on_grounds,
+            mut jumps,
+            mut glides,
+            mut wields,
+            mut rolls,
+            mut physics_state,
             mut positions,
             mut velocities,
             mut orientations,
         ): Self::SystemData,
     ) {
-        // Apply movement inputs
-        for (entity, stats, a, move_dir, mut pos, mut vel, mut ori) in (
+        for (entity, stats, move_dir, mut physics_state, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
-            &action_states,
             move_dirs.maybe(),
+            &mut physics_state,
             &mut positions,
             &mut velocities,
             &mut orientations,
         )
             .join()
         {
-            // Disable while dead TODO: Replace with client states?
             if stats.is_dead {
                 continue;
             }
 
             // Move player according to move_dir
-            if let Some(move_dir) = move_dir {
+            if let Some(move_dir) = move_dir.filter(|m| m.started()) {
                 vel.0 += Vec2::broadcast(dt.0)
                     * move_dir.0
-                    * match (a.on_ground, a.gliding, a.rolling, a.wielding) {
+                    * match (
+                        physics_state.on_ground,
+                        glides.get(entity).filter(|g| g.started()).is_some(),
+                        rolls.get(entity).filter(|r| r.started()).is_some(),
+                        wields.get(entity).filter(|w| w.started()).is_some(),
+                    ) {
                         (true, false, false, false)
                             if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) =>
                         {
@@ -111,7 +114,9 @@ impl<'a> System<'a> for Sys {
                     };
 
                 // Set direction based on move direction when on the ground
-                let ori_dir = if a.gliding || a.rolling {
+                let ori_dir = if glides.get(entity).filter(|g| g.started()).is_some()
+                    || rolls.get(entity).filter(|r| r.started()).is_some()
+                {
                     Vec2::from(vel.0)
                 } else {
                     move_dir.0
@@ -123,30 +128,32 @@ impl<'a> System<'a> for Sys {
                     ori.0 = vek::ops::Slerp::slerp(
                         ori.0,
                         ori_dir.into(),
-                        if a.on_ground { 12.0 } else { 2.0 } * dt.0,
+                        if physics_state.on_ground { 12.0 } else { 2.0 } * dt.0,
                     );
                 }
             }
 
             // Jump
-            if jumpings.get(entity).is_some() {
+            if jumps.get(entity).filter(|j| j.started()).is_some() {
                 vel.0.z = HUMANOID_JUMP_ACCEL;
-                jumpings.remove(entity);
+                jumps.get_mut(entity).map(|j| j.stop());
             }
 
             // Glide
-            if a.gliding && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) && vel.0.z < 0.0 {
-                let _ = wieldings.remove(entity);
+            if glides.get(entity).filter(|g| g.started()).is_some()
+                && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0)
+                && vel.0.z < 0.0
+            {
+                wields.get_mut(entity).map(|w| w.stop());
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
 
             // Roll
-            if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
-                let _ = wieldings.remove(entity);
-                *time += dt.0;
-                if *time > 0.6 || !a.moving {
-                    rollings.remove(entity);
+            if let Some(roll) = rolls.get_mut(entity).filter(|r| r.started()) {
+                wields.get_mut(entity).map(|w| w.stop());
+                if roll.time() > 0.6 || vel.0.magnitude_squared() < 0.4 {
+                    rolls.get_mut(entity).map(|r| r.stop());
                 }
             }
         }

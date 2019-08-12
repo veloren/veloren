@@ -26,9 +26,3 @@ impl Player {
 impl Component for Player {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
-
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Respawn;
-impl Component for Respawn {
-    type Storage = NullStorage<Self>;
-}

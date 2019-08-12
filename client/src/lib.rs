@@ -99,7 +99,7 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        // Set client-only components
+        // Set client components
         let _ = state
             .ecs_mut()
             .write_storage()
@@ -442,12 +442,44 @@ impl Client {
                             self.state.write_component(entity, ori);
                         }
                     }
-                    ServerMsg::EntityActionState {
-                        entity,
-                        action_state,
-                    } => {
+                    ServerMsg::EntityMoveDir { entity, move_dir } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, action_state);
+                            self.state.write_component(entity, move_dir);
+                        }
+                    }
+                    ServerMsg::EntityWield { entity, wield } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, wield);
+                        }
+                    }
+                    ServerMsg::EntityAttack { entity, attack } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, attack);
+                        }
+                    }
+                    ServerMsg::EntityRoll { entity, roll } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, roll);
+                        }
+                    }
+                    ServerMsg::EntityBuild { entity, build } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, build);
+                        }
+                    }
+                    ServerMsg::EntityJump { entity, jump } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, jump);
+                        }
+                    }
+                    ServerMsg::EntityGlide { entity, glide } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, glide);
+                        }
+                    }
+                    ServerMsg::EntityRespawn { entity, respawn } => {
+                        if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
+                            self.state.write_component(entity, respawn);
                         }
                     }
                     ServerMsg::InventoryUpdate(inventory) => {

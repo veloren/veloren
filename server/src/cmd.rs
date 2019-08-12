@@ -168,7 +168,12 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 server
                     .state
                     .write_component(entity, comp::Pos(current_pos.0 + Vec3::new(x, y, z)));
-                server.state.write_component(entity, comp::ForceUpdate);
+                server
+                    .state
+                    .ecs()
+                    .write_storage::<comp::ForceUpdate>()
+                    .get_mut(entity)
+                    .map(|f| f.0 = true);
             }
             None => server.clients.notify(
                 entity,
@@ -188,7 +193,12 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             server
                 .state
                 .write_component(entity, comp::Pos(Vec3::new(x, y, z)));
-            server.state.write_component(entity, comp::ForceUpdate);
+            server
+                .state
+                .ecs()
+                .write_storage::<comp::ForceUpdate>()
+                .get_mut(entity)
+                .map(|f| f.0 = true);
         } else {
             server.clients.notify(
                 entity,
@@ -205,7 +215,7 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     server
         .state
-        .ecs_mut()
+        .ecs()
         .write_storage::<comp::Stats>()
         .get_mut(entity)
         .map(|s| s.health.set_to(0, comp::HealthSource::Suicide));
@@ -264,7 +274,7 @@ fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &
     if let Ok(hp) = scan_fmt!(&args, action.arg_fmt, u32) {
         if let Some(stats) = server
             .state
-            .ecs_mut()
+            .ecs()
             .write_storage::<comp::Stats>()
             .get_mut(entity)
         {
@@ -287,7 +297,7 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
     if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
         server
             .state
-            .ecs_mut()
+            .ecs()
             .write_storage::<comp::Player>()
             .get_mut(entity)
             .map(|player| player.alias = alias);
@@ -310,7 +320,12 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
                 Some(player) => match server.state.read_component_cloned::<comp::Pos>(player) {
                     Some(pos) => {
                         server.state.write_component(entity, pos);
-                        server.state.write_component(entity, comp::ForceUpdate);
+                        server
+                            .state
+                            .ecs()
+                            .write_storage::<comp::ForceUpdate>()
+                            .get_mut(entity)
+                            .map(|f| f.0 = true);
                     }
                     None => server.clients.notify(
                         entity,
@@ -413,14 +428,14 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     if server
         .state
-        .read_storage::<comp::CanBuild>()
+        .read_storage::<comp::Ability<comp::Build>>()
         .get(entity)
         .is_some()
     {
         server
             .state
             .ecs()
-            .write_storage::<comp::CanBuild>()
+            .write_storage::<comp::Ability<comp::Build>>()
             .remove(entity);
         server.clients.notify(
             entity,
@@ -430,8 +445,8 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
         let _ = server
             .state
             .ecs()
-            .write_storage::<comp::CanBuild>()
-            .insert(entity, comp::CanBuild);
+            .write_storage::<comp::Ability<comp::Build>>()
+            .insert(entity, Default::default());
         server.clients.notify(
             entity,
             ServerMsg::private(String::from("Toggled on build mode!")),
@@ -612,7 +627,6 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
-            .with(comp::ForceUpdate)
             .with(light_emitter)
             .build();
         server

@@ -1,9 +1,8 @@
-mod action_state;
+mod abilities;
 mod agent;
 mod animation;
 mod body;
 mod controller;
-mod inputs;
 mod inventory;
 mod last;
 mod phys;
@@ -12,17 +11,16 @@ mod stats;
 mod visual;
 
 // Reexports
-pub use action_state::ActionState;
-pub use agent::Agent;
-pub use animation::{Animation, AnimationInfo};
-pub use body::{humanoid, object, quadruped, quadruped_medium, Body};
-pub use controller::Controller;
-pub use inputs::{
-    Attacking, CanBuild, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling, Wielding,
+pub use {
+    abilities::{Ability, Attack, Build, Glide, Jump, MoveDir, Respawn, Roll, Wield},
+    agent::Agent,
+    animation::{Animation, AnimationInfo},
+    body::{humanoid, object, quadruped, quadruped_medium, Body},
+    controller::Controller,
+    inventory::{item, Inventory, InventoryUpdate, Item},
+    last::Last,
+    phys::{ForceUpdate, Ori, PhysicsState, Pos, Scale, Vel},
+    player::Player,
+    stats::{Exp, HealthSource, Level, Stats},
+    visual::LightEmitter,
 };
-pub use inventory::{item, Inventory, InventoryUpdate, Item};
-pub use last::Last;
-pub use phys::{ForceUpdate, Ori, Pos, Scale, Vel};
-pub use player::Player;
-pub use stats::{Dying, Exp, HealthSource, Level, Stats};
-pub use visual::LightEmitter;

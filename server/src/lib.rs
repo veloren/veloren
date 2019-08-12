@@ -156,8 +156,11 @@ impl Server {
             .with(comp::Controller::default())
             .with(body)
             .with(comp::Stats::new(name))
-            .with(comp::ActionState::default())
-            .with(comp::ForceUpdate)
+            .with(comp::Ability::<comp::MoveDir>::default())
+            .with(comp::Ability::<comp::Attack>::default())
+            .with(comp::Ability::<comp::Roll>::default())
+            .with(comp::Ability::<comp::Jump>::default())
+            .with(comp::Ability::<comp::Glide>::default())
     }
 
     /// Build a static object entity
@@ -177,9 +180,6 @@ impl Server {
                 offset: Vec3::unit_z(),
                 ..comp::LightEmitter::default()
             })
-            //.with(comp::LightEmitter::default())
-            .with(comp::ActionState::default())
-            .with(comp::ForceUpdate)
     }
 
     pub fn create_player_character(
@@ -197,11 +197,19 @@ impl Server {
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
-        state.write_component(entity, comp::ActionState::default());
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
-        state.write_component(entity, comp::ForceUpdate);
+        state.write_component(entity, comp::ForceUpdate(true));
+        // Abilities
+        state.write_component(entity, comp::Ability::<comp::MoveDir>::default());
+        state.write_component(entity, comp::Ability::<comp::Wield>::default());
+        state.write_component(entity, comp::Ability::<comp::Attack>::default());
+        state.write_component(entity, comp::Ability::<comp::Roll>::default());
+        state.write_component(entity, comp::Ability::<comp::Build>::default());
+        state.write_component(entity, comp::Ability::<comp::Jump>::default());
+        state.write_component(entity, comp::Ability::<comp::Glide>::default());
+        state.write_component(entity, comp::Ability::<comp::Respawn>::default());
 
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
@@ -348,7 +356,6 @@ impl Server {
                     .with(comp::Controller::default())
                     .with(body)
                     .with(stats)
-                    .with(comp::ActionState::default())
                     .with(comp::Agent::enemy())
                     .with(comp::Scale(scale))
                     .build();
@@ -469,8 +476,9 @@ impl Server {
         // Cleanup
         let ecs = self.state.ecs_mut();
         for entity in ecs.entities().join() {
-            ecs.write_storage::<comp::Dying>().remove(entity);
-            ecs.write_storage::<comp::Respawning>().remove(entity);
+            ecs.write_storage::<comp::Ability<comp::Respawn>>()
+                .get_mut(entity)
+                .map(|r| r.stop());
         }
 
         Ok(frontend_events)
@@ -721,8 +729,9 @@ impl Server {
                         ClientMsg::BreakBlock(pos) => {
                             if state
                                 .ecs_mut()
-                                .read_storage::<comp::CanBuild>()
+                                .read_storage::<comp::Ability<comp::Build>>()
                                 .get(entity)
+                                .filter(|b| b.started())
                                 .is_some()
                             {
                                 modified_blocks.push((pos, Block::empty()));
@@ -731,8 +740,9 @@ impl Server {
                         ClientMsg::PlaceBlock(pos, block) => {
                             if state
                                 .ecs_mut()
-                                .read_storage::<comp::CanBuild>()
+                                .read_storage::<comp::Ability<comp::Build>>()
                                 .get(entity)
+                                .filter(|b| b.started())
                                 .is_some()
                             {
                                 modified_blocks.push((pos, block));
@@ -862,12 +872,11 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics of all entities
-        for (&uid, &pos, vel, ori, action_state) in (
+        for (&uid, &pos, vel, ori) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
             state.ecs().read_storage::<comp::Vel>().maybe(),
             state.ecs().read_storage::<comp::Ori>().maybe(),
-            state.ecs().read_storage::<comp::ActionState>().maybe(),
         )
             .join()
         {
@@ -887,12 +896,6 @@ impl Server {
                     ori,
                 });
             }
-            if let Some(action_state) = action_state.copied() {
-                client.notify(ServerMsg::EntityActionState {
-                    entity: uid.into(),
-                    action_state,
-                });
-            }
         }
 
         // Tell the client its request was successful.
@@ -905,84 +908,87 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
+        let ecs = self.state.ecs_mut();
+
         // TODO: Move this into some new method like `handle_sys_outputs` right after ticking the world
         // Handle deaths.
-        let ecs = self.state.ecs_mut();
-        let clients = &mut self.clients;
-        let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
-            .join()
-            .map(|(entity, dying)| {
-                // Chat message
-                if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
-                    let msg = if let comp::HealthSource::Attack { by } = dying.cause {
-                        ecs.entity_from_uid(by.into()).and_then(|attacker| {
-                            ecs.read_storage::<comp::Player>()
-                                .get(attacker)
-                                .map(|attacker_alias| {
-                                    format!(
-                                        "{} was killed by {}",
-                                        &player.alias, &attacker_alias.alias
-                                    )
-                                })
-                        })
-                    } else {
-                        None
-                    }
-                    .unwrap_or(format!("{} died", &player.alias));
+        //let clients = &mut self.clients;
+        //let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
+        //    .join()
+        //    .map(|(entity, dying)| {
+        //        // Chat message
+        //        if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+        //            let msg = if let comp::HealthSource::Attack { by } = dying.cause {
+        //                ecs.entity_from_uid(by.into()).and_then(|attacker| {
+        //                    ecs.read_storage::<comp::Player>()
+        //                        .get(attacker)
+        //                        .map(|attacker_alias| {
+        //                            format!(
+        //                                "{} was killed by {}",
+        //                                &player.alias, &attacker_alias.alias
+        //                            )
+        //                        })
+        //                })
+        //            } else {
+        //                None
+        //            }
+        //            .unwrap_or(format!("{} died", &player.alias));
 
-                    clients.notify_registered(ServerMsg::kill(msg));
-                }
+        //            clients.notify_registered(ServerMsg::kill(msg));
+        //        }
 
-                // Give EXP to the client
-                let mut stats = ecs.write_storage::<comp::Stats>();
-                if let Some(entity_stats) = stats.get(entity).cloned() {
-                    if let comp::HealthSource::Attack { by } = dying.cause {
-                        ecs.entity_from_uid(by.into()).map(|attacker| {
-                            if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                attacker_stats.exp.change_by(
-                                    entity_stats.health.maximum() as f64 / 10.0
-                                        + entity_stats.level.level() as f64 * 10.0,
-                                );
-                            }
-                        });
-                    }
-                }
+        //        // Give EXP to the client
+        //        let mut stats = ecs.write_storage::<comp::Stats>();
+        //        if let Some(entity_stats) = stats.get(entity).cloned() {
+        //            if let comp::HealthSource::Attack { by } = dying.cause {
+        //                ecs.entity_from_uid(by.into()).map(|attacker| {
+        //                    if let Some(attacker_stats) = stats.get_mut(attacker) {
+        //                        // TODO: Discuss whether we should give EXP by Player Killing or not.
+        //                        attacker_stats.exp.change_by(
+        //                            entity_stats.health.maximum() as f64 / 10.0
+        //                                + entity_stats.level.level() as f64 * 10.0,
+        //                        );
+        //                    }
+        //                });
+        //            }
+        //        }
 
-                entity
-            })
-            .collect::<Vec<_>>();
+        //        entity
+        //    })
+        //    .collect::<Vec<_>>();
 
-        // Actually kill them
-        for entity in todo_kill {
-            if let Some(client) = self.clients.get_mut(&entity) {
-                let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
-                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
-                client.force_state(ClientState::Dead);
-            } else {
-                let _ = ecs.delete_entity_synced(entity);
-                continue;
-            }
-        }
+        //// Actually kill them
+        //for entity in todo_kill {
+        //    if let Some(client) = self.clients.get_mut(&entity) {
+        //        let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
+        //        ecs.write_storage().get_mut(entity).map(|f| f.0 = true);
+        //        client.force_state(ClientState::Dead);
+        //    } else {
+        //        let _ = ecs.delete_entity_synced(entity);
+        //        continue;
+        //    }
+        //}
 
-        // Handle respawns
-        let todo_respawn = (&ecs.entities(), &ecs.read_storage::<comp::Respawning>())
-            .join()
-            .map(|(entity, _)| entity)
-            .collect::<Vec<EcsEntity>>();
+        //// Handle respawns
+        //let todo_respawn = (&ecs.entities(), &ecs.read_storage::<comp::Respawning>())
+        //    .join()
+        //    .map(|(entity, _)| entity)
+        //    .collect::<Vec<EcsEntity>>();
 
-        for entity in todo_respawn {
-            if let Some(client) = self.clients.get_mut(&entity) {
-                client.allow_state(ClientState::Character);
-                ecs.write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|stats| stats.revive());
-                ecs.write_storage::<comp::Pos>()
-                    .get_mut(entity)
-                    .map(|pos| pos.0.z += 20.0);
-                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
-            }
-        }
+        //for entity in todo_respawn {
+        //    if let Some(client) = self.clients.get_mut(&entity) {
+        //        client.allow_state(ClientState::Character);
+        //        ecs.write_storage::<comp::Stats>()
+        //            .get_mut(entity)
+        //            .map(|stats| stats.revive());
+        //        ecs.write_storage::<comp::Pos>()
+        //            .get_mut(entity)
+        //            .map(|pos| pos.0.z += 20.0);
+        //        ecs.write_storage::<comp::ForceUpdate>()
+        //            .get_mut(entity)
+        //            .map(|f| f.0 = true);
+        //    }
+        //}
 
         // Sync physics
         for (entity, &uid, &pos, force_update) in (
@@ -1020,7 +1026,6 @@ impl Server {
             let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
             let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
             let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
-            let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
 
             if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if last_pos
@@ -1033,7 +1038,7 @@ impl Server {
                         entity: uid.into(),
                         pos: *client_pos,
                     };
-                    match force_update {
+                    match force_update.filter(|f| f.0) {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
@@ -1051,7 +1056,7 @@ impl Server {
                         entity: uid.into(),
                         vel: *client_vel,
                     };
-                    match force_update {
+                    match force_update.filter(|f| f.0) {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
@@ -1069,29 +1074,116 @@ impl Server {
                         entity: uid.into(),
                         ori: *client_ori,
                     };
-                    match force_update {
+                    match force_update.filter(|f| f.0) {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),
                         None => clients.notify_ingame_if_except(entity, msg, in_vd),
                     }
                 }
             }
 
-            if let Some(client_action_state) = ecs.read_storage::<comp::ActionState>().get(entity) {
-                if last_action_state
-                    .get(entity)
-                    .map(|&l| l != *client_action_state)
-                    .unwrap_or(true)
-                {
-                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
-                    let msg = ServerMsg::EntityActionState {
+            if let Some((true, move_dir)) = ecs
+                .write_storage::<comp::Ability<comp::MoveDir>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityMoveDir {
                         entity: uid.into(),
-                        action_state: *client_action_state,
-                    };
-                    match force_update {
-                        Some(_) => clients.notify_ingame_if(msg, in_vd),
-                        None => clients.notify_ingame_if_except(entity, msg, in_vd),
-                    }
-                }
+                        move_dir: move_dir.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, wield)) = ecs
+                .write_storage::<comp::Ability<comp::Wield>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityWield {
+                        entity: uid.into(),
+                        wield: wield.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, attack)) = ecs
+                .write_storage::<comp::Ability<comp::Attack>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityAttack {
+                        entity: uid.into(),
+                        attack: attack.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, roll)) = ecs
+                .write_storage::<comp::Ability<comp::Roll>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityRoll {
+                        entity: uid.into(),
+                        roll: roll.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, build)) = ecs
+                .write_storage::<comp::Ability<comp::Build>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityBuild {
+                        entity: uid.into(),
+                        build: build.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, jump)) = ecs
+                .write_storage::<comp::Ability<comp::Jump>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityJump {
+                        entity: uid.into(),
+                        jump: jump.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, glide)) = ecs
+                .write_storage::<comp::Ability<comp::Glide>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityGlide {
+                        entity: uid.into(),
+                        glide: glide.clone(),
+                    },
+                    in_vd,
+                );
+            }
+            if let Some((true, respawn)) = ecs
+                .write_storage::<comp::Ability<comp::Respawn>>()
+                .get_mut(entity)
+                .map(|a| (a.sync(), a))
+            {
+                clients.notify_ingame_if(
+                    ServerMsg::EntityRespawn {
+                        entity: uid.into(),
+                        respawn: respawn.clone(),
+                    },
+                    in_vd,
+                );
             }
         }
 
@@ -1108,12 +1200,12 @@ impl Server {
         }
 
         // Remove all force flags.
+        for mut f in (&mut self.state.ecs().write_storage::<comp::ForceUpdate>()).join() {
+            f.0 = false;
+        }
+
         self.state
-            .ecs_mut()
-            .write_storage::<comp::ForceUpdate>()
-            .clear();
-        self.state
-            .ecs_mut()
+            .ecs()
             .write_storage::<comp::InventoryUpdate>()
             .clear();
     }

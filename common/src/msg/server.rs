@@ -51,9 +51,37 @@ pub enum ServerMsg {
         entity: u64,
         ori: comp::Ori,
     },
-    EntityActionState {
+    EntityMoveDir {
         entity: u64,
-        action_state: comp::ActionState,
+        move_dir: comp::Ability<comp::MoveDir>,
+    },
+    EntityWield {
+        entity: u64,
+        wield: comp::Ability<comp::Wield>,
+    },
+    EntityAttack {
+        entity: u64,
+        attack: comp::Ability<comp::Attack>,
+    },
+    EntityRoll {
+        entity: u64,
+        roll: comp::Ability<comp::Roll>,
+    },
+    EntityBuild {
+        entity: u64,
+        build: comp::Ability<comp::Build>,
+    },
+    EntityJump {
+        entity: u64,
+        jump: comp::Ability<comp::Jump>,
+    },
+    EntityGlide {
+        entity: u64,
+        glide: comp::Ability<comp::Glide>,
+    },
+    EntityRespawn {
+        entity: u64,
+        respawn: comp::Ability<comp::Respawn>,
     },
     InventoryUpdate(comp::Inventory),
     TerrainChunkUpdate {

@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState, Animation, AnimationInfo},
+    comp::{Ability, Animation, AnimationInfo, Attack, Glide, PhysicsState, Roll, Vel, Wield},
     state::DeltaTime,
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -10,23 +10,51 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, ActionState>,
+        ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, Vel>,
+        ReadStorage<'a, Ability<Attack>>,
+        ReadStorage<'a, Ability<Glide>>,
+        ReadStorage<'a, Ability<Roll>>,
+        ReadStorage<'a, Ability<Wield>>,
         WriteStorage<'a, AnimationInfo>,
     );
 
-    fn run(&mut self, (entities, dt, action_states, mut animation_infos): Self::SystemData) {
-        for (entity, a) in (&entities, &action_states).join() {
+    fn run(
+        &mut self,
+        (
+            entities,
+            dt,
+            physics_states,
+            velocities,
+            attacks,
+            glides,
+            rolls,
+            wields,
+            mut animation_infos,
+        ): Self::SystemData,
+    ) {
+        for (entity, physics_state, vel, attack, glide, roll, wield) in (
+            &entities,
+            &physics_states,
+            &velocities,
+            attacks.maybe(),
+            glides.maybe(),
+            rolls.maybe(),
+            wields.maybe(),
+        )
+            .join()
+        {
             fn impossible_animation(message: &str) -> Animation {
                 warn!("{}", message);
                 Animation::Idle
             }
             let animation = match (
-                a.on_ground,
-                a.moving,
-                a.attacking,
-                a.gliding,
-                a.rolling,
-                a.wielding,
+                physics_state.on_ground,
+                vel.0.magnitude_squared() > 0.4,
+                attack.filter(|a| a.started()).is_some(),
+                glide.filter(|a| a.started()).is_some(),
+                roll.filter(|r| r.started()).is_some(),
+                wield.filter(|w| w.started()).is_some(),
             ) {
                 (_, _, true, true, _, _) => impossible_animation("Attack while gliding"),
                 (_, _, true, _, true, _) => impossible_animation("Roll while attacking"),
