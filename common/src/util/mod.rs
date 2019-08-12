@@ -1,6 +1,8 @@
 pub const GIT_HASH: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
+use palette::{Hsv, Saturate, Srgb};
 use vek::{Rgb, Rgba};
+
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     #[inline(always)]
@@ -32,4 +34,13 @@ pub fn srgba_to_linear(col: Rgba<f32>) -> Rgba<f32> {
 #[inline(always)]
 pub fn linear_to_srgba(col: Rgba<f32>) -> Rgba<f32> {
     Rgba::from_translucent(linear_to_srgb(Rgb::from(col)), col.a)
+}
+#[inline(always)]
+pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
+    Rgb::from(
+        Srgb::from(Hsv::from(Srgb::from_components(col.into_tuple())).saturate(value))
+            .into_components(),
+    )
+    .map(|c: f32| (c.max(0.0).min(1.0)))
+    .into()
 }
