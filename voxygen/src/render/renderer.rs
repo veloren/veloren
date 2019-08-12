@@ -23,7 +23,7 @@ pub type TgtColorFmt = gfx::format::Srgba8;
 pub type TgtDepthFmt = gfx::format::Depth;
 
 /// Represents the format of the window's color target.
-pub type WinColorFmt = gfx::format::Rgba8;
+pub type WinColorFmt = gfx::format::Srgba8;
 /// Represents the format of the window's depth target.
 pub type WinDepthFmt = gfx::format::Depth;
 

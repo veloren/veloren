@@ -105,27 +105,27 @@ pub fn load_watched<A: Asset + 'static>(
     let asset = load(specifier)?;
 
     // Determine path to watch
-    let mut path = unpack_specifier(specifier);
-    let mut file_exists = false;
+    let path = unpack_specifier(specifier);
+    let mut path_with_extension = None;
     for ending in A::ENDINGS {
         let mut path = path.clone();
         path.set_extension(ending);
 
         if path.exists() {
-            file_exists = true;
+            path_with_extension = Some(path);
             break;
         }
     }
-    if !file_exists {
-        return Err(Error::NotFound(path.to_string_lossy().into_owned()));
-    }
 
     let owned_specifier = specifier.to_string();
-    indicator.add(path, move || {
-        if let Err(err) = reload::<A>(&owned_specifier) {
-            error!("Error reloading {}: {:#?}", &owned_specifier, err);
-        }
-    });
+    indicator.add(
+        path_with_extension.ok_or_else(|| Error::NotFound(path.to_string_lossy().into_owned()))?,
+        move || {
+            if let Err(err) = reload::<A>(&owned_specifier) {
+                error!("Error reloading {}: {:#?}", &owned_specifier, err);
+            }
+        },
+    );
 
     Ok(asset)
 }
