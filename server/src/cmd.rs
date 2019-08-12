@@ -668,61 +668,61 @@ fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &C
 }
 
 fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-        let opt_s = scan_fmt_some!(&args, action.arg_fmt, f32);
+    let opt_s = scan_fmt_some!(&args, action.arg_fmt, f32);
 
-        if server
-            .state
-            .read_storage::<comp::LightEmitter>()
-            .get(entity)
-            .is_some()
-        {
-            if let Some(s) = opt_s {
-                if let Some(light) = server
-                    .state
-                    .ecs()
-                    .write_storage::<comp::LightEmitter>()
-                    .get_mut(entity)
-                {
-                    light.strength = s.max(0.1).min(20.0);
-                    server.clients.notify(
-                        entity,
-                        ServerMsg::private(String::from("You played with flame strength.")),
-                    );
-                }
-            } else {
-                server
-                    .state
-                    .ecs()
-                    .write_storage::<comp::LightEmitter>()
-                    .remove(entity);
-                server.clients.notify(
-                    entity,
-                    ServerMsg::private(String::from("You put out the lantern.")),
-                );
-            }
-        } else {
-            let _ = server
+    if server
+        .state
+        .read_storage::<comp::LightEmitter>()
+        .get(entity)
+        .is_some()
+    {
+        if let Some(s) = opt_s {
+            if let Some(light) = server
                 .state
                 .ecs()
                 .write_storage::<comp::LightEmitter>()
-                .insert(
+                .get_mut(entity)
+            {
+                light.strength = s.max(0.1).min(20.0);
+                server.clients.notify(
                     entity,
-                    comp::LightEmitter {
-                        offset: Vec3::new(0.5, 0.2, 0.8),
-                        col: Rgb::new(1.0, 0.75, 0.3),
-                        strength: if let Some(s) = opt_s {
-                            s.max(0.0).min(20.0)
-                        } else {
-                            6.0
-                        },
-                    },
+                    ServerMsg::private(String::from("You played with flame strength.")),
                 );
-
+            }
+        } else {
+            server
+                .state
+                .ecs()
+                .write_storage::<comp::LightEmitter>()
+                .remove(entity);
             server.clients.notify(
                 entity,
-                ServerMsg::private(String::from("You lighted your lantern.")),
+                ServerMsg::private(String::from("You put out the lantern.")),
             );
         }
+    } else {
+        let _ = server
+            .state
+            .ecs()
+            .write_storage::<comp::LightEmitter>()
+            .insert(
+                entity,
+                comp::LightEmitter {
+                    offset: Vec3::new(0.5, 0.2, 0.8),
+                    col: Rgb::new(1.0, 0.75, 0.3),
+                    strength: if let Some(s) = opt_s {
+                        s.max(0.0).min(20.0)
+                    } else {
+                        6.0
+                    },
+                },
+            );
+
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You lighted your lantern.")),
+        );
+    }
 }
 
 fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
