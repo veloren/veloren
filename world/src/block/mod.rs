@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     terrain::{structure::StructureBlock, Block, Structure},
-    util::linear_to_srgb,
+    util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
@@ -210,7 +210,8 @@ impl<'a> BlockGen<'a> {
         // Sample blocks
 
         // let stone_col = Rgb::new(240, 230, 220);
-        let stone_col = Rgb::new(248, 243, 239);
+        let stone_col = Rgb::new(195, 187, 201);
+
         // let dirt_col = Rgb::new(79, 67, 60);
 
         let air = Block::empty();
@@ -219,13 +220,14 @@ impl<'a> BlockGen<'a> {
         // let dirt = Block::new(1, dirt_col);
         // let sand = Block::new(1, Rgb::new(180, 150, 50));
         // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
-        // let water = Block::new(1, Rgb::new(100, 150, 255));
-        let water = Block::new(1, Rgb::new(168, 202, 255));
+
+        //let water = Block::new(1, Rgb::new(100, 150, 255));
+        let water = Block::new(1, Rgb::new(0, 24, 255));
 
         let grass_depth = 1.5 + 2.0 * chaos;
         let block = if (wposf.z as f32) < height - grass_depth {
             let col = Lerp::lerp(
-                linear_to_srgb(sub_surface_color).map(|e| (e * 255.0) as u8),
+                saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
                 stone_col,
                 (height - grass_depth - wposf.z as f32) * 0.15,
             );
@@ -247,7 +249,7 @@ impl<'a> BlockGen<'a> {
             // Surface
             Some(Block::new(
                 1,
-                linear_to_srgb(col).map(|e| (e * 255.0) as u8),
+                saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
             ))
         } else if (wposf.z as f32) < water_height {
             // Ocean
@@ -413,7 +415,7 @@ impl StructureInfo {
                             .map(|e: i32| (e.abs() / 2) * 2)
                             .reduce_max()
                 {
-                    Some(Block::new(2, Rgb::new(219, 196, 160)))
+                    Some(Block::new(2, Rgb::new(203, 170, 146)))
                 } else {
                     None
                 }
@@ -452,8 +454,8 @@ fn block_from_structure(
         StructureBlock::TemperateLeaves => Some(Block::new(
             1,
             Lerp::lerp(
-                Rgb::new(0.00, 143.0, 103.6),
-                Rgb::new(168.1, 195.5, 0.0),
+                Rgb::new(0.0, 132.0, 94.0),
+                Rgb::new(142.0, 181.0, 0.0),
                 lerp,
             )
             .map(|e| e as u8),
@@ -461,8 +463,8 @@ fn block_from_structure(
         StructureBlock::PineLeaves => Some(Block::new(
             1,
             Lerp::lerp(
-                Rgb::new(0.00, 133.2, 122.4),
-                Rgb::new(96.3, 168.1, 55.8),
+                Rgb::new(0.0, 108.0, 113.0),
+                Rgb::new(30.0, 156.0, 10.0),
                 lerp,
             )
             .map(|e| e as u8),
@@ -470,29 +472,21 @@ fn block_from_structure(
         StructureBlock::PalmLeaves => Some(Block::new(
             1,
             Lerp::lerp(
-                Rgb::new(68.6, 168.1, 96.3),
-                Rgb::new(128.0, 239.0, 0.00),
+                Rgb::new(15.0, 156.0, 70.0),
+                Rgb::new(40.0, 222.0, 0.0),
                 lerp,
             )
             .map(|e| e as u8),
         )),
         StructureBlock::Acacia => Some(Block::new(
             1,
-            Lerp::lerp(
-                Rgb::new(103.6, 168.1, 55.8),
-                Rgb::new(143.0, 224.0, 88.2),
-                lerp,
-            )
-            .map(|e| e as u8),
+            Lerp::lerp(Rgb::new(35.0, 156.0, 0.0), Rgb::new(62.0, 208.0, 0.0), lerp)
+                .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(
             1,
-            Lerp::lerp(
-                Rgb::new(255.0, 0.0, 0.0),
-                Rgb::new(229.1, 255.0, 42.4),
-                lerp,
-            )
-            .map(|e| e as u8),
+            Lerp::lerp(Rgb::new(237.0, 0.0, 0.0), Rgb::new(200.0, 237.0, 0.0), lerp)
+                .map(|e| e as u8),
         )),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Block(block) => Some(block).filter(|block| !block.is_empty()),

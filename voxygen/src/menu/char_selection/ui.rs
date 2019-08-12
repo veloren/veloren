@@ -147,10 +147,10 @@ image_ids! {
         charlist_frame: "voxygen.element.frames.window_4",
         server_frame: "voxygen.element.frames.server_frame",
         selection: "voxygen.element.frames.selection",
-
-        <ImageGraphic>
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
+
+        <ImageGraphic>
 
         // Tool Icons
         daggers: "voxygen.element.icons.daggers",
