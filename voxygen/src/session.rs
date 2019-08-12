@@ -107,7 +107,7 @@ impl PlayState for SessionState {
 
         let mut placing_vox = false;
         let vox = common::figure::Segment::from(
-            common::assets::load_expect::<dot_vox::DotVoxData>("place.vox").as_ref(),
+            common::assets::load_expect::<dot_vox::DotVoxData>("place").as_ref(),
         );
         let mut curpos = Vec3::<i32>::zero();
         let mut placepos = Vec3::zero();
