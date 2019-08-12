@@ -12,6 +12,7 @@ pub struct ServerSettings {
     pub server_description: String,
     //pub login_server: whatever
     pub start_time: f64,
+    pub admins: Vec<String>,
 }
 
 impl Default for ServerSettings {
@@ -23,6 +24,7 @@ impl Default for ServerSettings {
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
+            admins: vec![],
         }
     }
 }
