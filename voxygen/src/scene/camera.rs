@@ -123,6 +123,25 @@ impl Camera {
         };
     }
 
+    /// Zoom with the ability to switch between first and third-person mode.
+    pub fn zoom_switch(&mut self, delta: f32) {
+        if delta > 0_f32 || self.mode != CameraMode::FirstPerson {
+            let t = self.tgt_dist + delta;
+            match self.mode {
+                CameraMode::ThirdPerson => {
+                    if t < 2_f32 {
+                        self.set_mode(CameraMode::FirstPerson);
+                    } else {
+                        self.tgt_dist = t;
+                    }
+                }
+                CameraMode::FirstPerson => {
+                    self.set_mode(CameraMode::ThirdPerson);
+                }
+            }
+        }
+    }
+
     /// Get the distance of the camera from the target
     pub fn get_distance(&self) -> f32 {
         self.tgt_dist
