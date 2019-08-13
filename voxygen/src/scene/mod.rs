@@ -106,7 +106,7 @@ impl Scene {
             }
             // Zoom the camera when a zoom event occurs
             Event::Zoom(delta) => {
-                self.camera.zoom_by(delta * 0.3);
+                self.camera.zoom_switch(delta * 0.3);
                 true
             }
             // All other events are unhandled
@@ -127,12 +127,7 @@ impl Scene {
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
-        let up = if client
-            .state()
-            .read_storage::<comp::CanBuild>()
-            .get(client.entity())
-            .is_some()
-        {
+        let up = if self.camera.get_mode() == CameraMode::FirstPerson {
             1.5
         } else {
             1.2
@@ -212,17 +207,6 @@ impl Scene {
             view_mat,
             proj_mat,
         );
-
-        if client
-            .state()
-            .read_storage::<comp::CanBuild>()
-            .get(client.entity())
-            .is_some()
-        {
-            self.camera.set_mode(CameraMode::FirstPerson);
-        } else {
-            self.camera.set_mode(CameraMode::ThirdPerson);
-        }
 
         // Maintain the figures.
         self.figure_mgr.maintain(renderer, client);
