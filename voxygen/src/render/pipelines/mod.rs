@@ -1,9 +1,9 @@
 pub mod figure;
+pub mod fluid;
 pub mod postprocess;
 pub mod skybox;
 pub mod terrain;
 pub mod ui;
-pub mod fluid;
 
 use super::util::arr_to_mat;
 use gfx::{

@@ -16,7 +16,7 @@ use crate::{
     util::{Sampler, SamplerMut},
 };
 use common::{
-    terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
+    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, VolSize, Vox, WriteVol},
 };
 use rand::Rng;
@@ -59,8 +59,8 @@ impl World {
 
     pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
         let air = Block::empty();
-        let stone = Block::new(2, Rgb::new(200, 220, 255));
-        let water = Block::new(5, Rgb::new(100, 150, 255));
+        let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
+        let water = Block::new(BlockKind::Water, Rgb::new(100, 150, 255));
 
         let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
         let (base_z, sim_chunk) = match self

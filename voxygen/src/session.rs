@@ -8,7 +8,13 @@ use crate::{
 };
 use client::{self, Client};
 use common::{
-    clock::Clock, comp, comp::Pos, comp::Vel, msg::ClientState, terrain::Block, vol::ReadVol,
+    clock::Clock,
+    comp,
+    comp::Pos,
+    comp::Vel,
+    msg::ClientState,
+    terrain::{Block, BlockKind},
+    vol::ReadVol,
 };
 use log::error;
 use specs::Join;
@@ -39,7 +45,7 @@ impl SessionState {
             key_state: KeyState::new(),
             controller: comp::Controller::default(),
             hud: Hud::new(global_state),
-            selected_block: Block::new(1, Rgb::broadcast(255)),
+            selected_block: Block::new(BlockKind::Normal, Rgb::broadcast(255)),
         }
     }
 }
