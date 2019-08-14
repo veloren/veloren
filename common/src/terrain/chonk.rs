@@ -79,7 +79,7 @@ impl Chonk {
     }
 
     fn sub_chunk_idx(&self, z: i32) -> usize {
-        ((z - self.z_offset) as u32 / SUB_CHUNK_HEIGHT as u32) as usize
+        ((z - self.z_offset) as u32 / SUB_CHUNK_HEIGHT) as usize
     }
 }
 
@@ -91,10 +91,10 @@ impl BaseVol for Chonk {
 impl ReadVol for Chonk {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&Block, ChonkError> {
-        if pos.z < self.z_offset {
+        if pos.z < self.get_min_z() {
             // Below the terrain
             Ok(&self.below)
-        } else if pos.z >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32 {
+        } else if pos.z >= self.get_max_z() {
             // Above the terrain
             Ok(&self.above)
         } else {
