@@ -31,6 +31,7 @@ use std::{
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
+use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -93,14 +94,9 @@ pub(crate) struct GenCtx {
     pub town_gen: StructureGen2d,
 }
 
-pub struct WorldSim {
-    pub seed: u32,
-    pub(crate) chunks: Vec<SimChunk>,
-    pub(crate) locations: Vec<Location>,
-
-    pub(crate) gen_ctx: GenCtx,
-    pub rng: ChaChaRng,
-}
+impl GenCtx {
+    pub(crate) fn from_seed(seed: u32) -> Self {
+        let mut bseed = seed.clone();
 
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
