@@ -145,7 +145,7 @@ impl State {
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
-        ecs.register::<comp::AdminPerms>();
+        ecs.register::<comp::Admin>();
         // Controller effects
         ecs.register::<comp::MoveDir>();
         ecs.register::<comp::OnGround>();

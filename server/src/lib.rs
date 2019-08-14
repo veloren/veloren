@@ -204,7 +204,7 @@ impl Server {
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
-        // Give the AdminPerms component to the player if their name exists in admin list
+        // Give the Admin component to the player if their name exists in admin list
         if server_settings.admins.contains(
             &state
                 .ecs()
@@ -213,7 +213,7 @@ impl Server {
                 .unwrap()
                 .alias,
         ) {
-            state.write_component(entity, comp::AdminPerms);
+            state.write_component(entity, comp::Admin);
         }
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
@@ -822,17 +822,13 @@ impl Server {
                         } else {
                             let message =
                                 match self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                                    Some(player) => match self
-                                        .state
-                                        .ecs()
-                                        .read_storage::<comp::AdminPerms>()
-                                        .get(entity)
-                                    {
-                                        Some(_perms) => {
+                                    Some(player) => {
+                                        if self.entity_is_admin(entity) {
                                             format!("[ADMIN][{}] {}", &player.alias, message)
+                                        } else {
+                                            format!("[{}] {}", &player.alias, message)
                                         }
-                                        None => format!("[{}] {}", &player.alias, message),
-                                    },
+                                    }
                                     None => format!("[<Unknown>] {}", message),
                                 };
                             self.clients
@@ -1181,6 +1177,13 @@ impl Server {
                 );
             }
         }
+    }
+
+    fn entity_is_admin(&self, entity: EcsEntity) -> bool {
+        self.state
+            .read_storage::<comp::Admin>()
+            .get(entity)
+            .is_some()
     }
 }
 

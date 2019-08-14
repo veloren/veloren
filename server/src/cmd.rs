@@ -161,25 +161,14 @@ lazy_static! {
     ];
 }
 
-fn is_admin(server: &mut Server, entity: EcsEntity) -> bool {
-    if server
-        .state
-        .read_storage::<comp::AdminPerms>()
-        .get(entity)
-        .is_some()
-    {
-        true
-    } else {
+fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    if !server.entity_is_admin(entity) {
         server.clients.notify(
             entity,
-            ServerMsg::private(String::from("You have no permissions to do that")),
+            ServerMsg::private(String::from("You have no permission to do that")),
         );
-        false
-    }
-}
-
-fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+        return;
+    } else {
         if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
             match server.state.read_component_cloned::<comp::Pos>(entity) {
                 Some(current_pos) => {
@@ -198,7 +187,13 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 }
 
 fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         if let Ok((x, y, z)) = scan_fmt!(&args, action.arg_fmt, f32, f32, f32) {
             if server
                 .state
@@ -233,7 +228,13 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 }
 
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         let time = scan_fmt_some!(&args, action.arg_fmt, String);
         let new_time = match time.as_ref().map(|s| s.as_str()) {
             Some("night") => NaiveTime::from_hms(0, 0, 0),
@@ -284,7 +285,13 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
 }
 
 fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         if let Ok(hp) = scan_fmt!(&args, action.arg_fmt, u32) {
             if let Some(stats) = server
                 .state
@@ -324,7 +331,13 @@ fn handle_alias(server: &mut Server, entity: EcsEntity, args: String, action: &C
 }
 
 fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
             let ecs = server.state.ecs();
             let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
@@ -371,7 +384,13 @@ fn handle_tp(server: &mut Server, entity: EcsEntity, args: String, action: &Chat
 }
 
 fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         match scan_fmt_some!(&args, action.arg_fmt, String, NpcKind, String) {
             (Some(opt_align), Some(id), opt_amount) => {
                 if let Some(agent) = alignment_to_agent(&opt_align, entity) {
@@ -445,7 +464,13 @@ fn handle_players(server: &mut Server, entity: EcsEntity, _args: String, _action
 }
 
 fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         if server
             .state
             .read_storage::<comp::CanBuild>()
@@ -475,6 +500,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
     }
 }
 
+// TODO: Don't display commands that the player cannot use.
 fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     for cmd in CHAT_COMMANDS.iter() {
         server
@@ -504,7 +530,13 @@ fn kind_to_body(kind: NpcKind) -> comp::Body {
 }
 
 fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         let ecs = server.state.ecs();
         let mut stats = ecs.write_storage::<comp::Stats>();
         let players = ecs.read_storage::<comp::Player>();
@@ -523,7 +555,13 @@ fn handle_killnpcs(server: &mut Server, entity: EcsEntity, _args: String, _actio
 }
 
 fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         let obj_type = scan_fmt!(&args, _action.arg_fmt, String);
 
         let pos = server
@@ -623,7 +661,13 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
 }
 
 fn handle_light(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
-    if is_admin(server, entity) {
+    if !server.entity_is_admin(entity) {
+        server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no permission to do that")),
+        );
+        return;
+    } else {
         let (opt_r, opt_g, opt_b, opt_x, opt_y, opt_z, opt_s) =
             scan_fmt_some!(&args, action.arg_fmt, f32, f32, f32, f32, f32, f32, f32);
 
