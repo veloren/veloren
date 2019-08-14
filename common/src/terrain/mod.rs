@@ -4,7 +4,11 @@ pub mod chonk;
 pub mod structure;
 
 // Reexports
-pub use self::{biome::BiomeKind, block::Block, structure::Structure};
+pub use self::{
+    biome::BiomeKind,
+    block::{Block, BlockKind},
+    structure::Structure,
+};
 
 use crate::{vol::VolSize, volumes::vol_map_2d::VolMap2d};
 use serde_derive::{Deserialize, Serialize};

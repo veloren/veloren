@@ -1,4 +1,4 @@
-use super::Block;
+use super::{Block, BlockKind};
 use crate::{
     assets::{self, Asset},
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
@@ -103,7 +103,7 @@ impl Asset for Structure {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        StructureBlock::Block(Block::new(1, color))
+                        StructureBlock::Block(Block::new(BlockKind::Normal, color))
                     }
                 };
 

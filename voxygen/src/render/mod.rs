@@ -13,6 +13,7 @@ pub use self::{
     model::{DynamicModel, Model},
     pipelines::{
         figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
+        fluid::FluidPipeline,
         postprocess::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },
@@ -22,7 +23,6 @@ pub use self::{
             create_quad as create_ui_quad, create_tri as create_ui_tri, Locals as UiLocals,
             Mode as UiMode, UiPipeline,
         },
-        fluid::{Locals as FluidLocals, FluidPipeline},
         Globals, Light,
     },
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},

@@ -88,26 +88,23 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     }
 }
 
-pub fn push_vox_verts<
-    V: ReadVol,
-    P: Pipeline,
-    F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
->(
+pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
     mesh: &mut Mesh<P>,
     vol: &V,
     pos: Vec3<i32>,
     offs: Vec3<f32>,
     col: Rgb<f32>,
-    vcons: F,
+    vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
     error_makes_face: bool,
     darknesses: &[[[f32; 3]; 3]; 3],
+    should_add: impl Fn(&V::Vox) -> bool,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
     // -x
     if vol
         .get(pos - Vec3::unit_x())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -123,7 +120,7 @@ pub fn push_vox_verts<
     // +x
     if vol
         .get(pos + Vec3::unit_x())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -139,7 +136,7 @@ pub fn push_vox_verts<
     // -y
     if vol
         .get(pos - Vec3::unit_y())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -155,7 +152,7 @@ pub fn push_vox_verts<
     // +y
     if vol
         .get(pos + Vec3::unit_y())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -171,7 +168,7 @@ pub fn push_vox_verts<
     // -z
     if vol
         .get(pos - Vec3::unit_z())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -187,7 +184,7 @@ pub fn push_vox_verts<
     // +z
     if vol
         .get(pos + Vec3::unit_z())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(

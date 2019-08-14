@@ -165,6 +165,7 @@ impl FigureModelCache {
         let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
         Segment::from(assets::load_expect::<DotVoxData>(full_specifier.as_str()).as_ref())
             .generate_mesh(position)
+            .0
     }
 
     fn load_head(race: humanoid::Race, body_type: humanoid::BodyType) -> Mesh<FigurePipeline> {

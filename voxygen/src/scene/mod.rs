@@ -221,9 +221,9 @@ impl Scene {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         // Render terrain and figures.
-        self.terrain.render(renderer, &self.globals, &self.lights);
         self.figure_mgr
             .render(renderer, client, &self.globals, &self.lights, &self.camera);
+        self.terrain.render(renderer, &self.globals, &self.lights);
 
         renderer.render_post_process(
             &self.postprocess.model,
