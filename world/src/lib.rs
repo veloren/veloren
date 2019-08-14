@@ -28,7 +28,11 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
+use rand_chacha::ChaChaRng;
+use std::fs::File;
+use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::thread;
 use std::time::Duration;
 use vek::*;
 
@@ -42,11 +46,64 @@ pub struct World {
     target: PathBuf,
 }
 
+fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
+    let out = File::create(t)?;
+    bincode::serialize_into(out, obj).unwrap();
+    Ok(())
+}
+
+fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
+    let r = File::open(t)?;
+    let val = bincode::deserialize_from(r).unwrap();
+    Ok(val)
+}
+
 impl World {
-    pub fn generate(seed: u32) -> Self {
+    pub fn new(seed: u32, target: PathBuf) -> Self {
+        if target.is_dir() {
+            return World::load(target.clone()).unwrap_or_else(|_| {
+                println!("Failed to open {:?}/, moving to {:?}.old/", target, target);
+                std::fs::rename(target.clone(), target.clone().with_extension("old"))
+                    .unwrap_or_else(|_| println!("Ok, something strange is happening here..."));
+                World::generate(seed, target)
+            });
+        }
+        World::generate(seed, target)
+    }
+
+    pub fn save(&self) -> std::io::Result<()> {
+        let t = |val: &str| self.target.join(val);
+        qser(t("chunks"), &self.sim.chunks)?;
+        qser(t("locations"), &self.sim.locations)?;
+        qser(t("seed"), &self.sim.seed)?;
+
+        Ok(())
+    }
+
+    pub fn load(target: PathBuf) -> std::io::Result<Self> {
+        let t = |val: &str| target.join(val);
+        let chunks = qdeser(t("chunks"))?;
+        let locations = qdeser(t("locations"))?;
+        let mut seed = qdeser(t("seed"))?;
+        let gen_ctx = sim::GenCtx::from_seed(&mut seed);
+
+        Ok(Self {
+            sim: sim::WorldSim {
+                chunks,
+                locations,
+                seed,
+                gen_ctx,
+                rng: sim::get_rng(seed),
+            },
+            target,
+        })
+    }
+
+    pub fn generate(seed: u32, target: PathBuf) -> Self {
+        std::fs::create_dir_all(target.clone()).unwrap();
         Self {
             sim: sim::WorldSim::generate(seed),
-            target: Path::new("./world").to_owned(),
+            target,
         }
     }
 

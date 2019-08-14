@@ -1,7 +1,8 @@
 use rand::Rng;
+use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Settlement {
     lot: Lot,
 }
@@ -18,12 +19,12 @@ impl Settlement {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Building {
     pub seed: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 enum Lot {
     None,
     One(Building),

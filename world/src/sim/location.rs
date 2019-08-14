@@ -2,9 +2,10 @@ use super::Settlement;
 use hashbrown::HashSet;
 use rand::seq::SliceRandom;
 use rand::Rng;
+use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Location {
     pub(crate) name: String,
     pub(crate) center: Vec2<i32>,
@@ -33,7 +34,7 @@ impl Location {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Kingdom {
     region_name: String,
 }

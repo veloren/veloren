@@ -13,6 +13,7 @@ pub struct ServerSettings {
     //pub login_server: whatever
     pub start_time: f64,
     pub admins: Vec<String>,
+    pub world_folder: PathBuf,
 }
 
 impl Default for ServerSettings {
@@ -25,6 +26,7 @@ impl Default for ServerSettings {
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["Pfau".to_owned()],
+            world_folder: PathBuf::from("./worldsave"),
         }
     }
 }

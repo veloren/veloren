@@ -94,9 +94,15 @@ pub(crate) struct GenCtx {
     pub town_gen: StructureGen2d,
 }
 
-impl GenCtx {
-    pub(crate) fn from_seed(seed: u32) -> Self {
-        let mut bseed = seed.clone();
+pub struct WorldSim {
+    pub seed: u32,
+    pub(crate) chunks: Vec<SimChunk>,
+    pub(crate) locations: Vec<Location>,
+
+    pub(crate) gen_ctx: GenCtx,
+    pub rng: ChaChaRng,
+}
+
 
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
@@ -542,6 +548,7 @@ impl WorldSim {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct SimChunk {
     pub chaos: f32,
     pub alt_base: f32,
@@ -559,7 +566,7 @@ pub struct SimChunk {
     pub structures: Structures,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub struct RegionInfo {
     pub chunk_pos: Vec2<i32>,
     pub block_pos: Vec2<i32>,
@@ -567,7 +574,7 @@ pub struct RegionInfo {
     pub seed: u32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct LocationInfo {
     pub loc_idx: usize,
     pub near: Vec<RegionInfo>,
