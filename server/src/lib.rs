@@ -999,8 +999,17 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead
-                            | ClientState::Character => new_chat_msgs
-                                .push((Some(entity), ServerMsg::ChatMsg { chat_type, message })),
+                            | ClientState::Character => match validate_chat_msg(&message) {
+                                Ok(()) => new_chat_msgs.push((
+                                    Some(entity),
+                                    ServerMsg::ChatMsg { chat_type, message },
+                                )),
+                                Err(ChatMsgValidationError::TooLong) => log::warn!(
+                                    "Recieved a chat message that's too long (max:{} len:{})",
+                                    MAX_BYTES_CHAT_MSG,
+                                    message.len()
+                                ),
+                            },
                             ClientState::Pending => {}
                         },
                         ClientMsg::PlayerPhysics { pos, vel, ori } => match client.client_state {
