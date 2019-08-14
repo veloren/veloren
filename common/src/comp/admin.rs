@@ -1,7 +1,8 @@
-use specs::{Component, VecStorage};
+use specs::{Component, NullStorage};
 
-pub struct AdminPerms;
+#[derive(Default)]
+pub struct Admin;
 
-impl Component for AdminPerms {
-    type Storage = VecStorage<Self>;
+impl Component for Admin {
+    type Storage = NullStorage<Self>;
 }
