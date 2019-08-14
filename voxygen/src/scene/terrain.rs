@@ -1,6 +1,9 @@
 use crate::{
     mesh::Meshable,
-    render::{Consts, Globals, Light, Mesh, Model, Renderer, TerrainLocals, TerrainPipeline},
+    render::{
+        Consts, FluidPipeline, Globals, Light, Mesh, Model, Renderer, TerrainLocals,
+        TerrainPipeline,
+    },
 };
 use client::Client;
 use common::{
@@ -16,7 +19,8 @@ use vek::*;
 
 struct TerrainChunk {
     // GPU data
-    model: Model<TerrainPipeline>,
+    opaque_model: Model<TerrainPipeline>,
+    fluid_model: Model<FluidPipeline>,
     locals: Consts<TerrainLocals>,
     visible: bool,
     z_bounds: (f32, f32),
@@ -32,7 +36,8 @@ struct ChunkMeshState {
 struct MeshWorkerResponse {
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
-    mesh: Mesh<TerrainPipeline>,
+    opaque_mesh: Mesh<TerrainPipeline>,
+    fluid_mesh: Mesh<FluidPipeline>,
     started_tick: u64,
 }
 
@@ -44,10 +49,12 @@ fn mesh_worker(
     volume: <TerrainMap as SampleVol<Aabr<i32>>>::Sample,
     range: Aabb<i32>,
 ) -> MeshWorkerResponse {
+    let (opaque_mesh, fluid_mesh) = volume.generate_mesh(range);
     MeshWorkerResponse {
         pos,
         z_bounds,
-        mesh: volume.generate_mesh(range),
+        opaque_mesh,
+        fluid_mesh,
         started_tick,
     }
 }
@@ -262,8 +269,11 @@ impl Terrain {
                     self.chunks.insert(
                         response.pos,
                         TerrainChunk {
-                            model: renderer
-                                .create_model(&response.mesh)
+                            opaque_model: renderer
+                                .create_model(&response.opaque_mesh)
+                                .expect("Failed to upload chunk mesh to the GPU!"),
+                            fluid_model: renderer
+                                .create_model(&response.fluid_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
@@ -334,9 +344,17 @@ impl Terrain {
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
     ) {
+        // Opaque
         for (_pos, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.model, globals, &chunk.locals, lights);
+                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+            }
+        }
+
+        // Translucent
+        for (_pos, chunk) in &self.chunks {
+            if chunk.visible {
+                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
             }
         }
     }

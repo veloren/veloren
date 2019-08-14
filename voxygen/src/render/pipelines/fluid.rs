@@ -1,16 +1,16 @@
 use super::{
-    super::{Pipeline, TgtColorFmt, TgtDepthFmt},
+    super::{Pipeline, TerrainLocals, TgtColorFmt, TgtDepthFmt},
     Globals, Light,
 };
 use gfx::{
     self,
-    gfx_constant_struct_meta,
     // Macros
     gfx_defines,
     gfx_impl_struct_meta,
     gfx_pipeline,
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
+    state::ColorMask,
 };
 use std::ops::Mul;
 use vek::*;
@@ -21,18 +21,14 @@ gfx_defines! {
         col_light: u32 = "v_col_light",
     }
 
-    constant Locals {
-        model_offs: [f32; 3] = "model_offs",
-    }
-
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
 
-        locals: gfx::ConstantBuffer<Locals> = "u_locals",
+        locals: gfx::ConstantBuffer<TerrainLocals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
 
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
+        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
@@ -57,16 +53,8 @@ impl Vertex {
                 | ((col.r.mul(200.0) as u32) & 0xFF) << 8
                 | ((col.g.mul(200.0) as u32) & 0xFF) << 16
                 | ((col.b.mul(200.0) as u32) & 0xFF) << 24
-                | ((light.mul(255.0) as u32) & 0xFF) << 0
-                | ((opac.mul(0.4) as u32) & 0xFF) << 0,
-        }
-    }
-}
-
-impl Locals {
-    pub fn default() -> Self {
-        Self {
-            model_offs: [0.0; 3],
+                | ((light.mul(255.0) as u32) & 0xFF) << 0,
+            //| ((opac.mul(0.4) as u32) & 0xFF) << 0,
         }
     }
 }

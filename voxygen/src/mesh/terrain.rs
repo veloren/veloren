@@ -1,9 +1,9 @@
 use crate::{
     mesh::{vol, Meshable},
-    render::{self, Mesh, TerrainPipeline},
+    render::{self, FluidPipeline, Mesh, TerrainPipeline},
 };
 use common::{
-    terrain::Block,
+    terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, VolSize},
     volumes::vol_map_2d::VolMap2d,
 };
@@ -11,43 +11,28 @@ use std::fmt::Debug;
 use vek::*;
 
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
+type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
 
-/*
-impl<M> Meshable for Dyna<Block, M> {
-    type Pipeline = TerrainPipeline;
-    type Supplement = ();
-
-    fn generate_mesh(&self, _: Self::Supplement) -> Mesh<Self::Pipeline> {
-        let mut mesh = Mesh::new();
-
-        for pos in self
-            .iter_positions()
-            .filter(|pos| pos.map(|e| e >= 1).reduce_and())
-            .filter(|pos| {
-                pos.map2(self.get_size(), |e, sz| e < sz as i32 - 1)
-                    .reduce_and()
-            })
-        {
-            let offs = pos.map(|e| e as f32 - 1.0);
-
-            if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
-                let col = col.map(|e| e as f32 / 255.0);
-
-                vol::push_vox_verts(&mut mesh, self, pos, offs, col, TerrainVertex::new, true);
-            }
-        }
-
-        mesh
+fn block_shadow_density(kind: BlockKind) -> Option<f32> {
+    match kind {
+        BlockKind::Air => None,
+        BlockKind::Normal => Some(0.85),
+        BlockKind::Dense => Some(3.0),
+        BlockKind::Water => Some(0.01),
     }
 }
-*/
 
 impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
     type Pipeline = TerrainPipeline;
+    type TranslucentPipeline = FluidPipeline;
     type Supplement = Aabb<i32>;
 
-    fn generate_mesh(&self, range: Self::Supplement) -> Mesh<Self::Pipeline> {
-        let mut mesh = Mesh::new();
+    fn generate_mesh(
+        &self,
+        range: Self::Supplement,
+    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
+        let mut opaque_mesh = Mesh::new();
+        let mut fluid_mesh = Mesh::new();
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
@@ -55,16 +40,19 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
 
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
+                    let offs = (pos - (range.min + 1) * Vec3::new(1, 1, 0)).map(|e| e as f32);
+
+                    let block = self.get(pos).ok();
 
                     // Create mesh polygons
-                    if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
+                    if let Some(col) = block
+                        .filter(|vox| vox.is_opaque())
+                        .and_then(|vox| vox.get_color())
+                    {
                         let col = col.map(|e| e as f32 / 255.0);
 
-                        let offs = (pos - range.min * Vec3::new(1, 1, 0)).map(|e| e as f32)
-                            - Vec3::new(1.0, 1.0, 0.0);
-
                         vol::push_vox_verts(
-                            &mut mesh,
+                            &mut opaque_mesh,
                             self,
                             pos,
                             offs,
@@ -74,6 +62,26 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             },
                             false,
                             &neighbour_light,
+                            |vox| !vox.is_opaque(),
+                        );
+                    } else if let Some(col) = block
+                        .filter(|vox| vox.is_fluid())
+                        .and_then(|vox| vox.get_color())
+                    {
+                        let col = col.map(|e| e as f32 / 255.0);
+
+                        vol::push_vox_verts(
+                            &mut fluid_mesh,
+                            self,
+                            pos,
+                            offs,
+                            col,
+                            |pos, norm, col, ao, light| {
+                                FluidVertex::new(pos, norm, col, light * ao, 0.3)
+                            },
+                            false,
+                            &neighbour_light,
+                            |vox| vox.is_air(),
                         );
                     }
 
@@ -84,13 +92,13 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                     // Accumulate shade under opaque blocks
                     for i in 0..3 {
                         for j in 0..3 {
-                            neighbour_light[0][i][j] = if let Some(opacity) = self
+                            neighbour_light[0][i][j] = if let Some(density) = self
                                 .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, -1))
                                 .ok()
-                                .and_then(|vox| vox.get_opacity())
+                                .and_then(|vox| block_shadow_density(vox.kind()))
                             {
-                                (neighbour_light[0][i][j] * (1.0 - opacity * 0.1))
-                                    .max(1.0 - opacity)
+                                (neighbour_light[0][i][j] * (1.0 - density * 0.1))
+                                    .max(1.0 - density)
                             } else {
                                 (neighbour_light[0][i][j] * 1.025).min(1.0)
                             };
@@ -108,7 +116,8 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                 }
             }
         }
-        mesh
+
+        (opaque_mesh, fluid_mesh)
     }
 }
 
