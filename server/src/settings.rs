@@ -71,6 +71,7 @@ impl ServerSettings {
             server_description: "Who needs friends anyway?".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
+            world_folder: PathBuf::from("./worldsave"),
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
         }
     }
