@@ -1,12 +1,10 @@
-use discord_rpc_sdk::{DiscordUser, EventHandlers, RichPresence, RPC};
-use std::time::SystemTime;
-
 use crate::DISCORD_INSTANCE;
-
-use std::sync::mpsc::Sender;
-use std::sync::{mpsc, Mutex};
+use crossbeam::channel::{unbounded, Receiver, Sender};
+use discord_rpc_sdk::{DiscordUser, EventHandlers, RichPresence, RPC};
+use parking_lot::Mutex;
 use std::thread;
 use std::thread::JoinHandle;
+use std::time::SystemTime;
 
 /// Connects to the discord application where Images and more resides
 /// can be viewed at https://discordapp.com/developers/applications/583662036194689035/rich-presence/assets
@@ -30,7 +28,7 @@ pub struct DiscordState {
 }
 
 pub fn run() -> Mutex<DiscordState> {
-    let (tx, rx) = mpsc::channel();
+    let (tx, rx) = unbounded();
 
     Mutex::new(DiscordState {
         tx,

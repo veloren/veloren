@@ -6,10 +6,11 @@ use crossbeam::{
     queue::SegQueue,
     sync::ShardedLock,
 };
+use parking_lot::{Condvar, Mutex};
 use rodio::{Decoder, Device, Sink};
 use std::fs::File;
 use std::io::BufReader;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::Arc;
 use std::thread;
 
 trait AudioConfig {
@@ -136,7 +137,7 @@ impl AudioPlayer {
     fn set_playing(&self, playing: bool) {
         *self.event_loop.playing.write().unwrap() = playing;
         let &(ref lock, ref condvar) = &*self.event_loop.condvar;
-        let mut started = lock.lock().unwrap();
+        let mut started = lock.lock();
         *started = playing;
         if playing {
             condvar.notify_one();
@@ -157,10 +158,10 @@ impl MonoMode for AudioPlayer {
             thread::spawn(move || {
                 let block = || {
                     let (ref lock, ref condvar) = *condition;
-                    let mut started = lock.lock().unwrap();
+                    let mut started = lock.lock();
                     *started = false;
                     while !*started {
-                        started = condvar.wait(started).unwrap();
+                        condvar.wait(&mut started);
                     }
                 };
                 let mut playback = MonoEmitter::new(&Settings::load().audio);
