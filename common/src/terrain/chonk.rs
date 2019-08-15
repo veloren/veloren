@@ -92,8 +92,20 @@ impl Chonk {
         }
     }
 
+    // Returns the index (in self.sub_chunks) of the SubChunk that contains
+    // layer z; note that this index changes when more SubChunks are prepended
     fn sub_chunk_idx(&self, z: i32) -> usize {
-        ((z - self.z_offset) as u32 / SUB_CHUNK_HEIGHT) as usize
+        ((z - self.z_offset) / SUB_CHUNK_HEIGHT as i32) as usize
+    }
+
+    // Returns the z_offset of the sub_chunk that contains layer z
+    fn sub_chunk_z_offset(&self, z: i32) -> i32 {
+        let rem = (z - self.z_offset) % SUB_CHUNK_HEIGHT as i32;
+        if rem < 0 {
+            z - (rem + SUB_CHUNK_HEIGHT as i32)
+        } else {
+            z - rem
+        }
     }
 }
 
@@ -141,16 +153,24 @@ impl ReadVol for Chonk {
 impl WriteVol for Chonk {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, block: Block) -> Result<(), ChonkError> {
-        while pos.z < self.z_offset {
-            self.sub_chunks.insert(0, SubChunk::Homogeneous(self.below));
-            self.z_offset -= SUB_CHUNK_HEIGHT as i32;
+        if pos.z < self.get_min_z() {
+            // Prepend exactly sufficiently many SubChunks via Vec::splice
+            let target_z_offset = self.sub_chunk_z_offset(pos.z);
+            let c = SubChunk::Homogeneous(self.below);
+            let n = (self.get_min_z() - target_z_offset) / SUB_CHUNK_HEIGHT as i32;
+            self.sub_chunks
+                .splice(0..0, std::iter::repeat(c).take(n as usize));
+            self.z_offset = target_z_offset;
+        } else if pos.z >= self.get_max_z() {
+            // Append exactly sufficiently many SubChunks via Vec::extend
+            let target_z_offset = self.sub_chunk_z_offset(pos.z);
+            let c = SubChunk::Homogeneous(self.above);
+            let n = (target_z_offset - self.get_max_z()) / SUB_CHUNK_HEIGHT as i32 + 1;
+            self.sub_chunks
+                .extend(std::iter::repeat(c).take(n as usize));
         }
 
         let sub_chunk_idx = self.sub_chunk_idx(pos.z);
-
-        while self.sub_chunks.get(sub_chunk_idx).is_none() {
-            self.sub_chunks.push(SubChunk::Homogeneous(self.above));
-        }
 
         let rpos =
             pos - Vec3::unit_z() * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
