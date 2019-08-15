@@ -1,5 +1,6 @@
+use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
-use std::{collections::VecDeque, ops::DerefMut, sync::Mutex};
+use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 
 pub enum Event {
@@ -21,11 +22,11 @@ impl EventBus {
     }
 
     pub fn emit(&self, event: Event) {
-        self.queue.lock().unwrap().push_front(event);
+        self.queue.lock().push_front(event);
     }
 
     pub fn recv_all(&self) -> impl ExactSizeIterator<Item = Event> {
-        std::mem::replace(self.queue.lock().unwrap().deref_mut(), VecDeque::new()).into_iter()
+        std::mem::replace(self.queue.lock().deref_mut(), VecDeque::new()).into_iter()
     }
 }
 
@@ -42,6 +43,6 @@ impl<'a> Emitter<'a> {
 
 impl<'a> Drop for Emitter<'a> {
     fn drop(&mut self) {
-        self.bus.queue.lock().unwrap().append(&mut self.events);
+        self.bus.queue.lock().append(&mut self.events);
     }
 }
