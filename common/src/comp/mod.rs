@@ -1,4 +1,5 @@
 mod action_state;
+mod admin;
 mod agent;
 mod animation;
 mod body;
@@ -13,6 +14,7 @@ mod visual;
 
 // Reexports
 pub use action_state::ActionState;
+pub use admin::Admin;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
 pub use body::{humanoid, object, quadruped, quadruped_medium, Body};

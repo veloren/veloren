@@ -12,6 +12,7 @@ pub struct ServerSettings {
     pub server_description: String,
     //pub login_server: whatever
     pub start_time: f64,
+    pub admins: Vec<String>,
 }
 
 impl Default for ServerSettings {
@@ -23,6 +24,7 @@ impl Default for ServerSettings {
             server_description: "This is the best Veloren server.".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
+            admins: vec![],
         }
     }
 }
@@ -57,6 +59,18 @@ impl ServerSettings {
         let s: &str = &ron::ser::to_string_pretty(self, ron::ser::PrettyConfig::default()).unwrap();
         config_file.write_all(s.as_bytes()).unwrap();
         Ok(())
+    }
+
+    pub fn singleplayer() -> Self {
+        Self {
+            address: SocketAddr::from(([0; 4], 14004)),
+            world_seed: 1337,
+            server_name: "Singleplayer".to_owned(),
+            server_description: "The main feature is loneliness!".to_owned(),
+            max_players: 100,
+            start_time: 9.0 * 3600.0,
+            admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
+        }
     }
 
     fn get_settings_path() -> PathBuf {

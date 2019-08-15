@@ -188,6 +188,7 @@ impl Server {
         client: &mut Client,
         name: String,
         body: comp::Body,
+        server_settings: &ServerSettings,
     ) {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
@@ -203,6 +204,17 @@ impl Server {
         // Make sure physics are accepted.
         state.write_component(entity, comp::ForceUpdate);
 
+        // Give the Admin component to the player if their name exists in admin list
+        if server_settings.admins.contains(
+            &state
+                .ecs()
+                .read_storage::<comp::Player>()
+                .get(entity)
+                .unwrap()
+                .alias,
+        ) {
+            state.write_component(entity, comp::Admin);
+        }
         // Tell the client its request was successful.
         client.allow_state(ClientState::Character);
     }
@@ -518,6 +530,7 @@ impl Server {
         let mut frontend_events = Vec::new();
 
         let accounts = &mut self.accounts;
+        let server_settings = &self.server_settings;
 
         let state = &mut self.state;
         let mut new_chat_msgs = Vec::new();
@@ -669,7 +682,14 @@ impl Server {
                             ClientState::Registered
                             | ClientState::Spectator
                             | ClientState::Dead => {
-                                Self::create_player_character(state, entity, client, name, body);
+                                Self::create_player_character(
+                                    state,
+                                    entity,
+                                    client,
+                                    name,
+                                    body,
+                                    &server_settings,
+                                );
                                 if let Some(player) =
                                     state.ecs().read_storage::<comp::Player>().get(entity)
                                 {
@@ -802,7 +822,13 @@ impl Server {
                         } else {
                             let message =
                                 match self.state.ecs().read_storage::<comp::Player>().get(entity) {
-                                    Some(player) => format!("[{}] {}", &player.alias, message),
+                                    Some(player) => {
+                                        if self.entity_is_admin(entity) {
+                                            format!("[ADMIN][{}] {}", &player.alias, message)
+                                        } else {
+                                            format!("[{}] {}", &player.alias, message)
+                                        }
+                                    }
                                     None => format!("[<Unknown>] {}", message),
                                 };
                             self.clients
@@ -1151,6 +1177,13 @@ impl Server {
                 );
             }
         }
+    }
+
+    fn entity_is_admin(&self, entity: EcsEntity) -> bool {
+        self.state
+            .read_storage::<comp::Admin>()
+            .get(entity)
+            .is_some()
     }
 }
 
