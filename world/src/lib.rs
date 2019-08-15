@@ -29,6 +29,7 @@ use common::{
 };
 use rand::Rng;
 use rand_chacha::ChaChaRng;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -89,9 +90,17 @@ impl World {
     }
 
     pub fn save_chunks<T: IntoIterator<Item = Vec2<i32>>>(&self, map: &TerrainGrid, chunks: T) {
-        for chunk in chunks {
-            qser(self.chunk_path(chunk), map.get_key(chunk).unwrap()).unwrap();
-        }
+        let hc: Vec<(Vec2<i32>, TerrainChunk)> = chunks
+            .into_iter()
+            .map(|pos| (pos, map.get_key(pos).unwrap().clone()))
+            .collect();
+        let tgt = self.target.clone();
+        let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
+        thread::spawn(move || {
+            for (pos, chunk) in hc {
+                qser(t(pos), &chunk).unwrap();
+            }
+        });
     }
 
     pub fn load(target: PathBuf) -> std::io::Result<Self> {
