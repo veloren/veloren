@@ -453,7 +453,7 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
     pso: gfx::pso::PipelineState<gfx_backend::Resources, P::Meta>,
 }
 
-/// Create new the pipelines used by the renderer.
+/// Creates all the pipelines used to render.
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
     shader_reload_indicator: &mut ReloadIndicator,
@@ -490,9 +490,9 @@ fn create_pipelines(
     let skybox_pipeline = create_pipeline(
         factory,
         skybox::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.skybox.vert", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.skybox-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.skybox.frag", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.skybox-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
     )?;
@@ -501,9 +501,9 @@ fn create_pipelines(
     let figure_pipeline = create_pipeline(
         factory,
         figure::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.figure.vert", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.figure-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.figure.frag", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.figure-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
     )?;
@@ -512,9 +512,9 @@ fn create_pipelines(
     let terrain_pipeline = create_pipeline(
         factory,
         terrain::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.terrain.vert", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.terrain-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.terrain.frag", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
     )?;
@@ -523,9 +523,9 @@ fn create_pipelines(
     let ui_pipeline = create_pipeline(
         factory,
         ui::pipe::new(),
-        &assets::load_watched::<String>("voxygen.shaders.ui.vert", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.ui-vert", shader_reload_indicator)
             .unwrap(),
-        &assets::load_watched::<String>("voxygen.shaders.ui.frag", shader_reload_indicator)
+        &assets::load_watched::<String>("voxygen.shaders.ui-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
     )?;
@@ -535,12 +535,12 @@ fn create_pipelines(
         factory,
         postprocess::pipe::new(),
         &assets::load_watched::<String>(
-            "voxygen.shaders.postprocess.vert",
+            "voxygen.shaders.postprocess-vert",
             shader_reload_indicator,
         )
         .unwrap(),
         &assets::load_watched::<String>(
-            "voxygen.shaders.postprocess.frag",
+            "voxygen.shaders.postprocess-frag",
             shader_reload_indicator,
         )
         .unwrap(),
