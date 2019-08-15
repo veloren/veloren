@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::sync::{mpsc, Mutex};
 use std::thread;
 use vek::*;
 use world::{sim, ChunkSupplement, World};
@@ -22,9 +23,17 @@ fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
     Ok(val)
 }
 
+pub enum SaveMsg {
+    END,
+    SAVE((Vec2<i32>, TerrainChunk)),
+    RATE(u32),
+}
+
 pub struct Provider {
     pub world: World,
     pub target: PathBuf,
+
+    pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
 }
 
 impl Provider {
@@ -39,7 +48,12 @@ impl Provider {
             }
             World::generate(seed)
         });
-        Self { world, target }
+
+        Self {
+            world,
+            target,
+            tx: None,
+        }
     }
 
     #[inline(always)]
@@ -62,6 +76,33 @@ impl Provider {
 
     pub fn chunk_path(&self, v: Vec2<i32>) -> PathBuf {
         self.target.join(Self::chunk_name(v))
+    }
+
+    pub fn init_save_loop(&mut self) -> thread::JoinHandle<()> {
+        let (tx, rx) = mpsc::channel::<SaveMsg>();
+        self.tx = Some(Mutex::new(tx));
+
+        let tgt = self.target.clone();
+        let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
+
+        thread::spawn(move || 'yeet: loop {
+            let mut wait_time = 1000;
+            std::thread::sleep_ms(wait_time);
+            for msg in rx.try_recv() {
+                match msg {
+                    SaveMsg::END => break 'yeet,
+                    SaveMsg::RATE(x) => wait_time = x,
+                    SaveMsg::SAVE((pos, chunk)) => qser(t(pos), &chunk).unwrap(),
+                }
+            }
+        })
+    }
+
+    pub fn request_save_chunk(&self, chunk: TerrainChunk, v: Vec2<i32>) {
+        if let Some(mutex) = &self.tx {
+            let tx = mutex.lock().unwrap();
+            tx.send(SaveMsg::SAVE((v, chunk))).unwrap();
+        }
     }
 
     pub fn save_chunks<T: IntoIterator<Item = Vec2<i32>>>(&self, map: &TerrainMap, chunks: T) {

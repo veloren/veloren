@@ -70,6 +70,7 @@ struct SpawnPoint(Vec3<f32>);
 pub struct Server {
     state: State,
     world_provider: Arc<Provider>,
+    save_handle: Option<std::thread::JoinHandle<()>>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
     clients: Clients,
@@ -114,12 +115,13 @@ impl Server {
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
+        let mut provider = Provider::new(settings.world_seed, settings.world_folder.clone());
+        let save_handle = Some(provider.init_save_loop());
+
         let this = Self {
             state,
-            world_provider: Arc::new(Provider::new(
-                settings.world_seed,
-                settings.world_folder.clone(),
-            )),
+            world_provider: Arc::new(provider),
+            save_handle,
 
             postoffice: PostOffice::bind(addrs.into())?,
             clients: Clients::empty(),
@@ -482,25 +484,22 @@ impl Server {
         self.handle_events();
 
         let before_tick_4 = Instant::now();
-        let dirtied: HashSet<Vec2<i32>> = self
-            .state
-            .ecs()
-            .read_resource::<BlockChange>()
-            .blocks
-            .iter()
-            .map(|(pos, _)| TerrainMap::chunk_key(*pos))
-            .collect();
-        if dirtied.len() > 0 {
-            println!("{:?}", dirtied);
-        }
-
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
-        self.world_provider.save_chunks(
+        {
+            let mut ecs = self.state.ecs_mut();
+            let mut dc = ecs.write_resource::<DirtiedChunks>();
+            let map = ecs.read_resource::<TerrainMap>();
+            let dirtied = dc.drain();
+            for i in dirtied {
+                self.world_provider.request_save_chunk(map.get_key(i).unwrap().clone(), i);
+            }
+        }
+        /*self.world_provider.save_chunks(
             self.state.ecs().read_resource::<TerrainMap>().deref(),
             dirtied,
-        );
+        );*/
 
         // Tick the world
         self.world().tick(dt);
@@ -1442,6 +1441,7 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.clients.notify_registered(ServerMsg::Shutdown);
+        self.save_handle.take().unwrap().join();
     }
 }
 
