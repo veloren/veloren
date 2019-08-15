@@ -43,6 +43,7 @@ impl Meshable for Segment {
                     true,
                     &[[[1.0; 3]; 3]; 3],
                     |vox| vox.is_empty(),
+                    |vox| !vox.is_empty(),
                 );
             }
         }
