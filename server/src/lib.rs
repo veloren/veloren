@@ -7,6 +7,7 @@ pub mod cmd;
 pub mod error;
 pub mod input;
 pub mod metrics;
+pub mod provider;
 pub mod settings;
 
 // Reexports
@@ -31,6 +32,7 @@ use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
 use metrics::ServerMetrics;
+use provider::Provider;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::ops::Deref;
@@ -67,7 +69,7 @@ struct SpawnPoint(Vec3<f32>);
 
 pub struct Server {
     state: State,
-    world: Arc<World>,
+    world_provider: Arc<Provider>,
 
     postoffice: PostOffice<ServerMsg, ClientMsg>,
     clients: Clients,
@@ -114,7 +116,7 @@ impl Server {
 
         let this = Self {
             state,
-            world: Arc::new(World::new(
+            world_provider: Arc::new(Provider::new(
                 settings.world_seed,
                 settings.world_folder.clone(),
             )),
@@ -165,7 +167,7 @@ impl Server {
 
     /// Get a reference to the server's world.
     pub fn world(&self) -> &World {
-        &self.world
+        &self.world_provider.world
     }
 
     /// Build a non-player character.
@@ -495,13 +497,13 @@ impl Server {
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
-        self.world().save_chunks(
+        self.world_provider.save_chunks(
             self.state.ecs().read_resource::<TerrainMap>().deref(),
             dirtied,
         );
 
         // Tick the world
-        self.world.tick(dt);
+        self.world().tick(dt);
 
         let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
@@ -1395,7 +1397,7 @@ impl Server {
         let cancel = Arc::new(AtomicBool::new(false));
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
-        let world = self.world.clone();
+        let world = self.world_provider.clone();
         self.thread_pool.execute(move || {
             let payload = world
                 .generate_chunk(key, || cancel.load(Ordering::Relaxed))

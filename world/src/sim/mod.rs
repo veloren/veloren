@@ -63,7 +63,7 @@ struct GenCdf {
     alt_no_seawater: InverseCdf,
 }
 
-pub(crate) struct GenCtx {
+pub struct GenCtx {
     pub turb_x_nz: SuperSimplex,
     pub turb_y_nz: SuperSimplex,
     pub chaos_nz: RidgedMulti,
@@ -96,10 +96,10 @@ pub(crate) struct GenCtx {
 
 pub struct WorldSim {
     pub seed: u32,
-    pub(crate) chunks: Vec<SimChunk>,
-    pub(crate) locations: Vec<Location>,
+    pub chunks: Vec<SimChunk>,
+    pub locations: Vec<Location>,
 
-    pub(crate) gen_ctx: GenCtx,
+    pub gen_ctx: GenCtx,
     pub rng: ChaChaRng,
 }
 

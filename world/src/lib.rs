@@ -43,91 +43,13 @@ pub enum Error {
 }
 
 pub struct World {
-    sim: sim::WorldSim,
-    target: PathBuf,
-}
-
-fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
-    let out = File::create(t)?;
-    bincode::serialize_into(out, obj).unwrap();
-    Ok(())
-}
-
-fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
-    let r = File::open(t)?;
-    let val = bincode::deserialize_from(r).unwrap();
-    Ok(val)
+    pub sim: sim::WorldSim,
 }
 
 impl World {
-    pub fn new(seed: u32, target: PathBuf) -> Self {
-        if target.is_dir() {
-            return World::load(target.clone()).unwrap_or_else(|_| {
-                //println!("Failed to open {:?}/, moving to {:?}.old/", target, target);
-                //std::fs::rename(target.clone(), target.clone().with_extension("old"))
-                //    .unwrap_or_else(|_| println!("Ok, something strange is happening here..."));
-                World::generate(seed, target)
-            });
-        }
-        World::generate(seed, target)
-    }
-
-    pub fn save(&self) -> std::io::Result<()> {
-        let t = |val: &str| self.target.join(val);
-        qser(t("chunks"), &self.sim.chunks)?;
-        qser(t("locations"), &self.sim.locations)?;
-        qser(t("seed"), &self.sim.seed)?;
-
-        Ok(())
-    }
-
-    pub fn chunk_name(v: Vec2<i32>) -> String {
-        format!("{}_{}", v.x, v.y)
-    }
-
-    pub fn chunk_path(&self, v: Vec2<i32>) -> PathBuf {
-        self.target.join(Self::chunk_name(v))
-    }
-
-    pub fn save_chunks<T: IntoIterator<Item = Vec2<i32>>>(&self, map: &TerrainGrid, chunks: T) {
-        let hc: Vec<(Vec2<i32>, TerrainChunk)> = chunks
-            .into_iter()
-            .map(|pos| (pos, map.get_key(pos).unwrap().clone()))
-            .collect();
-        let tgt = self.target.clone();
-        let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
-        thread::spawn(move || {
-            for (pos, chunk) in hc {
-                qser(t(pos), &chunk).unwrap();
-            }
-        });
-    }
-
-    pub fn load(target: PathBuf) -> std::io::Result<Self> {
-        let t = |val: &str| target.join(val);
-        let chunks = qdeser(t("chunks"))?;
-        let locations = qdeser(t("locations"))?;
-        let mut seed = qdeser(t("seed"))?;
-        //let gen_ctx = sim::GenCtx::from_seed(&mut seed);
-
-        Ok(Self {
-            /*sim: sim::WorldSim {
-                chunks,
-                locations,
-                seed,
-                gen_ctx,
-                rng: sim::get_rng(seed),
-            },*/
-            sim: sim::WorldSim::generate(seed),
-            target,
-        })
-    }
-
-    pub fn generate(seed: u32, target: PathBuf) -> Self {
-        std::fs::create_dir_all(target.clone()).unwrap();
+    pub fn generate(seed: u32) -> Self {
         Self {
             sim: sim::WorldSim::generate(seed),
-            target,
         }
     }
 
@@ -148,14 +70,7 @@ impl World {
     pub fn sample_blocks(&self) -> BlockGen {
         BlockGen::new(self, ColumnGen::new(&self.sim))
     }
-
-    pub fn get_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
-        match qdeser(self.chunk_path(chunk_pos)) {
-            Ok(chunk) => (chunk, ChunkSupplement::default()),
-            Err(_) => self.generate_chunk(chunk_pos, || {true}).unwrap(),
-        }
-    }
-
+    
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,
