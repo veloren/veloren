@@ -1,12 +1,8 @@
 use client::{error::Error as ClientError, Client};
 use common::comp;
+use crossbeam::channel::{unbounded, Receiver, TryRecvError};
 use log::info;
-use std::{
-    net::ToSocketAddrs,
-    sync::mpsc::{channel, Receiver, TryRecvError},
-    thread,
-    time::Duration,
-};
+use std::{net::ToSocketAddrs, thread, time::Duration};
 
 #[cfg(feature = "discord")]
 use crate::{discord, discord::DiscordUpdate};
@@ -38,7 +34,7 @@ impl ClientInit {
     ) -> Self {
         let (server_address, default_port, prefer_ipv6) = connection_args;
 
-        let (tx, rx) = channel();
+        let (tx, rx) = unbounded();
 
         thread::spawn(move || {
             // Sleep the thread to wait for the single-player server to start up.
