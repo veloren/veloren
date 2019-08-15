@@ -16,6 +16,7 @@ pub enum StructureBlock {
     Acacia,
     PalmLeaves,
     Water,
+    GreenSludge,
     Fruit,
     Hollow,
     Block(Block),
@@ -98,6 +99,7 @@ impl Asset for Structure {
                     2 => StructureBlock::PalmLeaves,
                     3 => StructureBlock::Water,
                     4 => StructureBlock::Acacia,
+                    6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
                     15 => StructureBlock::Hollow,
                     index => {
