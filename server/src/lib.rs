@@ -33,6 +33,7 @@ use log::debug;
 use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
+use std::ops::Deref;
 use std::{
     i32,
     net::SocketAddr,
@@ -138,12 +139,12 @@ impl Server {
             server_settings: settings,
         };
 
-        let world = this.world.clone();
+        /*let world = this.world.clone();
         std::thread::spawn(move || {
             println!("Saving world");
             world.save().unwrap();
             println!("Done saving!");
-        });
+        });*/
 
         Ok(this)
     }
@@ -479,8 +480,25 @@ impl Server {
         self.handle_events();
 
         let before_tick_4 = Instant::now();
+        let dirtied: Vec<Vec2<i32>> = self
+            .state
+            .ecs()
+            .read_resource::<BlockChange>()
+            .blocks
+            .iter()
+            .map(|(pos, _)| TerrainMap::chunk_key(*pos))
+            .collect();
+        if dirtied.len() > 0 {
+            println!("{:?}", dirtied);
+        }
+
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
+
+        self.world().save_chunks(
+            self.state.ecs().read_resource::<TerrainMap>().deref(),
+            dirtied,
+        );
 
         // Tick the world
         self.world.tick(dt);
