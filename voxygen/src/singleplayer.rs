@@ -1,11 +1,11 @@
 use client::Client;
 use common::clock::Clock;
+use crossbeam::channel::{unbounded, Receiver, Sender, TryRecvError};
 use log::info;
 use portpicker::pick_unused_port;
 use server::{Event, Input, Server, ServerSettings};
 use std::{
     net::SocketAddr,
-    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
     thread::{self, JoinHandle},
     time::Duration,
 };
@@ -28,7 +28,7 @@ pub struct Singleplayer {
 
 impl Singleplayer {
     pub fn new(client: Option<&Client>) -> (Self, SocketAddr) {
-        let (sender, receiver) = channel();
+        let (sender, receiver) = unbounded();
 
         let sock = SocketAddr::from((
             [127, 0, 0, 1],
