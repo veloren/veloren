@@ -43,7 +43,7 @@ void main() {
 
     f_light = float(v_col_light & 0xFFu) / 255.0;
 
-	f_opac = 0.1;
+	f_opac = 0.3;
 
     gl_Position =
 		proj_mat *

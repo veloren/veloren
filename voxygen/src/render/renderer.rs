@@ -506,12 +506,16 @@ fn create_pipelines(
     let srgb =
         assets::load_watched::<String>("voxygen.shaders.include.srgb", shader_reload_indicator)
             .unwrap();
+    let random =
+        assets::load_watched::<String>("voxygen.shaders.include.random", shader_reload_indicator)
+            .unwrap();
 
     let mut include_ctx = IncludeContext::new();
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
     include_ctx.include("light.glsl", &light);
     include_ctx.include("srgb.glsl", &srgb);
+    include_ctx.include("random.glsl", &random);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(
@@ -522,6 +526,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.skybox-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering figures
@@ -533,6 +538,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.figure-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering terrain
@@ -544,6 +550,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering fluids
@@ -555,6 +562,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.fluid-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Nothing,
     )?;
 
     // Construct a pipeline for rendering UI elements
@@ -566,6 +574,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.ui-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering our post-processing
@@ -583,6 +592,7 @@ fn create_pipelines(
         )
         .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     Ok((
@@ -602,6 +612,7 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     vs: &str,
     fs: &str,
     ctx: &IncludeContext,
+    cull_face: gfx::state::CullFace,
 ) -> Result<GfxPipeline<P>, RenderError> {
     let vs = ctx.expand(vs).map_err(RenderError::IncludeError)?;
     let fs = ctx.expand(fs).map_err(RenderError::IncludeError)?;
@@ -617,7 +628,7 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 gfx::Primitive::TriangleList,
                 gfx::state::Rasterizer {
                     front_face: gfx::state::FrontFace::CounterClockwise,
-                    cull_face: gfx::state::CullFace::Back,
+                    cull_face,
                     method: gfx::state::RasterMethod::Fill,
                     offset: None,
                     samples: Some(gfx::state::MultiSample),

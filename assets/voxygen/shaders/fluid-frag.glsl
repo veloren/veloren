@@ -1,6 +1,7 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <random.glsl>
 
 in vec3 f_pos;
 flat in vec3 f_norm;
@@ -25,7 +26,7 @@ void main() {
 	float fog_level = fog(f_pos.xy, focus_pos.xy);
     vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
 
-	vec3 warped_norm = normalize(f_norm + (sin(f_pos.xyz + tick.x + 13.7) + sin(f_pos.zxy + tick.x + 19.3)) * 0.3);
+	vec3 warped_norm = normalize(f_norm + smooth_rand(floor(f_pos), tick.x) * 0.5);
 	vec3 reflect_color = get_sky_color(reflect(normalize(f_pos - cam_pos.xyz), warped_norm), time_of_day.x);
 
 	vec3 color = mix(surf_color + reflect_color * 0.5, fog_color, fog_level);

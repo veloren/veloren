@@ -18,7 +18,7 @@ fn block_shadow_density(kind: BlockKind) -> Option<f32> {
         BlockKind::Air => None,
         BlockKind::Normal => Some(0.85),
         BlockKind::Dense => Some(3.0),
-        BlockKind::Water => Some(0.01),
+        BlockKind::Water => Some(0.8),
     }
 }
 
@@ -63,6 +63,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             false,
                             &neighbour_light,
                             |vox| !vox.is_opaque(),
+                            |vox| vox.is_opaque(),
                         );
                     } else if let Some(col) = block
                         .filter(|vox| vox.is_fluid())
@@ -82,6 +83,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                             false,
                             &neighbour_light,
                             |vox| vox.is_air(),
+                            |vox| vox.is_opaque(),
                         );
                     }
 
