@@ -66,7 +66,7 @@ impl ServerSettings {
             address: SocketAddr::from(([0; 4], 14004)),
             world_seed: 1337,
             server_name: "Singleplayer".to_owned(),
-            server_description: "This is the best Veloren singleplayer server.".to_owned(),
+            server_description: "The main feature is loneliness!".to_owned(),
             max_players: 100,
             start_time: 9.0 * 3600.0,
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
