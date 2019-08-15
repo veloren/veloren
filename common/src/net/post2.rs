@@ -1,3 +1,4 @@
+use crossbeam::channel;
 use log::warn;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -8,7 +9,7 @@ use std::{
     net::{Shutdown, SocketAddr, TcpListener, TcpStream},
     sync::{
         atomic::{AtomicBool, Ordering},
-        mpsc, Arc,
+        Arc,
     },
     thread,
     time::Duration,
@@ -34,8 +35,8 @@ impl From<bincode::Error> for Error {
     }
 }
 
-impl From<mpsc::TryRecvError> for Error {
-    fn from(_error: mpsc::TryRecvError) -> Self {
+impl From<channel::TryRecvError> for Error {
+    fn from(_error: channel::TryRecvError) -> Self {
         Error::ChannelFailure
     }
 }
@@ -90,8 +91,8 @@ impl<S: PostMsg, R: PostMsg> PostOffice<S, R> {
 }
 
 pub struct PostBox<S: PostMsg, R: PostMsg> {
-    send_tx: mpsc::Sender<S>,
-    recv_rx: mpsc::Receiver<Result<R, Error>>,
+    send_tx: channel::Sender<S>,
+    recv_rx: channel::Receiver<Result<R, Error>>,
     worker: Option<thread::JoinHandle<()>>,
     running: Arc<AtomicBool>,
     error: Option<Error>,
@@ -108,8 +109,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
         let running = Arc::new(AtomicBool::new(true));
         let worker_running = running.clone();
 
-        let (send_tx, send_rx) = mpsc::channel();
-        let (recv_tx, recv_rx) = mpsc::channel();
+        let (send_tx, send_rx) = channel::unbounded();
+        let (recv_tx, recv_rx) = channel::unbounded();
 
         let worker = thread::spawn(move || Self::worker(stream, send_rx, recv_tx, worker_running));
 
@@ -154,7 +155,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
         loop {
             match self.recv_rx.try_recv() {
                 Ok(Ok(msg)) => new.push(msg),
-                Err(mpsc::TryRecvError::Empty) => break,
+                Err(channel::TryRecvError::Empty) => break,
                 Err(e) => {
                     self.error = Some(e.into());
                     break;
@@ -171,8 +172,8 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
 
     fn worker(
         mut stream: TcpStream,
-        send_rx: mpsc::Receiver<S>,
-        recv_tx: mpsc::Sender<Result<R, Error>>,
+        send_rx: channel::Receiver<S>,
+        recv_tx: channel::Sender<Result<R, Error>>,
         running: Arc<AtomicBool>,
     ) {
         let mut outgoing_chunks = VecDeque::new();
@@ -215,7 +216,7 @@ impl<S: PostMsg, R: PostMsg> PostBox<S, R> {
                                 .map(|chunk| chunk.to_vec())
                                 .for_each(|chunk| outgoing_chunks.push_back(chunk))
                         }
-                        Err(mpsc::TryRecvError::Empty) => break,
+                        Err(channel::TryRecvError::Empty) => break,
                         // Worker error
                         Err(e) => {
                             let _ = recv_tx.send(Err(e.into()));
