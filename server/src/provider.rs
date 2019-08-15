@@ -25,7 +25,7 @@ fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
 
 pub enum SaveMsg {
     END,
-    SAVE((Vec2<i32>, TerrainChunk)),
+    SAVE(Vec2<i32>, TerrainChunk),
     RATE(u32),
 }
 
@@ -86,22 +86,33 @@ impl Provider {
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
 
         thread::spawn(move || 'yeet: loop {
-            let mut wait_time = 1000;
+            let mut wait_time = 500;
+            let mut saving = false;
             std::thread::sleep_ms(wait_time);
             for msg in rx.try_recv() {
                 match msg {
-                    SaveMsg::END => break 'yeet,
+                    SaveMsg::END => {
+                        println!("Wrapped up world");
+                        break 'yeet;
+                    },
                     SaveMsg::RATE(x) => wait_time = x,
-                    SaveMsg::SAVE((pos, chunk)) => qser(t(pos), &chunk).unwrap(),
+                    SaveMsg::SAVE(pos, chunk) => {
+                        saving = true;
+                        qser(t(pos), &chunk).unwrap()
+                    },
                 }
+            }
+            if saving {
+                println!("Finished saving chunks");
+                saving = false;
             }
         })
     }
 
-    pub fn request_save_chunk(&self, chunk: TerrainChunk, v: Vec2<i32>) {
+    pub fn request_save_message(&self, msg: SaveMsg) {
         if let Some(mutex) = &self.tx {
             let tx = mutex.lock().unwrap();
-            tx.send(SaveMsg::SAVE((v, chunk))).unwrap();
+            tx.send(msg).unwrap();
         }
     }
 

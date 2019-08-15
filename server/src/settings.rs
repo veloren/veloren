@@ -14,6 +14,7 @@ pub struct ServerSettings {
     pub start_time: f64,
     pub admins: Vec<String>,
     pub world_folder: PathBuf,
+    pub peaceful: bool,
 }
 
 impl Default for ServerSettings {
@@ -27,6 +28,8 @@ impl Default for ServerSettings {
             start_time: 9.0 * 3600.0,
             admins: vec!["Pfau".to_owned()],
             world_folder: PathBuf::from("./worldsave"),
+            admins: vec![],
+            peaceful: false,
         }
     }
 }
@@ -73,6 +76,7 @@ impl ServerSettings {
             start_time: 9.0 * 3600.0,
             world_folder: PathBuf::from("./worldsave"),
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
+            peaceful: false,
         }
     }
 

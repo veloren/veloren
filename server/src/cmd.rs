@@ -212,7 +212,15 @@ lazy_static! {
              "/debug_column <x> <y> : Prints some debug information about a column",
              false,
              handle_debug_column,
-         ),
+        ),
+
+        ChatCommand::new(
+            "peaceful",
+            "",
+            "/peaceful : enable/disable mob spawning",
+            true,
+            handle_peaceful,
+        )
     ];
 }
 
@@ -913,5 +921,19 @@ spawn_rate {:?} "#,
         server
             .clients
             .notify(entity, ServerMsg::private(String::from(action.help_string)));
+    }
+}
+
+fn handle_peaceful(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
+    //let b: bool = scan_fmt!(&args, action.arg_fmt, bool).unwrap_or(!server.server_settings.peaceful);
+    server.server_settings.peaceful = !server.server_settings.peaceful;
+
+    if server.server_settings.peaceful {
+        let ecs = server.state.ecs();
+        let mut stats = ecs.write_storage::<comp::Stats>();
+        let players = ecs.read_storage::<comp::Player>();
+        for (stats, ()) in (&mut stats, !&players).join() {
+            stats.health.set_to(0, comp::HealthSource::Command);
+        }
     }
 }

@@ -32,7 +32,7 @@ use crossbeam::channel;
 use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
 use metrics::ServerMetrics;
-use provider::Provider;
+use provider::{Provider, SaveMsg};
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
 use std::ops::Deref;
@@ -493,7 +493,8 @@ impl Server {
             let map = ecs.read_resource::<TerrainMap>();
             let dirtied = dc.drain();
             for i in dirtied {
-                self.world_provider.request_save_chunk(map.get_key(i).unwrap().clone(), i);
+                self.world_provider
+                    .request_save_message(SaveMsg::SAVE(i, map.get_key(i).unwrap().clone()));
             }
         }
         /*self.world_provider.save_chunks(
@@ -552,43 +553,43 @@ impl Server {
             self.pending_chunks.remove(&key);
 
             // Handle chunk supplement
-            for npc in supplement.npcs {
-                let (mut stats, mut body) = if rand::random() {
-                    let stats = comp::Stats::new(
-                        "Humanoid".to_string(),
-                        Some(comp::Item::Tool {
-                            kind: comp::item::Tool::Sword,
-                            power: 10,
-                        }),
-                    );
-                    let body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    (stats, body)
-                } else {
-                    let stats = comp::Stats::new("Wolf".to_string(), None);
-                    let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
-                    (stats, body)
-                };
-                let mut scale = 1.0;
-
-                if npc.boss {
-                    if rand::random::<f32>() < 0.8 {
-                        stats = comp::Stats::new(
+            if !self.server_settings.peaceful {
+                for npc in supplement.npcs {
+                    let (mut stats, mut body) = if rand::random() {
+                        let stats = comp::Stats::new(
                             "Humanoid".to_string(),
                             Some(comp::Item::Tool {
                                 kind: comp::item::Tool::Sword,
                                 power: 10,
                             }),
                         );
-                        body = comp::Body::Humanoid(comp::humanoid::Body::random());
-                    }
-                    stats = stats.with_max_health(500 + rand::random::<u32>() % 400);
-                    scale = 2.5 + rand::random::<f32>();
-                }
+                        let body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                        (stats, body)
+                    } else {
+                        let stats = comp::Stats::new("Wolf".to_string(), None);
+                        let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
+                        (stats, body)
+                    };
+                    let mut scale = 1.0;
 
-                self.create_npc(comp::Pos(npc.pos), stats, body)
-                    .with(comp::Agent::enemy())
-                    .with(comp::Scale(scale))
-                    .build();
+                    if npc.boss {
+                        if rand::random::<f32>() < 0.8 {
+                            stats = comp::Stats::new(
+                                "Humanoid".to_string(),
+                                Some(comp::Item::Tool {
+                                    kind: comp::item::Tool::Sword,
+                                    power: 10,
+                                }),
+                            );
+                            body = comp::Body::Humanoid(comp::humanoid::Body::random());
+                        }
+                    }
+
+                    self.create_npc(comp::Pos(npc.pos), stats, body)
+                        .with(comp::Agent::enemy())
+                        .with(comp::Scale(scale))
+                        .build();
+                }
             }
         }
 
@@ -1440,8 +1441,10 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
+        println!("Killing server...");
         self.clients.notify_registered(ServerMsg::Shutdown);
-        self.save_handle.take().unwrap().join();
+        self.world_provider.request_save_message(SaveMsg::END);
+        self.save_handle.take().unwrap().join().unwrap();
     }
 }
 
