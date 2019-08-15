@@ -23,7 +23,7 @@ impl VolSize for TerrainChunkSize {
     const SIZE: Vec3<u32> = Vec3 {
         x: 32,
         y: 32,
-        z: 32,
+        z: std::i32::MAX as u32,
     };
 }
 
