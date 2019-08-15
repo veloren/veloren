@@ -9,7 +9,7 @@ extern crate lazy_static;
 pub mod discord;
 
 #[cfg(feature = "discord")]
-use std::sync::Mutex;
+use parking_lot::Mutex;
 
 #[macro_use]
 pub mod ui;
