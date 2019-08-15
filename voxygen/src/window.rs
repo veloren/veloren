@@ -123,7 +123,9 @@ pub struct Window {
     needs_refresh_resize: bool,
     key_map: HashMap<DigitalInput, Vec<GameInput>>,
     con_axis_map: HashMap<gilrs::ev::Axis, Vec<ConAxisAction>>,
+    con_axis_buf: HashMap<ConAxisAction, f32>,
     con_button_map: HashMap<gilrs::ev::Button, Vec<ConButtonAction>>,
+    con_button_buf: HashMap<ConButtonAction, f32>,
     keypress_map: HashMap<GameInput, glutin::ElementState>,
     supplement_events: Vec<Event>,
     focused: bool,
@@ -286,7 +288,9 @@ impl Window {
             .push(GameInput::Interact);
 
         let mut con_axis_map: HashMap<_, Vec<_>> = HashMap::new();
+        let con_axis_buf = HashMap::new();
         let mut con_button_map: HashMap<_, Vec<_>> = HashMap::new();
+        let con_button_buf = HashMap::new();
 
         con_axis_map
             .entry(gilrs::ev::Axis::RightStickX)
@@ -330,7 +334,9 @@ impl Window {
             key_map: key_map,
             keypress_map: keypress_map,
             con_axis_map: con_axis_map,
+            con_axis_buf: con_axis_buf,
             con_button_map: con_button_map,
+            con_button_buf: con_button_buf,
             supplement_events: vec![],
             focused: true,
             gilrs: gilrs,
@@ -482,7 +488,82 @@ impl Window {
         }
 
         if let Some(gilrs) = &mut self.gilrs {
-            while let Some(event) = gilrs.next_event() {}
+            while let Some(event) = gilrs.next_event() {
+                use gilrs::ev::EventType;
+                match event.event {
+                    EventType::ButtonPressed(button, _keycode) => {
+                        if let Some(actions) = self.con_button_map.get(&button) {
+                            for action in actions.iter() {
+                                match action {
+                                    ConButtonAction::GameInput(game_input) => {
+                                        events.push(Event::InputUpdate(*game_input, true));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    EventType::ButtonReleased(button, _keycode) => {
+                        if let Some(actions) = self.con_button_map.get(&button) {
+                            for action in actions.iter() {
+                                match action {
+                                    ConButtonAction::GameInput(game_input) => {
+                                        events.push(Event::InputUpdate(*game_input, false));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    EventType::ButtonChanged(_button, _value, _keycode) => {} // TODO: discuss possible usage of this
+                    EventType::AxisChanged(axis, value, _keycode) => {
+                        if let Some(actions) = self.con_axis_map.get(&axis) {
+                            for action in actions.iter() {
+                                match action {
+                                    ConAxisAction::CameraPanX => {
+                                        self.con_axis_buf.insert(ConAxisAction::CameraPanX, value);
+                                    }
+                                    ConAxisAction::CameraPanY => {
+                                        self.con_axis_buf.insert(ConAxisAction::CameraPanY, value);
+                                    }
+                                    ConAxisAction::MovementX => {
+                                        self.con_axis_buf.insert(ConAxisAction::MovementX, value);
+                                    }
+                                    ConAxisAction::MovementY => {
+                                        self.con_axis_buf.insert(ConAxisAction::MovementY, value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    _ => {} // Note: There are events for connecting/disconnecting gamepads
+                }
+
+                events.push(Event::AnalogMovement(Vec2::from([
+                    *self
+                        .con_axis_buf
+                        .get(&ConAxisAction::MovementX)
+                        .unwrap_or(&0.0),
+                    *self
+                        .con_axis_buf
+                        .get(&ConAxisAction::MovementY)
+                        .unwrap_or(&0.0),
+                ])));
+                events.push(Event::CursorPan(Vec2::from([
+                    *self
+                        .con_axis_buf
+                        .get(&ConAxisAction::CameraPanX)
+                        .unwrap_or(&0.0)
+                        * 200.0,
+                    *self
+                        .con_axis_buf
+                        .get(&ConAxisAction::CameraPanY)
+                        .unwrap_or(&0.0)
+                        * 200.0,
+                ])));
+                // TODO: make the pan sensitivity scalable, possibly implement some curve for more
+                // precise input
+                // TODO: if you disconnect a controller while an Axis was non-zero, it will
+                // still generate input
+            }
         }
 
         events
