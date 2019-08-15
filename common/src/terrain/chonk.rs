@@ -17,6 +17,20 @@ pub enum ChonkError {
 const SUB_CHUNK_HEIGHT: u32 = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubChunkSize;
+
+impl VolSize for SubChunkSize {
+    const SIZE: Vec3<u32> = Vec3 {
+        x: TerrainChunkSize::SIZE.x,
+        y: TerrainChunkSize::SIZE.y,
+        z: SUB_CHUNK_HEIGHT,
+    };
+}
+
+const SUB_CHUNK_HASH_LIMIT: usize =
+    (SubChunkSize::SIZE.x * SubChunkSize::SIZE.y * SubChunkSize::SIZE.z) as usize / 4;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Chonk {
     z_offset: i32,
     sub_chunks: Vec<SubChunk>,
@@ -155,7 +169,7 @@ impl WriteVol for Chonk {
                 map.remove(&rpos.map(|e| e as u8));
                 Ok(())
             }
-            SubChunk::Hash(_cblock, map) if map.len() <= 4096 => {
+            SubChunk::Hash(_cblock, map) if map.len() < SUB_CHUNK_HASH_LIMIT => {
                 map.insert(rpos.map(|e| e as u8), block);
                 Ok(())
             }
@@ -188,17 +202,6 @@ impl WriteVol for Chonk {
             } //_ => unimplemented!(),
         }
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubChunkSize;
-
-impl VolSize for SubChunkSize {
-    const SIZE: Vec3<u32> = Vec3 {
-        x: TerrainChunkSize::SIZE.x,
-        y: TerrainChunkSize::SIZE.y,
-        z: SUB_CHUNK_HEIGHT,
-    };
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
