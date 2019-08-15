@@ -482,7 +482,7 @@ impl Server {
         self.handle_events();
 
         let before_tick_4 = Instant::now();
-        let dirtied: Vec<Vec2<i32>> = self
+        let dirtied: HashSet<Vec2<i32>> = self
             .state
             .ecs()
             .read_resource::<BlockChange>()
