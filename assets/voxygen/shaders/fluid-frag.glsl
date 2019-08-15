@@ -26,7 +26,7 @@ void main() {
 	float fog_level = fog(f_pos.xy, focus_pos.xy);
     vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
 
-	vec3 warped_norm = normalize(f_norm + smooth_rand(floor(f_pos), tick.x) * 0.5);
+	vec3 warped_norm = normalize(f_norm + smooth_rand(f_pos * 0.6, tick.x) * 0.75);
 	vec3 reflect_color = get_sky_color(reflect(normalize(f_pos - cam_pos.xyz), warped_norm), time_of_day.x);
 
 	vec3 color = mix(surf_color + reflect_color * 0.5, fog_color, fog_level);
