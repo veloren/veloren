@@ -8,9 +8,10 @@ use common::{
     vol::{SampleVol, VolSize},
     volumes::vol_map_2d::VolMap2dErr,
 };
+use crossbeam::channel;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
-use std::{i32, ops::Mul, sync::mpsc, time::Duration};
+use std::{i32, ops::Mul, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -56,8 +57,8 @@ pub struct Terrain {
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
     // We keep the sender component for no reason other than to clone it and send it to new workers.
-    mesh_send_tmp: mpsc::Sender<MeshWorkerResponse>,
-    mesh_recv: mpsc::Receiver<MeshWorkerResponse>,
+    mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
+    mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 }
 
@@ -65,7 +66,7 @@ impl Terrain {
     pub fn new() -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
         // worker threads that are meshing chunks.
-        let (send, recv) = mpsc::channel();
+        let (send, recv) = channel::unbounded();
 
         Self {
             chunks: HashMap::default(),
