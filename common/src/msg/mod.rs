@@ -17,7 +17,7 @@ pub enum ClientState {
     Character,
 }
 
-pub const MAX_BYTES_CHAT_MSG: usize = 80;
+pub const MAX_BYTES_CHAT_MSG: usize = 256;
 
 pub enum ChatMsgValidationError {
     TooLong,
