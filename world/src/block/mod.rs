@@ -465,6 +465,7 @@ fn block_from_structure(
             Lerp::lerp(Rgb::new(0.0, 108.0, 113.0), Rgb::new(30.0, 156.0, 10.0), lerp)
                 .map(|e| e as u8),
         )),
+        StructureBlock::Water => Some(Block::new(BlockKind::Water, Rgb::new(100, 150, 255))),
         StructureBlock::Acacia => Some(Block::new(
             BlockKind::Normal,
             Lerp::lerp(Rgb::new(35.0, 156.0, 0.0), Rgb::new(62.0, 208.0, 0.0), lerp)
