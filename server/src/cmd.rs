@@ -26,6 +26,8 @@ pub struct ChatCommand {
     arg_fmt: &'static str,
     /// A message that explains how the command is used.
     help_string: &'static str,
+    /// A boolean that is used to check whether the command requires administrator permissions or not.
+    needs_admin: bool,
     /// Handler function called when the command is executed.
     /// # Arguments
     /// * `&mut Server` - the `Server` instance executing the command.
@@ -42,18 +44,32 @@ impl ChatCommand {
         keyword: &'static str,
         arg_fmt: &'static str,
         help_string: &'static str,
+        needs_admin: bool,
         handler: fn(&mut Server, EcsEntity, String, &ChatCommand),
     ) -> Self {
         Self {
             keyword,
             arg_fmt,
             help_string,
+            needs_admin,
             handler,
         }
     }
     /// Calls the contained handler function, passing `&self` as the last argument.
     pub fn execute(&self, server: &mut Server, entity: EcsEntity, args: String) {
-        (self.handler)(server, entity, args, self);
+        if self.needs_admin {
+            if !server.entity_is_admin(entity) {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::private(String::from("You have no permission to do that.")),
+                );
+                return;
+            } else {
+                (self.handler)(server, entity, args, self);
+            }
+        } else {
+            (self.handler)(server, entity, args, self);
+        }
     }
 }
 
@@ -64,98 +80,114 @@ lazy_static! {
             "jump",
             "{d} {d} {d}",
             "/jump <dx> <dy> <dz> : Offset your current position",
+            true,
             handle_jump,
         ),
         ChatCommand::new(
             "goto",
             "{d} {d} {d}",
             "/goto <x> <y> <z> : Teleport to a position",
+            true,
             handle_goto,
         ),
         ChatCommand::new(
             "alias",
             "{}",
             "/alias <name> : Change your alias",
+            false,
             handle_alias,
         ),
         ChatCommand::new(
             "tp",
             "{}",
             "/tp <alias> : Teleport to another player",
+            true,
             handle_tp,
         ),
         ChatCommand::new(
             "kill",
             "{}",
             "/kill : Kill yourself",
+            false,
             handle_kill,
         ),
         ChatCommand::new(
             "time",
             "{} {s}",
             "/time <XY:XY> or [Time of day] : Set the time of day",
+            true,
             handle_time,
         ),
         ChatCommand::new(
             "spawn",
             "{} {} {d}",
             "/spawn <alignment> <entity> [amount] : Spawn a test entity",
+            true,
             handle_spawn,
         ),
         ChatCommand::new(
              "players",
              "{}",
              "/players : Lists players currently online",
+             false,
              handle_players,
          ),
         ChatCommand::new(
-            "help", "", "/help: Display this message", handle_help),
+            "help", "", "/help: Display this message", false, handle_help),
         ChatCommand::new(
             "health",
             "{}",
             "/health : Set your current health",
+            true,
             handle_health,
         ),
         ChatCommand::new(
             "build",
             "",
             "/build : Toggles build mode on and off",
+            true,
             handle_build,
         ),
         ChatCommand::new(
             "tell",
             "{}",
             "/tell <alias> <message>: Send a message to another player",
+            false,
             handle_tell,
         ),
         ChatCommand::new(
             "killnpcs",
             "{}",
             "/killnpcs : Kill the NPCs",
+            true,
             handle_killnpcs,
         ),
         ChatCommand::new(
             "object",
             "{}",
             "/object [Name]: Spawn an object",
+            true,
             handle_object,
         ),
         ChatCommand::new(
             "light",
             "{} {} {} {} {} {} {}",
             "/light <opt:  <<cr> <cg> <cb>> <<ox> <oy> <oz>> <<strength>>>: Spawn entity with light",
+            true,
             handle_light,
         ),
         ChatCommand::new(
             "lantern",
             "{}",
             "/lantern : adds/remove light near player",
+            false,
             handle_lantern,
         ),
         ChatCommand::new(
             "explosion",
             "{}",
             "/explosion <radius> : Explodes the ground around you",
+            false,
             handle_explosion,
         ),
     ];
@@ -272,7 +304,7 @@ fn handle_health(server: &mut Server, entity: EcsEntity, args: String, action: &
         } else {
             server.clients.notify(
                 entity,
-                ServerMsg::private(String::from("You have no position.")),
+                ServerMsg::private(String::from("You have no health.")),
             );
         }
     } else {
@@ -439,6 +471,7 @@ fn handle_build(server: &mut Server, entity: EcsEntity, _args: String, _action: 
     }
 }
 
+// TODO: Don't display commands that the player cannot use.
 fn handle_help(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
     for cmd in CHAT_COMMANDS.iter() {
         server
