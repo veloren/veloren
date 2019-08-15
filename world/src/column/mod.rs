@@ -335,7 +335,9 @@ impl<'a> Sampler for ColumnGen<'a> {
                         / 100.0,
                 ),
                 // Beach
-                ((alt - CONFIG.sea_level - 1.0) / 2.0).min(1.0 - river * 2.0),
+                ((alt - CONFIG.sea_level - 1.0) / 2.0)
+                    .min(1.0 - river * 2.0)
+                    .max(0.0),
             ),
             sub_surface_color: dirt,
             tree_density,

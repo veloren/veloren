@@ -1,3 +1,5 @@
+#include <random.glsl>
+
 const float PI = 3.141592;
 
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
@@ -54,10 +56,6 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 	return diffuse_light;
 }
 
-vec3 rand_offs(vec3 pos) {
-	return sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5));
-}
-
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
 	float star_scale = 30.0;
@@ -69,7 +67,7 @@ float is_star_at(vec3 dir) {
 				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
 
 				// Noisy offsets
-				pos += (3.0 / star_scale) * rand_offs(pos);
+				pos += (3.0 / star_scale) * rand_perm_3(pos);
 
 				// Find distance to fragment
 				float dist = length(normalize(pos) - dir);

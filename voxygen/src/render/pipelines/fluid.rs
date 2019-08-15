@@ -29,12 +29,12 @@ gfx_defines! {
         lights: gfx::ConstantBuffer<Light> = "u_lights",
 
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
-        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
+        tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_TEST,
     }
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, light: f32, opac: f32) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>, light: f32, _opac: f32) -> Self {
         let (norm_axis, norm_dir) = norm
             .as_slice()
             .into_iter()
