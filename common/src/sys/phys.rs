@@ -108,7 +108,7 @@ impl<'a> System<'a> for Sys {
 
                     if terrain
                         .get(block_pos)
-                        .map(|vox| !vox.is_empty())
+                        .map(|vox| vox.is_solid())
                         .unwrap_or(false)
                     {
                         let player_aabb = Aabb {
@@ -183,7 +183,7 @@ impl<'a> System<'a> for Sys {
                         .filter(|(block_pos, _)| {
                             terrain
                                 .get(*block_pos)
-                                .map(|vox| !vox.is_empty())
+                                .map(|vox| vox.is_solid())
                                 .unwrap_or(false)
                         })
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)

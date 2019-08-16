@@ -163,7 +163,7 @@ impl<'a> BlockGen<'a> {
         let (definitely_underground, height, water_height) =
             if (wposf.z as f32) < alt - 64.0 * chaos {
                 // Shortcut warping
-                (true, alt, water_level)
+                (true, alt, CONFIG.sea_level /*water_level*/)
             } else {
                 // Apply warping
                 let warp = (world
@@ -204,7 +204,11 @@ impl<'a> BlockGen<'a> {
                     (alt + warp).max(cliff_height)
                 };
 
-                (false, height, (water_level + warp).max(CONFIG.sea_level))
+                (
+                    false,
+                    height,
+                    /*(water_level + warp).max(*/ CONFIG.sea_level, /*)*/
+                )
             };
 
         // Sample blocks
@@ -250,9 +254,6 @@ impl<'a> BlockGen<'a> {
                 BlockKind::Normal,
                 saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
             ))
-        } else if (wposf.z as f32) < water_height {
-            // Ocean
-            Some(water)
         } else {
             None
         };
@@ -291,6 +292,16 @@ impl<'a> BlockGen<'a> {
                             field2.get(wpos) as u8 % 16,
                         ),
                 ))
+            } else {
+                None
+            }
+        });
+
+        // Water
+        let block = block.or_else(|| {
+            if (wposf.z as f32) < water_height {
+                // Ocean
+                Some(water)
             } else {
                 None
             }

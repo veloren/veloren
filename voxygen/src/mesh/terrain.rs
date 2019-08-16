@@ -13,12 +13,12 @@ use vek::*;
 type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
 
-fn block_shadow_density(kind: BlockKind) -> Option<f32> {
+fn block_shadow_density(kind: BlockKind) -> (f32, f32) {
     match kind {
-        BlockKind::Air => None,
-        BlockKind::Normal => Some(0.85),
-        BlockKind::Dense => Some(3.0),
-        BlockKind::Water => Some(0.8),
+        BlockKind::Air => (0.0, 0.0),
+        BlockKind::Normal => (0.085, 0.3),
+        BlockKind::Dense => (0.3, 0.0),
+        BlockKind::Water => (0.08, 0.0),
     }
 }
 
@@ -94,16 +94,14 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for
                     // Accumulate shade under opaque blocks
                     for i in 0..3 {
                         for j in 0..3 {
-                            neighbour_light[0][i][j] = if let Some(density) = self
+                            let (density, cap) = self
                                 .get(pos + Vec3::new(i as i32 - 1, j as i32 - 1, -1))
                                 .ok()
-                                .and_then(|vox| block_shadow_density(vox.kind()))
-                            {
-                                (neighbour_light[0][i][j] * (1.0 - density * 0.1))
-                                    .max(1.0 - density)
-                            } else {
-                                (neighbour_light[0][i][j] * 1.025).min(1.0)
-                            };
+                                .map(|vox| block_shadow_density(vox.kind()))
+                                .unwrap_or((0.0, 0.0));
+
+                            neighbour_light[0][i][j] =
+                                (neighbour_light[0][i][j] * (1.0 - density)).max(cap);
                         }
                     }
 
