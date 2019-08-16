@@ -144,11 +144,20 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	return sky_color + sun_light;
 }
 
-float fog(vec2 f_pos, vec2 focus_pos) {
-	float dist = distance(f_pos, focus_pos) / view_distance.x;
-	const float min_fog = 0.5;
-	const float max_fog = 1.0;
-	const float diff_fog = 0.5; // max - min
+float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
+	float fog_radius = view_distance.x;
+	float mist_radius = 10000000.0;
 
-	return pow(clamp((dist - min_fog) / (diff_fog), 0.0, 1.0), 1.7);
+	float min_fog = 0.5;
+	float max_fog = 1.0;
+
+	if (medium == 1u) {
+		mist_radius = 32.0;
+		min_fog = 0.0;
+	}
+
+	float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
+	float mist = distance(f_pos, focus_pos) / mist_radius;
+
+	return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }

@@ -15,7 +15,7 @@ use crate::{
     window::Event,
 };
 use client::Client;
-use common::comp;
+use common::{comp, terrain::BlockKind, vol::ReadVol};
 use specs::Join;
 use vek::*;
 
@@ -194,6 +194,12 @@ impl Scene {
                     client.state().get_time(),
                     renderer.get_resolution(),
                     lights.len(),
+                    client
+                        .state()
+                        .terrain()
+                        .get(cam_pos.map(|e| e.floor() as i32))
+                        .map(|b| b.kind())
+                        .unwrap_or(BlockKind::Air),
                 )],
             )
             .expect("Failed to update global constants");

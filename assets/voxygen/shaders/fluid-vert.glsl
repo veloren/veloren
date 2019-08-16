@@ -14,7 +14,6 @@ out vec3 f_pos;
 flat out vec3 f_norm;
 out vec3 f_col;
 out float f_light;
-out float f_opac;
 
 // First 3 normals are negative, next 3 are positive
 vec3 normals[6] = vec3[]( vec3(-1,0,0), vec3(0,-1,0), vec3(0,0,-1), vec3(1,0,0), vec3(0,1,0), vec3(0,0,1) );
@@ -42,8 +41,6 @@ void main() {
     ) / 200.0;
 
     f_light = float(v_col_light & 0xFFu) / 255.0;
-
-	f_opac = 0.3;
 
     gl_Position =
 		proj_mat *
