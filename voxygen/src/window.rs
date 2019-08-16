@@ -552,12 +552,12 @@ impl Window {
                         .con_axis_buf
                         .get(&ConAxisAction::CameraPanX)
                         .unwrap_or(&0.0)
-                        * 200.0,
+                        * 12.0,
                     *self
                         .con_axis_buf
                         .get(&ConAxisAction::CameraPanY)
                         .unwrap_or(&0.0)
-                        * 200.0,
+                        * 12.0,
                 ])));
                 // TODO: make the pan sensitivity scalable, possibly implement some curve for more
                 // precise input
