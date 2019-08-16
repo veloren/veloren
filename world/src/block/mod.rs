@@ -225,7 +225,7 @@ impl<'a> BlockGen<'a> {
         // let sand = Block::new(1, Rgb::new(180, 150, 50));
         // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
-        let water = Block::new(BlockKind::Water, Rgb::new(0, 24, 255));
+        let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
         let grass_depth = 1.5 + 2.0 * chaos;
         let block = if (wposf.z as f32) < height - grass_depth {

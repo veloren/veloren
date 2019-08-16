@@ -31,7 +31,7 @@ void main() {
 	vec3 light = get_sun_diffuse(f_norm, time_of_day.x) + light_at(f_pos, f_norm);
 	vec3 surf_color = srgb_to_linear(model_col.rgb * f_col) * 4.0 * light;
 
-	float fog_level = fog(f_pos.xy, focus_pos.xy);
+	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
 	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
 	vec3 color = mix(surf_color, fog_color, fog_level);
 

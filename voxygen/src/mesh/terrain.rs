@@ -18,7 +18,7 @@ fn block_shadow_density(kind: BlockKind) -> (f32, f32) {
         BlockKind::Air => (0.0, 0.0),
         BlockKind::Normal => (0.085, 0.3),
         BlockKind::Dense => (0.3, 0.0),
-        BlockKind::Water => (0.08, 0.0),
+        BlockKind::Water => (0.15, 0.0),
     }
 }
 
