@@ -6,7 +6,7 @@ const W: usize = 640;
 const H: usize = 480;
 
 fn main() {
-    let world = World::generate(0, None);
+    let world = World::generate(0);
 
     let sampler = world.sample_columns();
 
