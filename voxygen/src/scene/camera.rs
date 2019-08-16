@@ -1,8 +1,8 @@
 use client::Client;
 use common::vol::{ReadVol, Vox};
+use frustum_query::frustum::Frustum;
 use std::f32::consts::PI;
 use vek::*;
-use frustum_query::frustum::Frustum;
 
 const NEAR_PLANE: f32 = 0.01;
 const FAR_PLANE: f32 = 10000.0;
