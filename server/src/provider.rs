@@ -4,11 +4,13 @@ use common::{
     vol::{ReadVol, VolSize, Vox, WriteVol},
 };
 //use std::collections::HashMap;
+use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
 use hashbrown::HashMap;
 use log;
 use specs::{Join, ReadExpect, System, SystemData, WriteExpect};
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::{mpsc, Mutex};
@@ -18,21 +20,21 @@ use vek::*;
 use world::{sim, ChunkSupplement, World};
 
 fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
-    let out = File::create(t)?;
+    let out = DeflateEncoder::new(BufWriter::new(File::create(t)?), Compression::default());
     bincode::serialize_into(out, obj).unwrap();
     Ok(())
 }
 
 fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
-    let r = File::open(t)?;
+    let r = DeflateDecoder::new(BufReader::new(File::open(t)?));
     let val = bincode::deserialize_from(r).unwrap();
     Ok(val)
 }
 
 pub enum SaveMsg {
     END,
-    //SAVE(Vec2<i32>, TerrainChunk),
-    RATE(u64),
+    SAVE(Vec2<i32>, TerrainChunk),
+    //RATE(u64),
 }
 
 pub struct Provider {
@@ -40,8 +42,7 @@ pub struct Provider {
     pub target: PathBuf,
 
     pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
-
-    pub chunks: Arc<Mutex<HashMap<Vec2<i32>, TerrainChunk>>>,
+    //pub chunks: Arc<Mutex<HashMap<Vec2<i32>, TerrainChunk>>>,
 }
 
 impl Provider {
@@ -61,7 +62,7 @@ impl Provider {
             world,
             target,
             tx: None,
-            chunks: Arc::new(Mutex::new(HashMap::new())),
+            //chunks: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -93,11 +94,11 @@ impl Provider {
 
         let tgt = self.target.clone();
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
-        let mutex = self.chunks.clone();
+        //let mutex = self.chunks.clone();
 
         thread::spawn(move || 'yeet: loop {
             let mut wait_time = Duration::from_millis(1000);
-            let mut bufmap = HashMap::<Vec2<i32>, TerrainChunk>::new();
+            //let mut bufmap = HashMap::<Vec2<i32>, TerrainChunk>::new();
             std::thread::sleep(wait_time);
             for msg in rx.try_recv() {
                 match msg {
@@ -105,23 +106,26 @@ impl Provider {
                         println!("Wrapped up world");
                         break 'yeet;
                     }
-                    SaveMsg::RATE(x) => wait_time = Duration::from_millis(x),
+                    SaveMsg::SAVE(pos, chunk) => {
+                        qser(t(pos), &chunk).unwrap();
+                    } //SaveMsg::RATE(x) => wait_time = Duration::from_millis(x),
                 }
             }
-            {
+            /*{
                 let mut chunkmap = mutex.lock().unwrap();
                 std::mem::swap(&mut *chunkmap, &mut bufmap);
             }
             for (pos, chunk) in bufmap.drain() {
                 log::warn!("Writing {} to disk", pos);
                 qser(t(pos), &chunk).unwrap();
-            }
+            }*/
         })
     }
 
     pub fn set_chunk(&self, pos: Vec2<i32>, chunk: TerrainChunk) {
-        let mut chunkmap = self.chunks.lock().unwrap();
-        chunkmap.insert(pos, chunk);
+        //let mut chunkmap = self.chunks.lock().unwrap();
+        //chunkmap.insert(pos, chunk);
+        self.request_save_message(SaveMsg::SAVE(pos, chunk));
     }
 
     pub fn request_save_message(&self, msg: SaveMsg) {
