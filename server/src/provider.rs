@@ -1,5 +1,6 @@
 use common::terrain::{TerrainChunk, TerrainMap};
 //use std::collections::HashMap;
+use crossbeam::channel;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
 use log;
 use std::fs::File;
@@ -33,7 +34,7 @@ pub struct Provider {
     pub world: World,
     pub target: PathBuf,
 
-    pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
+    pub tx: Option<channel::Sender<SaveMsg>>,
 }
 
 impl Provider {
@@ -80,8 +81,8 @@ impl Provider {
     }
 
     pub fn init_save_loop(&mut self) -> thread::JoinHandle<()> {
-        let (tx, rx) = mpsc::channel::<SaveMsg>();
-        self.tx = Some(Mutex::new(tx));
+        let (tx, rx) = channel::unbounded::<SaveMsg>();
+        self.tx = Some(tx);
 
         let tgt = self.target.clone();
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
@@ -107,8 +108,7 @@ impl Provider {
     }
 
     pub fn request_save_message(&self, msg: SaveMsg) {
-        if let Some(mutex) = &self.tx {
-            let tx = mutex.lock().unwrap();
+        if let Some(tx) = &self.tx {
             tx.send(msg).unwrap();
         }
     }
