@@ -864,7 +864,7 @@ impl FigureMgr {
         )
             .join()
             // Don't render figures outside of frustum (camera viewport, max draw distance is farplane) 
-            .filter(|(_, pos, _, _, _, _, scale)| frustum.sphere_intersecting(&pos.0.x, &pos.0.y, &pos.0.z, &scale.map_or(2.0, |s| 2.0 * s.0)))
+            .filter(|(_, pos, _, _, _, _, scale)| frustum.sphere_intersecting(&pos.0.x, &pos.0.y, &pos.0.z, &(scale.unwrap_or(&comp::Scale(1.0)).0 * 2.0)))
             // Don't render dead entities
             .filter(|(_, _, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
