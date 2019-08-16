@@ -34,6 +34,14 @@ impl BlockKind {
             _ => true,
         }
     }
+
+    pub fn is_solid(&self) -> bool {
+        match self {
+            BlockKind::Air => false,
+            BlockKind::Water => false,
+            _ => true,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
