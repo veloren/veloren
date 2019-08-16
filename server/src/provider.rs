@@ -1,6 +1,4 @@
-use common::{
-    terrain::{TerrainChunk, TerrainMap},
-};
+use common::terrain::{TerrainChunk, TerrainMap};
 //use std::collections::HashMap;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
 use log;
