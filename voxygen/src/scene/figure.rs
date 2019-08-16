@@ -851,33 +851,29 @@ impl FigureMgr {
         let tick = client.get_tick();
         let ecs = client.state().ecs();
 
-        let view_distance = client.view_distance().unwrap_or(1);
-        // Get player position.
-        let player_pos = client
-            .state()
-            .ecs()
-            .read_storage::<comp::Pos>()
-            .get(client.entity())
-            .map_or(Vec3::zero(), |pos| pos.0);
+        let frustum = camera.frustum(client);
 
-        for (entity, _, _, _, body, _) in (
+        for (entity, _, _, _, body, _, _) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Pos>(),
             &ecs.read_storage::<comp::Vel>(),
             &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Body>(),
             ecs.read_storage::<comp::Stats>().maybe(),
+            ecs.read_storage::<comp::Scale>().maybe(),
         )
             .join()
-            // Don't render figures outside the vd
-            .filter(|(_, pos, _, _, _, _)| {
-                (pos.0 - player_pos)
-                    .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
-                    .magnitude()
-                    < view_distance as f32
+            // Don't render figures outside of frustum (camera viewport, max draw distance is farplane)
+            .filter(|(_, pos, _, _, _, _, scale)| {
+                frustum.sphere_intersecting(
+                    &pos.0.x,
+                    &pos.0.y,
+                    &pos.0.z,
+                    &(scale.unwrap_or(&comp::Scale(1.0)).0 * 2.0),
+                )
             })
             // Don't render dead entities
-            .filter(|(_, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
             if let Some((locals, bone_consts)) = match body {
                 Body::Humanoid(_) => self
