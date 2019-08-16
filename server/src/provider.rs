@@ -1,8 +1,9 @@
 use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainMap},
     vol::{ReadVol, VolSize, Vox, WriteVol},
+    state::DirtiedChunks,
 };
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -10,6 +11,10 @@ use std::sync::{mpsc, Mutex};
 use std::thread;
 use vek::*;
 use world::{sim, ChunkSupplement, World};
+use specs::{System, SystemData, ReadExpect, WriteExpect, Join};
+use std::time::{Instant, Duration};
+use hashbrown::HashMap;
+use std::sync::Arc;
 
 fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
     let out = File::create(t)?;
@@ -25,7 +30,7 @@ fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
 
 pub enum SaveMsg {
     END,
-    SAVE(Vec2<i32>, TerrainChunk),
+    //SAVE(Vec2<i32>, TerrainChunk),
     RATE(u32),
 }
 
@@ -34,18 +39,20 @@ pub struct Provider {
     pub target: PathBuf,
 
     pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
+    
+    pub chunks: Arc<Mutex<HashMap<Vec2<i32>, TerrainChunk>>>,
 }
 
 impl Provider {
     pub fn new(seed: u32, target: PathBuf) -> Self {
         let world = Self::load(target.clone()).unwrap_or_else(|_| {
-            if target.exists() {
+            /*if target.exists() {
                 println!("Failed to open {:?}/, moving to {:?}.old/", target, target);
                 std::fs::rename(target.clone(), target.clone().with_extension("old"))
                     .unwrap_or_else(|_| println!("Ok, something strange is happening here..."));
-            } else {
+            } else {*/
                 std::fs::create_dir_all(target.clone()).unwrap();
-            }
+            //}
             World::generate(seed)
         });
 
@@ -53,6 +60,7 @@ impl Provider {
             world,
             target,
             tx: None,
+            chunks: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -84,29 +92,35 @@ impl Provider {
 
         let tgt = self.target.clone();
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
+        let mutex = self.chunks.clone();
 
         thread::spawn(move || 'yeet: loop {
-            let mut wait_time = 500;
-            let mut saving = false;
+            let mut wait_time = 1000;
+            let mut bufmap = HashMap::<Vec2<i32>, TerrainChunk>::new();
             std::thread::sleep_ms(wait_time);
             for msg in rx.try_recv() {
                 match msg {
                     SaveMsg::END => {
-                        println!("Wrapped up world");
+                        //println!("Wrapped up world");
                         break 'yeet;
                     },
                     SaveMsg::RATE(x) => wait_time = x,
-                    SaveMsg::SAVE(pos, chunk) => {
-                        saving = true;
-                        qser(t(pos), &chunk).unwrap()
-                    },
                 }
             }
-            if saving {
-                println!("Finished saving chunks");
-                saving = false;
+            {
+                let mut chunkmap = mutex.lock().unwrap();
+                std::mem::swap(&mut *chunkmap, &mut bufmap);
+            }
+            for (pos, chunk) in bufmap.drain() {
+                println!("Writing {} to disk", pos);
+                qser(t(pos), &chunk).unwrap();
             }
         })
+    }
+
+    pub fn set_chunk(&self, pos: Vec2<i32>, chunk: TerrainChunk) {
+        let mut chunkmap = self.chunks.lock().unwrap();
+        chunkmap.insert(pos, chunk);
     }
 
     pub fn request_save_message(&self, msg: SaveMsg) {
@@ -155,3 +169,19 @@ impl Provider {
         }
     }
 }
+
+/*struct SaveSys {
+    last_time: Instant,
+}
+
+impl<'a> System<'a> for SaveSys {
+    type SystemData = (
+        ReadExpect<'a, TerrainMap>,
+        WriteExpect<'a, DirtiedChunks>,
+    );
+
+    fn run(&mut self, (map, chunks): Self::SystemData) {
+        let time = Instant::now();
+        if (time - self.last_time) > Duration::
+    }
+}*/

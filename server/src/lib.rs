@@ -494,7 +494,7 @@ impl Server {
             let dirtied = dc.drain();
             for i in dirtied {
                 self.world_provider
-                    .request_save_message(SaveMsg::SAVE(i, map.get_key(i).unwrap().clone()));
+                    .set_chunk(i, map.get_key(i).unwrap().clone());
             }
         }
         /*self.world_provider.save_chunks(

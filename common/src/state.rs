@@ -87,7 +87,7 @@ impl TerrainChanges {
 
 #[derive(Default)]
 pub struct DirtiedChunks {
-    chunks: HashSet<Vec2<i32>>,
+    chunks: HashSet<Vec2<i32>>
 }
 
 impl DirtiedChunks {
