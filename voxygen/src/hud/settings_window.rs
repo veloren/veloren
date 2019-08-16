@@ -922,7 +922,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             if let Some(new_val) = ImageSlider::discrete(
                 self.global_state.settings.graphics.view_distance,
                 1,
-                25,
+                common::VIEW_DISTANCE_MAX + 1,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )

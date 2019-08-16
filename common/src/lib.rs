@@ -52,6 +52,8 @@ pub mod volumes;
 /// ```
 pub mod net;
 
+pub const VIEW_DISTANCE_MAX: u32 = 64;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ChatType {
     Broadcast,
