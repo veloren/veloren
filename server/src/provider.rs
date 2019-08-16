@@ -54,7 +54,6 @@ impl Provider {
             world,
             target,
             tx: None,
-            //chunks: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -86,8 +85,6 @@ impl Provider {
 
         let tgt = self.target.clone();
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
-        //let mutex = self.chunks.clone();
-
         thread::spawn(move || 'yeet: loop {
             if let Ok(msg) = rx.recv() {
                 match msg {
@@ -97,7 +94,7 @@ impl Provider {
                     }
                     SaveMsg::SAVE(pos, chunk) => {
                         qser(t(pos), &chunk).unwrap();
-                    } //SaveMsg::RATE(x) => wait_time = Duration::from_millis(x),
+                    }
                 }
             }
         })
@@ -111,20 +108,6 @@ impl Provider {
         if let Some(tx) = &self.tx {
             tx.send(msg).unwrap();
         }
-    }
-
-    pub fn save_chunks<T: IntoIterator<Item = Vec2<i32>>>(&self, map: &TerrainMap, chunks: T) {
-        let hc: Vec<(Vec2<i32>, TerrainChunk)> = chunks
-            .into_iter()
-            .map(|pos| (pos, map.get_key(pos).unwrap().clone()))
-            .collect();
-        let tgt = self.target.clone();
-        let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
-        thread::spawn(move || {
-            for (pos, chunk) in hc {
-                qser(t(pos), &chunk).unwrap();
-            }
-        });
     }
 
     pub fn load(target: PathBuf) -> std::io::Result<World> {
@@ -145,10 +128,10 @@ impl Provider {
         })
     }
 
-    pub fn get_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
+    pub fn fetch_chunk(&self, chunk_pos: Vec2<i32>, cancel: Arc<AtomicBool>) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         match qdeser(self.chunk_path(chunk_pos)) {
-            Ok(chunk) => (chunk, ChunkSupplement::default()),
-            Err(_) => self.world.generate_chunk(chunk_pos),
+            Ok(chunk) => Ok((chunk, ChunkSupplement::default())),
+            Err(_) => self.world.generate_chunk(chunk_pos, || cancel.load(Ordering::Relaxed)),
         }
     }
 }

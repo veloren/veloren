@@ -1401,9 +1401,9 @@ impl Server {
         let cancel = Arc::new(AtomicBool::new(false));
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
-        let world = self.world_provider.clone();
+        let world_provider = self.world_provider.clone();
         self.thread_pool.execute(move || {
-            let payload = world
+            let payload = world_provider
                 .generate_chunk(key, || cancel.load(Ordering::Relaxed))
                 .map_err(|_| entity);
             let _ = chunk_tx.send((key, payload));
