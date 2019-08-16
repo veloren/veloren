@@ -2,6 +2,7 @@ use client::Client;
 use common::vol::{ReadVol, Vox};
 use std::f32::consts::PI;
 use vek::*;
+use frustum_query::frustum::Frustum;
 
 const NEAR_PLANE: f32 = 0.01;
 const FAR_PLANE: f32 = 10000.0;
@@ -90,6 +91,15 @@ impl Camera {
         let cam_pos = Vec3::from(view_mat.inverted() * Vec4::unit_w());
 
         (view_mat, proj_mat, cam_pos)
+    }
+
+    pub fn frustum(&self, client: &Client) -> Frustum {
+        let (view_mat, proj_mat, _) = self.compute_dependents(client);
+
+        Frustum::from_modelview_and_projection(
+            &view_mat.into_col_array(),
+            &proj_mat.into_col_array(),
+        )
     }
 
     /// Rotate the camera about its focus by the given delta, limiting the input accordingly.
