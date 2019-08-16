@@ -7,7 +7,7 @@ use crate::{
 };
 use common::{
     assets,
-    terrain::{Structure, TerrainChunkSize},
+    terrain::{BlockKind, Structure, TerrainChunkSize},
     vol::VolSize,
 };
 use lazy_static::lazy_static;
@@ -29,21 +29,27 @@ static DUNGEON_RAND: RandomPerm = RandomPerm::new(0x42782335);
 lazy_static! {
     pub static ref DUNGEONS: Vec<Arc<Structure>> = vec![
         assets::load_map("world.structure.dungeon.ruins", |s: Structure| s
-            .with_center(Vec3::new(57, 58, 61)))
+            .with_center(Vec3::new(57, 58, 61))
+            .with_default_kind(BlockKind::Dense))
         .unwrap(),
         assets::load_map("world.structure.dungeon.ruins_2", |s: Structure| s
-            .with_center(Vec3::new(53, 57, 60)))
+            .with_center(Vec3::new(53, 57, 60))
+            .with_default_kind(BlockKind::Dense))
         .unwrap(),
         assets::load_map("world.structure.dungeon.ruins_3", |s: Structure| s
-            .with_center(Vec3::new(58, 45, 72)))
+            .with_center(Vec3::new(58, 45, 72))
+            .with_default_kind(BlockKind::Dense))
         .unwrap(),
         assets::load_map(
             "world.structure.dungeon.meso_sewer_temple",
-            |s: Structure| s.with_center(Vec3::new(66, 56, 60))
+            |s: Structure| s
+                .with_center(Vec3::new(66, 56, 60))
+                .with_default_kind(BlockKind::Dense)
         )
         .unwrap(),
         assets::load_map("world.structure.dungeon.ruins_maze", |s: Structure| s
-            .with_center(Vec3::new(56, 62, 116)))
+            .with_center(Vec3::new(56, 62, 116))
+            .with_default_kind(BlockKind::Dense))
         .unwrap(),
     ];
 }

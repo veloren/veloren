@@ -11,6 +11,7 @@ use vek::*;
 
 #[derive(Copy, Clone)]
 pub enum StructureBlock {
+    None,
     TemperateLeaves,
     PineLeaves,
     Acacia,
@@ -19,12 +20,12 @@ pub enum StructureBlock {
     GreenSludge,
     Fruit,
     Hollow,
-    Block(Block),
+    Block(Rgb<u8>),
 }
 
 impl Vox for StructureBlock {
     fn empty() -> Self {
-        StructureBlock::Block(Block::empty())
+        StructureBlock::None
     }
 
     fn is_empty(&self) -> bool {
@@ -43,6 +44,7 @@ pub struct Structure {
     center: Vec3<i32>,
     vol: Dyna<StructureBlock, ()>,
     empty: StructureBlock,
+    default_kind: BlockKind,
 }
 
 impl Structure {
@@ -51,11 +53,20 @@ impl Structure {
         self
     }
 
+    pub fn with_default_kind(mut self, kind: BlockKind) -> Self {
+        self.default_kind = kind;
+        self
+    }
+
     pub fn get_bounds(&self) -> Aabb<i32> {
         Aabb {
             min: -self.center,
             max: self.vol.get_size().map(|e| e as i32) - self.center,
         }
+    }
+
+    pub fn default_kind(&self) -> BlockKind {
+        self.default_kind
     }
 }
 
@@ -107,7 +118,7 @@ impl Asset for Structure {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        StructureBlock::Block(Block::new(BlockKind::Normal, color))
+                        StructureBlock::Block(color)
                     }
                 };
 
@@ -121,12 +132,14 @@ impl Asset for Structure {
                 center: Vec3::zero(),
                 vol,
                 empty: StructureBlock::empty(),
+                default_kind: BlockKind::Normal,
             })
         } else {
             Ok(Self {
                 center: Vec3::zero(),
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::empty(), ()),
                 empty: StructureBlock::empty(),
+                default_kind: BlockKind::Normal,
             })
         }
     }

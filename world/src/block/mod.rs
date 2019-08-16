@@ -440,7 +440,14 @@ impl StructureInfo {
                     .get((block_pos * 128) / 128) // Scaling
                     .ok()
                     .and_then(|b| {
-                        block_from_structure(*b, block_pos, self.pos.into(), self.seed, sample)
+                        block_from_structure(
+                            *b,
+                            volume.default_kind(),
+                            block_pos,
+                            self.pos.into(),
+                            self.seed,
+                            sample,
+                        )
                     })
             }
         }
@@ -449,6 +456,7 @@ impl StructureInfo {
 
 fn block_from_structure(
     sblock: StructureBlock,
+    default_kind: BlockKind,
     pos: Vec3<i32>,
     structure_pos: Vec2<i32>,
     structure_seed: u32,
@@ -461,6 +469,7 @@ fn block_from_structure(
         + ((field.get(Vec3::from(pos)) % 256) as f32 / 256.0 - 0.5) * 0.15;
 
     match sblock {
+        StructureBlock::None => None,
         StructureBlock::TemperateLeaves => Some(Block::new(
             BlockKind::Normal,
             Lerp::lerp(Rgb::new(0.0, 132.0, 94.0), Rgb::new(142.0, 181.0, 0.0), lerp)
@@ -489,6 +498,8 @@ fn block_from_structure(
                 .map(|e| e as u8),
         )),
         StructureBlock::Hollow => Some(Block::empty()),
-        StructureBlock::Block(block) => Some(block).filter(|block| !block.is_empty()),
+        StructureBlock::Block(color) => {
+            Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
+        }
     }
 }
