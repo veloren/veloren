@@ -853,19 +853,20 @@ impl FigureMgr {
 
         let frustum = camera.frustum(client);
 
-        for (entity, _, _, _, body, _) in (
+        for (entity, _, _, _, body, _, _) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Pos>(),
             &ecs.read_storage::<comp::Vel>(),
             &ecs.read_storage::<comp::Ori>(),
             &ecs.read_storage::<comp::Body>(),
             ecs.read_storage::<comp::Stats>().maybe(),
+            ecs.read_storage::<comp::Scale>().maybe(),
         )
             .join()
             // Don't render figures outside of frustum (camera viewport, max draw distance is farplane) 
-            .filter(|(_, pos, _, _, _, _)| frustum.sphere_intersecting(&pos.0.x, &pos.0.y, &pos.0.z, &0.0))
+            .filter(|(_, pos, _, _, _, _, scale)| frustum.sphere_intersecting(&pos.0.x, &pos.0.y, &pos.0.z, &scale.map_or(2.0, |s| 2.0 * s.0)))
             // Don't render dead entities
-            .filter(|(_, _, _, _, _, stats)| stats.map_or(true, |s| !s.is_dead))
+            .filter(|(_, _, _, _, _, stats, _)| stats.map_or(true, |s| !s.is_dead))
         {
             if let Some((locals, bone_consts)) = match body {
                 Body::Humanoid(_) => self
