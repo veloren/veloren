@@ -1,20 +1,21 @@
 use common::{
+    state::DirtiedChunks,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainMap},
     vol::{ReadVol, VolSize, Vox, WriteVol},
-    state::DirtiedChunks,
 };
 //use std::collections::HashMap;
+use hashbrown::HashMap;
+use log;
+use specs::{Join, ReadExpect, System, SystemData, WriteExpect};
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::sync::{mpsc, Mutex};
 use std::thread;
+use std::time::{Duration, Instant};
 use vek::*;
 use world::{sim, ChunkSupplement, World};
-use specs::{System, SystemData, ReadExpect, WriteExpect, Join};
-use std::time::{Instant, Duration};
-use hashbrown::HashMap;
-use std::sync::Arc;
 
 fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
     let out = File::create(t)?;
@@ -31,7 +32,7 @@ fn qdeser<T: serde::de::DeserializeOwned>(t: PathBuf) -> std::io::Result<T> {
 pub enum SaveMsg {
     END,
     //SAVE(Vec2<i32>, TerrainChunk),
-    RATE(u32),
+    RATE(u64),
 }
 
 pub struct Provider {
@@ -39,7 +40,7 @@ pub struct Provider {
     pub target: PathBuf,
 
     pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
-    
+
     pub chunks: Arc<Mutex<HashMap<Vec2<i32>, TerrainChunk>>>,
 }
 
@@ -51,7 +52,7 @@ impl Provider {
                 std::fs::rename(target.clone(), target.clone().with_extension("old"))
                     .unwrap_or_else(|_| println!("Ok, something strange is happening here..."));
             } else {*/
-                std::fs::create_dir_all(target.clone()).unwrap();
+            std::fs::create_dir_all(target.clone()).unwrap();
             //}
             World::generate(seed)
         });
@@ -95,16 +96,16 @@ impl Provider {
         let mutex = self.chunks.clone();
 
         thread::spawn(move || 'yeet: loop {
-            let mut wait_time = 1000;
+            let mut wait_time = Duration::from_millis(1000);
             let mut bufmap = HashMap::<Vec2<i32>, TerrainChunk>::new();
-            std::thread::sleep_ms(wait_time);
+            std::thread::sleep(wait_time);
             for msg in rx.try_recv() {
                 match msg {
                     SaveMsg::END => {
-                        //println!("Wrapped up world");
+                        println!("Wrapped up world");
                         break 'yeet;
-                    },
-                    SaveMsg::RATE(x) => wait_time = x,
+                    }
+                    SaveMsg::RATE(x) => wait_time = Duration::from_millis(x),
                 }
             }
             {
@@ -112,7 +113,7 @@ impl Provider {
                 std::mem::swap(&mut *chunkmap, &mut bufmap);
             }
             for (pos, chunk) in bufmap.drain() {
-                println!("Writing {} to disk", pos);
+                log::warn!("Writing {} to disk", pos);
                 qser(t(pos), &chunk).unwrap();
             }
         })

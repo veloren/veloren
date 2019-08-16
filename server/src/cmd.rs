@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
 //! and provide a handler function.
 
-use crate::Server;
+use crate::{SaveMsg, Server};
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
@@ -220,6 +220,13 @@ lazy_static! {
             "/peaceful : enable/disable mob spawning",
             true,
             handle_peaceful,
+        ),
+        ChatCommand::new(
+            "saverate",
+            "{}",
+            "/saverate <millis> : set the amount (in ms) to sync data to disk",
+            true,
+            handle_saverate,
         )
     ];
 }
@@ -935,5 +942,15 @@ fn handle_peaceful(server: &mut Server, entity: EcsEntity, args: String, _action
         for (stats, ()) in (&mut stats, !&players).join() {
             stats.health.set_to(0, comp::HealthSource::Command);
         }
+    }
+}
+
+fn handle_saverate(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    if let Ok(b) = scan_fmt!(&args, action.arg_fmt, u64) {
+        server.world_provider.request_save_message(SaveMsg::RATE(b));
+        server.clients.notify(
+            entity,
+            ServerMsg::chat(format!("The save rate has been adjusted to {} ms.", b)),
+        );
     }
 }
