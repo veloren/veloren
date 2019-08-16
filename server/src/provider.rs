@@ -89,7 +89,7 @@ impl Provider {
             if let Ok(msg) = rx.recv() {
                 match msg {
                     SaveMsg::END => {
-                        println!("Wrapped up world");
+                        log::info!("Wrapping up world...");
                         break 'yeet;
                     }
                     SaveMsg::SAVE(pos, chunk) => {

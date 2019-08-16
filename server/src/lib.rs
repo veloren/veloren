@@ -1445,7 +1445,7 @@ impl Server {
 
 impl Drop for Server {
     fn drop(&mut self) {
-        println!("Killing server...");
+        log::info!("Shutting down server...");
         self.clients.notify_registered(ServerMsg::Shutdown);
         self.world_provider.request_save_message(SaveMsg::END);
         if let Some(handle) = self.save_handle.take() {
