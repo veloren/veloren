@@ -1,21 +1,15 @@
 use common::{
-    state::DirtiedChunks,
-    terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainMap},
-    vol::{ReadVol, VolSize, Vox, WriteVol},
+    terrain::{TerrainChunk, TerrainMap},
 };
 //use std::collections::HashMap;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
-use hashbrown::HashMap;
 use log;
-use specs::{Join, ReadExpect, System, SystemData, WriteExpect};
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use std::sync::{mpsc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
 use vek::*;
 use world::{sim, ChunkSupplement, World};
 
@@ -42,7 +36,6 @@ pub struct Provider {
     pub target: PathBuf,
 
     pub tx: Option<Mutex<mpsc::Sender<SaveMsg>>>,
-    //pub chunks: Arc<Mutex<HashMap<Vec2<i32>, TerrainChunk>>>,
 }
 
 impl Provider {
@@ -97,10 +90,7 @@ impl Provider {
         //let mutex = self.chunks.clone();
 
         thread::spawn(move || 'yeet: loop {
-            let mut wait_time = Duration::from_millis(1000);
-            //let mut bufmap = HashMap::<Vec2<i32>, TerrainChunk>::new();
-            std::thread::sleep(wait_time);
-            for msg in rx.try_recv() {
+            if let Ok(msg) = rx.recv() {
                 match msg {
                     SaveMsg::END => {
                         println!("Wrapped up world");
@@ -111,20 +101,10 @@ impl Provider {
                     } //SaveMsg::RATE(x) => wait_time = Duration::from_millis(x),
                 }
             }
-            /*{
-                let mut chunkmap = mutex.lock().unwrap();
-                std::mem::swap(&mut *chunkmap, &mut bufmap);
-            }
-            for (pos, chunk) in bufmap.drain() {
-                log::warn!("Writing {} to disk", pos);
-                qser(t(pos), &chunk).unwrap();
-            }*/
         })
     }
 
     pub fn set_chunk(&self, pos: Vec2<i32>, chunk: TerrainChunk) {
-        //let mut chunkmap = self.chunks.lock().unwrap();
-        //chunkmap.insert(pos, chunk);
         self.request_save_message(SaveMsg::SAVE(pos, chunk));
     }
 
@@ -174,19 +154,3 @@ impl Provider {
         }
     }
 }
-
-/*struct SaveSys {
-    last_time: Instant,
-}
-
-impl<'a> System<'a> for SaveSys {
-    type SystemData = (
-        ReadExpect<'a, TerrainMap>,
-        WriteExpect<'a, DirtiedChunks>,
-    );
-
-    fn run(&mut self, (map, chunks): Self::SystemData) {
-        let time = Instant::now();
-        if (time - self.last_time) > Duration::
-    }
-}*/

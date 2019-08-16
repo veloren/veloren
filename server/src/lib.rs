@@ -505,10 +505,6 @@ impl Server {
             self.next_save =
                 Instant::now() + Duration::from_millis(self.server_settings.save_time.into());
         }
-        /*self.world_provider.save_chunks(
-            self.state.ecs().read_resource::<TerrainMap>().deref(),
-            dirtied,
-        );*/
 
         // Tick the world
         self.world().tick(dt);
