@@ -138,7 +138,6 @@ commit:linux-debug:
     - cp target/debug/veloren-server-cli commit-build
     - cp target/debug/veloren-voxygen commit-build
     - cp -r assets commit-build/
-    - cp -r voxygen/shaders commit-build/
     - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
     - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
@@ -156,7 +155,6 @@ commit:windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe commit-build
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
     - cp -r assets commit-build/
-    - cp -r voxygen/shaders commit-build/
     - zip -r bin/commit-windows-debug.zip commit-build
     - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
@@ -187,7 +185,6 @@ optional:linux-debug:
     - cp target/debug/veloren-server-cli optional-build
     - cp target/debug/veloren-voxygen optional-build
     - cp -r assets optional-build/
-    - cp -r voxygen/shaders optional-build/
     - tar -cvjSf bin/optional-linux-debug.tar.bz2 optional-build
     - cp bin/optional-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
@@ -205,7 +202,6 @@ optional:windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-build
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe optional-build
     - cp -r assets optional-build/
-    - cp -r voxygen/shaders optional-build/
     - zip -r bin/optional-windows-debug.zip optional-build
     - cp bin/optional-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
@@ -236,7 +232,6 @@ optional-release:linux-debug:
     - cp target/debug/veloren-server-cli optional-release-build
     - cp target/debug/veloren-voxygen optional-release-build
     - cp -r assets optional-release-build/
-    - cp -r voxygen/shaders optional-release-build/
     - tar -cvjSf bin/optional-release-linux-debug.tar.bz2 optional-release-build
     - cp bin/optional-release-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
@@ -254,7 +249,6 @@ optional-release:windows-debug:
     - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-release-build
     - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe optional-release-build
     - cp -r assets optional-release-build/
-    - cp -r voxygen/shaders optional-release-build/
     - zip -r bin/optional-release-windows-debug.zip optional-release-build
     - cp bin/optional-release-windows-debug.zip $CI_PROJECT_DIR
   artifacts:
@@ -284,7 +278,6 @@ nightly:linux-optimized:
     - cp target/release/veloren-server-cli nightly-build
     - cp target/release/veloren-voxygen nightly-build
     - cp -r assets nightly-build/
-    - cp -r voxygen/shaders nightly-build/
     - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
     - cp bin/nightly-linux-optimized.tar.bz2 $CI_PROJECT_DIR
   artifacts:
@@ -302,7 +295,6 @@ nightly:windows-optimized:
     - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe nightly-build
     - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly-build
     - cp -r assets nightly-build/
-    - cp -r voxygen/shaders nightly-build/
     - zip -r bin/nightly-windows-optimized.zip nightly-build
     - cp bin/nightly-windows-optimized.zip $CI_PROJECT_DIR
   artifacts:

@@ -8,6 +8,8 @@ uniform u_lights {
 	Light lights[32];
 };
 
+#include <srgb.glsl>
+
 float attenuation_strength(vec3 rpos) {
 	return 1.0 / (rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z);
 }
@@ -30,7 +32,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 		float strength = attenuation_strength(difference);
 
 		// Multiply the vec3 only once
-		vec3 color = L.light_col.rgb * (strength * L.light_col.a);
+		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
 
 		// This is commented out to avoid conditional branching. See here: https://community.khronos.org/t/glsl-float-multiply-by-zero/104391
 		// if (max(max(color.r, color.g), color.b) < 0.002) {

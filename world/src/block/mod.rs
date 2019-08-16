@@ -7,6 +7,7 @@ use crate::{
 };
 use common::{
     terrain::{structure::StructureBlock, Block, Structure},
+    util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
 use noise::NoiseFn;
@@ -208,7 +209,9 @@ impl<'a> BlockGen<'a> {
 
         // Sample blocks
 
-        let stone_col = Rgb::new(240, 230, 220);
+        // let stone_col = Rgb::new(240, 230, 220);
+        let stone_col = Rgb::new(195, 187, 201);
+
         // let dirt_col = Rgb::new(79, 67, 60);
 
         let air = Block::empty();
@@ -217,12 +220,14 @@ impl<'a> BlockGen<'a> {
         // let dirt = Block::new(1, dirt_col);
         // let sand = Block::new(1, Rgb::new(180, 150, 50));
         // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
-        let water = Block::new(1, Rgb::new(100, 150, 255));
+
+        //let water = Block::new(1, Rgb::new(100, 150, 255));
+        let water = Block::new(1, Rgb::new(0, 24, 255));
 
         let grass_depth = 1.5 + 2.0 * chaos;
         let block = if (wposf.z as f32) < height - grass_depth {
             let col = Lerp::lerp(
-                sub_surface_color.map(|e| (e * 255.0) as u8),
+                saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
                 stone_col,
                 (height - grass_depth - wposf.z as f32) * 0.15,
             );
@@ -242,7 +247,10 @@ impl<'a> BlockGen<'a> {
                     .powf(0.5),
             );
             // Surface
-            Some(Block::new(1, col.map(|e| (e * 255.0) as u8)))
+            Some(Block::new(
+                1,
+                saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+            ))
         } else if (wposf.z as f32) < water_height {
             // Ocean
             Some(water)
@@ -279,9 +287,9 @@ impl<'a> BlockGen<'a> {
                     1,
                     stone_col
                         - Rgb::new(
-                            field0.get(wpos) as u8 % 32,
-                            field1.get(wpos) as u8 % 32,
-                            field2.get(wpos) as u8 % 32,
+                            field0.get(wpos) as u8 % 16,
+                            field1.get(wpos) as u8 % 16,
+                            field2.get(wpos) as u8 % 16,
                         ),
                 ))
             } else {
@@ -407,7 +415,7 @@ impl StructureInfo {
                             .map(|e: i32| (e.abs() / 2) * 2)
                             .reduce_max()
                 {
-                    Some(Block::new(2, Rgb::new(180, 140, 90)))
+                    Some(Block::new(2, Rgb::new(203, 170, 146)))
                 } else {
                     None
                 }
@@ -445,35 +453,39 @@ fn block_from_structure(
     match sblock {
         StructureBlock::TemperateLeaves => Some(Block::new(
             1,
-            Lerp::lerp(Rgb::new(0.0, 70.0, 35.0), Rgb::new(100.0, 140.0, 0.0), lerp)
-                .map(|e| e as u8),
+            Lerp::lerp(
+                Rgb::new(0.0, 132.0, 94.0),
+                Rgb::new(142.0, 181.0, 0.0),
+                lerp,
+            )
+            .map(|e| e as u8),
         )),
         StructureBlock::PineLeaves => Some(Block::new(
             1,
-            Lerp::lerp(Rgb::new(0.0, 60.0, 50.0), Rgb::new(30.0, 100.0, 10.0), lerp)
-                .map(|e| e as u8),
+            Lerp::lerp(
+                Rgb::new(0.0, 108.0, 113.0),
+                Rgb::new(30.0, 156.0, 10.0),
+                lerp,
+            )
+            .map(|e| e as u8),
         )),
         StructureBlock::PalmLeaves => Some(Block::new(
             1,
             Lerp::lerp(
-                Rgb::new(15.0, 100.0, 30.0),
-                Rgb::new(55.0, 220.0, 0.0),
+                Rgb::new(15.0, 156.0, 70.0),
+                Rgb::new(40.0, 222.0, 0.0),
                 lerp,
             )
             .map(|e| e as u8),
         )),
         StructureBlock::Acacia => Some(Block::new(
             1,
-            Lerp::lerp(
-                Rgb::new(35.0, 100.0, 10.0),
-                Rgb::new(70.0, 190.0, 25.0),
-                lerp,
-            )
-            .map(|e| e as u8),
+            Lerp::lerp(Rgb::new(35.0, 156.0, 0.0), Rgb::new(62.0, 208.0, 0.0), lerp)
+                .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(
             1,
-            Lerp::lerp(Rgb::new(255.0, 0.0, 0.0), Rgb::new(200.0, 255.0, 6.0), lerp)
+            Lerp::lerp(Rgb::new(237.0, 0.0, 0.0), Rgb::new(200.0, 237.0, 0.0), lerp)
                 .map(|e| e as u8),
         )),
         StructureBlock::Hollow => Some(Block::empty()),
