@@ -2,7 +2,6 @@ mod cache;
 mod event;
 mod graphic;
 mod scale;
-mod util;
 mod widgets;
 #[macro_use]
 pub mod img_ids;
@@ -28,7 +27,7 @@ use crate::{
     Error,
 };
 use cache::Cache;
-use common::assets;
+use common::{assets, util::srgba_to_linear};
 use conrod_core::{
     event::Input,
     graph::Graph,
@@ -48,7 +47,6 @@ use std::{
     sync::Arc,
     time::Duration,
 };
-use util::{linear_to_srgb, srgb_to_linear};
 use vek::*;
 use widgets::tooltip::TooltipManager;
 
@@ -406,7 +404,7 @@ impl Ui {
                     }
 
                     let color =
-                        srgb_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
+                        srgba_to_linear(color.unwrap_or(conrod_core::color::WHITE).to_fsa().into());
 
                     let resolution = Vec2::new(
                         (rect.w() * p_scale_factor).round() as u16,
@@ -485,7 +483,7 @@ impl Ui {
                         })
                         .unwrap();
 
-                    let color = srgb_to_linear(color.to_fsa().into());
+                    let color = srgba_to_linear(color.to_fsa().into());
 
                     for g in positioned_glyphs {
                         if let Ok(Some((uv_rect, screen_rect))) =
@@ -514,7 +512,7 @@ impl Ui {
                     }
                 }
                 PrimitiveKind::Rectangle { color } => {
-                    let color = srgb_to_linear(color.to_fsa().into());
+                    let color = srgba_to_linear(color.to_fsa().into());
                     // Don't draw a transparent rectangle.
                     if color[3] == 0.0 {
                         continue;
@@ -534,7 +532,7 @@ impl Ui {
                 }
                 PrimitiveKind::TrianglesSingleColor { color, triangles } => {
                     // Don't draw transparent triangle or switch state if there are actually no triangles.
-                    let color = srgb_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
+                    let color = srgba_to_linear(Rgba::from(Into::<[f32; 4]>::into(color)));
                     if triangles.is_empty() || color[3] == 0.0 {
                         continue;
                     }

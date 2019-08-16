@@ -1,6 +1,7 @@
 #version 330 core
 
 #include <globals.glsl>
+#include <srgb.glsl>
 
 in uint v_pos_norm;
 in uint v_col_light;
@@ -34,11 +35,11 @@ void main() {
 	// Use an array to avoid conditional branching
 	f_norm = normals[norm_axis + norm_dir];
 
-	f_col = vec3(
+	f_col = srgb_to_linear(vec3(
 		float((v_col_light >>  8) & 0xFFu),
 		float((v_col_light >> 16) & 0xFFu),
 		float((v_col_light >> 24) & 0xFFu)
-	) / 200.0;
+	) / 255.0);
 
 	f_light = float(v_col_light & 0xFFu) / 255.0;
 
