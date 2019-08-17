@@ -164,6 +164,8 @@ impl Scene {
                 Body::Humanoid(body),
                 Some(equipment),
                 client.get_tick(),
+                false,
+                false,
             )
             .0;
 
