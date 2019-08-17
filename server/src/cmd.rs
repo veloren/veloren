@@ -190,6 +190,13 @@ lazy_static! {
             false,
             handle_explosion,
         ),
+        ChatCommand::new(
+            "adminify",
+            "{}",
+            "/adminify <playername> : Temporarily gives a player admin permissions or removes them",
+            true,
+            handle_adminify,
+        )
     ];
 }
 
@@ -729,6 +736,39 @@ fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action
             entity,
             ServerMsg::private(String::from("You have no position!")),
         ),
+    }
+}
+
+fn handle_adminify(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    if let Ok(alias) = scan_fmt!(&args, action.arg_fmt, String) {
+        let ecs = server.state.ecs();
+        let opt_player = (&ecs.entities(), &ecs.read_storage::<comp::Player>())
+            .join()
+            .find(|(_, player)| player.alias == alias)
+            .map(|(entity, _)| entity);
+        match opt_player {
+            Some(player) => match server.state.read_component_cloned::<comp::Admin>(player) {
+                Some(_admin) => {
+                    ecs.write_storage::<comp::Admin>().remove(player);
+                }
+                None => {
+                    server.state.write_component(player, comp::Admin);
+                }
+            },
+            None => {
+                server.clients.notify(
+                    entity,
+                    ServerMsg::private(format!("Player '{}' not found!", alias)),
+                );
+                server
+                    .clients
+                    .notify(entity, ServerMsg::private(String::from(action.help_string)));
+            }
+        }
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
     }
 }
 
