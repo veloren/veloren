@@ -55,9 +55,10 @@ pub struct WorldSim {
 
 impl WorldSim {
     pub fn generate(mut seed: u32) -> Self {
+        let mut seed = &mut seed;
         let mut gen_seed = || {
-            seed = seed_expan::diffuse(seed + 1);
-            seed
+            *seed = seed_expan::diffuse(*seed);
+            *seed
         };
 
         let mut gen_ctx = GenCtx {
@@ -95,11 +96,11 @@ impl WorldSim {
         }
 
         let mut this = Self {
-            seed,
+            seed: *seed,
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: ChaChaRng::from_seed(seed_expan::rng_state(seed)),
+            rng: ChaChaRng::from_seed(seed_expan::rng_state(*seed)),
         };
 
         this.seed_elements();
