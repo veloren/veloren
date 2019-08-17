@@ -43,12 +43,12 @@ lazy_static! {
         assets::load_map(
             "world.structure.dungeon.meso_sewer_temple",
             |s: Structure| s
-                .with_center(Vec3::new(66, 56, 60))
+                .with_center(Vec3::new(63, 62, 60))
                 .with_default_kind(BlockKind::Dense)
         )
         .unwrap(),
         assets::load_map("world.structure.dungeon.ruins_maze", |s: Structure| s
-            .with_center(Vec3::new(56, 62, 116))
+            .with_center(Vec3::new(60, 60, 116))
             .with_default_kind(BlockKind::Dense))
         .unwrap(),
     ];
