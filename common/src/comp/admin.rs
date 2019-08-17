@@ -1,6 +1,6 @@
 use specs::{Component, NullStorage};
 
-#[derive(Default)]
+#[derive(Clone, Copy, Default)]
 pub struct Admin;
 
 impl Component for Admin {
