@@ -81,8 +81,14 @@ impl Renderer {
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
-        let (skybox_pipeline, figure_pipeline, terrain_pipeline, fluid_pipeline, ui_pipeline, postprocess_pipeline) =
-            create_pipelines(&mut factory, &mut shader_reload_indicator)?;
+        let (
+            skybox_pipeline,
+            figure_pipeline,
+            terrain_pipeline,
+            fluid_pipeline,
+            ui_pipeline,
+            postprocess_pipeline,
+        ) = create_pipelines(&mut factory, &mut shader_reload_indicator)?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
