@@ -12,7 +12,7 @@ use hashbrown::HashMap;
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(Body, Option<Equipment>),
+    Complex(Body, Option<Equipment>, bool, bool),
 }
 
 pub struct FigureModelCache {
@@ -34,9 +34,11 @@ impl FigureModelCache {
         body: Body,
         equipment: Option<&Equipment>,
         tick: u64,
+        first_person: bool,
+        gliding: bool,
     ) -> &(Model<FigurePipeline>, SkeletonAttr) {
         let key = if equipment.is_some() {
-            FigureKey::Complex(body, equipment.cloned())
+            FigureKey::Complex(body, equipment.cloned(), first_person, gliding)
         } else {
             FigureKey::Simple(body)
         };
@@ -54,6 +56,9 @@ impl FigureModelCache {
                                 HumHeadSpec::load_watched(&mut self.manifest_indicator);
                             let bone_meshes = match body {
                                 Body::Humanoid(body) => [
+
+if !first_person {
+
                                     Some(humanoid_head_spec.mesh_head(
                                         body.race,
                                         body.body_type,
@@ -64,7 +69,13 @@ impl FigureModelCache {
                                         body.skin,
                                         body.eyebrows,
                                         body.accessory,
-                                    )),
+                                    ))
+                                    
+                                    } else {
+None
+                                    }
+                                    
+                                    ,
                                     Some(mesh_chest(body.chest)),
                                     Some(mesh_belt(body.belt)),
                                     Some(mesh_pants(body.pants)),
