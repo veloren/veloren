@@ -12,10 +12,16 @@ const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Eq, Hash)]
 pub enum CameraMode {
     FirstPerson,
     ThirdPerson,
+}
+
+impl Default for CameraMode {
+    fn default() -> Self {
+        Self::ThirdPerson
+    }
 }
 
 pub struct Camera {

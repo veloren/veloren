@@ -2,17 +2,23 @@ use super::load::*;
 use crate::{
     anim::SkeletonAttr,
     render::{FigurePipeline, Mesh, Model, Renderer},
+    scene::camera::CameraMode,
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, Equipment},
+    comp::{ActionState, Body, CharacterState, Equipment},
 };
 use hashbrown::HashMap;
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(Body, Option<Equipment>, bool, bool),
+    Complex(
+        Body,
+        Option<Equipment>,
+        Option<CameraMode>,
+        Option<CharacterState>,
+    ),
 }
 
 pub struct FigureModelCache {
@@ -34,11 +40,16 @@ impl FigureModelCache {
         body: Body,
         equipment: Option<&Equipment>,
         tick: u64,
-        first_person: bool,
-        gliding: bool,
+        camera_mode: Option<CameraMode>,
+        character_state: Option<&CharacterState>,
     ) -> &(Model<FigurePipeline>, SkeletonAttr) {
         let key = if equipment.is_some() {
-            FigureKey::Complex(body, equipment.cloned(), first_person, gliding)
+            FigureKey::Complex(
+                body,
+                equipment.cloned(),
+                camera_mode,
+                character_state.cloned(),
+            )
         } else {
             FigureKey::Simple(body)
         };
@@ -56,36 +67,69 @@ impl FigureModelCache {
                                 HumHeadSpec::load_watched(&mut self.manifest_indicator);
                             let bone_meshes = match body {
                                 Body::Humanoid(body) => [
-
-if !first_person {
-
-                                    Some(humanoid_head_spec.mesh_head(
-                                        body.race,
-                                        body.body_type,
-                                        body.hair_color,
-                                        body.hair_style,
-                                        body.beard,
-                                        body.eye_color,
-                                        body.skin,
-                                        body.eyebrows,
-                                        body.accessory,
-                                    ))
-                                    
-                                    } else {
-None
-                                    }
-                                    
-                                    ,
-                                    Some(mesh_chest(body.chest)),
-                                    Some(mesh_belt(body.belt)),
-                                    Some(mesh_pants(body.pants)),
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => {
+                                            Some(humanoid_head_spec.mesh_head(
+                                                body.race,
+                                                body.body_type,
+                                                body.hair_color,
+                                                body.hair_style,
+                                                body.beard,
+                                                body.eye_color,
+                                                body.skin,
+                                                body.eyebrows,
+                                                body.accessory,
+                                            ))
+                                        }
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => Some(mesh_chest(body.chest)),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => Some(mesh_belt(body.belt)),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => Some(mesh_pants(body.pants)),
+                                        CameraMode::FirstPerson => None,
+                                    },
                                     Some(mesh_left_hand(body.hand)),
                                     Some(mesh_right_hand(body.hand)),
-                                    Some(mesh_left_foot(body.foot)),
-                                    Some(mesh_right_foot(body.foot)),
-                                    Some(mesh_main(equipment.and_then(|e| e.main.as_ref()))),
-                                    Some(mesh_left_shoulder(body.shoulder)),
-                                    Some(mesh_right_shoulder(body.shoulder)),
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => Some(mesh_left_foot(body.foot)),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => Some(mesh_right_foot(body.foot)),
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    if camera_mode.unwrap_or_default() != CameraMode::FirstPerson
+                                        || character_state
+                                            .map(|cs| {
+                                                cs.action.is_attack()
+                                                    || cs.action.is_block()
+                                                    || cs.action.is_wield()
+                                            })
+                                            .unwrap_or_default()
+                                    {
+                                        Some(mesh_main(equipment.and_then(|e| e.main.as_ref())))
+                                    } else {
+                                        None
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => {
+                                            Some(mesh_left_shoulder(body.shoulder))
+                                        }
+                                        CameraMode::FirstPerson => None,
+                                    },
+                                    match camera_mode.unwrap_or_default() {
+                                        CameraMode::ThirdPerson => {
+                                            Some(mesh_right_shoulder(body.shoulder))
+                                        }
+                                        CameraMode::FirstPerson => None,
+                                    },
                                     Some(mesh_draw()),
                                     None,
                                     None,
