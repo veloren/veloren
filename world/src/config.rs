@@ -15,7 +15,7 @@ pub const CONFIG: Config = Config {
     snow_temp: -0.4,
     tropical_temp: 0.25,
     desert_temp: 0.45,
-    desert_hum: 0.1,
+    desert_hum: 0.3,
     forest_hum: 0.4,
-    jungle_hum: 0.7,
+    jungle_hum: 0.5,
 };

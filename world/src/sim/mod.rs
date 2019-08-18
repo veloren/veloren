@@ -78,7 +78,6 @@ impl WorldSim {
                 .set_seed(gen_seed()),
             temp_nz: SuperSimplex::new().set_seed(gen_seed()),
             dry_nz: BasicMulti::new().set_seed(gen_seed()),
-            humid_nz: Billow::new().set_seed(gen_seed()),
             small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
             cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
@@ -93,6 +92,10 @@ impl WorldSim {
             structure_gen: StructureGen2d::new(gen_seed(), 32, 24),
             region_gen: StructureGen2d::new(gen_seed(), 400, 96),
             cliff_gen: StructureGen2d::new(gen_seed(), 80, 56),
+            humid_nz: Billow::new()
+                // .set_octaves(6)
+                // .set_persistence(0.5)
+                .set_seed(gen_seed()),
         };
 
         let mut chunks = Vec::new();
@@ -404,8 +407,7 @@ impl SimChunk {
             .max(0.0)
             .min(1.0);
 
-        let alt_pre = alt_base
-            + (0.0
+        let alt_pre = (0.0
                 + alt_main
                 + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
                     .mul(alt_main.max(0.25))
@@ -414,7 +416,7 @@ impl SimChunk {
             .mul(0.5)
             .mul(chaos);
 
-        let alt = (CONFIG.sea_level + alt_pre.mul(CONFIG.mountain_scale)) * map_edge_factor;
+        let alt = (CONFIG.sea_level + alt_base + alt_pre.mul(CONFIG.mountain_scale)) * map_edge_factor;
 
         // 0 to 1, hopefully.
         let humid_base =
@@ -432,14 +434,15 @@ impl SimChunk {
         // 1/2 + 1/2 * tanh((x - μ) / (2s))
         //
         // where x is the random variable (altitude relative to sea level without mountain
-        // scaling), μ is the altitude where humidity should be at its midpoint (currently set to 1),
+        // scaling), μ is the altitude where humidity should be at its midpoint (currently set to 0.125),
         // and s is the scale parameter proportional to the standard deviation σ of the humidity
-        // function of altitude (s = √3/π * σ).  Currently we also set σ to -1, so we get ~ 68% of
-        // the variation due to altitude between sea level and 2 * mountain_scale (it is negative
-        // to make the distribution higher when the altitude is lower).
-        let humid_alt_sigma = -1.0;
+        // function of altitude (s = √3/π * σ).  Currently we set σ to -0.125, so we get ~ 68% of
+        // the variation due to altitude between sea level and
+        // 0.25 * mountain_scale (it is negative to make the distribution higher when the altitude is
+        // lower).
+        let humid_alt_sigma = -0.125;
         let humid_alt_2s = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI).mul(humid_alt_sigma);
-        let humid_alt_mu = 1.0;
+        let humid_alt_mu = 0.125;
         let humid_alt = alt_pre
             .sub(humid_alt_mu)
             .div(humid_alt_2s)
@@ -449,7 +452,7 @@ impl SimChunk {
         // Now we just take a (currently) unweighted average of our randomly generated base humidity
         // (from scaled to be from 0 to 1) and our randomly generated "base" humidity.  We can
         // adjust this weighting factor as desired.
-        let humid_weight = 1.0;
+        let humid_weight = 3.0;
         let humid_alt_weight = 1.0;
         let humidity =
             humid_base.mul(humid_weight)
@@ -457,6 +460,27 @@ impl SimChunk {
             .div(humid_weight + humid_alt_weight);
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+
+        let tree_density =
+            (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                .mul(1.5)
+                .add(1.0)
+                .mul(0.5)
+                .mul(1.2 - chaos * 0.95)
+                .add(0.05)
+                .max(0.0)
+                .min(1.0)
+                .mul(0.5)
+                // Tree density should go (by a lot) with humidity.
+                .add(humidity.mul(0.5))
+                // No trees in the ocean (currently), no trees in true deserts.
+                .mul(if alt > CONFIG.sea_level + 5.0 && humidity > CONFIG.desert_hum {
+                    1.0
+                } else {
+                    0.0
+                })
+                .max(0.0);
+
 
         Self {
             chaos,
@@ -474,21 +498,10 @@ impl SimChunk {
                 && alt > CONFIG.sea_level + 5.0
                 && dryness.abs() > 0.075,
             near_cliffs: cliff > 0.25,
-            tree_density: (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
-                .mul(1.5)
-                .add(1.0)
-                .mul(0.5)
-                .mul(1.2 - chaos * 0.95)
-                .add(0.05)
-                // No trees in the ocean (currently), no trees in true deserts.
-                .mul(if alt > CONFIG.sea_level + 5.0 && humidity > CONFIG.desert_hum {
-                    1.0
-                } else {
-                    0.0
-                })
-                .max(0.0),
+            tree_density,
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
+                    // println!("Any desert: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
                     if humidity > CONFIG.jungle_hum {
                         // Forests in desert temperatures with extremely high humidity
                         // should probably be different from palm trees, but we use them
@@ -499,10 +512,14 @@ impl SimChunk {
                     } else {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
+                        if humidity < CONFIG.desert_hum {
+                            // println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        }
                         ForestKind::Savannah
                     }
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
+                        // println!("Mangroves: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
                         // NOTE: Probably the wrong kind of tree for this climtae.
