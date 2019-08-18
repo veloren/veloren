@@ -121,7 +121,7 @@ impl FigureMgr {
                     *body,
                     stats.map(|s| &s.equipment),
                     tick,
-                    None,
+                    CameraMode::default(),
                     None,
                 )
                 .1;
@@ -348,6 +348,11 @@ impl FigureMgr {
 
         let frustum = camera.frustum(client);
 
+        let character_state_storage = client
+            .state()
+            .read_storage::<common::comp::CharacterState>();
+        let character_state = character_state_storage.get(client.entity());
+
         for (entity, _, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -389,22 +394,19 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
             } {
                 // Don't render the player's body while in first person mode
-                let player_camera_mode = if client
-                    .state()
-                    .read_storage::<common::comp::Body>()
-                    .get(client.entity())
-                    .is_some()
-                    && entity == client.entity()
-                {
-                    Some(camera.get_mode())
-                } else {
-                    None
-                };
+                // let has_body = client
+                //     .state()
+                //     .read_storage::<common::comp::Body>()
+                //     .get(client.entity())
+                //     .is_some();
 
-                let character_state_storage = client
-                    .state()
-                    .read_storage::<common::comp::CharacterState>();
-                let character_state = character_state_storage.get(client.entity());
+                let is_player = entity == client.entity();
+
+                let player_camera_mode = if is_player {
+                    camera.get_mode()
+                } else {
+                    CameraMode::default()
+                };
 
                 let model = &self
                     .model_cache
@@ -414,7 +416,7 @@ impl FigureMgr {
                         stats.map(|s| &s.equipment),
                         tick,
                         player_camera_mode,
-                        character_state,
+                        if is_player { character_state } else { None },
                     )
                     .0;
 
