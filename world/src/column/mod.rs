@@ -139,6 +139,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
         let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
+        let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
+        let humidity = if temp > CONFIG.desert_temp { CONFIG.desert_hum } else { humidity };
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
@@ -204,6 +206,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         // Colours
         let cold_grass = Rgb::new(0.0, 0.49, 0.42);
         let warm_grass = Rgb::new(0.03, 0.8, 0.0);
+        let dark_grass = Rgb::new(0.03, 0.4, 0.0);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
         let beach_sand = Rgb::new(0.89, 0.87, 0.64);
@@ -218,6 +221,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5));
+        let moss = Rgb::lerp(warm_grass, dark_grass, marble.powf(1.5));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
         let tropical = Rgb::lerp(
@@ -226,7 +230,56 @@ impl<'a> Sampler for ColumnGen<'a> {
             marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667),
         );
 
+        // Case matrix (for now):
+        // snow temp, desert humidity => rock
+        // snow temp, forest humidity => dirt
+        // snow temp, jungle humidity => snow
+        // tropical temp, desert humidity => sand
+        // tropical temp, forest humidity => grass
+        // tropical temp, jungle humidity => tropical
+        // desert temp, low altitude, desert humidity => sand
+        // desert temp, high altitude, desert humidity => rock
+        // desert temp, low altitude, forest humidity => moss
+        // desert temp, high altitude, forest humidity => dirt
+        // desert temp, low altitude, jungle humidity => dark grass
+        // desert temp, high altitude, jungle humidity => mossy / maybe hot springs / dark grass
+
+        // For desert humidity, we are always sand or rock, depending on altitude.
+        let ground = Rgb::lerp(sand, cliff, alt.sub(CONFIG.mountain_scale * 0.25));
+        // At forest humidity, we go from dirt to grass to moss depending on temperature.
         let ground = Rgb::lerp(
+            ground,
+            Rgb::lerp(
+                Rgb::lerp(
+                    dirt,
+                    grass,
+                    temp.sub(CONFIG.snow_temp)
+                        .sub((marble - 0.5) * 0.05)
+                        .mul(256.0)
+                ),
+                moss,
+                temp.sub(CONFIG.tropical_temp).mul(32.0),
+            ),
+            humidity.sub(CONFIG.desert_hum).mul(16.0)
+        );
+        // At jungle humidity, we go from snow to tropical to moss.
+        let ground = Rgb::lerp(
+            ground,
+            Rgb::lerp(
+                Rgb::lerp(
+                    snow,
+                    tropical,
+                    temp.sub(CONFIG.snow_temp)
+                        .sub((marble - 0.5) * 0.05)
+                        .mul(256.0)
+                ),
+                moss,
+                temp.sub(CONFIG.tropical_temp).mul(32.0),
+            ),
+            humidity.sub(CONFIG.forest_hum)
+        );
+
+        /* let ground = Rgb::lerp(
             Rgb::lerp(
                 snow,
                 grass,
@@ -234,9 +287,9 @@ impl<'a> Sampler for ColumnGen<'a> {
                     .sub((marble - 0.5) * 0.05)
                     .mul(256.0),
             ),
-            Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_temp).mul(32.0)),
-            temp.sub(CONFIG.tropical_temp).mul(16.0),
-        );
+            Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_hum).mul(32.0)),
+            humidity.sub(CONFIG.desert_temp).mul(16.0),
+        ); */
 
         // Work out if we're on a path or near a town
         let dist_to_path = match &sim_chunk.location {
