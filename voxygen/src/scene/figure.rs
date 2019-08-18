@@ -309,7 +309,7 @@ impl FigureModelCache {
                 humanoid::Shoulder::None => "figure.empty",
                 humanoid::Shoulder::Brown1 => "armor.shoulder.shoulder_l_brown",
             },
-            Vec3::new(2.5, -0.5, 0.0),
+            Vec3::new(-2.5, -3.5, -1.5),
         )
     }
 
@@ -319,7 +319,7 @@ impl FigureModelCache {
                 humanoid::Shoulder::None => "figure.empty",
                 humanoid::Shoulder::Brown1 => "armor.shoulder.shoulder_r_brown",
             },
-            Vec3::new(2.5, -0.5, 0.0),
+            Vec3::new(-2.5, -3.5, -1.5),
         )
     }
 
