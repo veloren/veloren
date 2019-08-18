@@ -116,7 +116,14 @@ impl FigureMgr {
 
             let skeleton_attr = &self
                 .model_cache
-                .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick, false, false)
+                .get_or_create_model(
+                    renderer,
+                    *body,
+                    stats.map(|s| &s.equipment),
+                    tick,
+                    None,
+                    None,
+                )
                 .1;
 
             match body {
@@ -382,25 +389,33 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
             } {
                 // Don't render the player's body while in first person mode
-                let fp = 
-                    camera.get_mode() == CameraMode::FirstPerson
-                    && client
-                        .state()
-                        .read_storage::<Body>()
-                        .get(client.entity())
-                        .is_some()
-                    && entity == client.entity();
-
-                let gliding = client
+                let player_camera_mode = if client
                     .state()
-                    .read_storage::<common::comp::CharacterState>()
+                    .read_storage::<common::comp::Body>()
                     .get(client.entity())
-                    .unwrap_or(&common::comp::CharacterState::default())
-                    .movement == common::comp::MovementState::Glide;
+                    .is_some()
+                    && entity == client.entity()
+                {
+                    Some(camera.get_mode())
+                } else {
+                    None
+                };
+
+                let character_state_storage = client
+                    .state()
+                    .read_storage::<common::comp::CharacterState>();
+                let character_state = character_state_storage.get(client.entity());
 
                 let model = &self
                     .model_cache
-                    .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick, fp, gliding)
+                    .get_or_create_model(
+                        renderer,
+                        *body,
+                        stats.map(|s| &s.equipment),
+                        tick,
+                        player_camera_mode,
+                        character_state,
+                    )
                     .0;
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights);
