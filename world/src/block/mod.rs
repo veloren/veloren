@@ -510,7 +510,7 @@ fn block_from_structure(
                 .map(|e| e as u8),
         )),
         StructureBlock::Hollow => Some(Block::empty()),
-        StructureBlock::Block(color) => {
+        StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
         }
     }
