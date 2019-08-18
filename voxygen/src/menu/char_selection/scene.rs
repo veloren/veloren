@@ -17,6 +17,7 @@ use client::Client;
 use common::{
     comp::{humanoid, Body},
     state::DeltaTime,
+    terrain::BlockKind,
 };
 use log::error;
 use vek::*;
@@ -102,6 +103,7 @@ impl Scene {
                 client.state().get_time(),
                 renderer.get_resolution(),
                 0,
+                BlockKind::Air,
             )],
         ) {
             error!("Renderer failed to update: {:?}", err);

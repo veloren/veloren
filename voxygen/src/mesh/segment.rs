@@ -5,7 +5,7 @@ use crate::{
 use common::{
     figure::Segment,
     util::{linear_to_srgb, srgb_to_linear},
-    vol::{ReadVol, SizedVol},
+    vol::{ReadVol, SizedVol, Vox},
 };
 use vek::*;
 
@@ -13,9 +13,13 @@ type FigureVertex = <FigurePipeline as render::Pipeline>::Vertex;
 
 impl Meshable for Segment {
     type Pipeline = FigurePipeline;
+    type TranslucentPipeline = FigurePipeline;
     type Supplement = Vec3<f32>;
 
-    fn generate_mesh(&self, offs: Self::Supplement) -> Mesh<Self::Pipeline> {
+    fn generate_mesh(
+        &self,
+        offs: Self::Supplement,
+    ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut mesh = Mesh::new();
 
         for pos in self.iter_positions() {
@@ -38,10 +42,12 @@ impl Meshable for Segment {
                     },
                     true,
                     &[[[1.0; 3]; 3]; 3],
+                    |vox| vox.is_empty(),
+                    |vox| !vox.is_empty(),
                 );
             }
         }
 
-        mesh
+        (mesh, Mesh::new())
     }
 }

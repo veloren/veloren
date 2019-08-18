@@ -3,7 +3,7 @@ use super::{
     gfx_backend,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, postprocess, skybox, terrain, ui, Globals, Light},
+    pipelines::{figure, fluid, postprocess, skybox, terrain, ui, Globals, Light},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -64,6 +64,7 @@ pub struct Renderer {
     skybox_pipeline: GfxPipeline<skybox::pipe::Init<'static>>,
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
+    fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 
@@ -80,8 +81,14 @@ impl Renderer {
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
-        let (skybox_pipeline, figure_pipeline, terrain_pipeline, ui_pipeline, postprocess_pipeline) =
-            create_pipelines(&mut factory, &mut shader_reload_indicator)?;
+        let (
+            skybox_pipeline,
+            figure_pipeline,
+            terrain_pipeline,
+            fluid_pipeline,
+            ui_pipeline,
+            postprocess_pipeline,
+        ) = create_pipelines(&mut factory, &mut shader_reload_indicator)?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
@@ -106,6 +113,7 @@ impl Renderer {
             skybox_pipeline,
             figure_pipeline,
             terrain_pipeline,
+            fluid_pipeline,
             ui_pipeline,
             postprocess_pipeline,
 
@@ -191,13 +199,15 @@ impl Renderer {
                 Ok((
                     skybox_pipeline,
                     figure_pipeline,
-                    terrain_pipline,
+                    terrain_pipeline,
+                    fluid_pipeline,
                     ui_pipeline,
                     postprocess_pipeline,
                 )) => {
                     self.skybox_pipeline = skybox_pipeline;
                     self.figure_pipeline = figure_pipeline;
-                    self.terrain_pipeline = terrain_pipline;
+                    self.terrain_pipeline = terrain_pipeline;
+                    self.fluid_pipeline = fluid_pipeline;
                     self.ui_pipeline = ui_pipeline;
                     self.postprocess_pipeline = postprocess_pipeline;
                 }
@@ -398,6 +408,28 @@ impl Renderer {
         );
     }
 
+    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    pub fn render_fluid_chunk(
+        &mut self,
+        model: &Model<fluid::FluidPipeline>,
+        globals: &Consts<Globals>,
+        locals: &Consts<terrain::Locals>,
+        lights: &Consts<Light>,
+    ) {
+        self.encoder.draw(
+            &model.slice,
+            &self.fluid_pipeline.pso,
+            &fluid::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                lights: lights.buf.clone(),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
     /// Queue the rendering of the provided UI element in the upcoming frame.
     pub fn render_ui_element(
         &mut self,
@@ -462,6 +494,7 @@ fn create_pipelines(
         GfxPipeline<skybox::pipe::Init<'static>>,
         GfxPipeline<figure::pipe::Init<'static>>,
         GfxPipeline<terrain::pipe::Init<'static>>,
+        GfxPipeline<fluid::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
     ),
@@ -479,12 +512,16 @@ fn create_pipelines(
     let srgb =
         assets::load_watched::<String>("voxygen.shaders.include.srgb", shader_reload_indicator)
             .unwrap();
+    let random =
+        assets::load_watched::<String>("voxygen.shaders.include.random", shader_reload_indicator)
+            .unwrap();
 
     let mut include_ctx = IncludeContext::new();
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
     include_ctx.include("light.glsl", &light);
     include_ctx.include("srgb.glsl", &srgb);
+    include_ctx.include("random.glsl", &random);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(
@@ -495,6 +532,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.skybox-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering figures
@@ -506,6 +544,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.figure-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering terrain
@@ -517,6 +556,19 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.terrain-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
+    // Construct a pipeline for rendering fluids
+    let fluid_pipeline = create_pipeline(
+        factory,
+        fluid::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.fluid-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.fluid-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Nothing,
     )?;
 
     // Construct a pipeline for rendering UI elements
@@ -528,6 +580,7 @@ fn create_pipelines(
         &assets::load_watched::<String>("voxygen.shaders.ui-frag", shader_reload_indicator)
             .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     // Construct a pipeline for rendering our post-processing
@@ -545,12 +598,14 @@ fn create_pipelines(
         )
         .unwrap(),
         &include_ctx,
+        gfx::state::CullFace::Back,
     )?;
 
     Ok((
         skybox_pipeline,
         figure_pipeline,
         terrain_pipeline,
+        fluid_pipeline,
         ui_pipeline,
         postprocess_pipeline,
     ))
@@ -563,6 +618,7 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     vs: &str,
     fs: &str,
     ctx: &IncludeContext,
+    cull_face: gfx::state::CullFace,
 ) -> Result<GfxPipeline<P>, RenderError> {
     let vs = ctx.expand(vs).map_err(RenderError::IncludeError)?;
     let fs = ctx.expand(fs).map_err(RenderError::IncludeError)?;
@@ -578,7 +634,7 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 gfx::Primitive::TriangleList,
                 gfx::state::Rasterizer {
                     front_face: gfx::state::FrontFace::CounterClockwise,
-                    cull_face: gfx::state::CullFace::Back,
+                    cull_face,
                     method: gfx::state::RasterMethod::Fill,
                     offset: None,
                     samples: Some(gfx::state::MultiSample),
