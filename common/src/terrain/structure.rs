@@ -1,4 +1,4 @@
-use super::Block;
+use super::{Block, BlockKind};
 use crate::{
     assets::{self, Asset},
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
@@ -11,23 +11,26 @@ use vek::*;
 
 #[derive(Copy, Clone)]
 pub enum StructureBlock {
+    None,
     TemperateLeaves,
     PineLeaves,
     Acacia,
     PalmLeaves,
+    Water,
+    GreenSludge,
     Fruit,
     Hollow,
-    Block(Block),
+    Normal(Rgb<u8>),
 }
 
 impl Vox for StructureBlock {
     fn empty() -> Self {
-        StructureBlock::Block(Block::empty())
+        StructureBlock::None
     }
 
     fn is_empty(&self) -> bool {
         match self {
-            StructureBlock::Block(block) => block.is_empty(),
+            StructureBlock::None => true,
             _ => false,
         }
     }
@@ -41,6 +44,7 @@ pub struct Structure {
     center: Vec3<i32>,
     vol: Dyna<StructureBlock, ()>,
     empty: StructureBlock,
+    default_kind: BlockKind,
 }
 
 impl Structure {
@@ -49,11 +53,20 @@ impl Structure {
         self
     }
 
+    pub fn with_default_kind(mut self, kind: BlockKind) -> Self {
+        self.default_kind = kind;
+        self
+    }
+
     pub fn get_bounds(&self) -> Aabb<i32> {
         Aabb {
             min: -self.center,
             max: self.vol.get_size().map(|e| e as i32) - self.center,
         }
+    }
+
+    pub fn default_kind(&self) -> BlockKind {
+        self.default_kind
     }
 }
 
@@ -95,7 +108,9 @@ impl Asset for Structure {
                     0 => StructureBlock::TemperateLeaves,
                     1 => StructureBlock::PineLeaves,
                     2 => StructureBlock::PalmLeaves,
+                    3 => StructureBlock::Water,
                     4 => StructureBlock::Acacia,
+                    6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
                     15 => StructureBlock::Hollow,
                     index => {
@@ -103,7 +118,7 @@ impl Asset for Structure {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        StructureBlock::Block(Block::new(1, color))
+                        StructureBlock::Normal(color)
                     }
                 };
 
@@ -117,12 +132,14 @@ impl Asset for Structure {
                 center: Vec3::zero(),
                 vol,
                 empty: StructureBlock::empty(),
+                default_kind: BlockKind::Normal,
             })
         } else {
             Ok(Self {
                 center: Vec3::zero(),
                 vol: Dyna::filled(Vec3::zero(), StructureBlock::empty(), ()),
                 empty: StructureBlock::empty(),
+                default_kind: BlockKind::Normal,
             })
         }
     }

@@ -9,4 +9,5 @@ uniform u_globals {
 	vec4 tick;
 	vec4 screen_res;
 	uvec4 light_count;
+	uvec4 medium;
 };

@@ -13,6 +13,7 @@ pub use self::{
     model::{DynamicModel, Model},
     pipelines::{
         figure::{BoneData as FigureBoneData, FigurePipeline, Locals as FigureLocals},
+        fluid::FluidPipeline,
         postprocess::{
             create_mesh as create_pp_mesh, Locals as PostProcessLocals, PostProcessPipeline,
         },
