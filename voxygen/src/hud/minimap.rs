@@ -1,10 +1,12 @@
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR};
+use std::time::{Duration, Instant};
+
+use super::{img_ids::Imgs, Fonts, Show, HP_COLOR, TEXT_COLOR};
 use client::{self, Client};
 
 widget_ids! {
@@ -13,6 +15,7 @@ widget_ids! {
         mmap_frame_bg,
         mmap_location,
         mmap_button,
+        zone_display,
     }
 }
 
@@ -42,6 +45,9 @@ impl<'a> MiniMap<'a> {
 
 pub struct State {
     ids: Ids,
+
+    last_region_name: Option<String>,
+    last_update: Instant,
 }
 
 pub enum Event {
@@ -56,6 +62,9 @@ impl<'a> Widget for MiniMap<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         State {
             ids: Ids::new(id_gen),
+
+            last_region_name: None,
+            last_update: Instant::now(),
         }
     }
 
@@ -104,6 +113,53 @@ impl<'a> Widget for MiniMap<'a> {
         {
             return Some(Event::Toggle);
         }
+
+        // Display zone name on entry
+
+        const FADE_IN: f32 = 0.5;
+        const FADE_HOLD: f32 = 1.0;
+        const FADE_OUT: f32 = 3.0;
+
+        match self.client.current_chunk() {
+            Some(chunk) => {
+                let current = chunk.meta().name();
+                // Check if no other popup is displayed and a new one is needed
+                if state.last_update.elapsed()
+                    > Duration::from_secs_f32(FADE_IN + FADE_HOLD + FADE_OUT)
+                    && state
+                        .last_region_name
+                        .as_ref()
+                        .map(|l| l != current)
+                        .unwrap_or(true)
+                {
+                    // Update last_region
+                    state.update(|s| s.last_region_name = Some(current.to_owned()));
+                    state.update(|s| s.last_update = Instant::now());
+                }
+
+                let seconds = state.last_update.elapsed().as_secs_f32();
+                let fade = if seconds < FADE_IN {
+                    seconds / FADE_IN
+                } else if seconds < FADE_IN + FADE_HOLD {
+                    1.0
+                } else {
+                    (1.0 - (seconds - FADE_IN - FADE_HOLD) / FADE_OUT).max(0.0)
+                };
+                // Region Name
+                Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
+                    .mid_top_with_margin_on(ui.window, 200.0)
+                    .font_size(80)
+                    .color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                    .set(state.ids.zone_display, ui);
+            }
+            None => Text::new(" ")
+                .middle_of(ui.window)
+                .font_size(14)
+                .color(HP_COLOR)
+                .set(state.ids.zone_display, ui),
+        }
+
+        // TODO: Subregion name display
 
         // Title
         match self.client.current_chunk() {
