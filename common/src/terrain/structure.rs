@@ -20,7 +20,7 @@ pub enum StructureBlock {
     GreenSludge,
     Fruit,
     Hollow,
-    Block(Rgb<u8>),
+    Normal(Rgb<u8>),
 }
 
 impl Vox for StructureBlock {
@@ -30,7 +30,7 @@ impl Vox for StructureBlock {
 
     fn is_empty(&self) -> bool {
         match self {
-            StructureBlock::Block(block) => block.is_empty(),
+            StructureBlock::None => true,
             _ => false,
         }
     }
@@ -118,7 +118,7 @@ impl Asset for Structure {
                             .get(index as usize)
                             .copied()
                             .unwrap_or_else(|| Rgb::broadcast(0));
-                        StructureBlock::Block(color)
+                        StructureBlock::Normal(color)
                     }
                 };
 
