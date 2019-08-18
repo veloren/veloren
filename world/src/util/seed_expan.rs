@@ -1,3 +1,5 @@
+use zerocopy::AsBytes;
+
 /// Simple non-cryptographic diffusion function.
 pub fn diffuse(mut x: u32) -> u32 {
     x = x.wrapping_add(0x7ed55d16).wrapping_add(x << 12);
@@ -16,5 +18,8 @@ pub fn rng_state(mut x: u32) -> [u8; 32] {
         x = diffuse(x);
         *s = x;
     }
-    unsafe { std::mem::transmute(r) }
+    let bytes = r.as_bytes();
+    let mut a: [u8; 32] = [0; 32];
+    a.copy_from_slice(bytes);
+    a
 }
