@@ -82,13 +82,13 @@ impl Animation for RollAnimation {
             * Quaternion::rotation_x(0.0);
         next.weapon.scale = Vec3::one();
 
-        next.l_shoulder.offset = Vec3::new(-10.0, -3.2, 2.5);
+        next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.l_shoulder.scale = Vec3::one() * 1.04;
+        next.l_shoulder.scale = Vec3::one() * 1.1;
 
-        next.r_shoulder.offset = Vec3::new(0.0, -3.2, 2.5);
+        next.r_shoulder.offset = Vec3::new(5.0, 0.0, 4.7);
         next.r_shoulder.ori = Quaternion::rotation_x(0.0);
-        next.r_shoulder.scale = Vec3::one() * 1.04;
+        next.r_shoulder.scale = Vec3::one() * 1.1;
 
         next.draw.offset = Vec3::new(0.0, 5.0, 0.0);
         next.draw.ori = Quaternion::rotation_y(0.0);
