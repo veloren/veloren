@@ -13,6 +13,22 @@ image_ids! {
         bag_mid: "voxygen.element.bag.mid",
         bag_bot: "voxygen.element.bag.bot",
 
+        // Skillbar
+        xp_bar_mid: "voxygen.element.skillbar.xp_bar_mid",
+        xp_bar_left: "voxygen.element.skillbar.xp_bar_left",
+        xp_bar_right: "voxygen.element.skillbar.xp_bar_right",
+        skillbar_slot: "voxygen.element.skillbar.skillbar_slot",
+        skillbar_slot_l: "voxygen.element.skillbar.skillbar_slot_l",
+        skillbar_slot_r: "voxygen.element.skillbar.skillbar_slot_r",
+        skillbar_slot_bg: "voxygen.element.skillbar.skillbar_slot_bg",
+        skillbar_slot_big: "voxygen.element.skillbar.skillbar_slot_big",
+        skillbar_slot_big_bg: "voxygen.element.skillbar.skillbar_slot_big_bg",
+        healthbar_bg: "voxygen.element.skillbar.healthbar_bg",
+        energybar_bg: "voxygen.element.skillbar.energybar_bg",
+        bar_content: "voxygen.element.skillbar.bar_content",
+        level_up: "voxygen.element.misc_bg.level_up",
+        level_down:"voxygen.element.misc_bg.level_down",
+
         // Window Parts
         window_3: "voxygen.element.frames.window_3",
         tab_bg: "voxygen.element.frames.tab_bg",
@@ -41,11 +57,6 @@ image_ids! {
         settings_button_pressed: "voxygen.element.buttons.settings_button_pressed",
         settings_button_hover: "voxygen.element.buttons.settings_button_hover",
         settings_button_press: "voxygen.element.buttons.settings_button_press",
-        check: "voxygen.element.buttons.check.no",
-        check_mo: "voxygen.element.buttons.check.no_mo",
-        check_press: "voxygen.element.buttons.check.press",
-        check_checked: "voxygen.element.buttons.check.yes",
-        check_checked_mo: "voxygen.element.buttons.check.yes_mo",
         slider: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
         esc_frame: "voxygen.element.frames.esc_menu",
@@ -64,6 +75,12 @@ image_ids! {
         // Crosshair
         crosshair_inner: "voxygen.element.misc_bg.crosshair_inner",
 
+        // Icons
+        twohsword_m1: "voxygen.element.icons.2hsword_m1",
+        twohsword_m2: "voxygen.element.icons.2hsword_m2",
+        twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
+        twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
+
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
@@ -75,6 +92,19 @@ image_ids! {
         crosshair_bg_hover: "voxygen.element.misc_bg.crosshair_bg_hover",
         crosshair_bg_press: "voxygen.element.misc_bg.crosshair_bg_press",
         crosshair_bg_pressed: "voxygen.element.misc_bg.crosshair_bg_pressed",
+
+        // Checkboxes and Radio buttons
+
+        check: "voxygen.element.buttons.radio.inactive",
+        check_mo: "voxygen.element.buttons.radio.inactive_hover",
+        check_press: "voxygen.element.buttons.radio.press",
+        check_checked: "voxygen.element.buttons.radio.active",
+        check_checked_mo: "voxygen.element.buttons.radio.hover",
+        checkbox: "voxygen.element.buttons.checkbox.inactive",
+        checkbox_mo: "voxygen.element.buttons.checkbox.inactive_hover",
+        checkbox_press: "voxygen.element.buttons.checkbox.press",
+        checkbox_checked: "voxygen.element.buttons.checkbox.active",
+        checkbox_checked_mo: "voxygen.element.buttons.checkbox.hover",
 
         // Buttons
         mmap_closed: "voxygen.element.buttons.button_mmap_closed",
@@ -150,6 +180,7 @@ image_ids! {
         key: "voxygen.voxel.object.key",
         key_gold: "voxygen.voxel.object.key_gold",
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
         <ImageGraphic>
@@ -172,15 +203,6 @@ image_ids! {
         grid_button_hover: "voxygen.element.buttons.border_mo",
         grid_button_press: "voxygen.element.buttons.border_press",
         grid_button_open: "voxygen.element.buttons.border_pressed",
-
-        // Skillbar Module
-        sb_grid: "voxygen.element.skill_bar.sbar_grid",
-        sb_grid_bg: "voxygen.element.skill_bar.sbar_grid_bg",
-        l_click: "voxygen.element.skill_bar.l",
-        r_click: "voxygen.element.skill_bar.r",
-        mana_bar: "voxygen.element.skill_bar.mana_bar",
-        health_bar: "voxygen.element.skill_bar.health_bar",
-        xp_bar: "voxygen.element.skill_bar.xp_bar",
 
         esc_bg: "voxygen.element.frames.menu",
 

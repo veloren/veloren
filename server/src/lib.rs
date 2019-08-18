@@ -1167,7 +1167,7 @@ impl Server {
                 self.clients.notify(
                     entity,
                     ServerMsg::private(format!(
-                        "Unrecognised command: '/{}'\ntype '/help' for a list of available commands",
+                        "Unknown command '/{}'.\nType '/help' for available commands",
                         kwd
                     )),
                 );
