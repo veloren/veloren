@@ -61,7 +61,9 @@ impl ChatCommand {
             if !server.entity_is_admin(entity) {
                 server.clients.notify(
                     entity,
-                    ServerMsg::private(String::from("You have no permission to do that.")),
+                    ServerMsg::private(String::from(
+                        "Unavailable command '/{}'.\nType '/help' for available commands",
+                    )),
                 );
                 return;
             } else {
@@ -211,7 +213,7 @@ fn handle_jump(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             }
             None => server.clients.notify(
                 entity,
-                ServerMsg::private(String::from("You have no position!")),
+                ServerMsg::private(String::from("You have no position.")),
             ),
         }
     }
@@ -231,7 +233,7 @@ fn handle_goto(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
         } else {
             server.clients.notify(
                 entity,
-                ServerMsg::private(String::from("You don't have a position!")),
+                ServerMsg::private(String::from("You have no position.")),
             );
         }
     } else {
@@ -279,7 +281,7 @@ fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                 0,
             );
             let msg = match current_time {
-                Some(time) => format!("Current time is: {}", time.format("%H:%M").to_string()),
+                Some(time) => format!("It is {}", time.format("%H:%M").to_string()),
                 None => String::from("Unknown Time"),
             };
             server.clients.notify(entity, ServerMsg::private(msg));

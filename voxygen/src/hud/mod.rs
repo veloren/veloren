@@ -55,8 +55,13 @@ const XP_COLOR: Color = Color::Rgba(0.59, 0.41, 0.67, 1.0);
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(0.0, 0.0, 0.0, 1.0);
 const TEXT_COLOR_3: Color = Color::Rgba(1.0, 1.0, 1.0, 0.1);
+//const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
 const HP_COLOR: Color = Color::Rgba(0.33, 0.63, 0.0, 1.0);
-const MANA_COLOR: Color = Color::Rgba(0.42, 0.41, 0.66, 1.0);
+const LOW_HP_COLOR: Color = Color::Rgba(0.93, 0.59, 0.03, 1.0);
+const CRITICAL_HP_COLOR: Color = Color::Rgba(1.0, 0.0, 0.0, 1.0);
+const MANA_COLOR: Color = Color::Rgba(0.47, 0.55, 1.0, 0.9);
+//const FOCUS_COLOR: Color = Color::Rgba(1.0, 0.56, 0.04, 1.0);
+//const RAGE_COLOR: Color = Color::Rgba(0.5, 0.04, 0.13, 1.0);
 const META_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0);
 const TELL_COLOR: Color = Color::Rgba(0.98, 0.71, 1.0, 1.0);
 const PRIVATE_COLOR: Color = Color::Rgba(1.0, 1.0, 0.0, 1.0); // Difference between private and tell?
@@ -151,6 +156,10 @@ pub enum Event {
     ChangeFOV(u16),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
+    ToggleXpBar(XpBar),
+    ToggleEnBars(EnBars),
+    ToggleBarNumbers(BarNumbers),
+    ToggleShortcutNumbers(ShortcutNumbers),
     UiScale(ScaleChange),
     CharacterSelection,
     SwapInventorySlots(usize, usize),
@@ -173,6 +182,28 @@ pub enum CrosshairType {
     Round,
     RoundEdges,
     Edges,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum XpBar {
+    Always,
+    OnGain,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum EnBars {
+    Always,
+    OnLoss,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum BarNumbers {
+    Values,
+    Percent,
+    Off,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum ShortcutNumbers {
+    On,
+    Off,
 }
 
 pub struct Show {
@@ -686,7 +717,8 @@ impl Hud {
             .read_storage::<comp::Stats>()
             .get(client.entity())
         {
-            Skillbar::new(&self.imgs, &self.fonts, stats).set(self.ids.skillbar, ui_widgets);
+            Skillbar::new(global_state, &self.imgs, &self.fonts, stats)
+                .set(self.ids.skillbar, ui_widgets);
         }
 
         // Chat box
@@ -722,10 +754,7 @@ impl Hud {
                 .set(self.ids.settings_window, ui_widgets)
             {
                 match event {
-                    settings_window::Event::ToggleHelp => self.show.toggle_help(),
-                    settings_window::Event::ToggleInventoryTestButton => {
-                        self.show.inventory_test_button = !self.show.inventory_test_button
-                    }
+                    settings_window::Event::ToggleHelp => self.show.help = !self.show.help,
                     settings_window::Event::ToggleDebug => self.show.debug = !self.show.debug,
                     settings_window::Event::ChangeTab(tab) => self.show.open_setting_tab(tab),
                     settings_window::Event::Close => self.show.settings(false),
@@ -752,6 +781,18 @@ impl Hud {
                     }
                     settings_window::Event::CrosshairType(crosshair_type) => {
                         events.push(Event::CrosshairType(crosshair_type));
+                    }
+                    settings_window::Event::ToggleXpBar(xp_bar) => {
+                        events.push(Event::ToggleXpBar(xp_bar));
+                    }
+                    settings_window::Event::ToggleEnBars(en_bars) => {
+                        events.push(Event::ToggleEnBars(en_bars));
+                    }
+                    settings_window::Event::ToggleBarNumbers(bar_numbers) => {
+                        events.push(Event::ToggleBarNumbers(bar_numbers));
+                    }
+                    settings_window::Event::ToggleShortcutNumbers(shortcut_numbers) => {
+                        events.push(Event::ToggleShortcutNumbers(shortcut_numbers));
                     }
                     settings_window::Event::UiScale(scale_change) => {
                         events.push(Event::UiScale(scale_change));
