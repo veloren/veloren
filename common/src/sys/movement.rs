@@ -9,8 +9,8 @@ use vek::*;
 
 const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
-const WIELD_ACCEL: f32 = 60.0;
-const WIELD_SPEED: f32 = 100.0;
+const WIELD_ACCEL: f32 = 70.0;
+const WIELD_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const HUMANOID_JUMP_ACCEL: f32 = 18.0;
