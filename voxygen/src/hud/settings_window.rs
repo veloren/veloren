@@ -1,4 +1,7 @@
-use super::{img_ids::Imgs, CrosshairType, Fonts, Show, TEXT_COLOR};
+use super::{
+    img_ids::Imgs, BarNumbers, CrosshairType, EnBars, Fonts, ShortcutNumbers, Show, XpBar,
+    TEXT_COLOR,
+};
 use crate::{
     audio::base::Genre,
     ui::{ImageSlider, ScaleMode, ToggleButton},
@@ -42,8 +45,6 @@ widget_ids! {
         debug_button,
         debug_button_label,
         interface,
-        inventory_test_button,
-        inventory_test_button_label,
         mouse_pan_slider,
         mouse_pan_label,
         mouse_pan_value,
@@ -81,6 +82,21 @@ widget_ids! {
         audio_volume_text,
         audio_device_list,
         audio_device_text,
+        hotbar_title,
+        bar_numbers_title,
+        show_bar_numbers_none_button,
+        show_bar_numbers_none_text,
+        show_bar_numbers_values_button,
+        show_bar_numbers_values_text,
+        show_bar_numbers_percentage_button,
+        show_bar_numbers_percentage_text,
+        show_shortcuts_button,
+        show_shortcuts_text,
+        show_xpbar_button,
+        show_xpbar_text,
+        show_bars_button,
+        show_bars_text,
+        placeholder,
     }
 }
 
@@ -100,7 +116,6 @@ pub struct SettingsWindow<'a> {
 
     imgs: &'a Imgs,
     fonts: &'a Fonts,
-
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
@@ -128,8 +143,11 @@ pub struct State {
 
 pub enum Event {
     ToggleHelp,
-    ToggleInventoryTestButton,
     ToggleDebug,
+    ToggleXpBar(XpBar),
+    ToggleEnBars(EnBars),
+    ToggleBarNumbers(BarNumbers),
+    ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
     Close,
     AdjustMousePan(u32),
@@ -169,6 +187,9 @@ impl<'a> Widget for SettingsWindow<'a> {
         let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut events = Vec::new();
+        let bar_values = self.global_state.settings.gameplay.bar_numbers;
+
+        //let mut xp_bar = self.global_state.settings.gameplay.xp_bar;
 
         // Frame Alignment
         Rectangle::fill_with([824.0, 488.0], color::TRANSPARENT)
@@ -254,19 +275,22 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .set(state.ids.general_txt, ui);
 
             // Help
-            let show_help =
-                ToggleButton::new(self.show.help, self.imgs.check, self.imgs.check_checked)
-                    .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .down_from(state.ids.general_txt, 20.0)
-                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-                    .press_images(self.imgs.check_press, self.imgs.check_press)
-                    .set(state.ids.button_help, ui);
+            let show_help = ToggleButton::new(
+                self.show.help,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.general_txt, 20.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.button_help, ui);
 
             if self.show.help != show_help {
                 events.push(Event::ToggleHelp);
             }
 
-            Text::new("Show Help")
+            Text::new("Show Help Window")
                 .right_from(state.ids.button_help, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
@@ -274,44 +298,23 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(TEXT_COLOR)
                 .set(state.ids.show_help_label, ui);
 
-            // Inventory test
-            let inventory_test_button = ToggleButton::new(
-                self.show.inventory_test_button,
-                self.imgs.check,
-                self.imgs.check_checked,
-            )
-            .w_h(288.0 / 24.0, 288.0 / 24.0)
-            .down_from(state.ids.button_help, 7.0)
-            .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-            .press_images(self.imgs.check_press, self.imgs.check_press)
-            .set(state.ids.inventory_test_button, ui);
-
-            if self.show.inventory_test_button != inventory_test_button {
-                events.push(Event::ToggleInventoryTestButton);
-            }
-
-            Text::new("Show Inventory Test Button")
-                .right_from(state.ids.inventory_test_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .graphics_for(state.ids.inventory_test_button)
-                .color(TEXT_COLOR)
-                .set(state.ids.inventory_test_button_label, ui);
-
             // Debug
-            let show_debug =
-                ToggleButton::new(self.show.debug, self.imgs.check, self.imgs.check_checked)
-                    .w_h(288.0 / 24.0, 288.0 / 24.0)
-                    .down_from(state.ids.inventory_test_button, 7.0)
-                    .hover_images(self.imgs.check_checked_mo, self.imgs.check_mo)
-                    .press_images(self.imgs.check_press, self.imgs.check_press)
-                    .set(state.ids.debug_button, ui);
+            let show_debug = ToggleButton::new(
+                self.show.debug,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.button_help, 8.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.debug_button, ui);
 
             if self.show.debug != show_debug {
                 events.push(Event::ToggleDebug);
             }
 
-            Text::new("Show Debug Window")
+            Text::new("Show Debug Info")
                 .right_from(state.ids.debug_button, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
@@ -331,7 +334,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let (check_img, check_mo_img, check_press_img, relative_selected) = match ui_scale {
                 ScaleMode::RelativeToWindow(_) => (
                     self.imgs.check_checked,
-                    self.imgs.check_checked,
+                    self.imgs.check_checked_mo,
                     self.imgs.check_checked,
                     true,
                 ),
@@ -366,7 +369,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             let (check_img, check_mo_img, check_press_img, absolute_selected) = match ui_scale {
                 ScaleMode::Absolute(_) => (
                     self.imgs.check_checked,
-                    self.imgs.check_checked,
+                    self.imgs.check_checked_mo,
                     self.imgs.check_checked,
                     true,
                 ),
@@ -379,7 +382,7 @@ impl<'a> Widget for SettingsWindow<'a> {
             };
             if Button::image(check_img)
                 .w_h(288.0 / 24.0, 288.0 / 24.0)
-                .down_from(state.ids.relative_to_win_button, 20.0)
+                .down_from(state.ids.relative_to_win_button, 8.0)
                 .hover_image(check_mo_img)
                 .press_image(check_press_img)
                 .set(state.ids.absolute_scale_button, ui)
@@ -415,13 +418,15 @@ impl<'a> Widget for SettingsWindow<'a> {
                 {
                     events.push(Event::UiScale(ScaleChange::Adjust(2.0f64.powf(new_val))));
                 }
+                // Custom Scaling Text
                 Text::new(&format!("{:.2}", scale))
-                    .up_from(state.ids.ch_transp_value, 75.0)
+                    .right_from(state.ids.ui_scale_slider, 10.0)
                     .font_size(14)
                     .font_id(self.fonts.opensans)
                     .color(TEXT_COLOR)
                     .set(state.ids.ui_scale_value, ui);
             } else {
+                // Grey and unfunctional slider when Relative is selected
                 ImageSlider::continuous(0.0, 0.0, 1.0, self.imgs.nothing, self.imgs.slider)
                     .w_h(208.0, 22.0)
                     .right_from(state.ids.absolute_scale_text, 10.0)
@@ -434,43 +439,6 @@ impl<'a> Widget for SettingsWindow<'a> {
             }
 
             // Crosshair Options
-            // Crosshair Transparency
-            Text::new("Crosshair")
-                .down_from(state.ids.absolute_scale_button, 20.0)
-                .font_size(18)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ch_title, ui);
-
-            if let Some(new_val) = ImageSlider::continuous(
-                crosshair_transp,
-                0.0,
-                1.0,
-                self.imgs.slider_indicator,
-                self.imgs.slider,
-            )
-            .w_h(104.0, 22.0)
-            .down_from(state.ids.ch_transp_text, 8.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(state.ids.ch_transp_slider, ui)
-            {
-                events.push(Event::CrosshairTransp(new_val));
-            }
-
-            Text::new(&format!("{:.2}", crosshair_transp,))
-                .right_from(state.ids.ch_transp_slider, 8.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ch_transp_value, ui);
-            Text::new("Transparency")
-                .right_from(state.ids.ch_3_bg, 20.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .color(TEXT_COLOR)
-                .set(state.ids.ch_transp_text, ui);
             // Crosshair Types
             // Round
             if Button::image(if let CrosshairType::Round = crosshair_type {
@@ -600,6 +568,252 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.6)))
                 .graphics_for(state.ids.ch_3_bg)
                 .set(state.ids.crosshair_inner_3, ui);
+            // Crosshair Transparency Text and Slider
+            Text::new("Crosshair")
+                .down_from(state.ids.absolute_scale_button, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_title, ui);
+            Text::new("Transparency")
+                .right_from(state.ids.ch_3_bg, 20.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                crosshair_transp,
+                0.0,
+                1.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.ch_transp_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.ch_transp_slider, ui)
+            {
+                events.push(Event::CrosshairTransp(new_val));
+            }
+
+            Text::new(&format!("{:.2}", crosshair_transp,))
+                .right_from(state.ids.ch_transp_slider, 8.0)
+                .font_size(14)
+                .graphics_for(state.ids.ch_transp_slider)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.ch_transp_value, ui);
+
+            // Hotbar text
+            Text::new("Hotbar")
+                .down_from(state.ids.ch_1_bg, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.hotbar_title, ui);
+            // Show xp bar
+            if Button::image(match self.global_state.settings.gameplay.xp_bar {
+                XpBar::Always => self.imgs.checkbox_checked,
+                XpBar::OnGain => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.xp_bar {
+                XpBar::Always => self.imgs.checkbox_checked_mo,
+                XpBar::OnGain => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.xp_bar {
+                XpBar::Always => self.imgs.checkbox_checked,
+                XpBar::OnGain => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.hotbar_title, 8.0)
+            .set(state.ids.show_xpbar_button, ui)
+            .was_clicked()
+            {
+                match self.global_state.settings.gameplay.xp_bar {
+                    XpBar::Always => events.push(Event::ToggleXpBar(XpBar::OnGain)),
+                    XpBar::OnGain => events.push(Event::ToggleXpBar(XpBar::Always)),
+                }
+            }
+            Text::new("Always show Experience Bar")
+                .right_from(state.ids.show_xpbar_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_xpbar_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_xpbar_text, ui);
+            // Show Health & Energy Bars
+            if Button::image(match self.global_state.settings.gameplay.en_bars {
+                EnBars::Always => self.imgs.checkbox_checked,
+                EnBars::OnLoss => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.en_bars {
+                EnBars::Always => self.imgs.checkbox_checked_mo,
+                EnBars::OnLoss => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.en_bars {
+                EnBars::Always => self.imgs.checkbox_checked,
+                EnBars::OnLoss => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.show_xpbar_button, 8.0)
+            .set(state.ids.show_bars_button, ui)
+            .was_clicked()
+            {
+                match self.global_state.settings.gameplay.en_bars {
+                    EnBars::Always => events.push(Event::ToggleEnBars(EnBars::OnLoss)),
+                    EnBars::OnLoss => events.push(Event::ToggleEnBars(EnBars::Always)),
+                }
+            }
+            Text::new("Always show Health and Energy Bars")
+                .right_from(state.ids.show_bars_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_bars_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_bars_text, ui);
+            // Show Shortcut Numbers
+            if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
+                ShortcutNumbers::On => self.imgs.checkbox_checked,
+                ShortcutNumbers::Off => self.imgs.checkbox,
+            })
+            .w_h(18.0, 18.0)
+            .hover_image(match self.global_state.settings.gameplay.shortcut_numbers {
+                ShortcutNumbers::On => self.imgs.checkbox_checked_mo,
+                ShortcutNumbers::Off => self.imgs.checkbox_mo,
+            })
+            .press_image(match self.global_state.settings.gameplay.shortcut_numbers {
+                ShortcutNumbers::On => self.imgs.checkbox_checked,
+                ShortcutNumbers::Off => self.imgs.checkbox_press,
+            })
+            .down_from(state.ids.show_bars_button, 8.0)
+            .set(state.ids.show_shortcuts_button, ui)
+            .was_clicked()
+            {
+                match self.global_state.settings.gameplay.shortcut_numbers {
+                    ShortcutNumbers::On => {
+                        events.push(Event::ToggleShortcutNumbers(ShortcutNumbers::Off))
+                    }
+                    ShortcutNumbers::Off => {
+                        events.push(Event::ToggleShortcutNumbers(ShortcutNumbers::On))
+                    }
+                }
+            }
+            Text::new("Always show Shortcuts")
+                .right_from(state.ids.show_shortcuts_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_shortcuts_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_shortcuts_text, ui);
+
+            // Energybars Numbers
+            // Hotbar text
+            Text::new("Energybar Numbers")
+                .down_from(state.ids.show_shortcuts_button, 20.0)
+                .font_size(18)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.bar_numbers_title, ui);
+
+            // None
+            if Button::image(if let BarNumbers::Off = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check
+            })
+            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .hover_image(if let BarNumbers::Off = bar_values {
+                self.imgs.check_checked_mo
+            } else {
+                self.imgs.check_mo
+            })
+            .press_image(if let BarNumbers::Off = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check_press
+            })
+            .down_from(state.ids.bar_numbers_title, 8.0)
+            .set(state.ids.show_bar_numbers_none_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::ToggleBarNumbers(BarNumbers::Off))
+            }
+            Text::new("None")
+                .right_from(state.ids.show_bar_numbers_none_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_bar_numbers_none_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_bar_numbers_none_text, ui);
+
+            // Values
+            if Button::image(if let BarNumbers::Values = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check
+            })
+            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .hover_image(if let BarNumbers::Values = bar_values {
+                self.imgs.check_checked_mo
+            } else {
+                self.imgs.check_mo
+            })
+            .press_image(if let BarNumbers::Values = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check_press
+            })
+            .down_from(state.ids.show_bar_numbers_none_button, 8.0)
+            .set(state.ids.show_bar_numbers_values_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::ToggleBarNumbers(BarNumbers::Values))
+            }
+            Text::new("Values")
+                .right_from(state.ids.show_bar_numbers_values_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_bar_numbers_values_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_bar_numbers_values_text, ui);
+
+            // Percentages
+            if Button::image(if let BarNumbers::Percent = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check
+            })
+            .w_h(288.0 / 24.0, 288.0 / 24.0)
+            .hover_image(if let BarNumbers::Percent = bar_values {
+                self.imgs.check_checked_mo
+            } else {
+                self.imgs.check_mo
+            })
+            .press_image(if let BarNumbers::Percent = bar_values {
+                self.imgs.check_checked
+            } else {
+                self.imgs.check_press
+            })
+            .down_from(state.ids.show_bar_numbers_values_button, 8.0)
+            .set(state.ids.show_bar_numbers_percentage_button, ui)
+            .was_clicked()
+            {
+                events.push(Event::ToggleBarNumbers(BarNumbers::Percent))
+            }
+            Text::new("Percentages")
+                .right_from(state.ids.show_bar_numbers_percentage_button, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .graphics_for(state.ids.show_bar_numbers_percentage_button)
+                .color(TEXT_COLOR)
+                .set(state.ids.show_bar_numbers_percentage_text, ui);
+
+            Rectangle::fill_with([20.0 * 4.0, 1.0 * 4.0], color::TRANSPARENT)
+                .down_from(state.ids.show_bar_numbers_percentage_button, 8.0)
+                .set(state.ids.placeholder, ui);
         }
 
         // 2) Gameplay Tab --------------------------------
