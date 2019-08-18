@@ -1,10 +1,12 @@
 pub mod figure;
+pub mod fluid;
 pub mod postprocess;
 pub mod skybox;
 pub mod terrain;
 pub mod ui;
 
 use super::util::arr_to_mat;
+use common::terrain::BlockKind;
 use gfx::{
     self,
     gfx_constant_struct_meta,
@@ -26,6 +28,7 @@ gfx_defines! {
         tick: [f32; 4] = "tick",
         screen_res: [f32; 4] = "screen_res",
         light_count: [u32; 4] = "light_count",
+        medium: [u32; 4] = "medium",
     }
 
     constant Light {
@@ -46,6 +49,7 @@ impl Globals {
         tick: f64,
         screen_res: Vec2<u16>,
         light_count: usize,
+        medium: BlockKind,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -57,6 +61,7 @@ impl Globals {
             tick: [tick as f32; 4],
             screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
             light_count: [light_count as u32; 4],
+            medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
         }
     }
 }
@@ -73,6 +78,7 @@ impl Default for Globals {
             0.0,
             Vec2::new(800, 500),
             0,
+            BlockKind::Air,
         )
     }
 }

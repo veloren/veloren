@@ -1,3 +1,5 @@
+#include <random.glsl>
+
 const float PI = 3.141592;
 
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
@@ -54,10 +56,6 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 	return diffuse_light;
 }
 
-vec3 rand_offs(vec3 pos) {
-	return sin(pos * vec3(1473.7 * pos.z + 472.3, 8891.1 * pos.x + 723.1, 3813.3 * pos.y + 982.5));
-}
-
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
 	float star_scale = 30.0;
@@ -69,7 +67,7 @@ float is_star_at(vec3 dir) {
 				vec3 pos = (floor(dir * star_scale) + vec3(i, j, k) - vec3(0.5)) / star_scale;
 
 				// Noisy offsets
-				pos += (3.0 / star_scale) * rand_offs(pos);
+				pos += (3.0 / star_scale) * rand_perm_3(pos);
 
 				// Find distance to fragment
 				float dist = length(normalize(pos) - dir);
@@ -146,11 +144,20 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 	return sky_color + sun_light;
 }
 
-float fog(vec2 f_pos, vec2 focus_pos) {
-	float dist = distance(f_pos, focus_pos) / view_distance.x;
-	const float min_fog = 0.5;
-	const float max_fog = 1.0;
-	const float diff_fog = 0.5; // max - min
+float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
+	float fog_radius = view_distance.x;
+	float mist_radius = 10000000.0;
 
-	return pow(clamp((dist - min_fog) / (diff_fog), 0.0, 1.0), 1.7);
+	float min_fog = 0.5;
+	float max_fog = 1.0;
+
+	if (medium == 1u) {
+		mist_radius = 32.0;
+		min_fog = 0.0;
+	}
+
+	float fog = distance(f_pos.xy, focus_pos.xy) / fog_radius;
+	float mist = distance(f_pos, focus_pos) / mist_radius;
+
+	return pow(clamp((max(fog, mist) - min_fog) / (max_fog - min_fog), 0.0, 1.0), 1.7);
 }

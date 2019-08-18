@@ -1,6 +1,6 @@
 use vek::*;
 
-use common::vol::{ReadVol, Vox};
+use common::vol::ReadVol;
 
 use crate::render::{
     mesh::{Mesh, Quad},
@@ -16,15 +16,16 @@ fn get_ao_quad<V: ReadVol>(
     shift: Vec3<i32>,
     dirs: &[Vec3<i32>],
     darknesses: &[[[f32; 3]; 3]; 3],
+    is_opaque: impl Fn(&V::Vox) -> bool,
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .map(|offs| {
             let (s1, s2) = (
                 vol.get(pos + shift + offs[0])
-                    .map(|v| !v.is_empty())
+                    .map(&is_opaque)
                     .unwrap_or(false),
                 vol.get(pos + shift + offs[1])
-                    .map(|v| !v.is_empty())
+                    .map(&is_opaque)
                     .unwrap_or(false),
             );
 
@@ -42,7 +43,7 @@ fn get_ao_quad<V: ReadVol>(
                 } else {
                     let corner = vol
                         .get(pos + shift + offs[0] + offs[1])
-                        .map(|v| !v.is_empty())
+                        .map(&is_opaque)
                         .unwrap_or(false);
                     // Map both 1 and 2 neighbors to 0.5 occlusion.
                     if s1 || s2 || corner {
@@ -88,26 +89,24 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     }
 }
 
-pub fn push_vox_verts<
-    V: ReadVol,
-    P: Pipeline,
-    F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
->(
+pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
     mesh: &mut Mesh<P>,
     vol: &V,
     pos: Vec3<i32>,
     offs: Vec3<f32>,
     col: Rgb<f32>,
-    vcons: F,
+    vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
     error_makes_face: bool,
     darknesses: &[[[f32; 3]; 3]; 3],
+    should_add: impl Fn(&V::Vox) -> bool,
+    is_opaque: impl Fn(&V::Vox) -> bool,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
     // -x
     if vol
         .get(pos - Vec3::unit_x())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -116,14 +115,21 @@ pub fn push_vox_verts<
             Vec3::unit_y(),
             -Vec3::unit_x(),
             col,
-            get_ao_quad(vol, pos, -Vec3::unit_x(), &[-z, -y, z, y, -z], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                -Vec3::unit_x(),
+                &[-z, -y, z, y, -z],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
     // +x
     if vol
         .get(pos + Vec3::unit_x())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -132,14 +138,21 @@ pub fn push_vox_verts<
             Vec3::unit_z(),
             Vec3::unit_x(),
             col,
-            get_ao_quad(vol, pos, Vec3::unit_x(), &[-y, -z, y, z, -y], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                Vec3::unit_x(),
+                &[-y, -z, y, z, -y],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
     // -y
     if vol
         .get(pos - Vec3::unit_y())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -148,14 +161,21 @@ pub fn push_vox_verts<
             Vec3::unit_z(),
             -Vec3::unit_y(),
             col,
-            get_ao_quad(vol, pos, -Vec3::unit_y(), &[-x, -z, x, z, -x], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                -Vec3::unit_y(),
+                &[-x, -z, x, z, -x],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
     // +y
     if vol
         .get(pos + Vec3::unit_y())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -164,14 +184,21 @@ pub fn push_vox_verts<
             Vec3::unit_x(),
             Vec3::unit_y(),
             col,
-            get_ao_quad(vol, pos, Vec3::unit_y(), &[-z, -x, z, x, -z], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                Vec3::unit_y(),
+                &[-z, -x, z, x, -z],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
     // -z
     if vol
         .get(pos - Vec3::unit_z())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -180,14 +207,21 @@ pub fn push_vox_verts<
             Vec3::unit_x(),
             -Vec3::unit_z(),
             col,
-            get_ao_quad(vol, pos, -Vec3::unit_z(), &[-y, -x, y, x, -y], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                -Vec3::unit_z(),
+                &[-y, -x, y, x, -y],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
     // +z
     if vol
         .get(pos + Vec3::unit_z())
-        .map(|v| v.is_empty())
+        .map(|v| should_add(v))
         .unwrap_or(error_makes_face)
     {
         mesh.push_quad(create_quad(
@@ -196,7 +230,14 @@ pub fn push_vox_verts<
             Vec3::unit_y(),
             Vec3::unit_z(),
             col,
-            get_ao_quad(vol, pos, Vec3::unit_z(), &[-x, -y, x, y, -x], darknesses),
+            get_ao_quad(
+                vol,
+                pos,
+                Vec3::unit_z(),
+                &[-x, -y, x, y, -x],
+                darknesses,
+                &is_opaque,
+            ),
             &vcons,
         ));
     }
