@@ -345,6 +345,22 @@ impl PlayState for SessionState {
                         global_state.settings.gameplay.crosshair_type = crosshair_type;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::ToggleXpBar(xp_bar) => {
+                        global_state.settings.gameplay.xp_bar = xp_bar;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ToggleEnBars(en_bars) => {
+                        global_state.settings.gameplay.en_bars = en_bars;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ToggleBarNumbers(bar_numbers) => {
+                        global_state.settings.gameplay.bar_numbers = bar_numbers;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ToggleShortcutNumbers(shortcut_numbers) => {
+                        global_state.settings.gameplay.shortcut_numbers = shortcut_numbers;
+                        global_state.settings.save_to_file_warn();
+                    }
                     HudEvent::UiScale(scale_change) => {
                         global_state.settings.gameplay.ui_scale =
                             self.hud.scale_change(scale_change);
