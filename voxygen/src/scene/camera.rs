@@ -7,7 +7,8 @@ use vek::*;
 const NEAR_PLANE: f32 = 0.01;
 const FAR_PLANE: f32 = 10000.0;
 
-const INTERP_TIME: f32 = 0.1;
+const FIRST_PERSON_INTERP_TIME: f32 = 0.05;
+const THIRD_PERSON_INTERP_TIME: f32 = 0.1;
 pub const MIN_ZOOM: f32 = 0.1;
 
 // Possible TODO: Add more modes
@@ -166,11 +167,26 @@ impl Camera {
         // This is horribly frame time dependent, but so is most of the game
         let delta = self.last_time.replace(time).map_or(0.0, |t| time - t);
         if (self.dist - self.tgt_dist).abs() > 0.01 {
-            self.dist = f32::lerp(self.dist, self.tgt_dist, (delta as f32) / INTERP_TIME);
+            self.dist = f32::lerp(
+                self.dist,
+                self.tgt_dist,
+                (delta as f32) / self.interp_time(),
+            );
         }
 
         if (self.focus - self.tgt_focus).magnitude() > 0.01 {
-            self.focus = Vec3::lerp(self.focus, self.tgt_focus, (delta as f32) / INTERP_TIME);
+            self.focus = Vec3::lerp(
+                self.focus,
+                self.tgt_focus,
+                (delta as f32) / self.interp_time(),
+            );
+        }
+    }
+
+    pub fn interp_time(&self) -> f32 {
+        match self.mode {
+            CameraMode::FirstPerson => FIRST_PERSON_INTERP_TIME,
+            CameraMode::ThirdPerson => THIRD_PERSON_INTERP_TIME,
         }
     }
 
