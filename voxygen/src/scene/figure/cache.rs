@@ -13,12 +13,7 @@ use hashbrown::HashMap;
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(
-        Body,
-        Option<Equipment>,
-        Option<CameraMode>,
-        Option<CharacterState>,
-    ),
+    Complex(Body, Option<Equipment>, CameraMode, Option<CharacterState>),
 }
 
 pub struct FigureModelCache {
@@ -40,7 +35,7 @@ impl FigureModelCache {
         body: Body,
         equipment: Option<&Equipment>,
         tick: u64,
-        camera_mode: Option<CameraMode>,
+        camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
     ) -> &(Model<FigurePipeline>, SkeletonAttr) {
         let key = if equipment.is_some() {
@@ -67,7 +62,7 @@ impl FigureModelCache {
                                 HumHeadSpec::load_watched(&mut self.manifest_indicator);
                             let bone_meshes = match body {
                                 Body::Humanoid(body) => [
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(humanoid_head_spec.mesh_head(
                                                 body.race,
@@ -83,29 +78,29 @@ impl FigureModelCache {
                                         }
                                         CameraMode::FirstPerson => None,
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_chest(body.chest)),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_belt(body.belt)),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_pants(body.pants)),
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_left_hand(body.hand)),
                                     Some(mesh_right_hand(body.hand)),
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_left_foot(body.foot)),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_right_foot(body.foot)),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    if camera_mode.unwrap_or_default() != CameraMode::FirstPerson
+                                    if camera_mode != CameraMode::FirstPerson
                                         || character_state
                                             .map(|cs| {
                                                 cs.action.is_attack()
@@ -118,13 +113,13 @@ impl FigureModelCache {
                                     } else {
                                         None
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(mesh_left_shoulder(body.shoulder))
                                         }
                                         CameraMode::FirstPerson => None,
                                     },
-                                    match camera_mode.unwrap_or_default() {
+                                    match camera_mode {
                                         CameraMode::ThirdPerson => {
                                             Some(mesh_right_shoulder(body.shoulder))
                                         }

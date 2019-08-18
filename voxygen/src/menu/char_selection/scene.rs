@@ -164,7 +164,7 @@ impl Scene {
                 Body::Humanoid(body),
                 Some(equipment),
                 client.get_tick(),
-                None,
+                CameraMode::default(),
                 None,
             )
             .0;
