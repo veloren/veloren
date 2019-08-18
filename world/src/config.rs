@@ -4,6 +4,9 @@ pub struct Config {
     pub snow_temp: f32,
     pub tropical_temp: f32,
     pub desert_temp: f32,
+    pub desert_hum: f32,
+    pub forest_hum: f32,
+    pub jungle_hum: f32,
 }
 
 pub const CONFIG: Config = Config {
@@ -12,4 +15,7 @@ pub const CONFIG: Config = Config {
     snow_temp: -0.4,
     tropical_temp: 0.25,
     desert_temp: 0.45,
+    desert_hum: 0.1,
+    forest_hum: 0.4,
+    jungle_hum: 0.7,
 };

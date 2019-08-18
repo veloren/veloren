@@ -5,4 +5,5 @@ pub enum ForestKind {
     Oak,
     Pine,
     SnowPine,
+    Mangrove,
 }
