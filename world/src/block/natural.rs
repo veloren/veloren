@@ -424,14 +424,23 @@ lazy_static! {
 
     pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = vec![
         // oak stumps
-        assets::load_map("world.tree.mangrove.1", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 10)))
+        assets::load_map("world.tree.mangroves.1", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
         .unwrap(),
-        assets::load_map("world.tree.mangrove.2", |s: Structure| s
-            .with_center(Vec3::new(15, 18, 10)))
+        assets::load_map("world.tree.mangroves.2", |s: Structure| s
+            .with_center(Vec3::new(16, 17, 7)))
         .unwrap(),
-        assets::load_map("world.tree.mangrove.3", |s: Structure| s
-            .with_center(Vec3::new(15, 188888888, 10)))
+        assets::load_map("world.tree.mangroves.3", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.4", |s: Structure| s
+            .with_center(Vec3::new(18, 16, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.5", |s: Structure| s
+            .with_center(Vec3::new(16, 17, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.6", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
         .unwrap(),
     ];
 
