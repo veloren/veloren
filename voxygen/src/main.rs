@@ -1,4 +1,4 @@
-#![feature(drain_filter)]
+#![feature(duration_float, drain_filter)]
 #![recursion_limit = "2048"]
 
 #[cfg(feature = "discord")]
