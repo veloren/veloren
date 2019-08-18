@@ -56,14 +56,14 @@ pub struct WorldSim {
 impl WorldSim {
     pub fn generate(mut seed: u32) -> Self {
         seed = seed_expan::diffuse(seed);
-        let mut gen_seed = |seed: &mut u32| {
-            std::mem::replace(seed, seed_expan::diffuse(*seed + 1))
-        };
+        let mut gen_seed = |seed: &mut u32| std::mem::replace(seed, seed_expan::diffuse(*seed + 1));
 
         let mut gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(gen_seed(&mut seed)),
             turb_y_nz: SuperSimplex::new().set_seed(gen_seed(&mut seed)),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed(&mut seed)),
+            chaos_nz: RidgedMulti::new()
+                .set_octaves(7)
+                .set_seed(gen_seed(&mut seed)),
             hill_nz: SuperSimplex::new().set_seed(gen_seed(&mut seed)),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
@@ -71,10 +71,18 @@ impl WorldSim {
                 .set_seed(gen_seed(&mut seed)),
             temp_nz: SuperSimplex::new().set_seed(gen_seed(&mut seed)),
             dry_nz: BasicMulti::new().set_seed(gen_seed(&mut seed)),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed(&mut seed)),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed(&mut seed)),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed(&mut seed)),
-            warp_nz: BasicMulti::new().set_octaves(3).set_seed(gen_seed(&mut seed)),
+            small_nz: BasicMulti::new()
+                .set_octaves(2)
+                .set_seed(gen_seed(&mut seed)),
+            rock_nz: HybridMulti::new()
+                .set_persistence(0.3)
+                .set_seed(gen_seed(&mut seed)),
+            cliff_nz: HybridMulti::new()
+                .set_persistence(0.3)
+                .set_seed(gen_seed(&mut seed)),
+            warp_nz: BasicMulti::new()
+                .set_octaves(3)
+                .set_seed(gen_seed(&mut seed)),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
