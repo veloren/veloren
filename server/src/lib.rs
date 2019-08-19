@@ -94,6 +94,7 @@ pub struct Server {
     accounts: AuthProvider,
 
     next_save: Instant,
+    dirtied_chunks: HashSet<Vec2<i32>>,
 }
 
 impl Server {
@@ -146,6 +147,7 @@ impl Server {
             server_settings: settings,
 
             next_save,
+            dirtied_chunks: HashSet::new(),
         };
 
         /*let world = this.world.clone();
@@ -479,7 +481,23 @@ impl Server {
             return Err(err.into());
         }
 
-        // 2)
+        // 2) Save the world if necessary
+        {
+            let mut ecs = self.state.ecs_mut();
+            if Instant::now() > self.next_save {
+                let map = ecs.read_resource::<TerrainMap>();
+                let dirtied = self.dirtied_chunks.drain();
+                for i in dirtied {
+                    self.world_provider
+                        .set_chunk(i, map.get_key(i).unwrap().clone());
+                }
+                self.next_save =
+                    Instant::now() + Duration::from_millis(self.server_settings.save_time.into());
+            }
+            {
+                println!("Chunks: {:?}", self.dirtied_chunks);
+            }
+        }
 
         // 3) Handle inputs from clients
         frontend_events.append(&mut self.handle_new_connections()?);
@@ -491,20 +509,6 @@ impl Server {
         let before_tick_4 = Instant::now();
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
-
-        // Write modified chunks to disk
-        if Instant::now() > self.next_save {
-            let mut ecs = self.state.ecs_mut();
-            let mut dc = ecs.write_resource::<DirtiedChunks>();
-            let map = ecs.read_resource::<TerrainMap>();
-            let dirtied = dc.drain();
-            for i in dirtied {
-                self.world_provider
-                    .set_chunk(i, map.get_key(i).unwrap().clone());
-            }
-            self.next_save =
-                Instant::now() + Duration::from_millis(self.server_settings.save_time.into());
-        }
 
         // Tick the world
         self.world().tick(dt);
@@ -1183,6 +1187,11 @@ impl Server {
         // Generate requested chunks.
         for (entity, key) in requested_chunks {
             self.generate_chunk(entity, key);
+        }
+
+        for (pos, block) in modified_blocks {
+            self.state.set_block(pos, block);
+            self.dirtied_chunks.insert(TerrainMap::chunk_key(pos));
         }
 
         for (pos, ori, item) in dropped_items {
