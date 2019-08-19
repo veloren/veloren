@@ -93,6 +93,8 @@ impl WorldSim {
             region_gen: StructureGen2d::new(gen_seed(), 400, 96),
             cliff_gen: StructureGen2d::new(gen_seed(), 80, 56),
             humid_nz: Billow::new()
+                .set_octaves(12)
+                .set_persistence(0.25)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
                 .set_seed(gen_seed()),
