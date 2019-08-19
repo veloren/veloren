@@ -72,10 +72,6 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
 
-    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &Self::Vox {
-        self.get(pos).unwrap()
-    }
-
     fn ray(
         &self,
         from: Vec3<f32>,
