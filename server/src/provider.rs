@@ -2,6 +2,7 @@ use common::terrain::{TerrainChunk, TerrainMap};
 //use std::collections::HashMap;
 use crossbeam::channel;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
+use hashbrown::HashSet;
 use log;
 use std::fs::File;
 use std::io::prelude::*;
@@ -33,6 +34,7 @@ pub enum SaveMsg {
 pub struct Provider {
     pub world: World,
     pub target: PathBuf,
+    save_handle: Option<std::thread::JoinHandle<()>>,
 
     pub tx: Option<channel::Sender<SaveMsg>>,
 }
@@ -50,11 +52,16 @@ impl Provider {
             World::generate(seed)
         });
 
-        Self {
+        let mut this = Self {
             world,
             target,
+            save_handle: None,
             tx: None,
-        }
+        };
+
+        this.init_save_loop();
+
+        this
     }
 
     #[inline(always)]
@@ -79,13 +86,13 @@ impl Provider {
         self.target.join(Self::chunk_name(v))
     }
 
-    pub fn init_save_loop(&mut self) -> thread::JoinHandle<()> {
+    pub fn init_save_loop(&mut self) {
         let (tx, rx) = channel::unbounded::<SaveMsg>();
         self.tx = Some(tx);
 
         let tgt = self.target.clone();
         let t = move |v: Vec2<i32>| tgt.join(Self::chunk_name(v));
-        thread::spawn(move || 'yeet: loop {
+        self.save_handle = Some(thread::spawn(move || 'yeet: loop {
             if let Ok(msg) = rx.recv() {
                 match msg {
                     SaveMsg::END => {
@@ -97,7 +104,7 @@ impl Provider {
                     }
                 }
             }
-        })
+        }));
     }
 
     pub fn set_chunk(&self, pos: Vec2<i32>, chunk: TerrainChunk) {
@@ -132,6 +139,15 @@ impl Provider {
         match qdeser(self.chunk_path(chunk_pos)) {
             Ok(chunk) => Ok((chunk, ChunkSupplement::default())),
             Err(_) => self.world.generate_chunk(chunk_pos, || cancel.load(Ordering::Relaxed)),
+        }
+    }
+}
+
+impl Drop for Provider {
+    fn drop(&mut self) {
+        self.request_save_message(SaveMsg::END);
+        if let Some(handle) = self.save_handle.take() {
+            handle.join().unwrap();
         }
     }
 }

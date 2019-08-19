@@ -947,7 +947,7 @@ fn handle_peaceful(server: &mut Server, entity: EcsEntity, args: String, _action
 
 fn handle_saverate(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     if let Ok(b) = scan_fmt!(&args, action.arg_fmt, u32) {
-        server.server_settings.save_time = b;
+        server.server_settings.save_time = std::time::Duration::from_millis(b.into());
         server.clients.notify(
             entity,
             ServerMsg::chat(format!("The save rate has been adjusted to {} ms.", b)),

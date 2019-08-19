@@ -1,4 +1,5 @@
 use serde_derive::{Deserialize, Serialize};
+use std::time::Duration;
 use std::{fs, io::prelude::*, net::SocketAddr, path::PathBuf};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -15,7 +16,7 @@ pub struct ServerSettings {
     pub admins: Vec<String>,
     pub world_folder: PathBuf,
     pub peaceful: bool,
-    pub save_time: u32,
+    pub save_time: Duration,
 }
 
 impl Default for ServerSettings {
@@ -31,7 +32,7 @@ impl Default for ServerSettings {
             world_folder: PathBuf::from("./worldsave"),
             admins: vec![],
             peaceful: false,
-            save_time: 1000,
+            save_time: Duration::from_millis(1000),
         }
     }
 }
@@ -79,7 +80,7 @@ impl ServerSettings {
             world_folder: PathBuf::from("./worldsave"),
             admins: vec!["singleplayer".to_string()], // TODO: Let the player choose if they want to use admin commands or not
             peaceful: false,
-            save_time: 1000,
+            save_time: Duration::from_millis(1000),
         }
     }
 

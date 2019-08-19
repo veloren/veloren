@@ -47,7 +47,7 @@ const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 
 #[derive(Default)]
 pub struct BlockChange {
-    pub blocks: HashMap<Vec3<i32>, Block>,
+    blocks: HashMap<Vec3<i32>, Block>,
 }
 
 impl BlockChange {
