@@ -1,6 +1,6 @@
 pub const GIT_HASH: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
-use vek::{Rgb, Rgba, Vec3};
+use vek::{Mat3, Rgb, Rgba, Vec3};
 
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
@@ -91,10 +91,46 @@ pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
 
     Rgb::new(r + m, g + m, b + m)
 }
+/// Convert linear rgb to CIExyY
+#[inline(always)]
+pub fn rgb_to_xyy(rgb: Rgb<f32>) -> Vec3<f32> {
+    // XYZ
+    let xyz = Mat3::new(
+        0.4124, 0.3576, 0.1805, 0.2126, 0.7152, 0.0722, 0.0193, 0.1192, 0.9504,
+    ) * Vec3::from(rgb);
+
+    let sum = xyz.sum();
+    Vec3::new(xyz.x / sum, xyz.y / sum, xyz.y)
+}
+/// Convert to CIExyY to linear rgb
+#[inline(always)]
+pub fn xyy_to_rgb(xyy: Vec3<f32>) -> Rgb<f32> {
+    let xyz = Vec3::new(
+        xyy.z / xyy.y * xyy.x,
+        xyy.z,
+        xyy.z / xyy.y * (1.0 - xyy.x - xyy.y),
+    );
+
+    Rgb::from(
+        Mat3::new(
+            3.2406, -1.5372, -0.4986, -0.9689, 1.8758, 0.0415, 0.0557, -0.2040, 1.0570,
+        ) * xyz,
+    )
+}
 
 #[inline(always)]
 pub fn saturate_srgb(col: Rgb<f32>, value: f32) -> Rgb<f32> {
     let mut hsv = rgb_to_hsv(srgb_to_linear(col));
     hsv.y *= 1.0 + value;
     linear_to_srgb(hsv_to_rgb(hsv).map(|e| e.min(1.0).max(0.0)))
+}
+
+/// Preserves the luma of one color while changing its chromaticty to match the other
+#[inline(always)]
+pub fn chromify_srgb(luma: Rgb<f32>, chroma: Rgb<f32>) -> Rgb<f32> {
+    let l = rgb_to_xyy(srgb_to_linear(luma)).z;
+    let mut xyy = rgb_to_xyy(srgb_to_linear(chroma));
+    xyy.z = l;
+
+    linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.min(1.0).max(0.0)))
 }

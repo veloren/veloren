@@ -36,7 +36,7 @@ use crate::{
     window::Window,
 };
 use heaptrack::track_mem;
-use log::{self, debug, error, info, warn};
+use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
