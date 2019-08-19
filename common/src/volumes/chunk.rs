@@ -60,11 +60,6 @@ impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
             .and_then(|idx| self.vox.get(idx))
             .ok_or(ChunkErr::OutOfBounds)
     }
-
-    #[inline(always)]
-    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V {
-        self.vox.get_unchecked(Self::idx_for_unchecked(pos))
-    }
 }
 
 impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
