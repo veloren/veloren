@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, Animation, Skeleton, SkeletonAttr,
+        quadrupedmedium::QuadrupedMediumSkeleton, grizzlybear::GrizzlyBearSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -12,7 +12,7 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body},
+    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, Body},
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -103,6 +103,24 @@ impl FigureModelCache {
                                     Some(Self::load_wolf_foot_rb(body.foot_rb)),
                                     None,
                                     None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::GrizzlyBear(body) => [
+                                    Some(Self::load_grizzly_bear_upper_head(body.head_upper)),
+                                    Some(Self::load_grizzly_bear_lower_head(body.head_lower)),
+                                    Some(Self::load_grizzly_bear_upper_torso(body.upper_torso)),
+                                    Some(Self::load_grizzly_bear_lower_torso(body.lower_torso)),
+                                    Some(Self::load_grizzly_bear_ears(body.ears)),
+                                    Some(Self::load_grizzly_bear_leg_lf(body.leg_lf)),
+                                    Some(Self::load_grizzly_bear_leg_rf(body.leg_rf)),
+                                    Some(Self::load_grizzly_bear_leg_lb(body.leg_lb)),
+                                    Some(Self::load_grizzly_bear_leg_rb(body.leg_rb)),
+                                    Some(Self::load_grizzly_bear_foot_lf(body.foot_lf)),
+                                    Some(Self::load_grizzly_bear_foot_rf(body.foot_rf)),
+                                    Some(Self::load_grizzly_bear_foot_lb(body.foot_lb)),
+                                    Some(Self::load_grizzly_bear_foot_rb(body.foot_rb)),
                                     None,
                                     None,
                                     None,
