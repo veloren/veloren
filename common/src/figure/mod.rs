@@ -2,7 +2,8 @@ pub mod cell;
 
 use self::cell::Cell;
 use crate::{
-    vol::{Vox, WriteVol},
+    util::chromify_srgb,
+    vol::{ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
 };
 use dot_vox::DotVoxData;
@@ -42,5 +43,67 @@ impl From<&DotVoxData> for Segment {
         } else {
             Segment::filled(Vec3::zero(), Cell::empty(), ())
         }
+    }
+}
+
+impl Segment {
+    /// Create a new `Segment` by combining two existing ones
+    pub fn union(&self, other: &Self, other_offset: Vec3<i32>) -> Self {
+        let size = self.get_size();
+        let other_size = self.get_size();
+        let new_size = other_offset
+            .map2(other_size, |oo, os| (oo, os))
+            .map2(size, |(oo, os), s| {
+                (oo + os as i32).max(s as i32) - oo.min(0)
+            })
+            .map(|e| e as u32);
+        let mut combined = Segment::filled(new_size, Cell::empty(), ());
+        // Copy self into combined
+        let offset = other_offset.map(|e| e.min(0).abs());
+        for pos in self.iter_positions() {
+            if let Cell::Filled(col) = *self.get(pos).unwrap() {
+                combined.set(pos + offset, Cell::Filled(col)).unwrap();
+            }
+        }
+        // Copy other into combined
+        let offset = other_offset.map(|e| e.max(0));
+        for pos in other.iter_positions() {
+            if let Cell::Filled(col) = *other.get(pos).unwrap() {
+                combined.set(pos + offset, Cell::Filled(col)).unwrap();
+            }
+        }
+
+        combined
+    }
+    /// Replaces one cell with another
+    pub fn replace(mut self, old: Cell, new: Cell) -> Self {
+        for pos in self.iter_positions() {
+            if old == *self.get(pos).unwrap() {
+                self.set(pos, new);
+            }
+        }
+
+        self
+    }
+    /// Preserve the luminance of all the colors but set the chomaticity to match the provided color
+    pub fn chromify(mut self, chroma: Rgb<u8>) -> Self {
+        let chroma = chroma.map(|e| e as f32 * 255.0);
+        for pos in self.iter_positions() {
+            match self.get(pos).unwrap() {
+                Cell::Filled(rgb) => self
+                    .set(
+                        pos,
+                        Cell::Filled(
+                            chromify_srgb(Rgb::from_slice(rgb).map(|e| e as f32 / 255.0), chroma)
+                                .map(|e| (e * 255.0) as u8)
+                                .into_array(),
+                        ),
+                    )
+                    .unwrap(),
+                Cell::Empty => (),
+            }
+        }
+
+        self
     }
 }
