@@ -1,4 +1,5 @@
 pub mod consts;
+pub mod instances;
 pub mod mesh;
 pub mod model;
 pub mod pipelines;
