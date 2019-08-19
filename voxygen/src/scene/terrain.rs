@@ -24,7 +24,7 @@ struct TerrainChunk {
     // GPU data
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
-    sprite_instances: Instances<SpriteInstance>,
+    sprite_instances: HashMap<BlockKind, Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
 
     visible: bool,
@@ -43,7 +43,7 @@ struct MeshWorkerResponse {
     z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
-    sprite_instances: Vec<SpriteInstance>,
+    sprite_instances: HashMap<BlockKind, Vec<SpriteInstance>>,
     started_tick: u64,
 }
 
@@ -63,7 +63,7 @@ fn mesh_worker(
         fluid_mesh,
         // Extract sprite locations from volume
         sprite_instances: {
-            let mut instances = Vec::new();
+            let mut instances = HashMap::new();
 
             for x in 0..TerrainChunkSize::SIZE.x as i32 {
                 for y in 0..TerrainChunkSize::SIZE.y as i32 {
@@ -72,11 +72,16 @@ fn mesh_worker(
                             pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32),
                         ) + Vec3::new(x, y, z);
 
-                        match volume.get(wpos).unwrap_or(&Block::empty()).kind() {
-                            BlockKind::Wheat => instances.push(SpriteInstance::new(
-                                wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
-                                Rgb::broadcast(1.0),
-                            )),
+                        let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
+                        match kind {
+                            BlockKind::Wheat | BlockKind::LongGrass | BlockKind::Flowers => {
+                                instances.entry(kind).or_insert_with(|| Vec::new()).push(
+                                    SpriteInstance::new(
+                                        wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
+                                        Rgb::broadcast(1.0),
+                                    ),
+                                )
+                            }
                             _ => {}
                         }
                     }
@@ -99,7 +104,7 @@ pub struct Terrain {
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 
     // GPU data
-    wheat_model: Model<SpritePipeline>,
+    sprite_models: HashMap<BlockKind, Model<SpritePipeline>>,
 }
 
 impl Terrain {
@@ -108,20 +113,36 @@ impl Terrain {
         // worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
 
-        let wheat_mesh = Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
-            &Segment::from(
-                assets::load_expect::<DotVoxData>("voxygen.voxel.sprite.grass-0").as_ref(),
-            ),
-            Vec3::new(6.0, 6.0, 0.0),
-        )
-        .0;
+        let mut make_model = |s| {
+            renderer
+                .create_model(
+                    &Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
+                        &Segment::from(assets::load_expect::<DotVoxData>(s).as_ref()),
+                        Vec3::new(6.0, 6.0, 0.0),
+                    )
+                    .0,
+                )
+                .unwrap()
+        };
 
         Self {
             chunks: HashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
-            wheat_model: renderer.create_model(&wheat_mesh).unwrap(),
+            sprite_models: vec![
+                (BlockKind::Wheat, make_model("voxygen.voxel.sprite.wheat")),
+                (
+                    BlockKind::LongGrass,
+                    make_model("voxygen.voxel.sprite.grass-0"),
+                ),
+                (
+                    BlockKind::Flowers,
+                    make_model("voxygen.voxel.sprite.flowers"),
+                ),
+            ]
+            .into_iter()
+            .collect(),
         }
     }
 
@@ -317,9 +338,18 @@ impl Terrain {
                             fluid_model: renderer
                                 .create_model(&response.fluid_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
-                            sprite_instances: renderer
-                                .create_instances(&response.sprite_instances)
-                                .expect("Failed to upload chunk sprite instances to the GPU!"),
+                            sprite_instances: response
+                                .sprite_instances
+                                .into_iter()
+                                .map(|(kind, instances)| {
+                                    (
+                                        kind,
+                                        renderer.create_instances(&instances).expect(
+                                            "Failed to upload chunk sprite instances to the GPU!",
+                                        ),
+                                    )
+                                })
+                                .collect(),
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
                                     model_offs: Vec3::from(
@@ -391,9 +421,16 @@ impl Terrain {
         focus_pos: Vec3<f32>,
     ) {
         // Opaque
-        for (pos, chunk) in &self.chunks {
+        for (_, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+            }
+        }
+
+        // Translucent
+        for (pos, chunk) in &self.chunks {
+            if chunk.visible {
+                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
 
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
@@ -401,20 +438,15 @@ impl Terrain {
                     (e as f32 + 0.5) * sz as f32
                 });
                 if Vec2::from(focus_pos).distance(chunk_center) < SPRITE_RENDER_DISTANCE {
-                    renderer.render_sprites(
-                        &self.wheat_model,
-                        globals,
-                        &chunk.sprite_instances,
-                        lights,
-                    );
+                    for (kind, instances) in &chunk.sprite_instances {
+                        renderer.render_sprites(
+                            &self.sprite_models[&kind],
+                            globals,
+                            &instances,
+                            lights,
+                        );
+                    }
                 }
-            }
-        }
-
-        // Translucent
-        for (_pos, chunk) in &self.chunks {
-            if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
             }
         }
     }

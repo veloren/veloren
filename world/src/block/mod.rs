@@ -258,7 +258,16 @@ impl<'a> BlockGen<'a> {
             && (wposf.z as f32 > water_height + 3.0)
             && (chaos * 4096.0).fract() < 0.025
         {
-            Some(Block::new(BlockKind::Wheat, Rgb::broadcast(0)))
+            Some(Block::new(
+                if (height * 121.0).fract() < 0.25 {
+                    BlockKind::Wheat
+                } else if (height * 121.0).fract() < 0.5 {
+                    BlockKind::Flowers
+                } else {
+                    BlockKind::LongGrass
+                },
+                Rgb::broadcast(0),
+            ))
         } else {
             None
         };

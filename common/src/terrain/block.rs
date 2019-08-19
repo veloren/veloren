@@ -3,7 +3,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::ops::Deref;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum BlockKind {
     Air,
@@ -11,6 +11,8 @@ pub enum BlockKind {
     Dense,
     Water,
     Wheat,
+    LongGrass,
+    Flowers,
 }
 
 impl BlockKind {
@@ -18,6 +20,8 @@ impl BlockKind {
         match self {
             BlockKind::Air => true,
             BlockKind::Wheat => true,
+            BlockKind::LongGrass => true,
+            BlockKind::Flowers => true,
             _ => false,
         }
     }
@@ -34,6 +38,8 @@ impl BlockKind {
             BlockKind::Air => false,
             BlockKind::Water => false,
             BlockKind::Wheat => false,
+            BlockKind::LongGrass => false,
+            BlockKind::Flowers => false,
             _ => true,
         }
     }
@@ -43,6 +49,8 @@ impl BlockKind {
             BlockKind::Air => false,
             BlockKind::Water => false,
             BlockKind::Wheat => false,
+            BlockKind::LongGrass => false,
+            BlockKind::Flowers => false,
             _ => true,
         }
     }
