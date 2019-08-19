@@ -122,40 +122,6 @@ impl ReadVol for Chonk {
             }
         }
     }
-
-    #[inline(always)]
-    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &Block {
-        if pos.z < self.z_offset {
-            // Below the terrain
-            &self.below
-        } else if pos.z >= self.z_offset + SUB_CHUNK_HEIGHT as i32 * self.sub_chunks.len() as i32 {
-            // Above the terrain
-            &self.above
-        } else {
-            // Within the terrain
-
-            let sub_chunk_idx = self.sub_chunk_idx(pos.z);
-
-            match &self.sub_chunks[sub_chunk_idx] {
-                // Can't fail
-                SubChunk::Homogeneous(block) => block,
-                SubChunk::Hash(cblock, map) => {
-                    let rpos = pos
-                        - Vec3::unit_z()
-                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
-
-                    map.get(&rpos.map(|e| e as u8)).unwrap_or(cblock)
-                }
-                SubChunk::Heterogeneous(chunk) => {
-                    let rpos = pos
-                        - Vec3::unit_z()
-                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
-
-                    chunk.get_unchecked(rpos)
-                }
-            }
-        }
-    }
 }
 
 impl WriteVol for Chonk {
