@@ -1,6 +1,7 @@
 use super::{
     consts::Consts,
     gfx_backend,
+    instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light},
@@ -427,6 +428,28 @@ impl Renderer {
             &fluid::pipe::Data {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                lights: lights.buf.clone(),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
+    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    pub fn render_sprites(
+        &mut self,
+        model: &Model<sprite::SpritePipeline>,
+        globals: &Consts<Globals>,
+        instances: &Instances<sprite::Instance>,
+        lights: &Consts<Light>,
+    ) {
+        self.encoder.draw(
+            &model.slice,
+            &self.sprite_pipeline.pso,
+            &sprite::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                ibuf: instances.ibuf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
