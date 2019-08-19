@@ -60,13 +60,6 @@ impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap2d<V, S> {
                 chunk.get(co).map_err(VolMap2dErr::ChunkErr)
             })
     }
-
-    #[inline(always)]
-    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V::Vox {
-        let ck = Self::chunk_key(pos);
-        let co = Self::chunk_offs(pos);
-        self.chunks.get(&ck).unwrap().get_unchecked(co)
-    }
 }
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
