@@ -10,7 +10,7 @@ use crate::{
     },
     scene::{
         camera::{Camera, CameraMode},
-        figure::{FigureModelCache, FigureState},
+        figure::{load_mesh, FigureModelCache, FigureState},
     },
 };
 use client::Client;
@@ -69,7 +69,7 @@ impl Scene {
             figure_state: FigureState::new(renderer, CharacterSkeleton::new()),
 
             backdrop_model: renderer
-                .create_model(&FigureModelCache::load_mesh(
+                .create_model(&load_mesh(
                     "fixture.selection_bg",
                     Vec3::new(-55.0, -49.5, -2.0),
                 ))
