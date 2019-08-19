@@ -366,7 +366,13 @@ impl Renderer {
         locals: &Consts<skybox::Locals>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.skybox_pipeline.pso,
             &skybox::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -388,7 +394,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.figure_pipeline.pso,
             &figure::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -411,7 +423,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.terrain_pipeline.pso,
             &terrain::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -433,7 +451,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.fluid_pipeline.pso,
             &fluid::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -455,7 +479,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: Some((instances.count() as u32, 0)),
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.sprite_pipeline.pso,
             &sprite::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -479,7 +509,13 @@ impl Renderer {
     ) {
         let Aabr { min, max } = scissor;
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.ui_pipeline.pso,
             &ui::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -505,7 +541,13 @@ impl Renderer {
         locals: &Consts<postprocess::Locals>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.postprocess_pipeline.pso,
             &postprocess::pipe::Data {
                 vbuf: model.vbuf.clone(),

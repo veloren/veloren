@@ -20,6 +20,10 @@ impl<T: Copy + gfx::traits::Pod> Instances<T> {
         })
     }
 
+    pub fn count(&self) -> usize {
+        self.ibuf.len()
+    }
+
     pub fn update(
         &mut self,
         encoder: &mut gfx::Encoder<gfx_backend::Resources, gfx_backend::CommandBuffer>,

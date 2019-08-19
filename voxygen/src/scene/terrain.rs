@@ -74,7 +74,7 @@ fn mesh_worker(
 
                         match volume.get(wpos).unwrap_or(&Block::empty()).kind() {
                             BlockKind::Wheat => instances.push(SpriteInstance::new(
-                                wpos.map(|e| e as f32),
+                                wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
                                 Rgb::broadcast(1.0),
                             )),
                             _ => {}
@@ -110,7 +110,7 @@ impl Terrain {
 
         let wheat_mesh = Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
             &Segment::from(
-                assets::load_expect::<DotVoxData>("voxygen.voxel.sprite.wheat").as_ref(),
+                assets::load_expect::<DotVoxData>("voxygen.voxel.sprite.grass-0").as_ref(),
             ),
             Vec3::new(6.0, 6.0, 0.0),
         )
@@ -388,17 +388,26 @@ impl Terrain {
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        focus_pos: Vec3<f32>,
     ) {
         // Opaque
-        for (_pos, chunk) in &self.chunks {
+        for (pos, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
-                renderer.render_sprites(
-                    &self.wheat_model,
-                    globals,
-                    &chunk.sprite_instances,
-                    lights,
-                );
+
+                const SPRITE_RENDER_DISTANCE: f32 = 128.0;
+
+                let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    (e as f32 + 0.5) * sz as f32
+                });
+                if Vec2::from(focus_pos).distance(chunk_center) < SPRITE_RENDER_DISTANCE {
+                    renderer.render_sprites(
+                        &self.wheat_model,
+                        globals,
+                        &chunk.sprite_instances,
+                        lights,
+                    );
+                }
             }
         }
 

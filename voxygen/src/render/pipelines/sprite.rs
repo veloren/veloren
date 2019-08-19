@@ -10,6 +10,7 @@ use gfx::{
     gfx_pipeline,
     gfx_pipeline_inner,
     gfx_vertex_struct_meta,
+    state::ColorMask,
 };
 use vek::*;
 
@@ -32,7 +33,7 @@ gfx_defines! {
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
 
-        tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
+        tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,
     }
 }
