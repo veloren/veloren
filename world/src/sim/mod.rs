@@ -545,11 +545,11 @@ impl SimChunk {
                 }
             } else {
                 // For now we don't take humidity into account for cold climates (but we really
-                // should!).
-                if temp > CONFIG.snow_temp {
-                    ForestKind::Pine
-                } else {
+                // should!) except that we make sure we only have snow pines when there is snow.
+                if temp <= CONFIG.snow_temp && humidity > CONFIG.jungle_hum {
                     ForestKind::SnowPine
+                } else {
+                    ForestKind::Pine
                 }
             },
             spawn_rate: 1.0,
