@@ -244,6 +244,16 @@ impl Renderer {
         consts.update(&mut self.encoder, vals)
     }
 
+    /// Create a new set of instances with the provided values.
+    pub fn create_instances<T: Copy + gfx::traits::Pod>(
+        &mut self,
+        vals: &[T],
+    ) -> Result<Instances<T>, RenderError> {
+        let mut instances = Instances::new(&mut self.factory, vals.len())?;
+        instances.update(&mut self.encoder, vals)?;
+        Ok(instances)
+    }
+
     /// Create a new model from the provided mesh.
     pub fn create_model<P: Pipeline>(&mut self, mesh: &Mesh<P>) -> Result<Model<P>, RenderError> {
         Ok(Model::new(&mut self.factory, mesh))

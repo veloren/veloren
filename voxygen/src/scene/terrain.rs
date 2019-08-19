@@ -1,17 +1,20 @@
 use crate::{
     mesh::Meshable,
     render::{
-        Consts, FluidPipeline, Globals, Light, Mesh, Model, Renderer, TerrainLocals,
-        TerrainPipeline,
+        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, SpriteInstance,
+        SpritePipeline, TerrainLocals, TerrainPipeline,
     },
 };
 use client::Client;
 use common::{
-    terrain::{TerrainChunkSize, TerrainMap},
-    vol::{SampleVol, VolSize},
+    assets,
+    figure::Segment,
+    terrain::{Block, BlockKind, TerrainChunkSize, TerrainMap},
+    vol::{ReadVol, SampleVol, VolSize, Vox},
     volumes::vol_map_2d::VolMap2dErr,
 };
 use crossbeam::channel;
+use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
 use std::{i32, ops::Mul, time::Duration};
@@ -21,7 +24,9 @@ struct TerrainChunk {
     // GPU data
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
+    sprite_instances: Instances<SpriteInstance>,
     locals: Consts<TerrainLocals>,
+
     visible: bool,
     z_bounds: (f32, f32),
 }
@@ -38,6 +43,7 @@ struct MeshWorkerResponse {
     z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
+    sprite_instances: Vec<SpriteInstance>,
     started_tick: u64,
 }
 
@@ -55,6 +61,30 @@ fn mesh_worker(
         z_bounds,
         opaque_mesh,
         fluid_mesh,
+        // Extract sprite locations from volume
+        sprite_instances: {
+            let mut instances = Vec::new();
+
+            for x in 0..TerrainChunkSize::SIZE.x as i32 {
+                for y in 0..TerrainChunkSize::SIZE.y as i32 {
+                    for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
+                        let wpos = Vec3::from(
+                            pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32),
+                        ) + Vec3::new(x, y, z);
+
+                        match volume.get(wpos).unwrap_or(&Block::empty()).kind() {
+                            BlockKind::Wheat => instances.push(SpriteInstance::new(
+                                wpos.map(|e| e as f32),
+                                Rgb::broadcast(1.0),
+                            )),
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            instances
+        },
         started_tick,
     }
 }
@@ -67,19 +97,31 @@ pub struct Terrain {
     mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
     mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
+
+    // GPU data
+    wheat_model: Model<SpritePipeline>,
 }
 
 impl Terrain {
-    pub fn new() -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
         // worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
+
+        let wheat_mesh = Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
+            &Segment::from(
+                assets::load_expect::<DotVoxData>("voxygen.voxel.sprite.wheat").as_ref(),
+            ),
+            Vec3::new(6.0, 6.0, 0.0),
+        )
+        .0;
 
         Self {
             chunks: HashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
+            wheat_model: renderer.create_model(&wheat_mesh).unwrap(),
         }
     }
 
@@ -275,6 +317,9 @@ impl Terrain {
                             fluid_model: renderer
                                 .create_model(&response.fluid_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
+                            sprite_instances: renderer
+                                .create_instances(&response.sprite_instances)
+                                .expect("Failed to upload chunk sprite instances to the GPU!"),
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
                                     model_offs: Vec3::from(
@@ -348,6 +393,12 @@ impl Terrain {
         for (_pos, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+                renderer.render_sprites(
+                    &self.wheat_model,
+                    globals,
+                    &chunk.sprite_instances,
+                    lights,
+                );
             }
         }
 

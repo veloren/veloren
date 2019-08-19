@@ -254,6 +254,8 @@ impl<'a> BlockGen<'a> {
                 BlockKind::Normal,
                 saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
             ))
+        } else if (wposf.z as f32) < height + 0.02 {
+            Some(Block::new(BlockKind::Wheat, Rgb::broadcast(0)))
         } else {
             None
         };
