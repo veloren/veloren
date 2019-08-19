@@ -19,7 +19,7 @@ use common::{
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
-use log::warn;
+use log::debug;
 use specs::{Entity as EcsEntity, Join};
 use std::f32;
 use vek::*;
@@ -913,7 +913,7 @@ impl FigureMgr {
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
-                warn!("Body has no saved figure");
+                debug!("Body has no saved figure");
             }
         }
     }
