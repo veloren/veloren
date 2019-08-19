@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 #![feature(drain_filter, bind_by_move_pattern_guards)]
 
 pub mod auth_provider;

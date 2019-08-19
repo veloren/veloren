@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 #![type_length_limit = "1664759"]
 #![feature(
     euclidean_division,
