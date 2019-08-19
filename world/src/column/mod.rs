@@ -76,7 +76,8 @@ impl<'a> ColumnGen<'a> {
         });
         let chunk = self.world.sim().get(chunk_pos)?;
 
-        if seed % 5 == 2 && chunk.temp > CONFIG.desert_temp && chunk.alt > CONFIG.sea_level + 5.0 {
+        if seed % 5 == 2 && chunk.temp > CONFIG.desert_temp && chunk.humidity < CONFIG.desert_hum &&
+            chunk.alt > CONFIG.sea_level + 5.0 {
             Some(StructureData {
                 pos,
                 seed,
@@ -230,7 +231,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         );
 
         // For desert humidity, we are always sand or rock, depending on altitude.
-        let ground = Rgb::lerp(sand, cliff, alt.sub(CONFIG.mountain_scale * 0.25));
+        let ground = Rgb::lerp(sand, cliff, alt.sub(CONFIG.mountain_scale * 0.25).div(CONFIG.mountain_scale * 0.125));
         // At forest humidity, we go from dirt to grass to moss to sand depending on temperature.
         let ground = Rgb::lerp(
             ground,
@@ -244,10 +245,10 @@ impl<'a> Sampler for ColumnGen<'a> {
                             .mul(256.0)
                     ),
                     moss,
-                    temp.sub(CONFIG.tropical_temp).mul(32.0),
+                    temp.sub(CONFIG.tropical_temp).mul(4.0),
                 ),
                 sand,
-                temp.sub(CONFIG.desert_temp).mul(16.0),
+                temp.sub(CONFIG.desert_temp).mul(4.0),
             ),
             humidity.sub(CONFIG.desert_hum).mul(4.0)
         );
@@ -264,10 +265,10 @@ impl<'a> Sampler for ColumnGen<'a> {
                             .mul(256.0)
                     ),
                     moss,
-                    temp.sub(CONFIG.tropical_temp).mul(32.0),
+                    temp.sub(CONFIG.tropical_temp).mul(4.0),
                 ),
                 sand,
-                temp.sub(CONFIG.desert_temp).mul(16.0),
+                temp.sub(CONFIG.desert_temp).mul(4.0),
             ),
             humidity.sub(CONFIG.forest_hum).mul(4.0)
         );
@@ -392,7 +393,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             / 12.0,
                     ),
                     (alt - CONFIG.sea_level - 0.25 * CONFIG.mountain_scale + marble * 128.0)
-                        / 100.0,
+                        / (0.25 * CONFIG.mountain_scale),
                 ),
                 // Beach
                 ((alt - CONFIG.sea_level - 1.0) / 2.0)
