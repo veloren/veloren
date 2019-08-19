@@ -36,6 +36,7 @@ pub(crate) struct GenCtx {
     pub dry_nz: BasicMulti,
     // Humidity noise
     pub humid_nz : Billow,
+    // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
     pub cliff_nz: HybridMulti,
@@ -95,6 +96,7 @@ impl WorldSim {
             humid_nz: Billow::new()
                 .set_octaves(12)
                 .set_persistence(0.125)
+                .set_frequency(1.0)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
                 .set_seed(gen_seed()),
@@ -344,6 +346,8 @@ impl SimChunk {
     fn generate(pos: Vec2<i32>, gen_ctx: &mut GenCtx) -> Self {
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
 
+        // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is a 50%
+        // chance that hill will end up at 0.
         let hill = (0.0
             + gen_ctx
                 .hill_nz
@@ -355,8 +359,6 @@ impl SimChunk {
                 .mul(0.3) as f32)
             .add(0.3)
             .max(0.0);
-
-        let temp = gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32;
 
         // FIXME: Currently unused, but should represent fresh groundwater level.
         // Should be correlated a little with humidity, somewhat negatively with altitude,
@@ -374,33 +376,24 @@ impl SimChunk {
             .into_array(),
         ) as f32;
 
-        let chaos = (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
-            .add(1.0)
-            .mul(0.5)
-            .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
-                    .abs()
-                    .max(0.25)
-                    .min(1.0),
-            )
-            .add(0.15 * hill)
-            .mul(
-                temp.sub(CONFIG.desert_temp)
-                    .neg()
-                    .mul(12.0)
-                    .max(0.35)
-                    .min(1.0),
-            )
-            .max(0.1);
-
+        // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
+        // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
+        // but value here is from -0.275 to 0.225).
         let alt_base = (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-            .mul(250.0)
-            .sub(25.0);
+            .sub(0.1)
+            .mul(0.25);
 
+        // Extension upwards from the base.  A positive number from 0 to 1 curved to be maximal at
+        // 0.
         let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
             .abs()
             .powf(1.35);
 
+        // Calculates the smallest distance along an axis (x, y) from an edge of
+        // the world.  This value is maximal at WORLD_SIZE / 2 and minimized at the extremes
+        // (0 or WORLD_SIZE on one or more axes).  It then divides the quantity by cell_size,
+        // so the final result is 1 when we are not in a cell along the edge of the world, and
+        // ranges between 0 and 1 otherwise (lower when the chunk is closer to the edge).
         let map_edge_factor = pos
             .map2(WORLD_SIZE.map(|e| e as i32), |e, sz| {
                 (sz / 2 - (e - sz / 2).abs()) as f32 / 16.0
@@ -409,16 +402,46 @@ impl SimChunk {
             .max(0.0)
             .min(1.0);
 
+        // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
+        // "chaotic" the region is--how much weird stuff is going on on this terrain.
+        //
+        // First, we calculate chaos_pre, which is chaos with no filter and no temperature
+        // flattening (so it is between [0, 1.24] instead of [0.1, 1.24].  This is used to break
+        // the cyclic dependency between temperature and altitude (altitude relies on chaos, which
+        // relies on temperature, but we also want temperature to rely on altitude.  We recompute
+        // altitude with the temperature incorporated after we figure out temperature).
+        let chaos_pre = (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+            .add(1.0)
+            .mul(0.5)
+            // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
+            .mul(
+                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                    .abs()
+                    .max(0.25)
+                    .min(1.0),
+            )
+            // Chaos is always increased by a little when we're on a hill (but remember that hill
+            // is 0 about 50% of the time).
+            // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
+            .add(0.15 * hill);
+
+        // This is the extension upwards from the base added to some extra noise from -1 to 1.
+        // The extra noise is multiplied by alt_main (the base part of the extension) clamped to
+        // be between 0.25 and 1, and made 60% larger (so the extra noise is between -1.6 and 1.6,
+        // and the final noise is never more than 160% or less than 40% of the original noise,
+        // depending on altitude).
+        // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
+        // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated small_nz
+        // value hits -0.625 the value crosses 0, so most of the points are above 0.
+        //
+        // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
         let alt_pre = (0.0
                 + alt_main
                 + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
                     .mul(alt_main.max(0.25))
                     .mul(1.6))
             .add(1.0)
-            .mul(0.5)
-            .mul(chaos);
-
-        let alt = (CONFIG.sea_level + alt_base + alt_pre.mul(CONFIG.mountain_scale)) * map_edge_factor;
+            .mul(0.5);
 
         // 0 to 1, hopefully.
         let humid_base =
@@ -433,24 +456,69 @@ impl SimChunk {
         //
         // Because we want to start at 0, rise, and then saturate at 1, we use a cumulative logistic
         // distribution, calculated as:
+        //
         // 1/2 + 1/2 * tanh((x - μ) / (2s))
         //
         // where x is the random variable (altitude relative to sea level without mountain
         // scaling), μ is the altitude where humidity should be at its midpoint (currently set to 0.125),
         // and s is the scale parameter proportional to the standard deviation σ of the humidity
-        // function of altitude (s = √3/π * σ).  Currently we set σ to -0.125, so we get ~ 68% of
-        // the variation due to altitude between sea level and
-        // 0.25 * mountain_scale (it is negative to make the distribution higher when the altitude is
-        // lower).
-        let humid_alt_sigma = -0.125;
+        // function of altitude (s = √3/π * σ).  Currently we set σ to -0.0625, so we get ~ 68% of
+        // the variation due to altitude between .0625 * mountain_scale above sea level and
+        // 0.1875 * mountain_scale above sea level (it is negative to make the distribution higher when
+        // the altitude is lower).
+        let humid_alt_sigma = -0.0625;
         let humid_alt_2s = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI).mul(humid_alt_sigma);
         let humid_alt_mu = 0.125;
-        let humid_alt = alt_pre
+        // We ignore sea level because we actually want to be relative to sea level here and want
+        // things in CONFIG.mountain_scale units, and we are using the version of chaos that doesn't
+        // know about temperature.  Otherwise, this is a correct altitude calculation.
+        let humid_alt_pre = (alt_base + alt_pre.mul(chaos_pre.max(0.1))) * map_edge_factor;
+        let humid_alt = humid_alt_pre
             .sub(humid_alt_mu)
             .div(humid_alt_2s)
-            .atanh()
+            .tanh()
             .mul(0.5)
             .add(0.5);
+
+        // The log-logistic distribution (a variable whose logarithm has a logistic distribution) is often
+        // used to model stream flow rates and precipitation as a tractable analogue of a log-normal
+        // distribution.  We use it here for humidity.
+        //
+        // Specifically, we treat altitude
+        //
+        // For a log-logistic distribution, you have
+        //
+        // X = e^
+        //
+        // where α is a scale parameter (the median of the distribution, where μ = ln(α)), β is a
+        // shape parameter related to the standard deviation (s = 1 / β)
+        //
+        // Start with e^(altitude difference) to get values in (0, 1) for low altitudes (-∞, e) and
+        // in [1, ∞) for high altitudes [e, ∞).
+        //
+        // The produced variable is in a log-normal distribution (that is, X's *logarithm* is
+        // normally distributed).
+        //
+        // https://en.wikipedia.org/wiki/Log-logistic_distribution
+        //
+        // A log-logistic distribution represents the probability distribution of a random variable
+        // whose logarithm has a logistic distribution.
+        //
+        // That is, ln X varies smoothly from 0 to 1 along an S-curve.
+        //
+        // Now we can
+        //
+        // 1 to
+        // for high.
+        // We want negative values for altitude to represent
+        //
+        // e^-2
+        //
+        // (alt mag)^(climate mag)
+        //
+        // (2)^(-1)
+        //
+
         // Now we just take a (currently) unweighted average of our randomly generated base humidity
         // (from scaled to be from 0 to 1) and our randomly generated "base" humidity.  We can
         // adjust this weighting factor as desired.
@@ -458,8 +526,59 @@ impl SimChunk {
         let humid_alt_weight = 1.0;
         let humidity =
             humid_base.mul(humid_weight)
-            .add(humid_alt.mul(humid_alt_weight))
+            .add(humid_alt.mul(humid_alt_weight)
+                    // Adds some noise to the humidity effect of altitude to dampen it.
+                    .mul(gen_ctx.small_nz.get((wposf.div(10240.0)).into_array()) as f32)
+                            .mul(0.5)
+                            .add(0.5))
             .div(humid_weight + humid_alt_weight);
+
+        let temp_base =
+            gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32;
+        // We also correlate temperature negatively with altitude using a different computed factor
+        // that we use for humidity (and with different weighting).  We could definitely make the
+        // distribution different for temperature as well.
+        let temp_alt_sigma = -0.0625;
+        let temp_alt_2s = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI).mul(temp_alt_sigma);
+        let temp_alt_mu = 0.0;
+        // Scaled to [-1, 1] already.
+        let temp_alt = humid_alt_pre
+            .sub(temp_alt_mu)
+            .div(temp_alt_2s)
+            .tanh();
+        let temp_weight = 4.0;
+        let temp_alt_weight = 1.0;
+        let temp =
+            temp_base.mul(temp_weight)
+            .add(temp_alt.mul(temp_alt_weight))
+            .div(temp_weight + temp_alt_weight);
+
+        // Now, we finish the computation of chaos incorporating temperature information, producing
+        // a value in [0.1, 1.24].
+        let chaos = chaos_pre
+            // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
+            // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
+            // then saturates just before it actually becomes desert.  Otherwise stays at 1.
+            .mul(
+                temp.sub(CONFIG.desert_temp)
+                    .neg()
+                    .mul(12.0)
+                    .max(0.35)
+                    .min(1.0),
+            )
+            // We can't have *no* chaos!
+            .max(0.1);
+
+        // Now we can recompute altitude using the correct verison of chaos.
+        // We multiply by chaos clamped to [0.1, 1.24] to get a value between 0.03 and 2.232 for
+        // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to get
+        // an adjusted value, then multiply the whole thing by map_edge_factor (TODO: compute final bounds).
+        let alt_base = alt_base.mul(CONFIG.mountain_scale);
+        let alt =
+            CONFIG.sea_level
+            .add(alt_base)
+            .add(alt_pre.mul(chaos).mul(CONFIG.mountain_scale))
+            .mul(map_edge_factor);
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
@@ -503,7 +622,7 @@ impl SimChunk {
             tree_density,
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
-                    // println!("Any desert: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                    // println!("Any desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
                     if humidity > CONFIG.jungle_hum {
                         // Forests in desert temperatures with extremely high humidity
                         // should probably be different from palm trees, but we use them
@@ -514,19 +633,22 @@ impl SimChunk {
                     } else {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
-                        if humidity < CONFIG.desert_hum {
-                            // println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        }
+                        /* if humidity < CONFIG.desert_hum {
+                            println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         ForestKind::Savannah
                     }
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
-                        // println!("Mangroves: {:?}, altitude: {:?}, humidity: {:?}, tmeperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        /* if tree_density > 0.0 {
+                            println!("Mangroves: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
-                        // NOTE: Probably the wrong kind of tree for this climtae.
+                        // NOTE: Probably the wrong kind of tree for this climate.
                         ForestKind::Oak
                     } else {
+                        // Low but not desert... need something besides savannah.
                         ForestKind::Savannah
                     }
                 } else {
@@ -534,7 +656,10 @@ impl SimChunk {
                         // Temperate climate with jungle humidity...
                         // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
                         // densely wooded and full of water.  Semitropical rainforests, basically.
-                        // For now we just treet them like otehr rainforests.
+                        // For now we just treet them like other rainforests.
+                        /* if tree_density > 0.0 {
+                            println!("Mangroves (forest): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
                         // Moderate climate, moderate humidity.
@@ -548,7 +673,10 @@ impl SimChunk {
             } else {
                 // For now we don't take humidity into account for cold climates (but we really
                 // should!) except that we make sure we only have snow pines when there is snow.
-                if temp <= CONFIG.snow_temp && humidity > CONFIG.jungle_hum {
+                if temp <= CONFIG.snow_temp && humidity > CONFIG.forest_hum {
+                    /* if tree_density > 0.0 {
+                        println!("SnowPine: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                    } */
                     ForestKind::SnowPine
                 } else {
                     ForestKind::Pine
