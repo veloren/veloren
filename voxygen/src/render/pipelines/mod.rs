@@ -2,6 +2,7 @@ pub mod figure;
 pub mod fluid;
 pub mod postprocess;
 pub mod skybox;
+pub mod sprite;
 pub mod terrain;
 pub mod ui;
 
