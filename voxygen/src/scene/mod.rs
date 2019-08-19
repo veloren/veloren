@@ -68,7 +68,7 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            terrain: Terrain::new(),
+            terrain: Terrain::new(renderer),
             loaded_distance: 0.0,
             figure_mgr: FigureMgr::new(),
         }

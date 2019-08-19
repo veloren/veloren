@@ -4,7 +4,7 @@ mod vol;
 
 use crate::render::{self, Mesh};
 
-pub trait Meshable {
+pub trait Meshable<P: render::Pipeline, T: render::Pipeline> {
     type Pipeline: render::Pipeline;
     type TranslucentPipeline: render::Pipeline;
     type Supplement;

@@ -10,12 +10,14 @@ pub enum BlockKind {
     Normal,
     Dense,
     Water,
+    Wheat,
 }
 
 impl BlockKind {
     pub fn is_air(&self) -> bool {
         match self {
             BlockKind::Air => true,
+            BlockKind::Wheat => true,
             _ => false,
         }
     }
@@ -31,6 +33,7 @@ impl BlockKind {
         match self {
             BlockKind::Air => false,
             BlockKind::Water => false,
+            BlockKind::Wheat => false,
             _ => true,
         }
     }
@@ -39,6 +42,7 @@ impl BlockKind {
         match self {
             BlockKind::Air => false,
             BlockKind::Water => false,
+            BlockKind::Wheat => false,
             _ => true,
         }
     }
