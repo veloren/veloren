@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 use client::{Client, Event};
 use common::{clock::Clock, comp};
 use log::{error, info};

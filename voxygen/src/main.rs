@@ -1,3 +1,4 @@
+#![deny(unsafe_code)]
 #![feature(duration_float, drain_filter)]
 #![recursion_limit = "2048"]
 
