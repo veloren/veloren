@@ -180,6 +180,38 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
+        /* if chunk_pos.distance_squared(Vec2::new(411, 508)) <= 2 {
+            println!("pos: {:?},
+                      chaos: {:?},
+                      alt_base: {:?},
+                      alt: {:?},
+                      riverless alt: {:?},
+                      final alt: {:?},
+                      temp: {:?},
+                      dryness: {:?},
+                      humidity: {:?},
+                      rockiness: {:?},
+                      is_cliffs: {:?},
+                      near_cliffs: {:?},
+                      tree_density: {:?},
+                      forest_kind: {:?},
+                      spawn_rate: {:?}",
+                      chunk_pos,
+                      chaos,
+                      alt_base,
+                      sim.get_interpolated(wpos, |chunk| chunk.alt)?,
+                      riverless_alt,
+                      alt,
+                      temp,
+                      dryness,
+                      humidity,
+                      rockiness,
+                      is_cliffs,
+                      near_cliffs,
+                      tree_density,
+                      sim_chunk.forest_kind,
+                      spawn_rate);
+        } */
         let water_level = riverless_alt - 4.0 - 5.0 * chaos;
 
         let rock = (sim.gen_ctx.small_nz.get(
@@ -206,7 +238,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         // Colours
         let cold_grass = Rgb::new(0.0, 0.49, 0.42);
         let warm_grass = Rgb::new(0.03, 0.8, 0.0);
-        let dark_grass = Rgb::new(0.03, 0.4, 0.0);
+        let dark_grass = Rgb::new(0.01, 0.3, 0.0);
+        let wet_grass = Rgb::new(0.1, 0.8, 0.2);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
         let beach_sand = Rgb::new(0.89, 0.87, 0.64);
@@ -218,59 +251,124 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::new(0.61, 0.49, 0.0),
             marble,
         );
+        let tundra = Lerp::lerp(
+            snow,
+            Rgb::new(0.01, 0.3, 0.0),
+            marble,
+        );
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5));
-        let moss = Rgb::lerp(warm_grass, dark_grass, marble.powf(1.5));
+        let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
+        let moss = Rgb::lerp(cold_grass, dark_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
+        let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
         let tropical = Rgb::lerp(
             grass,
             Rgb::new(0.87, 0.62, 0.56),
-            marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667),
+            marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity)),
         );
 
-        // For desert humidity, we are always sand or rock, depending on altitude.
+        // For below desert humidity, we are always sand or rock, depending on altitude.
         let ground = Rgb::lerp(sand, cliff, alt.sub(CONFIG.mountain_scale * 0.25).div(CONFIG.mountain_scale * 0.125));
-        // At forest humidity, we go from dirt to grass to moss to sand depending on temperature.
+        // From desert to forest humidity, we go from tundra to moss to grass to moss to sand,
+        // depending on temperature.
         let ground = Rgb::lerp(
             ground,
             Rgb::lerp(
                 Rgb::lerp(
                     Rgb::lerp(
-                        dirt,
+                        Rgb::lerp(
+                            // below snow_temp
+                            tundra,
+                            // snow_temp to 0
+                            moss,
+                            temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
+                                .sub((marble - 0.5) * 0.05)
+                                .mul(256.0)
+                        ),
+                        // 0 to tropical_temp
                         grass,
-                        temp.sub(CONFIG.snow_temp)
-                            .sub((marble - 0.5) * 0.05)
-                            .mul(256.0)
+                        temp.div(CONFIG.tropical_temp).mul(4.0)
                     ),
+                    // tropical_temp to desert_temp
                     moss,
-                    temp.sub(CONFIG.tropical_temp).mul(4.0),
+                    temp.sub(CONFIG.tropical_temp)
+                        .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
+                        .mul(4.0)
                 ),
+                // above desert_temp
                 sand,
                 temp.sub(CONFIG.desert_temp).mul(4.0),
             ),
-            humidity.sub(CONFIG.desert_hum).mul(4.0)
+            humidity.sub(CONFIG.desert_hum)
+                    .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
+                    .mul(4.0)
         );
-        // At jungle humidity, we go from snow to tropical to moss to sand.
+        // From forest to jungle humidity, we go from snow to moss to grass to tropics to sand
+        // depending on temperature.
         let ground = Rgb::lerp(
             ground,
             Rgb::lerp(
                 Rgb::lerp(
                     Rgb::lerp(
-                        snow,
-                        tropical,
-                        temp.sub(CONFIG.snow_temp)
-                            .sub((marble - 0.5) * 0.05)
-                            .mul(256.0)
+                        Rgb::lerp(
+                            // below snow_temp
+                            snow,
+                            // snow_temp to 0
+                            moss,
+                            temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
+                                .sub((marble - 0.5) * 0.05)
+                                .mul(256.0)
+                        ),
+                        // 0 to tropical_temp
+                        grass,
+                        temp.div(CONFIG.tropical_temp).mul(4.0)
                     ),
-                    moss,
-                    temp.sub(CONFIG.tropical_temp).mul(4.0),
+                    // tropical_temp to desert_temp
+                    tropical,
+                    temp.sub(CONFIG.tropical_temp)
+                        .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
+                        .mul(4.0)
                 ),
+                // above desert_temp
                 sand,
                 temp.sub(CONFIG.desert_temp).mul(4.0),
             ),
-            humidity.sub(CONFIG.forest_hum).mul(4.0)
+            humidity.sub(CONFIG.forest_hum)
+                    .div(CONFIG.jungle_hum.sub(CONFIG.forest_hum))
+                    .mul(4.0)
+        );
+        // From jungle humidity upwards, we go from snow to grass to rainforest to tropics to sand.
+        let ground = Rgb::lerp(
+            ground,
+            Rgb::lerp(
+                Rgb::lerp(
+                    Rgb::lerp(
+                        Rgb::lerp(
+                            // below snow_temp
+                            snow,
+                            // snow_temp to 0
+                            grass,
+                            temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
+                                .sub((marble - 0.5) * 0.05)
+                                .mul(256.0)
+                        ),
+                        // 0 to tropical_temp
+                        rainforest,
+                        temp.div(CONFIG.tropical_temp).mul(4.0)
+                    ),
+                    // tropical_temp to desert_temp
+                    tropical,
+                    temp.sub(CONFIG.tropical_temp)
+                        .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
+                        .mul(4.0)
+                ),
+                // above desert_temp
+                sand,
+                temp.sub(CONFIG.desert_temp).mul(4.0),
+            ),
+            humidity.sub(CONFIG.jungle_hum).mul(4.0)
         );
 
         /* let ground = Rgb::lerp(
