@@ -1,4 +1,8 @@
-use crate::{hud::CrosshairType, ui::ScaleMode, window::KeyMouse};
+use crate::{
+    hud::{BarNumbers, CrosshairType, EnBars, ShortcutNumbers, XpBar},
+    ui::ScaleMode,
+    window::KeyMouse,
+};
 use directories::ProjectDirs;
 use glutin::{MouseButton, VirtualKeyCode};
 use log::warn;
@@ -80,6 +84,10 @@ pub struct GameplaySettings {
     pub zoom_sensitivity: u32,
     pub crosshair_transp: f32,
     pub crosshair_type: CrosshairType,
+    pub xp_bar: XpBar,
+    pub en_bars: EnBars,
+    pub shortcut_numbers: ShortcutNumbers,
+    pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
 }
 
@@ -90,6 +98,10 @@ impl Default for GameplaySettings {
             zoom_sensitivity: 100,
             crosshair_transp: 0.6,
             crosshair_type: CrosshairType::Round,
+            xp_bar: XpBar::OnGain,
+            en_bars: EnBars::OnLoss,
+            shortcut_numbers: ShortcutNumbers::On,
+            bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
         }
     }
