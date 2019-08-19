@@ -3,7 +3,7 @@ use super::{
     gfx_backend,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, fluid, postprocess, skybox, terrain, ui, Globals, Light},
+    pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -65,6 +65,7 @@ pub struct Renderer {
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
     fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
+    sprite_pipeline: GfxPipeline<sprite::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 
@@ -86,6 +87,7 @@ impl Renderer {
             figure_pipeline,
             terrain_pipeline,
             fluid_pipeline,
+            sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
         ) = create_pipelines(&mut factory, &mut shader_reload_indicator)?;
@@ -114,6 +116,7 @@ impl Renderer {
             figure_pipeline,
             terrain_pipeline,
             fluid_pipeline,
+            sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
 
@@ -201,6 +204,7 @@ impl Renderer {
                     figure_pipeline,
                     terrain_pipeline,
                     fluid_pipeline,
+                    sprite_pipeline,
                     ui_pipeline,
                     postprocess_pipeline,
                 )) => {
@@ -208,6 +212,7 @@ impl Renderer {
                     self.figure_pipeline = figure_pipeline;
                     self.terrain_pipeline = terrain_pipeline;
                     self.fluid_pipeline = fluid_pipeline;
+                    self.sprite_pipeline = sprite_pipeline;
                     self.ui_pipeline = ui_pipeline;
                     self.postprocess_pipeline = postprocess_pipeline;
                 }
@@ -495,6 +500,7 @@ fn create_pipelines(
         GfxPipeline<figure::pipe::Init<'static>>,
         GfxPipeline<terrain::pipe::Init<'static>>,
         GfxPipeline<fluid::pipe::Init<'static>>,
+        GfxPipeline<sprite::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
     ),
@@ -571,6 +577,18 @@ fn create_pipelines(
         gfx::state::CullFace::Nothing,
     )?;
 
+    // Construct a pipeline for rendering sprites
+    let sprite_pipeline = create_pipeline(
+        factory,
+        sprite::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.sprite-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.sprite-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = create_pipeline(
         factory,
@@ -606,6 +624,7 @@ fn create_pipelines(
         figure_pipeline,
         terrain_pipeline,
         fluid_pipeline,
+        sprite_pipeline,
         ui_pipeline,
         postprocess_pipeline,
     ))
