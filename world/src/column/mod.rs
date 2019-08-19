@@ -299,11 +299,11 @@ impl<'a> Sampler for ColumnGen<'a> {
                 ),
                 // above desert_temp
                 sand,
-                temp.sub(CONFIG.desert_temp).mul(4.0),
+                temp.sub(CONFIG.desert_temp).mul(0.5),
             ),
             humidity.sub(CONFIG.desert_hum)
                     .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
-                    .mul(4.0)
+                    .mul(1.0)
         );
         // From forest to jungle humidity, we go from snow to moss to grass to tropics to sand
         // depending on temperature.
@@ -333,11 +333,11 @@ impl<'a> Sampler for ColumnGen<'a> {
                 ),
                 // above desert_temp
                 sand,
-                temp.sub(CONFIG.desert_temp).mul(4.0),
+                temp.sub(CONFIG.desert_temp).mul(0.5),
             ),
             humidity.sub(CONFIG.forest_hum)
                     .div(CONFIG.jungle_hum.sub(CONFIG.forest_hum))
-                    .mul(4.0)
+                    .mul(1.0)
         );
         // From jungle humidity upwards, we go from snow to grass to rainforest to tropics to sand.
         let ground = Rgb::lerp(
@@ -366,9 +366,9 @@ impl<'a> Sampler for ColumnGen<'a> {
                 ),
                 // above desert_temp
                 sand,
-                temp.sub(CONFIG.desert_temp).mul(4.0),
+                temp.sub(CONFIG.desert_temp).mul(0.5),
             ),
-            humidity.sub(CONFIG.jungle_hum).mul(4.0)
+            humidity.sub(CONFIG.jungle_hum).mul(1.0)
         );
 
         /* let ground = Rgb::lerp(
