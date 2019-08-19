@@ -10,6 +10,7 @@ mod util;
 // Reexports
 pub use self::{
     consts::Consts,
+    instances::Instances,
     mesh::{Mesh, Quad, Tri},
     model::{DynamicModel, Model},
     pipelines::{

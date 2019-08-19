@@ -22,7 +22,7 @@ gfx_defines! {
 
     vertex Instance {
         inst_pos: [f32; 3] = "inst_pos",
-        inst_col: [f32; 4] = "inst_col",
+        inst_col: [f32; 3] = "inst_col",
     }
 
     pipeline pipe {
@@ -48,7 +48,7 @@ impl Vertex {
 }
 
 impl Instance {
-    pub fn new(inst_pos: Vec3<f32>, col: Rgba<f32>) -> Self {
+    pub fn new(inst_pos: Vec3<f32>, col: Rgb<f32>) -> Self {
         Self {
             inst_pos: inst_pos.into_array(),
             inst_col: col.into_array(),
@@ -58,7 +58,7 @@ impl Instance {
 
 impl Default for Instance {
     fn default() -> Self {
-        Self::new(Vec3::zero(), Rgba::broadcast(1.0))
+        Self::new(Vec3::zero(), Rgb::broadcast(1.0))
     }
 }
 
