@@ -229,7 +229,12 @@ impl Scene {
         // Render terrain and figures.
         self.figure_mgr
             .render(renderer, client, &self.globals, &self.lights, &self.camera);
-        self.terrain.render(renderer, &self.globals, &self.lights);
+        self.terrain.render(
+            renderer,
+            &self.globals,
+            &self.lights,
+            self.camera.get_focus_pos(),
+        );
 
         renderer.render_post_process(
             &self.postprocess.model,
