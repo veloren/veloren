@@ -57,12 +57,6 @@ impl<V: Vox, M> ReadVol for Dyna<V, M> {
             .and_then(|idx| self.vox.get(idx))
             .ok_or(DynaErr::OutOfBounds)
     }
-
-    #[inline(always)]
-    unsafe fn get_unchecked(&self, pos: Vec3<i32>) -> &V {
-        self.vox
-            .get_unchecked(Self::idx_for_unchecked(self.sz, pos))
-    }
 }
 
 impl<V: Vox, M> WriteVol for Dyna<V, M> {

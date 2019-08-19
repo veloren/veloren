@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 use common::clock::Clock;
 use heaptrack::track_mem;
 use log::info;
