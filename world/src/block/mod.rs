@@ -148,6 +148,7 @@ impl<'a> BlockGen<'a> {
             //close_structures,
             cave_xy,
             cave_alt,
+            marble,
             rock,
             //cliffs,
             cliff_hill,
@@ -254,14 +255,15 @@ impl<'a> BlockGen<'a> {
                 BlockKind::Normal,
                 saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
             ))
-        } else if (wposf.z as f32) < height + 1.0
+        } else if (wposf.z as f32) < height + 0.9
             && (wposf.z as f32 > water_height + 3.0)
-            && (chaos * 4096.0).fract() < 0.025
+            && (chaos * 4096.0).fract() < 0.05
+            && marble > 0.6
         {
             Some(Block::new(
-                if (height * 121.0).fract() < 0.25 {
+                if (height * 121.0).fract() < 0.15 {
                     BlockKind::Wheat
-                } else if (height * 121.0).fract() < 0.5 {
+                } else if (height * 121.0).fract() < 0.2 {
                     BlockKind::Flowers
                 } else {
                     BlockKind::LongGrass
