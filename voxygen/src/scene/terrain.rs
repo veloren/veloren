@@ -118,7 +118,7 @@ impl Terrain {
                 .create_model(
                     &Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
                         &Segment::from(assets::load_expect::<DotVoxData>(s).as_ref()),
-                        Vec3::new(6.0, 6.0, 0.0),
+                        Vec3::new(-6.0, -6.0, 0.0),
                     )
                     .0,
                 )
