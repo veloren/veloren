@@ -257,7 +257,7 @@ impl<'a> BlockGen<'a> {
             ))
         } else if (wposf.z as f32) < height + 0.9
             && (wposf.z as f32 > water_height + 3.0)
-            && (chaos * 4096.0).fract() < 0.05
+            && (chaos * 4096.0).fract() < 0.15
             && marble > 0.6
         {
             Some(Block::new(
