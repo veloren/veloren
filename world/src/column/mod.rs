@@ -259,7 +259,8 @@ impl<'a> Sampler for ColumnGen<'a> {
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
-        let moss = Rgb::lerp(cold_grass, dark_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
+        let snow_moss = Rgb::lerp(cold_grass, dark_grass, marble.powf(1.5).powf(temp));
+        let moss = Rgb::lerp(dark_grass, cold_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
         let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
@@ -269,9 +270,18 @@ impl<'a> Sampler for ColumnGen<'a> {
             marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity)),
         );
 
-        // For below desert humidity, we are always sand or rock, depending on altitude.
-        let ground = Rgb::lerp(sand, cliff, alt.sub(CONFIG.mountain_scale * 0.25).div(CONFIG.mountain_scale * 0.125));
-        // From desert to forest humidity, we go from tundra to moss to grass to moss to sand,
+        // For below desert humidity, we are always sand or rock, depending on altitude and
+        // temperature.
+        let ground = Rgb::lerp(
+            Rgb::lerp(
+                sand,
+                dirt,
+                temp.sub(CONFIG.desert_temp).mul(0.5)
+            ),
+            cliff,
+            alt.sub(CONFIG.mountain_scale * 0.25).div(CONFIG.mountain_scale * 0.125)
+        );
+        // From desert to forest humidity, we go from tundra to dirt to grass to moss to sand,
         // depending on temperature.
         let ground = Rgb::lerp(
             ground,
@@ -282,10 +292,12 @@ impl<'a> Sampler for ColumnGen<'a> {
                             // below snow_temp
                             tundra,
                             // snow_temp to 0
-                            moss,
-                            temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
-                                .sub((marble - 0.5) * 0.05)
-                                .mul(256.0)
+                            dirt,
+                            temp.sub(CONFIG.snow_temp)
+                                .div(CONFIG.snow_temp.neg())
+                                /*.sub((marble - 0.5) * 0.05)
+                                .mul(256.0)*/
+                                .mul(1.0)
                         ),
                         // 0 to tropical_temp
                         grass,
@@ -305,7 +317,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     .div(CONFIG.forest_hum.sub(CONFIG.desert_hum))
                     .mul(1.0)
         );
-        // From forest to jungle humidity, we go from snow to moss to grass to tropics to sand
+        // From forest to jungle humidity, we go from snow to dark grass to grass to tropics to sand
         // depending on temperature.
         let ground = Rgb::lerp(
             ground,
@@ -316,7 +328,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             // below snow_temp
                             snow,
                             // snow_temp to 0
-                            moss,
+                            snow_moss,
                             temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
                                 .sub((marble - 0.5) * 0.05)
                                 .mul(256.0)
