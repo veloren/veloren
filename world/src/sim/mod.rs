@@ -17,6 +17,13 @@ use common::{
 use noise::{BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
+use statrs::distribution::{
+    InverseGamma,
+    LogNormal,
+    Gamma,
+    Normal,
+    Univariate,
+};
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
@@ -24,6 +31,34 @@ use std::{
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+
+/// Computes the cumulative distribution function of the weighted sum of k independent,
+/// uniformly distributed random variables between 0 and 1.  For each variable i, we use weights[i]
+/// as the weight to give samples[i] (the weights should all be positive).
+///
+/// If the precondition is met, the distribution of the result of calling this function will be
+/// uniformly distributed while preserving the same information that was in the original average.
+///
+/// NOTE: For N > 33 the function will no longer return correct results since we will overflow u32.
+fn cdf_irwin_hall<const N : usize>(weights: &[f32; N], samples: [f32; N]) -> f32 {
+    // Take the average of the weights
+    // (to scale the weights down so their sum is in the (0..=N) range).
+    let avg = weights.iter().sum::<f32>() / N as f32;
+    // Take the sum.
+    let x : f32 =
+        weights.iter().zip(samples.iter()).map(|(weight, sample)| weight / avg * sample).sum();
+    // CDF = 1 / N! * Σ{k = 0 to floor(x)} ((-1)^k (N choose k) (x - k) ^ N)
+    let mut binom = 1; // (-1)^0 * (n choose 0) = 1 * 1 = 1
+    let mut y = x.powi(N as i32); // 1 * (x - 0)^N = x ^N
+    // 1..floor(x)
+    for k in (1..=x.floor() as i32) {
+        // (-1)^k (N choose k) = ((-1)^(k-1) (N choose (k - 1))) * -(N + 1 - k) / k for k ≥ 1.
+        binom *= -(N as i32 + 1 - k) / k;
+        y += binom as f32 * (x - k as f32).powi(N as i32);
+    }
+    // Remember to multiply by 1 / N! at the end.
+    y / (1..=N as i32).product::<i32>() as f32
+}
 
 pub(crate) struct GenCtx {
     pub turb_x_nz: SuperSimplex,
@@ -379,13 +414,16 @@ impl SimChunk {
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
         // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
         // but value here is from -0.275 to 0.225).
-        let alt_base = (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+        let alt_base_pre = (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32);
+
+        let alt_base = alt_base_pre
             .sub(0.1)
             .mul(0.25);
 
         // Extension upwards from the base.  A positive number from 0 to 1 curved to be maximal at
         // 0.
-        let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+        let alt_main_pre = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32);
+        let alt_main = alt_main_pre
             .abs()
             .powf(1.35);
 
@@ -519,19 +557,33 @@ impl SimChunk {
         // (2)^(-1)
         //
 
-        // Now we just take a (currently) unweighted average of our randomly generated base humidity
+        // Take the weighted average of our randomly generated base humidity, the scaled
+        // negative altitude, and other random variable (to add some noise) to yield the
+        // final humidity.
+        const WEIGHTS : [f32; 4] = [3.0, 1.0, 1.0, 1.0];
+        let humidity = cdf_irwin_hall(
+            &WEIGHTS,
+            [humid_base,
+             alt_main_pre.mul(0.5).add(0.5),
+             alt_base_pre.mul(0.5).add(0.5),
+             (gen_ctx.small_nz.get((wposf.div(500.0)).into_array()) as f32)
+                                         .mul(0.5)
+                                         .add(0.5)]
+        );
+        /* // Now we just take a (currently) unweighted average of our randomly generated base humidity
         // (from scaled to be from 0 to 1) and our randomly generated "base" humidity.  We can
         // adjust this weighting factor as desired.
         let humid_weight = 3.0;
         let humid_alt_weight = 1.0;
         let humidity =
             humid_base.mul(humid_weight)
-            .add(humid_alt.mul(humid_alt_weight)
+            .add(humid_alt
+                    .mul(humid_alt_weight)
                     // Adds some noise to the humidity effect of altitude to dampen it.
-                    .mul(gen_ctx.small_nz.get((wposf.div(10240.0)).into_array()) as f32)
-                            .mul(0.5)
-                            .add(0.5))
-            .div(humid_weight + humid_alt_weight);
+                    .mul((gen_ctx.small_nz.get((wposf.div(500.0)).into_array()) as f32)
+                         .mul(0.5)
+                         .add(0.5)))
+            .div(humid_weight + humid_alt_weight); */
 
         let temp_base =
             gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32;
@@ -540,13 +592,13 @@ impl SimChunk {
         // distribution different for temperature as well.
         let temp_alt_sigma = -0.0625;
         let temp_alt_2s = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI).mul(temp_alt_sigma);
-        let temp_alt_mu = 0.0;
+        let temp_alt_mu = 0.0625;
         // Scaled to [-1, 1] already.
         let temp_alt = humid_alt_pre
             .sub(temp_alt_mu)
             .div(temp_alt_2s)
             .tanh();
-        let temp_weight = 4.0;
+        let temp_weight = 2.0;
         let temp_alt_weight = 1.0;
         let temp =
             temp_base.mul(temp_weight)
@@ -591,9 +643,9 @@ impl SimChunk {
                 .add(0.05)
                 .max(0.0)
                 .min(1.0)
-                .mul(0.5)
+                .mul(0.4)
                 // Tree density should go (by a lot) with humidity.
-                .add(humidity.mul(0.5))
+                .add(humidity.mul(0.6))
                 // No trees in the ocean (currently), no trees in true deserts.
                 .mul(if alt > CONFIG.sea_level + 5.0 && humidity > CONFIG.desert_hum {
                     1.0
@@ -602,6 +654,30 @@ impl SimChunk {
                 })
                 .max(0.0);
 
+        // let humid_normal = InverseGamma::new(4.0, 0.1).unwrap();
+        // let humid_normal = LogNormal::new(0.0, 0.1).unwrap();
+        let humid_normal = Gamma::new(1.0, 0.5).unwrap();
+        // let humid_normal = Gamma::new(0.1, 1.0).unwrap();
+        // let humid_normal = Normal::new(0.5, 0.05).unwrap();
+        /*if humid_normal.cdf(humid_base as f64) > 0.9 *//* {
+            println!("HIGH HUMIDITY: {:?}", humid_base);
+        } */
+        if pos == Vec2::new(1023, 1023) {
+            let mut noise = (0..1024*1024).map( |i| {
+                let wposf = Vec2::new(i as f64 / 1024.0, i as f64 % 1024.0);
+                gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32
+            } ).collect::<Vec<_>>();
+            noise.sort_unstable_by( |f, g| f.partial_cmp(g).unwrap() );
+            for (k, f) in noise.iter().enumerate().step_by(1024 * 1024 / 100) {
+                println!("{:?}%: {:?}, ", k / (1024 * 1024 / 100), f);
+            }
+        }
+        /* if alt_main_pre.mul(0.5).add(0.5) > 0.7 {
+            println!("HIGH: {:?}", alt_main_pre);
+        } */
+        /* if humidity > CONFIG.jungle_hum {
+            println!("JUNGLE");
+        } */
 
         Self {
             chaos,
@@ -627,14 +703,22 @@ impl SimChunk {
                         // Forests in desert temperatures with extremely high humidity
                         // should probably be different from palm trees, but we use them
                         // for now.
+                        /* /*if tree_density > 0.0 */{
+                            println!("Palm trees (jungle): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         ForestKind::Palm
                      } else if humidity > CONFIG.forest_hum {
+                        /* /*if tree_density > 0.0 */{
+                            println!("Palm trees (forest): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         ForestKind::Palm
                     } else {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
                         /* if humidity < CONFIG.desert_hum {
                             println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } else {
+                            println!("Savannah (desert): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
                         } */
                         ForestKind::Savannah
                     }
@@ -665,6 +749,9 @@ impl SimChunk {
                         // Moderate climate, moderate humidity.
                         ForestKind::Oak
                     } else {
+                        /* if humidity < CONFIG.desert_hum {
+                            println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                        } */
                         // With moderate temperature and low humidity, we should probably see
                         // something different from savannah, but oh well...
                         ForestKind::Savannah
@@ -679,6 +766,9 @@ impl SimChunk {
                     } */
                     ForestKind::SnowPine
                 } else {
+                    /* if humidity < CONFIG.desert_hum {
+                        println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
+                    } */
                     ForestKind::Pine
                 }
             },

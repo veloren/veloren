@@ -13,9 +13,9 @@ pub const CONFIG: Config = Config {
     sea_level: 140.0,
     mountain_scale: 1000.0,
     snow_temp: -0.4,
-    tropical_temp: 0.25,
+    tropical_temp: 0.2,
     desert_temp: 0.45,
-    desert_hum: 0.35,
+    desert_hum: 0.2,
     forest_hum: 0.5,
-    jungle_hum: 0.6,
+    jungle_hum: 0.8,
 };
