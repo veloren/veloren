@@ -437,7 +437,9 @@ impl Terrain {
                 let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
                     (e as f32 + 0.5) * sz as f32
                 });
-                if Vec2::from(focus_pos).distance(chunk_center) < SPRITE_RENDER_DISTANCE {
+                if Vec2::from(focus_pos).distance_squared(chunk_center)
+                    < SPRITE_RENDER_DISTANCE * SPRITE_RENDER_DISTANCE
+                {
                     for (kind, instances) in &chunk.sprite_instances {
                         renderer.render_sprites(
                             &self.sprite_models[&kind],
