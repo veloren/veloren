@@ -5,12 +5,12 @@ const float PI = 3.141592;
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.2, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.08, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.02, 0.01, 0.3);
-const vec3 DAY_LIGHT   = vec3(0.75, 0.75, 1.0);
+const vec3 DAY_LIGHT   = vec3(1.5, 1.0, 1.0);
 
-const vec3 SKY_DUSK_TOP = vec3(0.21, 0.28, 0.50);
-const vec3 SKY_DUSK_MID = vec3(0.68, 0.03, 0.0);
-const vec3 SKY_DUSK_BOT = vec3(0.0, 0.0, 0.13);
-const vec3 DUSK_LIGHT   = vec3(0.95, 0.6, 0.4);
+const vec3 SKY_DUSK_TOP = vec3(0.06, 0.1, 0.20);
+const vec3 SKY_DUSK_MID = vec3(0.35, 0.1, 0.15);
+const vec3 SKY_DUSK_BOT = vec3(0.0, 0.1, 0.13);
+const vec3 DUSK_LIGHT   = vec3(3.0, 0.65, 0.3);
 
 const vec3 SKY_NIGHT_TOP = vec3(0.001, 0.001, 0.0025);
 const vec3 SKY_NIGHT_MID = vec3(0.001, 0.005, 0.02);
@@ -41,7 +41,7 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 
 	// clamp() changed to max() as sun_dir.z is produced from a cos() function and therefore never greater than 1
 
-	vec3 sun_color = normalize(mix(
+	vec3 sun_color = mix(
 		mix(
 			DUSK_LIGHT,
 			NIGHT_LIGHT,
@@ -49,7 +49,7 @@ vec3 get_sun_diffuse(vec3 norm, float time_of_day) {
 		),
 		DAY_LIGHT,
 		max(-sun_dir.z, 0)
-	));
+	);
 
 	vec3 diffuse_light = (SUN_AMBIANCE + max(dot(-norm, sun_dir), 0.0) * sun_color) * sun_light + PERSISTENT_AMBIANCE;
 
@@ -83,12 +83,15 @@ float is_star_at(vec3 dir) {
 	return 0.0;
 }
 
-vec3 get_sky_color(vec3 dir, float time_of_day) {
+vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 	// Sky color
 	vec3 sun_dir = get_sun_dir(time_of_day);
 
 	// Add white dots for stars. Note these flicker and jump due to FXAA
-	float star = is_star_at(dir);
+	float star = 0.0;
+	if (with_stars) {
+		star = is_star_at(dir);
+	}
 
 	// Replaced all clamp(sun_dir, 0, 1) with max(sun_dir, 0) because sun_dir is calculated from sin and cos, which are never > 1
 
@@ -134,8 +137,8 @@ vec3 get_sky_color(vec3 dir, float time_of_day) {
 
 	// Sun
 
-	const vec3 SUN_HALO_COLOR = vec3(1.0, 0.35, 0.1) * 0.3;
-	const vec3 SUN_SURF_COLOR = vec3(1.0, 0.9, 0.35) * 200.0;
+	const vec3 SUN_HALO_COLOR = vec3(1.5, 0.35, 0.0) * 0.3;
+	const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 200.0;
 
 	vec3 sun_halo = pow(max(dot(dir, -sun_dir) + 0.1, 0.0), 8.0) * SUN_HALO_COLOR;
 	vec3 sun_surf = pow(max(dot(dir, -sun_dir) - 0.0045, 0.0), 1000.0) * SUN_SURF_COLOR;

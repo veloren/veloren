@@ -20,7 +20,7 @@ void main() {
 	vec3 surf_color = f_col * light;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
+	vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
 	vec3 color = mix(surf_color, fog_color, fog_level);
 
 	tgt_color = vec4(color, 1.0 - clamp((distance(focus_pos.xy, f_pos.xy) - (RENDER_DIST - FADE_DIST)) / FADE_DIST, 0, 1));
