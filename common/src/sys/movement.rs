@@ -92,7 +92,7 @@ impl<'a> System<'a> for Sys {
                         {
                             GLIDE_ACCEL
                         }
-                        (false, false, false, false)
+                        (false, false, false, _)
                             if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
                         {
                             HUMANOID_AIR_ACCEL

@@ -1,6 +1,6 @@
 use super::{
     super::{Animation, SkeletonAttr},
-    QuadrupedMediumSkeleton,
+    GrizzlyBearSkeleton,
 };
 use std::{f32::consts::PI, ops::Mul};
 use vek::*;
@@ -8,7 +8,7 @@ use vek::*;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Skeleton = QuadrupedMediumSkeleton;
+    type Skeleton = GrizzlyBearSkeleton;
     type Dependency = (f32, f64);
 
     fn update_skeleton(
@@ -40,58 +40,60 @@ impl Animation for RunAnimation {
                 * 0.125,
         );
 
-        next.wolf_head_upper.offset =
+        next.grizzly_bear_upper_head.offset =
             Vec3::new(0.0, 9.5 + wave_quick_cos * 2.0, 15.0 + wave_med * 3.0) / 11.0;
-        next.wolf_head_upper.ori =
+        next.grizzly_bear_upper_head.ori =
             Quaternion::rotation_x(-0.12 + wave_quick_cos * 0.12 + wolf_look.y)
                 * Quaternion::rotation_z(wolf_look.x);
-        next.wolf_head_upper.scale = Vec3::one() / 10.88;
+        next.grizzly_bear_upper_head.scale = Vec3::one() / 10.88;
 
-        next.wolf_jaw.offset = Vec3::new(0.0, 4.5, 2.0 + wave_slow_cos * 1.0);
-        next.wolf_jaw.ori = Quaternion::rotation_x(wave_slow * 0.05);
-        next.wolf_jaw.scale = Vec3::one() * 1.01;
+        next.grizzly_bear_lower_head.offset = Vec3::new(0.0, 4.5, 2.0 + wave_slow_cos * 1.0);
+        next.grizzly_bear_lower_head.ori = Quaternion::rotation_x(wave_slow * 0.05);
+        next.grizzly_bear_lower_head.scale = Vec3::one() * 1.01;
 
-        next.wolf_head_lower.offset = Vec3::new(0.0, 3.1, -4.5 + wave_med * 1.0);
-        next.wolf_head_lower.ori = Quaternion::rotation_z(0.0);
-        next.wolf_head_lower.scale = Vec3::one() * 0.98;
+        next.grizzly_bear_upper_torso.offset = Vec3::new(0.0, 3.1, -4.5 + wave_med * 1.0);
+        next.grizzly_bear_upper_torso.ori = Quaternion::rotation_z(0.0);
+        next.grizzly_bear_upper_torso.scale = Vec3::one() * 0.98;
 
-        next.wolf_tail.offset = Vec3::new(0.0, -12.0, 10.0) / 11.0;
-        next.wolf_tail.ori = Quaternion::rotation_x(wave_quick * 0.18);
-        next.wolf_tail.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_lower_torso.offset = Vec3::new(0.0, -12.0, 10.0) / 11.0;
+        next.grizzly_bear_lower_torso.ori = Quaternion::rotation_x(wave_quick * 0.18);
+        next.grizzly_bear_lower_torso.scale = Vec3::one() / 11.0;
 
-        next.wolf_torso_back.offset =
-            Vec3::new(0.0, -9.5 + wave_quick_cos * 2.2, 13.0 + wave_med * 2.8) / 11.0;
-        next.wolf_torso_back.ori = Quaternion::rotation_x(-0.15 + wave_med_cos * 0.14);
-        next.wolf_torso_back.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_ears.offset = Vec3::new(0.0, 0.75, 5.25);
+        next.grizzly_bear_ears.ori = Quaternion::rotation_x(0.1);
+        next.grizzly_bear_ears.scale = Vec3::one() * 1.05;
 
-        next.wolf_torso_mid.offset =
-            Vec3::new(0.0, 0.0 + wave_quick_cos * 2.2, 14.0 + wave_med * 3.2) / 11.0;
-        next.wolf_torso_mid.ori = Quaternion::rotation_x(-0.15 + wave_med_cos * 0.12);
-        next.wolf_torso_mid.scale = Vec3::one() / 10.5;
+        next.grizzly_bear_leg_lf.offset = Vec3::new(-5.0, 5.0, 2.5) / 11.0;
+        next.grizzly_bear_leg_lf.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_leg_lf.scale = Vec3::one() / 11.0;
 
-        next.wolf_ears.offset = Vec3::new(0.0, 0.75 + wave * 0.4, 6.25);
-        next.wolf_ears.ori = Quaternion::rotation_x(wave * 0.2);
-        next.wolf_ears.scale = Vec3::one() * 1.05;
+        next.grizzly_bear_leg_rf.offset = Vec3::new(5.0, 5.0, 2.5) / 11.0;
+        next.grizzly_bear_leg_rf.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_leg_rf.scale = Vec3::one() / 11.0;
 
-        next.wolf_foot_lf.offset =
-            Vec3::new(-5.0, 5.0 + wave_quick * 3.0, 7.0 + wave_quick_cos * 4.0) / 11.0;
-        next.wolf_foot_lf.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.8);
-        next.wolf_foot_lf.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_leg_lb.offset = Vec3::new(-5.0, -10.0, 2.5) / 11.0;
+        next.grizzly_bear_leg_lb.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_leg_lb.scale = Vec3::one() / 11.0;
 
-        next.wolf_foot_rf.offset =
-            Vec3::new(5.0, 5.0 - wave_quick_cos * 3.0, 7.0 + wave_quick * 4.0) / 11.0;
-        next.wolf_foot_rf.ori = Quaternion::rotation_x(0.0 - wave_quick_cos * 0.8);
-        next.wolf_foot_rf.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_leg_rb.offset = Vec3::new(5.0, -10.0, 2.5) / 11.0;
+        next.grizzly_bear_leg_rb.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_leg_rb.scale = Vec3::one() / 11.0;
 
-        next.wolf_foot_lb.offset =
-            Vec3::new(-5.0, -10.0 - wave_quick_cos * 3.0, 7.0 + wave_quick * 4.0) / 11.0;
-        next.wolf_foot_lb.ori = Quaternion::rotation_x(0.0 - wave_quick_cos * 0.8);
-        next.wolf_foot_lb.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_foot_lf.offset = Vec3::new(-5.0, 5.0, 2.5) / 11.0;
+        next.grizzly_bear_foot_lf.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_foot_lf.scale = Vec3::one() / 11.0;
 
-        next.wolf_foot_rb.offset =
-            Vec3::new(5.0, -10.0 + wave_quick * 3.0, 7.0 + wave_quick_cos * 4.0) / 11.0;
-        next.wolf_foot_rb.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.8);
-        next.wolf_foot_rb.scale = Vec3::one() / 11.0;
+        next.grizzly_bear_foot_rf.offset = Vec3::new(5.0, 5.0, 2.5) / 11.0;
+        next.grizzly_bear_foot_rf.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_foot_rf.scale = Vec3::one() / 11.0;
+
+        next.grizzly_bear_foot_lb.offset = Vec3::new(-5.0, -10.0, 2.5) / 11.0;
+        next.grizzly_bear_foot_lb.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_foot_lb.scale = Vec3::one() / 11.0;
+
+        next.grizzly_bear_foot_rb.offset = Vec3::new(5.0, -10.0, 2.5) / 11.0;
+        next.grizzly_bear_foot_rb.ori = Quaternion::rotation_x(0.0);
+        next.grizzly_bear_foot_rb.scale = Vec3::one() / 11.0;
 
         next
     }

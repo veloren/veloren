@@ -37,15 +37,15 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.grizzly_bear_head_upper.offset = Vec3::new(0.0, 7.5, 15.0 + wave_ultra_slow * 0.4) / 11.0;
-        next.grizzly_bear_head_upper.ori =
+        next.grizzly_bear_upper_head.offset = Vec3::new(0.0, 7.5, 15.0 + wave_ultra_slow * 0.4) / 11.0;
+        next.grizzly_bear_upper_head.ori =
             Quaternion::rotation_z(grizzly_bear_look.x) * Quaternion::rotation_x(grizzly_bear_look.y);
-        next.grizzly_bear_head_upper.scale = Vec3::one() / 10.88;
+        next.grizzly_bear_upper_head.scale = Vec3::one() / 10.88;
 
-        next.grizzly_bear_head_lower.offset =
+        next.grizzly_bear_lower_head.offset =
             Vec3::new(0.0, 4.5 - wave_ultra_slow_cos * 0.12, 2.0 + wave_slow * 0.2);
-        next.grizzly_bear_head_lower.ori = Quaternion::rotation_x(wave_slow * 0.05);
-        next.grizzly_bear_head_lower.scale = Vec3::one() * 1.01;
+        next.grizzly_bear_lower_head.ori = Quaternion::rotation_x(wave_slow * 0.05);
+        next.grizzly_bear_lower_head.scale = Vec3::one() * 1.01;
 
         next.grizzly_bear_upper_torso.offset = Vec3::new(0.0, -11.7, 11.0 + wave_ultra_slow * 1.2) / 11.0;
         next.grizzly_bear_upper_torso.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);

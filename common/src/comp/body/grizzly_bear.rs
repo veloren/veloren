@@ -4,8 +4,8 @@ use rand::{seq::SliceRandom, thread_rng};
 pub struct Body {
     pub head_upper: HeadUpper,
     pub head_lower: HeadLower,
-    pub upper_torso: UpperTorso,
-    pub lower_torso: LowerTorso,
+    pub upper_torso: Upper_Torso,
+    pub lower_torso: Lower_Torso,
     pub ears: Ears,
     pub leg_lf: LegLF,
     pub leg_rf: LegRF,

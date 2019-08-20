@@ -151,7 +151,7 @@ impl Client {
     /// Request a state transition to `ClientState::Character`.
     pub fn request_character(&mut self, name: String, body: comp::Body) {
         self.postbox
-            .send_message(ClientMsg::Character { name, body });
+            .send_message(ClientMsg::Character { name, body: comp::Body::grizzly_bear(comp::grizzly_bear::Body::random())});
         self.client_state = ClientState::Pending;
     }
 

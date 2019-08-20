@@ -12,8 +12,8 @@ use crate::render::FigureBoneData;
 
 #[derive(Clone)]
 pub struct GrizzlyBearSkeleton {
-    grizzly_bear_head_upper: Bone,
-    grizzly_bear_head_lower: Bone,
+    grizzly_bear_upper_head: Bone,
+    grizzly_bear_lower_head: Bone,
     grizzly_bear_upper_torso: Bone,
     grizzly_bear_lower_torso: Bone,
     grizzly_bear_ears: Bone,
@@ -30,8 +30,8 @@ pub struct GrizzlyBearSkeleton {
 impl GrizzlyBearSkeleton {
     pub fn new() -> Self {
         Self {
-            grizzly_bear_head_upper: Bone::default(),
-            grizzly_bear_head_lower: Bone::default(),
+            grizzly_bear_upper_head: Bone::default(),
+            grizzly_bear_lower_head: Bone::default(),
             grizzly_bear_upper_torso: Bone::default(),
             grizzly_bear_lower_torso: Bone::default(),
             grizzly_bear_ears: Bone::default(),
@@ -69,6 +69,8 @@ impl Skeleton for GrizzlyBearSkeleton {
             FigureBoneData::new(self.grizzly_bear_foot_lb.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_foot_rb.compute_base_matrix()),
             FigureBoneData::default(),
+            FigureBoneData::default(),
+
         ]
     }
 

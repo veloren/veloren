@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, grizzlybear::GrizzlyBearSkeleton, Animation, Skeleton, SkeletonAttr,
+        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -107,7 +107,7 @@ impl FigureModelCache {
                                     None,
                                     None,
                                 ],
-                                Body::GrizzlyBear(body) => [
+                                Body::grizzly_bear(body) => [
                                     Some(Self::load_grizzly_bear_upper_head(body.head_upper)),
                                     Some(Self::load_grizzly_bear_lower_head(body.head_lower)),
                                     Some(Self::load_grizzly_bear_upper_torso(body.upper_torso)),
@@ -509,7 +509,122 @@ impl FigureModelCache {
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
+/////
+    fn load_grizzly_bear_upper_head(head_upper: grizzly_bear::HeadUpper) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match head_upper {
+                grizzly_bear::HeadUpper::Default => "npc.grizzly_bear.grizzly_bear_upper_head",
+            },
+            Vec3::new(-7.0, -6.0, -5.5),
+        )
+    }
 
+    fn load_grizzly_bear_lower_head(head_lower: grizzly_bear::HeadLower) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match head_lower {
+                grizzly_bear::HeadLower::Default => "npc.grizzly_bear.grizzly_bear_lower_head",
+            },
+            Vec3::new(-3.0, -3.0, -2.5),
+        )
+    }
+
+    fn load_grizzly_bear_upper_torso(upper_torso: grizzly_bear::Upper_Torso) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match upper_torso {
+                grizzly_bear::Upper_Torso::Default => "npc.grizzly_bear.grizzly_bear_upper_torso",
+            },
+            Vec3::new(-7.0, -6.0, -5.5),
+        )
+    }
+
+    fn load_grizzly_bear_lower_torso(lower_torso: grizzly_bear::Lower_Torso) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match lower_torso {
+                grizzly_bear::Lower_Torso::Default => "npc.grizzly_bear.grizzly_bear_lower_torso",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+
+    fn load_grizzly_bear_ears(ears: grizzly_bear::Ears) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match ears {
+                grizzly_bear::Ears::Default => "npc.grizzly_bear.grizzly_bear_ears",
+            },
+            Vec3::new(-7.0, -6.0, -6.0),
+        )
+    }
+
+    fn load_grizzly_bear_leg_lf(leg_lf: grizzly_bear::LegLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lf {
+                grizzly_bear::LegLF::Default => "npc.grizzly_bear.grizzly_bear_lf_leg",
+            },
+            Vec3::new(-8.0, -5.5, -6.0),
+        )
+    }
+
+    fn load_grizzly_bear_leg_rf(leg_rf: grizzly_bear::LegRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rf {
+                grizzly_bear::LegRF::Default => "npc.grizzly_bear.grizzly_bear_rf_leg",
+            },
+            Vec3::new(-4.0, -1.0, -1.0),
+        )
+    }
+
+    fn load_grizzly_bear_leg_lb(leg_lb: grizzly_bear::LegLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lb {
+                grizzly_bear::LegLB::Default => "npc.grizzly_bear.grizzly_bear_lb_leg",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+
+    fn load_grizzly_bear_leg_rb(leg_rb: grizzly_bear::LegRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rb {
+                grizzly_bear::LegRB::Default => "npc.grizzly_bear.grizzly_bear_rb_leg",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+
+    fn load_grizzly_bear_foot_lf(foot_lf: grizzly_bear::FootLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lf {
+                grizzly_bear::FootLF::Default => "npc.grizzly_bear.grizzly_bear_lf_foot",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+
+    fn load_grizzly_bear_foot_rf(foot_rf: grizzly_bear::FootRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rf {
+                grizzly_bear::FootRF::Default => "npc.grizzly_bear.grizzly_bear_rf_foot",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_grizzly_bear_foot_lb(foot_lb: grizzly_bear::FootLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lb {
+                grizzly_bear::FootLB::Default => "npc.grizzly_bear.grizzly_bear_lb_foot",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_grizzly_bear_foot_rb(foot_rb: grizzly_bear::FootRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rb {
+                grizzly_bear::FootRB::Default => "npc.grizzly_bear.grizzly_bear_rb_foot",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    ///////
     fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
         let (name, offset) = match obj {
             object::Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
@@ -585,6 +700,7 @@ pub struct FigureMgr {
     character_states: HashMap<EcsEntity, FigureState<CharacterSkeleton>>,
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
+    grizzly_bear_states: HashMap<EcsEntity, FigureState<GrizzlyBearSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -595,6 +711,7 @@ impl FigureMgr {
             character_states: HashMap::new(),
             quadruped_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
+            grizzly_bear_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -642,6 +759,9 @@ impl FigureMgr {
                         self.quadruped_states.remove(&entity);
                     }
                     Body::QuadrupedMedium(_) => {
+                        self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::grizzly_bear(_) => {
                         self.quadruped_medium_states.remove(&entity);
                     }
                     Body::Object(_) => {
@@ -836,6 +956,52 @@ impl FigureMgr {
                     state.skeleton.interpolate(&target_skeleton, dt);
                     state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
+                Body::grizzly_bear(_) => {
+                    let state = self
+                        .grizzly_bear_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, GrizzlyBearSkeleton::new())
+                        });
+
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
+                    let target_skeleton = match animation_info.animation {
+                        comp::Animation::Run | comp::Animation::Crun => {
+                            anim::grizzly_bear::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Idle | comp::Animation::Cidle => {
+                            anim::grizzly_bear::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Jump | comp::Animation::Cjump => {
+                            anim::grizzly_bear::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_skeleton, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -854,6 +1020,8 @@ impl FigureMgr {
         self.quadruped_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.quadruped_medium_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.grizzly_bear_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -905,6 +1073,10 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::QuadrupedMedium(_) => self
                     .quadruped_medium_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::grizzly_bear(_) => self
+                    .grizzly_bear_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self
