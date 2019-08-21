@@ -245,7 +245,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity))
             ),
             Rgb::new(0.87, 0.62, 0.56),
-            marble.powf(1.5).sub(0.5).mul(256.0)
+            marble.powf(1.5).sub(0.5).mul(4.0)
         );
 
         // For below desert humidity, we are always sand or rock, depending on altitude and
