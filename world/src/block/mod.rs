@@ -154,7 +154,7 @@ impl<'a> BlockGen<'a> {
             //cliffs,
             cliff_hill,
             close_cliffs,
-            //temp,
+            temp,
             ..
         } = &z_cache?.sample;
 
@@ -257,6 +257,7 @@ impl<'a> BlockGen<'a> {
                 saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
             ))
         } else if (wposf.z as f32) < height + 0.9
+            && temp < CONFIG.desert_temp
             && (wposf.z as f32 > water_height + 3.0)
             && marble > 0.68
             && marble_small > 0.65
@@ -283,6 +284,18 @@ impl<'a> BlockGen<'a> {
                     flowers[(height * 0.2) as usize % flowers.len()]
                 } else {
                     grasses[(height * 0.3) as usize % grasses.len()]
+                },
+                Rgb::broadcast(0),
+            ))
+        } else if (wposf.z as f32) < height + 0.9
+            && temp > CONFIG.desert_temp
+            && (marble * 4423.5).fract() < 0.0005
+        {
+            Some(Block::new(
+                if (height * 1271.0).fract() < 0.5 {
+                    BlockKind::LargeCactus
+                } else {
+                    BlockKind::BarrelCactus
                 },
                 Rgb::broadcast(0),
             ))
