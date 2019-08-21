@@ -12,10 +12,10 @@ pub struct Config {
 pub const CONFIG: Config = Config {
     sea_level: 140.0,
     mountain_scale: 1000.0,
-    snow_temp: -0.4,
+    snow_temp: -0.6,
     tropical_temp: 0.2,
-    desert_temp: 0.45,
-    desert_hum: 0.2,
+    desert_temp: 0.6,
+    desert_hum: 0.15,
     forest_hum: 0.5,
-    jungle_hum: 0.8,
+    jungle_hum: 0.85,
 };
