@@ -24,7 +24,7 @@ struct TerrainChunk {
     // GPU data
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
-    sprite_instances: HashMap<BlockKind, Instances<SpriteInstance>>,
+    sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
 
     visible: bool,
@@ -43,19 +43,68 @@ struct MeshWorkerResponse {
     z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
-    sprite_instances: HashMap<BlockKind, Vec<SpriteInstance>>,
+    sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
 }
 
 struct SpriteConfig {
+    variations: usize,
     wind_sway: f32, // 1.0 is normal
 }
 
 fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
     match kind {
-        BlockKind::Wheat => Some(SpriteConfig { wind_sway: 1.0 }),
-        BlockKind::LongGrass => Some(SpriteConfig { wind_sway: 1.0 }),
-        BlockKind::Flowers => Some(SpriteConfig { wind_sway: 0.3 }),
+        BlockKind::LargeCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::BarrelCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+
+        BlockKind::BlueFlower => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.3,
+        }),
+        BlockKind::PinkFlower => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.3,
+        }),
+        BlockKind::RedFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::WhiteFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::YellowFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::Sunflower => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.3,
+        }),
+
+        BlockKind::LongGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+        BlockKind::MediumGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+        BlockKind::ShortGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+
+        BlockKind::Apple => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -88,7 +137,7 @@ fn mesh_worker(
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
                         if let Some(cfg) = sprite_config_for(kind) {
-                            let seed = x * 3 + y * 7 + z * 13 + x * y;
+                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.z * 13 + wpos.x * wpos.y;
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
@@ -101,7 +150,7 @@ fn mesh_worker(
                             );
 
                             instances
-                                .entry(kind)
+                                .entry((kind, seed as usize % cfg.variations))
                                 .or_insert_with(|| Vec::new())
                                 .push(instance);
                         }
@@ -125,7 +174,7 @@ pub struct Terrain {
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
 
     // GPU data
-    sprite_models: HashMap<BlockKind, Model<SpritePipeline>>,
+    sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
 }
 
 impl Terrain {
@@ -152,14 +201,125 @@ impl Terrain {
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
             sprite_models: vec![
-                (BlockKind::Wheat, make_model("voxygen.voxel.sprite.wheat")),
+                // Cacti
                 (
-                    BlockKind::LongGrass,
-                    make_model("voxygen.voxel.sprite.grass-0"),
+                    (BlockKind::LargeCactus, 0),
+                    make_model("voxygen.voxel.sprite.cacti.large_cactus"),
                 ),
                 (
-                    BlockKind::Flowers,
-                    make_model("voxygen.voxel.sprite.flowers"),
+                    (BlockKind::BarrelCactus, 0),
+                    make_model("voxygen.voxel.sprite.cacti.barrel_cactus"),
+                ),
+                // Fruit
+                (
+                    (BlockKind::Apple, 0),
+                    make_model("voxygen.voxel.sprite.fruit.apple"),
+                ),
+                // Flowers
+                (
+                    (BlockKind::BlueFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_blue_1"),
+                ),
+                (
+                    (BlockKind::BlueFlower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.flower_blue_2"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_1"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_2"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 2),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_3"),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                ),
+                (
+                    (BlockKind::RedFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_red_1"),
+                ),
+                (
+                    (BlockKind::WhiteFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_white_1"),
+                ),
+                (
+                    (BlockKind::YellowFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                ),
+                (
+                    (BlockKind::Sunflower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.sunflower_1"),
+                ),
+                (
+                    (BlockKind::Sunflower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.sunflower_2"),
+                ),
+                // Grass
+                (
+                    (BlockKind::LongGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_1"),
+                ),
+                (
+                    (BlockKind::LongGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_2"),
+                ),
+                (
+                    (BlockKind::LongGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_3"),
+                ),
+                (
+                    (BlockKind::LongGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_4"),
+                ),
+                (
+                    (BlockKind::LongGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_5"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_1"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_2"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_3"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_4"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_5"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_1"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_2"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_5"),
                 ),
             ]
             .into_iter()

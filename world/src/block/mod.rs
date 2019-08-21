@@ -149,6 +149,7 @@ impl<'a> BlockGen<'a> {
             cave_xy,
             cave_alt,
             marble,
+            marble_small,
             rock,
             //cliffs,
             cliff_hill,
@@ -257,16 +258,31 @@ impl<'a> BlockGen<'a> {
             ))
         } else if (wposf.z as f32) < height + 0.9
             && (wposf.z as f32 > water_height + 3.0)
-            && (chaos * 4096.0).fract() < 0.15
             && marble > 0.6
+            && marble_small > 0.7
+            && (marble * 3173.7).fract() < 0.5
         {
+            let flowers = [
+                BlockKind::BlueFlower,
+                BlockKind::PinkFlower,
+                BlockKind::PurpleFlower,
+                BlockKind::RedFlower,
+                BlockKind::WhiteFlower,
+                BlockKind::YellowFlower,
+                BlockKind::Sunflower,
+            ];
+
+            let grasses = [
+                BlockKind::LongGrass,
+                BlockKind::MediumGrass,
+                BlockKind::ShortGrass,
+            ];
+
             Some(Block::new(
-                if (height * 121.0).fract() < 0.15 {
-                    BlockKind::Wheat
-                } else if (height * 121.0).fract() < 0.2 {
-                    BlockKind::Flowers
+                if (height * 1271.0).fract() < 0.3 {
+                    flowers[(height * 7319.0) as usize % flowers.len()]
                 } else {
-                    BlockKind::LongGrass
+                    grasses[(height * 7319.0) as usize % grasses.len()]
                 },
                 Rgb::broadcast(0),
             ))
@@ -520,11 +536,7 @@ fn block_from_structure(
             )
             .map(|e| e as u8),
         )),
-        StructureBlock::Fruit => Some(Block::new(
-            BlockKind::Normal,
-            Lerp::lerp(Rgb::new(237.0, 0.0, 0.0), Rgb::new(200.0, 237.0, 0.0), lerp)
-                .map(|e| e as u8),
-        )),
+        StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
