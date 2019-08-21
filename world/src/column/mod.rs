@@ -317,7 +317,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             snow_moss,
                             temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
                                 .sub((marble - 0.5) * 0.05)
-                                .mul(1.0)
+                                .mul(256.0)
                         ),
                         // 0 to tropical_temp
                         grass,
@@ -352,7 +352,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             snow_moss,
                             temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
                                 .sub((marble - 0.5) * 0.05)
-                                .mul(1.0)
+                                .mul(256.0)
                         ),
                         // 0 to tropical_temp
                         rainforest,
