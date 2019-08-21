@@ -225,16 +225,20 @@ impl<'a> Sampler for ColumnGen<'a> {
             marble,
         );
         let dead_tundra = Lerp::lerp(
-            snow,
-            Rgb::new(0.05, 0.05, 0.1),
+            warm_stone,
+            Rgb::new(0.35, 0.05, 0.2),
             marble,
         );
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
-        let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
-        let snow_moss = Rgb::lerp(cold_grass, dark_grass, marble.powf(1.5).powf(temp));
-        let moss = Rgb::lerp(dark_grass, cold_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
-        let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
+        let grass = Rgb::lerp(
+            cold_grass,
+            warm_grass,
+            marble.sub(0.5).add(1.0.sub(humidity).mul(0.5)).powf(1.5)
+        );
+        let snow_moss = Rgb::lerp(snow, cold_grass, marble.powf(1.5));
+        let moss = Rgb::lerp(dark_grass, cold_grass, marble.powf(1.5));
+        let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
 
@@ -242,7 +246,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::lerp(
                 grass,
                 Rgb::new(0.15, 0.2, 0.15),
-                marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity))
+                marble_small.sub(0.5).mul(0.2).add(0.75.mul(1.0.sub(humidity))).powf(0.667)
             ),
             Rgb::new(0.87, 0.62, 0.56),
             marble.powf(1.5).sub(0.5).mul(4.0)
@@ -287,7 +291,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     moss,
                     temp.sub(CONFIG.tropical_temp)
                         .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
-                        .mul(4.0)
+                        .mul(1.0)
                 ),
                 // above desert_temp
                 sand,
@@ -313,7 +317,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                             snow_moss,
                             temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
                                 .sub((marble - 0.5) * 0.05)
-                                .mul(256.0)
+                                .mul(1.0)
                         ),
                         // 0 to tropical_temp
                         grass,
@@ -323,7 +327,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                     tropical,
                     temp.sub(CONFIG.tropical_temp)
                         .div(CONFIG.desert_temp.sub(CONFIG.tropical_temp))
-                        .mul(4.0)
+                        .mul(1.0)
                 ),
                 // above desert_temp
                 sand,
@@ -345,10 +349,10 @@ impl<'a> Sampler for ColumnGen<'a> {
                             // below snow_temp
                             snow,
                             // snow_temp to 0
-                            grass,
+                            snow_moss,
                             temp.sub(CONFIG.snow_temp)/*.div(CONFIG.snow_temp.neg())*/
                                 .sub((marble - 0.5) * 0.05)
-                                .mul(256.0)
+                                .mul(1.0)
                         ),
                         // 0 to tropical_temp
                         rainforest,
