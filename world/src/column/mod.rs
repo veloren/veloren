@@ -180,38 +180,6 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
-        /* if chunk_pos.distance_squared(Vec2::new(411, 508)) <= 2 {
-            println!("pos: {:?},
-                      chaos: {:?},
-                      alt_base: {:?},
-                      alt: {:?},
-                      riverless alt: {:?},
-                      final alt: {:?},
-                      temp: {:?},
-                      dryness: {:?},
-                      humidity: {:?},
-                      rockiness: {:?},
-                      is_cliffs: {:?},
-                      near_cliffs: {:?},
-                      tree_density: {:?},
-                      forest_kind: {:?},
-                      spawn_rate: {:?}",
-                      chunk_pos,
-                      chaos,
-                      alt_base,
-                      sim.get_interpolated(wpos, |chunk| chunk.alt)?,
-                      riverless_alt,
-                      alt,
-                      temp,
-                      dryness,
-                      humidity,
-                      rockiness,
-                      is_cliffs,
-                      near_cliffs,
-                      tree_density,
-                      sim_chunk.forest_kind,
-                      spawn_rate);
-        } */
         let water_level = riverless_alt - 4.0 - 5.0 * chaos;
 
         let rock = (sim.gen_ctx.small_nz.get(
@@ -394,18 +362,6 @@ impl<'a> Sampler for ColumnGen<'a> {
             ),
             humidity.sub(CONFIG.jungle_hum).mul(1.0)
         );
-
-        /* let ground = Rgb::lerp(
-            Rgb::lerp(
-                snow,
-                grass,
-                temp.sub(CONFIG.snow_temp)
-                    .sub((marble - 0.5) * 0.05)
-                    .mul(256.0),
-            ),
-            Rgb::lerp(tropical, sand, temp.sub(CONFIG.desert_hum).mul(32.0)),
-            humidity.sub(CONFIG.desert_temp).mul(16.0),
-        ); */
 
         // Work out if we're on a path or near a town
         let dist_to_path = match &sim_chunk.location {

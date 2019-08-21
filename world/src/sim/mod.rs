@@ -17,13 +17,6 @@ use common::{
 use noise::{BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
-use statrs::distribution::{
-    InverseGamma,
-    LogNormal,
-    Gamma,
-    Normal,
-    Univariate,
-};
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
@@ -89,7 +82,7 @@ fn cdf_irwin_hall<const N : usize>(weights: &[f32; N], samples: [f32; N]) -> f32
         weights.iter().zip(samples.iter()).map(|(weight, sample)| weight * sample).sum();
 
     let mut y = 0.0f32;
-    for subset in (0u32..(1 << N)) {
+    for subset in 0u32..(1 << N) {
         // Number of set elements
         let k = subset.count_ones();
         // Add together exactly the set elements to get B_subset
@@ -194,9 +187,7 @@ fn map_edge_factor(posi: usize) -> f32 {
 }
 
 struct GenCdf {
-    hill: InverseCdf,
     humid_base: InverseCdf,
-    // humid_small: InverseCdf,
     temp_base: InverseCdf,
     alt_base: InverseCdf,
     chaos_pre: InverseCdf,
@@ -301,12 +292,6 @@ impl WorldSim {
             .add(1.0)
             .mul(0.5));
 
-        /* // Small amount of uniform noise to add to humidity.
-        let humid_small = uniform_noise(
-            |_, wposf| (gen_ctx.small_nz.get((wposf.div(500.0)).into_array()) as f32)
-            .mul(1.0)
-            .add(0.5)); */
-
         // -1 to 1.
         let temp_base = uniform_noise(
             |_, wposf| (gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
@@ -354,7 +339,7 @@ impl WorldSim {
         // value hits -0.625 the value crosses 0, so most of the points are above 0.
         //
         // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
-        let alt_main = uniform_noise(|posi, wposf| {
+        let alt_main = uniform_noise(|_, wposf| {
             // Extension upwards from the base.  A positive number from 0 to 1 curved to be maximal
             // at 0.  Also to be multiplied by CONFIG.mountain_scale.
             let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
@@ -378,9 +363,7 @@ impl WorldSim {
             .mul(map_edge_factor(posi)));
 
         let gen_cdf = GenCdf {
-            hill,
             humid_base,
-            // humid_small,
             temp_base,
             alt_base,
             chaos_pre,
@@ -631,8 +614,6 @@ impl SimChunk {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
 
-        let (_, hill) = gen_cdf.hill[posi];
-
         // FIXME: Currently unused, but should represent fresh groundwater level.
         // Should be correlated a little with humidity, somewhat negatively with altitude,
         // and very negatively with difference in temperature from zero.
@@ -655,17 +636,15 @@ impl SimChunk {
         let (_, alt_pre) = gen_cdf.alt_main[posi];
         let (humid_base, _) = gen_cdf.humid_base[posi];
         let (alt_uniform, _) = gen_cdf.alt_pre[posi];
-        // let (humid_small, _) = gen_cdf.humid_small[posi];
 
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and other random variable (to add some noise) to yield the
         // final humidity.  Note that we are using the "old" version of chaos here.
-        const HUMID_WEIGHTS : [f32; 2] = [1.0, 1.0/*, 0.5*/];
+        const HUMID_WEIGHTS : [f32; 2] = [1.0, 1.0];
         let humidity = cdf_irwin_hall(
             &HUMID_WEIGHTS,
             [humid_base,
              1.0 - alt_uniform,
-             // humid_small
             ]);
 
         let (temp_base, _) = gen_cdf.temp_base[posi];
@@ -750,35 +729,20 @@ impl SimChunk {
             tree_density,
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
-                    // println!("Any desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
                     if humidity > CONFIG.jungle_hum {
                         // Forests in desert temperatures with extremely high humidity
                         // should probably be different from palm trees, but we use them
                         // for now.
-                        /* /*if tree_density > 0.0 */{
-                            println!("Palm trees (jungle): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         ForestKind::Palm
                      } else if humidity > CONFIG.forest_hum {
-                        /* /*if tree_density > 0.0 */{
-                            println!("Palm trees (forest): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         ForestKind::Palm
                     } else {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
-                        /* if humidity < CONFIG.desert_hum {
-                            println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } else {
-                            println!("Savannah (desert): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         ForestKind::Savannah
                     }
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
-                        /* if tree_density > 0.0 {
-                            println!("Mangroves: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
                         // NOTE: Probably the wrong kind of tree for this climate.
@@ -793,17 +757,11 @@ impl SimChunk {
                         // https://en.wikipedia.org/wiki/Humid_subtropical_climates are often
                         // densely wooded and full of water.  Semitropical rainforests, basically.
                         // For now we just treet them like other rainforests.
-                        /* if tree_density > 0.0 {
-                            println!("Mangroves (forest): {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         ForestKind::Oak
                     } else if humidity > CONFIG.forest_hum {
                         // Moderate climate, moderate humidity.
                         ForestKind::Oak
                     } else {
-                        /* if humidity < CONFIG.desert_hum {
-                            println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                        } */
                         // With moderate temperature and low humidity, we should probably see
                         // something different from savannah, but oh well...
                         ForestKind::Savannah
@@ -813,14 +771,8 @@ impl SimChunk {
                 // For now we don't take humidity into account for cold climates (but we really
                 // should!) except that we make sure we only have snow pines when there is snow.
                 if temp <= CONFIG.snow_temp && humidity > CONFIG.forest_hum {
-                    /* if tree_density > 0.0 {
-                        println!("SnowPine: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                    } */
                     ForestKind::SnowPine
                 } else {
-                    /* if humidity < CONFIG.desert_hum {
-                        println!("True desert: {:?}, altitude: {:?}, humidity: {:?}, temperature: {:?}, density: {:?}", wposf, alt, humidity, temp, tree_density);
-                    } */
                     ForestKind::Pine
                 }
             },
