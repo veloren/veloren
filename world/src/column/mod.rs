@@ -256,6 +256,11 @@ impl<'a> Sampler for ColumnGen<'a> {
             Rgb::new(0.01, 0.3, 0.0),
             marble,
         );
+        let dead_tundra = Lerp::lerp(
+            snow,
+            Rgb::new(0.05, 0.05, 0.1),
+            marble,
+        );
         let cliff = Rgb::lerp(cold_stone, warm_stone, marble);
 
         let grass = Rgb::lerp(cold_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
@@ -264,19 +269,26 @@ impl<'a> Sampler for ColumnGen<'a> {
         let rainforest = Rgb::lerp(wet_grass, warm_grass, marble.powf(1.5).powf(1.0.sub(humidity)));
         let sand = Rgb::lerp(beach_sand, desert_sand, marble);
 
+
         let tropical = Rgb::lerp(
-            grass,
+            Rgb::lerp(
+                grass,
+                Rgb::new(0.15, 0.2, 0.15),
+                marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity))
+            ),
             Rgb::new(0.87, 0.62, 0.56),
-            marble_small.sub(0.5).mul(0.2).add(0.75).powf(0.667).powf(1.0.sub(humidity)),
+            marble.powf(1.5).sub(0.5).mul(256.0)
         );
 
         // For below desert humidity, we are always sand or rock, depending on altitude and
         // temperature.
         let ground = Rgb::lerp(
             Rgb::lerp(
+                dead_tundra,
                 sand,
-                dirt,
-                temp.sub(CONFIG.desert_temp).mul(0.5)
+                temp.sub(CONFIG.snow_temp)
+                    .div(CONFIG.desert_temp.sub(CONFIG.snow_temp))
+                    .mul(0.5)
             ),
             cliff,
             alt.sub(CONFIG.mountain_scale * 0.25).div(CONFIG.mountain_scale * 0.125)
