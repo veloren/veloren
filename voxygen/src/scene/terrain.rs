@@ -47,6 +47,19 @@ struct MeshWorkerResponse {
     started_tick: u64,
 }
 
+struct SpriteConfig {
+    wind_sway: f32, // 1.0 is normal
+}
+
+fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
+    match kind {
+        BlockKind::Wheat => Some(SpriteConfig { wind_sway: 1.0 }),
+        BlockKind::LongGrass => Some(SpriteConfig { wind_sway: 1.0 }),
+        BlockKind::Flowers => Some(SpriteConfig { wind_sway: 0.3 }),
+        _ => None,
+    }
+}
+
 /// Function executed by worker threads dedicated to chunk meshing.
 fn mesh_worker(
     pos: Vec2<i32>,
@@ -73,16 +86,17 @@ fn mesh_worker(
                         ) + Vec3::new(x, y, z);
 
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
-                        match kind {
-                            BlockKind::Wheat | BlockKind::LongGrass | BlockKind::Flowers => {
-                                instances.entry(kind).or_insert_with(|| Vec::new()).push(
-                                    SpriteInstance::new(
+
+                        if let Some(cfg) = sprite_config_for(kind) {
+                            instances.entry(kind).or_insert_with(|| Vec::new()).push(
+                                SpriteInstance::new(
+                                    Mat4::identity().translated_3d(
                                         wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
-                                        Rgb::broadcast(1.0),
                                     ),
-                                )
-                            }
-                            _ => {}
+                                    Rgb::broadcast(1.0),
+                                    cfg.wind_sway,
+                                ),
+                            );
                         }
                     }
                 }
