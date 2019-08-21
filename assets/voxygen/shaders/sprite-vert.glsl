@@ -36,7 +36,7 @@ void main() {
 		0.0
 	) * sin(v_pos.z * 0.03) * 0.5;
 
-	f_norm = v_norm;
+	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
 
 	f_col = v_col * inst_col;
 

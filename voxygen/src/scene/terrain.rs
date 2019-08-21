@@ -17,7 +17,7 @@ use crossbeam::channel;
 use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
-use std::{i32, ops::Mul, time::Duration};
+use std::{f32, i32, ops::Mul, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -88,15 +88,22 @@ fn mesh_worker(
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
                         if let Some(cfg) = sprite_config_for(kind) {
-                            instances.entry(kind).or_insert_with(|| Vec::new()).push(
-                                SpriteInstance::new(
-                                    Mat4::identity().translated_3d(
+                            let seed = x * 3 + y * 7 + z * 13 + x * y;
+
+                            let instance = SpriteInstance::new(
+                                Mat4::identity()
+                                    .rotated_z(f32::consts::PI * 0.5 * (seed % 4) as f32)
+                                    .translated_3d(
                                         wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
                                     ),
-                                    Rgb::broadcast(1.0),
-                                    cfg.wind_sway,
-                                ),
+                                Rgb::broadcast(1.0),
+                                cfg.wind_sway,
                             );
+
+                            instances
+                                .entry(kind)
+                                .or_insert_with(|| Vec::new())
+                                .push(instance);
                         }
                     }
                 }
