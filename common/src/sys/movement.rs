@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
                         {
                             HUMANOID_AIR_ACCEL
                         }
-                        (true, false, true, false)
+                        (true, false, true, _)
                             if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) =>
                         {
                             ROLL_ACCEL
