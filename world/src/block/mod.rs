@@ -258,8 +258,8 @@ impl<'a> BlockGen<'a> {
             ))
         } else if (wposf.z as f32) < height + 0.9
             && (wposf.z as f32 > water_height + 3.0)
-            && marble > 0.6
-            && marble_small > 0.7
+            && marble > 0.68
+            && marble_small > 0.65
             && (marble * 3173.7).fract() < 0.5
         {
             let flowers = [
@@ -279,10 +279,10 @@ impl<'a> BlockGen<'a> {
             ];
 
             Some(Block::new(
-                if (height * 1271.0).fract() < 0.3 {
-                    flowers[(height * 7319.0) as usize % flowers.len()]
+                if (height * 1271.0).fract() < 0.15 {
+                    flowers[(height * 0.2) as usize % flowers.len()]
                 } else {
-                    grasses[(height * 7319.0) as usize % grasses.len()]
+                    grasses[(height * 0.3) as usize % grasses.len()]
                 },
                 Rgb::broadcast(0),
             ))
