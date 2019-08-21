@@ -1,5 +1,5 @@
 use super::{
-    super::{Pipeline, TgtColorFmt, TgtDepthFmt},
+    super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthFmt},
     Globals, Light,
 };
 use gfx::{
@@ -22,8 +22,12 @@ gfx_defines! {
     }
 
     vertex Instance {
-        inst_pos: [f32; 3] = "inst_pos",
+        inst_mat0: [f32; 4] = "inst_mat0",
+        inst_mat1: [f32; 4] = "inst_mat1",
+        inst_mat2: [f32; 4] = "inst_mat2",
+        inst_mat3: [f32; 4] = "inst_mat3",
         inst_col: [f32; 3] = "inst_col",
+        inst_wind_sway: f32 = "inst_wind_sway",
     }
 
     pipeline pipe {
@@ -49,17 +53,22 @@ impl Vertex {
 }
 
 impl Instance {
-    pub fn new(inst_pos: Vec3<f32>, col: Rgb<f32>) -> Self {
+    pub fn new(mat: Mat4<f32>, col: Rgb<f32>, wind_sway: f32) -> Self {
+        let mat_arr = arr_to_mat(mat.into_col_array());
         Self {
-            inst_pos: inst_pos.into_array(),
+            inst_mat0: mat_arr[0],
+            inst_mat1: mat_arr[1],
+            inst_mat2: mat_arr[2],
+            inst_mat3: mat_arr[3],
             inst_col: col.into_array(),
+            inst_wind_sway: wind_sway,
         }
     }
 }
 
 impl Default for Instance {
     fn default() -> Self {
-        Self::new(Vec3::zero(), Rgb::broadcast(1.0))
+        Self::new(Mat4::identity(), Rgb::broadcast(1.0), 0.0)
     }
 }
 

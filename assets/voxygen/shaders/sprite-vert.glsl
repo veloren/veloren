@@ -6,8 +6,12 @@
 in vec3 v_pos;
 in vec3 v_norm;
 in vec3 v_col;
-in vec3 inst_pos;
+in vec4 inst_mat0;
+in vec4 inst_mat1;
+in vec4 inst_mat2;
+in vec4 inst_mat3;
 in vec3 inst_col;
+in float inst_wind_sway;
 
 out vec3 f_pos;
 flat out vec3 f_norm;
@@ -17,10 +21,20 @@ out float f_light;
 const float SCALE = 1.0 / 11.0;
 
 void main() {
-	f_pos = inst_pos + v_pos * SCALE;
+	mat4 inst_mat;
+	inst_mat[0] = inst_mat0;
+	inst_mat[1] = inst_mat1;
+	inst_mat[2] = inst_mat2;
+	inst_mat[3] = inst_mat3;
+
+	f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz;
 
 	// Wind waving
-	f_pos += vec3(sin(tick.x * 1.7 + inst_pos.y * 0.2), sin(tick.x * 1.3 + inst_pos.x * 0.2), 0) * sin(v_pos.z * 0.03) * 0.5;
+	f_pos += inst_wind_sway * vec3(
+		sin(tick.x * 1.7 + f_pos.y * 0.2),
+		sin(tick.x * 1.3 + f_pos.x * 0.2),
+		0.0
+	) * sin(v_pos.z * 0.03) * 0.5;
 
 	f_norm = v_norm;
 
