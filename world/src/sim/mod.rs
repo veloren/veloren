@@ -647,7 +647,7 @@ impl SimChunk {
              1.0 - alt_uniform,
             ]);
 
-        let (temp_base, _) = gen_cdf.temp_base[posi];
+        let (temp_base, temp_old) = gen_cdf.temp_base[posi];
 
         // We also correlate temperature negatively with altitude using different weighting than we
         // use for humidity.
@@ -668,7 +668,7 @@ impl SimChunk {
             // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
             // then saturates just before it actually becomes desert.  Otherwise stays at 1.
             .mul(
-                temp.sub(CONFIG.desert_temp)
+                temp_old.sub(CONFIG.desert_temp)
                     .neg()
                     .mul(12.0)
                     .max(0.35)
