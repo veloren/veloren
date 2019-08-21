@@ -257,6 +257,7 @@ impl<'a> System<'a> for Sys {
 
                 if attempts == MAX_ATTEMPTS {
                     pos.0 = old_pos;
+                    vel.0 = Vec3::zero();
                     break;
                 }
             }
