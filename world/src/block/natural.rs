@@ -442,6 +442,12 @@ lazy_static! {
         assets::load_map("world.tree.mangroves.6", |s: Structure| s
             .with_center(Vec3::new(18, 18, 8)))
         .unwrap(),
+        assets::load_map("world.tree.mangroves.7", |s: Structure| s
+            .with_center(Vec3::new(18, 17, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.8", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
     ];
 
     pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
