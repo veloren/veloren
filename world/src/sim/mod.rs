@@ -668,7 +668,7 @@ impl SimChunk {
             // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
             // then saturates just before it actually becomes desert.  Otherwise stays at 1.
             .mul(
-                temp_old.sub(CONFIG.desert_temp)
+                temp_old.sub(0.45)
                     .neg()
                     .mul(12.0)
                     .max(0.35)
