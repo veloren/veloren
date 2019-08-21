@@ -31,10 +31,10 @@ void main() {
 
 	// Wind waving
 	f_pos += inst_wind_sway * vec3(
-		sin(tick.x * 1.7 + f_pos.y * 0.2),
-		sin(tick.x * 1.3 + f_pos.x * 0.2),
+		sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
+		sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
 		0.0
-	) * sin(v_pos.z * 0.03) * 0.5;
+	) * pow(v_pos.z * SCALE, 1.3) * 0.2;
 
 	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
 
