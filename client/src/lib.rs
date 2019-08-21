@@ -12,7 +12,7 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
     state::{State, Uid},
-    terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize},
     vol::VolSize,
     ChatType,
 };
@@ -375,6 +375,7 @@ impl Client {
             }
         }
 
+        /*
         // Output debug metrics
         if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
             let metrics = self
@@ -384,6 +385,7 @@ impl Client {
                 .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
             info!("{:?}", metrics);
         }
+        */
 
         // 7) Finish the tick, pass control back to the frontend.
 

@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use vek::*;
 
 /// A voxel.
-pub trait Vox: Sized {
+pub trait Vox: Sized + Clone {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
 
@@ -107,6 +107,6 @@ pub trait WriteVol: BaseVol {
 
 /// Used to specify a volume's compile-time size. This exists as a substitute until const generics
 /// are implemented.
-pub trait VolSize {
+pub trait VolSize : Clone {
     const SIZE: Vec3<u32>;
 }
