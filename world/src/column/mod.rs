@@ -274,7 +274,13 @@ impl<'a> Sampler for ColumnGen<'a> {
                     Rgb::lerp(
                         Rgb::lerp(
                             // below snow_temp
-                            tundra,
+                            Rgb::lerp(
+                                tundra,
+                                snow,
+                                humidity.sub(CONFIG.desert_hum)
+                                        .sub((marble - 0.5) * 0.05)
+                                        .mul(256.0)
+                            ),
                             // snow_temp to 0
                             dirt,
                             temp.sub(CONFIG.snow_temp)
