@@ -690,25 +690,38 @@ impl SimChunk {
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
-        let tree_density =
-            (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
+        // Logistic regression.  Make sure x ∈ (0, 1).
+        let logit = |x: f32 | x.ln() - x.neg().ln_1p();
+        // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
+        let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
+        // Assumes μ = 0, σ = 1
+        let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
+        // Weighted logit sum.
+        let f = |humidity, density| logistic_cdf(logit(humidity) + 0.5 * logit(density));
+
+        // No trees in the ocean or with zero humidity (currently)
+        let tree_density = if alt <= CONFIG.sea_level + 5.0 { 0.0 } else {
+            let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .mul(1.5)
                 .add(1.0)
                 .mul(0.5)
                 .mul(1.2 - chaos * 0.95)
                 .add(0.05)
                 .max(0.0)
-                .min(1.0)
+                .min(1.0);
+            // Tree density should go (by a lot) with humidity.
+            if humidity <= 0.0 || tree_density <= 0.0 {
+                0.0
+            } else if humidity >= 1.0 || tree_density >= 1.0 {
+                1.0
+            } else {
+                logistic_cdf(logit(humidity) + 0.5 * logit(tree_density))
+            }
+                // rescale to (-0.9, 0.9)
+                .sub(0.5)
                 .mul(0.9)
-                // Tree density should go (by a lot) with humidity.
-                .powf(1.0 - humidity)
-                // No trees in the ocean (currently), no trees in true deserts.
-                .mul(if alt > CONFIG.sea_level + 5.0 && humidity > CONFIG.desert_hum {
-                    1.0
-                } else {
-                    0.0
-                })
-                .max(0.0);
+                .add(0.5)
+        };
 
         Self {
             chaos,
@@ -736,9 +749,11 @@ impl SimChunk {
                         ForestKind::Palm
                      } else if humidity > CONFIG.forest_hum {
                         ForestKind::Palm
-                    } else {
+                    } else if humidity > CONFIG.desert_hum {
                         // Low but not desert humidity, so we should really have some other
                         // terrain...
+                        ForestKind::Savannah
+                    } else {
                         ForestKind::Savannah
                     }
                 } else if temp > CONFIG.tropical_temp {
@@ -747,8 +762,10 @@ impl SimChunk {
                     } else if humidity > CONFIG.forest_hum {
                         // NOTE: Probably the wrong kind of tree for this climate.
                         ForestKind::Oak
-                    } else {
+                    } else if humidity > CONFIG.desert_hum {
                         // Low but not desert... need something besides savannah.
+                        ForestKind::Savannah
+                    } else {
                         ForestKind::Savannah
                     }
                 } else {
@@ -761,9 +778,11 @@ impl SimChunk {
                     } else if humidity > CONFIG.forest_hum {
                         // Moderate climate, moderate humidity.
                         ForestKind::Oak
-                    } else {
+                    } else if humidity > CONFIG.desert_hum {
                         // With moderate temperature and low humidity, we should probably see
                         // something different from savannah, but oh well...
+                        ForestKind::Savannah
+                    } else {
                         ForestKind::Savannah
                     }
                 }
@@ -772,7 +791,10 @@ impl SimChunk {
                 // should!) except that we make sure we only have snow pines when there is snow.
                 if temp <= CONFIG.snow_temp && humidity > CONFIG.forest_hum {
                     ForestKind::SnowPine
+                } else if humidity > CONFIG.desert_hum {
+                    ForestKind::Pine
                 } else {
+                    // Should really have something like tundra.
                     ForestKind::Pine
                 }
             },
