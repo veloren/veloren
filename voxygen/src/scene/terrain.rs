@@ -1,27 +1,32 @@
 use crate::{
     mesh::Meshable,
     render::{
-        Consts, FluidPipeline, Globals, Light, Mesh, Model, Renderer, TerrainLocals,
-        TerrainPipeline,
+        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, SpriteInstance,
+        SpritePipeline, TerrainLocals, TerrainPipeline,
     },
 };
 use client::Client;
 use common::{
-    terrain::{TerrainChunkSize, TerrainMap},
-    vol::{SampleVol, VolSize},
+    assets,
+    figure::Segment,
+    terrain::{Block, BlockKind, TerrainChunkSize, TerrainMap},
+    vol::{ReadVol, SampleVol, VolSize, Vox},
     volumes::vol_map_2d::VolMap2dErr,
 };
 use crossbeam::channel;
+use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
-use std::{i32, ops::Mul, time::Duration};
+use std::{f32, i32, ops::Mul, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
     // GPU data
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
+    sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
     locals: Consts<TerrainLocals>,
+
     visible: bool,
     z_bounds: (f32, f32),
 }
@@ -38,7 +43,70 @@ struct MeshWorkerResponse {
     z_bounds: (f32, f32),
     opaque_mesh: Mesh<TerrainPipeline>,
     fluid_mesh: Mesh<FluidPipeline>,
+    sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
     started_tick: u64,
+}
+
+struct SpriteConfig {
+    variations: usize,
+    wind_sway: f32, // 1.0 is normal
+}
+
+fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
+    match kind {
+        BlockKind::LargeCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::BarrelCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+
+        BlockKind::BlueFlower => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.3,
+        }),
+        BlockKind::PinkFlower => Some(SpriteConfig {
+            variations: 3,
+            wind_sway: 0.3,
+        }),
+        BlockKind::RedFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::WhiteFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::YellowFlower => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.3,
+        }),
+        BlockKind::Sunflower => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.3,
+        }),
+
+        BlockKind::LongGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+        BlockKind::MediumGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+        BlockKind::ShortGrass => Some(SpriteConfig {
+            variations: 5,
+            wind_sway: 1.0,
+        }),
+
+        BlockKind::Apple => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        _ => None,
+    }
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
@@ -55,6 +123,43 @@ fn mesh_worker(
         z_bounds,
         opaque_mesh,
         fluid_mesh,
+        // Extract sprite locations from volume
+        sprite_instances: {
+            let mut instances = HashMap::new();
+
+            for x in 0..TerrainChunkSize::SIZE.x as i32 {
+                for y in 0..TerrainChunkSize::SIZE.y as i32 {
+                    for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
+                        let wpos = Vec3::from(
+                            pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32),
+                        ) + Vec3::new(x, y, z);
+
+                        let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
+
+                        if let Some(cfg) = sprite_config_for(kind) {
+                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.z * 13 + wpos.x * wpos.y;
+
+                            let instance = SpriteInstance::new(
+                                Mat4::identity()
+                                    .rotated_z(f32::consts::PI * 0.5 * (seed % 4) as f32)
+                                    .translated_3d(
+                                        wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
+                                    ),
+                                Rgb::broadcast(1.0),
+                                cfg.wind_sway,
+                            );
+
+                            instances
+                                .entry((kind, seed as usize % cfg.variations))
+                                .or_insert_with(|| Vec::new())
+                                .push(instance);
+                        }
+                    }
+                }
+            }
+
+            instances
+        },
         started_tick,
     }
 }
@@ -67,19 +172,158 @@ pub struct Terrain {
     mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
     mesh_recv: channel::Receiver<MeshWorkerResponse>,
     mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
+
+    // GPU data
+    sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
 }
 
 impl Terrain {
-    pub fn new() -> Self {
+    pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
         // worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
+
+        let mut make_model = |s| {
+            renderer
+                .create_model(
+                    &Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
+                        &Segment::from(assets::load_expect::<DotVoxData>(s).as_ref()),
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    )
+                    .0,
+                )
+                .unwrap()
+        };
 
         Self {
             chunks: HashMap::default(),
             mesh_send_tmp: send,
             mesh_recv: recv,
             mesh_todo: HashMap::default(),
+            sprite_models: vec![
+                // Cacti
+                (
+                    (BlockKind::LargeCactus, 0),
+                    make_model("voxygen.voxel.sprite.cacti.large_cactus"),
+                ),
+                (
+                    (BlockKind::BarrelCactus, 0),
+                    make_model("voxygen.voxel.sprite.cacti.barrel_cactus"),
+                ),
+                // Fruit
+                (
+                    (BlockKind::Apple, 0),
+                    make_model("voxygen.voxel.sprite.fruit.apple"),
+                ),
+                // Flowers
+                (
+                    (BlockKind::BlueFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_blue_1"),
+                ),
+                (
+                    (BlockKind::BlueFlower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.flower_blue_2"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_1"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_2"),
+                ),
+                (
+                    (BlockKind::PinkFlower, 2),
+                    make_model("voxygen.voxel.sprite.flowers.flower_pink_3"),
+                ),
+                (
+                    (BlockKind::PurpleFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                ),
+                (
+                    (BlockKind::RedFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_red_1"),
+                ),
+                (
+                    (BlockKind::WhiteFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_white_1"),
+                ),
+                (
+                    (BlockKind::YellowFlower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                ),
+                (
+                    (BlockKind::Sunflower, 0),
+                    make_model("voxygen.voxel.sprite.flowers.sunflower_1"),
+                ),
+                (
+                    (BlockKind::Sunflower, 1),
+                    make_model("voxygen.voxel.sprite.flowers.sunflower_2"),
+                ),
+                // Grass
+                (
+                    (BlockKind::LongGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_1"),
+                ),
+                (
+                    (BlockKind::LongGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_2"),
+                ),
+                (
+                    (BlockKind::LongGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_3"),
+                ),
+                (
+                    (BlockKind::LongGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_4"),
+                ),
+                (
+                    (BlockKind::LongGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_long_5"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_1"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_2"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_3"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_4"),
+                ),
+                (
+                    (BlockKind::MediumGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_med_5"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 0),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_1"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 1),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_2"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 2),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 3),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                ),
+                (
+                    (BlockKind::ShortGrass, 4),
+                    make_model("voxygen.voxel.sprite.grass.grass_short_5"),
+                ),
+            ]
+            .into_iter()
+            .collect(),
         }
     }
 
@@ -275,6 +519,18 @@ impl Terrain {
                             fluid_model: renderer
                                 .create_model(&response.fluid_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
+                            sprite_instances: response
+                                .sprite_instances
+                                .into_iter()
+                                .map(|(kind, instances)| {
+                                    (
+                                        kind,
+                                        renderer.create_instances(&instances).expect(
+                                            "Failed to upload chunk sprite instances to the GPU!",
+                                        ),
+                                    )
+                                })
+                                .collect(),
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
                                     model_offs: Vec3::from(
@@ -343,18 +599,37 @@ impl Terrain {
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        focus_pos: Vec3<f32>,
     ) {
         // Opaque
-        for (_pos, chunk) in &self.chunks {
+        for (_, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
             }
         }
 
         // Translucent
-        for (_pos, chunk) in &self.chunks {
+        for (pos, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
+
+                const SPRITE_RENDER_DISTANCE: f32 = 128.0;
+
+                let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    (e as f32 + 0.5) * sz as f32
+                });
+                if Vec2::from(focus_pos).distance_squared(chunk_center)
+                    < SPRITE_RENDER_DISTANCE * SPRITE_RENDER_DISTANCE
+                {
+                    for (kind, instances) in &chunk.sprite_instances {
+                        renderer.render_sprites(
+                            &self.sprite_models[&kind],
+                            globals,
+                            &instances,
+                            lights,
+                        );
+                    }
+                }
             }
         }
     }

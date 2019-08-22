@@ -41,14 +41,14 @@ void main() {
 	vec3 surf_color = f_col * light;
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
-    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x);
+    vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
 
 	vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 	vec3 reflect_ray_dir = reflect(cam_to_frag, norm);
 	// Hack to prevent the reflection ray dipping below the horizon and creating weird blue spots in the water
 	reflect_ray_dir.z = max(reflect_ray_dir.z, 0.05);
 
-	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x) * f_light;
+	vec3 reflect_color = get_sky_color(reflect_ray_dir, time_of_day.x, false) * f_light;
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(norm, norm, cam_to_frag), -cam_to_frag), 1.0);
 
