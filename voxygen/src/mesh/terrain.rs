@@ -14,15 +14,19 @@ type TerrainVertex = <TerrainPipeline as render::Pipeline>::Vertex;
 type FluidVertex = <FluidPipeline as render::Pipeline>::Vertex;
 
 fn block_shadow_density(kind: BlockKind) -> (f32, f32) {
+    // (density, cap)
     match kind {
-        BlockKind::Air => (0.0, 0.0),
         BlockKind::Normal => (0.085, 0.3),
         BlockKind::Dense => (0.3, 0.0),
         BlockKind::Water => (0.15, 0.0),
+        kind if kind.is_air() => (0.0, 0.0),
+        _ => (1.0, 0.0),
     }
 }
 
-impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolMap2d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone>
+    Meshable<TerrainPipeline, FluidPipeline> for VolMap2d<V, S>
+{
     type Pipeline = TerrainPipeline;
     type TranslucentPipeline = FluidPipeline;
     type Supplement = Aabb<i32>;
