@@ -367,11 +367,11 @@ lazy_static! {
     pub static ref FRUIT_TREES: Vec<Arc<Structure>> = vec![
         // fruit trees
         st_asset("world.tree.fruit.1", (5, 5, 7)),
-        st_asset("world.tree.fruit.2", (5, 5, 7)),
-        st_asset("world.tree.fruit.3", (5, 5, 7)),
-        st_asset("world.tree.fruit.4", (5, 5, 7)),
-        st_asset("world.tree.fruit.5", (5, 5, 7)),
-        st_asset("world.tree.fruit.6", (5, 5, 7)),
+        st_asset("world.tree.fruit.2", (6, 6, 7)),
+        st_asset("world.tree.fruit.3", (6, 7, 7)),
+        st_asset("world.tree.fruit.4", (3, 3, 7)),
+        st_asset("world.tree.fruit.5", (6, 8, 7)),
+        st_asset("world.tree.fruit.6", (7, 7, 7)),
     ];
 
         /*
