@@ -14,7 +14,9 @@ use common::{
     terrain::{BiomeKind, TerrainChunkSize},
     vol::VolSize,
 };
-use noise::{BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex};
+use noise::{
+    BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex,
+};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use std::{
@@ -52,7 +54,7 @@ pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 ///    On the Distribution of the Sum of Independent Uniform Random Variables.
 ///    Statistical Papers, 50, 171-175.
 /// 3. hhttps://en.wikipedia.org/wiki/Cumulative_distribution_function
-fn cdf_irwin_hall<const N : usize>(weights: &[f32; N], samples: [f32; N]) -> f32 {
+fn cdf_irwin_hall<const N: usize>(weights: &[f32; N], samples: [f32; N]) -> f32 {
     // Let J_k = {(j_1, ... , j_k) : 1 ≤ j_1 < j_2 < ··· < j_k ≤ N }.
     //
     // Let A_N = Π{k = 1 to n}a_k.
@@ -78,17 +80,21 @@ fn cdf_irwin_hall<const N : usize>(weights: &[f32; N], samples: [f32; N]) -> f32
     // We should be able to iterate through the whole power set
     // instead, and figure out K by calling count_ones(), so we can compute the result in O(2^N)
     // iterations.
-    let x : f32 =
-        weights.iter().zip(samples.iter()).map(|(weight, sample)| weight * sample).sum();
+    let x: f32 = weights
+        .iter()
+        .zip(samples.iter())
+        .map(|(weight, sample)| weight * sample)
+        .sum();
 
     let mut y = 0.0f32;
     for subset in 0u32..(1 << N) {
         // Number of set elements
         let k = subset.count_ones();
         // Add together exactly the set elements to get B_subset
-        let z = weights.iter()
+        let z = weights
+            .iter()
             .enumerate()
-            .filter( |(i, _)| subset & (1 << i) as u32 != 0)
+            .filter(|(i, _)| subset & (1 << i) as u32 != 0)
             .map(|(_, k)| k)
             .sum::<f32>();
         // Compute max(0, x - B_subset)^N
@@ -148,11 +154,16 @@ fn uniform_idx_as_vec2(idx: usize) -> Vec2<i32> {
 /// easier).
 fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> f32) -> InverseCdf {
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
-        .map(|i| (
-            i,
-            f(i,
-              (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64))
-        ))
+        .map(|i| {
+            (
+                i,
+                f(
+                    i,
+                    (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32))
+                        .map(|e| e as f64),
+                ),
+            )
+        })
         .collect::<Vec<_>>();
 
     // sort_unstable_by is equivalent to sort_by here since we include the index in the
@@ -205,7 +216,7 @@ pub(crate) struct GenCtx {
     // Fresh groundwater (currently has no effect, but should influence humidity)
     pub dry_nz: BasicMulti,
     // Humidity noise
-    pub humid_nz : Billow,
+    pub humid_nz: Billow,
     // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
@@ -274,66 +285,72 @@ impl WorldSim {
 
         // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is a 50%
         // chance that hill will end up at 0.
-        let hill = uniform_noise(|_, wposf| (0.0
-            + gen_ctx
+        let hill = uniform_noise(|_, wposf| {
+            (0.0 + gen_ctx
                 .hill_nz
                 .get((wposf.div(1_500.0)).into_array())
                 .mul(1.0) as f32
-            + gen_ctx
-                .hill_nz
-                .get((wposf.div(500.0)).into_array())
-                .mul(0.3) as f32)
-            .add(0.3)
-            .max(0.0));
+                + gen_ctx
+                    .hill_nz
+                    .get((wposf.div(500.0)).into_array())
+                    .mul(0.3) as f32)
+                .add(0.3)
+                .max(0.0)
+        });
 
         // 0 to 1, hopefully.
-        let humid_base = uniform_noise(
-            |_, wposf| (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
-            .add(1.0)
-            .mul(0.5));
+        let humid_base = uniform_noise(|_, wposf| {
+            (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
+                .add(1.0)
+                .mul(0.5)
+        });
 
         // -1 to 1.
-        let temp_base = uniform_noise(
-            |_, wposf| (gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
-        );
+        let temp_base = uniform_noise(|_, wposf| {
+            (gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
+        });
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
         // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
         // but value here is from -0.275 to 0.225).
-        let alt_base = uniform_noise(
-            |_, wposf| (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-            .sub(0.1)
-            .mul(0.25));
+        let alt_base = uniform_noise(|_, wposf| {
+            (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+                .sub(0.1)
+                .mul(0.25)
+        });
 
         // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
         // "chaotic" the region is--how much weird stuff is going on on this terrain.
-        let chaos = uniform_noise(
-            |posi, wposf| (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
-            .add(1.0)
-            .mul(0.5)
-            // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
-            .mul(
-                (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
-                    .abs()
-                    .max(0.25)
-                    .min(1.0),
-            )
-            // Chaos is always increased by a little when we're on a hill (but remember that
-            // hill is 0 about 50% of the time).
-            // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
-            .add(0.15 * hill[posi].1)
-            // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
-            // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
-            // then saturates just before it actually becomes desert.  Otherwise stays at 1.
-            .mul(
-                temp_base[posi].1.sub(0.45)
-                    .neg()
-                    .mul(12.0)
-                    .max(0.35)
-                    .min(1.0),
-            )
-            // We can't have *no* chaos!
-            .max(0.1));
+        let chaos = uniform_noise(|posi, wposf| {
+            (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+                .add(1.0)
+                .mul(0.5)
+                // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
+                .mul(
+                    (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                        .abs()
+                        .max(0.25)
+                        .min(1.0),
+                )
+                // Chaos is always increased by a little when we're on a hill (but remember that
+                // hill is 0 about 50% of the time).
+                // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
+                .add(0.2 * hill[posi].1)
+                // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
+                // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
+                // then saturates just before it actually becomes desert.  Otherwise stays at 1.
+                .mul(
+                    temp_base[posi]
+                        .1
+                        .sub(0.45)
+                        .neg()
+                        .mul(12.0)
+                        .max(0.35)
+                        .min(1.0),
+                )
+                // We can't have *no* chaos!
+                .max(0.1)
+        });
 
         // This is the extension upwards from the base added to some extra noise from -1 to 1.
         // The extra noise is multiplied by alt_main (the mountain part of the extension) clamped to
@@ -350,13 +367,12 @@ impl WorldSim {
             // at 0.  Also to be multiplied by CONFIG.mountain_scale.
             let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
                 .abs()
-                .powf(1.35);
+                .powf(1.45);
 
-            (0.0
-             + alt_main
-             + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
-                .mul(alt_main.max(0.25))
-                .mul(0.16))
+            (0.0 + alt_main
+                + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                    .mul(alt_main.max(0.25))
+                    .mul(0.2))
             .add(1.0)
             .mul(0.5)
         });
@@ -364,9 +380,10 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, and we are using the version of chaos that doesn't
         // know about temperature.  Otherwise, this is a correct altitude calculation.
-        let alt_pre = uniform_noise(|posi, _|
+        let alt_pre = uniform_noise(|posi, _| {
             (alt_base[posi].1 + alt_main[posi].1.mul(chaos[posi].1.max(0.1)))
-            .mul(map_edge_factor(posi)));
+                .mul(map_edge_factor(posi))
+        });
 
         let gen_cdf = GenCdf {
             humid_base,
@@ -646,23 +663,15 @@ impl SimChunk {
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and other random variable (to add some noise) to yield the
         // final humidity.  Note that we are using the "old" version of chaos here.
-        const HUMID_WEIGHTS : [f32; 2] = [1.0, 1.0];
-        let humidity = cdf_irwin_hall(
-            &HUMID_WEIGHTS,
-            [humid_base,
-             1.0 - alt_uniform,
-            ]);
+        const HUMID_WEIGHTS: [f32; 2] = [1.0, 1.0];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_base, 1.0 - alt_uniform]);
 
         let (temp_base, temp_old) = gen_cdf.temp_base[posi];
 
         // We also correlate temperature negatively with altitude using different weighting than we
         // use for humidity.
         const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0];
-        let temp = cdf_irwin_hall(
-            &TEMP_WEIGHTS,
-            [temp_base,
-             1.0 - alt_uniform,
-            ])
+        let temp = cdf_irwin_hall(&TEMP_WEIGHTS, [temp_base, 1.0 - alt_uniform])
             // Convert to [-1, 1]
             .sub(0.5)
             .mul(2.0);
@@ -672,8 +681,8 @@ impl SimChunk {
         // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to get
         // an adjusted value, then multiply the whole thing by map_edge_factor (TODO: compute final bounds).
         let alt_base = alt_base.mul(CONFIG.mountain_scale);
-        let alt =
-            CONFIG.sea_level
+        let alt = CONFIG
+            .sea_level
             .add(alt_base)
             .add(alt_pre.mul(chaos).mul(CONFIG.mountain_scale))
             .mul(map_edge_factor);
@@ -681,7 +690,7 @@ impl SimChunk {
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f32 | x.ln() - x.neg().ln_1p();
+        let logit = |x: f32| x.ln() - x.neg().ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
         let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
         // Assumes μ = 0, σ = 1
@@ -690,7 +699,9 @@ impl SimChunk {
         let f = |humidity, density| logistic_cdf(logit(humidity) + 0.5 * logit(density));
 
         // No trees in the ocean or with zero humidity (currently)
-        let tree_density = if alt <= CONFIG.sea_level + 5.0 { 0.0 } else {
+        let tree_density = if alt <= CONFIG.sea_level + 5.0 {
+            0.0
+        } else {
             let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .mul(1.5)
                 .add(1.0)
@@ -707,10 +718,10 @@ impl SimChunk {
             } else {
                 logistic_cdf(logit(humidity) + 0.5 * logit(tree_density))
             }
-                // rescale to (-0.9, 0.9)
-                .sub(0.5)
-                .mul(0.9)
-                .add(0.5)
+            // rescale to (-0.9, 0.9)
+            .sub(0.5)
+            .mul(0.9)
+            .add(0.5)
         };
 
         Self {
@@ -737,7 +748,7 @@ impl SimChunk {
                         // should probably be different from palm trees, but we use them
                         // for now.
                         ForestKind::Palm
-                     } else if humidity > CONFIG.forest_hum {
+                    } else if humidity > CONFIG.forest_hum {
                         ForestKind::Palm
                     } else if humidity > CONFIG.desert_hum {
                         // Low but not desert humidity, so we should really have some other
