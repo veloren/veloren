@@ -1,13 +1,11 @@
-mod util;
 mod location;
 mod settlement;
+mod util;
 
 // Reexports
 pub use self::location::Location;
 pub use self::settlement::Settlement;
-use self::util::{
-    cdf_irwin_hall, InverseCdf, uniform_idx_as_vec2, uniform_noise,
-};
+use self::util::{cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, InverseCdf};
 
 use crate::{
     all::ForestKind,
@@ -143,7 +141,7 @@ impl WorldSim {
                 .mul(1.0) as f32
                 + gen_ctx
                     .hill_nz
-                    .get((wposf.div(500.0)).into_array())
+                    .get((wposf.div(400.0)).into_array())
                     .mul(0.3) as f32)
                 .add(0.3)
                 .max(0.0)
@@ -229,7 +227,7 @@ impl WorldSim {
                 (0.0 + alt_main
                     + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
                         .mul(alt_main.max(0.25))
-                        .mul(0.2))
+                        .mul(0.3))
                 .add(1.0)
                 .mul(0.5)
             };
@@ -239,8 +237,7 @@ impl WorldSim {
             // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to
             // get an adjusted value, then multiply the whole thing by map_edge_factor
             // (TODO: compute final bounds).
-            (alt_base[posi].1 + alt_main.mul(chaos[posi].1))
-                .mul(map_edge_factor(posi))
+            (alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi))
         });
 
         let gen_cdf = GenCdf {
@@ -533,7 +530,8 @@ impl SimChunk {
 
         let alt_base = alt_base.mul(CONFIG.mountain_scale);
         let alt = CONFIG
-            .sea_level.mul(map_edge_factor)
+            .sea_level
+            .mul(map_edge_factor)
             .add(alt_pre.mul(CONFIG.mountain_scale));
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;

@@ -175,7 +175,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .small_nz
                 .get((wposf_turb.div(150.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.1))
+                .mul(chaos.max(0.15))
                 .mul(64.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
@@ -373,7 +373,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             temp.sub(CONFIG.snow_temp)
                 .max(-humidity.sub(CONFIG.desert_hum))
                 .mul(16.0)
-                .add((marble_small - 0.5) * 2.0),
+                .add((marble_small - 0.5) * 0.5),
         );
 
         // Work out if we're on a path or near a town

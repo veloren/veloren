@@ -1,8 +1,5 @@
-use common::{
-    terrain::TerrainChunkSize,
-    vol::VolSize,
-};
 use super::WORLD_SIZE;
+use common::{terrain::TerrainChunkSize, vol::VolSize};
 use vek::*;
 
 /// Computes the cumulative distribution function of the weighted sum of k independent,
