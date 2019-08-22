@@ -163,13 +163,19 @@ impl<'a> Sampler for ColumnGen<'a> {
         */
         let river = 0.0;
 
-        let cliff_hill =
-            (sim.gen_ctx.small_nz.get((wposf.div(128.0)).into_array()) as f32).mul(16.0);
+        let cliff_hill = (sim
+            .gen_ctx
+            .small_nz
+            .get((wposf_turb.div(128.0)).into_array()) as f32)
+            .mul(24.0);
 
         let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
-            + (sim.gen_ctx.small_nz.get((wposf.div(256.0)).into_array()) as f32)
+            + (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb.div(150.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.15))
+                .mul(chaos.max(0.1))
                 .mul(64.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
@@ -206,8 +212,8 @@ impl<'a> Sampler for ColumnGen<'a> {
             .mul(0.5)
             .add(marble_small.sub(0.5).mul(0.25));
 
-        let temp = temp.add((marble - 0.5) * 0.5);
-        let humidity = humidity.add((marble - 0.5) * 0.5);
+        let temp = temp.add((marble - 0.5) * 0.25);
+        let humidity = humidity.add((marble - 0.5) * 0.25);
 
         // Colours
         let cold_grass = Rgb::new(0.0, 0.5, 0.25);
