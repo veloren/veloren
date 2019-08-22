@@ -54,8 +54,7 @@ struct GenCdf {
     temp_base: InverseCdf,
     alt_base: InverseCdf,
     chaos: InverseCdf,
-    alt_main: InverseCdf,
-    alt_pre: InverseCdf,
+    alt: InverseCdf,
 }
 
 pub(crate) struct GenCtx {
@@ -191,6 +190,8 @@ impl WorldSim {
                 // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
                 // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
                 // then saturates just before it actually becomes desert.  Otherwise stays at 1.
+                // Note that this is not the *final* temperature, only the initial noise value for
+                // temperature.
                 .mul(
                     temp_base[posi]
                         .1
@@ -204,36 +205,41 @@ impl WorldSim {
                 .max(0.1)
         });
 
-        // This is the extension upwards from the base added to some extra noise from -1 to 1.
-        // The extra noise is multiplied by alt_main (the mountain part of the extension) clamped to
-        // be between 0.25 and 1, and made 60% larger (so the extra noise is between -1.6 and 1.6,
-        // and the final noise is never more than 160% or less than 40% of the original noise,
-        // depending on altitude).
-        // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
-        // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated small_nz
-        // value hits -0.625 the value crosses 0, so most of the points are above 0.
-        //
-        // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
-        let alt_main = uniform_noise(|_, wposf| {
-            // Extension upwards from the base.  A positive number from 0 to 1 curved to be maximal
-            // at 0.  Also to be multiplied by CONFIG.mountain_scale.
-            let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
-                .abs()
-                .powf(1.45);
-
-            (0.0 + alt_main
-                + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
-                    .mul(alt_main.max(0.25))
-                    .mul(0.2))
-            .add(1.0)
-            .mul(0.5)
-        });
-
         // We ignore sea level because we actually want to be relative to sea level here and want
-        // things in CONFIG.mountain_scale units, and we are using the version of chaos that doesn't
-        // know about temperature.  Otherwise, this is a correct altitude calculation.
-        let alt_pre = uniform_noise(|posi, _| {
-            (alt_base[posi].1 + alt_main[posi].1.mul(chaos[posi].1.max(0.1)))
+        // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
+        // calculation.  Note that this is using the "unadjusted" temperature.
+        let alt = uniform_noise(|posi, wposf| {
+            // This is the extension upwards from the base added to some extra noise from -1 to 1.
+            // The extra noise is multiplied by alt_main (the mountain part of the extension)
+            // clamped to [0.25, 1], and made 60% larger (so the extra noise is between [-1.6, 1.6],
+            // and the final noise is never more than 160% or less than 40% of the original noise,
+            // depending on altitude).
+            // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
+            // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated small_nz
+            // value hits -0.625 the value crosses 0, so most of the points are above 0.
+            //
+            // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
+            let alt_main = {
+                // Extension upwards from the base.  A positive number from 0 to 1 curved to be
+                // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
+                let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+                    .abs()
+                    .powf(1.45);
+
+                (0.0 + alt_main
+                    + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                        .mul(alt_main.max(0.25))
+                        .mul(0.2))
+                .add(1.0)
+                .mul(0.5)
+            };
+
+            // Now we can compute the final altitude using chaos.
+            // We multiply by chaos clamped to [0.1, 1.24] to get a value between 0.03 and 2.232 for
+            // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to
+            // get an adjusted value, then multiply the whole thing by map_edge_factor
+            // (TODO: compute final bounds).
+            (alt_base[posi].1 + alt_main.mul(chaos[posi].1))
                 .mul(map_edge_factor(posi))
         });
 
@@ -242,8 +248,7 @@ impl WorldSim {
             temp_base,
             alt_base,
             chaos,
-            alt_main,
-            alt_pre,
+            alt,
         };
 
         let mut chunks = Vec::new();
@@ -508,36 +513,28 @@ impl SimChunk {
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
-        let (_, alt_pre) = gen_cdf.alt_main[posi];
-        let (humid_base, _) = gen_cdf.humid_base[posi];
-        let (alt_uniform, _) = gen_cdf.alt_pre[posi];
+        let (humid_uniform, _) = gen_cdf.humid_base[posi];
+        let (alt_uniform, alt_pre) = gen_cdf.alt[posi];
+        let (temp_uniform, _) = gen_cdf.temp_base[posi];
 
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and other random variable (to add some noise) to yield the
         // final humidity.  Note that we are using the "old" version of chaos here.
         const HUMID_WEIGHTS: [f32; 2] = [1.0, 1.0];
-        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_base, 1.0 - alt_uniform]);
-
-        let (temp_base, _) = gen_cdf.temp_base[posi];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, 1.0 - alt_uniform]);
 
         // We also correlate temperature negatively with altitude using different weighting than we
         // use for humidity.
         const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0];
-        let temp = cdf_irwin_hall(&TEMP_WEIGHTS, [temp_base, 1.0 - alt_uniform])
+        let temp = cdf_irwin_hall(&TEMP_WEIGHTS, [temp_uniform, 1.0 - alt_uniform])
             // Convert to [-1, 1]
             .sub(0.5)
             .mul(2.0);
 
-        // Now we can recompute altitude using the correct verison of chaos.
-        // We multiply by chaos clamped to [0.1, 1.24] to get a value between 0.03 and 2.232 for
-        // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to get
-        // an adjusted value, then multiply the whole thing by map_edge_factor (TODO: compute final bounds).
         let alt_base = alt_base.mul(CONFIG.mountain_scale);
         let alt = CONFIG
-            .sea_level
-            .add(alt_base)
-            .add(alt_pre.mul(chaos).mul(CONFIG.mountain_scale))
-            .mul(map_edge_factor);
+            .sea_level.mul(map_edge_factor)
+            .add(alt_pre.mul(CONFIG.mountain_scale));
 
         let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
