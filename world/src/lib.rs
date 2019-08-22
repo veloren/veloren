@@ -1,6 +1,5 @@
 #![deny(unsafe_code)]
 #![feature(
-    box_syntax,
     const_generics,
     euclidean_division,
     bind_by_move_pattern_guards,
