@@ -154,10 +154,6 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> f32) -> InverseCdf {
     // Construct a vector that associates each chunk position with the 1-indexed
     // position of the noise in the sorted vector (divided by the vector length).
     // This guarantees a uniform distribution among the samples.
-    //
-    // NOTE: Currently there doesn't seem to be a way to create a large fixed-size
-    // array on the heap without overflowing the stack unless you use placement box (at least on
-    // debug mode).  So I want to keep using this until a better alternative is made available.
     let mut uniform_noise = vec![(0.0, 0.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     let total = (WORLD_SIZE.x * WORLD_SIZE.y) as f32;
     for (noise_idx, (chunk_idx, noise_val)) in noise.into_iter().enumerate() {
