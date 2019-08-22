@@ -1,9 +1,10 @@
 use super::{
     consts::Consts,
     gfx_backend,
+    instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, fluid, postprocess, skybox, terrain, ui, Globals, Light},
+    pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -65,6 +66,7 @@ pub struct Renderer {
     figure_pipeline: GfxPipeline<figure::pipe::Init<'static>>,
     terrain_pipeline: GfxPipeline<terrain::pipe::Init<'static>>,
     fluid_pipeline: GfxPipeline<fluid::pipe::Init<'static>>,
+    sprite_pipeline: GfxPipeline<sprite::pipe::Init<'static>>,
     ui_pipeline: GfxPipeline<ui::pipe::Init<'static>>,
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 
@@ -86,6 +88,7 @@ impl Renderer {
             figure_pipeline,
             terrain_pipeline,
             fluid_pipeline,
+            sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
         ) = create_pipelines(&mut factory, &mut shader_reload_indicator)?;
@@ -114,6 +117,7 @@ impl Renderer {
             figure_pipeline,
             terrain_pipeline,
             fluid_pipeline,
+            sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
 
@@ -201,6 +205,7 @@ impl Renderer {
                     figure_pipeline,
                     terrain_pipeline,
                     fluid_pipeline,
+                    sprite_pipeline,
                     ui_pipeline,
                     postprocess_pipeline,
                 )) => {
@@ -208,6 +213,7 @@ impl Renderer {
                     self.figure_pipeline = figure_pipeline;
                     self.terrain_pipeline = terrain_pipeline;
                     self.fluid_pipeline = fluid_pipeline;
+                    self.sprite_pipeline = sprite_pipeline;
                     self.ui_pipeline = ui_pipeline;
                     self.postprocess_pipeline = postprocess_pipeline;
                 }
@@ -236,6 +242,16 @@ impl Renderer {
         vals: &[T],
     ) -> Result<(), RenderError> {
         consts.update(&mut self.encoder, vals)
+    }
+
+    /// Create a new set of instances with the provided values.
+    pub fn create_instances<T: Copy + gfx::traits::Pod>(
+        &mut self,
+        vals: &[T],
+    ) -> Result<Instances<T>, RenderError> {
+        let mut instances = Instances::new(&mut self.factory, vals.len())?;
+        instances.update(&mut self.encoder, vals)?;
+        Ok(instances)
     }
 
     /// Create a new model from the provided mesh.
@@ -350,7 +366,13 @@ impl Renderer {
         locals: &Consts<skybox::Locals>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.skybox_pipeline.pso,
             &skybox::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -372,7 +394,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.figure_pipeline.pso,
             &figure::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -395,7 +423,13 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.terrain_pipeline.pso,
             &terrain::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -417,11 +451,45 @@ impl Renderer {
         lights: &Consts<Light>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.fluid_pipeline.pso,
             &fluid::pipe::Data {
                 vbuf: model.vbuf.clone(),
                 locals: locals.buf.clone(),
+                globals: globals.buf.clone(),
+                lights: lights.buf.clone(),
+                tgt_color: self.tgt_color_view.clone(),
+                tgt_depth: self.tgt_depth_view.clone(),
+            },
+        );
+    }
+
+    /// Queue the rendering of the provided terrain chunk model in the upcoming frame.
+    pub fn render_sprites(
+        &mut self,
+        model: &Model<sprite::SpritePipeline>,
+        globals: &Consts<Globals>,
+        instances: &Instances<sprite::Instance>,
+        lights: &Consts<Light>,
+    ) {
+        self.encoder.draw(
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: Some((instances.count() as u32, 0)),
+                buffer: gfx::IndexBuffer::Auto,
+            },
+            &self.sprite_pipeline.pso,
+            &sprite::pipe::Data {
+                vbuf: model.vbuf.clone(),
+                ibuf: instances.ibuf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
@@ -441,7 +509,13 @@ impl Renderer {
     ) {
         let Aabr { min, max } = scissor;
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.ui_pipeline.pso,
             &ui::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -467,7 +541,13 @@ impl Renderer {
         locals: &Consts<postprocess::Locals>,
     ) {
         self.encoder.draw(
-            &model.slice,
+            &gfx::Slice {
+                start: model.vertex_range().start,
+                end: model.vertex_range().end,
+                base_vertex: 0,
+                instances: None,
+                buffer: gfx::IndexBuffer::Auto,
+            },
             &self.postprocess_pipeline.pso,
             &postprocess::pipe::Data {
                 vbuf: model.vbuf.clone(),
@@ -495,6 +575,7 @@ fn create_pipelines(
         GfxPipeline<figure::pipe::Init<'static>>,
         GfxPipeline<terrain::pipe::Init<'static>>,
         GfxPipeline<fluid::pipe::Init<'static>>,
+        GfxPipeline<sprite::pipe::Init<'static>>,
         GfxPipeline<ui::pipe::Init<'static>>,
         GfxPipeline<postprocess::pipe::Init<'static>>,
     ),
@@ -571,6 +652,18 @@ fn create_pipelines(
         gfx::state::CullFace::Nothing,
     )?;
 
+    // Construct a pipeline for rendering sprites
+    let sprite_pipeline = create_pipeline(
+        factory,
+        sprite::pipe::new(),
+        &assets::load_watched::<String>("voxygen.shaders.sprite-vert", shader_reload_indicator)
+            .unwrap(),
+        &assets::load_watched::<String>("voxygen.shaders.sprite-frag", shader_reload_indicator)
+            .unwrap(),
+        &include_ctx,
+        gfx::state::CullFace::Back,
+    )?;
+
     // Construct a pipeline for rendering UI elements
     let ui_pipeline = create_pipeline(
         factory,
@@ -606,6 +699,7 @@ fn create_pipelines(
         figure_pipeline,
         terrain_pipeline,
         fluid_pipeline,
+        sprite_pipeline,
         ui_pipeline,
         postprocess_pipeline,
     ))

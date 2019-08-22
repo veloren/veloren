@@ -3,19 +3,45 @@ use serde_derive::{Deserialize, Serialize};
 use std::ops::Deref;
 use vek::*;
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum BlockKind {
     Air,
     Normal,
     Dense,
     Water,
+    LargeCactus,
+    BarrelCactus,
+    BlueFlower,
+    PinkFlower,
+    PurpleFlower,
+    RedFlower,
+    WhiteFlower,
+    YellowFlower,
+    Sunflower,
+    LongGrass,
+    MediumGrass,
+    ShortGrass,
+    Apple,
 }
 
 impl BlockKind {
     pub fn is_air(&self) -> bool {
         match self {
             BlockKind::Air => true,
+            BlockKind::LargeCactus => false,
+            BlockKind::BarrelCactus => true,
+            BlockKind::BlueFlower => true,
+            BlockKind::PinkFlower => true,
+            BlockKind::PurpleFlower => true,
+            BlockKind::RedFlower => true,
+            BlockKind::WhiteFlower => true,
+            BlockKind::YellowFlower => true,
+            BlockKind::Sunflower => true,
+            BlockKind::LongGrass => true,
+            BlockKind::MediumGrass => true,
+            BlockKind::ShortGrass => true,
+            BlockKind::Apple => true,
             _ => false,
         }
     }
@@ -31,6 +57,19 @@ impl BlockKind {
         match self {
             BlockKind::Air => false,
             BlockKind::Water => false,
+            BlockKind::LargeCactus => false,
+            BlockKind::BarrelCactus => false,
+            BlockKind::BlueFlower => false,
+            BlockKind::PinkFlower => false,
+            BlockKind::PurpleFlower => false,
+            BlockKind::RedFlower => false,
+            BlockKind::WhiteFlower => false,
+            BlockKind::YellowFlower => false,
+            BlockKind::Sunflower => false,
+            BlockKind::LongGrass => false,
+            BlockKind::MediumGrass => false,
+            BlockKind::ShortGrass => false,
+            BlockKind::Apple => false,
             _ => true,
         }
     }
@@ -39,6 +78,19 @@ impl BlockKind {
         match self {
             BlockKind::Air => false,
             BlockKind::Water => false,
+            BlockKind::LargeCactus => true,
+            BlockKind::BarrelCactus => true,
+            BlockKind::BlueFlower => false,
+            BlockKind::PinkFlower => false,
+            BlockKind::PurpleFlower => false,
+            BlockKind::RedFlower => false,
+            BlockKind::WhiteFlower => false,
+            BlockKind::YellowFlower => false,
+            BlockKind::Sunflower => false,
+            BlockKind::LongGrass => false,
+            BlockKind::MediumGrass => false,
+            BlockKind::ShortGrass => false,
+            BlockKind::Apple => true,
             _ => true,
         }
     }
