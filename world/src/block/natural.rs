@@ -58,6 +58,7 @@ pub fn structure_gen<'a>(
             ForestKind::Oak => &OAKS,
             ForestKind::Pine => &PINES,
             ForestKind::SnowPine => &SNOW_PINES,
+            ForestKind::Mangrove => &MANGROVE_TREES,
         }
     };
 
@@ -421,6 +422,34 @@ lazy_static! {
     ];
     */
 
+    pub static ref MANGROVE_TREES: Vec<Arc<Structure>> = vec![
+        // oak stumps
+        assets::load_map("world.tree.mangroves.1", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.2", |s: Structure| s
+            .with_center(Vec3::new(16, 17, 7)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.3", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.4", |s: Structure| s
+            .with_center(Vec3::new(18, 16, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.5", |s: Structure| s
+            .with_center(Vec3::new(16, 17, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.6", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.7", |s: Structure| s
+            .with_center(Vec3::new(18, 17, 8)))
+        .unwrap(),
+        assets::load_map("world.tree.mangroves.8", |s: Structure| s
+            .with_center(Vec3::new(18, 18, 8)))
+        .unwrap(),
+    ];
+
     pub static ref QUIRKY: Vec<Arc<Structure>> = vec![
         st_asset("world.structure.natural.tower-ruin", (11, 14, 5)),
         st_asset("world.structure.natural.witch-hut", (10, 13, 9)),
@@ -431,4 +460,6 @@ lazy_static! {
         st_asset("world.structure.natural.ribcage-large", (13, 19, 8)),
         st_asset("world.structure.natural.skull-large", (15, 20, 4)),
     ];
+
+
 }
