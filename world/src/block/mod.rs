@@ -148,11 +148,13 @@ impl<'a> BlockGen<'a> {
             //close_structures,
             cave_xy,
             cave_alt,
+            marble,
+            marble_small,
             rock,
             //cliffs,
             cliff_hill,
             close_cliffs,
-            //temp,
+            temp,
             ..
         } = &z_cache?.sample;
 
@@ -253,6 +255,49 @@ impl<'a> BlockGen<'a> {
             Some(Block::new(
                 BlockKind::Normal,
                 saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+            ))
+        } else if (wposf.z as f32) < height + 0.9
+            && temp < CONFIG.desert_temp
+            && (wposf.z as f32 > water_height + 3.0)
+            && marble > 0.68
+            && marble_small > 0.65
+            && (marble * 3173.7).fract() < 0.5
+        {
+            let flowers = [
+                BlockKind::BlueFlower,
+                BlockKind::PinkFlower,
+                BlockKind::PurpleFlower,
+                BlockKind::RedFlower,
+                BlockKind::WhiteFlower,
+                BlockKind::YellowFlower,
+                BlockKind::Sunflower,
+            ];
+
+            let grasses = [
+                BlockKind::LongGrass,
+                BlockKind::MediumGrass,
+                BlockKind::ShortGrass,
+            ];
+
+            Some(Block::new(
+                if (height * 1271.0).fract() < 0.15 {
+                    flowers[(height * 0.2) as usize % flowers.len()]
+                } else {
+                    grasses[(height * 0.3) as usize % grasses.len()]
+                },
+                Rgb::broadcast(0),
+            ))
+        } else if (wposf.z as f32) < height + 0.9
+            && temp > CONFIG.desert_temp
+            && (marble * 4423.5).fract() < 0.0005
+        {
+            Some(Block::new(
+                if (height * 1271.0).fract() < 0.5 {
+                    BlockKind::LargeCactus
+                } else {
+                    BlockKind::BarrelCactus
+                },
+                Rgb::broadcast(0),
             ))
         } else {
             None
@@ -504,11 +549,7 @@ fn block_from_structure(
             )
             .map(|e| e as u8),
         )),
-        StructureBlock::Fruit => Some(Block::new(
-            BlockKind::Normal,
-            Lerp::lerp(Rgb::new(237.0, 0.0, 0.0), Rgb::new(200.0, 237.0, 0.0), lerp)
-                .map(|e| e as u8),
-        )),
+        StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())
