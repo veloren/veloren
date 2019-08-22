@@ -574,14 +574,14 @@ impl Hud {
                 .color(TEXT_COLOR)
                 .set(self.ids.version, ui_widgets);
             // Ticks per second
-            Text::new(&format!("FPS: {:.1}", debug_info.tps))
+            Text::new(&format!("FPS: {:.0}", debug_info.tps))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.version, 5.0)
                 .font_id(self.fonts.opensans)
                 .font_size(14)
                 .set(self.ids.fps_counter, ui_widgets);
             // Ping
-            Text::new(&format!("Ping: {:.1}ms", debug_info.ping_ms))
+            Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
                 .down_from(self.ids.fps_counter, 5.0)
                 .font_id(self.fonts.opensans)
@@ -589,7 +589,10 @@ impl Hud {
                 .set(self.ids.ping, ui_widgets);
             // Player's position
             let coordinates_text = match debug_info.coordinates {
-                Some(coordinates) => format!("Coordinates: {:.1}", coordinates.0),
+                Some(coordinates) => format!(
+                    "Coordinates: ({:.0}, {:.0}, {:.0})",
+                    coordinates.0.x, coordinates.0.y, coordinates.0.z,
+                ),
                 None => "Player has no Pos component".to_owned(),
             };
             Text::new(&coordinates_text)
@@ -601,8 +604,11 @@ impl Hud {
             // Player's velocity
             let velocity_text = match debug_info.velocity {
                 Some(velocity) => format!(
-                    "Velocity: ({:.3}, {:.3}, {:.3})",
-                    velocity.0.x, velocity.0.y, velocity.0.z
+                    "Velocity: ({:.1}, {:.1}, {:.1}) [{:.1} u/s]",
+                    velocity.0.x,
+                    velocity.0.y,
+                    velocity.0.z,
+                    velocity.0.magnitude()
                 ),
                 None => "Player has no Vel component".to_owned(),
             };
