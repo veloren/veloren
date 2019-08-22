@@ -190,7 +190,7 @@ struct GenCdf {
     humid_base: InverseCdf,
     temp_base: InverseCdf,
     alt_base: InverseCdf,
-    chaos_pre: InverseCdf,
+    chaos: InverseCdf,
     alt_main: InverseCdf,
     alt_pre: InverseCdf,
 }
@@ -307,13 +307,7 @@ impl WorldSim {
 
         // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
         // "chaotic" the region is--how much weird stuff is going on on this terrain.
-        //
-        // First, we calculate chaos_pre, which is chaos with no filter and no temperature
-        // flattening (so it is between [0, 1.24] instead of [0.1, 1.24].  This is used to break
-        // the cyclic dependency between temperature and altitude (altitude relies on chaos, which
-        // relies on temperature, but we also want temperature to rely on altitude.  We recompute
-        // altitude with the temperature incorporated after we figure out temperature).
-        let chaos_pre = uniform_noise(
+        let chaos = uniform_noise(
             |posi, wposf| (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
             .add(1.0)
             .mul(0.5)
@@ -327,7 +321,19 @@ impl WorldSim {
             // Chaos is always increased by a little when we're on a hill (but remember that
             // hill is 0 about 50% of the time).
             // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
-            .add(0.15 * hill[posi].1));
+            .add(0.15 * hill[posi].1)
+            // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
+            // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
+            // then saturates just before it actually becomes desert.  Otherwise stays at 1.
+            .mul(
+                temp_base[posi].1.sub(0.45)
+                    .neg()
+                    .mul(12.0)
+                    .max(0.35)
+                    .min(1.0),
+            )
+            // We can't have *no* chaos!
+            .max(0.1));
 
         // This is the extension upwards from the base added to some extra noise from -1 to 1.
         // The extra noise is multiplied by alt_main (the mountain part of the extension) clamped to
@@ -359,14 +365,14 @@ impl WorldSim {
         // things in CONFIG.mountain_scale units, and we are using the version of chaos that doesn't
         // know about temperature.  Otherwise, this is a correct altitude calculation.
         let alt_pre = uniform_noise(|posi, _|
-            (alt_base[posi].1 + alt_main[posi].1.mul(chaos_pre[posi].1.max(0.1)))
+            (alt_base[posi].1 + alt_main[posi].1.mul(chaos[posi].1.max(0.1)))
             .mul(map_edge_factor(posi)));
 
         let gen_cdf = GenCdf {
             humid_base,
             temp_base,
             alt_base,
-            chaos_pre,
+            chaos,
             alt_main,
             alt_pre,
         };
@@ -632,7 +638,7 @@ impl SimChunk {
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);
-        let (_, chaos_pre) = gen_cdf.chaos_pre[posi];
+        let (_, chaos) = gen_cdf.chaos[posi];
         let (_, alt_pre) = gen_cdf.alt_main[posi];
         let (humid_base, _) = gen_cdf.humid_base[posi];
         let (alt_uniform, _) = gen_cdf.alt_pre[posi];
@@ -660,22 +666,6 @@ impl SimChunk {
             // Convert to [-1, 1]
             .sub(0.5)
             .mul(2.0);
-
-        // Now, we finish the computation of chaos incorporating temperature information, producing
-        // a value in [0.1, 1.24].
-        let chaos = chaos_pre
-            // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
-            // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
-            // then saturates just before it actually becomes desert.  Otherwise stays at 1.
-            .mul(
-                temp_old.sub(0.45)
-                    .neg()
-                    .mul(12.0)
-                    .max(0.35)
-                    .min(1.0),
-            )
-            // We can't have *no* chaos!
-            .max(0.1);
 
         // Now we can recompute altitude using the correct verison of chaos.
         // We multiply by chaos clamped to [0.1, 1.24] to get a value between 0.03 and 2.232 for
