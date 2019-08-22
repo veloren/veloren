@@ -1,5 +1,10 @@
 #![deny(unsafe_code)]
-#![feature(euclidean_division, bind_by_move_pattern_guards, option_flattening)]
+#![feature(
+    const_generics,
+    euclidean_division,
+    bind_by_move_pattern_guards,
+    option_flattening
+)]
 
 mod all;
 mod block;
