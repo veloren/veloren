@@ -10,21 +10,19 @@ use std::ops::Range;
 /// Represents a mesh that has been sent to the GPU.
 pub struct Model<P: Pipeline> {
     pub vbuf: gfx::handle::Buffer<gfx_backend::Resources, P::Vertex>,
-    pub slice: gfx::Slice<gfx_backend::Resources>,
+    pub vertex_range: Range<u32>,
 }
 
 impl<P: Pipeline> Model<P> {
     pub fn new(factory: &mut gfx_backend::Factory, mesh: &Mesh<P>) -> Self {
         Self {
             vbuf: factory.create_vertex_buffer(mesh.vertices()),
-            slice: gfx::Slice {
-                start: 0,
-                end: mesh.vertices().len() as u32,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
+            vertex_range: 0..mesh.vertices().len() as u32,
         }
+    }
+
+    pub fn vertex_range(&self) -> Range<u32> {
+        self.vertex_range.clone()
     }
 }
 
@@ -46,13 +44,7 @@ impl<P: Pipeline> DynamicModel<P> {
     pub fn submodel(&self, range: Range<usize>) -> Model<P> {
         Model {
             vbuf: self.vbuf.clone(),
-            slice: gfx::Slice {
-                start: range.start as u32,
-                end: range.end as u32,
-                base_vertex: 0,
-                instances: None,
-                buffer: gfx::IndexBuffer::Auto,
-            },
+            vertex_range: range.start as u32..range.end as u32,
         }
     }
 
