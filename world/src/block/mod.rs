@@ -2,6 +2,7 @@ mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample, StructureData},
+    generator::TownGen,
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
 };
@@ -155,6 +156,8 @@ impl<'a> BlockGen<'a> {
             cliff_hill,
             close_cliffs,
             temp,
+
+            chunk,
             ..
         } = &z_cache?.sample;
 
@@ -350,6 +353,15 @@ impl<'a> BlockGen<'a> {
             } else {
                 None
             }
+        });
+
+        // Structures (like towns)
+        let block = block.or_else(|| {
+            chunk
+                .structures
+                .town
+                .as_ref()
+                .and_then(|town| TownGen.get((town, wpos)))
         });
 
         let block = structures
