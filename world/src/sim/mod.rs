@@ -11,6 +11,7 @@ use self::util::{
 
 use crate::{
     all::ForestKind,
+    generator::TownState,
     util::{seed_expan, Sampler, StructureGen2d},
     CONFIG,
 };
@@ -26,6 +27,7 @@ use rand_chacha::ChaChaRng;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
 };
 use vek::*;
 
@@ -499,6 +501,8 @@ pub struct SimChunk {
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
+
+    pub structures: Structures,
 }
 
 #[derive(Copy, Clone)]
@@ -513,6 +517,11 @@ pub struct RegionInfo {
 pub struct LocationInfo {
     pub loc_idx: usize,
     pub near: Vec<RegionInfo>,
+}
+
+#[derive(Clone)]
+pub struct Structures {
+    pub town: Option<Arc<TownState>>,
 }
 
 impl SimChunk {
@@ -657,6 +666,8 @@ impl SimChunk {
             },
             spawn_rate: 1.0,
             location: None,
+
+            structures: Structures { town: None },
         }
     }
 

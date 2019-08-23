@@ -514,6 +514,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             temp,
             spawn_rate,
             location: sim_chunk.location.as_ref(),
+
+            chunk: sim_chunk,
         })
     }
 }
@@ -541,6 +543,8 @@ pub struct ColumnSample<'a> {
     pub temp: f32,
     pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
+
+    pub chunk: &'a SimChunk,
 }
 
 #[derive(Copy, Clone)]
