@@ -12,7 +12,7 @@ use self::util::{
 use crate::{
     all::ForestKind,
     generator::TownState,
-    util::{seed_expan, Sampler, StructureGen2d},
+    util::{seed_expan, FastNoise, Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
@@ -75,7 +75,7 @@ pub(crate) struct GenCtx {
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
     pub cliff_nz: HybridMulti,
-    pub warp_nz: BasicMulti,
+    pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
     pub cave_0_nz: SuperSimplex,
@@ -84,6 +84,9 @@ pub(crate) struct GenCtx {
     pub structure_gen: StructureGen2d,
     pub region_gen: StructureGen2d,
     pub cliff_gen: StructureGen2d,
+
+    pub fast_turb_x_nz: FastNoise,
+    pub fast_turb_y_nz: FastNoise,
 }
 
 pub struct WorldSim {
@@ -117,7 +120,7 @@ impl WorldSim {
             small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
             cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            warp_nz: BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+            warp_nz: FastNoise::new(gen_seed()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
@@ -135,6 +138,9 @@ impl WorldSim {
                 // .set_octaves(6)
                 // .set_persistence(0.5)
                 .set_seed(gen_seed()),
+
+            fast_turb_x_nz: FastNoise::new(gen_seed()),
+            fast_turb_y_nz: FastNoise::new(gen_seed()),
         };
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
