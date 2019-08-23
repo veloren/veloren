@@ -1,125 +1,135 @@
-use crate::comp::{
-    ActionState, Attacking, Body, Controller, Gliding, Jumping, MoveDir, Respawning, Rolling,
-    Stats, Vel, Wielding,
+use crate::{
+    comp::{
+        ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
+        Vel,
+    },
+    event::{Event, EventBus},
 };
-use specs::{Entities, Join, ReadStorage, System, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 
 /// This system is responsible for validating controller inputs
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        Read<'a, EventBus>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
-        WriteStorage<'a, ActionState>,
-        WriteStorage<'a, MoveDir>,
-        WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Attacking>,
-        WriteStorage<'a, Wielding>,
-        WriteStorage<'a, Rolling>,
-        WriteStorage<'a, Respawning>,
-        WriteStorage<'a, Gliding>,
+        ReadStorage<'a, PhysicsState>,
+        WriteStorage<'a, CharacterState>,
     );
 
     fn run(
         &mut self,
         (
             entities,
+            event_bus,
             mut controllers,
             stats,
             bodies,
             velocities,
-            mut action_states,
-            mut move_dirs,
-            mut jumpings,
-            mut attackings,
-            mut wieldings,
-            mut rollings,
-            mut respawns,
-            mut glidings,
+            physics_states,
+            mut character_states,
         ): Self::SystemData,
     ) {
-        for (entity, controller, stats, body, vel, mut a) in (
+        let mut event_emitter = event_bus.emitter();
+
+        for (entity, controller, stats, body, vel, physics, mut character) in (
             &entities,
             &mut controllers,
             &stats,
             &bodies,
             &velocities,
-            // Although this is changed, it is only kept for this system
-            // as it will be replaced in the action state system
-            &mut action_states,
+            &physics_states,
+            &mut character_states,
         )
             .join()
         {
             if stats.is_dead {
                 // Respawn
                 if controller.respawn {
-                    let _ = respawns.insert(entity, Respawning);
+                    event_emitter.emit(Event::Respawn(entity));
                 }
                 continue;
             }
 
-            // Move dir
-            if !a.rolling {
-                let _ = move_dirs.insert(
-                    entity,
-                    MoveDir(if controller.move_dir.magnitude_squared() > 1.0 {
-                        controller.move_dir.normalized()
-                    } else {
-                        controller.move_dir
-                    }),
-                );
+            // Move
+            controller.move_dir = if controller.move_dir.magnitude_squared() > 1.0 {
+                controller.move_dir.normalized()
+            } else {
+                controller.move_dir
+            };
+
+            if character.movement == Stand && controller.move_dir.magnitude_squared() > 0.0 {
+                character.movement = Run;
+            } else if character.movement == Run && controller.move_dir.magnitude_squared() == 0.0 {
+                character.movement = Stand;
             }
 
             // Glide
-            if controller.glide && !a.on_ground && !a.attacking && !a.rolling && body.is_humanoid()
+            if controller.glide
+                && !physics.on_ground
+                && (character.action == Idle || character.action.is_wield())
+                && character.movement == Jump
+                // TODO: Ask zesterer if we can remove this
+                && body.is_humanoid()
             {
-                let _ = glidings.insert(entity, Gliding);
-                a.gliding = true;
-            } else {
-                let _ = glidings.remove(entity);
-                a.gliding = false;
+                character.movement = Glide;
+            } else if !controller.glide && character.movement == Glide {
+                character.movement = Jump;
             }
 
             // Wield
-            if controller.attack && !a.wielding && !a.gliding && !a.rolling {
-                let _ = wieldings.insert(entity, Wielding::start());
-                a.wielding = true;
+            if controller.attack
+                && character.action == Idle
+                && (character.movement == Stand || character.movement == Run)
+            {
+                character.action = Wield {
+                    time_left: Duration::from_millis(300),
+                };
             }
 
             // Attack
             if controller.attack
-                && !a.attacking
-                && wieldings.get(entity).map(|w| w.applied).unwrap_or(false)
-                && !a.gliding
-                && !a.rolling
+                && (character.movement == Stand
+                    || character.movement == Run
+                    || character.movement == Jump)
             {
-                let _ = attackings.insert(entity, Attacking::start());
-                a.attacking = true;
+                // TODO: Check if wield ability exists
+                if let Wield { time_left } = character.action {
+                    if time_left == Duration::default() {
+                        character.action = Attack {
+                            time_left: Duration::from_millis(300),
+                            applied: false,
+                        };
+                    }
+                }
             }
 
             // Roll
             if controller.roll
-                && !a.rolling
-                && a.on_ground
-                && a.moving
-                && !a.attacking
-                && !a.gliding
+                && (character.action == Idle || character.action.is_wield())
+                && character.movement == Run
+                && physics.on_ground
             {
-                let _ = rollings.insert(entity, Rolling::start());
-                a.rolling = true;
+                character.movement = Roll {
+                    time_left: Duration::from_millis(600),
+                };
             }
 
             // Jump
-            if controller.jump && a.on_ground && vel.0.z <= 0.0 {
-                let _ = jumpings.insert(entity, Jumping);
-                a.on_ground = false;
+            if controller.jump && physics.on_ground && vel.0.z <= 0.0 {
+                dbg!();
+                event_emitter.emit(Event::Jump(entity));
             }
 
+            // TODO before merge: reset controller in a final ecs system
+
             // Reset the controller ready for the next tick
-            *controller = Controller::default();
+            //*controller = Controller::default();
         }
     }
 }
