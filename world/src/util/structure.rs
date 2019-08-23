@@ -21,7 +21,7 @@ impl StructureGen2d {
     }
 }
 
-impl Sampler for StructureGen2d {
+impl Sampler<'static> for StructureGen2d {
     type Index = Vec2<i32>;
     type Sample = [(Vec2<i32>, u32); 9];
 

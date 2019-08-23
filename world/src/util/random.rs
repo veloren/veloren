@@ -11,7 +11,7 @@ impl RandomField {
     }
 }
 
-impl Sampler for RandomField {
+impl Sampler<'static> for RandomField {
     type Index = Vec3<i32>;
     type Sample = u32;
 
@@ -46,7 +46,7 @@ impl RandomPerm {
     }
 }
 
-impl Sampler for RandomPerm {
+impl Sampler<'static> for RandomPerm {
     type Index = u32;
     type Sample = u32;
 
