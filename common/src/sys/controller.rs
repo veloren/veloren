@@ -122,7 +122,6 @@ impl<'a> System<'a> for Sys {
 
             // Jump
             if controller.jump && physics.on_ground && vel.0.z <= 0.0 {
-                dbg!();
                 event_emitter.emit(Event::Jump(entity));
             }
         }

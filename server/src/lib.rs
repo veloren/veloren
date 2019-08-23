@@ -217,109 +217,112 @@ impl Server {
 
     /// Handle events coming through via the event bus
     fn handle_events(&mut self) {
-        let terrain = self.state.ecs().read_resource::<TerrainMap>();
-        let mut block_change = self.state.ecs().write_resource::<BlockChange>();
-        let mut stats = self.state.ecs().write_storage::<comp::Stats>();
-        let mut positions = self.state.ecs().write_storage::<comp::Pos>();
-        let mut velocities = self.state.ecs().write_storage::<comp::Vel>();
-        let mut force_updates = self.state.ecs().write_storage::<comp::ForceUpdate>();
+        let clients = &mut self.clients;
 
-        for event in self.state.ecs().read_resource::<EventBus>().recv_all() {
-            match event {
-                GameEvent::LandOnGround { entity, vel } => {
-                    if let Some(stats) = stats.get_mut(entity) {
-                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
-                        if falldmg < 0 {
-                            stats.health.change_by(falldmg, comp::HealthSource::World);
+        let events = self.state.ecs().read_resource::<EventBus>().recv_all();
+        for event in events {
+            let ecs = self.state.ecs_mut();
+            let mut todo_remove = None;
+            {
+                let terrain = ecs.read_resource::<TerrainMap>();
+                let mut block_change = ecs.write_resource::<BlockChange>();
+                let mut stats = ecs.write_storage::<comp::Stats>();
+                let mut positions = ecs.write_storage::<comp::Pos>();
+                let mut velocities = ecs.write_storage::<comp::Vel>();
+                let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
+
+                match event {
+                    GameEvent::LandOnGround { entity, vel } => {
+                        if let Some(stats) = stats.get_mut(entity) {
+                            let falldmg = (vel.z / 1.5 + 10.0) as i32;
+                            if falldmg < 0 {
+                                stats.health.change_by(falldmg, comp::HealthSource::World);
+                            }
                         }
                     }
-                }
-                GameEvent::Explosion { pos, radius } => {
-                    const RAYS: usize = 500;
+                    GameEvent::Explosion { pos, radius } => {
+                        const RAYS: usize = 500;
 
-                    for _ in 0..RAYS {
-                        let dir = Vec3::new(
-                            rand::random::<f32>() - 0.5,
-                            rand::random::<f32>() - 0.5,
-                            rand::random::<f32>() - 0.5,
-                        )
-                        .normalized();
+                        for _ in 0..RAYS {
+                            let dir = Vec3::new(
+                                rand::random::<f32>() - 0.5,
+                                rand::random::<f32>() - 0.5,
+                                rand::random::<f32>() - 0.5,
+                            )
+                            .normalized();
 
-                        let _ = terrain
-                            .ray(pos, pos + dir * radius)
-                            .until(|_| rand::random::<f32>() < 0.05)
-                            .for_each(|pos| block_change.set(pos, Block::empty()))
-                            .cast();
+                            let _ = terrain
+                                .ray(pos, pos + dir * radius)
+                                .until(|_| rand::random::<f32>() < 0.05)
+                                .for_each(|pos| block_change.set(pos, Block::empty()))
+                                .cast();
+                        }
                     }
-                }
-                GameEvent::Jump(entity) => {
-                    if let Some(vel) = velocities.get_mut(entity) {
-                        vel.0.z = HUMANOID_JUMP_ACCEL;
-                        let _ = force_updates.insert(entity, comp::ForceUpdate);
+                    GameEvent::Jump(entity) => {
+                        if let Some(vel) = velocities.get_mut(entity) {
+                            vel.0.z = HUMANOID_JUMP_ACCEL;
+                            let _ = force_updates.insert(entity, comp::ForceUpdate);
+                        }
                     }
-                }
-                GameEvent::Die { entity, cause } => {
-                    // Chat message
-                    if let Some(player) =
-                        self.state.ecs().read_storage::<comp::Player>().get(entity)
-                    {
-                        let msg = if let comp::HealthSource::Attack { by } = cause {
-                            self.state()
-                                .ecs()
-                                .entity_from_uid(by.into())
-                                .and_then(|attacker| {
-                                    self.state
-                                        .ecs()
-                                        .read_storage::<comp::Player>()
-                                        .get(attacker)
-                                        .map(|attacker_alias| {
+                    GameEvent::Die { entity, cause } => {
+                        // Chat message
+                        if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+                            let msg = if let comp::HealthSource::Attack { by } = cause {
+                                ecs.entity_from_uid(by.into()).and_then(|attacker| {
+                                    ecs.read_storage::<comp::Player>().get(attacker).map(
+                                        |attacker_alias| {
                                             format!(
                                                 "{} was killed by {}",
                                                 &player.alias, &attacker_alias.alias
                                             )
-                                        })
+                                        },
+                                    )
                                 })
+                            } else {
+                                None
+                            }
+                            .unwrap_or(format!("{} died", &player.alias));
+
+                            clients.notify_registered(ServerMsg::kill(msg));
+                        }
+
+                        // Give EXP to the client
+                        if let Some(entity_stats) = stats.get(entity).cloned() {
+                            if let comp::HealthSource::Attack { by } = cause {
+                                ecs.entity_from_uid(by.into()).map(|attacker| {
+                                    if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                        // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                        attacker_stats.exp.change_by(
+                                            entity_stats.health.maximum() as f64 / 10.0
+                                                + entity_stats.level.level() as f64 * 10.0,
+                                        );
+                                    }
+                                });
+                            }
+                        }
+
+                        if let Some(client) = clients.get_mut(&entity) {
+                            let _ = velocities.insert(entity, comp::Vel(Vec3::zero()));
+                            let _ = force_updates.insert(entity, comp::ForceUpdate);
+                            client.force_state(ClientState::Dead);
                         } else {
-                            None
-                        }
-                        .unwrap_or(format!("{} died", &player.alias));
-
-                        self.clients.notify_registered(ServerMsg::kill(msg));
-                    }
-
-                    // Give EXP to the client
-                    if let Some(entity_stats) = stats.get(entity).cloned() {
-                        if let comp::HealthSource::Attack { by } = cause {
-                            self.state.ecs().entity_from_uid(by.into()).map(|attacker| {
-                                if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                    // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                    attacker_stats.exp.change_by(
-                                        entity_stats.health.maximum() as f64 / 10.0
-                                            + entity_stats.level.level() as f64 * 10.0,
-                                    );
-                                }
-                            });
+                            todo_remove = Some(entity.clone());
                         }
                     }
+                    GameEvent::Respawn(entity) => {
+                        // Only clients can respawn
+                        if let Some(client) = clients.get_mut(&entity) {
+                            client.allow_state(ClientState::Character);
+                            stats.get_mut(entity).map(|stats| stats.revive());
+                            positions.get_mut(entity).map(|pos| pos.0.z += 20.0);
+                            let _ = force_updates.insert(entity, comp::ForceUpdate);
+                        }
+                    }
+                }
+            }
 
-                    if let Some(client) = self.clients.get_mut(&entity) {
-                        let _ = velocities.insert(entity, comp::Vel(Vec3::zero()));
-                        let _ = force_updates.insert(entity, comp::ForceUpdate);
-                        client.force_state(ClientState::Dead);
-                    } else {
-                        //let _ = self.state.ecs_mut().delete_entity_synced(entity);
-                        continue;
-                    }
-                }
-                GameEvent::Respawn(entity) => {
-                    // Only clients can respawn
-                    if let Some(client) = self.clients.get_mut(&entity) {
-                        client.allow_state(ClientState::Character);
-                        stats.get_mut(entity).map(|stats| stats.revive());
-                        positions.get_mut(entity).map(|pos| pos.0.z += 20.0);
-                        force_updates.insert(entity, comp::ForceUpdate);
-                    }
-                }
+            if let Some(entity) = todo_remove {
+                let _ = ecs.delete_entity_synced(entity);
             }
         }
     }
