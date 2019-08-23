@@ -142,7 +142,6 @@ impl<'a> Sampler for ColumnGen<'a> {
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
-        let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
