@@ -171,31 +171,18 @@ impl<'a> BlockGen<'a> {
                 (true, alt, CONFIG.sea_level /*water_level*/)
             } else {
                 // Apply warping
-                let warp = (world
-                    .sim()
-                    .gen_ctx
-                    .warp_nz
-                    .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
-                    as f32)
+                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(16.0)) as f32)
                     .mul((chaos - 0.1).max(0.0))
-                    .mul(96.0);
+                    .mul(15.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
                     alt + warp
                 } else {
                     let turb = Vec2::new(
-                        world
-                            .sim()
-                            .gen_ctx
-                            .turb_x_nz
-                            .get((wposf.div(48.0)).into_array()) as f32,
-                        world
-                            .sim()
-                            .gen_ctx
-                            .turb_y_nz
-                            .get((wposf.div(48.0)).into_array()) as f32,
-                    ) * 12.0;
+                        world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(16.0)) as f32,
+                        world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(16.0)) as f32,
+                    ) * 8.0;
 
                     let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
                     let cliff_height = Self::get_cliff_height(
