@@ -1,11 +1,24 @@
+use crate::comp;
 use parking_lot::Mutex;
 use specs::Entity as EcsEntity;
 use std::{collections::VecDeque, ops::DerefMut};
 use vek::*;
 
 pub enum Event {
-    LandOnGround { entity: EcsEntity, vel: Vec3<f32> },
-    Explosion { pos: Vec3<f32>, radius: f32 },
+    LandOnGround {
+        entity: EcsEntity,
+        vel: Vec3<f32>,
+    },
+    Explosion {
+        pos: Vec3<f32>,
+        radius: f32,
+    },
+    Die {
+        entity: EcsEntity,
+        cause: comp::HealthSource,
+    },
+    Jump(EcsEntity),
+    Respawn(EcsEntity),
 }
 
 #[derive(Default)]

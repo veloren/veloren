@@ -1,4 +1,4 @@
-use crate::comp::{ActionState, Agent, Controller, Pos, Stats};
+use crate::comp::{Agent, CharacterState, Controller, MovementState::Glide, Pos, Stats};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -10,14 +10,14 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Stats>,
-        ReadStorage<'a, ActionState>,
+        ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
     );
 
     fn run(
         &mut self,
-        (entities, positions, stats, action_states, mut agents, mut controllers): Self::SystemData,
+        (entities, positions, stats, character_states, mut agents, mut controllers): Self::SystemData,
     ) {
         for (entity, pos, agent, controller) in
             (&entities, &positions, &mut agents, &mut controllers).join()
@@ -67,12 +67,12 @@ impl<'a> System<'a> for Sys {
                     const SIGHT_DIST: f32 = 30.0;
                     let mut choose_new = false;
 
-                    if let Some((Some(target_pos), Some(target_stats), Some(a))) =
+                    if let Some((Some(target_pos), Some(target_stats), Some(target_character))) =
                         target.map(|target| {
                             (
                                 positions.get(target),
                                 stats.get(target),
-                                action_states.get(target),
+                                character_states.get(target),
                             )
                         })
                     {
@@ -97,7 +97,8 @@ impl<'a> System<'a> for Sys {
                                 controller.roll = true;
                             }
 
-                            if a.gliding && target_pos.0.z > pos.0.z + 5.0 {
+                            if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
+                            {
                                 controller.glide = true;
                                 controller.jump = true;
                             }

@@ -1,8 +1,9 @@
 use crate::{
-    comp::{Attacking, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel, Wielding},
+    comp::{ActionState::*, CharacterState, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel},
     state::{DeltaTime, Uid},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
@@ -14,8 +15,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         WriteStorage<'a, Vel>,
-        WriteStorage<'a, Attacking>,
-        WriteStorage<'a, Wielding>,
+        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
         WriteStorage<'a, ForceUpdate>,
     );
@@ -29,18 +29,26 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             mut velocities,
-            mut attackings,
-            mut wieldings,
+            mut character_states,
             mut stats,
             mut force_updates,
         ): Self::SystemData,
     ) {
         // Attacks
-        (&entities, &uids, &positions, &orientations, &mut attackings)
+        for (entity, uid, pos, ori, mut character) in (
+            &entities,
+            &uids,
+            &positions,
+            &orientations,
+            &mut character_states,
+        )
             .join()
-            .filter_map(|(entity, uid, pos, ori, mut attacking)| {
-                if !attacking.applied {
-                    // Go through all other entities
+        {
+            let mut todo_end = false;
+
+            // Go through all other entities
+            if let Attack { time_left, applied } = &mut character.action {
+                if !*applied {
                     for (b, pos_b, mut vel_b, stat_b) in
                         (&entities, &positions, &mut velocities, &mut stats).join()
                     {
@@ -59,29 +67,28 @@ impl<'a> System<'a> for Sys {
                             let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }
-                    attacking.applied = true;
+                    *applied = true;
                 }
 
-                if attacking.time > 0.5 {
-                    Some(entity)
+                if *time_left == Duration::default() {
+                    todo_end = true;
                 } else {
-                    attacking.time += dt.0;
-
-                    None
+                    *time_left = time_left
+                        .checked_sub(Duration::from_secs_f32(dt.0))
+                        .unwrap_or_default();
                 }
-            })
-            .collect::<Vec<_>>()
-            .into_iter()
-            .for_each(|e| {
-                attackings.remove(e);
-            });
-        {
-            // Wields
-            for wielding in (&mut wieldings).join() {
-                if !wielding.applied && wielding.time > 0.3 {
-                    wielding.applied = true;
-                } else {
-                    wielding.time += dt.0;
+            }
+            if todo_end {
+                character.action = Wield {
+                    time_left: Duration::default(),
+                };
+            }
+
+            if let Wield { time_left } = &mut character.action {
+                if *time_left != Duration::default() {
+                    *time_left = time_left
+                        .checked_sub(Duration::from_secs_f32(dt.0))
+                        .unwrap_or_default();
                 }
             }
         }
