@@ -491,7 +491,6 @@ pub struct SimChunk {
     pub alt_base: f32,
     pub alt: f32,
     pub temp: f32,
-    pub dryness: f32,
     pub humidity: f32,
     pub rockiness: f32,
     pub is_cliffs: bool,
@@ -520,22 +519,6 @@ impl SimChunk {
     fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
-
-        // FIXME: Currently unused, but should represent fresh groundwater level.
-        // Should be correlated a little with humidity, somewhat negatively with altitude,
-        // and very negatively with difference in temperature from zero.
-        let dryness = gen_ctx.dry_nz.get(
-            (wposf
-                .add(Vec2::new(
-                    gen_ctx
-                        .dry_nz
-                        .get((wposf.add(10000.0).div(500.0)).into_array())
-                        * 150.0,
-                    gen_ctx.dry_nz.get((wposf.add(0.0).div(500.0)).into_array()) * 150.0,
-                ))
-                .div(2_000.0))
-            .into_array(),
-        ) as f32;
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);
@@ -606,16 +589,12 @@ impl SimChunk {
             alt_base,
             alt,
             temp,
-            dryness,
             humidity,
             rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            is_cliffs: cliff > 0.5
-                && dryness > 0.05
-                && alt > CONFIG.sea_level + 5.0
-                && dryness.abs() > 0.075,
+            is_cliffs: cliff > 0.5 && alt > CONFIG.sea_level + 5.0,
             near_cliffs: cliff > 0.25,
             tree_density,
             forest_kind: if temp > 0.0 {
