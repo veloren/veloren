@@ -23,14 +23,16 @@ impl Sampler<'static> for FastNoise {
     type Sample = f32;
 
     fn get(&self, pos: Self::Index) -> Self::Sample {
-        let v000 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(0, 0, 0));
-        let v100 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(1, 0, 0));
-        let v010 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(0, 1, 0));
-        let v110 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(1, 1, 0));
-        let v001 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(0, 0, 1));
-        let v101 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(1, 0, 1));
-        let v011 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(0, 1, 1));
-        let v111 = self.noise_at(pos.map(|e| e.floor() as i32) + Vec3::new(1, 1, 1));
+        let near_pos = pos.map(|e| e.floor() as i32);
+
+        let v000 = self.noise_at(near_pos + Vec3::new(0, 0, 0));
+        let v100 = self.noise_at(near_pos + Vec3::new(1, 0, 0));
+        let v010 = self.noise_at(near_pos + Vec3::new(0, 1, 0));
+        let v110 = self.noise_at(near_pos + Vec3::new(1, 1, 0));
+        let v001 = self.noise_at(near_pos + Vec3::new(0, 0, 1));
+        let v101 = self.noise_at(near_pos + Vec3::new(1, 0, 1));
+        let v011 = self.noise_at(near_pos + Vec3::new(0, 1, 1));
+        let v111 = self.noise_at(near_pos + Vec3::new(1, 1, 1));
 
         let factor = pos.map(|e| 0.5 - (e.fract() as f32 * f32::consts::PI).cos() * 0.5);
 
