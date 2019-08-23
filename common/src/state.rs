@@ -122,7 +122,8 @@ impl State {
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::ActionState>();
+        ecs.register::<comp::CharacterState>();
+        ecs.register::<comp::PhysicsState>();
 
         // Register components synced from client -> server -> all other clients
         ecs.register::<comp::Pos>();
@@ -132,27 +133,17 @@ impl State {
 
         // Register client-local components
         ecs.register::<comp::AnimationInfo>();
-        ecs.register::<comp::Jumping>();
 
         // Register server-local components
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::ActionState>>();
+        ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
-        ecs.register::<comp::Respawning>();
-        ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
-        // Controller effects
-        ecs.register::<comp::MoveDir>();
-        ecs.register::<comp::OnGround>();
-        ecs.register::<comp::Attacking>();
-        ecs.register::<comp::Wielding>();
-        ecs.register::<comp::Rolling>();
-        ecs.register::<comp::Gliding>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));

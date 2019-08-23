@@ -1,16 +1,14 @@
-use crate::{
-    comp::HealthSource,
-    comp::{
-        ActionState, Body, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Scale, Stats, Vel,
-        Wielding,
+use {
+    crate::{
+        comp::{Body, CharacterState, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
+        event::{Event, EventBus},
+        state::DeltaTime,
+        terrain::TerrainMap,
+        vol::{ReadVol, Vox},
     },
-    event::{Event, EventBus},
-    state::DeltaTime,
-    terrain::TerrainMap,
-    vol::{ReadVol, Vox},
+    specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+    vek::*,
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use vek::*;
 
 const GRAVITY: f32 = 9.81 * 4.0;
 const FRIC_GROUND: f32 = 0.15;
@@ -37,10 +35,10 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus>,
-        ReadStorage<'a, ActionState>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        WriteStorage<'a, OnGround>,
+        WriteStorage<'a, CharacterState>,
+        WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -53,10 +51,10 @@ impl<'a> System<'a> for Sys {
             terrain,
             dt,
             event_bus,
-            action_states,
             scales,
             bodies,
-            mut on_grounds,
+            mut character_states,
+            mut physics_states,
             mut positions,
             mut velocities,
             mut orientations,
@@ -65,9 +63,8 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, a, scale, b, mut pos, mut vel, mut ori) in (
+        for (entity, scale, b, mut pos, mut vel, mut ori) in (
             &entities,
-            &action_states,
             scales.maybe(),
             &bodies,
             &mut positions,
@@ -76,12 +73,14 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
+            let mut character_state = character_states.get(entity).cloned().unwrap_or_default();
+            let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = 50.0
-                * if on_grounds.get(entity).is_some() {
+                * if physics_state.on_ground {
                     FRIC_GROUND
                 } else {
                     FRIC_AIR
@@ -108,7 +107,7 @@ impl<'a> System<'a> for Sys {
 
                     if terrain
                         .get(block_pos)
-                        .map(|vox| vox.is_solid())
+                        .map(|vox| !vox.is_empty())
                         .unwrap_or(false)
                     {
                         let player_aabb = Aabb {
@@ -128,8 +127,8 @@ impl<'a> System<'a> for Sys {
                 false
             };
 
-            let was_on_ground = a.on_ground;
-            on_grounds.remove(entity); // Assume we're in the air - unless we can prove otherwise
+            let was_on_ground = physics_state.on_ground;
+            physics_state.on_ground = false;
 
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
@@ -183,7 +182,7 @@ impl<'a> System<'a> for Sys {
                         .filter(|(block_pos, _)| {
                             terrain
                                 .get(*block_pos)
-                                .map(|vox| vox.is_solid())
+                                .map(|vox| !vox.is_empty())
                                 .unwrap_or(false)
                         })
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
@@ -216,6 +215,7 @@ impl<'a> System<'a> for Sys {
 
                         if !was_on_ground {
                             event_emitter.emit(Event::LandOnGround { entity, vel: vel.0 });
+                            character_state.movement = Stand;
                         }
                     }
 
@@ -257,13 +257,16 @@ impl<'a> System<'a> for Sys {
 
                 if attempts == MAX_ATTEMPTS {
                     pos.0 = old_pos;
-                    vel.0 = Vec3::zero();
                     break;
                 }
             }
 
             if on_ground {
-                let _ = on_grounds.insert(entity, OnGround);
+                physics_state.on_ground = true;
+
+                if !was_on_ground {
+                    character_state.movement = Stand;
+                }
             // If the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
@@ -271,8 +274,13 @@ impl<'a> System<'a> for Sys {
                 && was_on_ground
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
-                let _ = on_grounds.insert(entity, OnGround);
+                physics_state.on_ground = true;
+            } else if was_on_ground {
+                character_state.movement = Jump;
             }
+
+            let _ = character_states.insert(entity, character_state);
+            let _ = physics_states.insert(entity, physics_state);
         }
 
         // Apply pushback
