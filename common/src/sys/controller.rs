@@ -125,11 +125,6 @@ impl<'a> System<'a> for Sys {
                 dbg!();
                 event_emitter.emit(Event::Jump(entity));
             }
-
-            // TODO before merge: reset controller in a final ecs system
-
-            // Reset the controller ready for the next tick
-            //*controller = Controller::default();
         }
     }
 }
