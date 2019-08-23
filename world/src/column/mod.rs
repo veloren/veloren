@@ -175,8 +175,16 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .small_nz
                 .get((wposf_turb.div(150.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.15))
-                .mul(64.0);
+                .mul(chaos.max(0.025))
+                .mul(64.0)
+            + (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb.div(450.0)).into_array()) as f32)
+                .abs()
+                .mul(1.0 - chaos)
+                .mul(1.0 - humidity)
+                .mul(96.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
         let near_cliffs = sim_chunk.near_cliffs;
