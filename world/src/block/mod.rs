@@ -410,7 +410,7 @@ impl<'a> ZCache<'a> {
     }
 }
 
-impl<'a> SamplerMut for BlockGen<'a> {
+impl<'a> SamplerMut<'static> for BlockGen<'a> {
     type Index = Vec3<i32>;
     type Sample = Option<Block>;
 

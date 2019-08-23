@@ -104,8 +104,8 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone>
                                 .map(|vox| block_shadow_density(vox.kind()))
                                 .unwrap_or((0.0, 0.0));
 
-                            neighbour_light[0][i][j] =
-                                (neighbour_light[0][i][j] * (1.0 - density)).max(cap);
+                            neighbour_light[0][i][j] = (neighbour_light[0][i][j] * (1.0 - density))
+                                .max(cap.min(neighbour_light[1][i][j]));
                         }
                     }
 

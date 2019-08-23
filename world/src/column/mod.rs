@@ -121,7 +121,7 @@ impl<'a> ColumnGen<'a> {
     }
 }
 
-impl<'a> Sampler for ColumnGen<'a> {
+impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Index = Vec2<i32>;
     type Sample = Option<ColumnSample<'a>>;
 
