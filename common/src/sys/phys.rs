@@ -1,6 +1,6 @@
 use {
     crate::{
-        comp::{Body, CharacterState, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
+        comp::{Body, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
         event::{Event, EventBus},
         state::DeltaTime,
         terrain::TerrainMap,
@@ -37,7 +37,6 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus>,
         ReadStorage<'a, Scale>,
         ReadStorage<'a, Body>,
-        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
@@ -53,7 +52,6 @@ impl<'a> System<'a> for Sys {
             event_bus,
             scales,
             bodies,
-            mut character_states,
             mut physics_states,
             mut positions,
             mut velocities,
@@ -73,7 +71,6 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            let mut character_state = character_states.get(entity).cloned().unwrap_or_default();
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
@@ -215,7 +212,6 @@ impl<'a> System<'a> for Sys {
 
                         if !was_on_ground {
                             event_emitter.emit(Event::LandOnGround { entity, vel: vel.0 });
-                            character_state.movement = Stand;
                         }
                     }
 
@@ -263,10 +259,6 @@ impl<'a> System<'a> for Sys {
 
             if on_ground {
                 physics_state.on_ground = true;
-
-                if !was_on_ground {
-                    character_state.movement = Stand;
-                }
             // If the space below us is free, then "snap" to the ground
             } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
                 && vel.0.z < 0.0
@@ -275,11 +267,8 @@ impl<'a> System<'a> for Sys {
             {
                 pos.0.z = (pos.0.z - 0.05).floor();
                 physics_state.on_ground = true;
-            } else if was_on_ground {
-                character_state.movement = Jump;
             }
 
-            let _ = character_states.insert(entity, character_state);
             let _ = physics_states.insert(entity, physics_state);
         }
 
