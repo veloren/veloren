@@ -136,9 +136,11 @@ impl WorldSim {
         // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
         // but value here is from -0.275 to 0.225).
         let alt_base = uniform_noise(|_, wposf| {
-            Some((gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-                .sub(0.1)
-                .mul(0.25))
+            Some(
+                (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+                    .sub(0.1)
+                    .mul(0.25),
+            )
         });
 
         // -1 to 1.
@@ -151,10 +153,11 @@ impl WorldSim {
         let chaos = uniform_noise(|posi, wposf| {
             // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is a
             // 50% chance that hill will end up at 0.
-            let hill = (0.0 + gen_ctx
-                .hill_nz
-                .get((wposf.div(1_500.0)).into_array())
-                .mul(1.0) as f32
+            let hill = (0.0
+                + gen_ctx
+                    .hill_nz
+                    .get((wposf.div(1_500.0)).into_array())
+                    .mul(1.0) as f32
                 + gen_ctx
                     .hill_nz
                     .get((wposf.div(400.0)).into_array())
@@ -162,36 +165,38 @@ impl WorldSim {
                 .add(0.3)
                 .max(0.0);
 
-            Some((gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5)
-                // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
-                .mul(
-                    (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
-                        .abs()
-                        .max(0.25)
-                        .min(1.0),
-                )
-                // Chaos is always increased by a little when we're on a hill (but remember that
-                // hill is 0 about 50% of the time).
-                // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
-                .add(0.2 * hill)
-                // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
-                // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
-                // then saturates just before it actually becomes desert.  Otherwise stays at 1.
-                // Note that this is not the *final* temperature, only the initial noise value for
-                // temperature.
-                .mul(
-                    temp_base[posi]
-                        .1
-                        .sub(0.45)
-                        .neg()
-                        .mul(12.0)
-                        .max(0.35)
-                        .min(1.0),
-                )
-                // We can't have *no* chaos!
-                .max(0.1))
+            Some(
+                (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+                    .add(1.0)
+                    .mul(0.5)
+                    // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
+                    .mul(
+                        (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                            .abs()
+                            .max(0.25)
+                            .min(1.0),
+                    )
+                    // Chaos is always increased by a little when we're on a hill (but remember that
+                    // hill is 0 about 50% of the time).
+                    // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
+                    .add(0.2 * hill)
+                    // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
+                    // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
+                    // then saturates just before it actually becomes desert.  Otherwise stays at 1.
+                    // Note that this is not the *final* temperature, only the initial noise value for
+                    // temperature.
+                    .mul(
+                        temp_base[posi]
+                            .1
+                            .sub(0.45)
+                            .neg()
+                            .mul(12.0)
+                            .max(0.35)
+                            .min(1.0),
+                    )
+                    // We can't have *no* chaos!
+                    .max(0.1),
+            )
         });
 
         // We ignore sea level because we actually want to be relative to sea level here and want
@@ -219,8 +224,8 @@ impl WorldSim {
                     + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
                         .mul(alt_main.max(0.25))
                         .mul(0.3)
-                .add(1.0)
-                .mul(0.5))
+                        .add(1.0)
+                        .mul(0.5))
             };
 
             // Now we can compute the final altitude using chaos.
@@ -236,9 +241,11 @@ impl WorldSim {
             if alt[posi].1 <= 5.0.div(CONFIG.mountain_scale) {
                 None
             } else {
-                Some((gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
-                .add(1.0)
-                .mul(0.5))
+                Some(
+                    (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
+                        .add(1.0)
+                        .mul(0.5),
+                )
             }
         });
 
