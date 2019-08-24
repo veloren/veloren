@@ -35,7 +35,7 @@ pub enum GameInput {
     Screenshot,
     ToggleIngameUi,
     Attack,
-    SecondAttack,
+    Block,
     Roll,
     Respawn,
     Interact,
@@ -142,7 +142,7 @@ impl Window {
             GameInput::ToggleIngameUi,
         );
         key_map.insert(settings.controls.attack, GameInput::Attack);
-        key_map.insert(settings.controls.second_attack, GameInput::SecondAttack);
+        key_map.insert(settings.controls.block, GameInput::Block);
         key_map.insert(settings.controls.roll, GameInput::Roll);
         key_map.insert(settings.controls.interact, GameInput::Interact);
 
