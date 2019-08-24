@@ -11,6 +11,7 @@ use self::util::{
 
 use crate::{
     all::ForestKind,
+    column::ColumnGen,
     generator::TownState,
     util::{seed_expan, FastNoise, Sampler, StructureGen2d},
     CONFIG,
@@ -441,7 +442,8 @@ impl WorldSim {
                     let maybe_town = maybe_towns
                         .entry(*pos)
                         .or_insert_with(|| {
-                            TownState::generate(*pos, *seed, self).map(|t| Arc::new(t))
+                            TownState::generate(*pos, *seed, &mut ColumnGen::new(self), &mut rng)
+                                .map(|t| Arc::new(t))
                         })
                         .as_mut()
                         // Only care if we're close to the town
