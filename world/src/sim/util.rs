@@ -123,36 +123,37 @@ pub fn uniform_idx_as_vec2(idx: usize) -> Vec2<i32> {
 /// vector returned by uniform_noise, and (for convenience) the float-translated version of those
 /// coordinates.
 /// f should return a value with no NaNs.  If there is a NaN, it will panic.  There are no other
-/// conditions on f.
+/// conditions on f.  If f returns None, the value will be set to 0.0, and will be ignored for the
+/// purposes of computing the uniform range.
 ///
 /// Returns a vec of (f32, f32) pairs consisting of the percentage of chunks with a value lower than
 /// this one, and the actual noise value (we don't need to cache it, but it makes ensuring that
 /// subsequent code that needs the noise value actually uses the same one we were using here
 /// easier).
-pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> f32) -> InverseCdf {
+pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32>) -> InverseCdf {
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
-        .map(|i| {
+        .filter_map(|i| {
             (
-                i,
                 f(
                     i,
                     (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32))
                         .map(|e| e as f64),
-                ),
+                ).map(|res| (i, res))
             )
         })
         .collect::<Vec<_>>();
 
-    // sort_unstable_by is equivalent to sort_by here since we include the index in the
+    // sort_unstable_by is equivalent to sort_by here since we include a unique index in the
     // comparison.  We could leave out the index, but this might make the order not
     // reproduce the same way between different versions of Rust (for example).
     noise.sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
 
     // Construct a vector that associates each chunk position with the 1-indexed
     // position of the noise in the sorted vector (divided by the vector length).
-    // This guarantees a uniform distribution among the samples.
+    // This guarantees a uniform distribution among the samples (excluding those that returned
+    // None, which will remain at zero).
     let mut uniform_noise = vec![(0.0, 0.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-    let total = (WORLD_SIZE.x * WORLD_SIZE.y) as f32;
+    let total = noise.len() as f32;
     for (noise_idx, (chunk_idx, noise_val)) in noise.into_iter().enumerate() {
         uniform_noise[chunk_idx] = ((1 + noise_idx) as f32 / total, noise_val);
     }
