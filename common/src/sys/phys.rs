@@ -104,7 +104,7 @@ impl<'a> System<'a> for Sys {
 
                     if terrain
                         .get(block_pos)
-                        .map(|vox| !vox.is_empty())
+                        .map(|vox| vox.is_solid())
                         .unwrap_or(false)
                     {
                         let player_aabb = Aabb {
@@ -179,7 +179,7 @@ impl<'a> System<'a> for Sys {
                         .filter(|(block_pos, _)| {
                             terrain
                                 .get(*block_pos)
-                                .map(|vox| !vox.is_empty())
+                                .map(|vox| vox.is_solid())
                                 .unwrap_or(false)
                         })
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
@@ -225,7 +225,7 @@ impl<'a> System<'a> for Sys {
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                         && (vel.0.z <= 0.0 || terrain
                             .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                            .map(|vox| !vox.is_empty())
+                            .map(|vox| vox.is_solid())
                             .unwrap_or(false))
                         // ...and there is a collision with a block beneath our current hitbox...
                         && collision_with(
