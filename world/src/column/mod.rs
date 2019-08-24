@@ -1,7 +1,7 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{LocationInfo, SimChunk},
+    sim::{LocationInfo, SimChunk, WorldSim},
     util::{RandomPerm, Sampler, UnitChooser},
     World, CONFIG,
 };
@@ -20,7 +20,7 @@ use std::{
 use vek::*;
 
 pub struct ColumnGen<'a> {
-    world: &'a World,
+    pub sim: &'a WorldSim,
 }
 
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
@@ -55,14 +55,13 @@ lazy_static! {
 }
 
 impl<'a> ColumnGen<'a> {
-    pub fn new(world: &'a World) -> Self {
-        Self { world }
+    pub fn new(sim: &'a WorldSim) -> Self {
+        Self { sim }
     }
 
     fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
         let (pos, seed) = self
-            .world
-            .sim()
+            .sim
             .gen_ctx
             .region_gen
             .get(wpos)
@@ -74,7 +73,7 @@ impl<'a> ColumnGen<'a> {
         let chunk_pos = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
             e / sz as i32
         });
-        let chunk = self.world.sim().get(chunk_pos)?;
+        let chunk = self.sim.get(chunk_pos)?;
 
         if seed % 5 == 2
             && chunk.temp > CONFIG.desert_temp
@@ -102,8 +101,7 @@ impl<'a> ColumnGen<'a> {
 
     fn gen_close_structures(&self, wpos: Vec2<i32>) -> [Option<StructureData>; 9] {
         let mut metas = [None; 9];
-        self.world
-            .sim()
+        self.sim
             .gen_ctx
             .structure_gen
             .get(wpos)
@@ -131,7 +129,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             e / sz as i32
         });
 
-        let sim = self.world.sim();
+        let sim = &self.sim;
 
         let turb = Vec2::new(
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
@@ -383,6 +381,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .add((marble_small - 0.5) * 0.5),
         );
 
+        /*
         // Work out if we're on a path or near a town
         let dist_to_path = match &sim_chunk.location {
             Some(loc) => {
@@ -419,6 +418,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (alt, ground)
         };
+        */
 
         // Cities
         // TODO: In a later MR

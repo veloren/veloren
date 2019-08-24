@@ -347,13 +347,12 @@ impl<'a> BlockGen<'a> {
         });
 
         // Structures (like towns)
-        let block = block.or_else(|| {
-            chunk
-                .structures
-                .town
-                .as_ref()
-                .and_then(|town| TownGen.get((town, wpos, sample)))
-        });
+        let block = chunk
+            .structures
+            .town
+            .as_ref()
+            .and_then(|town| TownGen.get((town, wpos, sample, height)))
+            .or(block);
 
         let block = structures
             .iter()
@@ -515,7 +514,7 @@ impl StructureInfo {
     }
 }
 
-fn block_from_structure(
+pub fn block_from_structure(
     sblock: StructureBlock,
     default_kind: BlockKind,
     pos: Vec3<i32>,
