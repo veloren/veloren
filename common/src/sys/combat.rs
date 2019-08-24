@@ -6,6 +6,7 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
+use vek::*;
 
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
@@ -59,15 +60,16 @@ impl<'a> System<'a> for Sys {
                     )
                         .join()
                     {
-                        let dist = pos.0.distance(pos_b.0);
+                        let pos2 = Vec2::from(pos.0);
+                        let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
+                        let ori2 = Vec2::from(ori.0);
 
                         // Check if it is a hit
                         if entity != b
                             && !stat_b.is_dead
-                            && dist < 6.0
+                            && pos.0.distance_squared(pos_b.0) < 40.0
                             // TODO: Use size instead of 1.0
-                            // TODO: Implement eye levels
-                            && controller.look_dir.angle_between(pos_b.0 - pos.0)) < (1.0 / dist).atan()
+                            && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
                             let dmg = if character_b.action.is_block()
                                 && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees() < 90.0
