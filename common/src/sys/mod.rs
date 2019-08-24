@@ -26,7 +26,7 @@ pub fn add_local_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch_builder.add(phys::Sys, PHYS_SYS, &[CONTROLLER_SYS]);
     dispatch_builder.add(movement::Sys, MOVEMENT_SYS, &[PHYS_SYS]);
     dispatch_builder.add(combat::Sys, COMBAT_SYS, &[CONTROLLER_SYS]);
-    dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[CONTROLLER_SYS]);
+    dispatch_builder.add(animation::Sys, ANIMATION_SYS, &[MOVEMENT_SYS]);
     dispatch_builder.add(stats::Sys, STATS_SYS, &[COMBAT_SYS]);
     dispatch_builder.add(cleanup::Sys, CLEANUP_SYS, &[STATS_SYS, ANIMATION_SYS]);
 }
