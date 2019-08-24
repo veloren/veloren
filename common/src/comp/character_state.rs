@@ -27,6 +27,7 @@ pub enum ActionState {
     Idle,
     Wield { time_left: Duration },
     Attack { time_left: Duration, applied: bool },
+    Block { time_left: Duration },
     //Carry,
 }
 
@@ -41,6 +42,14 @@ impl ActionState {
 
     pub fn is_attack(&self) -> bool {
         if let Self::Attack { .. } = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_block(&self) -> bool {
+        if let Self::Block { .. } = self {
             true
         } else {
             false

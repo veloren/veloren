@@ -160,32 +160,29 @@ impl PlayState for SessionState {
                         }
                     }
 
-                    Event::InputUpdate(GameInput::SecondAttack, state) => {
-                        if state {
-                            let mut client = self.client.borrow_mut();
-                            if client
+                    Event::InputUpdate(GameInput::Block, state) => {
+                        let mut client = self.client.borrow_mut();
+                        if state
+                            && client
                                 .state()
                                 .read_storage::<comp::CanBuild>()
                                 .get(client.entity())
                                 .is_some()
-                            {
-                                let (cam_dir, cam_pos) =
-                                    get_cam_data(&self.scene.camera(), &client);
+                        {
+                            let (cam_dir, cam_pos) = get_cam_data(&self.scene.camera(), &client);
 
-                                let (d, b) = {
-                                    let terrain = client.state().terrain();
-                                    let ray =
-                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                    (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                                };
+                            let (d, b) = {
+                                let terrain = client.state().terrain();
+                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
+                            };
 
-                                if b {
-                                    let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                    client.remove_block(pos);
-                                }
-                            } else {
-                                // TODO: Handle secondary attack
+                            if b {
+                                let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                client.remove_block(pos);
                             }
+                        } else {
+                            self.controller.block = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {

@@ -109,6 +109,19 @@ impl<'a> System<'a> for Sys {
                 }
             }
 
+            // Block
+            if controller.block
+                && (character.movement == Stand || character.movement == Run)
+                && (character.action == Idle || character.action.is_wield())
+            {
+                character.action = Block {
+                    time_left: Duration::from_secs(5),
+                };
+            } else if !controller.block && character.action.is_block() {
+                dbg!();
+                character.action = Idle;
+            }
+
             // Roll
             if controller.roll
                 && (character.action == Idle || character.action.is_wield())
