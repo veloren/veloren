@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         ActionState::*, Animation, AnimationInfo, CharacterState, MovementState::*, PhysicsState,
+        Stats,
     },
     state::DeltaTime,
 };
@@ -13,6 +14,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        ReadStorage<'a, Stats>,
         ReadStorage<'a, CharacterState>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, AnimationInfo>,
@@ -20,12 +22,13 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         &mut self,
-        (entities, dt, character_states, physics_states, mut animation_infos): Self::SystemData,
+        (entities, dt, stats, character_states, physics_states, mut animation_infos): Self::SystemData,
     ) {
-        for (entity, character, physics) in (&entities, &character_states, &physics_states).join() {
-            fn impossible_animation(physics: PhysicsState, character: CharacterState) -> Animation {
-                warn!("Impossible animation: {:?} {:?}", physics, character);
-                Animation::Roll
+        for (entity, stats, character, physics) in
+            (&entities, &stats, &character_states, &physics_states).join()
+        {
+            if stats.is_dead {
+                continue;
             }
 
             let animation = match (physics.on_ground, &character.movement, &character.action) {
@@ -38,7 +41,8 @@ impl<'a> System<'a> for Sys {
                 (false, Jump, Wield { .. }) => Animation::Cjump,
                 (_, Glide, Idle) => Animation::Gliding,
                 (_, _, Attack { .. }) => Animation::Attack,
-                _ => impossible_animation(physics.clone(), character.clone()),
+                // Impossible animation (Caused by missing animations or syncing delays)
+                _ => Animation::Roll,
             };
 
             let new_time = animation_infos
