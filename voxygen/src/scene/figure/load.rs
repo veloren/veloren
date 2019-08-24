@@ -3,69 +3,184 @@ use crate::{
     render::{FigurePipeline, Mesh},
 };
 use common::{
-    assets,
+    assets::{self, watch::ReloadIndicator, Asset},
     comp::{
-        humanoid::{Belt, BodyType, Chest, Foot, Hand, Pants, Race, Shoulder},
+        humanoid::{
+            Accessory, Beard, Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, HairColor,
+            HairStyle, Hand, Pants, Race, Shoulder, Skin,
+        },
         item::Tool,
         object, quadruped, quadruped_medium, Item,
     },
-    figure::Segment,
+    figure::{Segment, SegmentUnionizer},
 };
 use dot_vox::DotVoxData;
+use hashbrown::HashMap;
+use log::{error, warn};
+use serde_derive::{Deserialize, Serialize};
+use std::{fs::File, io::BufReader, sync::Arc};
 use vek::*;
 
 pub fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     Segment::from(assets::load_expect::<DotVoxData>(full_specifier.as_str()).as_ref())
 }
+pub fn graceful_load_segment(mesh_name: &str) -> Segment {
+    let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
+    let dot_vox = match assets::load::<DotVoxData>(full_specifier.as_str()) {
+        Ok(dot_vox) => dot_vox,
+        Err(_) => {
+            error!("Could not load vox file for figure: {}", full_specifier);
+            assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
+        }
+    };
+    Segment::from(dot_vox.as_ref())
+}
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
     Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&load_segment(mesh_name), position).0
 }
 
-pub fn load_head(race: Race, body_type: BodyType) -> Mesh<FigurePipeline> {
-    let (name, offset) = match (race, body_type) {
-        // z-value should be 0.25 of the total z
-        (Race::Human, BodyType::Male) => {
-            ("figure.head.head_human_male", Vec3::new(-7.0, -5.0, -2.25))
-        }
-        (Race::Human, BodyType::Female) => (
-            "figure.head.head_human_female",
-            Vec3::new(-7.0, -7.5, -3.25),
-        ),
-        (Race::Elf, BodyType::Male) => ("figure.head.head_elf_male", Vec3::new(-8.0, -5.0, -2.25)),
-        (Race::Elf, BodyType::Female) => {
-            ("figure.head.head_elf_female", Vec3::new(-8.0, -5.5, -3.0))
-        }
-        (Race::Dwarf, BodyType::Male) => {
-            ("figure.head.head_dwarf_male", Vec3::new(-6.0, -5.0, -12.5))
-        }
-        (Race::Dwarf, BodyType::Female) => (
-            "figure.head.head_dwarf_female",
-            Vec3::new(-6.0, -6.0, -9.25),
-        ),
-        (Race::Orc, BodyType::Male) => ("figure.head.head_orc_male", Vec3::new(-8.0, -5.0, -2.50)),
-        (Race::Orc, BodyType::Female) => {
-            ("figure.head.head_orc_female", Vec3::new(-8.0, -8.0, -3.5))
-        }
-        (Race::Undead, BodyType::Male) => {
-            ("figure.head.head_undead_male", Vec3::new(-5.5, -5.0, -2.5))
-        }
-        (Race::Undead, BodyType::Female) => (
-            "figure.head.head_undead_female",
-            Vec3::new(-6.0, -5.0, -2.5),
-        ),
-        (Race::Danari, BodyType::Male) => {
-            ("figure.head.head_danari_male", Vec3::new(-9.0, -5.0, -2.75))
-        }
-        (Race::Danari, BodyType::Female) => (
-            "figure.head.head_danari_female",
-            Vec3::new(-9.0, -7.5, -3.0),
-        ),
-    };
-    load_mesh(name, offset)
+#[derive(Serialize, Deserialize)]
+struct VoxSpec(String, [i32; 3]); // All offsets should be relative to an initial origin that doesn't change when combining segments
+                                  // All reliant on humanoid::Race and humanoid::BodyType
+#[derive(Serialize, Deserialize)]
+struct HumHeadSubSpec {
+    offset: [f32; 3], // Should be relative to initial origin
+    head: VoxSpec,
+    eyes: VoxSpec,
+    hair: HashMap<HairStyle, Option<VoxSpec>>,
+    beard: HashMap<Beard, Option<VoxSpec>>,
+    accessory: HashMap<Accessory, Option<VoxSpec>>,
+}
+#[derive(Serialize, Deserialize)]
+pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
+
+impl Asset for HumHeadSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: BufReader<File>) -> Result<Self, assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing humanoid head spec"))
+    }
+}
+
+impl HumHeadSpec {
+    pub fn load_watched(indicator: &mut ReloadIndicator) -> Arc<Self> {
+        assets::load_watched::<Self>("voxygen.voxel.humanoid_head_manifest", indicator).unwrap()
+    }
+    pub fn mesh_head(
+        &self,
+        race: Race,
+        body_type: BodyType,
+        hair_color: HairColor,
+        hair_style: HairStyle,
+        beard: Beard,
+        eye_color: EyeColor,
+        skin: Skin,
+        eyebrows: Eyebrows,
+        accessory: Accessory,
+    ) -> Mesh<FigurePipeline> {
+        let spec = match self.0.get(&(race, body_type)) {
+            Some(spec) => spec,
+            None => {
+                error!(
+                    "No head specification exists for the combination of {:?} and {:?}",
+                    race, body_type
+                );
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -5.0));
+            }
+        };
+        // TODO: color hair(via index or recoloring), color skin(via index)
+        // Load segment pieces
+        let bare_head = graceful_load_segment(&spec.head.0);
+        let eyes = graceful_load_segment(&spec.eyes.0);
+        let hair = match spec.hair.get(&hair_style) {
+            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(None) => None,
+            None => {
+                warn!("No specification for this hair style: {:?}", hair_style);
+                None
+            }
+        };
+        let beard = match spec.beard.get(&beard) {
+            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(None) => None,
+            None => {
+                warn!("No specification for this beard: {:?}", beard);
+                None
+            }
+        };
+        let accessory = match spec.accessory.get(&accessory) {
+            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(None) => None,
+            None => {
+                warn!("No specification for this accessory: {:?}", accessory);
+                None
+            }
+        };
+
+        let (head, origin_offset) = SegmentUnionizer::new()
+            .add(bare_head, spec.head.1.into())
+            .add(eyes, spec.eyes.1.into())
+            .maybe_add(hair)
+            .maybe_add(beard)
+            .maybe_add(accessory)
+            .unify();
+
+        Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(
+            &head,
+            Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
+        )
+        .0
+        /*let (name, offset) = match (race, body_type) {
+            // z-value should be 0.25 of the total z
+            (Race::Human, BodyType::Male) => {
+                ("figure.head.head_human_male", Vec3::new(-7.0, -5.0, -2.25))
+            }
+            (Race::Human, BodyType::Female) => (
+                "figure.head.head_human_female",
+                Vec3::new(-7.0, -7.5, -3.25),
+            ),
+            (Race::Elf, BodyType::Male) => ("figure.head.head_elf_male", Vec3::new(-8.0, -5.0, -2.25)),
+            (Race::Elf, BodyType::Female) => {
+                ("figure.head.head_elf_female", Vec3::new(-8.0, -5.5, -3.0))
+            }
+            (Race::Dwarf, BodyType::Male) => {
+                ("figure.head.head_dwarf_male", Vec3::new(-6.0, -5.0, -12.5))
+            }
+            (Race::Dwarf, BodyType::Female) => (
+                "figure.head.head_dwarf_female",
+                Vec3::new(-6.0, -6.0, -9.25),
+            ),
+            (Race::Orc, BodyType::Male) => ("figure.head.head_orc_male", Vec3::new(-8.0, -5.0, -2.50)),
+            (Race::Orc, BodyType::Female) => {
+                ("figure.head.head_orc_female", Vec3::new(-8.0, -8.0, -3.5))
+            }
+            (Race::Undead, BodyType::Male) => {
+                ("figure.head.head_undead_male", Vec3::new(-5.5, -5.0, -2.5))
+            }
+            (Race::Undead, BodyType::Female) => (
+                "figure.head.head_undead_female",
+                Vec3::new(-6.0, -5.0, -2.5),
+            ),
+            (Race::Danari, BodyType::Male) => {
+                ("figure.head.head_danari_male", Vec3::new(-9.0, -5.0, -2.75))
+            }
+            (Race::Danari, BodyType::Female) => {
+                let hair = load_segment("figure.hair.danari.female");
+                let accessory = load_segment("figure.accessory.danari.horns");
+                let bare_head = load_segment("figure.head.danari.female");
+                let head = bare_head
+                    .union(&eyes, Vec3::new(0, 0, 0))
+                    .union(&hair, Vec3::new(0, 0, 0))
+                    .union(&accessory, Vec3::new(0, 0, 0));
+
+                return head.generate_mesh(Vec3::new(-9.0, -7.5, -3.0)).0;
+            }
+        };*/
+        //load_mesh(name, offset)
+    }
 }
 // loads models with different offsets
-//    pub fn load_beard(beard: Beard) -> Mesh<FigurePipeline> {
+//    pub fn mesh_beard(beard: Beard) -> Mesh<FigurePipeline> {
 //        let (name, offset) = match beard {
 //            Beard::None => ("figure/body/empty", Vec3::new(0.0, 0.0, 0.0)),
 //            Beard::Human1 => ("figure/empty", Vec3::new(0.0, 0.0, 0.0)),
@@ -73,7 +188,7 @@ pub fn load_head(race: Race, body_type: BodyType) -> Mesh<FigurePipeline> {
 //        load_mesh(name, offset)
 //    }
 
-pub fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
+pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
     let color = match chest {
         Chest::Brown => (125, 53, 0),
         Chest::Dark => (0, 38, 43),
@@ -89,7 +204,7 @@ pub fn load_chest(chest: Chest) -> Mesh<FigurePipeline> {
     Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&chest, Vec3::new(-6.0, -3.5, 0.0)).0
 }
 
-pub fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
+pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
     load_mesh(
         match belt {
             //Belt::Default => "figure/body/belt_male",
@@ -99,7 +214,7 @@ pub fn load_belt(belt: Belt) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
+pub fn mesh_pants(pants: Pants) -> Mesh<FigurePipeline> {
     load_mesh(
         match pants {
             Pants::Blue => "armor.pants.pants_blue",
@@ -112,7 +227,7 @@ pub fn load_pants(pants: Pants) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
+pub fn mesh_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
     load_mesh(
         match hand {
             Hand::Default => "figure.body.hand",
@@ -121,7 +236,7 @@ pub fn load_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
+pub fn mesh_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
     load_mesh(
         match hand {
             Hand::Default => "figure.body.hand",
@@ -130,7 +245,7 @@ pub fn load_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
+pub fn mesh_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot {
             Foot::Dark => "armor.foot.foot_dark",
@@ -139,7 +254,7 @@ pub fn load_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
+pub fn mesh_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot {
             Foot::Dark => "armor.foot.foot_dark",
@@ -148,7 +263,7 @@ pub fn load_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
+pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
     if let Some(item) = item {
         let (name, offset) = match item {
             Item::Tool { kind, .. } => match kind {
@@ -169,7 +284,7 @@ pub fn load_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
     }
 }
 
-pub fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
+pub fn mesh_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
     load_mesh(
         match shoulder {
             Shoulder::None => "figure.empty",
@@ -179,7 +294,7 @@ pub fn load_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
+pub fn mesh_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
     load_mesh(
         match shoulder {
             Shoulder::None => "figure.empty",
@@ -190,11 +305,11 @@ pub fn load_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
 }
 
 // TODO: Inventory
-pub fn load_draw() -> Mesh<FigurePipeline> {
+pub fn mesh_draw() -> Mesh<FigurePipeline> {
     load_mesh("object.glider", Vec3::new(-26.0, -26.0, -5.0))
 }
 
-//pub fn load_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
+//pub fn mesh_right_equip(hand: Hand) -> Mesh<FigurePipeline> {
 //    load_mesh(
 //        match hand {
 //            Hand::Default => "figure/body/hand",
@@ -204,7 +319,7 @@ pub fn load_draw() -> Mesh<FigurePipeline> {
 //}
 
 /////////
-pub fn load_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
     load_mesh(
         match head {
             quadruped::Head::Default => "npc.pig_purple.pig_head",
@@ -213,7 +328,7 @@ pub fn load_pig_head(head: quadruped::Head) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pig_chest(chest: quadruped::Chest) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_chest(chest: quadruped::Chest) -> Mesh<FigurePipeline> {
     load_mesh(
         match chest {
             quadruped::Chest::Default => "npc.pig_purple.pig_chest",
@@ -222,7 +337,7 @@ pub fn load_pig_chest(chest: quadruped::Chest) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pig_leg_lf(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_leg_lf(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_l {
             quadruped::LegL::Default => "npc.pig_purple.pig_leg_l",
@@ -231,7 +346,7 @@ pub fn load_pig_leg_lf(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pig_leg_rf(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_leg_rf(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_r {
             quadruped::LegR::Default => "npc.pig_purple.pig_leg_r",
@@ -240,7 +355,7 @@ pub fn load_pig_leg_rf(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pig_leg_lb(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_leg_lb(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_l {
             quadruped::LegL::Default => "npc.pig_purple.pig_leg_l",
@@ -249,7 +364,7 @@ pub fn load_pig_leg_lb(leg_l: quadruped::LegL) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_pig_leg_rb(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
+pub fn mesh_pig_leg_rb(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
     load_mesh(
         match leg_r {
             quadruped::LegR::Default => "npc.pig_purple.pig_leg_r",
@@ -258,7 +373,7 @@ pub fn load_pig_leg_rb(leg_r: quadruped::LegR) -> Mesh<FigurePipeline> {
     )
 }
 //////
-pub fn load_wolf_head_upper(upper_head: quadruped_medium::HeadUpper) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_head_upper(upper_head: quadruped_medium::HeadUpper) -> Mesh<FigurePipeline> {
     load_mesh(
         match upper_head {
             quadruped_medium::HeadUpper::Default => "npc.wolf.wolf_head_upper",
@@ -267,7 +382,7 @@ pub fn load_wolf_head_upper(upper_head: quadruped_medium::HeadUpper) -> Mesh<Fig
     )
 }
 
-pub fn load_wolf_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
     load_mesh(
         match jaw {
             quadruped_medium::Jaw::Default => "npc.wolf.wolf_jaw",
@@ -276,7 +391,7 @@ pub fn load_wolf_jaw(jaw: quadruped_medium::Jaw) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_wolf_head_lower(head_lower: quadruped_medium::HeadLower) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_head_lower(head_lower: quadruped_medium::HeadLower) -> Mesh<FigurePipeline> {
     load_mesh(
         match head_lower {
             quadruped_medium::HeadLower::Default => "npc.wolf.wolf_head_lower",
@@ -285,7 +400,7 @@ pub fn load_wolf_head_lower(head_lower: quadruped_medium::HeadLower) -> Mesh<Fig
     )
 }
 
-pub fn load_wolf_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
     load_mesh(
         match tail {
             quadruped_medium::Tail::Default => "npc.wolf.wolf_tail",
@@ -294,7 +409,7 @@ pub fn load_wolf_tail(tail: quadruped_medium::Tail) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_wolf_torso_back(torso_back: quadruped_medium::TorsoBack) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_torso_back(torso_back: quadruped_medium::TorsoBack) -> Mesh<FigurePipeline> {
     load_mesh(
         match torso_back {
             quadruped_medium::TorsoBack::Default => "npc.wolf.wolf_torso_back",
@@ -303,7 +418,7 @@ pub fn load_wolf_torso_back(torso_back: quadruped_medium::TorsoBack) -> Mesh<Fig
     )
 }
 
-pub fn load_wolf_torso_mid(torso_mid: quadruped_medium::TorsoMid) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_torso_mid(torso_mid: quadruped_medium::TorsoMid) -> Mesh<FigurePipeline> {
     load_mesh(
         match torso_mid {
             quadruped_medium::TorsoMid::Default => "npc.wolf.wolf_torso_mid",
@@ -312,7 +427,7 @@ pub fn load_wolf_torso_mid(torso_mid: quadruped_medium::TorsoMid) -> Mesh<Figure
     )
 }
 
-pub fn load_wolf_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
     load_mesh(
         match ears {
             quadruped_medium::Ears::Default => "npc.wolf.wolf_ears",
@@ -321,7 +436,7 @@ pub fn load_wolf_ears(ears: quadruped_medium::Ears) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn load_wolf_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_lf {
             quadruped_medium::FootLF::Default => "npc.wolf.wolf_foot_lf",
@@ -330,7 +445,7 @@ pub fn load_wolf_foot_lf(foot_lf: quadruped_medium::FootLF) -> Mesh<FigurePipeli
     )
 }
 
-pub fn load_wolf_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_rf {
             quadruped_medium::FootRF::Default => "npc.wolf.wolf_foot_rf",
@@ -339,7 +454,7 @@ pub fn load_wolf_foot_rf(foot_rf: quadruped_medium::FootRF) -> Mesh<FigurePipeli
     )
 }
 
-pub fn load_wolf_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_lb {
             quadruped_medium::FootLB::Default => "npc.wolf.wolf_foot_lb",
@@ -348,7 +463,7 @@ pub fn load_wolf_foot_lb(foot_lb: quadruped_medium::FootLB) -> Mesh<FigurePipeli
     )
 }
 
-pub fn load_wolf_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeline> {
+pub fn mesh_wolf_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeline> {
     load_mesh(
         match foot_rb {
             quadruped_medium::FootRB::Default => "npc.wolf.wolf_foot_rb",
@@ -357,7 +472,7 @@ pub fn load_wolf_foot_rb(foot_rb: quadruped_medium::FootRB) -> Mesh<FigurePipeli
     )
 }
 
-pub fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
+pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
     use object::Body;
 
     let (name, offset) = match obj {

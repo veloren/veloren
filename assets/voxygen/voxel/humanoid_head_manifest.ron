@@ -1,0 +1,39 @@
+({
+    (Human, Male): (
+        offset: (-7.0, -5.0, -2.25),
+        head: ("figure.head.human.male", (0, 0, 0)),
+        eyes: ("figure.eyes.human.male", (10, 10, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.human.male", (1, 2, 3))),
+            Temp2: Some(("figure.hair.human.male", (1, 2, 3))),
+        },
+        beard: {
+            None: None,
+            Some: Some(("figure.beard.human.1", (0, 0, -5))),
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Human, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.human.female", (0, 0, 0)),
+        eyes: ("figure.eyes.human.female", (1, 2, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.human.female_1", (1, 2, 3))),
+            Temp2: Some(("figure.hair.human.female_2", (1, 2, 3))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    // More here
+})

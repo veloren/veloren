@@ -13,7 +13,7 @@ use conrod_core::{
     color,
     color::TRANSPARENT,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
-    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
+    widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
 
 widget_ids! {
@@ -838,203 +838,146 @@ impl CharSelectionUi {
             .set(self.ids.axe_grey, ui_widgets);*/
 
             // Sliders
-
+            let (metamorph, slider_indicator, slider_range) = (
+                self.fonts.metamorph,
+                self.imgs.slider_indicator,
+                self.imgs.slider_range,
+            );
+            let char_slider = move |prev_id,
+                                    text,
+                                    text_id,
+                                    max,
+                                    selected_val,
+                                    slider_id,
+                                    ui_widgets: &mut UiCell| {
+                Text::new(text)
+                    .down_from(prev_id, 22.0)
+                    .align_middle_x()
+                    .font_size(18)
+                    .font_id(metamorph)
+                    .color(TEXT_COLOR)
+                    .set(text_id, ui_widgets);
+                ImageSlider::discrete(selected_val, 0, max, slider_indicator, slider_range)
+                    .w_h(208.0, 22.0)
+                    .down_from(text_id, 8.0)
+                    .align_middle_x()
+                    .track_breadth(12.0)
+                    .slider_length(10.0)
+                    .pad_track((5.0, 5.0))
+                    .set(slider_id, ui_widgets)
+            };
             // Hair Style
-            Text::new("Hair Style")
-                .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_2, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.hairstyle_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            let current_hair_style = self.character_body.hair_style;
+            if let Some(new_val) = char_slider(
+                self.ids.creation_buttons_alignment_2,
+                "Hair Style",
+                self.ids.hairstyle_text,
+                humanoid::ALL_HAIR_STYLES.len() - 1,
+                humanoid::ALL_HAIR_STYLES
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_hair_style)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.hairstyle_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.hairstyle_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.hairstyle_slider,
+                ui_widgets,
+            ) {
+                self.character_body.hair_style = humanoid::ALL_HAIR_STYLES[new_val];
             }
-
             // Hair Color
-
-            Text::new("Hair Color")
-                .mid_bottom_with_margin_on(self.ids.hairstyle_slider, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.haircolor_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            let current_hair_color = self.character_body.hair_color;
+            if let Some(new_val) = char_slider(
+                self.ids.hairstyle_slider,
+                "Hair Color",
+                self.ids.haircolor_text,
+                humanoid::ALL_HAIR_COLORS.len() - 1,
+                humanoid::ALL_HAIR_COLORS
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_hair_color)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.haircolor_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.haircolor_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.haircolor_slider,
+                ui_widgets,
+            ) {
+                self.character_body.hair_color = humanoid::ALL_HAIR_COLORS[new_val];
             }
-
             // Skin
-
-            Text::new("Skin")
-                .mid_bottom_with_margin_on(self.ids.haircolor_slider, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.skin_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            let current_skin = self.character_body.skin;
+            if let Some(new_val) = char_slider(
+                self.ids.haircolor_slider,
+                "Skin",
+                self.ids.skin_text,
+                humanoid::ALL_SKINS.len() - 1,
+                humanoid::ALL_SKINS
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_skin)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.skin_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.skin_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.skin_slider,
+                ui_widgets,
+            ) {
+                self.character_body.skin = humanoid::ALL_SKINS[new_val];
             }
-
-            // EyeBrows
-            Text::new("Eyebrows")
-                .mid_bottom_with_margin_on(self.ids.skin_slider, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.eyebrows_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            // Eyebrows
+            let current_eyebrows = self.character_body.eyebrows;
+            if let Some(new_val) = char_slider(
+                self.ids.skin_slider,
+                "Eyebrows",
+                self.ids.eyebrows_text,
+                humanoid::ALL_EYEBROWS.len() - 1,
+                humanoid::ALL_EYEBROWS
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_eyebrows)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.eyebrows_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.eyebrows_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.eyebrows_slider,
+                ui_widgets,
+            ) {
+                self.character_body.eyebrows = humanoid::ALL_EYEBROWS[new_val];
             }
-
             // EyeColor
-            Text::new("Eye Color")
-                .mid_bottom_with_margin_on(self.ids.eyebrows_slider, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.eyecolor_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            let current_eye_color = self.character_body.eye_color;
+            if let Some(new_val) = char_slider(
+                self.ids.eyebrows_slider,
+                "Eye Color",
+                self.ids.eyecolor_text,
+                humanoid::ALL_EYE_COLORS.len() - 1,
+                humanoid::ALL_EYE_COLORS
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_eye_color)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.eyecolor_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.eyecolor_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.eyecolor_slider,
+                ui_widgets,
+            ) {
+                self.character_body.eye_color = humanoid::ALL_EYE_COLORS[new_val];
             }
             // Accessories
-            Text::new("Accessories")
-                .mid_bottom_with_margin_on(self.ids.eyecolor_slider, -40.0)
-                .font_size(18)
-                .font_id(self.fonts.metamorph)
-                .color(TEXT_COLOR)
-                .set(self.ids.accessories_text, ui_widgets);
-            let current_chest = self.character_body.chest;
-            if let Some(new_val) = ImageSlider::discrete(
-                humanoid::ALL_CHESTS
+            let current_accessory = self.character_body.accessory;
+            if let Some(new_val) = char_slider(
+                self.ids.eyecolor_slider,
+                "Accessories",
+                self.ids.accessories_text,
+                humanoid::ALL_ACCESSORIES.len() - 1,
+                humanoid::ALL_ACCESSORIES
                     .iter()
-                    .position(|&c| c == current_chest)
+                    .position(|&c| c == current_accessory)
                     .unwrap_or(0),
-                0,
-                humanoid::ALL_CHESTS.len() - 1,
-                self.imgs.slider_indicator,
-                self.imgs.slider_range,
-            )
-            .w_h(208.0, 22.0)
-            .mid_bottom_with_margin_on(self.ids.accessories_text, -30.0)
-            .track_breadth(12.0)
-            .slider_length(10.0)
-            .pad_track((5.0, 5.0))
-            .set(self.ids.accessories_slider, ui_widgets)
-            {
-                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                self.ids.accessories_slider,
+                ui_widgets,
+            ) {
+                self.character_body.accessory = humanoid::ALL_ACCESSORIES[new_val];
             }
-
             // Beard
             if let humanoid::BodyType::Male = self.character_body.body_type {
-                Text::new("Beard")
-                    .mid_bottom_with_margin_on(self.ids.accessories_slider, -40.0)
-                    .font_size(18)
-                    .font_id(self.fonts.metamorph)
-                    .color(TEXT_COLOR)
-                    .set(self.ids.beard_text, ui_widgets);
-
-                if let Some(new_val) = ImageSlider::discrete(
-                    humanoid::ALL_CHESTS
+                let current_beard = self.character_body.beard;
+                if let Some(new_val) = char_slider(
+                    self.ids.accessories_slider,
+                    "Beard",
+                    self.ids.beard_text,
+                    humanoid::ALL_BEARDS.len() - 1,
+                    humanoid::ALL_BEARDS
                         .iter()
-                        .position(|&c| c == current_chest)
+                        .position(|&c| c == current_beard)
                         .unwrap_or(0),
-                    0,
-                    humanoid::ALL_CHESTS.len() - 1,
-                    self.imgs.slider_indicator,
-                    self.imgs.slider_range,
-                )
-                .w_h(208.0, 22.0)
-                .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
-                .track_breadth(12.0)
-                .slider_length(10.0)
-                .pad_track((5.0, 5.0))
-                .set(self.ids.beard_slider, ui_widgets)
-                {
-                    self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+                    self.ids.beard_slider,
+                    ui_widgets,
+                ) {
+                    self.character_body.beard = humanoid::ALL_BEARDS[new_val];
                 }
             } else {
                 Text::new("Beard")
@@ -1043,22 +986,15 @@ impl CharSelectionUi {
                     .font_id(self.fonts.metamorph)
                     .color(TEXT_COLOR_2)
                     .set(self.ids.beard_text, ui_widgets);
-                if let Some(_val) = ImageSlider::continuous(
-                    5.0,
-                    0.0,
-                    10.0,
-                    self.imgs.nothing,
-                    self.imgs.slider_range,
-                )
-                .w_h(208.0, 22.0)
-                .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
-                .track_breadth(12.0)
-                .slider_length(10.0)
-                .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
-                .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
-                .pad_track((5.0, 5.0))
-                .set(self.ids.beard_slider_2, ui_widgets)
-                {}
+                ImageSlider::continuous(5.0, 0.0, 10.0, self.imgs.nothing, self.imgs.slider_range)
+                    .w_h(208.0, 22.0)
+                    .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
+                    .track_breadth(12.0)
+                    .slider_length(10.0)
+                    .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                    .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
+                    .pad_track((5.0, 5.0))
+                    .set(self.ids.beard_slider_2, ui_widgets);
             }
         } // Char Creation fin
 

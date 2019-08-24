@@ -10,6 +10,13 @@ pub struct Body {
     pub hand: Hand,
     pub foot: Foot,
     pub shoulder: Shoulder,
+    pub hair_color: HairColor,
+    pub hair_style: HairStyle,
+    pub beard: Beard,
+    pub skin: Skin,
+    pub eyebrows: Eyebrows,
+    pub eye_color: EyeColor,
+    pub accessory: Accessory,
 }
 
 impl Body {
@@ -24,6 +31,13 @@ impl Body {
             hand: *(&ALL_HANDS).choose(&mut rng).unwrap(),
             foot: *(&ALL_FEET).choose(&mut rng).unwrap(),
             shoulder: *(&ALL_SHOULDERS).choose(&mut rng).unwrap(),
+            hair_color: *(&ALL_HAIR_COLORS).choose(&mut rng).unwrap(),
+            hair_style: *(&ALL_HAIR_STYLES).choose(&mut rng).unwrap(),
+            beard: *(&ALL_BEARDS).choose(&mut rng).unwrap(),
+            skin: *(&ALL_SKINS).choose(&mut rng).unwrap(),
+            eyebrows: *(&ALL_EYEBROWS).choose(&mut rng).unwrap(),
+            eye_color: *(&ALL_EYE_COLORS).choose(&mut rng).unwrap(),
+            accessory: *(&ALL_ACCESSORIES).choose(&mut rng).unwrap(),
         }
     }
 }
@@ -112,3 +126,74 @@ pub enum Shoulder {
     Brown1,
 }
 pub const ALL_SHOULDERS: [Shoulder; 2] = [Shoulder::None, Shoulder::Brown1];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum HairStyle {
+    None,
+    Temp1,
+    Temp2,
+}
+pub const ALL_HAIR_STYLES: [HairStyle; 3] = [HairStyle::None, HairStyle::Temp1, HairStyle::Temp2];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum HairColor {
+    Red,
+    Green,
+    Blue,
+    Brown,
+    Black,
+}
+pub const ALL_HAIR_COLORS: [HairColor; 5] = [
+    HairColor::Red,
+    HairColor::Green,
+    HairColor::Blue,
+    HairColor::Brown,
+    HairColor::Black,
+];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Skin {
+    Light,
+    Medium,
+    Dark,
+    Rainbow,
+}
+pub const ALL_SKINS: [Skin; 4] = [Skin::Light, Skin::Medium, Skin::Dark, Skin::Rainbow];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Eyebrows {
+    Yup,
+}
+pub const ALL_EYEBROWS: [Eyebrows; 1] = [Eyebrows::Yup];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum EyeColor {
+    Black,
+    Blue,
+    Green,
+    Brown,
+    Red,
+    White,
+}
+pub const ALL_EYE_COLORS: [EyeColor; 6] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Accessory {
+    Nothing,
+    Something,
+}
+pub const ALL_ACCESSORIES: [Accessory; 2] = [Accessory::Nothing, Accessory::Something];
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Beard {
+    None,
+    Some,
+}
+pub const ALL_BEARDS: [Beard; 2] = [Beard::None, Beard::Some];
