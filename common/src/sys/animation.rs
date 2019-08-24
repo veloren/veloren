@@ -42,7 +42,7 @@ impl<'a> System<'a> for Sys {
                 (_, Glide, Idle) => Animation::Gliding,
                 (_, _, Attack { .. }) => Animation::Attack,
                 // Impossible animation (Caused by missing animations or syncing delays)
-                _ => Animation::Roll,
+                _ => Animation::Gliding,
             };
 
             let new_time = animation_infos
