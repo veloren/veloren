@@ -41,7 +41,7 @@ impl<'a> System<'a> for Sys {
                 (false, Jump, Wield { .. }) => Animation::Cjump,
                 (_, Glide, Idle) => Animation::Gliding,
                 (_, _, Attack { .. }) => Animation::Attack,
-                (_, _, Block { .. }) => Animation::Gliding,
+                (_, _, Block { .. }) => Animation::Block,
                 // Impossible animation (Caused by missing animations or syncing delays)
                 _ => Animation::Gliding,
             };
