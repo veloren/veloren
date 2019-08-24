@@ -133,13 +133,12 @@ pub fn uniform_idx_as_vec2(idx: usize) -> Vec2<i32> {
 pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32>) -> InverseCdf {
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .filter_map(|i| {
-            (
-                f(
-                    i,
-                    (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32))
-                        .map(|e| e as f64),
-                ).map(|res| (i, res))
+            (f(
+                i,
+                (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32))
+                    .map(|e| e as f64),
             )
+            .map(|res| (i, res)))
         })
         .collect::<Vec<_>>();
 
