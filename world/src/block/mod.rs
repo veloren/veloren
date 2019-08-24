@@ -2,7 +2,7 @@ mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample, StructureData},
-    generator::TownGen,
+    generator::{Generator, TownGen},
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
 };
@@ -137,6 +137,7 @@ impl<'a> BlockGen<'a> {
             column_gen,
         } = self;
 
+        let sample = &z_cache?.sample;
         let &ColumnSample {
             alt,
             chaos,
@@ -159,7 +160,7 @@ impl<'a> BlockGen<'a> {
 
             chunk,
             ..
-        } = &z_cache?.sample;
+        } = sample;
 
         let structures = &z_cache?.structures;
 
@@ -171,9 +172,12 @@ impl<'a> BlockGen<'a> {
                 (true, alt, CONFIG.sea_level /*water_level*/)
             } else {
                 // Apply warping
-                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(24.0)) as f32)
+                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
                     .mul((chaos - 0.1).max(0.0))
-                    .mul(30.0);
+                    .mul(48.0)
+                    + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
+                        .mul((chaos - 0.1).max(0.0))
+                        .mul(15.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
@@ -348,7 +352,7 @@ impl<'a> BlockGen<'a> {
                 .structures
                 .town
                 .as_ref()
-                .and_then(|town| TownGen.get((town, wpos)))
+                .and_then(|town| TownGen.get((town, wpos, sample)))
         });
 
         let block = structures
@@ -404,6 +408,19 @@ impl<'a> ZCache<'a> {
         let max = (self.sample.alt + cliff + structure_max + warp + 8.0)
             .max(self.sample.water_level)
             .max(CONFIG.sea_level + 2.0);
+
+        // Structures
+        let (min, max) = self
+            .sample
+            .chunk
+            .structures
+            .town
+            .as_ref()
+            .map(|town| {
+                let (town_min, town_max) = TownGen.get_z_limits(town, self.wpos, &self.sample);
+                (town_min.min(min), town_max.max(max))
+            })
+            .unwrap_or((min, max));
 
         (min, max)
     }
