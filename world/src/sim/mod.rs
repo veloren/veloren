@@ -25,6 +25,7 @@ use noise::{
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use std::{
+    collections::HashMap,
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
@@ -87,6 +88,8 @@ pub(crate) struct GenCtx {
 
     pub fast_turb_x_nz: FastNoise,
     pub fast_turb_y_nz: FastNoise,
+
+    pub town_gen: StructureGen2d,
 }
 
 pub struct WorldSim {
@@ -141,6 +144,8 @@ impl WorldSim {
 
             fast_turb_x_nz: FastNoise::new(gen_seed()),
             fast_turb_y_nz: FastNoise::new(gen_seed()),
+
+            town_gen: StructureGen2d::new(gen_seed(), 1024, 512),
         };
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
@@ -418,6 +423,38 @@ impl WorldSim {
             }
         }
 
+        // Stage 2 - towns!
+        let mut maybe_towns = HashMap::new();
+        for i in 0..WORLD_SIZE.x {
+            for j in 0..WORLD_SIZE.y {
+                let chunk_pos = Vec2::new(i as i32, j as i32);
+                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    e * sz as i32 + sz as i32 / 2
+                });
+
+                let near_towns = self.gen_ctx.town_gen.get(wpos);
+                let town = near_towns
+                    .iter()
+                    .min_by_key(|(pos, seed)| wpos.distance_squared(*pos));
+
+                if let Some((pos, seed)) = town {
+                    let maybe_town = maybe_towns
+                        .entry(*pos)
+                        .or_insert_with(|| {
+                            TownState::generate(*pos, *seed, self).map(|t| Arc::new(t))
+                        })
+                        .as_mut()
+                        // Only care if we're close to the town
+                        .filter(|town| {
+                            town.center.distance_squared(wpos) < town.radius.add(64).pow(2)
+                        })
+                        .cloned();
+
+                    self.get_mut(chunk_pos).unwrap().structures.town = maybe_town;
+                }
+            }
+        }
+
         self.rng = rng;
         self.locations = locations;
     }
@@ -431,6 +468,12 @@ impl WorldSim {
         } else {
             None
         }
+    }
+
+    pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
+        self.get(wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            e / sz as i32
+        }))
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -610,7 +653,7 @@ impl SimChunk {
                 .mul(1.3)
                 .max(0.0),
             is_cliffs: cliff > 0.5 && alt > CONFIG.sea_level + 5.0,
-            near_cliffs: cliff > 0.25,
+            near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
