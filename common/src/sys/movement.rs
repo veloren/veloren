@@ -131,6 +131,14 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or_default();
                 }
             }
+
+            if physics.on_ground && (character.movement == Jump || character.movement == Glide) {
+                character.movement = Stand;
+            }
+
+            if !physics.on_ground && (character.movement == Stand || character.movement == Run) {
+                character.movement = Jump;
+            }
         }
     }
 }
