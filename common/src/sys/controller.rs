@@ -69,6 +69,15 @@ impl<'a> System<'a> for Sys {
                 character.movement = Stand;
             }
 
+            // Look
+            if controller
+                .look_dir
+                .map(|n| !n.is_normal() || n.abs() < std::f32::EPSILON)
+                .reduce_or()
+            {
+                controller.look_dir = controller.move_dir.into();
+            }
+
             // Glide
             if controller.glide
                 && !physics.on_ground

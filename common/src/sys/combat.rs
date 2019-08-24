@@ -1,5 +1,7 @@
 use crate::{
-    comp::{ActionState::*, CharacterState, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel},
+    comp::{
+        ActionState::*, CharacterState, Controller, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel,
+    },
     state::{DeltaTime, Uid},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
@@ -14,6 +16,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
+        ReadStorage<'a, Controller>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
@@ -28,6 +31,7 @@ impl<'a> System<'a> for Sys {
             dt,
             positions,
             orientations,
+            controllers,
             mut velocities,
             mut character_states,
             mut stats,
@@ -35,7 +39,9 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Attacks
-        for (entity, uid, pos, ori) in (&entities, &uids, &positions, &orientations).join() {
+        for (entity, uid, pos, ori, controller) in
+            (&entities, &uids, &positions, &orientations, &controllers).join()
+        {
             let mut todo_end = false;
 
             // Go through all other entities
@@ -53,11 +59,15 @@ impl<'a> System<'a> for Sys {
                     )
                         .join()
                     {
+                        let dist = pos.0.distance(pos_b.0);
+
                         // Check if it is a hit
                         if entity != b
                             && !stat_b.is_dead
-                            && pos.0.distance_squared(pos_b.0) < 50.0
-                            && ori.0.angle_between(pos_b.0 - pos.0).to_degrees() < 90.0
+                            && dist < 6.0
+                            // TODO: Use size instead of 1.0
+                            // TODO: Implement eye levels
+                            && controller.look_dir.angle_between(pos_b.0 - pos.0)) < (1.0 / dist).atan()
                         {
                             let dmg = if character_b.action.is_block()
                                 && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees() < 90.0
