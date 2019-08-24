@@ -8,6 +8,7 @@ pub enum Animation {
     Jump,
     Gliding,
     Attack,
+    Block,
     Roll,
     Crun,
     Cidle,
