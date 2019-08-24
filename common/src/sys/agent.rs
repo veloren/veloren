@@ -76,6 +76,8 @@ impl<'a> System<'a> for Sys {
                             )
                         })
                     {
+                        controller.look_dir = target_pos.0 - pos.0;
+
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
