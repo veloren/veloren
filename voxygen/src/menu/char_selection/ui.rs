@@ -852,7 +852,7 @@ impl CharSelectionUi {
                                     ui_widgets: &mut UiCell| {
                 Text::new(text)
                     .down_from(prev_id, 22.0)
-                    .align_middle_x()
+                    .align_middle_x_of(prev_id)
                     .font_size(18)
                     .font_id(metamorph)
                     .color(TEXT_COLOR)
