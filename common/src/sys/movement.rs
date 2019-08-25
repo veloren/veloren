@@ -17,8 +17,7 @@ const WIELD_ACCEL: f32 = 70.0;
 const WIELD_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
-const ROLL_ACCEL: f32 = 160.0;
-const ROLL_SPEED: f32 = 550.0;
+const ROLL_SPEED: f32 = 13.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -74,24 +73,32 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
 
-            // Move player according to move_dir
-            vel.0 += Vec2::broadcast(dt.0)
-                * controller.move_dir
-                * match (physics.on_ground, &character.movement) {
-                    (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
-                        HUMANOID_ACCEL
-                    }
-                    (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
-                        GLIDE_ACCEL
-                    }
-                    (false, Jump) if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) => {
-                        HUMANOID_AIR_ACCEL
-                    }
-                    (true, Roll { .. }) if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) => {
-                        ROLL_ACCEL
-                    }
-                    _ => 0.0,
-                };
+            if character.movement.is_roll() {
+                vel.0 = controller
+                    .move_dir
+                    .try_normalized()
+                    .map(Vec3::from)
+                    .unwrap_or(vel.0.normalized())
+                    * ROLL_SPEED;
+            } else {
+                // Move player according to move_dir
+                vel.0 += Vec2::broadcast(dt.0)
+                    * controller.move_dir
+                    * match (physics.on_ground, &character.movement) {
+                        (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
+                            HUMANOID_ACCEL
+                        }
+                        (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
+                            GLIDE_ACCEL
+                        }
+                        (false, Jump)
+                            if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
+                        {
+                            HUMANOID_AIR_ACCEL
+                        }
+                        _ => 0.0,
+                    };
+            }
 
             // Set direction based on move direction when on the ground
             let ori_dir = if character.action.is_wield()

@@ -73,13 +73,10 @@ impl<'a> System<'a> for Sys {
             }
 
             // Look
-            if controller
+            controller.look_dir = controller
                 .look_dir
-                .map(|n| !n.is_normal() || n.abs() < std::f32::EPSILON)
-                .reduce_or()
-            {
-                controller.look_dir = controller.move_dir.into();
-            }
+                .try_normalized()
+                .unwrap_or(controller.move_dir.into());
 
             // Glide
             if controller.glide
