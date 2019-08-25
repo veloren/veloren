@@ -18,7 +18,7 @@ use crate::{
 };
 use common::{
     comp,
-    event::{Event as GameEvent, EventBus},
+    event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
@@ -37,7 +37,6 @@ use vek::*;
 use world::{ChunkSupplement, World};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
-const HUMANOID_JUMP_ACCEL: f32 = 18.0;
 
 pub enum Event {
     ClientConnected {
@@ -88,7 +87,7 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 512.0)));
-        state.ecs_mut().add_resource(EventBus::default());
+        state.ecs_mut().add_resource(EventBus::<ServerEvent>::default());
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -218,7 +217,7 @@ impl Server {
     fn handle_events(&mut self) {
         let clients = &mut self.clients;
 
-        let events = self.state.ecs().read_resource::<EventBus>().recv_all();
+        let events = self.state.ecs().read_resource::<EventBus<ServerEvent>>().recv_all();
         for event in events {
             let ecs = self.state.ecs_mut();
             let mut todo_remove = None;
@@ -231,7 +230,7 @@ impl Server {
                 let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
 
                 match event {
-                    GameEvent::LandOnGround { entity, vel } => {
+                    ServerEvent::LandOnGround { entity, vel } => {
                         if let Some(stats) = stats.get_mut(entity) {
                             let falldmg = (vel.z / 1.5 + 10.0) as i32;
                             if falldmg < 0 {
@@ -239,7 +238,7 @@ impl Server {
                             }
                         }
                     }
-                    GameEvent::Explosion { pos, radius } => {
+                    ServerEvent::Explosion { pos, radius } => {
                         const RAYS: usize = 500;
 
                         for _ in 0..RAYS {
@@ -257,13 +256,7 @@ impl Server {
                                 .cast();
                         }
                     }
-                    GameEvent::Jump(entity) => {
-                        if let Some(vel) = velocities.get_mut(entity) {
-                            vel.0.z = HUMANOID_JUMP_ACCEL;
-                            let _ = force_updates.insert(entity, comp::ForceUpdate);
-                        }
-                    }
-                    GameEvent::Die { entity, cause } => {
+                    ServerEvent::Die { entity, cause } => {
                         // Chat message
                         if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
                             let msg = if let comp::HealthSource::Attack { by } = cause {
@@ -308,7 +301,7 @@ impl Server {
                             todo_remove = Some(entity.clone());
                         }
                     }
-                    GameEvent::Respawn(entity) => {
+                    ServerEvent::Respawn(entity) => {
                         // Only clients can respawn
                         if let Some(client) = clients.get_mut(&entity) {
                             client.allow_state(ClientState::Character);
