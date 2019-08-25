@@ -1,11 +1,11 @@
 ({
     (Human, Male): (
         offset: (-7.0, -5.0, -1.25),
-        head: ("figure.head.human.male", (0, 0, 0)),
-        eyes: ("figure.eyes.human.male", (3, 7, 2)),
+        head: ("figure.head.human.male", (0, 0, -1)),
+        eyes: ("figure.eyes.human.male", (3, 7, 1)),
         hair: {
             None: None,
-            Temp1: Some(("figure.hair.human.male", (1, 0, 1))),
+            Temp1: Some(("figure.hair.human.male", (1, 0, 0))),
             Temp2: Some(("figure.hair.human.male", (1, 0, 1))),
         },
         beard: {
@@ -19,12 +19,181 @@
     ),
     (Human, Female): (
         offset: (-7.0, -7.5, -3.25),
-        head: ("figure.head.human.female", (0, 0, 0)),
-        eyes: ("figure.eyes.human.female", (1, 2, 3)),
+        head: ("figure.head.human.female", (0, 4, 3)),
+        eyes: ("figure.eyes.human.female", (2, 11, 4)),
         hair: {
             None: None,
-            Temp1: Some(("figure.hair.human.female_1", (1, 2, 3))),
-            Temp2: Some(("figure.hair.human.female_2", (1, 2, 3))),
+            Temp1: Some(("figure.hair.human.female_1", (1, 1, -4))),	
+            Temp2: Some(("figure.hair.human.female_2", (1, -1, 1))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Orc, Male): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.orc.male", (-1, 3, 2)),
+        eyes: ("figure.eyes.orc.male", (-1, 4		, 5)),
+        hair: {
+            None: None,	
+            Temp1: Some(("figure.hair.orc.male", (3, 2, 2))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),	
+    (Orc, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.orc.female", (-1, -1, 0)),
+        eyes: ("figure.eyes.orc.female", (2, 8, 1)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.orc.female", (4, 1, 0))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Elf, Male): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.elf.male", (-1, 3, 1)),
+        eyes: ("figure.eyes.elf.male", (3, 10, 3)),
+        hair: {
+            None: None,	
+            Temp1: Some(("figure.hair.elf.male", (1, 2, 2))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),	
+    (Elf, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.elf.female", (-1, 4, 2)),
+        eyes: ("figure.eyes.elf.female", (2, 11, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.elf.female", (1, 2, 0))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Dwarf, Male): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.dwarf.male", (1, 1, 1)),
+        eyes: ("figure.eyes.dwarf.male", (3, 8, 3)),
+        hair: {
+            None: None,	
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),	
+    (Dwarf, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.dwarf.female", (1, 4, 2)),
+        eyes: ("figure.eyes.dwarf.female", (2, 11, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.dwarf.female", (2, 1, -5))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Undead, Male): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.undead.male", (1, 1, 1)),
+        eyes: ("figure.eyes.undead.male", (3, 8, 3)),
+        hair: {
+            None: None,	
+            Temp1: Some(("figure.hair.undead.male", (2, 1, -5))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),	
+    (Undead, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.undead.female", (1, 4, 2)),
+        eyes: ("figure.eyes.undead.female", (2, 11, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.undead.female", (2, 1, -5))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),
+    (Danari, Male): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.danari.male", (-2, 2, 1)),
+        eyes: ("figure.eyes.danari.male", (3, 8, 30)),
+        hair: {
+            None: None,	
+            Temp1: Some(("figure.hair.danari.male", (1, 1, 1))),
+        },
+        beard: {
+            None: None,
+            Some: None,
+        },
+        accessory: {
+            Nothing: None,
+            Something: None,
+        },
+    ),	
+    (Danari, Female): (
+        offset: (-7.0, -7.5, -3.25),
+        head: ("figure.head.danari.female", (-2, 6, 1)),
+        eyes: ("figure.eyes.danari.female", (2, 13, 3)),
+        hair: {
+            None: None,
+            Temp1: Some(("figure.hair.danari.female", (1, 0, 1))),
         },
         beard: {
             None: None,
