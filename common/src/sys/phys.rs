@@ -1,7 +1,7 @@
 use {
     crate::{
         comp::{Body, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
-        event::{ServerEvent, EventBus},
+        event::{EventBus, ServerEvent},
         state::DeltaTime,
         terrain::TerrainMap,
         vol::{ReadVol, Vox},

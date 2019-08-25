@@ -693,14 +693,12 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         }
-                        comp::Animation::Block => {
-                            anim::character::BlockAnimation::update_skeleton(
-                                state.skeleton_mut(),
-                                time,
-                                animation_info.time,
-                                skeleton_attr,
-                            )
-                        }
+                        comp::Animation::Block => anim::character::BlockAnimation::update_skeleton(
+                            state.skeleton_mut(),
+                            time,
+                            animation_info.time,
+                            skeleton_attr,
+                        ),
                         comp::Animation::Cjump => anim::character::CjumpAnimation::update_skeleton(
                             state.skeleton_mut(),
                             time,

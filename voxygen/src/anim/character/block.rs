@@ -45,16 +45,17 @@ impl Animation for BlockAnimation {
             1.0 + skeleton_attr.neck_forward,
             skeleton_attr.neck_height + 13.5 + wave_ultra_slow * 0.2,
         );
-        next.head.ori =
-            Quaternion::rotation_x(-0.25);
+        next.head.ori = Quaternion::rotation_x(-0.25);
         next.head.scale = Vec3::one() * 1.01 * skeleton_attr.head_scale;
 
         next.chest.offset = Vec3::new(0.0 + wave_slow_cos * 0.2, 0.0, 5.0 + wave_ultra_slow * 0.2);
-        next.chest.ori = Quaternion::rotation_x(-0.15) * Quaternion::rotation_y(wave_ultra_slow_cos * 0.01);
+        next.chest.ori =
+            Quaternion::rotation_x(-0.15) * Quaternion::rotation_y(wave_ultra_slow_cos * 0.01);
         next.chest.scale = Vec3::one();
 
         next.belt.offset = Vec3::new(0.0 + wave_slow_cos * 0.2, 0.0, 3.0 + wave_ultra_slow * 0.2);
-        next.belt.ori = Quaternion::rotation_x(0.0) * Quaternion::rotation_y(wave_ultra_slow_cos * 0.008);
+        next.belt.ori =
+            Quaternion::rotation_x(0.0) * Quaternion::rotation_y(wave_ultra_slow_cos * 0.008);
         next.belt.scale = Vec3::one() * 1.01;
 
         next.shorts.offset = Vec3::new(0.0 + wave_slow_cos * 0.2, 0.0, 1.0 + wave_ultra_slow * 0.2);
@@ -64,18 +65,10 @@ impl Animation for BlockAnimation {
         match Tool::Hammer {
             //TODO: Inventory
             Tool::Sword => {
-                next.l_hand.offset = Vec3::new(
-                    -6.0,
-                    3.5,
-                    0.0 + wave_ultra_slow * 1.0,
-                );
+                next.l_hand.offset = Vec3::new(-6.0, 3.5, 0.0 + wave_ultra_slow * 1.0);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3);
                 next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(
-                    -6.0,
-                    3.0,
-                    -2.0,
-                );
+                next.r_hand.offset = Vec3::new(-6.0, 3.0, -2.0);
                 next.r_hand.ori = Quaternion::rotation_x(-0.3);
                 next.r_hand.scale = Vec3::one() * 1.01;
                 next.weapon.offset = Vec3::new(
