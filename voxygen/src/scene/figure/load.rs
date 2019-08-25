@@ -12,7 +12,7 @@ use common::{
         item::Tool,
         object, quadruped, quadruped_medium, Item,
     },
-    figure::{Segment, SegmentUnionizer},
+    figure::{DynaUnionizer, MatSegment, Material, Segment},
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
@@ -25,7 +25,7 @@ pub fn load_segment(mesh_name: &str) -> Segment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     Segment::from(assets::load_expect::<DotVoxData>(full_specifier.as_str()).as_ref())
 }
-pub fn graceful_load_segment(mesh_name: &str) -> Segment {
+pub fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     let full_specifier: String = ["voxygen.voxel.", mesh_name].concat();
     let dot_vox = match assets::load::<DotVoxData>(full_specifier.as_str()) {
         Ok(dot_vox) => dot_vox,
@@ -34,7 +34,7 @@ pub fn graceful_load_segment(mesh_name: &str) -> Segment {
             assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
         }
     };
-    Segment::from(dot_vox.as_ref())
+    MatSegment::from(dot_vox.as_ref())
 }
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
     Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&load_segment(mesh_name), position).0
@@ -75,7 +75,7 @@ impl HumHeadSpec {
         beard: Beard,
         eye_color: EyeColor,
         skin: Skin,
-        eyebrows: Eyebrows,
+        _eyebrows: Eyebrows,
         accessory: Accessory,
     ) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(race, body_type)) {
@@ -85,15 +85,14 @@ impl HumHeadSpec {
                     "No head specification exists for the combination of {:?} and {:?}",
                     race, body_type
                 );
-                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -5.0));
+                return load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5));
             }
         };
-        // TODO: color hair(via index or recoloring), color skin(via index)
         // Load segment pieces
-        let bare_head = graceful_load_segment(&spec.head.0);
-        let eyes = graceful_load_segment(&spec.eyes.0);
+        let bare_head = graceful_load_mat_segment(&spec.head.0);
+        let eyes = graceful_load_mat_segment(&spec.eyes.0);
         let hair = match spec.hair.get(&hair_style) {
-            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(Some(spec)) => Some((graceful_load_mat_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
                 warn!("No specification for this hair style: {:?}", hair_style);
@@ -101,7 +100,7 @@ impl HumHeadSpec {
             }
         };
         let beard = match spec.beard.get(&beard) {
-            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(Some(spec)) => Some((graceful_load_mat_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
                 warn!("No specification for this beard: {:?}", beard);
@@ -109,7 +108,7 @@ impl HumHeadSpec {
             }
         };
         let accessory = match spec.accessory.get(&accessory) {
-            Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
+            Some(Some(spec)) => Some((graceful_load_mat_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
                 warn!("No specification for this accessory: {:?}", accessory);
@@ -117,7 +116,7 @@ impl HumHeadSpec {
             }
         };
 
-        let (head, origin_offset) = SegmentUnionizer::new()
+        let (head, origin_offset) = DynaUnionizer::new()
             .add(bare_head, spec.head.1.into())
             .add(eyes, spec.eyes.1.into())
             .maybe_add(hair)
@@ -125,8 +124,58 @@ impl HumHeadSpec {
             .maybe_add(accessory)
             .unify();
 
+        // TODO move this code to a fn
+        // TODO move some of the colors to rgb
+        let colored = head.to_segment(|mat| match mat {
+            Material::Skin => match skin {
+                // TODO include Race in match
+                Skin::Light => Rgb::new(243, 198, 165),
+                Skin::Medium => Rgb::new(203, 128, 97),
+                Skin::Dark => Rgb::new(151, 91, 67),
+                Skin::Rainbow => {
+                    use rand::{seq::SliceRandom, thread_rng};
+                    *[
+                        Rgb::new(240, 4, 4),
+                        Rgb::new(240, 140, 4),
+                        Rgb::new(240, 235, 4),
+                        Rgb::new(50, 240, 5),
+                        Rgb::new(4, 4, 240),
+                        Rgb::new(150, 0, 175),
+                    ]
+                    .choose(&mut thread_rng())
+                    .unwrap()
+                }
+            },
+            Material::Hair => match hair_color {
+                HairColor::Red => Rgb::new(255, 20, 20),
+                HairColor::Green => Rgb::new(20, 255, 20),
+                HairColor::Blue => Rgb::new(20, 20, 255),
+                HairColor::Brown => Rgb::new(50, 50, 0),
+                HairColor::Black => Rgb::new(10, 10, 20),
+            },
+            Material::EyeLight => match eye_color {
+                EyeColor::Black => Rgb::new(0, 0, 0),
+                EyeColor::Blue => Rgb::new(0, 0, 200),
+                EyeColor::Green => Rgb::new(0, 200, 0),
+                EyeColor::Brown => Rgb::new(150, 150, 0),
+                EyeColor::Red => Rgb::new(255, 0, 0),
+                EyeColor::White => Rgb::new(255, 255, 255),
+            },
+            Material::EyeDark => match eye_color {
+                EyeColor::Black => Rgb::new(0, 0, 0),
+                EyeColor::Blue => Rgb::new(0, 0, 100),
+                EyeColor::Green => Rgb::new(0, 100, 0),
+                EyeColor::Brown => Rgb::new(50, 50, 0),
+                EyeColor::Red => Rgb::new(200, 0, 0),
+                EyeColor::White => Rgb::new(255, 255, 255),
+            },
+            Material::EyeWhite => match eye_color {
+                EyeColor::White => Rgb::new(0, 0, 0),
+                _ => Rgb::new(255, 255, 255),
+            },
+        });
         Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(
-            &head,
+            &colored,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
         )
         .0
@@ -199,7 +248,7 @@ pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
 
     let bare_chest = load_segment("figure.body.chest");
     let chest_armor = load_segment("armor.chest.generic");
-    let chest = SegmentUnionizer::new()
+    let chest = DynaUnionizer::new()
         .add(bare_chest, Vec3::new(0, 0, 0))
         .add(chest_armor.chromify(Rgb::from(color)), Vec3::new(0, 0, 0))
         .unify()
