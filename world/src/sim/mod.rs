@@ -5,7 +5,9 @@ mod util;
 // Reexports
 pub use self::location::Location;
 pub use self::settlement::Settlement;
-use self::util::{cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, InverseCdf};
+use self::util::{
+    cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx, InverseCdf,
+};
 
 use crate::{
     all::ForestKind,
@@ -143,11 +145,6 @@ impl WorldSim {
             )
         });
 
-        // -1 to 1.
-        let temp_base = uniform_noise(|_, wposf| {
-            Some((gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32))
-        });
-
         // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
         // "chaotic" the region is--how much weird stuff is going on on this terrain.
         let chaos = uniform_noise(|posi, wposf| {
@@ -180,20 +177,6 @@ impl WorldSim {
                     // hill is 0 about 50% of the time).
                     // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
                     .add(0.2 * hill)
-                    // [0, 1.24] * [0.35, 1.0] = [0, 1.24].
-                    // Sharply decreases (towards 0.35) when temperature is near desert_temp (from below),
-                    // then saturates just before it actually becomes desert.  Otherwise stays at 1.
-                    // Note that this is not the *final* temperature, only the initial noise value for
-                    // temperature.
-                    .mul(
-                        temp_base[posi]
-                            .1
-                            .sub(0.45)
-                            .neg()
-                            .mul(12.0)
-                            .max(0.35)
-                            .min(1.0),
-                    )
                     // We can't have *no* chaos!
                     .max(0.1),
             )
@@ -236,9 +219,36 @@ impl WorldSim {
             Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
         });
 
+        // Check whether any tiles around this tile are not water (since Lerp will ensure that they
+        // are included).
+        let pure_water = |posi| {
+            let pos = uniform_idx_as_vec2(posi);
+            for x in (pos.x - 1..=pos.x + 1) {
+                for y in (pos.y - 1..=pos.y + 1) {
+                    if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
+                        let posi = vec2_as_uniform_idx(Vec2::new(x, y));
+                        if alt[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
+                            return false;
+                        }
+                    }
+                }
+            }
+            true
+        };
+
+        // -1 to 1.
+        let temp_base = uniform_noise(|posi, wposf| {
+            if pure_water(posi) {
+                None
+            } else {
+                Some((gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32))
+            }
+        });
+
         // 0 to 1, hopefully.
         let humid_base = uniform_noise(|posi, wposf| {
-            if alt[posi].1 <= 5.0.div(CONFIG.mountain_scale) {
+            // Check whether any tiles around this tile are water.
+            if pure_water(posi) {
                 None
             } else {
                 Some(
@@ -398,7 +408,7 @@ impl WorldSim {
             .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
             .reduce_and()
         {
-            Some(&self.chunks[chunk_pos.y as usize * WORLD_SIZE.x + chunk_pos.x as usize])
+            Some(&self.chunks[vec2_as_uniform_idx(chunk_pos)])
         } else {
             None
         }
@@ -409,7 +419,7 @@ impl WorldSim {
             .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
             .reduce_and()
         {
-            Some(&mut self.chunks[chunk_pos.y as usize * WORLD_SIZE.x + chunk_pos.x as usize])
+            Some(&mut self.chunks[vec2_as_uniform_idx(chunk_pos)])
         } else {
             None
         }
@@ -573,9 +583,9 @@ impl SimChunk {
                 // Weighted logit sum.
                 logistic_cdf(logit(humidity) + 0.5 * logit(tree_density))
             }
-            // rescale to (-0.9, 0.9)
+            // rescale to (-0.95, 0.95)
             .sub(0.5)
-            .mul(0.9)
+            .mul(0.95)
             .add(0.5)
         };
 

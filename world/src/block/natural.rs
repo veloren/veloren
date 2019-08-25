@@ -25,7 +25,7 @@ pub fn structure_gen<'a>(
     let st_sample = &structure_samples[idx].as_ref()?;
 
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
-    if st_sample.tree_density < 0.5 + (st_seed as f32 / 1000.0).fract() * 0.2
+    if st_sample.tree_density < 0.5 + (st_seed as f32 / 1000.0).fract() * 0.5
         || st_sample.alt < st_sample.water_level
         || st_sample.spawn_rate < 0.5
     {
