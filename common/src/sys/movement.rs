@@ -79,7 +79,7 @@ impl<'a> System<'a> for Sys {
                         .move_dir
                         .try_normalized()
                         .map(|m| m)
-                        .unwrap_or(Vec2::from(vel.0).normalized())
+                        .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default())
                         * ROLL_SPEED
             } else {
                 // Move player according to move_dir
