@@ -8,6 +8,15 @@ use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
 
+const BASE_DMG: i32 = 10;
+const BLOCK_EFFICIENCY: f32 = 0.9;
+
+const ATTACK_RANGE: f32 = 4.0;
+const BLOCK_ANGLE: f32 = 180.0;
+
+const KNOCKBACK_XY: f32 = 2.0;
+const KNOCKBACK_Z: f32 = 2.0;
+
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -60,6 +69,7 @@ impl<'a> System<'a> for Sys {
                     )
                         .join()
                     {
+                        // 2D versions
                         let pos2 = Vec2::from(pos.0);
                         let pos_b2: Vec2<f32> = Vec2::from(pos_b.0);
                         let ori2 = Vec2::from(ori.0);
@@ -67,24 +77,25 @@ impl<'a> System<'a> for Sys {
                         // Check if it is a hit
                         if entity != b
                             && !stat_b.is_dead
-                            && pos.0.distance_squared(pos_b.0) < 20.0
+                            && pos.0.distance_squared(pos_b.0) < ATTACK_RANGE.powi(2)
                             // TODO: Use size instead of 1.0
                             && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
                             let dmg = if character_b.action.is_block()
-                                && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees() < 90.0
+                                && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
+                                    < BLOCK_ANGLE / 2.0
                             {
-                                1
+                                (BASE_DMG as f32 * (1.0 - BLOCK_EFFICIENCY)) as i32
                             } else {
-                                10
+                                BASE_DMG
                             };
 
                             // Deal damage
                             stat_b
                                 .health
                                 .change_by(-dmg, HealthSource::Attack { by: *uid }); // TODO: variable damage and weapon
-                            vel_b.0 += (pos_b.0 - pos.0).normalized() * 2.0;
-                            vel_b.0.z = 2.0;
+                            vel_b.0 += (pos_b.0 - pos.0).normalized() * KNOCKBACK_XY;
+                            vel_b.0.z = KNOCKBACK_Z;
                             let _ = force_updates.insert(b, ForceUpdate);
                         }
                     }
