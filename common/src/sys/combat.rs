@@ -52,8 +52,6 @@ impl<'a> System<'a> for Sys {
         for (entity, uid, pos, ori, controller) in
             (&entities, &uids, &positions, &orientations, &controllers).join()
         {
-            let mut todo_end = false;
-
             // Go through all other entities
             if let Some(Attack { time_left, applied }) =
                 &mut character_states.get(entity).map(|c| c.action)
@@ -108,19 +106,16 @@ impl<'a> System<'a> for Sys {
                     *applied = true;
 
                     if *time_left == Duration::default() {
-                        todo_end = true;
+                        if let Some(character) = &mut character_states.get_mut(entity) {
+                            character.action = Wield {
+                                time_left: Duration::default(),
+                            };
+                        }
                     } else {
                         *time_left = time_left
                             .checked_sub(Duration::from_secs_f32(dt.0))
                             .unwrap_or_default();
                     }
-                }
-            }
-            if todo_end {
-                if let Some(character) = &mut character_states.get_mut(entity) {
-                    character.action = Wield {
-                        time_left: Duration::default(),
-                    };
                 }
             }
 
