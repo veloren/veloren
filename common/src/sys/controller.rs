@@ -127,7 +127,6 @@ impl<'a> System<'a> for Sys {
                     time_left: Duration::from_secs(5),
                 };
             } else if !controller.block && character.action.is_block() {
-                dbg!();
                 character.action = Idle;
             }
 
