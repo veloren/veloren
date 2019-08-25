@@ -3,7 +3,7 @@ use crate::{
         ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
         Vel,
     },
-    event::{Event, EventBus},
+    event::{EventBus, ServerEvent, LocalEvent},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -13,7 +13,8 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus>,
+        Read<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<LocalEvent>>,
         WriteStorage<'a, Controller>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
@@ -26,7 +27,8 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            event_bus,
+            server_bus,
+            local_bus,
             mut controllers,
             stats,
             bodies,
@@ -35,7 +37,8 @@ impl<'a> System<'a> for Sys {
             mut character_states,
         ): Self::SystemData,
     ) {
-        let mut event_emitter = event_bus.emitter();
+        let mut server_emitter = server_bus.emitter();
+        let mut local_emitter = local_bus.emitter();
 
         for (entity, controller, stats, body, vel, physics, mut character) in (
             &entities,
@@ -51,7 +54,7 @@ impl<'a> System<'a> for Sys {
             if stats.is_dead {
                 // Respawn
                 if controller.respawn {
-                    event_emitter.emit(Event::Respawn(entity));
+                    server_emitter.emit(ServerEvent::Respawn(entity));
                 }
                 continue;
             }
@@ -140,10 +143,10 @@ impl<'a> System<'a> for Sys {
                     time_left: Duration::from_millis(600),
                 };
             }
-
+            
             // Jump
             if controller.jump && physics.on_ground && vel.0.z <= 0.0 {
-                event_emitter.emit(Event::Jump(entity));
+                local_emitter.emit(LocalEvent::Jump(entity));
             }
         }
     }

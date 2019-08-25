@@ -6,7 +6,7 @@ use crate::Server;
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
-    event::{Event as GameEvent, EventBus},
+    event::{ServerEvent, EventBus},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
@@ -741,8 +741,8 @@ fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action
         Some(pos) => server
             .state
             .ecs()
-            .read_resource::<EventBus>()
-            .emit(GameEvent::Explosion { pos: pos.0, radius }),
+            .read_resource::<EventBus<ServerEvent>>()
+            .emit(ServerEvent::Explosion { pos: pos.0, radius }),
         None => server.clients.notify(
             entity,
             ServerMsg::private(String::from("You have no position!")),
