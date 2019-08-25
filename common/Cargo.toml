@@ -9,7 +9,7 @@ sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"],
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 specs = { version = "0.14.2", features = ["serde", "nightly"] }
-vek = { version = "0.9.8", features = ["serde"] }
+vek = { version = "0.9.9", features = ["serde"] }
 dot_vox = "4.0.0"
 image = "0.22.0"
 mio = "0.6.19"
