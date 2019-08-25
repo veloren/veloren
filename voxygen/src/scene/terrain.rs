@@ -602,16 +602,9 @@ impl Terrain {
         focus_pos: Vec3<f32>,
     ) {
         // Opaque
-        for (_, chunk) in &self.chunks {
-            if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
-            }
-        }
-
-        // Translucent
         for (pos, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
+                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
 
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
@@ -630,6 +623,13 @@ impl Terrain {
                         );
                     }
                 }
+            }
+        }
+
+        // Translucent
+        for (_, chunk) in &self.chunks {
+            if chunk.visible {
+                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
             }
         }
     }
