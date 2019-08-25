@@ -79,11 +79,11 @@ impl<'a> System<'a> for Sys {
                 .unwrap_or(controller.move_dir.into());
 
             // Glide
+            // TODO: Check for glide ability/item
             if controller.glide
                 && !physics.on_ground
                 && (character.action == Idle || character.action.is_wield())
                 && character.movement == Jump
-                // TODO: Ask zesterer if we can remove this
                 && body.is_humanoid()
             {
                 character.movement = Glide;
