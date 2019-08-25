@@ -216,7 +216,7 @@ impl WorldSim {
                 // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
                 let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
                     .abs()
-                    .powf(1.45);
+                    .powf(1.35);
 
                 (0.0 + alt_main
                     + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
