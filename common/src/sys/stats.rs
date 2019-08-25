@@ -1,6 +1,6 @@
 use crate::{
     comp::{HealthSource, Stats},
-    event::{Event, EventBus},
+    event::{ServerEvent, EventBus},
     state::DeltaTime,
 };
 use log::warn;
@@ -12,7 +12,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
-        Read<'a, EventBus>,
+        Read<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Stats>,
     );
 
@@ -21,7 +21,7 @@ impl<'a> System<'a> for Sys {
 
         for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.should_die() && !stat.is_dead {
-                event_emitter.emit(Event::Die {
+                event_emitter.emit(ServerEvent::Die {
                     entity,
                     cause: match stat.health.last_change {
                         Some(change) => change.2,

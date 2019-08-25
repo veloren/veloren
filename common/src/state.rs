@@ -3,7 +3,7 @@ pub use sphynx::Uid;
 
 use crate::{
     comp,
-    event::EventBus,
+    event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{Block, TerrainChunk, TerrainMap},
@@ -42,6 +42,7 @@ pub struct DeltaTime(pub f32);
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
+const HUMANOID_JUMP_ACCEL: f32 = 18.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -108,6 +109,7 @@ impl State {
     }
 
     // Create a new Sphynx ECS world.
+    // TODO: Split up registering into server and client (e.g. move EventBus<ServerEvent> to the server)
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
         // Register server -> all clients synced components.
         ecs.register_synced::<comp::Body>();
@@ -154,7 +156,8 @@ impl State {
         ecs.add_resource(TerrainMap::new().unwrap());
         ecs.add_resource(BlockChange::default());
         ecs.add_resource(TerrainChanges::default());
-        ecs.add_resource(EventBus::default());
+        ecs.add_resource(EventBus::<ServerEvent>::default());
+        ecs.add_resource(EventBus::<LocalEvent>::default());
     }
 
     /// Register a component with the state's ECS.
@@ -311,8 +314,26 @@ impl State {
             &mut self.ecs.write_resource::<BlockChange>().blocks,
             Default::default(),
         );
+        
+        // Process local events
+        let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
+        for event in events {
+            {
+                let mut velocities = self.ecs.write_storage::<comp::Vel>();
+                let mut force_updates = self.ecs.write_storage::<comp::ForceUpdate>();
+                
+                match event {  
+                    LocalEvent::Jump(entity) => {
+                        if let Some(vel) = velocities.get_mut(entity) {
+                            vel.0.z = HUMANOID_JUMP_ACCEL;
+                            let _ = force_updates.insert(entity, comp::ForceUpdate);
+                        }
+                    }
+                }
+            }
+        }
     }
-
+    
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
