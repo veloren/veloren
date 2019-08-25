@@ -605,7 +605,12 @@ impl Terrain {
         for (pos, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+            }
+        }
 
+        // Terrain sprites
+        for (pos, chunk) in &self.chunks {
+            if chunk.visible {
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
                 let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
