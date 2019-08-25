@@ -17,3 +17,6 @@ overflow-checks = false
 debug = true
 codegen-units = 1
 lto = true
+
+[patch.crates-io]
+vek = { path = "../vek" }
