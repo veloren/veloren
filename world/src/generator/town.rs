@@ -16,7 +16,7 @@ use rand_chacha::ChaChaRng;
 use std::sync::Arc;
 use vek::*;
 
-const CELL_SIZE: i32 = 24;
+const CELL_SIZE: i32 = 11;
 
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x100F4E37);
 
@@ -136,7 +136,7 @@ impl TownState {
                     let idx = rng.gen_range(0, 4);
                     Vec2::new(dirs[idx], dirs[idx + 1])
                 };
-                let road_len = 2 + rng.gen_range(1, 3) * 2 + 1;
+                let road_len = 2 + rng.gen_range(1, 6) * 2 + 1;
 
                 // Make sure we aren't trying to create a road where a road already exists!
                 match grid.get(start_pos + road_dir) {
@@ -167,7 +167,7 @@ impl TownState {
         };
 
         // Create roads
-        for _ in 0..12 {
+        for _ in 0..16 {
             create_road();
         }
 
