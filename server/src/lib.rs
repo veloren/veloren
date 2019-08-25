@@ -87,7 +87,9 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 512.0)));
-        state.ecs_mut().add_resource(EventBus::<ServerEvent>::default());
+        state
+            .ecs_mut()
+            .add_resource(EventBus::<ServerEvent>::default());
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -176,6 +178,22 @@ impl Server {
         //.with(comp::LightEmitter::default())
     }
 
+    /// Build a projectile
+    pub fn create_projectile(
+        state: &mut State,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        body: comp::Body,
+    ) -> EcsEntityBuilder {
+        state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(vel)
+            .with(comp::Ori(Vec3::unit_y()))
+            .with(body)
+    }
+
     pub fn create_player_character(
         state: &mut State,
         entity: EcsEntity,
@@ -215,70 +233,95 @@ impl Server {
 
     /// Handle events coming through via the event bus
     fn handle_events(&mut self) {
-        let clients = &mut self.clients;
-
-        let events = self.state.ecs().read_resource::<EventBus<ServerEvent>>().recv_all();
+        let events = self
+            .state
+            .ecs()
+            .read_resource::<EventBus<ServerEvent>>()
+            .recv_all();
         for event in events {
-            let ecs = self.state.ecs_mut();
-            let mut todo_remove = None;
-            {
-                let terrain = ecs.read_resource::<TerrainMap>();
-                let mut block_change = ecs.write_resource::<BlockChange>();
-                let mut stats = ecs.write_storage::<comp::Stats>();
-                let mut positions = ecs.write_storage::<comp::Pos>();
-                let mut velocities = ecs.write_storage::<comp::Vel>();
-                let mut force_updates = ecs.write_storage::<comp::ForceUpdate>();
+            let state = &mut self.state;
+            let clients = &mut self.clients;
 
-                match event {
-                    ServerEvent::LandOnGround { entity, vel } => {
-                        if let Some(stats) = stats.get_mut(entity) {
-                            let falldmg = (vel.z / 1.5 + 10.0) as i32;
-                            if falldmg < 0 {
-                                stats.health.change_by(falldmg, comp::HealthSource::World);
-                            }
+            match event {
+                ServerEvent::LandOnGround { entity, vel } => {
+                    if let Some(stats) = state
+                        .ecs_mut()
+                        .write_storage::<comp::Stats>()
+                        .get_mut(entity)
+                    {
+                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
+                        if falldmg < 0 {
+                            stats.health.change_by(falldmg, comp::HealthSource::World);
                         }
                     }
-                    ServerEvent::Explosion { pos, radius } => {
-                        const RAYS: usize = 500;
+                }
 
-                        for _ in 0..RAYS {
-                            let dir = Vec3::new(
-                                rand::random::<f32>() - 0.5,
-                                rand::random::<f32>() - 0.5,
-                                rand::random::<f32>() - 0.5,
-                            )
-                            .normalized();
+                ServerEvent::Explosion { pos, radius } => {
+                    const RAYS: usize = 500;
 
-                            let _ = terrain
-                                .ray(pos, pos + dir * radius)
-                                .until(|_| rand::random::<f32>() < 0.05)
-                                .for_each(|pos| block_change.set(pos, Block::empty()))
-                                .cast();
-                        }
+                    for _ in 0..RAYS {
+                        let dir = Vec3::new(
+                            rand::random::<f32>() - 0.5,
+                            rand::random::<f32>() - 0.5,
+                            rand::random::<f32>() - 0.5,
+                        )
+                        .normalized();
+
+                        let ecs = state.ecs_mut();
+                        let mut block_change = ecs.write_resource::<BlockChange>();
+
+                        let _ = ecs
+                            .read_resource::<TerrainMap>()
+                            .ray(pos, pos + dir * radius)
+                            .until(|_| rand::random::<f32>() < 0.05)
+                            .for_each(|pos| block_change.set(pos, Block::empty()))
+                            .cast();
                     }
-                    ServerEvent::Die { entity, cause } => {
-                        // Chat message
-                        if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
-                            let msg = if let comp::HealthSource::Attack { by } = cause {
-                                ecs.entity_from_uid(by.into()).and_then(|attacker| {
-                                    ecs.read_storage::<comp::Player>().get(attacker).map(
-                                        |attacker_alias| {
-                                            format!(
-                                                "{} was killed by {}",
-                                                &player.alias, &attacker_alias.alias
-                                            )
-                                        },
-                                    )
-                                })
-                            } else {
-                                None
-                            }
-                            .unwrap_or(format!("{} died", &player.alias));
+                }
 
-                            clients.notify_registered(ServerMsg::kill(msg));
+                ServerEvent::Shoot(entity) => {
+                    let pos = state
+                        .ecs()
+                        .read_storage::<comp::Pos>()
+                        .get(entity)
+                        .unwrap()
+                        .0;
+                    Self::create_projectile(
+                        state,
+                        comp::Pos(pos),
+                        comp::Vel(Vec3::new(0.0, 100.0, 3.0)),
+                        comp::Body::Object(comp::object::Body::Bomb),
+                    )
+                    .build();
+                }
+
+                ServerEvent::Die { entity, cause } => {
+                    let ecs = state.ecs_mut();
+                    // Chat message
+                    if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+                        let msg = if let comp::HealthSource::Attack { by } = cause {
+                            ecs.entity_from_uid(by.into()).and_then(|attacker| {
+                                ecs.read_storage::<comp::Player>().get(attacker).map(
+                                    |attacker_alias| {
+                                        format!(
+                                            "{} was killed by {}",
+                                            &player.alias, &attacker_alias.alias
+                                        )
+                                    },
+                                )
+                            })
+                        } else {
+                            None
                         }
+                        .unwrap_or(format!("{} died", &player.alias));
 
+                        clients.notify_registered(ServerMsg::kill(msg));
+                    }
+
+                    {
                         // Give EXP to the client
+                        let mut stats = ecs.write_storage::<comp::Stats>();
+
                         if let Some(entity_stats) = stats.get(entity).cloned() {
                             if let comp::HealthSource::Attack { by } = cause {
                                 ecs.entity_from_uid(by.into()).map(|attacker| {
@@ -292,29 +335,37 @@ impl Server {
                                 });
                             }
                         }
-
-                        if let Some(client) = clients.get_mut(&entity) {
-                            let _ = velocities.insert(entity, comp::Vel(Vec3::zero()));
-                            let _ = force_updates.insert(entity, comp::ForceUpdate);
-                            client.force_state(ClientState::Dead);
-                        } else {
-                            todo_remove = Some(entity.clone());
-                        }
                     }
-                    ServerEvent::Respawn(entity) => {
-                        // Only clients can respawn
-                        if let Some(client) = clients.get_mut(&entity) {
-                            client.allow_state(ClientState::Character);
-                            stats.get_mut(entity).map(|stats| stats.revive());
-                            positions.get_mut(entity).map(|pos| pos.0.z += 20.0);
-                            let _ = force_updates.insert(entity, comp::ForceUpdate);
-                        }
+
+                    if let Some(client) = clients.get_mut(&entity) {
+                        let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
+                        let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
+                        client.force_state(ClientState::Dead);
+                    } else {
+                        let _ = state.ecs_mut().delete_entity_synced(entity);
                     }
                 }
-            }
 
-            if let Some(entity) = todo_remove {
-                let _ = ecs.delete_entity_synced(entity);
+                ServerEvent::Respawn(entity) => {
+                    // Only clients can respawn
+                    if let Some(client) = clients.get_mut(&entity) {
+                        client.allow_state(ClientState::Character);
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::Stats>()
+                            .get_mut(entity)
+                            .map(|stats| stats.revive());
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::Pos>()
+                            .get_mut(entity)
+                            .map(|pos| pos.0.z += 20.0);
+                        let _ = state
+                            .ecs_mut()
+                            .write_storage()
+                            .insert(entity, comp::ForceUpdate);
+                    }
+                }
             }
         }
     }

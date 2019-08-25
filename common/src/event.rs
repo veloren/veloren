@@ -22,6 +22,7 @@ pub enum ServerEvent {
         cause: comp::HealthSource,
     },
     Respawn(EcsEntity),
+    Shoot(EcsEntity),
 }
 
 pub struct EventBus<E> {
