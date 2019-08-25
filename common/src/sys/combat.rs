@@ -67,7 +67,7 @@ impl<'a> System<'a> for Sys {
                         // Check if it is a hit
                         if entity != b
                             && !stat_b.is_dead
-                            && pos.0.distance_squared(pos_b.0) < 40.0
+                            && pos.0.distance_squared(pos_b.0) < 20.0
                             // TODO: Use size instead of 1.0
                             && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
