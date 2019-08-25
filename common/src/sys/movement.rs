@@ -74,12 +74,13 @@ impl<'a> System<'a> for Sys {
             }
 
             if character.movement.is_roll() {
-                vel.0 = controller
-                    .move_dir
-                    .try_normalized()
-                    .map(Vec3::from)
-                    .unwrap_or(vel.0.normalized())
-                    * ROLL_SPEED;
+                vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
+                    + controller
+                        .move_dir
+                        .try_normalized()
+                        .map(|m| m)
+                        .unwrap_or(Vec2::from(vel.0).normalized())
+                        * ROLL_SPEED
             } else {
                 // Move player according to move_dir
                 vel.0 += Vec2::broadcast(dt.0)
