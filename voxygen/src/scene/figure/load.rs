@@ -199,7 +199,11 @@ pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
 
     let bare_chest = load_segment("figure.body.chest");
     let chest_armor = load_segment("armor.chest.generic");
-    let chest = bare_chest.union(&chest_armor.chromify(Rgb::from(color)), Vec3::new(0, 0, 0));
+    let chest = SegmentUnionizer::new()
+        .add(bare_chest, Vec3::new(0, 0, 0))
+        .add(chest_armor.chromify(Rgb::from(color)), Vec3::new(0, 0, 0))
+        .unify()
+        .0;
 
     Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&chest, Vec3::new(-6.0, -3.5, 0.0)).0
 }

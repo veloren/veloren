@@ -12,6 +12,7 @@ use crate::{
         camera::{Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
+    window::Event,
 };
 use client::Client;
 use common::{
@@ -80,6 +81,21 @@ impl Scene {
 
     pub fn globals(&self) -> &Consts<Globals> {
         &self.globals
+    }
+
+    /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
+    ///
+    /// If the event is handled, return true.
+    pub fn handle_input_event(&mut self, event: Event) -> bool {
+        match event {
+            // When the window is resized, change the camera's aspect ratio
+            Event::Resize(dims) => {
+                self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
+                true
+            }
+            // All other events are unhandled
+            _ => false,
+        }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
