@@ -243,19 +243,6 @@ impl Server {
             let clients = &mut self.clients;
 
             match event {
-                ServerEvent::LandOnGround { entity, vel } => {
-                    if let Some(stats) = state
-                        .ecs_mut()
-                        .write_storage::<comp::Stats>()
-                        .get_mut(entity)
-                    {
-                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
-                        if falldmg < 0 {
-                            stats.health.change_by(falldmg, comp::HealthSource::World);
-                        }
-                    }
-                }
-
                 ServerEvent::Explosion { pos, radius } => {
                     const RAYS: usize = 500;
 
