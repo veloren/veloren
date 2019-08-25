@@ -3,7 +3,7 @@ use crate::{
         ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
         Vel,
     },
-    event::{EventBus, ServerEvent, LocalEvent},
+    event::{EventBus, LocalEvent, ServerEvent},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -140,7 +140,7 @@ impl<'a> System<'a> for Sys {
                     time_left: Duration::from_millis(600),
                 };
             }
-            
+
             // Jump
             if controller.jump && physics.on_ground && vel.0.z <= 0.0 {
                 local_emitter.emit(LocalEvent::Jump(entity));

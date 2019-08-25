@@ -6,7 +6,7 @@ use crate::Server;
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
-    event::{ServerEvent, EventBus},
+    event::{EventBus, ServerEvent},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
