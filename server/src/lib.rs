@@ -142,7 +142,7 @@ impl Server {
     pub fn create_npc(
         &mut self,
         pos: comp::Pos,
-        name: String,
+        stats: comp::Stats,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.state
@@ -153,7 +153,7 @@ impl Server {
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
             .with(body)
-            .with(comp::Stats::new(name))
+            .with(stats)
             .with(comp::CharacterState::default())
     }
 
@@ -174,8 +174,7 @@ impl Server {
                 offset: Vec3::unit_z(),
                 ..comp::LightEmitter::default()
             })
-            //.with(comp::LightEmitter::default())
-            .with(comp::CharacterState::default())
+        //.with(comp::LightEmitter::default())
     }
 
     pub fn create_player_character(
@@ -421,16 +420,7 @@ impl Server {
                     scale = 2.5 + rand::random::<f32>();
                 }
 
-                self.state
-                    .ecs_mut()
-                    .create_entity_synced()
-                    .with(comp::Pos(npc.pos))
-                    .with(comp::Vel(Vec3::zero()))
-                    .with(comp::Ori(Vec3::unit_y()))
-                    .with(comp::Controller::default())
-                    .with(body)
-                    .with(stats)
-                    .with(comp::CharacterState::default())
+                self.create_npc(comp::Pos(npc.pos), stats, body)
                     .with(comp::Agent::enemy())
                     .with(comp::Scale(scale))
                     .build();
