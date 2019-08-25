@@ -1,6 +1,6 @@
 use crate::{
     comp::{HealthSource, Stats},
-    event::{ServerEvent, EventBus},
+    event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
 use log::warn;

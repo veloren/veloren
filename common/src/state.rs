@@ -314,15 +314,15 @@ impl State {
             &mut self.ecs.write_resource::<BlockChange>().blocks,
             Default::default(),
         );
-        
+
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             {
                 let mut velocities = self.ecs.write_storage::<comp::Vel>();
                 let mut force_updates = self.ecs.write_storage::<comp::ForceUpdate>();
-                
-                match event {  
+
+                match event {
                     LocalEvent::Jump(entity) => {
                         if let Some(vel) = velocities.get_mut(entity) {
                             vel.0.z = HUMANOID_JUMP_ACCEL;
@@ -333,7 +333,7 @@ impl State {
             }
         }
     }
-    
+
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
         // Clean up data structures from the last tick.
