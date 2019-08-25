@@ -45,8 +45,10 @@ impl PlayState for CharSelectionState {
                     Event::Ui(event) => {
                         self.char_selection_ui.handle_event(event);
                     }
-                    // Ignore all other events.
-                    _ => {}
+                    // Pass all other events to the scene
+                    event => {
+                        self.scene.handle_input_event(event);
+                    } // TODO: Do something if the event wasn't handled?
                 }
             }
 

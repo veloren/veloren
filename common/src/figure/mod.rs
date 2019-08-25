@@ -47,35 +47,6 @@ impl From<&DotVoxData> for Segment {
 }
 
 impl Segment {
-    // TODO: this is currenlty unused, remove?
-    /// Create a new `Segment` by combining two existing ones
-    pub fn union(&self, other: &Self, other_offset: Vec3<i32>) -> Self {
-        let size = self.get_size();
-        let other_size = other.get_size();
-        let new_size = other_offset
-            .map2(other_size, |oo, os| (oo, os))
-            .map2(size, |(oo, os), s| {
-                (oo + os as i32).max(s as i32) - oo.min(0)
-            })
-            .map(|e| e as u32);
-        let mut combined = Segment::filled(new_size, Cell::empty(), ());
-        // Copy self into combined
-        let offset = other_offset.map(|e| e.min(0).abs());
-        for pos in self.iter_positions() {
-            if let Cell::Filled(col) = *self.get(pos).unwrap() {
-                combined.set(pos + offset, Cell::Filled(col)).unwrap();
-            }
-        }
-        // Copy other into combined
-        let offset = other_offset.map(|e| e.max(0));
-        for pos in other.iter_positions() {
-            if let Cell::Filled(col) = *other.get(pos).unwrap() {
-                combined.set(pos + offset, Cell::Filled(col)).unwrap();
-            }
-        }
-
-        combined
-    }
     /// Replaces one cell with another
     pub fn replace(mut self, old: Cell, new: Cell) -> Self {
         for pos in self.iter_positions() {
