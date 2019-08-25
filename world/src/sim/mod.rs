@@ -6,8 +6,7 @@ mod util;
 pub use self::location::Location;
 pub use self::settlement::Settlement;
 use self::util::{
-    cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
-    InverseCdf,
+    cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx, InverseCdf,
 };
 
 use crate::{
@@ -229,7 +228,7 @@ impl WorldSim {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
                         if alt[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
-                            return false
+                            return false;
                         }
                     }
                 }
@@ -625,7 +624,6 @@ impl SimChunk {
                     }
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
-                        println!("Mangrove: {:?}", wposf);
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
                         // NOTE: Probably the wrong kind of tree for this climate.
