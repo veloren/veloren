@@ -318,16 +318,20 @@ impl State {
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
-            {
-                let mut velocities = self.ecs.write_storage::<comp::Vel>();
-                let mut force_updates = self.ecs.write_storage::<comp::ForceUpdate>();
-
-                match event {
-                    LocalEvent::Jump(entity) => {
-                        if let Some(vel) = velocities.get_mut(entity) {
-                            vel.0.z = HUMANOID_JUMP_ACCEL;
-                            let _ = force_updates.insert(entity, comp::ForceUpdate);
+            let mut velocities = self.ecs.write_storage::<comp::Vel>();
+            match event {
+                LocalEvent::LandOnGround { entity, vel } => {
+                    if let Some(stats) = self.ecs.write_storage::<comp::Stats>().get_mut(entity) {
+                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
+                        if falldmg < 0 {
+                            stats.health.change_by(falldmg, comp::HealthSource::World);
                         }
+                    }
+                }
+
+                LocalEvent::Jump(entity) => {
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0.z = HUMANOID_JUMP_ACCEL;
                     }
                 }
             }
