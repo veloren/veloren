@@ -94,10 +94,10 @@ impl<'a> System<'a> for Sys {
                 };
 
             // Set direction based on move direction when on the ground
-            let ori_dir = if character.movement == Glide || character.movement.is_roll() {
-                Vec2::from(vel.0)
-            } else {
+            let ori_dir = if character.action.is_wield() || character.action.is_attack() {
                 Vec2::from(controller.look_dir).normalized()
+            } else {
+                Vec2::from(vel.0)
             };
 
             if ori_dir.magnitude_squared() > 0.0001
