@@ -184,8 +184,8 @@ impl<'a> BlockGen<'a> {
                     alt + warp
                 } else {
                     let turb = Vec2::new(
-                        world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(16.0)) as f32,
-                        world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(16.0)) as f32,
+                        world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
+                        world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
                     ) * 8.0;
 
                     let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
