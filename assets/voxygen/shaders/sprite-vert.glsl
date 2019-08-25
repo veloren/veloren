@@ -42,8 +42,5 @@ void main() {
 
 	f_light = 1.0;
 
-	gl_Position =
-		proj_mat *
-		view_mat *
-		vec4(f_pos, 1);
+	gl_Position = proj_view_mat * vec4(f_pos, 1);
 }

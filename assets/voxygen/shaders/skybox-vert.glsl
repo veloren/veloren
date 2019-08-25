@@ -15,9 +15,6 @@ void main() {
 	f_pos = v_pos;
 
 	// TODO: Make this position-independent to avoid rounding error jittering
-	gl_Position =
-		proj_mat *
-		view_mat *
-		vec4(v_pos + cam_pos.xyz, 1);
+	gl_Position = proj_view_mat * vec4(v_pos + cam_pos.xyz, 1);
 	gl_Position.z = 0.0;
 }

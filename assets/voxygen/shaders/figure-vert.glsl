@@ -42,5 +42,5 @@ void main() {
 		vec4(v_norm, 0.0)
 	).xyz;
 
-	gl_Position = proj_mat * view_mat * vec4(f_pos, 1);
+	gl_Position = proj_view_mat * vec4(f_pos, 1);
 }
