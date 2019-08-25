@@ -19,4 +19,4 @@ codegen-units = 1
 lto = true
 
 [patch.crates-io]
-vek = { path = "../vek" }
+vek = { git = "https://github.com/timokoesters/vek" }

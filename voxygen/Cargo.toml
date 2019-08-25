@@ -30,7 +30,7 @@ euc = "0.3.0"
 specs = "0.14.2"
 
 # Mathematics
-vek = { path = "../../vek", features=["serde"] }
+vek = { version = "0.9.8", features = ["serde"] }
 
 # discord
 discord-rpc-sdk = { git = "https://github.com/Songtronix/rust-discord-rpc.git", optional = true }
