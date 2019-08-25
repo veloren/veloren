@@ -282,7 +282,26 @@ impl Client {
         // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // 3)
+        // 3) Update client local data
+        {
+            let ecs = self.state.ecs_mut();
+            for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
+                let mut last_character_state =
+                    ecs.write_storage::<comp::Last<comp::CharacterState>>();
+                if let Some(client_character_state) =
+                    ecs.read_storage::<comp::CharacterState>().get(entity)
+                {
+                    if last_character_state
+                        .get(entity)
+                        .map(|&l| l != *client_character_state)
+                        .unwrap_or(true)
+                    {
+                        let _ = last_character_state
+                            .insert(entity, comp::Last(*client_character_state));
+                    }
+                }
+            }
+        }
 
         // 4) Tick the client's LocalState
         self.state.tick(dt);
@@ -395,7 +414,6 @@ impl Client {
         }
 
         // 7) Finish the tick, pass control back to the frontend.
-
         self.tick += 1;
         Ok(frontend_events)
     }
