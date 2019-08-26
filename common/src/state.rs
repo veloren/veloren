@@ -3,7 +3,7 @@ pub use sphynx::Uid;
 
 use crate::{
     comp,
-    event::EventBus,
+    event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
     sys,
     terrain::{Block, TerrainChunk, TerrainMap},
@@ -42,6 +42,7 @@ pub struct DeltaTime(pub f32);
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
+const HUMANOID_JUMP_ACCEL: f32 = 18.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -108,6 +109,7 @@ impl State {
     }
 
     // Create a new Sphynx ECS world.
+    // TODO: Split up registering into server and client (e.g. move EventBus<ServerEvent> to the server)
     fn setup_sphynx_world(ecs: &mut sphynx::World<EcsCompPacket, EcsResPacket>) {
         // Register server -> all clients synced components.
         ecs.register_synced::<comp::Body>();
@@ -122,7 +124,8 @@ impl State {
         ecs.register::<comp::Controller>();
 
         // Register components send directly from server -> all but one client
-        ecs.register::<comp::ActionState>();
+        ecs.register::<comp::CharacterState>();
+        ecs.register::<comp::PhysicsState>();
 
         // Register components synced from client -> server -> all other clients
         ecs.register::<comp::Pos>();
@@ -132,27 +135,17 @@ impl State {
 
         // Register client-local components
         ecs.register::<comp::AnimationInfo>();
-        ecs.register::<comp::Jumping>();
 
         // Register server-local components
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Last<comp::ActionState>>();
+        ecs.register::<comp::Last<comp::CharacterState>>();
         ecs.register::<comp::Agent>();
-        ecs.register::<comp::Respawning>();
-        ecs.register::<comp::Dying>();
         ecs.register::<comp::ForceUpdate>();
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
-        // Controller effects
-        ecs.register::<comp::MoveDir>();
-        ecs.register::<comp::OnGround>();
-        ecs.register::<comp::Attacking>();
-        ecs.register::<comp::Wielding>();
-        ecs.register::<comp::Rolling>();
-        ecs.register::<comp::Gliding>();
 
         // Register synced resources used by the ECS.
         ecs.add_resource_synced(TimeOfDay(0.0));
@@ -163,7 +156,8 @@ impl State {
         ecs.add_resource(TerrainMap::new().unwrap());
         ecs.add_resource(BlockChange::default());
         ecs.add_resource(TerrainChanges::default());
-        ecs.add_resource(EventBus::default());
+        ecs.add_resource(EventBus::<ServerEvent>::default());
+        ecs.add_resource(EventBus::<LocalEvent>::default());
     }
 
     /// Register a component with the state's ECS.
@@ -320,6 +314,28 @@ impl State {
             &mut self.ecs.write_resource::<BlockChange>().blocks,
             Default::default(),
         );
+
+        // Process local events
+        let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
+        for event in events {
+            let mut velocities = self.ecs.write_storage::<comp::Vel>();
+            match event {
+                LocalEvent::LandOnGround { entity, vel } => {
+                    if let Some(stats) = self.ecs.write_storage::<comp::Stats>().get_mut(entity) {
+                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
+                        if falldmg < 0 {
+                            stats.health.change_by(falldmg, comp::HealthSource::World);
+                        }
+                    }
+                }
+
+                LocalEvent::Jump(entity) => {
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0.z = HUMANOID_JUMP_ACCEL;
+                    }
+                }
+            }
+        }
     }
 
     /// Clean up the state after a tick.

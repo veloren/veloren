@@ -1,5 +1,6 @@
 use crate::{
-    comp::{Dying, HealthSource, Stats},
+    comp::{HealthSource, Stats},
+    event::{EventBus, ServerEvent},
     state::DeltaTime,
 };
 use log::warn;
@@ -11,27 +12,29 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, DeltaTime>,
+        Read<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Stats>,
-        WriteStorage<'a, Dying>,
     );
 
-    fn run(&mut self, (entities, dt, mut stats, mut dyings): Self::SystemData) {
+    fn run(&mut self, (entities, dt, event_bus, mut stats): Self::SystemData) {
+        let mut event_emitter = event_bus.emitter();
+
         for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.should_die() && !stat.is_dead {
-                let _ = dyings.insert(
+                event_emitter.emit(ServerEvent::Die {
                     entity,
-                    Dying {
-                        cause: match stat.health.last_change {
-                            Some(change) => change.2,
-                            None => {
-                                warn!("Nothing caused an entity to die!");
-                                HealthSource::Unknown
-                            }
-                        },
+                    cause: match stat.health.last_change {
+                        Some(change) => change.2,
+                        None => {
+                            warn!("Nothing caused an entity to die!");
+                            HealthSource::Unknown
+                        }
                     },
-                );
+                });
+
                 stat.is_dead = true;
             }
+
             if let Some(change) = &mut stat.health.last_change {
                 change.1 += f64::from(dt.0);
             }

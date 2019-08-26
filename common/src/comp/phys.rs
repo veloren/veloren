@@ -34,6 +34,16 @@ impl Component for Scale {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
+// PhysicsState
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PhysicsState {
+    pub on_ground: bool,
+}
+
+impl Component for PhysicsState {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
 // ForceUpdate
 #[derive(Copy, Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ForceUpdate;

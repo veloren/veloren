@@ -6,7 +6,7 @@ use crate::Server;
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
-    event::{Event as GameEvent, EventBus},
+    event::{EventBus, ServerEvent},
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
@@ -411,7 +411,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
 
                             let body = kind_to_body(id);
                             server
-                                .create_npc(pos, get_npc_name(id), body)
+                                .create_npc(pos, comp::Stats::new(get_npc_name(id)), body)
                                 .with(comp::Vel(vel))
                                 .with(agent)
                                 .build();
@@ -741,8 +741,8 @@ fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action
         Some(pos) => server
             .state
             .ecs()
-            .read_resource::<EventBus>()
-            .emit(GameEvent::Explosion { pos: pos.0, radius }),
+            .read_resource::<EventBus<ServerEvent>>()
+            .emit(ServerEvent::Explosion { pos: pos.0, radius }),
         None => server.clients.notify(
             entity,
             ServerMsg::private(String::from("You have no position!")),
