@@ -66,6 +66,8 @@ pub enum TownCell {
     },
     PartOf(Vec2<i32>),
     MemberOf(usize),
+    Market,
+    Wall,
 }
 
 impl TownCell {
@@ -142,7 +144,7 @@ impl TownState {
                     let idx = rng.gen_range(0, 4);
                     Vec2::new(dirs[idx], dirs[idx + 1])
                 };
-                let road_len = 2 + rng.gen_range(1, 4) * 2 + 1;
+                let road_len = 2 + rng.gen_range(1, 3) * 2 + 1;
 
                 // Make sure we aren't trying to create a road where a road already exists!
                 match grid.get(start_pos + road_dir) {
@@ -177,18 +179,77 @@ impl TownState {
             create_road();
         }
 
+        let markets = rng.gen_range(1, 3);
+        let mut create_market = || {
+            for _ in 0..30 {
+                let start_pos = Vec2::new(
+                    grid.size().x / 4 + rng.gen_range(0, grid.size().x / 2),
+                    grid.size().y / 4 + rng.gen_range(0, grid.size().y / 2),
+                );
+
+                if let Some(TownCell::Empty) = grid.get(start_pos) {
+                    let mut cells = HashSet::new();
+                    cells.insert(start_pos);
+
+                    let mut energy = 1000;
+                    while energy > 0 {
+                        energy -= 1;
+
+                        let pos = cells.iter().choose(rng).copied().unwrap();
+
+                        let dir = {
+                            let dirs = [-1, 0, 1, 0, -1];
+                            let idx = rng.gen_range(0, 4);
+                            Vec2::new(dirs[idx], dirs[idx + 1])
+                        };
+
+                        if cells.contains(&(pos + dir)) {
+                            continue;
+                        }
+
+                        if let Some(TownCell::Empty) = grid.get(pos + dir) {
+                            cells.insert(pos + dir);
+                            energy -= 10;
+                        }
+                    }
+
+                    if cells.len() >= 9 && cells.len() <= 25 {
+                        for cell in cells.iter() {
+                            grid.set(*cell, TownCell::Market);
+                        }
+
+                        break;
+                    }
+                }
+            }
+        };
+
+        for _ in 0..markets {
+            create_market();
+        }
+
         let mut properties = Vec::new();
         let mut place_house = || 'house: loop {
             let start_pos = 'start_pos: {
-                for _ in 0..30 {
+                for _ in 0..50 {
                     let pos = Vec2::new(
-                        rng.gen_range(0, grid.size().x),
-                        rng.gen_range(0, grid.size().y),
+                        rng.gen_range(4, grid.size().x - 4),
+                        rng.gen_range(4, grid.size().y - 4),
                     );
 
-                    match grid.get(pos) {
-                        Some(TownCell::Empty) => break 'start_pos pos,
-                        _ => {}
+                    let dirs = [-1, 0, 1, 0, -1];
+                    let road_neighbours = (0..4)
+                        .filter(|idx| {
+                            grid.get(pos + Vec2::new(dirs[*idx], dirs[*idx + 1]))
+                                .map(|cell| cell.is_road())
+                                .unwrap_or(false)
+                        })
+                        .count();
+
+                    if road_neighbours > 0 {
+                        if let Some(TownCell::Empty) = grid.get(pos) {
+                            break 'start_pos pos;
+                        }
                     }
                 }
 
@@ -198,8 +259,10 @@ impl TownState {
             let mut cells = HashSet::new();
             cells.insert(start_pos);
 
-            let mut growth_energy = rng.gen_range(50, 80);
+            let mut growth_energy = rng.gen_range(50, 160);
             while growth_energy > 0 {
+                growth_energy -= 1;
+
                 let pos = cells.iter().choose(rng).copied().unwrap();
 
                 let dir = {
@@ -208,12 +271,16 @@ impl TownState {
                     Vec2::new(dirs[idx], dirs[idx + 1])
                 };
 
+                if cells.contains(&(pos + dir)) {
+                    continue;
+                }
+
                 match grid.get(pos + dir) {
-                    Some(TownCell::Empty) if !cells.contains(&(pos + dir)) => {
+                    Some(TownCell::Empty) => {
                         growth_energy -= 10;
                         cells.insert(pos + dir);
                     }
-                    _ => growth_energy -= 1,
+                    _ => {}
                 }
             }
 
@@ -223,17 +290,184 @@ impl TownState {
 
             let property_idx = properties.len();
 
-            for cell in cells.into_iter() {
-                grid.set(cell, TownCell::MemberOf(property_idx));
+            for _ in 0..100 {
+                let cell = match cells.iter().choose(rng) {
+                    Some(cell) => *cell,
+                    None => break,
+                };
+
+                let dirs = [-1, 0, 1, 0, -1];
+                let neighbours = (0..4)
+                    .filter(|idx| cells.contains(&(cell + Vec2::new(dirs[*idx], dirs[*idx + 1]))))
+                    .count();
+
+                if neighbours < 2 {
+                    cells.remove(&cell);
+                }
             }
 
-            properties.push(Property::House(Rgb::new(rng.gen(), rng.gen(), rng.gen())));
+            for cell in cells.iter() {
+                grid.set(*cell, TownCell::MemberOf(property_idx));
+            }
+
+            if cells.len() > 0 {
+                properties.push(Property::House(Rgb::new(rng.gen(), rng.gen(), rng.gen())));
+            }
 
             break;
         };
 
-        for _ in 0..50 {
+        for _ in 0..40 {
             place_house();
+        }
+
+        /*
+        let mut create_walls = || {
+            for i in 0..grid.size().x {
+                grid.set(Vec2::new(i, 0), TownCell::Wall);
+                grid.set(Vec2::new(i, grid.size().y - 1), TownCell::Wall);
+            }
+
+            for j in 0..grid.size().y {
+                grid.set(Vec2::new(0, j), TownCell::Wall);
+                grid.set(Vec2::new(grid.size().x - 1, j), TownCell::Wall);
+            }
+        };
+        */
+
+        fn floodfill(
+            mut opens: HashSet<Vec2<i32>>,
+            grid: &Grid<TownCell>,
+            mut f: impl FnMut(Vec2<i32>, &TownCell) -> bool,
+        ) -> HashSet<Vec2<i32>> {
+            let mut closed = HashSet::new();
+
+            while opens.len() > 0 {
+                let mut new_opens = HashSet::new();
+
+                for open in opens.iter() {
+                    for i in -1..2 {
+                        for j in -1..2 {
+                            let pos = *open + Vec2::new(i, j);
+
+                            if let Some(cell) = grid.get(pos) {
+                                if f(pos, cell) && !closed.contains(&pos) && !opens.contains(&pos) {
+                                    new_opens.insert(pos);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                closed = closed.union(&opens).copied().collect();
+                opens = new_opens;
+            }
+
+            closed
+        }
+
+        let mut create_walls = || {
+            let mut opens = HashSet::new();
+
+            for i in 0..grid.size().x {
+                opens.insert(Vec2::new(i, 0));
+                opens.insert(Vec2::new(i, grid.size().y - 1));
+            }
+
+            for j in 0..grid.size().y {
+                opens.insert(Vec2::new(0, j));
+                opens.insert(Vec2::new(grid.size().x - 1, j));
+            }
+
+            let outer = floodfill(opens, &grid, |_, cell| {
+                if let TownCell::Empty = cell {
+                    true
+                } else {
+                    false
+                }
+            });
+
+            let mut walls = HashSet::new();
+
+            floodfill(
+                [grid.size() / 2].iter().copied().collect(),
+                &grid,
+                |pos, _| {
+                    if outer.contains(&pos) {
+                        walls.insert(pos);
+                        false
+                    } else {
+                        true
+                    }
+                },
+            );
+
+            for cell in walls.iter() {
+                grid.set(*cell, TownCell::Wall);
+            }
+        };
+
+        create_walls();
+
+        let mut remove_extra_walls = || {
+            for x in 0..grid.size().x {
+                for y in 0..grid.size().y {
+                    let pos = Vec2::new(x, y);
+                    let mut wall_count = 0;
+                    for i in 0..2 {
+                        for j in 0..2 {
+                            if let Some(TownCell::Wall) = grid.get(pos + Vec2::new(i, j)) {
+                                wall_count += 1;
+                            }
+                        }
+                    }
+
+                    if wall_count == 4 {
+                        grid.set(pos, TownCell::Empty);
+                    }
+                }
+            }
+        };
+
+        remove_extra_walls();
+
+        let mut variate_walls = || {
+            for _ in 0..100 {
+                let pos = Vec2::new(
+                    rng.gen_range(0, grid.size().x - 1),
+                    rng.gen_range(0, grid.size().y - 1),
+                );
+
+                let (mut wall_count, mut empty_count) = (0, 0);
+                for i in 0..2 {
+                    for j in 0..2 {
+                        match grid.get(pos + Vec2::new(i, j)) {
+                            Some(TownCell::Wall) => wall_count += 1,
+                            Some(TownCell::Empty) => empty_count += 1,
+                            _ => {}
+                        }
+                    }
+                }
+
+                // Swap!
+                if (wall_count, empty_count) == (3, 1) {
+                    let cell00 = grid.get(pos + Vec2::new(0, 0)).unwrap().clone();
+                    let cell10 = grid.get(pos + Vec2::new(1, 0)).unwrap().clone();
+                    let cell01 = grid.get(pos + Vec2::new(0, 1)).unwrap().clone();
+                    let cell11 = grid.get(pos + Vec2::new(1, 1)).unwrap().clone();
+
+                    grid.set(pos + Vec2::new(0, 0), cell11);
+                    grid.set(pos + Vec2::new(1, 0), cell01);
+                    grid.set(pos + Vec2::new(0, 1), cell10);
+                    grid.set(pos + Vec2::new(1, 1), cell00);
+
+                    break;
+                }
+            }
+        };
+
+        for _ in 0..100 {
+            variate_walls();
         }
 
         /*
@@ -371,6 +605,20 @@ impl<'a> Sampler<'a> for TownGen {
                             Property::House(col) => col,
                         },
                     ))
+                } else {
+                    None
+                }
+            }
+            TownCell::Market => {
+                if (wpos.z as f32) < height {
+                    Some(Block::new(BlockKind::Normal, Rgb::new(255, 0, 0)))
+                } else {
+                    None
+                }
+            }
+            TownCell::Wall => {
+                if (wpos.z as f32) < height + 20.0 {
+                    Some(Block::new(BlockKind::Normal, Rgb::new(100, 100, 100)))
                 } else {
                     None
                 }
