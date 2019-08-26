@@ -51,9 +51,9 @@ pub enum ServerMsg {
         entity: u64,
         ori: comp::Ori,
     },
-    EntityActionState {
+    EntityCharacterState {
         entity: u64,
-        action_state: comp::ActionState,
+        character_state: comp::CharacterState,
     },
     InventoryUpdate(comp::Inventory),
     TerrainChunkUpdate {

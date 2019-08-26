@@ -18,7 +18,7 @@ use crate::{
 };
 use common::{
     comp,
-    event::{Event as GameEvent, EventBus},
+    event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
@@ -87,7 +87,9 @@ impl Server {
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 512.0)));
-        state.ecs_mut().add_resource(EventBus::default());
+        state
+            .ecs_mut()
+            .add_resource(EventBus::<ServerEvent>::default());
 
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
@@ -141,7 +143,7 @@ impl Server {
     pub fn create_npc(
         &mut self,
         pos: comp::Pos,
-        name: String,
+        stats: comp::Stats,
         body: comp::Body,
     ) -> EcsEntityBuilder {
         self.state
@@ -152,9 +154,8 @@ impl Server {
             .with(comp::Ori(Vec3::unit_y()))
             .with(comp::Controller::default())
             .with(body)
-            .with(comp::Stats::new(name))
-            .with(comp::ActionState::default())
-            .with(comp::ForceUpdate)
+            .with(stats)
+            .with(comp::CharacterState::default())
     }
 
     /// Build a static object entity
@@ -174,9 +175,23 @@ impl Server {
                 offset: Vec3::unit_z(),
                 ..comp::LightEmitter::default()
             })
-            //.with(comp::LightEmitter::default())
-            .with(comp::ActionState::default())
-            .with(comp::ForceUpdate)
+        //.with(comp::LightEmitter::default())
+    }
+
+    /// Build a projectile
+    pub fn create_projectile(
+        state: &mut State,
+        pos: comp::Pos,
+        vel: comp::Vel,
+        body: comp::Body,
+    ) -> EcsEntityBuilder {
+        state
+            .ecs_mut()
+            .create_entity_synced()
+            .with(pos)
+            .with(vel)
+            .with(comp::Ori(Vec3::unit_y()))
+            .with(body)
     }
 
     pub fn create_player_character(
@@ -195,7 +210,7 @@ impl Server {
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
         state.write_component(entity, comp::Ori(Vec3::unit_y()));
-        state.write_component(entity, comp::ActionState::default());
+        state.write_component(entity, comp::CharacterState::default());
         state.write_component(entity, comp::Inventory::default());
         state.write_component(entity, comp::InventoryUpdate);
         // Make sure physics are accepted.
@@ -218,21 +233,17 @@ impl Server {
 
     /// Handle events coming through via the event bus
     fn handle_events(&mut self) {
-        let terrain = self.state.ecs().read_resource::<TerrainMap>();
-        let mut block_change = self.state.ecs().write_resource::<BlockChange>();
-        let mut stats = self.state.ecs().write_storage::<comp::Stats>();
+        let events = self
+            .state
+            .ecs()
+            .read_resource::<EventBus<ServerEvent>>()
+            .recv_all();
+        for event in events {
+            let state = &mut self.state;
+            let clients = &mut self.clients;
 
-        for event in self.state.ecs().read_resource::<EventBus>().recv_all() {
             match event {
-                GameEvent::LandOnGround { entity, vel } => {
-                    if let Some(stats) = stats.get_mut(entity) {
-                        let falldmg = (vel.z / 1.5 + 10.0) as i32;
-                        if falldmg < 0 {
-                            stats.health.change_by(falldmg, comp::HealthSource::World);
-                        }
-                    }
-                }
-                GameEvent::Explosion { pos, radius } => {
+                ServerEvent::Explosion { pos, radius } => {
                     const RAYS: usize = 500;
 
                     for _ in 0..RAYS {
@@ -243,11 +254,103 @@ impl Server {
                         )
                         .normalized();
 
-                        let _ = terrain
+                        let ecs = state.ecs_mut();
+                        let mut block_change = ecs.write_resource::<BlockChange>();
+
+                        let _ = ecs
+                            .read_resource::<TerrainMap>()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
                             .for_each(|pos| block_change.set(pos, Block::empty()))
                             .cast();
+                    }
+                }
+
+                ServerEvent::Shoot(entity) => {
+                    let pos = state
+                        .ecs()
+                        .read_storage::<comp::Pos>()
+                        .get(entity)
+                        .unwrap()
+                        .0;
+                    Self::create_projectile(
+                        state,
+                        comp::Pos(pos),
+                        comp::Vel(Vec3::new(0.0, 100.0, 3.0)),
+                        comp::Body::Object(comp::object::Body::Bomb),
+                    )
+                    .build();
+                }
+
+                ServerEvent::Die { entity, cause } => {
+                    let ecs = state.ecs_mut();
+                    // Chat message
+                    if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
+                        let msg = if let comp::HealthSource::Attack { by } = cause {
+                            ecs.entity_from_uid(by.into()).and_then(|attacker| {
+                                ecs.read_storage::<comp::Player>().get(attacker).map(
+                                    |attacker_alias| {
+                                        format!(
+                                            "{} was killed by {}",
+                                            &player.alias, &attacker_alias.alias
+                                        )
+                                    },
+                                )
+                            })
+                        } else {
+                            None
+                        }
+                        .unwrap_or(format!("{} died", &player.alias));
+
+                        clients.notify_registered(ServerMsg::kill(msg));
+                    }
+
+                    {
+                        // Give EXP to the client
+                        let mut stats = ecs.write_storage::<comp::Stats>();
+
+                        if let Some(entity_stats) = stats.get(entity).cloned() {
+                            if let comp::HealthSource::Attack { by } = cause {
+                                ecs.entity_from_uid(by.into()).map(|attacker| {
+                                    if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                        // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                        attacker_stats.exp.change_by(
+                                            entity_stats.health.maximum() as f64 / 10.0
+                                                + entity_stats.level.level() as f64 * 10.0,
+                                        );
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                    if let Some(client) = clients.get_mut(&entity) {
+                        let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
+                        let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
+                        client.force_state(ClientState::Dead);
+                    } else {
+                        let _ = state.ecs_mut().delete_entity_synced(entity);
+                    }
+                }
+
+                ServerEvent::Respawn(entity) => {
+                    // Only clients can respawn
+                    if let Some(client) = clients.get_mut(&entity) {
+                        client.allow_state(ClientState::Character);
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::Stats>()
+                            .get_mut(entity)
+                            .map(|stats| stats.revive());
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::Pos>()
+                            .get_mut(entity)
+                            .map(|pos| pos.0.z += 20.0);
+                        let _ = state
+                            .ecs_mut()
+                            .write_storage()
+                            .insert(entity, comp::ForceUpdate);
                     }
                 }
             }
@@ -348,16 +451,7 @@ impl Server {
                     scale = 2.5 + rand::random::<f32>();
                 }
 
-                self.state
-                    .ecs_mut()
-                    .create_entity_synced()
-                    .with(comp::Pos(npc.pos))
-                    .with(comp::Vel(Vec3::zero()))
-                    .with(comp::Ori(Vec3::unit_y()))
-                    .with(comp::Controller::default())
-                    .with(body)
-                    .with(stats)
-                    .with(comp::ActionState::default())
+                self.create_npc(comp::Pos(npc.pos), stats, body)
                     .with(comp::Agent::enemy())
                     .with(comp::Scale(scale))
                     .build();
@@ -474,13 +568,6 @@ impl Server {
         }
 
         // 7) Finish the tick, pass control back to the frontend.
-
-        // Cleanup
-        let ecs = self.state.ecs_mut();
-        for entity in ecs.entities().join() {
-            ecs.write_storage::<comp::Dying>().remove(entity);
-            ecs.write_storage::<comp::Respawning>().remove(entity);
-        }
 
         Ok(frontend_events)
     }
@@ -885,12 +972,12 @@ impl Server {
         state.write_component(entity, player);
 
         // Sync physics of all entities
-        for (&uid, &pos, vel, ori, action_state) in (
+        for (&uid, &pos, vel, ori, character_state) in (
             &state.ecs().read_storage::<Uid>(),
             &state.ecs().read_storage::<comp::Pos>(), // We assume all these entities have a position
             state.ecs().read_storage::<comp::Vel>().maybe(),
             state.ecs().read_storage::<comp::Ori>().maybe(),
-            state.ecs().read_storage::<comp::ActionState>().maybe(),
+            state.ecs().read_storage::<comp::CharacterState>().maybe(),
         )
             .join()
         {
@@ -910,10 +997,10 @@ impl Server {
                     ori,
                 });
             }
-            if let Some(action_state) = action_state.copied() {
-                client.notify(ServerMsg::EntityActionState {
+            if let Some(character_state) = character_state.copied() {
+                client.notify(ServerMsg::EntityCharacterState {
                     entity: uid.into(),
-                    action_state,
+                    character_state,
                 });
             }
         }
@@ -928,84 +1015,7 @@ impl Server {
         self.clients
             .notify_registered(ServerMsg::EcsSync(self.state.ecs_mut().next_sync_package()));
 
-        // TODO: Move this into some new method like `handle_sys_outputs` right after ticking the world
-        // Handle deaths.
         let ecs = self.state.ecs_mut();
-        let clients = &mut self.clients;
-        let todo_kill = (&ecs.entities(), &ecs.read_storage::<comp::Dying>())
-            .join()
-            .map(|(entity, dying)| {
-                // Chat message
-                if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
-                    let msg = if let comp::HealthSource::Attack { by } = dying.cause {
-                        ecs.entity_from_uid(by.into()).and_then(|attacker| {
-                            ecs.read_storage::<comp::Player>()
-                                .get(attacker)
-                                .map(|attacker_alias| {
-                                    format!(
-                                        "{} was killed by {}",
-                                        &player.alias, &attacker_alias.alias
-                                    )
-                                })
-                        })
-                    } else {
-                        None
-                    }
-                    .unwrap_or(format!("{} died", &player.alias));
-
-                    clients.notify_registered(ServerMsg::kill(msg));
-                }
-
-                // Give EXP to the client
-                let mut stats = ecs.write_storage::<comp::Stats>();
-                if let Some(entity_stats) = stats.get(entity).cloned() {
-                    if let comp::HealthSource::Attack { by } = dying.cause {
-                        ecs.entity_from_uid(by.into()).map(|attacker| {
-                            if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                attacker_stats.exp.change_by(
-                                    entity_stats.health.maximum() as f64 / 10.0
-                                        + entity_stats.level.level() as f64 * 10.0,
-                                );
-                            }
-                        });
-                    }
-                }
-
-                entity
-            })
-            .collect::<Vec<_>>();
-
-        // Actually kill them
-        for entity in todo_kill {
-            if let Some(client) = self.clients.get_mut(&entity) {
-                let _ = ecs.write_storage().insert(entity, comp::Vel(Vec3::zero()));
-                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
-                client.force_state(ClientState::Dead);
-            } else {
-                let _ = ecs.delete_entity_synced(entity);
-                continue;
-            }
-        }
-
-        // Handle respawns
-        let todo_respawn = (&ecs.entities(), &ecs.read_storage::<comp::Respawning>())
-            .join()
-            .map(|(entity, _)| entity)
-            .collect::<Vec<EcsEntity>>();
-
-        for entity in todo_respawn {
-            if let Some(client) = self.clients.get_mut(&entity) {
-                client.allow_state(ClientState::Character);
-                ecs.write_storage::<comp::Stats>()
-                    .get_mut(entity)
-                    .map(|stats| stats.revive());
-                ecs.write_storage::<comp::Pos>()
-                    .get_mut(entity)
-                    .map(|pos| pos.0.z += 20.0);
-                let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
-            }
-        }
 
         // Sync physics
         for (entity, &uid, &pos, force_update) in (
@@ -1043,7 +1053,7 @@ impl Server {
             let mut last_pos = ecs.write_storage::<comp::Last<comp::Pos>>();
             let mut last_vel = ecs.write_storage::<comp::Last<comp::Vel>>();
             let mut last_ori = ecs.write_storage::<comp::Last<comp::Ori>>();
-            let mut last_action_state = ecs.write_storage::<comp::Last<comp::ActionState>>();
+            let mut last_character_state = ecs.write_storage::<comp::Last<comp::CharacterState>>();
 
             if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if last_pos
@@ -1099,16 +1109,19 @@ impl Server {
                 }
             }
 
-            if let Some(client_action_state) = ecs.read_storage::<comp::ActionState>().get(entity) {
-                if last_action_state
+            if let Some(client_character_state) =
+                ecs.read_storage::<comp::CharacterState>().get(entity)
+            {
+                if last_character_state
                     .get(entity)
-                    .map(|&l| l != *client_action_state)
+                    .map(|&l| l != *client_character_state)
                     .unwrap_or(true)
                 {
-                    let _ = last_action_state.insert(entity, comp::Last(*client_action_state));
-                    let msg = ServerMsg::EntityActionState {
+                    let _ =
+                        last_character_state.insert(entity, comp::Last(*client_character_state));
+                    let msg = ServerMsg::EntityCharacterState {
                         entity: uid.into(),
-                        action_state: *client_action_state,
+                        character_state: *client_character_state,
                     };
                     match force_update {
                         Some(_) => clients.notify_ingame_if(msg, in_vd),

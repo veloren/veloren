@@ -444,12 +444,12 @@ impl Client {
                             self.state.write_component(entity, ori);
                         }
                     }
-                    ServerMsg::EntityActionState {
+                    ServerMsg::EntityCharacterState {
                         entity,
-                        action_state,
+                        character_state,
                     } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, action_state);
+                            self.state.write_component(entity, character_state);
                         }
                     }
                     ServerMsg::InventoryUpdate(inventory) => {

@@ -37,7 +37,7 @@ pub struct ControlSettings {
     pub screenshot: KeyMouse,
     pub toggle_ingame_ui: KeyMouse,
     pub attack: KeyMouse,
-    pub second_attack: KeyMouse,
+    pub block: KeyMouse,
     pub roll: KeyMouse,
     pub interact: KeyMouse,
 }
@@ -69,7 +69,7 @@ impl Default for ControlSettings {
             screenshot: KeyMouse::Key(VirtualKeyCode::F4),
             toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
             attack: KeyMouse::Mouse(MouseButton::Left),
-            second_attack: KeyMouse::Mouse(MouseButton::Right),
+            block: KeyMouse::Mouse(MouseButton::Right),
             roll: KeyMouse::Mouse(MouseButton::Middle),
             interact: KeyMouse::Key(VirtualKeyCode::E),
         }
