@@ -55,6 +55,7 @@ struct GenCdf {
     alt_base: InverseCdf,
     chaos: InverseCdf,
     alt: InverseCdf,
+    alt_no_seawater: InverseCdf,
 }
 
 pub(crate) struct GenCtx {
@@ -223,8 +224,8 @@ impl WorldSim {
         // are included).
         let pure_water = |posi| {
             let pos = uniform_idx_as_vec2(posi);
-            for x in (pos.x - 1..=pos.x + 1) {
-                for y in (pos.y - 1..=pos.y + 1) {
+            for x in pos.x - 1..=pos.x + 1 {
+                for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
                         if alt[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
@@ -236,12 +237,21 @@ impl WorldSim {
             true
         };
 
+        // A version of alt that is uniform over *non-seawater* (or land-adjacent seawater) chunks.
+        let alt_no_seawater = uniform_noise(|posi, wposf| {
+            if pure_water(posi) {
+                None
+            } else {
+                Some(alt[posi].1)
+            }
+        });
+
         // -1 to 1.
         let temp_base = uniform_noise(|posi, wposf| {
             if pure_water(posi) {
                 None
             } else {
-                Some((gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32))
+                Some(gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
             }
         });
 
@@ -265,6 +275,7 @@ impl WorldSim {
             alt_base,
             chaos,
             alt,
+            alt_no_seawater,
         };
 
         let mut chunks = Vec::new();
@@ -530,7 +541,8 @@ impl SimChunk {
         let map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
-        let (alt_uniform, alt_pre) = gen_cdf.alt[posi];
+        let (_, alt_pre) = gen_cdf.alt[posi];
+        let (alt_uniform, _) = gen_cdf.alt_no_seawater[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
 
         // Take the weighted average of our randomly generated base humidity, the scaled

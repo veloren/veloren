@@ -78,8 +78,8 @@ impl<'a> ColumnGen<'a> {
 
         if seed % 5 == 2
             && chunk.temp > CONFIG.desert_temp
-            && chunk.humidity < CONFIG.desert_hum
             && chunk.alt > CONFIG.sea_level + 5.0
+            && chunk.chaos <= 0.35
         {
             Some(StructureData {
                 pos,

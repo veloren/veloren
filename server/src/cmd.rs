@@ -10,6 +10,8 @@ use common::{
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
+    terrain::TerrainChunkSize,
+    vol::VolSize,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join};
@@ -198,7 +200,14 @@ lazy_static! {
             "/adminify <playername> : Temporarily gives a player admin permissions or removes them",
             true,
             handle_adminify,
-        )
+        ),
+        ChatCommand::new(
+             "debug_column",
+             "{} {}",
+             "/debug_column <x> <y> : Prints some debug information about a column",
+             false,
+             handle_debug_column,
+         ),
     ];
 }
 
@@ -820,6 +829,53 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
             server.clients.notify(
                 entity,
                 ServerMsg::private(format!("Player '{}' not found!", alias)),
+            );
+        }
+    } else {
+        server
+            .clients
+            .notify(entity, ServerMsg::private(String::from(action.help_string)));
+    }
+}
+
+fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
+    let sim = server.world.sim();
+    if let Ok((x, y)) = scan_fmt!(&args, action.arg_fmt, i32, i32) {
+        let wpos = Vec2::new(x, y);
+        /* let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            e / sz as i32
+        }); */
+
+        let foo = || {
+            // let sim_chunk = sim.get(chunk_pos)?;
+            let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
+            let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
+            let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+            let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+            let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
+            let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
+            let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
+            let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+
+            Some(format!(
+                r#"wpos: {:?}
+alt_base {:?}
+alt {:?}
+chaos {:?}
+temp {:?}
+humidity {:?}
+rockiness {:?}
+tree_density {:?}
+spawn_rate {:?} "#,
+                wpos, alt_base, alt, chaos, temp, humidity, rockiness, tree_density, spawn_rate
+            ))
+        };
+        if let Some(s) = foo() {
+            server.clients.notify(entity, ServerMsg::private(s));
+        } else {
+            server.clients.notify(
+                entity,
+                ServerMsg::private(String::from("Not a pregenerated chunk.")),
             );
         }
     } else {
