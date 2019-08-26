@@ -11,6 +11,8 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage}
 use std::time::Duration;
 use vek::*;
 
+pub const ROLL_DURATION: Duration = Duration::from_millis(600);
+
 const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
 const WIELD_ACCEL: f32 = 70.0;
