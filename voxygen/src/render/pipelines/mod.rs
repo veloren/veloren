@@ -56,7 +56,7 @@ impl Globals {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
             proj_mat: arr_to_mat(proj_mat.into_col_array()),
-            proj_view_mat: arr_to_mat(( proj_mat * view_mat ).into_col_array()),
+            proj_view_mat: arr_to_mat((proj_mat * view_mat).into_col_array()),
             cam_pos: Vec4::from(cam_pos).into_array(),
             focus_pos: Vec4::from(focus_pos).into_array(),
             view_distance: [view_distance; 4],
