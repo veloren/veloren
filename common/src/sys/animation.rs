@@ -33,8 +33,10 @@ impl<'a> System<'a> for Sys {
 
             let animation = match (physics.on_ground, &character.movement, &character.action) {
                 (_, Roll { .. }, Idle) => Animation::Roll,
-                (true, Stand, Idle) => Animation::Idle,
-                (true, Run, Idle) => Animation::Run,
+                (true, Stand, _) => Animation::Stand, //if standing still, legs still
+                (true, Stand, Idle) => Animation::Idle, //if standing still and not acting, idle the body
+                (true, Run, _) => Animation::Run, //if running, legs run
+                (true, Run, Idle) => Animation::Lean, //if running and not acting, lean the body
                 (false, Jump, Idle) => Animation::Jump,
                 (true, Stand, Wield { .. }) => Animation::Cidle,
                 (true, Run, Wield { .. }) => Animation::Crun,
