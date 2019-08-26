@@ -2,7 +2,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
-    scene::{camera::Camera, Scene},
+    scene::Scene,
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
