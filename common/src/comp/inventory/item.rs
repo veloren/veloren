@@ -80,8 +80,7 @@ pub enum ConsumptionEffect {
 pub enum Item {
     Tool {
         kind: Tool,
-        damage: i32,
-        strength: i32,
+        power: u32,
     },
     Armor {
         kind: Armor,
@@ -122,8 +121,7 @@ impl Default for Item {
     fn default() -> Self {
         Item::Tool {
             kind: Tool::Hammer,
-            damage: 0,
-            strength: 0,
+            power: 0,
         }
     }
 }

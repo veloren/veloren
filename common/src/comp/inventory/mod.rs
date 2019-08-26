@@ -2,7 +2,7 @@
 pub mod item;
 
 // Reexports
-pub use self::item::Item;
+pub use self::item::{Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
 use specs_idvs::IDVStorage;
@@ -56,15 +56,35 @@ impl Inventory {
 
 impl Default for Inventory {
     fn default() -> Inventory {
-        let mut this = Inventory {
+        let mut inventory = Inventory {
             slots: vec![None; 24],
         };
 
-        for _ in 0..18 {
-            this.insert(Item::default());
+        inventory.insert(Item::Tool {
+            kind: Tool::Daggers,
+            power: 10,
+        });
+        inventory.insert(Item::Tool {
+            kind: Tool::Sword,
+            power: 10,
+        });
+        inventory.insert(Item::Tool {
+            kind: Tool::Axe,
+            power: 10,
+        });
+        inventory.insert(Item::Tool {
+            kind: Tool::Hammer,
+            power: 10,
+        });
+        inventory.insert(Item::Tool {
+            kind: Tool::Bow,
+            power: 10,
+        });
+        for _ in 0..10 {
+            inventory.insert(Item::default());
         }
 
-        this
+        inventory
     }
 }
 
