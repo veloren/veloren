@@ -17,6 +17,3 @@ overflow-checks = false
 debug = true
 codegen-units = 1
 lto = true
-
-[patch.crates-io]
-vek = { git = "https://github.com/timokoesters/vek" }
