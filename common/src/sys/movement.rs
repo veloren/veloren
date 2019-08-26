@@ -149,7 +149,11 @@ impl<'a> System<'a> for Sys {
                 character.movement = Stand;
             }
 
-            if !physics.on_ground && (character.movement == Stand || character.movement == Run) {
+            if !physics.on_ground
+                && (character.movement == Stand
+                    || character.movement.is_roll()
+                    || character.movement == Run)
+            {
                 character.movement = Jump;
             }
         }
