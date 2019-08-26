@@ -5,9 +5,11 @@ pub mod cjump;
 pub mod crun;
 pub mod gliding;
 pub mod idle;
+pub mod stand;
 pub mod jump;
 pub mod roll;
 pub mod run;
+pub mod lean;
 
 // Reexports
 pub use self::attack::AttackAnimation;
@@ -17,9 +19,11 @@ pub use self::cjump::CjumpAnimation;
 pub use self::crun::CrunAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
+pub use self::stand::StandAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
+pub use self::lean::LeanAnimation;
 
 use super::{Bone, Skeleton};
 use crate::render::FigureBoneData;

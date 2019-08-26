@@ -4,7 +4,9 @@ use specs_idvs::IDVStorage;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Animation {
     Idle,
+    Stand,
     Run,
+    Lean,
     Jump,
     Gliding,
     Attack,
