@@ -1,3 +1,7 @@
+use super::{
+    combat::{ATTACK_DURATION, WIELD_DURATION},
+    movement::ROLL_DURATION,
+};
 use crate::{
     comp::{
         ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
@@ -97,7 +101,7 @@ impl<'a> System<'a> for Sys {
                 && (character.movement == Stand || character.movement == Run)
             {
                 character.action = Wield {
-                    time_left: Duration::from_millis(300),
+                    time_left: WIELD_DURATION,
                 };
             }
 
@@ -111,7 +115,7 @@ impl<'a> System<'a> for Sys {
                 if let Wield { time_left } = character.action {
                     if time_left == Duration::default() {
                         character.action = Attack {
-                            time_left: Duration::from_millis(300),
+                            time_left: ATTACK_DURATION,
                             applied: false,
                         };
                     }
@@ -137,7 +141,7 @@ impl<'a> System<'a> for Sys {
                 && physics.on_ground
             {
                 character.movement = Roll {
-                    time_left: Duration::from_millis(600),
+                    time_left: ROLL_DURATION,
                 };
             }
 
