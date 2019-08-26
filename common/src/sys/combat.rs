@@ -8,6 +8,9 @@ use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
 
+pub const WIELD_DURATION: Duration = Duration::from_millis(300);
+pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
+
 const BASE_DMG: i32 = 10;
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
