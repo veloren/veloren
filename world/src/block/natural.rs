@@ -8,6 +8,7 @@ use crate::{
 use common::{assets, terrain::Structure};
 use lazy_static::lazy_static;
 use std::sync::Arc;
+use std::u32;
 use vek::*;
 
 static VOLUME_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
@@ -25,7 +26,8 @@ pub fn structure_gen<'a>(
     let st_sample = &structure_samples[idx].as_ref()?;
 
     // Assuming it's a tree... figure out when it SHOULDN'T spawn
-    if st_sample.tree_density < 0.5 + (st_seed as f32 / 1000.0).fract() * 0.5
+    let random_seed = (st_seed as f64) / (u32::MAX as f64);
+    if (st_sample.tree_density as f64) < random_seed
         || st_sample.alt < st_sample.water_level
         || st_sample.spawn_rate < 0.5
     {
