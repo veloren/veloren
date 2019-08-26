@@ -9,7 +9,10 @@ use std::time::Duration;
 use vek::*;
 
 pub const WIELD_DURATION: Duration = Duration::from_millis(300);
-pub const ATTACK_DURATION: Duration = Duration::from_millis(300);
+pub const ATTACK_DURATION: Duration = Duration::from_millis(500);
+
+// Delay before hit
+const PREPARE_DURATION: Duration = Duration::from_millis(100);
 
 const BASE_DMG: i32 = 10;
 const BLOCK_EFFICIENCY: f32 = 0.9;
@@ -52,14 +55,32 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Attacks
-        for (entity, uid, pos, ori, controller) in
+        for (entity, uid, pos, ori, _) in
             (&entities, &uids, &positions, &orientations, &controllers).join()
         {
-            // Go through all other entities
-            if let Some(Attack { time_left, applied }) =
-                &mut character_states.get(entity).map(|c| c.action)
+            let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
+                &mut character_states.get_mut(entity).map(|c| &mut c.action)
             {
-                if !*applied {
+                *time_left = time_left
+                    .checked_sub(Duration::from_secs_f32(dt.0))
+                    .unwrap_or_default();
+                if !*applied && ATTACK_DURATION - *time_left > PREPARE_DURATION {
+                    *applied = true;
+                    (true, false)
+                } else if *time_left == Duration::default() {
+                    (false, true)
+                } else {
+                    (false, false)
+                }
+            } else {
+                (false, false)
+            };
+
+            if deal_damage {
+                if let Some(Attack { time_left, applied }) =
+                    &character_states.get(entity).map(|c| c.action)
+                {
+                    // Go through all other entities
                     for (b, pos_b, ori_b, character_b, mut vel_b, stat_b) in (
                         &entities,
                         &positions,
@@ -101,24 +122,13 @@ impl<'a> System<'a> for Sys {
                         }
                     }
                 }
+            }
 
-                if let Some(Attack { time_left, applied }) =
-                    &mut character_states.get_mut(entity).map(|c| &mut c.action)
-                {
-                    // Only attack once
-                    *applied = true;
-
-                    if *time_left == Duration::default() {
-                        if let Some(character) = &mut character_states.get_mut(entity) {
-                            character.action = Wield {
-                                time_left: Duration::default(),
-                            };
-                        }
-                    } else {
-                        *time_left = time_left
-                            .checked_sub(Duration::from_secs_f32(dt.0))
-                            .unwrap_or_default();
-                    }
+            if should_end {
+                if let Some(character) = &mut character_states.get_mut(entity) {
+                    character.action = Wield {
+                        time_left: Duration::default(),
+                    };
                 }
             }
 
