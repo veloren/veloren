@@ -1,10 +1,14 @@
 use crate::{
-    comp::{ActionState, Jumping, MoveDir, OnGround, Ori, Pos, Rolling, Stats, Vel, Wielding},
+    comp::{
+        ActionState::*, CharacterState, Controller, MovementState::*, Ori, PhysicsState, Pos,
+        Stats, Vel,
+    },
     state::DeltaTime,
     terrain::TerrainMap,
     vol::{ReadVol, Vox},
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use std::time::Duration;
 use vek::*;
 
 const HUMANOID_ACCEL: f32 = 70.0;
@@ -13,9 +17,7 @@ const WIELD_ACCEL: f32 = 70.0;
 const WIELD_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
-const HUMANOID_JUMP_ACCEL: f32 = 18.0;
-const ROLL_ACCEL: f32 = 160.0;
-const ROLL_SPEED: f32 = 550.0;
+const ROLL_SPEED: f32 = 13.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
@@ -30,13 +32,10 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
-        ReadStorage<'a, MoveDir>,
         ReadStorage<'a, Stats>,
-        ReadStorage<'a, ActionState>,
-        WriteStorage<'a, Jumping>,
-        WriteStorage<'a, Wielding>,
-        WriteStorage<'a, Rolling>,
-        WriteStorage<'a, OnGround>,
+        ReadStorage<'a, Controller>,
+        ReadStorage<'a, PhysicsState>,
+        WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -48,106 +47,108 @@ impl<'a> System<'a> for Sys {
             entities,
             terrain,
             dt,
-            move_dirs,
             stats,
-            action_states,
-            mut jumpings,
-            mut wieldings,
-            mut rollings,
-            mut on_grounds,
+            controllers,
+            physics_states,
+            mut character_states,
             mut positions,
             mut velocities,
             mut orientations,
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, stats, a, move_dir, mut pos, mut vel, mut ori) in (
+        for (entity, stats, controller, physics, mut character, mut pos, mut vel, mut ori) in (
             &entities,
             &stats,
-            &action_states,
-            move_dirs.maybe(),
+            &controllers,
+            &physics_states,
+            &mut character_states,
             &mut positions,
             &mut velocities,
             &mut orientations,
         )
             .join()
         {
-            // Disable while dead TODO: Replace with client states?
             if stats.is_dead {
                 continue;
             }
 
-            // Move player according to move_dir
-            if let Some(move_dir) = move_dir {
+            if character.movement.is_roll() {
+                vel.0 = Vec3::new(0.0, 0.0, vel.0.z)
+                    + controller
+                        .move_dir
+                        .try_normalized()
+                        .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default())
+                        * ROLL_SPEED
+            } else {
+                // Move player according to move_dir
                 vel.0 += Vec2::broadcast(dt.0)
-                    * move_dir.0
-                    * match (a.on_ground, a.gliding, a.rolling, a.wielding) {
-                        (true, false, false, false)
-                            if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) =>
-                        {
+                    * controller.move_dir
+                    * match (physics.on_ground, &character.movement) {
+                        (true, Run) if vel.0.magnitude_squared() < HUMANOID_SPEED.powf(2.0) => {
                             HUMANOID_ACCEL
                         }
-                        (false, true, false, false)
-                            if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) =>
-                        {
+                        (false, Glide) if vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) => {
                             GLIDE_ACCEL
                         }
-                        (false, false, false, false)
+                        (false, Jump)
                             if vel.0.magnitude_squared() < HUMANOID_AIR_SPEED.powf(2.0) =>
                         {
                             HUMANOID_AIR_ACCEL
                         }
-                        (true, false, true, _)
-                            if vel.0.magnitude_squared() < ROLL_SPEED.powf(2.0) =>
-                        {
-                            ROLL_ACCEL
-                        }
-                        (true, false, false, true)
-                            if vel.0.magnitude_squared() < WIELD_SPEED.powf(2.0) =>
-                        {
-                            WIELD_ACCEL
-                        }
                         _ => 0.0,
                     };
-
-                // Set direction based on move direction when on the ground
-                let ori_dir = if a.gliding || a.rolling {
-                    Vec2::from(vel.0)
-                } else {
-                    move_dir.0
-                };
-                if ori_dir.magnitude_squared() > 0.0001
-                    && (ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
-                        > 0.001
-                {
-                    ori.0 = vek::ops::Slerp::slerp(
-                        ori.0,
-                        ori_dir.into(),
-                        if a.on_ground { 12.0 } else { 2.0 } * dt.0,
-                    );
-                }
             }
 
-            // Jump
-            if jumpings.get(entity).is_some() {
-                vel.0.z = HUMANOID_JUMP_ACCEL;
-                jumpings.remove(entity);
+            // Set direction based on move direction when on the ground
+            let ori_dir = if character.action.is_wield()
+                || character.action.is_attack()
+                || character.action.is_block()
+            {
+                Vec2::from(controller.look_dir).normalized()
+            } else {
+                Vec2::from(vel.0)
+            };
+
+            if ori_dir.magnitude_squared() > 0.0001
+                && (ori.0.normalized() - Vec3::from(ori_dir).normalized()).magnitude_squared()
+                    > 0.001
+            {
+                ori.0 = vek::ops::Slerp::slerp(
+                    ori.0,
+                    ori_dir.into(),
+                    if physics.on_ground { 12.0 } else { 2.0 } * dt.0,
+                );
             }
 
             // Glide
-            if a.gliding && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0) && vel.0.z < 0.0 {
-                let _ = wieldings.remove(entity);
+            if character.movement == Glide
+                && vel.0.magnitude_squared() < GLIDE_SPEED.powf(2.0)
+                && vel.0.z < 0.0
+            {
+                character.action = Idle;
                 let lift = GLIDE_ANTIGRAV + vel.0.z.powf(2.0) * 0.2;
                 vel.0.z += dt.0 * lift * Vec2::<f32>::from(vel.0 * 0.15).magnitude().min(1.0);
             }
 
             // Roll
-            if let Some(time) = rollings.get_mut(entity).map(|r| &mut r.time) {
-                let _ = wieldings.remove(entity);
-                *time += dt.0;
-                if *time > 0.6 || !a.moving {
-                    rollings.remove(entity);
+            if let Roll { time_left } = &mut character.movement {
+                character.action = Idle;
+                if *time_left == Duration::default() || vel.0.magnitude_squared() < 10.0 {
+                    character.movement = Run;
+                } else {
+                    *time_left = time_left
+                        .checked_sub(Duration::from_secs_f32(dt.0))
+                        .unwrap_or_default();
                 }
+            }
+
+            if physics.on_ground && (character.movement == Jump || character.movement == Glide) {
+                character.movement = Stand;
+            }
+
+            if !physics.on_ground && (character.movement == Stand || character.movement == Run) {
+                character.movement = Jump;
             }
         }
     }
