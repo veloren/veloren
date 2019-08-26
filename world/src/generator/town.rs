@@ -13,7 +13,7 @@ use common::{
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 use vek::*;
 
 const CELL_SIZE: i32 = 11;
@@ -65,6 +65,7 @@ pub enum TownCell {
         seed: u32,
     },
     PartOf(Vec2<i32>),
+    MemberOf(usize),
 }
 
 impl TownCell {
@@ -85,10 +86,15 @@ impl TownCell {
     }
 }
 
+pub enum Property {
+    House(Rgb<u8>),
+}
+
 pub struct TownState {
     pub center: Vec2<i32>,
     pub radius: i32,
     pub grid: Grid<TownCell>,
+    pub properties: Vec<Property>,
 }
 
 impl TownState {
@@ -136,7 +142,7 @@ impl TownState {
                     let idx = rng.gen_range(0, 4);
                     Vec2::new(dirs[idx], dirs[idx + 1])
                 };
-                let road_len = 2 + rng.gen_range(1, 6) * 2 + 1;
+                let road_len = 2 + rng.gen_range(1, 4) * 2 + 1;
 
                 // Make sure we aren't trying to create a road where a road already exists!
                 match grid.get(start_pos + road_dir) {
@@ -167,10 +173,70 @@ impl TownState {
         };
 
         // Create roads
-        for _ in 0..16 {
+        for _ in 0..25 {
             create_road();
         }
 
+        let mut properties = Vec::new();
+        let mut place_house = || 'house: loop {
+            let start_pos = 'start_pos: {
+                for _ in 0..30 {
+                    let pos = Vec2::new(
+                        rng.gen_range(0, grid.size().x),
+                        rng.gen_range(0, grid.size().y),
+                    );
+
+                    match grid.get(pos) {
+                        Some(TownCell::Empty) => break 'start_pos pos,
+                        _ => {}
+                    }
+                }
+
+                break 'house;
+            };
+
+            let mut cells = HashSet::new();
+            cells.insert(start_pos);
+
+            let mut growth_energy = rng.gen_range(50, 80);
+            while growth_energy > 0 {
+                let pos = cells.iter().choose(rng).copied().unwrap();
+
+                let dir = {
+                    let dirs = [-1, 0, 1, 0, -1];
+                    let idx = rng.gen_range(0, 4);
+                    Vec2::new(dirs[idx], dirs[idx + 1])
+                };
+
+                match grid.get(pos + dir) {
+                    Some(TownCell::Empty) if !cells.contains(&(pos + dir)) => {
+                        growth_energy -= 10;
+                        cells.insert(pos + dir);
+                    }
+                    _ => growth_energy -= 1,
+                }
+            }
+
+            if cells.len() < 3 {
+                break;
+            }
+
+            let property_idx = properties.len();
+
+            for cell in cells.into_iter() {
+                grid.set(cell, TownCell::MemberOf(property_idx));
+            }
+
+            properties.push(Property::House(Rgb::new(rng.gen(), rng.gen(), rng.gen())));
+
+            break;
+        };
+
+        for _ in 0..50 {
+            place_house();
+        }
+
+        /*
         // Place houses
         for x in 0..grid.size().x {
             for y in 0..grid.size().y {
@@ -251,11 +317,13 @@ impl TownState {
                 }
             }
         }
+        */
 
         Some(Self {
             center,
             radius,
             grid,
+            properties,
         })
     }
 
@@ -293,6 +361,18 @@ impl<'a> Sampler<'a> for TownGen {
                     ))
                 } else {
                     Some(Block::empty())
+                }
+            }
+            TownCell::MemberOf(idx) => {
+                if (wpos.z as f32) < height + 8.0 {
+                    Some(Block::new(
+                        BlockKind::Normal,
+                        match town.properties[*idx] {
+                            Property::House(col) => col,
+                        },
+                    ))
+                } else {
+                    None
                 }
             }
             TownCell::Building {
