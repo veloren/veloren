@@ -12,6 +12,7 @@ pub enum ClientMsg {
     Character {
         name: String,
         body: comp::Body,
+        main: Option<comp::item::Tool>,
     },
     Controller(comp::Controller),
     RequestState(ClientState),

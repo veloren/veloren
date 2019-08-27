@@ -12,7 +12,9 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body},
+    comp::{
+        self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body, Equipment, Item,
+    },
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -26,8 +28,14 @@ use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 
+#[derive(PartialEq, Eq, Hash, Clone)]
+enum FigureKey {
+    Simple(Body),
+    Complex(Body, Option<Equipment>),
+}
+
 pub struct FigureModelCache {
-    models: HashMap<Body, ((Model<FigurePipeline>, SkeletonAttr), u64)>,
+    models: HashMap<FigureKey, ((Model<FigurePipeline>, SkeletonAttr), u64)>,
 }
 
 impl FigureModelCache {
@@ -40,16 +48,24 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
+        entity: &EcsEntity,
         body: Body,
+        equipment: Option<&Equipment>,
         tick: u64,
     ) -> &(Model<FigurePipeline>, SkeletonAttr) {
-        match self.models.get_mut(&body) {
+        let key = if equipment.is_some() {
+            FigureKey::Complex(body, equipment.cloned())
+        } else {
+            FigureKey::Simple(body)
+        };
+
+        match self.models.get_mut(&key) {
             Some((_model, last_used)) => {
                 *last_used = tick;
             }
             None => {
                 self.models.insert(
-                    body,
+                    key.clone(),
                     (
                         {
                             let bone_meshes = match body {
@@ -62,7 +78,7 @@ impl FigureModelCache {
                                     Some(Self::load_right_hand(body.hand)),
                                     Some(Self::load_left_foot(body.foot)),
                                     Some(Self::load_right_foot(body.foot)),
-                                    Some(Self::load_weapon(Tool::Hammer)), // TODO: Inventory
+                                    Some(Self::load_main(equipment.and_then(|e| e.main.as_ref()))),
                                     Some(Self::load_left_shoulder(body.shoulder)),
                                     Some(Self::load_right_shoulder(body.shoulder)),
                                     Some(Self::load_draw()),
@@ -151,7 +167,7 @@ impl FigureModelCache {
             }
         }
 
-        &self.models[&body].0
+        &self.models[&key].0
     }
 
     pub fn clean(&mut self, tick: u64) {
@@ -293,17 +309,24 @@ impl FigureModelCache {
         )
     }
 
-    fn load_weapon(weapon: Tool) -> Mesh<FigurePipeline> {
-        let (name, offset) = match weapon {
-            Tool::Sword => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
-            Tool::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
-            Tool::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-            Tool::Daggers => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-            Tool::SwordShield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
-            Tool::Bow => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-            Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
-        };
-        Self::load_mesh(name, offset)
+    fn load_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
+        if let Some(item) = item {
+            let (name, offset) = match item {
+                Item::Tool { kind, .. } => match kind {
+                    Tool::Sword => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
+                    Tool::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
+                    Tool::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                    Tool::Daggers => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                    Tool::SwordShield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
+                    Tool::Bow => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
+                    Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
+                },
+                _ => ("figure.empty", Vec3::default()),
+            };
+            Self::load_mesh(name, offset)
+        } else {
+            Self::load_mesh("figure.empty", Vec3::default())
+        }
     }
 
     fn load_left_shoulder(shoulder: humanoid::Shoulder) -> Mesh<FigurePipeline> {
@@ -651,7 +674,7 @@ impl FigureMgr {
 
             let skeleton_attr = &self
                 .model_cache
-                .get_or_create_model(renderer, *body, tick)
+                .get_or_create_model(renderer, &entity, *body, stats.map(|s| &s.equipment), tick)
                 .1;
 
             match body {
@@ -862,7 +885,7 @@ impl FigureMgr {
 
         let frustum = camera.frustum(client);
 
-        for (entity, _, _, _, body, _, _) in (
+        for (entity, _, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<comp::Pos>(),
             &ecs.read_storage::<comp::Vel>(),
@@ -904,7 +927,13 @@ impl FigureMgr {
             } {
                 let model = &self
                     .model_cache
-                    .get_or_create_model(renderer, *body, tick)
+                    .get_or_create_model(
+                        renderer,
+                        &entity,
+                        *body,
+                        stats.map(|s| &s.equipment),
+                        tick,
+                    )
                     .0;
 
                 // Don't render the player's body while in first person mode
