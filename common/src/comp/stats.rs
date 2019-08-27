@@ -35,8 +35,8 @@ pub struct Energy {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Exp {
-    current: f64,
-    maximum: f64,
+    current: u32,
+    maximum: u32,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -97,29 +97,29 @@ impl Energy {
 }
 
 impl Exp {
-    pub fn current(&self) -> f64 {
+    pub fn current(&self) -> u32 {
         self.current
     }
 
-    pub fn maximum(&self) -> f64 {
+    pub fn maximum(&self) -> u32 {
         self.maximum
     }
 
-    pub fn set_current(&mut self, current: f64) {
+    pub fn set_current(&mut self, current: u32) {
         self.current = current;
     }
 
     // TODO: Uncomment when needed
-    // pub fn set_maximum(&mut self, maximum: f64) {
+    // pub fn set_maximum(&mut self, maximum: u32) {
     // self.maximum = maximum;
     // }
 
-    pub fn change_by(&mut self, current: f64) {
-        self.current = self.current + current;
+    pub fn change_by(&mut self, current: i64) {
+        self.current = ((self.current as i64) + current) as u32;
     }
 
-    pub fn change_maximum_by(&mut self, maximum: f64) {
-        self.maximum = self.maximum + maximum;
+    pub fn change_maximum_by(&mut self, maximum: i64) {
+        self.maximum = ((self.maximum as i64) + maximum) as u32;
     }
 }
 
@@ -171,8 +171,8 @@ impl Stats {
             },
             level: Level { amount: 1 },
             exp: Exp {
-                current: 0.0,
-                maximum: 50.0,
+                current: 0,
+                maximum: 50,
             },
             energy: Energy {
                 current: 200,

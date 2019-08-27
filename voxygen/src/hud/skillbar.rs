@@ -116,7 +116,7 @@ impl<'a> Skillbar<'a> {
 pub struct State {
     ids: Ids,
 
-    last_xp_value: f64,
+    last_xp_value: u32,
     last_level: u32,
     last_update_xp: Instant,
     last_update_level: Instant,
@@ -131,7 +131,7 @@ impl<'a> Widget for Skillbar<'a> {
         State {
             ids: Ids::new(id_gen),
 
-            last_xp_value: 0.0,
+            last_xp_value: 0,
             last_level: 1,
             last_update_xp: Instant::now(),
             last_update_level: Instant::now(),
@@ -148,7 +148,7 @@ impl<'a> Widget for Skillbar<'a> {
         let level = (self.stats.level.level()).to_string();
         let next_level = (self.stats.level.level() + 1).to_string();
 
-        let exp_percentage = self.stats.exp.current() / self.stats.exp.maximum();
+        let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
@@ -281,7 +281,7 @@ impl<'a> Widget for Skillbar<'a> {
                 }
 
                 let seconds_xp = state.last_update_xp.elapsed().as_secs_f32();
-                let fade_xp = if current_xp == 0.0 {
+                let fade_xp = if current_xp == 0 {
                     0.0
                 } else if seconds_xp < FADE_IN_XP {
                     seconds_xp / FADE_IN_XP
