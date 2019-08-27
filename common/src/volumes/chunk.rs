@@ -1,4 +1,8 @@
-use crate::vol::{BaseVol, ReadVol, SizedVol, VolSize, Vox, WriteVol};
+use crate::{
+    vol::{BaseVol, IntoVolIterator, ReadVol, SizedVol, VolSize, Vox, WriteVol},
+    volumes::morton::{morton_to_xyz, xyz_to_morton, MortonIter},
+};
+use core::cmp::PartialOrd;
 use serde_derive::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use vek::*;
@@ -6,73 +10,6 @@ use vek::*;
 #[derive(Debug)]
 pub enum ChunkErr {
     OutOfBounds,
-}
-
-/// Converts `(x, 0, 0)` to its index in the morton order. Arithmetically that
-/// is, the bits of `x` are interleaved by two zero bits between every adjacent
-/// pair of bits. Precondition is `0 <= x && x < 2048`.
-///
-/// Eidetic:
-///
-/// ```
-/// x00_to_morton(0bKJIHGFEDCBA) == 0bK00J00I00H00G00F00E00D00C00B00A
-/// ```
-#[inline(always)]
-fn x00_to_morton(x: i32) -> u32 {
-    // Because the result is u32, we support only inputs of up to 11 bits:
-    assert!(0 <= x && x < 2048); // 2048 = 2^11
-    let mut m = x as u32;
-    m = (m | (m << 12)) & 0x7C003F;
-    m = (m | (m << 4) | (m << 8)) & 0x430C30C3;
-    m = (m | (m << 2)) & 0x49249249;
-    m
-}
-
-/// Converts (pos.x, pos.y, pos.z) to its index in the morton order.
-/// Arithmetically that is, the bits of `pos.x`, `pos.y` and `pos.z` are
-/// interleaved such that the least (resp. 2nd to least, resp. 3rd to least)
-/// significant bit and every third bit from thereon originates from `pos.x`
-/// (resp. `pos.y`, resp. `pos.z`). Precondition is for all `c` in `pos`:
-/// `0 <= c && c < 2048`.
-///
-/// Eidetic:
-///
-/// ```
-/// xyz_to_morton(Vec3<i32>::new(
-///     0bKJIHGFEDCBA,
-///     0b00000000000,
-///     0b11111111111
-/// )) == 0bK10J10I10H10G10F10E10D10C10B10A
-/// ```
-#[inline(always)]
-fn xyz_to_morton(pos: Vec3<i32>) -> u32 {
-    let x = x00_to_morton(pos.x);
-    let y = x00_to_morton(pos.y) << 1;
-    let z = x00_to_morton(pos.z) << 2;
-    x | y | z
-}
-
-fn morton_to_x(morton: u32) -> i32 {
-    let mut m = ((morton & 0x08208208) >> 2) | (morton & 0x41041041);
-    m = ((m & 0x40003000) >> 8) | ((m & 0x30000C0) >> 4) | (m & 0xC0003);
-    m = ((m & 0xFC0000) >> 12) | (m & 0x3F);
-    m as i32
-}
-
-fn morton_to_y(morton: u32) -> i32 {
-    morton_to_x(morton >> 1)
-}
-
-fn morton_to_z(morton: u32) -> i32 {
-    morton_to_x(morton >> 2)
-}
-
-fn morton_to_xyz(morton: u32) -> Vec3<i32> {
-    Vec3::<i32>::new(
-        morton_to_x(morton),
-        morton_to_y(morton),
-        morton_to_z(morton),
-    )
 }
 
 /// A `Chunk` is a volume with dimensions known at compile-time. The voxels are
@@ -255,8 +192,13 @@ impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> {
-        S::SIZE
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::zero()
+    }
+
+    #[inline(always)]
+    fn upper_bound(&self) -> Vec3<i32> {
+        S::SIZE.map(|e| e as i32)
     }
 }
 
@@ -271,5 +213,33 @@ impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkErr> {
         self.set_from_morton(xyz_to_morton(pos), vox)
+    }
+}
+
+pub struct ChunkMortonIter<C> {
+    chunk: C,
+    iter: MortonIter,
+}
+
+impl<'a, V: 'a + Vox, S: VolSize, M> Iterator for ChunkMortonIter<&'a Chunk<V, S, M>> {
+    type Item = (Vec3<i32>, &'a V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter
+            .next()
+            .map(|c| (morton_to_xyz(c), self.chunk.get_from_morton_unchecked(c)))
+    }
+}
+
+impl<'a, V: Vox, S: VolSize, M> IntoVolIterator<'a> for &'a Chunk<V, S, M> {
+    type IntoIter = ChunkMortonIter<&'a Chunk<V, S, M>>;
+
+    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        let lb = Vec3::partial_max(lower_bound, Vec3::zero());
+        let ub = Vec3::partial_min(upper_bound, S::SIZE.map(|e| e as i32));
+        Self::IntoIter {
+            chunk: self,
+            iter: MortonIter::new(lb, ub),
+        }
     }
 }
