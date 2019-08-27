@@ -113,8 +113,8 @@ impl<'a> Widget for CharacterWindow<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        let xp_percentage = self.stats.exp.current() / self.stats.exp.maximum();
-        let xp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
+        let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
+        let exp_treshold = format!("{}/{}", self.stats.exp.current(), self.stats.exp.maximum());
         let level = (self.stats.level.level()).to_string();
 
         // Frame
@@ -354,7 +354,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_exp_rectangle, ui);
 
         // Exp-Bar Progress
-        Rectangle::fill_with([170.0 * (xp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percentage
+        Rectangle::fill_with([170.0 * (exp_percentage), 6.0], XP_COLOR) // 0.8 = Experience percentage
             .mid_left_with_margin_on(state.charwindow_tab1_expbar, 1.0)
             .set(state.charwindow_exp_progress_rectangle, ui);
 
@@ -365,7 +365,7 @@ impl<'a> Widget for CharacterWindow<'a> {
             .set(state.charwindow_tab1_expbar, ui);
 
         // Exp-Text
-        Text::new(&xp_treshold)
+        Text::new(&exp_treshold)
             .mid_top_with_margin_on(state.charwindow_tab1_expbar, 10.0)
             .font_id(self.fonts.opensans)
             .font_size(15)
