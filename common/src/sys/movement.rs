@@ -11,6 +11,8 @@ use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage}
 use std::time::Duration;
 use vek::*;
 
+pub const ROLL_DURATION: Duration = Duration::from_millis(600);
+
 const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
 const WIELD_ACCEL: f32 = 70.0;
@@ -147,7 +149,11 @@ impl<'a> System<'a> for Sys {
                 character.movement = Stand;
             }
 
-            if !physics.on_ground && (character.movement == Stand || character.movement == Run) {
+            if !physics.on_ground
+                && (character.movement == Stand
+                    || character.movement.is_roll()
+                    || character.movement == Run)
+            {
                 character.movement = Jump;
             }
         }
