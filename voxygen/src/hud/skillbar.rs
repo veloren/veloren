@@ -217,11 +217,14 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_size(40)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
-            Text::new("Press L-Mouse to respawn.")
-                .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
-                .font_size(15)
-                .color(CRITICAL_HP_COLOR)
-                .set(state.ids.death_message_2, ui);
+            Text::new(&format!(
+                "Press {:?} to respawn.",
+                self.global_state.settings.controls.respawn
+            ))
+            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .font_size(15)
+            .color(CRITICAL_HP_COLOR)
+            .set(state.ids.death_message_2, ui);
         }
         // Experience-Bar
         match self.global_state.settings.gameplay.xp_bar {
