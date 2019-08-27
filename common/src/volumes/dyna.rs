@@ -3,7 +3,7 @@ use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
 #[derive(Debug, Clone)]
-pub enum DynaErr {
+pub enum DynaError {
     OutOfBounds,
 }
 
@@ -40,7 +40,7 @@ impl<V: Vox, M> Dyna<V, M> {
 
 impl<V: Vox, M> BaseVol for Dyna<V, M> {
     type Vox = V;
-    type Err = DynaErr;
+    type Error = DynaError;
 }
 
 impl<V: Vox, M> SizedVol for Dyna<V, M> {
@@ -57,20 +57,20 @@ impl<V: Vox, M> SizedVol for Dyna<V, M> {
 
 impl<V: Vox, M> ReadVol for Dyna<V, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaError> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get(idx))
-            .ok_or(DynaErr::OutOfBounds)
+            .ok_or(DynaError::OutOfBounds)
     }
 }
 
 impl<V: Vox, M> WriteVol for Dyna<V, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaErr> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaError> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get_mut(idx))
             .map(|old_vox| *old_vox = vox)
-            .ok_or(DynaErr::OutOfBounds)
+            .ok_or(DynaError::OutOfBounds)
     }
 }
 

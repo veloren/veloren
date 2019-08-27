@@ -19,12 +19,12 @@ pub trait Vox: Sized + Clone {
 /// A volume that contains voxel data.
 pub trait BaseVol {
     type Vox: Vox;
-    type Err: Debug;
+    type Error: Debug;
 }
 
 impl<'a, T: BaseVol> BaseVol for &'a T {
     type Vox = T::Vox;
-    type Err = T::Err;
+    type Error = T::Error;
 }
 
 // Utility types
@@ -46,7 +46,7 @@ pub trait SizedVol: BaseVol {
 /// A volume that provides read access to its voxel data.
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
-    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Err>;
+    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error>;
 
     fn ray<'a>(
         &'a self,
@@ -70,13 +70,13 @@ pub trait SampleVol<I>: BaseVol {
     ///
     /// Note that the resultant volume has a coordinate space relative to the sample, not the
     /// original volume.
-    fn sample(&self, range: I) -> Result<Self::Sample, Self::Err>;
+    fn sample(&self, range: I) -> Result<Self::Sample, Self::Error>;
 }
 
 /// A volume that provides write access to its voxel data.
 pub trait WriteVol: BaseVol {
     /// Set the voxel at the provided position in the volume to the provided value.
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Err>;
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
 }
 
 /// A volume that shall be iterable.

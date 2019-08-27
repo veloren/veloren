@@ -1,16 +1,16 @@
 use crate::{
     vol::{BaseVol, ReadVol, SampleVol, VolSize, WriteVol},
-    volumes::dyna::DynaErr,
+    volumes::dyna::DynaError,
 };
 use hashbrown::{hash_map, HashMap};
 use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug, Clone)]
-pub enum VolMap2dErr<V: BaseVol> {
+pub enum VolMap2dError<V: BaseVol> {
     NoSuchChunk,
-    ChunkErr(V::Err),
-    DynaErr(DynaErr),
+    ChunkError(V::Error),
+    DynaError(DynaError),
     InvalidChunkSize,
 }
 
@@ -39,19 +39,19 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
 
 impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap2d<V, S> {
     type Vox = V::Vox;
-    type Err = VolMap2dErr<V>;
+    type Error = VolMap2dError<V>;
 }
 
 impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap2d<V, S> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap2dErr<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap2dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
-            .ok_or(VolMap2dErr::NoSuchChunk)
+            .ok_or(VolMap2dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolMap2dErr::ChunkErr)
+                chunk.get(co).map_err(VolMap2dError::ChunkError)
             })
     }
 }
@@ -64,7 +64,7 @@ impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
     ///
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
-    fn sample(&self, range: I) -> Result<Self::Sample, VolMap2dErr<V>> {
+    fn sample(&self, range: I) -> Result<Self::Sample, VolMap2dError<V>> {
         let range = range.into();
 
         let mut sample = VolMap2d::new()?;
@@ -88,22 +88,22 @@ impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
 
 impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap2d<V, S> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap2dErr<V>> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap2dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)
-            .ok_or(VolMap2dErr::NoSuchChunk)
+            .ok_or(VolMap2dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
                 Arc::make_mut(chunk)
                     .set(co, vox)
-                    .map_err(VolMap2dErr::ChunkErr)
+                    .map_err(VolMap2dError::ChunkError)
             })
     }
 }
 
 impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
-    pub fn new() -> Result<Self, VolMap2dErr<V>> {
+    pub fn new() -> Result<Self, VolMap2dError<V>> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
             .reduce_and()
@@ -113,7 +113,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
                 phantom: PhantomData,
             })
         } else {
-            Err(VolMap2dErr::InvalidChunkSize)
+            Err(VolMap2dError::InvalidChunkSize)
         }
     }
 

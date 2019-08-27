@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
-pub enum ChunkErr {
+pub enum ChunkError {
     OutOfBounds,
 }
 
@@ -163,9 +163,9 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         }
     }
 
-    fn get_from_morton(&self, morton: u32) -> Result<&V, ChunkErr> {
+    fn get_from_morton(&self, morton: u32) -> Result<&V, ChunkError> {
         if morton as usize >= Self::BLOCK_COUNT {
-            Err(ChunkErr::OutOfBounds)
+            Err(ChunkError::OutOfBounds)
         } else {
             Ok(self.get_from_morton_unchecked(morton))
         }
@@ -176,9 +176,9 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         self.vox[idx] = vox;
     }
 
-    fn set_from_morton(&mut self, morton: u32, vox: V) -> Result<(), ChunkErr> {
+    fn set_from_morton(&mut self, morton: u32, vox: V) -> Result<(), ChunkError> {
         if morton as usize >= Self::BLOCK_COUNT {
-            Err(ChunkErr::OutOfBounds)
+            Err(ChunkError::OutOfBounds)
         } else {
             Ok(self.set_from_morton_unchecked(morton, vox))
         }
@@ -187,7 +187,7 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Vox = V;
-    type Err = ChunkErr;
+    type Error = ChunkError;
 }
 
 impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
@@ -204,14 +204,14 @@ impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, ChunkErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, ChunkError> {
         self.get_from_morton(xyz_to_morton(pos))
     }
 }
 
 impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkErr> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkError> {
         self.set_from_morton(xyz_to_morton(pos), vox)
     }
 }

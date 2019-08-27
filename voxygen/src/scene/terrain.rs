@@ -11,7 +11,7 @@ use common::{
     figure::Segment,
     terrain::{Block, BlockKind, TerrainChunkSize, TerrainMap},
     vol::{ReadVol, SampleVol, VolSize, Vox},
-    volumes::vol_map_2d::VolMap2dErr,
+    volumes::vol_map_2d::VolMap2dError,
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
@@ -467,7 +467,7 @@ impl Terrain {
                 Ok(sample) => sample,
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
                 // queue to be processed at a later date when we have its neighbours.
-                Err(VolMap2dErr::NoSuchChunk) => return,
+                Err(VolMap2dError::NoSuchChunk) => return,
                 _ => panic!("Unhandled edge case"),
             };
 

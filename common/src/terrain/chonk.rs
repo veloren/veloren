@@ -3,7 +3,7 @@ use crate::{
         BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, SizedVol, VolSize, Vox, WriteVol,
     },
     volumes::{
-        chunk::{Chunk, ChunkErr},
+        chunk::{Chunk, ChunkError},
         morton::{morton_to_xyz, xyz_to_morton, MortonIter},
     },
 };
@@ -13,7 +13,7 @@ use vek::*;
 
 #[derive(Debug)]
 pub enum ChonkError {
-    SubChunkError(ChunkErr),
+    SubChunkError(ChunkError),
     OutOfBounds,
 }
 
@@ -88,7 +88,7 @@ impl<V: Vox, S: VolSize, M: Clone> Chonk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M: Clone> BaseVol for Chonk<V, S, M> {
     type Vox = V;
-    type Err = ChonkError;
+    type Error = ChonkError;
 }
 
 impl<V: Vox, S: VolSize, M: Clone> SizedVol for Chonk<V, S, M> {
@@ -105,7 +105,7 @@ impl<V: Vox, S: VolSize, M: Clone> SizedVol for Chonk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Err> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Error> {
         if pos.z < self.get_min_z() {
             // Below the terrain
             Ok(&self.below)
@@ -120,14 +120,14 @@ impl<V: Vox, S: VolSize, M: Clone> ReadVol for Chonk<V, S, M> {
                     * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
             self.sub_chunks[sub_chunk_idx as usize]
                 .get(rpos)
-                .map_err(Self::Err::SubChunkError)
+                .map_err(Self::Error::SubChunkError)
         }
     }
 }
 
 impl<V: Vox, S: VolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Err> {
+    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
         let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
 
         if pos.z < self.get_min_z() {
@@ -148,7 +148,7 @@ impl<V: Vox, S: VolSize, M: Clone> WriteVol for Chonk<V, S, M> {
             - Vec3::unit_z() * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
         self.sub_chunks[sub_chunk_idx as usize] // TODO (haslersn): self.sub_chunks.get(...).and_then(...)
             .set(rpos, block)
-            .map_err(Self::Err::SubChunkError)
+            .map_err(Self::Error::SubChunkError)
     }
 }
 
