@@ -130,8 +130,6 @@ impl PlayState for SessionState {
                         return PlayStateResult::Shutdown;
                     }
                     Event::InputUpdate(GameInput::Main, state) => {
-                        self.controller.respawn = state; // TODO: Move this into separate GameInput
-
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
@@ -203,6 +201,9 @@ impl PlayState for SessionState {
                         } else {
                             self.controller.roll = state;
                         }
+                    }
+                    Event::InputUpdate(GameInput::Respawn, state) => {
+                        self.controller.respawn = state;
                     }
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.controller.jump = state;
