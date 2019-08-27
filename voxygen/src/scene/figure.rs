@@ -701,7 +701,7 @@ impl FigureMgr {
                     let time_since_movement_change =
                         state.last_movement_change.elapsed().as_secs_f64();
                     let time_since_action_change = state.last_action_change.elapsed().as_secs_f64();
-
+                    
                     let target_base = match &character.movement {
                         Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
@@ -736,9 +736,10 @@ impl FigureMgr {
                     };
 
                     let target_bones = match (&character.movement, &character.action) {
-                        (_, Wield { .. }) => anim::character::CidleAnimation::update_skeleton(
+
+                        (_, Wield { .. }) => anim::character::CrunAnimation::update_skeleton(
                             &target_base,
-                            time,
+                            (vel.0.magnitude(), time),
                             time_since_action_change,
                             skeleton_attr,
                         ),

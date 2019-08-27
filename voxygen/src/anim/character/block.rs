@@ -224,13 +224,13 @@ impl Animation for BlockAnimation {
                 next.weapon.scale = Vec3::one();
             }
         }
-        next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
-        next.l_foot.ori = Quaternion::rotation_x(-0.3);
-        next.l_foot.scale = Vec3::one();
+        //next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
+        //next.l_foot.ori = Quaternion::rotation_x(-0.3);
+        //next.l_foot.scale = Vec3::one();
 
-        next.r_foot.offset = Vec3::new(3.4, 1.2, 8.0 + wave_ultra_slow * 0.1);
-        next.r_foot.ori = Quaternion::rotation_x(0.3);
-        next.r_foot.scale = Vec3::one();
+        //next.r_foot.offset = Vec3::new(3.4, 1.2, 8.0 + wave_ultra_slow * 0.1);
+        //next.r_foot.ori = Quaternion::rotation_x(0.3);
+        //next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);
