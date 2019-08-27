@@ -1,7 +1,7 @@
 use common::{
     figure::Segment,
     util::{linear_to_srgba, srgba_to_linear},
-    vol::{ReadVol, SizedVol, Vox},
+    vol::{IntoFullVolIterator, ReadVol, SizedVol, Vox},
 };
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
 use image::{DynamicImage, RgbaImage};
@@ -149,8 +149,8 @@ fn create_quad(
 fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
     let mut vertices = Vec::new();
 
-    for pos in segment.iter_positions() {
-        if let Some(col) = segment.get(pos).ok().and_then(|vox| vox.get_color()) {
+    for (pos, vox) in segment.into_iter() {
+        if let Some(col) = vox.get_color() {
             let col = col.map(|e| e as f32 / 255.0);
 
             let is_empty = |pos| segment.get(pos).map(|v| v.is_empty()).unwrap_or(true);

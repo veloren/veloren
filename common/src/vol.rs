@@ -22,61 +22,37 @@ pub trait BaseVol {
     type Err: Debug;
 }
 
+impl<'a, T: BaseVol> BaseVol for &'a T {
+    type Vox = T::Vox;
+    type Err = T::Err;
+}
+
 // Utility types
-
-pub struct VoxPosIter {
-    pos: Vec3<u32>,
-    sz: Vec3<u32>,
-}
-
-impl Iterator for VoxPosIter {
-    type Item = Vec3<i32>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut old_pos = self.pos;
-
-        if old_pos.z == self.sz.z {
-            old_pos.z = 0;
-            old_pos.y += 1;
-            if old_pos.y == self.sz.y {
-                old_pos.y = 0;
-                old_pos.x += 1;
-                if old_pos.x == self.sz.x {
-                    return None;
-                }
-            }
-        }
-
-        self.pos = old_pos + Vec3::unit_z();
-
-        Some(old_pos.map(|e| e as i32))
-    }
-}
 
 /// A volume that has a finite size.
 pub trait SizedVol: BaseVol {
-    /// Get the size of the volume.
-    fn get_size(&self) -> Vec3<u32>;
+    /// Returns the (exclusive) upper bound of the volume.
+    fn lower_bound(&self) -> Vec3<i32>;
 
-    /// Iterate through all potential voxel positions in this volume.
-    fn iter_positions(&self) -> VoxPosIter {
-        VoxPosIter {
-            pos: Vec3::zero(),
-            sz: self.get_size(),
-        }
+    /// Returns the (inclusive) lower bound of the volume.
+    fn upper_bound(&self) -> Vec3<i32>;
+
+    /// Returns the size of the volume.
+    fn get_size(&self) -> Vec3<u32> {
+        (self.upper_bound() - self.lower_bound()).map(|e| e as u32)
     }
 }
 
 /// A volume that provides read access to its voxel data.
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err>;
+    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Err>;
 
-    fn ray(
-        &self,
+    fn ray<'a>(
+        &'a self,
         from: Vec3<f32>,
         to: Vec3<f32>,
-    ) -> Ray<Self, fn(&Self::Vox) -> bool, fn(Vec3<i32>)>
+    ) -> Ray<'a, Self, fn(&Self::Vox) -> bool, fn(Vec3<i32>)>
     where
         Self: Sized,
     {
@@ -103,10 +79,85 @@ pub trait WriteVol: BaseVol {
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Err>;
 }
 
-// Utility traits
+/// A volume that shall be iterable.
+pub trait IntoVolIterator<'a>: BaseVol
+where
+    Self::Vox: 'a,
+{
+    type IntoIter: Iterator<Item = (Vec3<i32>, &'a Self::Vox)>;
+
+    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter;
+}
+
+pub trait IntoFullVolIterator<'a>: BaseVol
+where
+    Self::Vox: 'a,
+{
+    type IntoIter: Iterator<Item = (Vec3<i32>, &'a Self::Vox)>;
+
+    fn into_iter(self) -> Self::IntoIter;
+}
+
+impl<'a, T: 'a + SizedVol> IntoFullVolIterator<'a> for &'a T
+where
+    Self: IntoVolIterator<'a>,
+{
+    type IntoIter = <Self as IntoVolIterator<'a>>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.into_vol_iter(self.lower_bound(), self.upper_bound())
+    }
+}
+
+// Defaults
+
+/// Iterator type for the default implementation of `IterateVol`
+pub struct DefaultVolIterator<'a, T: ReadVol> {
+    vol: &'a T,
+    current: Vec3<i32>,
+    begin: Vec2<i32>,
+    end: Vec3<i32>,
+}
+
+impl<'a, T: ReadVol> DefaultVolIterator<'a, T> {
+    pub fn new(vol: &'a T, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self {
+        Self {
+            vol,
+            current: lower_bound,
+            begin: From::from(lower_bound),
+            end: upper_bound,
+        }
+    }
+}
+
+impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
+    type Item = (Vec3<i32>, &'a T::Vox);
+
+    fn next(&mut self) -> Option<(Vec3<i32>, &'a T::Vox)> {
+        loop {
+            self.current.x += (self.current.x < self.end.x) as i32;
+            if self.current.x == self.end.x {
+                self.current.x = self.begin.x;
+                self.current.y += (self.current.y < self.end.y) as i32;
+                if self.current.y == self.end.y {
+                    self.current.y = self.begin.y;
+                    self.current.z += (self.current.z < self.end.z) as i32;
+                    if self.current.z == self.end.z {
+                        return None;
+                    }
+                }
+            }
+            if let Ok(vox) = self.vol.get(self.current) {
+                return Some((self.current, vox));
+            }
+        }
+    }
+}
+
+// WIP
 
 /// Used to specify a volume's compile-time size. This exists as a substitute until const generics
 /// are implemented.
-pub trait VolSize : Clone {
+pub trait VolSize: Clone {
     const SIZE: Vec3<u32>;
 }

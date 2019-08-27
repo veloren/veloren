@@ -1,4 +1,4 @@
-use crate::vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol};
+use crate::vol::{BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, SizedVol, Vox, WriteVol};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
@@ -45,8 +45,13 @@ impl<V: Vox, M> BaseVol for Dyna<V, M> {
 
 impl<V: Vox, M> SizedVol for Dyna<V, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> {
-        self.sz
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::zero()
+    }
+
+    #[inline(always)]
+    fn upper_bound(&self) -> Vec3<i32> {
+        self.sz.map(|e| e as i32)
     }
 }
 
@@ -66,6 +71,14 @@ impl<V: Vox, M> WriteVol for Dyna<V, M> {
             .and_then(|idx| self.vox.get_mut(idx))
             .map(|old_vox| *old_vox = vox)
             .ok_or(DynaErr::OutOfBounds)
+    }
+}
+
+impl<'a, V: Vox, M> IntoVolIterator<'a> for &'a Dyna<V, M> {
+    type IntoIter = DefaultVolIterator<'a, Dyna<V, M>>;
+
+    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter::new(self, lower_bound, upper_bound)
     }
 }
 
