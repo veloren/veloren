@@ -13,6 +13,8 @@ use std::{fs, io::prelude::*, path::PathBuf};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ControlSettings {
+    pub main: KeyMouse,
+    pub alt: KeyMouse,
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
     pub enter: KeyMouse,
@@ -36,8 +38,6 @@ pub struct ControlSettings {
     pub fullscreen: KeyMouse,
     pub screenshot: KeyMouse,
     pub toggle_ingame_ui: KeyMouse,
-    pub attack: KeyMouse,
-    pub block: KeyMouse,
     pub roll: KeyMouse,
     pub interact: KeyMouse,
 }
@@ -45,6 +45,8 @@ pub struct ControlSettings {
 impl Default for ControlSettings {
     fn default() -> Self {
         Self {
+            main: KeyMouse::Mouse(MouseButton::Left),
+            alt: KeyMouse::Mouse(MouseButton::Right),
             toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
@@ -68,8 +70,6 @@ impl Default for ControlSettings {
             fullscreen: KeyMouse::Key(VirtualKeyCode::F11),
             screenshot: KeyMouse::Key(VirtualKeyCode::F4),
             toggle_ingame_ui: KeyMouse::Key(VirtualKeyCode::F6),
-            attack: KeyMouse::Mouse(MouseButton::Left),
-            block: KeyMouse::Mouse(MouseButton::Right),
             roll: KeyMouse::Mouse(MouseButton::Middle),
             interact: KeyMouse::Key(VirtualKeyCode::E),
         }
