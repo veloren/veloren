@@ -11,6 +11,8 @@ use vek::*;
 /// Represents a key that the game recognises after keyboard mapping.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum GameInput {
+    Main,
+    Alt,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -34,8 +36,6 @@ pub enum GameInput {
     Fullscreen,
     Screenshot,
     ToggleIngameUi,
-    Attack,
-    Block,
     Roll,
     Respawn,
     Interact,
@@ -81,7 +81,7 @@ pub struct Window {
     pub zoom_sensitivity: u32,
     fullscreen: bool,
     needs_refresh_resize: bool,
-    key_map: HashMap<KeyMouse, GameInput>,
+    key_map: HashMap<KeyMouse, Vec<GameInput>>,
     keypress_map: HashMap<GameInput, glutin::ElementState>,
     supplement_events: Vec<Event>,
     focused: bool,
@@ -108,43 +108,91 @@ impl Window {
             )
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
-        let mut key_map = HashMap::new();
-        key_map.insert(settings.controls.toggle_cursor, GameInput::ToggleCursor);
-        key_map.insert(settings.controls.escape, GameInput::Escape);
-        key_map.insert(settings.controls.enter, GameInput::Enter);
-        key_map.insert(settings.controls.command, GameInput::Command);
-        key_map.insert(settings.controls.move_forward, GameInput::MoveForward);
-        key_map.insert(settings.controls.move_left, GameInput::MoveLeft);
-        key_map.insert(settings.controls.move_back, GameInput::MoveBack);
-        key_map.insert(settings.controls.move_right, GameInput::MoveRight);
-        key_map.insert(settings.controls.jump, GameInput::Jump);
-        key_map.insert(settings.controls.glide, GameInput::Glide);
-        key_map.insert(settings.controls.map, GameInput::Map);
-        key_map.insert(settings.controls.bag, GameInput::Bag);
-        key_map.insert(settings.controls.quest_log, GameInput::QuestLog);
-        key_map.insert(
-            settings.controls.character_window,
-            GameInput::CharacterWindow,
-        );
-        key_map.insert(settings.controls.social, GameInput::Social);
-        key_map.insert(settings.controls.spellbook, GameInput::Spellbook);
-        key_map.insert(settings.controls.settings, GameInput::Settings);
-        key_map.insert(settings.controls.help, GameInput::Help);
-        key_map.insert(
-            settings.controls.toggle_interface,
-            GameInput::ToggleInterface,
-        );
-        key_map.insert(settings.controls.toggle_debug, GameInput::ToggleDebug);
-        key_map.insert(settings.controls.fullscreen, GameInput::Fullscreen);
-        key_map.insert(settings.controls.screenshot, GameInput::Screenshot);
-        key_map.insert(
-            settings.controls.toggle_ingame_ui,
-            GameInput::ToggleIngameUi,
-        );
-        key_map.insert(settings.controls.attack, GameInput::Attack);
-        key_map.insert(settings.controls.block, GameInput::Block);
-        key_map.insert(settings.controls.roll, GameInput::Roll);
-        key_map.insert(settings.controls.interact, GameInput::Interact);
+        let mut map: HashMap<_, Vec<_>> = HashMap::new();
+        map.entry(settings.controls.main)
+            .or_default()
+            .push(GameInput::Main);
+        map.entry(settings.controls.alt)
+            .or_default()
+            .push(GameInput::Alt);
+        map.entry(settings.controls.toggle_cursor)
+            .or_default()
+            .push(GameInput::ToggleCursor);
+        map.entry(settings.controls.escape)
+            .or_default()
+            .push(GameInput::Escape);
+        map.entry(settings.controls.enter)
+            .or_default()
+            .push(GameInput::Enter);
+        map.entry(settings.controls.command)
+            .or_default()
+            .push(GameInput::Command);
+        map.entry(settings.controls.move_forward)
+            .or_default()
+            .push(GameInput::MoveForward);
+        map.entry(settings.controls.move_left)
+            .or_default()
+            .push(GameInput::MoveLeft);
+        map.entry(settings.controls.move_back)
+            .or_default()
+            .push(GameInput::MoveBack);
+        map.entry(settings.controls.move_right)
+            .or_default()
+            .push(GameInput::MoveRight);
+        map.entry(settings.controls.jump)
+            .or_default()
+            .push(GameInput::Jump);
+        map.entry(settings.controls.glide)
+            .or_default()
+            .push(GameInput::Glide);
+        map.entry(settings.controls.map)
+            .or_default()
+            .push(GameInput::Map);
+        map.entry(settings.controls.bag)
+            .or_default()
+            .push(GameInput::Bag);
+        map.entry(settings.controls.quest_log)
+            .or_default()
+            .push(GameInput::QuestLog);
+        map.entry(settings.controls.character_window)
+            .or_default()
+            .push(GameInput::CharacterWindow);
+        map.entry(settings.controls.social)
+            .or_default()
+            .push(GameInput::Social);
+        map.entry(settings.controls.spellbook)
+            .or_default()
+            .push(GameInput::Spellbook);
+        map.entry(settings.controls.settings)
+            .or_default()
+            .push(GameInput::Settings);
+        map.entry(settings.controls.help)
+            .or_default()
+            .push(GameInput::Help);
+        map.entry(settings.controls.toggle_interface)
+            .or_default()
+            .push(GameInput::ToggleInterface);
+        map.entry(settings.controls.toggle_debug)
+            .or_default()
+            .push(GameInput::ToggleDebug);
+        map.entry(settings.controls.fullscreen)
+            .or_default()
+            .push(GameInput::Fullscreen);
+        map.entry(settings.controls.screenshot)
+            .or_default()
+            .push(GameInput::Screenshot);
+        map.entry(settings.controls.toggle_ingame_ui)
+            .or_default()
+            .push(GameInput::ToggleIngameUi);
+        map.entry(settings.controls.roll)
+            .or_default()
+            .push(GameInput::Roll);
+        map.entry(settings.controls.respawn)
+            .or_default()
+            .push(GameInput::Respawn);
+        map.entry(settings.controls.interact)
+            .or_default()
+            .push(GameInput::Interact);
 
         let keypress_map = HashMap::new();
 
@@ -157,7 +205,7 @@ impl Window {
             zoom_sensitivity: settings.gameplay.zoom_sensitivity,
             fullscreen: false,
             needs_refresh_resize: false,
-            key_map,
+            key_map: map,
             keypress_map,
             supplement_events: vec![],
             focused: true,
@@ -210,65 +258,58 @@ impl Window {
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
                     glutin::WindowEvent::MouseInput { button, state, .. } if cursor_grabbed => {
-                        if let Some(&game_input) = key_map.get(&KeyMouse::Mouse(button)) {
-                            events.push(Event::InputUpdate(
-                                game_input,
-                                state == glutin::ElementState::Pressed,
-                            ))
+                        if let Some(game_inputs) = key_map.get(&KeyMouse::Mouse(button)) {
+                            for game_input in game_inputs {
+                                events.push(Event::InputUpdate(
+                                    *game_input,
+                                    state == glutin::ElementState::Pressed,
+                                ));
+                            }
                         }
                     }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
-                        Some(key) => match key_map.get(&KeyMouse::Key(key)) {
-                            Some(GameInput::Fullscreen) => {
-                                if input.state == glutin::ElementState::Pressed
-                                    && !Self::is_event_key_held(keypress_map, GameInput::Fullscreen)
-                                {
-                                    toggle_fullscreen = !toggle_fullscreen;
+                        Some(key) => {
+                            let game_inputs = key_map.get(&KeyMouse::Key(key));
+                            if let Some(game_inputs) = game_inputs {
+                                for game_input in game_inputs {
+                                    match game_input {
+                                        GameInput::Fullscreen => {
+                                            if input.state == glutin::ElementState::Pressed
+                                                && !Self::is_pressed(
+                                                    keypress_map,
+                                                    GameInput::Fullscreen,
+                                                )
+                                            {
+                                                toggle_fullscreen = !toggle_fullscreen;
+                                            }
+                                            Self::set_pressed(
+                                                keypress_map,
+                                                GameInput::Fullscreen,
+                                                input.state,
+                                            );
+                                        }
+                                        GameInput::Screenshot => {
+                                            take_screenshot = input.state
+                                                == glutin::ElementState::Pressed
+                                                && !Self::is_pressed(
+                                                    keypress_map,
+                                                    GameInput::Screenshot,
+                                                );
+                                            Self::set_pressed(
+                                                keypress_map,
+                                                GameInput::Screenshot,
+                                                input.state,
+                                            );
+                                        }
+                                        _ => events.push(Event::InputUpdate(
+                                            *game_input,
+                                            input.state == glutin::ElementState::Pressed,
+                                        )),
+                                    }
                                 }
-                                Self::update_keypress_map(
-                                    keypress_map,
-                                    GameInput::Fullscreen,
-                                    input.state,
-                                );
                             }
-                            Some(GameInput::Screenshot) => {
-                                take_screenshot = input.state == glutin::ElementState::Pressed
-                                    && !Self::is_event_key_held(
-                                        keypress_map,
-                                        GameInput::Screenshot,
-                                    );
-                                Self::update_keypress_map(
-                                    keypress_map,
-                                    GameInput::Screenshot,
-                                    input.state,
-                                );
-                            }
-                            Some(&game_input)
-                                if game_input == GameInput::MoveForward
-                                    || game_input == GameInput::MoveBack
-                                    || game_input == GameInput::MoveLeft
-                                    || game_input == GameInput::MoveRight
-                                    || game_input == GameInput::Jump
-                                    || game_input == GameInput::Glide
-                                    || game_input == GameInput::Attack
-                                    || game_input == GameInput::Roll =>
-                            {
-                                events.push(Event::InputUpdate(
-                                    game_input,
-                                    input.state == glutin::ElementState::Pressed,
-                                ))
-                            }
-                            Some(&game_input) => {
-                                if input.state == glutin::ElementState::Pressed
-                                    && !Self::is_event_key_held(keypress_map, game_input)
-                                {
-                                    events.push(Event::InputUpdate(game_input, true));
-                                }
-                                Self::update_keypress_map(keypress_map, game_input, input.state);
-                            }
-                            _ => {}
-                        },
+                        }
                         _ => {}
                     },
                     glutin::WindowEvent::Focused(state) => {
@@ -386,15 +427,12 @@ impl Window {
         }
     }
 
-    fn is_event_key_held(
-        map: &mut HashMap<GameInput, glutin::ElementState>,
-        input: GameInput,
-    ) -> bool {
+    fn is_pressed(map: &mut HashMap<GameInput, glutin::ElementState>, input: GameInput) -> bool {
         *(map.entry(input).or_insert(glutin::ElementState::Released))
             == glutin::ElementState::Pressed
     }
 
-    fn update_keypress_map(
+    fn set_pressed(
         map: &mut HashMap<GameInput, glutin::ElementState>,
         input: GameInput,
         state: glutin::ElementState,
