@@ -1,4 +1,7 @@
-use super::Generator;
+mod util;
+mod vol;
+
+use super::{Generator, SpawnRules};
 use crate::{
     block::block_from_structure,
     column::{ColumnGen, ColumnSample},
@@ -8,14 +11,617 @@ use crate::{
 use common::{
     assets,
     terrain::{Block, BlockKind, Structure},
-    vol::{ReadVol, Vox},
+    vol::{ReadVol, Vox, WriteVol},
 };
+use hashbrown::HashSet;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
-use std::{collections::HashSet, sync::Arc};
+use std::{ops::Add, sync::Arc};
 use vek::*;
 
+use self::vol::{ColumnKind, Module, TownCell, TownColumn, TownVol};
+
+const CELL_SIZE: i32 = 9;
+const CELL_HEIGHT: i32 = 9;
+
+pub struct TownGen;
+
+impl<'a> Sampler<'a> for TownGen {
+    type Index = (&'a TownState, Vec3<i32>, &'a ColumnSample<'a>, f32);
+    type Sample = Option<Block>;
+
+    fn get(&self, (town, wpos, sample, height): Self::Index) -> Self::Sample {
+        let cell_pos = (wpos - town.center)
+            .map2(Vec3::new(CELL_SIZE, CELL_SIZE, CELL_HEIGHT), |e, sz| {
+                e.div_euclid(sz)
+            })
+            .add(Vec3::from(town.vol.size() / 2));
+        let inner_pos = (wpos - town.center)
+            .map2(Vec3::new(CELL_SIZE, CELL_SIZE, CELL_HEIGHT), |e, sz| {
+                e.rem_euclid(sz)
+            });
+
+        match town.vol.get(cell_pos).unwrap_or(&TownCell::Empty) {
+            TownCell::Empty => None,
+            TownCell::Park => None,
+            TownCell::Rock => Some(Block::new(BlockKind::Normal, Rgb::broadcast(100))),
+            TownCell::Wall => Some(Block::new(BlockKind::Normal, Rgb::broadcast(175))),
+            TownCell::Road => {
+                if (wpos.z as f32) < height - 1.0 {
+                    Some(Block::new(
+                        BlockKind::Normal,
+                        Lerp::lerp(
+                            Rgb::new(150.0, 140.0, 50.0),
+                            Rgb::new(100.0, 95.0, 30.0),
+                            sample.marble_small,
+                        )
+                        .map(|e| e as u8),
+                    ))
+                } else {
+                    Some(Block::empty())
+                }
+            }
+            TownCell::House { idx, module } => {
+                if let Some(module) = module {
+                    let transform = [
+                        (Vec2::new(0, 0), Vec2::unit_x(), Vec2::unit_y()),
+                        (Vec2::new(0, 1), -Vec2::unit_y(), Vec2::unit_x()),
+                        (Vec2::new(1, 1), -Vec2::unit_x(), -Vec2::unit_y()),
+                        (Vec2::new(1, 0), Vec2::unit_y(), -Vec2::unit_x()),
+                    ];
+
+                    MODULES[module.vol_idx]
+                        .0
+                        .get(
+                            Vec3::from(
+                                transform[module.dir].0 * (CELL_SIZE - 1)
+                                    + transform[module.dir].1 * inner_pos.x
+                                    + transform[module.dir].2 * inner_pos.y,
+                            ) + Vec3::unit_z() * inner_pos.z,
+                        )
+                        .ok()
+                        .and_then(|sb| {
+                            block_from_structure(
+                                *sb,
+                                BlockKind::Normal,
+                                wpos,
+                                wpos.into(),
+                                0,
+                                sample,
+                            )
+                        })
+                } else {
+                    Some(Block::new(BlockKind::Normal, town.houses[*idx].color))
+                }
+            }
+        }
+    }
+}
+
+impl<'a> Generator<'a, TownState> for TownGen {
+    fn get_z_limits(
+        &self,
+        town: &'a TownState,
+        wpos: Vec2<i32>,
+        sample: &ColumnSample,
+    ) -> (f32, f32) {
+        (sample.alt - 32.0, sample.alt + 75.0)
+    }
+
+    fn spawn_rules(&self, town: &'a TownState, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules { trees: false }
+    }
+}
+
+struct House {
+    color: Rgb<u8>,
+}
+
+pub struct TownState {
+    center: Vec3<i32>,
+    radius: i32,
+    vol: TownVol,
+    houses: Vec<House>,
+}
+
+impl TownState {
+    pub fn generate(center: Vec2<i32>, gen: &mut ColumnGen, rng: &mut impl Rng) -> Option<Self> {
+        let radius = rng.gen_range(12, 24) * 9;
+        let size = Vec2::broadcast(radius * 2 / 9 - 2);
+
+        let alt = gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) as i32;
+
+        let mut vol = TownVol::generate_from(
+            size,
+            |pos| {
+                let wpos = center + (pos - size / 2) * CELL_SIZE + CELL_SIZE / 2;
+                let rel_alt = gen.get(wpos).map(|sample| sample.alt).unwrap_or(0.0) as i32
+                    + CELL_HEIGHT / 2
+                    - alt;
+
+                let col = TownColumn {
+                    ground: rel_alt.div_euclid(CELL_HEIGHT),
+                    kind: None,
+                };
+
+                (col.ground, col)
+            },
+            |(col, pos)| {
+                if pos.z >= col.ground {
+                    TownCell::Empty
+                } else {
+                    TownCell::Rock
+                }
+            },
+        );
+
+        // Generation passes
+        vol.setup(rng);
+        vol.gen_roads(rng, 30);
+        //vol.gen_parks(rng, 8);
+        vol.emplace_columns();
+        let houses = vol.gen_houses(rng, 60);
+        vol.gen_walls();
+        vol.resolve_modules(rng);
+
+        Some(Self {
+            center: Vec3::new(center.x, center.y, alt),
+            radius,
+            vol,
+            houses,
+        })
+    }
+
+    pub fn center(&self) -> Vec3<i32> {
+        self.center
+    }
+
+    pub fn radius(&self) -> i32 {
+        self.radius
+    }
+}
+
+impl TownVol {
+    fn floodfill(
+        &self,
+        mut opens: HashSet<Vec2<i32>>,
+        mut f: impl FnMut(Vec2<i32>, &TownColumn) -> bool,
+    ) -> HashSet<Vec2<i32>> {
+        let mut closed = HashSet::new();
+
+        while opens.len() > 0 {
+            let mut new_opens = HashSet::new();
+
+            for open in opens.iter() {
+                for i in -1..2 {
+                    for j in -1..2 {
+                        let pos = *open + Vec2::new(i, j);
+
+                        if let Some(col) = self.col(pos) {
+                            if !closed.contains(&pos) && !opens.contains(&pos) && f(pos, col) {
+                                new_opens.insert(pos);
+                            }
+                        }
+                    }
+                }
+            }
+
+            closed = closed.union(&opens).copied().collect();
+            opens = new_opens;
+        }
+
+        closed
+    }
+
+    fn setup(&mut self, rng: &mut impl Rng) {
+        // Place a single road tile at first
+        let root_road = self
+            .size()
+            .map(|sz| (sz / 8) * 2 + rng.gen_range(0, sz / 4) * 2);
+        self.set_col_kind(root_road, Some(ColumnKind::Road));
+    }
+
+    fn gen_roads(&mut self, rng: &mut impl Rng, n: usize) {
+        const ATTEMPTS: usize = 5;
+
+        let mut junctions = HashSet::new();
+        junctions.insert(self.choose_column(rng, |_, col| col.is_road()).unwrap());
+
+        for road in 0..n {
+            for _ in 0..ATTEMPTS {
+                let start = *junctions.iter().choose(rng).unwrap();
+                //let start = self.choose_column(rng, |pos, col| pos.map(|e| e % 2 == 0).reduce_and() && col.is_road()).unwrap();
+                let dir = util::gen_dir(rng);
+
+                // If the direction we want to paint a path in is obstructed, abandon this attempt
+                if self
+                    .col(start + dir)
+                    .map(|col| !col.is_empty())
+                    .unwrap_or(true)
+                {
+                    continue;
+                }
+
+                // How long should this road be?
+                let len = rng.gen_range(1, 10) * 2 + 1;
+
+                // Paint the road until we hit an obstacle
+                let success = (1..len)
+                    .map(|i| start + dir * i)
+                    .try_for_each(|pos| {
+                        if self.col(pos).map(|col| col.is_empty()).unwrap_or(false) {
+                            self.set_col_kind(pos, Some(ColumnKind::Road));
+                            Ok(())
+                        } else {
+                            junctions.insert(pos);
+                            Err(())
+                        }
+                    })
+                    .is_ok();
+
+                if success {
+                    junctions.insert(start + dir * (len - 1));
+                }
+
+                break;
+            }
+        }
+    }
+
+    fn gen_parks(&mut self, rng: &mut impl Rng, n: usize) {
+        const ATTEMPTS: usize = 5;
+
+        for _ in 0..n {
+            for _ in 0..ATTEMPTS {
+                let start = self
+                    .choose_column(rng, |pos, col| {
+                        col.is_empty()
+                            && (0..4).any(|i| {
+                                self.col(pos + util::dir(i))
+                                    .map(|col| col.is_road())
+                                    .unwrap_or(false)
+                            })
+                    })
+                    .unwrap();
+
+                let mut energy = 50;
+                let mut park = self.floodfill([start].iter().copied().collect(), |_, col| {
+                    if col.is_empty() && energy > 0 {
+                        energy -= 1;
+                        true
+                    } else {
+                        false
+                    }
+                });
+
+                if park.len() < 4 {
+                    continue;
+                }
+
+                for cell in park {
+                    self.set_col_kind(cell, Some(ColumnKind::Internal));
+                    let col = self.col(cell).unwrap();
+                    let ground = col.ground;
+                    for z in 0..2 {
+                        self.set(Vec3::new(cell.x, cell.y, ground + z), TownCell::Park);
+                    }
+                }
+
+                break;
+            }
+        }
+    }
+
+    fn gen_walls(&mut self) {
+        let mut outer = HashSet::new();
+        for i in 0..self.size().x {
+            outer.insert(Vec2::new(i, 0));
+            outer.insert(Vec2::new(i, self.size().y - 1));
+        }
+        for j in 0..self.size().y {
+            outer.insert(Vec2::new(0, j));
+            outer.insert(Vec2::new(self.size().x - 1, j));
+        }
+
+        let mut outer = self.floodfill(outer, |_, col| col.is_empty());
+
+        let mut walls = HashSet::new();
+        self.floodfill([self.size() / 2].iter().copied().collect(), |pos, _| {
+            if outer.contains(&pos) {
+                walls.insert(pos);
+                false
+            } else {
+                true
+            }
+        });
+
+        while let Some(wall) = walls
+            .iter()
+            .filter(|pos| {
+                (0..4)
+                    .filter(|i| walls.contains(&(**pos + util::dir(*i))))
+                    .count()
+                    < 2
+            })
+            .next()
+        {
+            let wall = *wall;
+            walls.remove(&wall);
+        }
+
+        for wall in walls.iter() {
+            let col = self.col(*wall).unwrap();
+            let ground = col.ground;
+            for z in -1..2 {
+                self.set(Vec3::new(wall.x, wall.y, ground + z), TownCell::Wall);
+            }
+        }
+    }
+
+    fn emplace_columns(&mut self) {
+        for i in 0..self.size().x {
+            for j in 0..self.size().y {
+                let col = self.col(Vec2::new(i, j)).unwrap();
+                let ground = col.ground;
+
+                match col.kind {
+                    None => {}
+                    Some(ColumnKind::Internal) => {}
+                    Some(ColumnKind::External) => {}
+                    Some(ColumnKind::Road) => {
+                        for z in -1..2 {
+                            self.set(Vec3::new(i, j, ground + z), TownCell::Road);
+                        }
+                    }
+                    _ => unimplemented!(),
+                }
+            }
+        }
+    }
+
+    fn gen_houses(&mut self, rng: &mut impl Rng, n: usize) -> Vec<House> {
+        const ATTEMPTS: usize = 20;
+
+        let mut houses = Vec::new();
+        for _ in 0..n {
+            for _ in 0..ATTEMPTS {
+                let entrance = {
+                    let start = self.choose_cell(rng, |_, cell| cell.is_road()).unwrap();
+                    let dir = Vec3::from(util::gen_dir(rng));
+
+                    if self
+                        .get(start + dir)
+                        .map(|col| !col.is_empty())
+                        .unwrap_or(true)
+                        || self
+                            .get(start + dir - Vec3::unit_z())
+                            .map(|col| !col.is_foundation())
+                            .unwrap_or(true)
+                    {
+                        continue;
+                    } else {
+                        start + dir
+                    }
+                };
+
+                let mut cells: HashSet<_> = Some(entrance).into_iter().collect();
+
+                let mut energy = 1000;
+                while energy > 0 {
+                    energy -= 1;
+
+                    let parent = *cells.iter().choose(rng).unwrap();
+                    let dir = util::UNITS_3D
+                        .choose_weighted(rng, |pos| 1 + pos.z.max(0))
+                        .unwrap();
+
+                    if self
+                        .get(parent + dir)
+                        .map(|cell| cell.is_empty())
+                        .unwrap_or(false)
+                        && self
+                            .get(parent + dir - Vec3::unit_z())
+                            .map(|cell| {
+                                cell.is_foundation()
+                                    || cells.contains(&(parent + dir - Vec3::unit_z()))
+                            })
+                            .unwrap_or(false)
+                    {
+                        cells.insert(parent + dir);
+                        energy -= 10;
+                    }
+                }
+
+                // Remove cells that are too isolated
+                loop {
+                    let cells_copy = cells.clone();
+
+                    let mut any_removed = false;
+                    cells.retain(|pos| {
+                        let neighbour_count = (0..6)
+                            .filter(|i| {
+                                let neighbour = pos + util::dir_3d(*i);
+                                cells_copy.contains(&neighbour)
+                            })
+                            .count();
+
+                        if neighbour_count < 3 {
+                            any_removed = true;
+                            false
+                        } else {
+                            true
+                        }
+                    });
+
+                    if !any_removed {
+                        break;
+                    }
+                }
+
+                // Get rid of houses that are too small
+                if cells.len() < 6 {
+                    continue;
+                }
+
+                for cell in cells {
+                    self.set(
+                        cell,
+                        TownCell::House {
+                            idx: houses.len(),
+                            module: None,
+                        },
+                    );
+                    self.set_col_kind(Vec2::from(cell), Some(ColumnKind::Internal));
+                }
+
+                houses.push(House {
+                    color: Rgb::new(rng.gen(), rng.gen(), rng.gen()),
+                });
+            }
+        }
+
+        houses
+    }
+
+    fn resolve_modules(&mut self, rng: &mut impl Rng) {
+        fn classify(cell: &TownCell, this_house: usize) -> ModuleKind {
+            match cell {
+                TownCell::House { idx, .. } if *idx == this_house => ModuleKind::This,
+                _ => ModuleKind::That,
+            }
+        }
+
+        for x in 0..self.size().x {
+            for y in 0..self.size().y {
+                'cell: for z in self.col_range(Vec2::new(x, y)).unwrap() {
+                    let pos = Vec3::new(x, y, z);
+                    let this_idx = if let Ok(TownCell::House { idx, module }) = self.get(pos) {
+                        idx
+                    } else {
+                        continue;
+                    };
+
+                    let mut signature = [ModuleKind::That; 6];
+                    for i in 0..6 {
+                        signature[i] = self
+                            .get(pos + util::dir_3d(i))
+                            .map(|cell| classify(cell, *this_idx))
+                            .unwrap_or(ModuleKind::That);
+                    }
+
+                    let module = MODULES
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, module)| {
+                            let perms = [[0, 1, 2, 3], [3, 0, 1, 2], [2, 3, 0, 1], [1, 2, 3, 0]];
+
+                            let mut rotated_signature = [ModuleKind::That; 6];
+                            for (dir, perm) in perms.iter().enumerate() {
+                                rotated_signature[perm[0]] = signature[0];
+                                rotated_signature[perm[1]] = signature[1];
+                                rotated_signature[perm[2]] = signature[2];
+                                rotated_signature[perm[3]] = signature[3];
+                                rotated_signature[4] = signature[4];
+                                rotated_signature[5] = signature[5];
+
+                                if &module.1[0..6] == &rotated_signature[0..6] {
+                                    return Some(Module { vol_idx: i, dir });
+                                }
+                            }
+
+                            None
+                        })
+                        .choose(rng);
+
+                    self.set(
+                        pos,
+                        TownCell::House {
+                            idx: *this_idx,
+                            module,
+                        },
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq)]
+pub enum ModuleKind {
+    This,
+    That,
+}
+
+lazy_static! {
+    pub static ref MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
+        use ModuleKind::*;
+        vec![
+            (
+                assets::load("world.module.human.floor_ground").unwrap(),
+                [This, This, This, This, This, That],
+            ),
+            (
+                assets::load("world.module.human.stair_ground").unwrap(),
+                [This, This, This, This, This, That],
+            ),
+            (
+                assets::load("world.module.human.corner_ground").unwrap(),
+                [This, This, That, That, This, That],
+            ),
+            (
+                assets::load("world.module.human.wall_ground").unwrap(),
+                [This, This, This, That, This, That],
+            ),
+            (
+                assets::load("world.module.human.door_ground").unwrap(),
+                [This, This, This, That, This, That],
+            ),
+            (
+                assets::load("world.module.human.window_ground").unwrap(),
+                [This, This, This, That, This, That],
+            ),
+            (
+                assets::load("world.module.human.floor_roof").unwrap(),
+                [This, This, This, This, That, This],
+            ),
+            (
+                assets::load("world.module.human.corner_roof").unwrap(),
+                [This, This, That, That, That, This],
+            ),
+            (
+                assets::load("world.module.human.chimney_roof").unwrap(),
+                [This, This, That, That, That, This],
+            ),
+            (
+                assets::load("world.module.human.wall_roof").unwrap(),
+                [This, This, This, That, That, This],
+            ),
+            (
+                assets::load("world.module.human.floor_upstairs").unwrap(),
+                [This, This, This, This, This, This],
+            ),
+            (
+                assets::load("world.module.human.balcony_upstairs").unwrap(),
+                [This, This, This, This, This, This],
+            ),
+            (
+                assets::load("world.module.human.corner_upstairs").unwrap(),
+                [This, This, That, That, This, This],
+            ),
+            (
+                assets::load("world.module.human.wall_upstairs").unwrap(),
+                [This, This, This, That, This, This],
+            ),
+            (
+                assets::load("world.module.human.window_upstairs").unwrap(),
+                [This, This, This, That, This, This],
+            ),
+        ]
+    };
+}
+
+/*
 const CELL_SIZE: i32 = 11;
 
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x100F4E37);
@@ -113,7 +719,7 @@ impl TownState {
             return None;
         }
 
-        let radius = 192;
+        let radius = 200;
 
         let mut grid = Grid::new(
             TownCell::Empty,
@@ -144,7 +750,7 @@ impl TownState {
                     let idx = rng.gen_range(0, 4);
                     Vec2::new(dirs[idx], dirs[idx + 1])
                 };
-                let road_len = 2 + rng.gen_range(1, 3) * 2 + 1;
+                let road_len = 2 + rng.gen_range(1, 5) * 2 + 1;
 
                 // Make sure we aren't trying to create a road where a road already exists!
                 match grid.get(start_pos + road_dir) {
@@ -175,7 +781,7 @@ impl TownState {
         };
 
         // Create roads
-        for _ in 0..25 {
+        for _ in 0..radius.pow(2) / 2000 {
             create_road();
         }
 
@@ -317,7 +923,7 @@ impl TownState {
             break;
         };
 
-        for _ in 0..40 {
+        for _ in 0..radius.pow(2) / 1000 {
             place_house();
         }
 
@@ -467,7 +1073,7 @@ impl TownState {
         };
 
         for _ in 0..100 {
-            variate_walls();
+            //variate_walls();
         }
 
         /*
@@ -662,3 +1268,4 @@ impl<'a> Generator<'a, TownState> for TownGen {
         (sample.alt - 32.0, sample.alt + 75.0)
     }
 }
+*/

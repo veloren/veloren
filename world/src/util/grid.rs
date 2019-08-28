@@ -40,16 +40,19 @@ impl<T: Clone> Grid<T> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &T)> + '_ {
-        (0..self.size.x)
-            .map(move |x| {
-                (0..self.size.y).map(move |y| {
-                    (
-                        Vec2::new(x, y),
-                        &self.cells[self.idx(Vec2::new(x, y)).unwrap()],
-                    )
-                })
-            })
-            .flatten()
+        let w = self.size.x;
+        self.cells
+            .iter()
+            .enumerate()
+            .map(move |(i, cell)| (Vec2::new(i as i32 % w, i as i32 / w), cell))
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Vec2<i32>, &mut T)> + '_ {
+        let w = self.size.x;
+        self.cells
+            .iter_mut()
+            .enumerate()
+            .map(move |(i, cell)| (Vec2::new(i as i32 % w, i as i32 / w), cell))
     }
 
     pub fn iter_area(
