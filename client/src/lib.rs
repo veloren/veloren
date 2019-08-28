@@ -279,10 +279,7 @@ impl Client {
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
-        // Handle new messages from the server.
-        frontend_events.append(&mut self.handle_new_messages()?);
-
-        // 3) Update client local data
+        // Prepare for new events
         {
             let ecs = self.state.ecs_mut();
             for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
@@ -307,6 +304,10 @@ impl Client {
                 }
             }
         }
+        // Handle new messages from the server.
+        frontend_events.append(&mut self.handle_new_messages()?);
+
+        // 3) Update client local data
 
         // 4) Tick the client's LocalState
         self.state.tick(dt);
