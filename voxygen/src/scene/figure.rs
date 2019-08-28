@@ -702,7 +702,7 @@ impl FigureMgr {
                         state.last_movement_change.elapsed().as_secs_f64();
                     let time_since_action_change = state.last_action_change.elapsed().as_secs_f64();
 
-                    let target_base = match &character.movement {
+                    let target_base = match dbg!(&character).movement {
                         Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             time,
