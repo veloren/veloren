@@ -2,7 +2,7 @@
 pub mod item;
 
 // Reexports
-pub use self::item::{Item, Tool};
+pub use self::item::{Debug, Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
 use specs_idvs::IDVStorage;
@@ -21,13 +21,25 @@ impl Inventory {
         self.slots.len()
     }
 
-    pub fn insert(&mut self, item: Item) -> Option<Item> {
+    pub fn push(&mut self, item: Item) -> Option<Item> {
         match self.slots.iter_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
+                let old = slot.take();
                 *slot = Some(item);
-                None
+                old
             }
-            None => Some(item),
+            None => None,
+        }
+    }
+
+    pub fn insert(&mut self, cell: usize, item: Option<Item>) -> Option<Item> {
+        match self.slots.get_mut(cell) {
+            Some(slot) => {
+                let old = slot.take();
+                *slot = item;
+                old
+            }
+            None => None,
         }
     }
 
@@ -60,28 +72,25 @@ impl Default for Inventory {
             slots: vec![None; 24],
         };
 
-        inventory.insert(Item::Tool {
+        inventory.push(Item::Debug(Debug::Teleport));
+        inventory.push(Item::Tool {
             kind: Tool::Daggers,
             power: 10,
         });
-        inventory.insert(Item::Tool {
+        inventory.push(Item::Tool {
             kind: Tool::Sword,
             power: 10,
         });
-        inventory.insert(Item::Tool {
+        inventory.push(Item::Tool {
             kind: Tool::Axe,
             power: 10,
         });
-        inventory.insert(Item::Tool {
+        inventory.push(Item::Tool {
             kind: Tool::Hammer,
             power: 10,
         });
-        inventory.insert(Item::Tool {
-            kind: Tool::Bow,
-            power: 10,
-        });
         for _ in 0..10 {
-            inventory.insert(Item::default());
+            inventory.push(Item::default());
         }
 
         inventory

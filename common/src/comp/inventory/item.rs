@@ -76,6 +76,11 @@ pub enum ConsumptionEffect {
     Xp(i32),
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Debug {
+    Teleport,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Item {
     Tool {
@@ -91,6 +96,7 @@ pub enum Item {
         effect: ConsumptionEffect,
     },
     Ingredient,
+    Debug(Debug),
 }
 
 impl Item {
@@ -100,6 +106,7 @@ impl Item {
             Item::Armor { kind, .. } => kind.name(),
             Item::Consumable { .. } => "<consumable>",
             Item::Ingredient => "<ingredient>",
+            Item::Debug(_) => "Debugging item",
         }
     }
 
@@ -109,6 +116,7 @@ impl Item {
             Item::Armor { .. } => "armour",
             Item::Consumable { .. } => "consumable",
             Item::Ingredient => "ingredient",
+            Item::Debug(_) => "debug",
         }
     }
 
