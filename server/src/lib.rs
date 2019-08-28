@@ -1105,7 +1105,7 @@ impl Server {
             if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if last_pos
                     .get(entity)
-                    .map(|&l| l != *client_pos)
+                    .map(|&l| l.0 != *client_pos)
                     .unwrap_or(true)
                 {
                     let _ = last_pos.insert(entity, comp::Last(*client_pos));
@@ -1123,7 +1123,7 @@ impl Server {
             if let Some(client_vel) = ecs.read_storage::<comp::Vel>().get(entity) {
                 if last_vel
                     .get(entity)
-                    .map(|&l| l != *client_vel)
+                    .map(|&l| l.0 != *client_vel)
                     .unwrap_or(true)
                 {
                     let _ = last_vel.insert(entity, comp::Last(*client_vel));
@@ -1141,7 +1141,7 @@ impl Server {
             if let Some(client_ori) = ecs.read_storage::<comp::Ori>().get(entity) {
                 if last_ori
                     .get(entity)
-                    .map(|&l| l != *client_ori)
+                    .map(|&l| l.0 != *client_ori)
                     .unwrap_or(true)
                 {
                     let _ = last_ori.insert(entity, comp::Last(*client_ori));
@@ -1161,7 +1161,13 @@ impl Server {
             {
                 if last_character_state
                     .get(entity)
-                    .map(|&l| l != *client_character_state)
+                    .map(|&l| {
+                        // Check if enum item is the same without looking at the inner data
+                        std::mem::discriminant(&l.0.movement)
+                            != std::mem::discriminant(&client_character_state.movement)
+                            || std::mem::discriminant(&l.0.action)
+                                != std::mem::discriminant(&client_character_state.action)
+                    })
                     .unwrap_or(true)
                 {
                     let _ =
