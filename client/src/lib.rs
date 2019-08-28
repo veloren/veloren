@@ -181,6 +181,11 @@ impl Client {
         // Can't fail
     }
 
+    pub fn activate_inventory_slot(&mut self, x: usize) {
+        self.postbox
+            .send_message(ClientMsg::ActivateInventorySlot(x))
+    }
+
     pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
         self.postbox
             .send_message(ClientMsg::SwapInventorySlots(a, b))

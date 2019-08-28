@@ -153,7 +153,7 @@ impl<'a> Widget for Bag<'a> {
                 let selected_slot = match state.selected_slot {
                     Some(a) => {
                         if a == i {
-                            event = Some(Event::HudEvent(HudEvent::DropInventorySlot(i)));
+                            event = Some(Event::HudEvent(HudEvent::ActivateInventorySlot(i)));
                         } else {
                             event = Some(Event::HudEvent(HudEvent::SwapInventorySlots(a, i)));
                         }
