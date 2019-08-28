@@ -286,17 +286,22 @@ impl Client {
         {
             let ecs = self.state.ecs_mut();
             for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
-                let mut last_character_state =
+                let mut last_character_states =
                     ecs.write_storage::<comp::Last<comp::CharacterState>>();
                 if let Some(client_character_state) =
                     ecs.read_storage::<comp::CharacterState>().get(entity)
                 {
-                    if last_character_state
+                    if last_character_states
                         .get(entity)
-                        .map(|&l| l != *client_character_state)
+                        .map(|&l| {
+                            std::mem::discriminant(&l.0.movement)
+                                != std::mem::discriminant(&client_character_state.movement)
+                                || std::mem::discriminant(&l.0.action)
+                                    != std::mem::discriminant(&client_character_state.action)
+                        })
                         .unwrap_or(true)
                     {
-                        let _ = last_character_state
+                        let _ = last_character_states
                             .insert(entity, comp::Last(*client_character_state));
                     }
                 }

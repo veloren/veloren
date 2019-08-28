@@ -691,10 +691,15 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if last_character.0.movement != character.movement {
+                    if std::mem::discriminant(&last_character.0.movement)
+                        != std::mem::discriminant(&character.movement)
+                    {
                         state.last_movement_change = Instant::now();
                     }
-                    if last_character.0.action != character.action {
+
+                    if std::mem::discriminant(&last_character.0.action)
+                        != std::mem::discriminant(&character.action)
+                    {
                         state.last_action_change = Instant::now();
                     }
 
@@ -702,7 +707,7 @@ impl FigureMgr {
                         state.last_movement_change.elapsed().as_secs_f64();
                     let time_since_action_change = state.last_action_change.elapsed().as_secs_f64();
 
-                    let target_base = match dbg!(&character).movement {
+                    let target_base = match &character.movement {
                         Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             time,
