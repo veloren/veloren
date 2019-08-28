@@ -3,7 +3,7 @@ use {
         comp::{Body, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
-        terrain::TerrainMap,
+        terrain::TerrainGrid,
         vol::{ReadVol, Vox},
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
@@ -32,7 +32,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, TerrainMap>,
+        ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<LocalEvent>>,
         ReadStorage<'a, Scale>,

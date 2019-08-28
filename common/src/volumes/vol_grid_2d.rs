@@ -7,7 +7,7 @@ use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug, Clone)]
-pub enum VolMap2dError<V: BaseVol> {
+pub enum VolGrid2dError<V: BaseVol> {
     NoSuchChunk,
     ChunkError(V::Error),
     DynaError(DynaError),
@@ -18,12 +18,12 @@ pub enum VolMap2dError<V: BaseVol> {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 #[derive(Clone)]
-pub struct VolMap2d<V: BaseVol, S: VolSize> {
+pub struct VolGrid2d<V: BaseVol, S: VolSize> {
     chunks: HashMap<Vec2<i32>, Arc<V>>,
     phantom: PhantomData<S>,
 }
 
-impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
+impl<V: BaseVol, S: VolSize> VolGrid2d<V, S> {
     #[inline(always)]
     pub fn chunk_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> {
         pos.into()
@@ -37,37 +37,37 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
     }
 }
 
-impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap2d<V, S> {
+impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolGrid2d<V, S> {
     type Vox = V::Vox;
-    type Error = VolMap2dError<V>;
+    type Error = VolGrid2dError<V>;
 }
 
-impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap2d<V, S> {
+impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolGrid2d<V, S> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap2dError<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
-            .ok_or(VolMap2dError::NoSuchChunk)
+            .ok_or(VolGrid2dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolMap2dError::ChunkError)
+                chunk.get(co).map_err(VolGrid2dError::ChunkError)
             })
     }
 }
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
 // TODO: Should this be changed, perhaps?
-impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolMap2d<V, S> {
-    type Sample = VolMap2d<V, S>;
+impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolGrid2d<V, S> {
+    type Sample = VolGrid2d<V, S>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
     ///
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
-    fn sample(&self, range: I) -> Result<Self::Sample, VolMap2dError<V>> {
+    fn sample(&self, range: I) -> Result<Self::Sample, VolGrid2dError<V>> {
         let range = range.into();
 
-        let mut sample = VolMap2d::new()?;
+        let mut sample = VolGrid2d::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -86,24 +86,24 @@ impl<I: Into<Aabr<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
     }
 }
 
-impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap2d<V, S> {
+impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolGrid2d<V, S> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap2dError<V>> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolGrid2dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)
-            .ok_or(VolMap2dError::NoSuchChunk)
+            .ok_or(VolGrid2dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
                 Arc::make_mut(chunk)
                     .set(co, vox)
-                    .map_err(VolMap2dError::ChunkError)
+                    .map_err(VolGrid2dError::ChunkError)
             })
     }
 }
 
-impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
-    pub fn new() -> Result<Self, VolMap2dError<V>> {
+impl<V: BaseVol, S: VolSize> VolGrid2d<V, S> {
+    pub fn new() -> Result<Self, VolGrid2dError<V>> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
             .reduce_and()
@@ -113,7 +113,7 @@ impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
                 phantom: PhantomData,
             })
         } else {
-            Err(VolMap2dError::InvalidChunkSize)
+            Err(VolGrid2dError::InvalidChunkSize)
         }
     }
 

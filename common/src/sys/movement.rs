@@ -4,7 +4,7 @@ use crate::{
         Stats, Vel,
     },
     state::DeltaTime,
-    terrain::TerrainMap,
+    terrain::TerrainGrid,
     vol::{ReadVol, Vox},
 };
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
@@ -32,7 +32,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, TerrainMap>,
+        ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Controller>,

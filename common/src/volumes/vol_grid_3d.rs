@@ -7,7 +7,7 @@ use std::{fmt::Debug, marker::PhantomData, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]
-pub enum VolMap3dError<V: BaseVol> {
+pub enum VolGrid3dError<V: BaseVol> {
     NoSuchChunk,
     ChunkErr(V::Error),
     DynaError(DynaError),
@@ -18,12 +18,12 @@ pub enum VolMap3dError<V: BaseVol> {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 #[derive(Clone)]
-pub struct VolMap3d<V: BaseVol, S: VolSize> {
+pub struct VolGrid3d<V: BaseVol, S: VolSize> {
     chunks: HashMap<Vec3<i32>, Arc<V>>,
     phantom: PhantomData<S>,
 }
 
-impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
+impl<V: BaseVol, S: VolSize> VolGrid3d<V, S> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
         pos.map2(S::SIZE, |e, sz| {
@@ -42,36 +42,36 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
     }
 }
 
-impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap3d<V, S> {
+impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolGrid3d<V, S> {
     type Vox = V::Vox;
-    type Error = VolMap3dError<V>;
+    type Error = VolGrid3dError<V>;
 }
 
-impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap3d<V, S> {
+impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolGrid3d<V, S> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap3dError<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid3dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
-            .ok_or(VolMap3dError::NoSuchChunk)
+            .ok_or(VolGrid3dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolMap3dError::ChunkErr)
+                chunk.get(co).map_err(VolGrid3dError::ChunkErr)
             })
     }
 }
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
 // TODO: Should this be changed, perhaps?
-impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolMap3d<V, S> {
-    type Sample = VolMap3d<V, S>;
+impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolGrid3d<V, S> {
+    type Sample = VolGrid3d<V, S>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
     ///
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
-    fn sample(&self, range: I) -> Result<Self::Sample, VolMap3dError<V>> {
+    fn sample(&self, range: I) -> Result<Self::Sample, VolGrid3dError<V>> {
         let range = range.into();
-        let mut sample = VolMap3d::new()?;
+        let mut sample = VolGrid3d::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -92,24 +92,24 @@ impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
     }
 }
 
-impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap3d<V, S> {
+impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolGrid3d<V, S> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap3dError<V>> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolGrid3dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)
-            .ok_or(VolMap3dError::NoSuchChunk)
+            .ok_or(VolGrid3dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
                 Arc::make_mut(chunk)
                     .set(co, vox)
-                    .map_err(VolMap3dError::ChunkErr)
+                    .map_err(VolGrid3dError::ChunkErr)
             })
     }
 }
 
-impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
-    pub fn new() -> Result<Self, VolMap3dError<V>> {
+impl<V: BaseVol, S: VolSize> VolGrid3d<V, S> {
+    pub fn new() -> Result<Self, VolGrid3dError<V>> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
             .reduce_and()
@@ -119,7 +119,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
                 phantom: PhantomData,
             })
         } else {
-            Err(VolMap3dError::InvalidChunkSize)
+            Err(VolGrid3dError::InvalidChunkSize)
         }
     }
 

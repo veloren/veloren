@@ -9,9 +9,9 @@ use client::Client;
 use common::{
     assets,
     figure::Segment,
-    terrain::{Block, BlockKind, TerrainChunkSize, TerrainMap},
+    terrain::{Block, BlockKind, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, SampleVol, VolSize, Vox},
-    volumes::vol_map_2d::VolMap2dError,
+    volumes::vol_grid_2d::VolGrid2dError,
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
@@ -114,7 +114,7 @@ fn mesh_worker(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
     started_tick: u64,
-    volume: <TerrainMap as SampleVol<Aabr<i32>>>::Sample,
+    volume: <TerrainGrid as SampleVol<Aabr<i32>>>::Sample,
     range: Aabb<i32>,
 ) -> MeshWorkerResponse {
     let (opaque_mesh, fluid_mesh) = volume.generate_mesh(range);
@@ -455,10 +455,10 @@ impl Terrain {
             let aabr = Aabr {
                 min: todo
                     .pos
-                    .map2(TerrainMap::chunk_size(), |e, sz| e * sz as i32 - 1),
+                    .map2(TerrainGrid::chunk_size(), |e, sz| e * sz as i32 - 1),
                 max: todo
                     .pos
-                    .map2(TerrainMap::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+                    .map2(TerrainGrid::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
             };
 
             // Copy out the chunk data we need to perform the meshing. We do this by taking a
@@ -467,7 +467,7 @@ impl Terrain {
                 Ok(sample) => sample,
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
                 // queue to be processed at a later date when we have its neighbours.
-                Err(VolMap2dError::NoSuchChunk) => return,
+                Err(VolGrid2dError::NoSuchChunk) => return,
                 _ => panic!("Unhandled edge case"),
             };
 
@@ -534,7 +534,7 @@ impl Terrain {
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
                                     model_offs: Vec3::from(
-                                        response.pos.map2(TerrainMap::chunk_size(), |e, sz| {
+                                        response.pos.map2(TerrainGrid::chunk_size(), |e, sz| {
                                             e as f32 * sz as f32
                                         }),
                                     )

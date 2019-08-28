@@ -6,7 +6,7 @@ use crate::{
     event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
     sys,
-    terrain::{Block, TerrainChunk, TerrainMap},
+    terrain::{Block, TerrainChunk, TerrainGrid},
     vol::WriteVol,
 };
 use hashbrown::{HashMap, HashSet};
@@ -153,7 +153,7 @@ impl State {
         // Register unsynced resources used by the ECS.
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainMap::new().unwrap());
+        ecs.add_resource(TerrainGrid::new().unwrap());
         ecs.add_resource(BlockChange::default());
         ecs.add_resource(TerrainChanges::default());
         ecs.add_resource(EventBus::<ServerEvent>::default());
@@ -220,12 +220,12 @@ impl State {
     }
 
     /// Get a reference to this state's terrain.
-    pub fn terrain(&self) -> Fetch<TerrainMap> {
+    pub fn terrain(&self) -> Fetch<TerrainGrid> {
         self.ecs.read_resource()
     }
 
     /// Get a writable reference to this state's terrain.
-    pub fn terrain_mut(&self) -> FetchMut<TerrainMap> {
+    pub fn terrain_mut(&self) -> FetchMut<TerrainGrid> {
         self.ecs.write_resource()
     }
 
@@ -251,7 +251,7 @@ impl State {
     pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: TerrainChunk) {
         if self
             .ecs
-            .write_resource::<TerrainMap>()
+            .write_resource::<TerrainGrid>()
             .insert(key, Arc::new(chunk))
             .is_some()
         {
@@ -271,7 +271,7 @@ impl State {
     pub fn remove_chunk(&mut self, key: Vec2<i32>) {
         if self
             .ecs
-            .write_resource::<TerrainMap>()
+            .write_resource::<TerrainGrid>()
             .remove(key)
             .is_some()
         {
@@ -302,7 +302,7 @@ impl State {
         self.ecs.maintain();
 
         // Apply terrain changes
-        let mut terrain = self.ecs.write_resource::<TerrainMap>();
+        let mut terrain = self.ecs.write_resource::<TerrainGrid>();
         self.ecs
             .read_resource::<BlockChange>()
             .blocks

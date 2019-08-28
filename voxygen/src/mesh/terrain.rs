@@ -5,7 +5,7 @@ use crate::{
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, VolSize},
-    volumes::vol_map_2d::VolMap2d,
+    volumes::vol_grid_2d::VolGrid2d,
 };
 use std::fmt::Debug;
 use vek::*;
@@ -25,7 +25,7 @@ fn block_shadow_density(kind: BlockKind) -> (f32, f32) {
 }
 
 impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone>
-    Meshable<TerrainPipeline, FluidPipeline> for VolMap2d<V, S>
+    Meshable<TerrainPipeline, FluidPipeline> for VolGrid2d<V, S>
 {
     type Pipeline = TerrainPipeline;
     type TranslucentPipeline = FluidPipeline;
@@ -126,7 +126,7 @@ impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone>
 }
 
 /*
-impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolMap3d<V, S> {
+impl<V: BaseVol<Vox = Block> + ReadVol + Debug, S: VolSize + Clone> Meshable for VolGrid3d<V, S> {
     type Pipeline = TerrainPipeline;
     type Supplement = Aabb<i32>;
 
