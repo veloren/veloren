@@ -712,6 +712,37 @@ impl Server {
                             }
                             _ => {}
                         },
+                        ClientMsg::ActivateInventorySlot(x) => {
+                            let item_opt = state
+                                .ecs()
+                                .write_storage::<comp::Inventory>()
+                                .get_mut(entity)
+                                .and_then(|inv| inv.remove(x));
+
+                            if let Some(item) = item_opt {
+                                match item {
+                                    comp::Item::Tool { .. } | comp::Item::Debug(_) => {
+                                        if let Some(stats) = state
+                                            .ecs()
+                                            .write_storage::<comp::Stats>()
+                                            .get_mut(entity)
+                                        {
+                                            state
+                                                .ecs()
+                                                .write_storage::<comp::Inventory>()
+                                                .get_mut(entity)
+                                                .map(|inv| {
+                                                    inv.insert(x, stats.equipment.main.take())
+                                                });
+
+                                            stats.equipment.main = Some(item);
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                                state.write_component(entity, comp::InventoryUpdate);
+                            }
+                        }
                         ClientMsg::SwapInventorySlots(a, b) => {
                             state
                                 .ecs()
@@ -757,7 +788,7 @@ impl Server {
                                 }),
                                 ecs.write_storage::<comp::Inventory>().get_mut(entity),
                             ) {
-                                if inv.insert(item).is_none() {
+                                if inv.push(item).is_none() {
                                     Some(item_entity)
                                 } else {
                                     None

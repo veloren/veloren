@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     comp::{
-        ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
-        Vel,
+        item, ActionState::*, Body, CharacterState, Controller, Item, MovementState::*,
+        PhysicsState, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -96,7 +96,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Wield
-            if controller.attack
+            if controller.main
                 && character.action == Idle
                 && (character.movement == Stand || character.movement == Run)
             {
@@ -105,33 +105,46 @@ impl<'a> System<'a> for Sys {
                 };
             }
 
-            // Attack
-            if controller.attack
-                && (character.movement == Stand
-                    || character.movement == Run
-                    || character.movement == Jump)
-            {
-                // TODO: Check if wield ability exists
-                if let Wield { time_left } = character.action {
-                    if time_left == Duration::default() {
-                        character.action = Attack {
-                            time_left: ATTACK_DURATION,
-                            applied: false,
+            match stats.equipment.main {
+                Some(Item::Tool { .. }) => {
+                    // Attack
+                    if controller.main
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        // TODO: Check if wield ability exists
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                            }
+                        }
+                    }
+
+                    // Block
+                    if controller.alt
+                        && (character.movement == Stand || character.movement == Run)
+                        && (character.action == Idle || character.action.is_wield())
+                    {
+                        character.action = Block {
+                            time_left: Duration::from_secs(5),
                         };
+                    } else if !controller.alt && character.action.is_block() {
+                        character.action = Idle;
                     }
                 }
-            }
-
-            // Block
-            if controller.block
-                && (character.movement == Stand || character.movement == Run)
-                && (character.action == Idle || character.action.is_wield())
-            {
-                character.action = Block {
-                    time_left: Duration::from_secs(5),
-                };
-            } else if !controller.block && character.action.is_block() {
-                character.action = Idle;
+                Some(Item::Debug(item::Debug::Teleport)) => {
+                    if controller.main {
+                        local_emitter.emit(LocalEvent::Boost {
+                            entity,
+                            vel: controller.look_dir * 10.0,
+                        });
+                    }
+                }
+                _ => {}
             }
 
             // Roll

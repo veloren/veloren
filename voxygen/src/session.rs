@@ -152,7 +152,7 @@ impl PlayState for SessionState {
                                 client.place_block(pos, self.selected_block);
                             }
                         } else {
-                            self.controller.attack = state
+                            self.controller.main = state
                         }
                     }
 
@@ -176,7 +176,7 @@ impl PlayState for SessionState {
                                 client.remove_block(pos);
                             }
                         } else {
-                            self.controller.block = state;
+                            self.controller.alt = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
@@ -375,6 +375,9 @@ impl PlayState for SessionState {
                     HudEvent::ChangeMaxFPS(fps) => {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::ActivateInventorySlot(x) => {
+                        self.client.borrow_mut().activate_inventory_slot(x)
                     }
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)

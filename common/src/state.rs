@@ -334,6 +334,15 @@ impl State {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
                     }
                 }
+
+                LocalEvent::Boost {
+                    entity,
+                    vel: extra_vel,
+                } => {
+                    if let Some(vel) = velocities.get_mut(entity) {
+                        vel.0 += extra_vel;
+                    }
+                }
             }
         }
     }
