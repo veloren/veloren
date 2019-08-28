@@ -438,17 +438,18 @@ impl WorldSim {
                     .iter()
                     .min_by_key(|(pos, seed)| wpos.distance_squared(*pos));
 
-                if let Some((pos, seed)) = town {
+                if let Some((pos, _)) = town {
                     let maybe_town = maybe_towns
                         .entry(*pos)
                         .or_insert_with(|| {
-                            TownState::generate(*pos, *seed, &mut ColumnGen::new(self), &mut rng)
+                            TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
                                 .map(|t| Arc::new(t))
                         })
                         .as_mut()
                         // Only care if we're close to the town
                         .filter(|town| {
-                            town.center.distance_squared(wpos) < town.radius.add(64).pow(2)
+                            Vec2::from(town.center()).distance_squared(wpos)
+                                < town.radius().add(64).pow(2)
                         })
                         .cloned();
 
