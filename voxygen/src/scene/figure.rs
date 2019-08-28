@@ -515,7 +515,7 @@ impl FigureModelCache {
             match head_upper {
                 grizzly_bear::HeadUpper::Default => "npc.grizzly_bear.grizzly_bear_upper_head",
             },
-            Vec3::new(-7.0, -6.0, -5.5),
+            Vec3::new(-4.0, -4.0, -1.5),
         )
     }
 
@@ -524,7 +524,7 @@ impl FigureModelCache {
             match head_lower {
                 grizzly_bear::HeadLower::Default => "npc.grizzly_bear.grizzly_bear_lower_head",
             },
-            Vec3::new(-3.0, -3.0, -2.5),
+            Vec3::new(-4.0, -4.0, -2.5),
         )
     }
 
@@ -533,7 +533,7 @@ impl FigureModelCache {
             match upper_torso {
                 grizzly_bear::Upper_Torso::Default => "npc.grizzly_bear.grizzly_bear_upper_torso",
             },
-            Vec3::new(-7.0, -6.0, -5.5),
+            Vec3::new(-2.0, -12.0, -5.0),
         )
     }
 
@@ -551,7 +551,7 @@ impl FigureModelCache {
             match ears {
                 grizzly_bear::Ears::Default => "npc.grizzly_bear.grizzly_bear_ears",
             },
-            Vec3::new(-7.0, -6.0, -6.0),
+            Vec3::new(-2.0, -12.0, -5.0),
         )
     }
 
@@ -560,7 +560,7 @@ impl FigureModelCache {
             match leg_lf {
                 grizzly_bear::LegLF::Default => "npc.grizzly_bear.grizzly_bear_lf_leg",
             },
-            Vec3::new(-8.0, -5.5, -6.0),
+            Vec3::new(-2.5, -2.0, -4.5),
         )
     }
 
@@ -569,7 +569,7 @@ impl FigureModelCache {
             match leg_rf {
                 grizzly_bear::LegRF::Default => "npc.grizzly_bear.grizzly_bear_rf_leg",
             },
-            Vec3::new(-4.0, -1.0, -1.0),
+            Vec3::new(-2.5, -2.0, -4.5),
         )
     }
 
@@ -578,7 +578,7 @@ impl FigureModelCache {
             match leg_lb {
                 grizzly_bear::LegLB::Default => "npc.grizzly_bear.grizzly_bear_lb_leg",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-2.5, -2.0, -4.5),
         )
     }
 
@@ -587,7 +587,7 @@ impl FigureModelCache {
             match leg_rb {
                 grizzly_bear::LegRB::Default => "npc.grizzly_bear.grizzly_bear_rb_leg",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-2.5, -2.0, -4.5),
         )
     }
 
