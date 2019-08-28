@@ -1,6 +1,7 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
+    generator::{Generator, SpawnRules, TownGen},
     sim::{LocationInfo, SimChunk, WorldSim},
     util::{RandomPerm, Sampler, UnitChooser},
     World, CONFIG,
@@ -518,6 +519,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             location: sim_chunk.location.as_ref(),
 
             chunk: sim_chunk,
+            spawn_rules: sim_chunk
+                .structures
+                .town
+                .as_ref()
+                .map(|town| TownGen.spawn_rules(town, wpos))
+                .unwrap_or(SpawnRules::default()),
         })
     }
 }
@@ -547,6 +554,7 @@ pub struct ColumnSample<'a> {
     pub location: Option<&'a LocationInfo>,
 
     pub chunk: &'a SimChunk,
+    pub spawn_rules: SpawnRules,
 }
 
 #[derive(Copy, Clone)]
