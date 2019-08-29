@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{Stats,item::Tool};
+use common::comp::{item::Tool, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -92,8 +92,8 @@ pub struct Skillbar<'a> {
     stats: &'a Stats,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    current_resource: ResourceType,  
-    pub character_tool: Option<Tool>,  
+    current_resource: ResourceType,
+    pub character_tool: Option<Tool>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -103,14 +103,14 @@ impl<'a> Skillbar<'a> {
         fonts: &'a Fonts,
         stats: &'a Stats,
     ) -> Self {
-        Self { 
+        Self {
             imgs,
             _fonts: fonts,
             stats,
             global_state,
-            current_resource: ResourceType::Mana,            
+            current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
-            character_tool: Some(Tool::Sword), // TODO: Pass the actual equipped weapon 
+            character_tool: Some(Tool::Sword), // TODO: Pass the actual equipped weapon
         }
     }
 }
@@ -157,7 +157,7 @@ impl<'a> Widget for Skillbar<'a> {
         let energy_percentage =
             self.stats.energy.current() as f64 / self.stats.energy.maximum() as f64 * 100.0;
 
-        let scale = 2.0;        
+        let scale = 2.0;
 
         let bar_values = self.global_state.settings.gameplay.bar_numbers;
         let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
@@ -353,20 +353,18 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(
-            match self.character_tool {
-            Some(Tool::Sword) => {self.imgs.twohsword_m1}
-            Some(Tool::Axe) => {self.imgs.twohhammer_m1}
-            Some(Tool::Hammer) => {self.imgs.twohhammer_m1}
-            Some(Tool::Bow) => {self.imgs.twohhammer_m1}
-            Some(Tool::Daggers) => {self.imgs.twohhammer_m1}
-            Some(Tool::Staff) => {self.imgs.twohhammer_m1}
-            _ => {self.imgs.twohhammer_m1}
-            }
-        ) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m1_slot_bg)
-            .set(state.ids.m1_content, ui);
+        Button::image(match self.character_tool {
+            Some(Tool::Sword) => self.imgs.twohsword_m1,
+            Some(Tool::Axe) => self.imgs.twohhammer_m1,
+            Some(Tool::Hammer) => self.imgs.twohhammer_m1,
+            Some(Tool::Bow) => self.imgs.twohhammer_m1,
+            Some(Tool::Daggers) => self.imgs.twohhammer_m1,
+            Some(Tool::Staff) => self.imgs.twohhammer_m1,
+            _ => self.imgs.twohhammer_m1,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m1_slot_bg)
+        .set(state.ids.m1_content, ui);
         // M2 Slot
         Image::new(self.imgs.skillbar_slot_big)
             .w_h(40.0 * scale, 40.0 * scale)
@@ -377,20 +375,18 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(
-            match self.character_tool {
-            Some(Tool::Sword) => {self.imgs.twohsword_m2}
-            Some(Tool::Axe) => {self.imgs.twohhammer_m2}
-            Some(Tool::Hammer) => {self.imgs.twohhammer_m2}
-            Some(Tool::Bow) => {self.imgs.twohhammer_m2}
-            Some(Tool::Daggers) => {self.imgs.twohhammer_m2}
-            Some(Tool::Staff) => {self.imgs.twohhammer_m2}
-            _ => {self.imgs.twohhammer_m2}
-            }
-        ) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m2_slot_bg)
-            .set(state.ids.m2_content, ui);
+        Button::image(match self.character_tool {
+            Some(Tool::Sword) => self.imgs.twohsword_m2,
+            Some(Tool::Axe) => self.imgs.twohhammer_m2,
+            Some(Tool::Hammer) => self.imgs.twohhammer_m2,
+            Some(Tool::Bow) => self.imgs.twohhammer_m2,
+            Some(Tool::Daggers) => self.imgs.twohhammer_m2,
+            Some(Tool::Staff) => self.imgs.twohhammer_m2,
+            _ => self.imgs.twohhammer_m2,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m2_slot_bg)
+        .set(state.ids.m2_content, ui);
         //Slot 5
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)
