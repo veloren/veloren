@@ -51,34 +51,52 @@ impl From<&DotVoxData> for Segment {
 }
 
 impl Segment {
-    /// Replaces one cell with another
-    pub fn replace(mut self, old: Cell, new: Cell) -> Self {
+    /// Transform cells
+    pub fn map(mut self, transform: impl Fn(Cell) -> Option<Cell>) -> Self {
         for pos in self.iter_positions() {
-            if old == *self.get(pos).unwrap() {
+            if let Some(new) = transform(*self.get(pos).unwrap()) {
                 self.set(pos, new).unwrap();
             }
         }
 
         self
     }
-    /// Preserve the luminance of all the colors but set the chomaticity to match the provided color
-    // TODO add more advanced recoloring and/or indexed based coloring
-    pub fn chromify(mut self, chroma: Rgb<u8>) -> Self {
-        let chroma = chroma.map(|e| e as f32 * 255.0);
-        for pos in self.iter_positions() {
-            let cell = match self.get(pos).unwrap() {
-                Cell::Filled(rgb) => Cell::Filled(
-                    chromify_srgb(Rgb::from_slice(rgb).map(|e| e as f32 / 255.0), chroma)
-                        .map(|e| (e * 255.0) as u8)
-                        .into_array(),
-                ),
-                Cell::Empty => continue,
-            };
-            self.set(pos, cell).unwrap();
-        }
-
-        self
+    /// Transform cell colors
+    pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
+        self.map(|cell| cell.get_color().map(|rgb| Cell::new(transform(rgb))))
     }
+    /// Replaces one cell with another
+    // TODO unused -> remove?
+    pub fn replace(self, old: Cell, new: Cell) -> Self {
+        self.map(|cell| if cell == old { Some(new) } else { None })
+    }
+    /// Preserve the luminance of all the colors but set the chomaticity to match the provided color
+    pub fn chromify(self, chroma: Rgb<u8>) -> Self {
+        let chroma = chroma.map(|e| e as f32 / 255.0);
+        self.map_rgb(|rgb| {
+            chromify_srgb(rgb.map(|e| e as f32 / 255.0), chroma).map(|e| (e * 255.0) as u8)
+        })
+    }
+    // Sets the chromaticity based on the provided color
+    // Multiplies luma with luma of the provided color (might not be what we want)
+    /*pub fn colorify(mut self, color: Rgb<u8>) -> Self {
+        self.map_rgb(|rgb| {
+                let l = rgb_to_xyy(srgb_to_linear(rgb.map(|e| e as f32 / 255.0))).z;
+                let mut xyy = rgb_to_xyy(srgb_to_linear(color.map(|e| e as f32 / 255.0)));
+                xyy.z = l;
+
+                linear_to_srgb(xyy_to_rgb(xyy).map(|e| e.min(1.0).max(0.0))).map(|e| (e * 255.0) as u8)
+        })
+    }
+    // Multiplies the supplied color with all the current colors in linear space
+    pub fn tint(mut self, color: Rgb<u8>) -> Self {
+        self.map_rgb(|rgb| {
+                let c1 = srgb_to_linear(rgb.map(|e| e as f32 / 255.0));
+                let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
+
+                linear_to_srgb(c1*c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
+        })
+    }*/
 }
 
 // TODO: move
