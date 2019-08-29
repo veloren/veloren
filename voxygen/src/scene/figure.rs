@@ -14,7 +14,7 @@ use common::{
     assets,
     comp::{
 
-        self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body, Equipment, Item, ActionState::*, Animation, Body,
+        self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body, Equipment, Item, ActionState::*, Body,
         CharacterState, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
     },
     figure::Segment,
