@@ -10,8 +10,6 @@ use common::{
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
-    terrain::TerrainChunkSize,
-    vol::VolSize,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join};

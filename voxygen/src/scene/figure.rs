@@ -48,7 +48,6 @@ impl FigureModelCache {
     pub fn get_or_create_model(
         &mut self,
         renderer: &mut Renderer,
-        entity: &EcsEntity,
         body: Body,
         equipment: Option<&Equipment>,
         tick: u64,
@@ -675,7 +674,7 @@ impl FigureMgr {
 
             let skeleton_attr = &self
                 .model_cache
-                .get_or_create_model(renderer, &entity, *body, stats.map(|s| &s.equipment), tick)
+                .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick)
                 .1;
 
             match body {
@@ -928,13 +927,7 @@ impl FigureMgr {
             } {
                 let model = &self
                     .model_cache
-                    .get_or_create_model(
-                        renderer,
-                        &entity,
-                        *body,
-                        stats.map(|s| &s.equipment),
-                        tick,
-                    )
+                    .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick)
                     .0;
 
                 // Don't render the player's body while in first person mode

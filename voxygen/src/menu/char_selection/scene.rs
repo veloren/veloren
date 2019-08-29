@@ -145,7 +145,6 @@ impl Scene {
             .figure_model_cache
             .get_or_create_model(
                 renderer,
-                &client.entity(),
                 Body::Humanoid(body),
                 Some(equipment),
                 client.get_tick(),
