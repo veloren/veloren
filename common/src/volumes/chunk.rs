@@ -1,5 +1,5 @@
 use crate::{
-    vol::{BaseVol, IntoVolIterator, ReadVol, SizedVol, VolSize, Vox, WriteVol},
+    vol::{BaseVol, IntoVolIterator, RasterableVol, ReadVol, SizedVol, VolSize, Vox, WriteVol},
     volumes::morton::{morton_to_xyz, xyz_to_morton, MortonIter},
 };
 use core::cmp::PartialOrd;
@@ -190,16 +190,8 @@ impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Error = ChunkError;
 }
 
-impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
-    #[inline(always)]
-    fn lower_bound(&self) -> Vec3<i32> {
-        Vec3::zero()
-    }
-
-    #[inline(always)]
-    fn upper_bound(&self) -> Vec3<i32> {
-        S::SIZE.map(|e| e as i32)
-    }
+impl<V: Vox, S: VolSize, M> RasterableVol for Chunk<V, S, M> {
+    const SIZE: Vec3<u32> = S::SIZE;
 }
 
 impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {

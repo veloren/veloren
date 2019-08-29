@@ -2,6 +2,16 @@ use crate::ray::Ray;
 use std::fmt::Debug;
 use vek::*;
 
+/// Used to specify a volume's compile-time size. This exists as a substitute until const generics
+/// are implemented.
+pub trait VolSize: Clone {
+    const SIZE: Vec3<u32>;
+}
+
+pub trait RectVolSize: Clone {
+    const RECT_SIZE: Vec2<u32>;
+}
+
 /// A voxel.
 pub trait Vox: Sized + Clone {
     fn empty() -> Self;
@@ -40,6 +50,44 @@ pub trait SizedVol: BaseVol {
     /// Returns the size of the volume.
     fn get_size(&self) -> Vec3<u32> {
         (self.upper_bound() - self.lower_bound()).map(|e| e as u32)
+    }
+}
+
+pub trait RasterableVol: BaseVol {
+    const SIZE: Vec3<u32>;
+}
+
+impl<V: RasterableVol> SizedVol for V {
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::zero()
+    }
+
+    fn upper_bound(&self) -> Vec3<i32> {
+        V::SIZE.map(|e| e as i32)
+    }
+}
+
+pub trait RectSizedVol: BaseVol {
+    fn lower_bound_xy(&self) -> Vec2<i32>;
+
+    fn upper_bound_xy(&self) -> Vec2<i32>;
+
+    fn get_size_xy(&self) -> Vec2<u32> {
+        (self.upper_bound_xy() - self.lower_bound_xy()).map(|e| e as u32)
+    }
+}
+
+pub trait RectRasterableVol: BaseVol {
+    const RECT_SIZE: Vec2<u32>;
+}
+
+impl<V: RectRasterableVol> RectSizedVol for V {
+    fn lower_bound_xy(&self) -> Vec2<i32> {
+        Vec2::zero()
+    }
+
+    fn upper_bound_xy(&self) -> Vec2<i32> {
+        V::RECT_SIZE.map(|e| e as i32)
     }
 }
 
@@ -152,12 +200,4 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
             }
         }
     }
-}
-
-// WIP
-
-/// Used to specify a volume's compile-time size. This exists as a substitute until const generics
-/// are implemented.
-pub trait VolSize: Clone {
-    const SIZE: Vec3<u32>;
 }

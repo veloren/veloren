@@ -9,15 +9,15 @@ use client::Client;
 use common::{
     assets,
     figure::Segment,
-    terrain::{Block, BlockKind, TerrainChunkSize, TerrainGrid},
-    vol::{ReadVol, SampleVol, VolSize, Vox},
-    volumes::vol_grid_2d::VolGrid2dError,
+    terrain::{Block, BlockKind},
+    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
-use std::{f32, i32, ops::Mul, time::Duration};
+use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
 use vek::*;
 
 struct TerrainChunk {
@@ -110,11 +110,11 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
 }
 
 /// Function executed by worker threads dedicated to chunk meshing.
-fn mesh_worker(
+fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     pos: Vec2<i32>,
     z_bounds: (f32, f32),
     started_tick: u64,
-    volume: <TerrainGrid as SampleVol<Aabr<i32>>>::Sample,
+    volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
     range: Aabb<i32>,
 ) -> MeshWorkerResponse {
     let (opaque_mesh, fluid_mesh) = volume.generate_mesh(range);
@@ -127,12 +127,11 @@ fn mesh_worker(
         sprite_instances: {
             let mut instances = HashMap::new();
 
-            for x in 0..TerrainChunkSize::SIZE.x as i32 {
-                for y in 0..TerrainChunkSize::SIZE.y as i32 {
+            for x in 0..V::RECT_SIZE.x as i32 {
+                for y in 0..V::RECT_SIZE.y as i32 {
                     for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
-                        let wpos = Vec3::from(
-                            pos * Vec2::from(TerrainChunkSize::SIZE).map(|e: u32| e as i32),
-                        ) + Vec3::new(x, y, z);
+                        let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32))
+                            + Vec3::new(x, y, z);
 
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
@@ -164,7 +163,7 @@ fn mesh_worker(
     }
 }
 
-pub struct Terrain {
+pub struct Terrain<V: RectRasterableVol> {
     chunks: HashMap<Vec2<i32>, TerrainChunk>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
@@ -175,9 +174,11 @@ pub struct Terrain {
 
     // GPU data
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
+
+    phantom: PhantomData<V>,
 }
 
-impl Terrain {
+impl<V: RectRasterableVol> Terrain<V> {
     pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
         // worker threads that are meshing chunks.
@@ -324,6 +325,7 @@ impl Terrain {
             ]
             .into_iter()
             .collect(),
+            phantom: PhantomData,
         }
     }
 
@@ -455,10 +457,10 @@ impl Terrain {
             let aabr = Aabr {
                 min: todo
                     .pos
-                    .map2(TerrainGrid::chunk_size(), |e, sz| e * sz as i32 - 1),
-                max: todo
-                    .pos
-                    .map2(TerrainGrid::chunk_size(), |e, sz| (e + 1) * sz as i32 + 1),
+                    .map2(VolGrid2d::<V>::chunk_size(), |e, sz| e * sz as i32 - 1),
+                max: todo.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
+                    (e + 1) * sz as i32 + 1
+                }),
             };
 
             // Copy out the chunk data we need to perform the meshing. We do this by taking a
@@ -534,7 +536,7 @@ impl Terrain {
                             locals: renderer
                                 .create_consts(&[TerrainLocals {
                                     model_offs: Vec3::from(
-                                        response.pos.map2(TerrainGrid::chunk_size(), |e, sz| {
+                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
                                             e as f32 * sz as f32
                                         }),
                                     )
@@ -563,7 +565,7 @@ impl Terrain {
         );
 
         // Update chunk visibility
-        let chunk_sz = TerrainChunkSize::SIZE.x as f32;
+        let chunk_sz = V::RECT_SIZE.x as f32;
         for (pos, chunk) in &mut self.chunks {
             let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
 
@@ -615,9 +617,8 @@ impl Terrain {
 
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
-                let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-                    (e as f32 + 0.5) * sz as f32
-                });
+                let chunk_center =
+                    pos.map2(V::RECT_SIZE, |e, sz: u32| (e as f32 + 0.5) * sz as f32);
                 if Vec2::from(focus_pos).distance_squared(chunk_center)
                     < SPRITE_RENDER_DISTANCE * SPRITE_RENDER_DISTANCE
                 {

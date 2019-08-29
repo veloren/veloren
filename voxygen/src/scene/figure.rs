@@ -14,8 +14,8 @@ use common::{
     assets,
     comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body},
     figure::Segment,
-    terrain::TerrainChunkSize,
-    vol::VolSize,
+    terrain::TerrainChunk,
+    vol::RectRasterableVol,
 };
 use dot_vox::DotVoxData;
 use hashbrown::HashMap;
@@ -612,8 +612,10 @@ impl FigureMgr {
             .join()
         {
             // Don't process figures outside the vd
-            let vd_frac = (pos.0 - player_pos)
-                .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+            let vd_frac = Vec2::from(pos.0 - player_pos)
+                .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                    d.abs() as f32 / sz as f32
+                })
                 .magnitude()
                 / view_distance as f32;
             // Keep from re-adding/removing entities on the border of the vd

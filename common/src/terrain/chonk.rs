@@ -1,6 +1,7 @@
 use crate::{
     vol::{
-        BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, SizedVol, VolSize, Vox, WriteVol,
+        BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
+        SizedVol, VolSize, Vox, WriteVol,
     },
     volumes::{
         chunk::{Chunk, ChunkError},
@@ -18,23 +19,24 @@ pub enum ChonkError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubChunkSize<ChonkSize: VolSize> {
+pub struct SubChunkSize<ChonkSize: RectVolSize> {
     phantom: PhantomData<ChonkSize>,
 }
-// TODO (haslersn): Assert ChonkSize::SIZE.x == ChonkSize::SIZE.y
 
-impl<ChonkSize: VolSize> VolSize for SubChunkSize<ChonkSize> {
+// TODO (haslersn): Assert ChonkSize::RECT_SIZE.x == ChonkSize::RECT_SIZE.y
+
+impl<ChonkSize: RectVolSize> VolSize for SubChunkSize<ChonkSize> {
     const SIZE: Vec3<u32> = Vec3 {
-        x: ChonkSize::SIZE.x,
-        y: ChonkSize::SIZE.x,
-        z: ChonkSize::SIZE.x / 2,
+        x: ChonkSize::RECT_SIZE.x,
+        y: ChonkSize::RECT_SIZE.x,
+        z: ChonkSize::RECT_SIZE.x / 2,
     };
 }
 
 type SubChunk<V, S, M> = Chunk<V, SubChunkSize<S>, M>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chonk<V: Vox, S: VolSize, M: Clone> {
+pub struct Chonk<V: Vox, S: RectVolSize, M: Clone> {
     z_offset: i32,
     sub_chunks: Vec<SubChunk<V, S, M>>,
     below: V,
@@ -43,7 +45,7 @@ pub struct Chonk<V: Vox, S: VolSize, M: Clone> {
     phantom: PhantomData<S>,
 }
 
-impl<V: Vox, S: VolSize, M: Clone> Chonk<V, S, M> {
+impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     pub fn new(z_offset: i32, below: V, above: V, meta: M) -> Self {
         Self {
             z_offset,
@@ -86,24 +88,16 @@ impl<V: Vox, S: VolSize, M: Clone> Chonk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M: Clone> BaseVol for Chonk<V, S, M> {
+impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
     type Vox = V;
     type Error = ChonkError;
 }
 
-impl<V: Vox, S: VolSize, M: Clone> SizedVol for Chonk<V, S, M> {
-    #[inline(always)]
-    fn lower_bound(&self) -> Vec3<i32> {
-        Vec3::zero()
-    }
-
-    #[inline(always)]
-    fn upper_bound(&self) -> Vec3<i32> {
-        S::SIZE.map(|e| e as i32)
-    }
+impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
+    const RECT_SIZE: Vec2<u32> = S::RECT_SIZE;
 }
 
-impl<V: Vox, S: VolSize, M: Clone> ReadVol for Chonk<V, S, M> {
+impl<V: Vox, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     #[inline(always)]
     fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Error> {
         if pos.z < self.get_min_z() {
@@ -125,7 +119,7 @@ impl<V: Vox, S: VolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     }
 }
 
-impl<V: Vox, S: VolSize, M: Clone> WriteVol for Chonk<V, S, M> {
+impl<V: Vox, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
     fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
         let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
@@ -152,18 +146,18 @@ impl<V: Vox, S: VolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     }
 }
 
-struct OuterChonkIter<'a, V: Vox, S: VolSize, M: Clone> {
+struct OuterChonkIter<'a, V: Vox, S: RectVolSize, M: Clone> {
     chonk: &'a Chonk<V, S, M>,
     lower_bound: Vec3<i32>,
     upper_bound: Vec3<i32>,
 }
 
-enum OuterChonkIterItem<'a, V: Vox, S: VolSize, M: Clone> {
+enum OuterChonkIterItem<'a, V: Vox, S: RectVolSize, M: Clone> {
     ChunkIter(<&'a SubChunk<V, S, M> as IntoVolIterator<'a>>::IntoIter),
     DefaultIter((&'a V, MortonIter)),
 }
 
-impl<'a, V: Vox, S: VolSize, M: Clone> Iterator for OuterChonkIter<'a, V, S, M> {
+impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for OuterChonkIter<'a, V, S, M> {
     type Item = OuterChonkIterItem<'a, V, S, M>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -195,12 +189,12 @@ impl<'a, V: Vox, S: VolSize, M: Clone> Iterator for OuterChonkIter<'a, V, S, M> 
     }
 }
 
-pub struct ChonkIter<'a, V: Vox, S: VolSize, M: Clone> {
+pub struct ChonkIter<'a, V: Vox, S: RectVolSize, M: Clone> {
     outer: OuterChonkIter<'a, V, S, M>,
     opt_inner: Option<OuterChonkIterItem<'a, V, S, M>>,
 }
 
-impl<'a, V: Vox, S: VolSize, M: Clone> Iterator for ChonkIter<'a, V, S, M> {
+impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIter<'a, V, S, M> {
     type Item = (Vec3<i32>, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -231,7 +225,7 @@ impl<'a, V: Vox, S: VolSize, M: Clone> Iterator for ChonkIter<'a, V, S, M> {
     }
 }
 
-impl<'a, V: Vox, S: VolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
+impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
     type IntoIter = ChonkIter<'a, V, S, M>;
 
     fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {

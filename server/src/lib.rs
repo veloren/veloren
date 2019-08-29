@@ -23,8 +23,7 @@ use common::{
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
     terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
-    vol::Vox,
-    vol::{ReadVol, VolSize},
+    vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
 use hashbrown::HashSet;
@@ -1039,8 +1038,8 @@ impl Server {
                 ) {
                     {
                         // Check if the entity is in the client's range
-                        (pos.0 - client_pos.0)
-                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        Vec2::from(pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::RECT_SIZE, |d: f32, sz| {
                                 (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
                             })
                             .magnitude_squared()
