@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::{item::Tool, Stats};
+use common::comp::{item::Tool, Item, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -93,7 +93,6 @@ pub struct Skillbar<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     current_resource: ResourceType,
-    pub character_tool: Option<Tool>,
 }
 
 impl<'a> Skillbar<'a> {
@@ -110,7 +109,6 @@ impl<'a> Skillbar<'a> {
             global_state,
             current_resource: ResourceType::Mana,
             common: widget::CommonBuilder::default(),
-            character_tool: Some(Tool::Sword), // TODO: Pass the actual equipped weapon
         }
     }
 }
@@ -353,13 +351,11 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(match self.character_tool {
-            Some(Tool::Sword) => self.imgs.twohsword_m1,
-            Some(Tool::Axe) => self.imgs.twohhammer_m1,
-            Some(Tool::Hammer) => self.imgs.twohhammer_m1,
-            Some(Tool::Bow) => self.imgs.twohhammer_m1,
-            Some(Tool::Daggers) => self.imgs.twohhammer_m1,
-            Some(Tool::Staff) => self.imgs.twohhammer_m1,
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m1,
+                _ => self.imgs.twohhammer_m1,
+            },
             _ => self.imgs.twohhammer_m1,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
@@ -375,13 +371,11 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(match self.character_tool {
-            Some(Tool::Sword) => self.imgs.twohsword_m2,
-            Some(Tool::Axe) => self.imgs.twohhammer_m2,
-            Some(Tool::Hammer) => self.imgs.twohhammer_m2,
-            Some(Tool::Bow) => self.imgs.twohhammer_m2,
-            Some(Tool::Daggers) => self.imgs.twohhammer_m2,
-            Some(Tool::Staff) => self.imgs.twohhammer_m2,
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m2,
+                _ => self.imgs.twohhammer_m2,
+            },
             _ => self.imgs.twohhammer_m2,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
