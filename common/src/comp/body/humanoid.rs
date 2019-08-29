@@ -64,33 +64,29 @@ pub const ALL_RACES: [Race; 6] = [
 // Hair Colors
 pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 4] = [
     (198, 169, 113),
-    (200, 100, 100),
-    (100, 100, 200),
-    (100, 200, 100),
+    (146, 32, 32),
+    (198, 169, 113),
+    (198, 169, 113),
 ];
-pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const ELF_HAIR_COLORS: [(u8, u8, u8); 3] = [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const ORC_HAIR_COLORS: [(u8, u8, u8); 3] = [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
+pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 3] = [(126, 26, 26), (54, 46, 38), (54, 46, 38)];
+pub const ELF_HAIR_COLORS: [(u8, u8, u8); 3] = [(66, 83, 113), (13, 76, 41), (66, 83, 113)];
+pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 3] = [(73, 42, 36), (73, 42, 36), (73, 42, 36)];
+pub const ORC_HAIR_COLORS: [(u8, u8, u8); 3] = [(11, 11, 11), (54, 30, 26), (54, 30, 26)];
+pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 3] = [(0, 131, 122), (24, 19, 17), (0, 131, 122)];
 // Skin colors
 pub const DANARI_SKIN_COLORS: [(u8, u8, u8); 4] = [
-    (198, 169, 113),
-    (200, 100, 100),
-    (100, 100, 200),
-    (100, 200, 100),
+    (57, 120, 148),
+    (57, 120, 148),
+    (57, 120, 148),
+    (57, 120, 148),
 ];
-pub const DWARF_SKIN_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const ELF_SKIN_COLORS: [(u8, u8, u8); 3] = [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
+pub const DWARF_SKIN_COLORS: [(u8, u8, u8); 3] = [(215, 175, 123), (193, 136, 87), (193, 136, 87)];
+pub const ELF_SKIN_COLORS: [(u8, u8, u8); 3] = [(169, 145, 177), (145, 133, 148), (255, 200, 15)];
 pub const HUMAN_SKIN_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
-pub const ORC_SKIN_COLORS: [(u8, u8, u8); 3] = [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
+    [(255, 200, 159), (220, 169, 125), (220, 169, 125)];
+pub const ORC_SKIN_COLORS: [(u8, u8, u8); 3] = [(68, 129, 44), (77, 150, 51), (45, 95, 32)];
 pub const UNDEAD_SKIN_COLORS: [(u8, u8, u8); 3] =
-    [(200, 100, 100), (100, 100, 200), (100, 200, 100)];
+    [(255, 255, 255), (203, 255, 215), (213, 220, 180)];
 impl Race {
     fn hair_colors(self) -> &'static [(u8, u8, u8)] {
         match self {
@@ -141,7 +137,7 @@ impl Race {
         self.eye_colors()
             .get(val as usize)
             .copied()
-            .unwrap_or(EyeColor::Black)
+            .unwrap_or(EyeColor::Blue)
     }
     pub fn num_eye_colors(self) -> usize {
         self.eye_colors().len()
@@ -236,35 +232,39 @@ pub enum EyeColor {
     Green,
     Brown,
     Red,
+    Orange,
     White,
 }
-pub const ALL_EYE_COLORS: [EyeColor; 6] = [
+pub const ALL_EYE_COLORS: [EyeColor; 7] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
     EyeColor::White,
+    EyeColor::Orange,
 ];
 impl EyeColor {
     pub fn light_rgb(self) -> Rgb<u8> {
         match self {
-            EyeColor::Black => Rgb::new(0, 0, 0),
-            EyeColor::Blue => Rgb::new(0, 0, 200),
-            EyeColor::Green => Rgb::new(0, 200, 0),
-            EyeColor::Brown => Rgb::new(150, 150, 0),
-            EyeColor::Red => Rgb::new(255, 0, 0),
+            EyeColor::Black => Rgb::new(71, 59, 49),
+            EyeColor::Blue => Rgb::new(75, 158, 191),
+            EyeColor::Green => Rgb::new(110, 167, 113),
+            EyeColor::Brown => Rgb::new(73, 42, 36),
+            EyeColor::Red => Rgb::new(182, 0, 0),
             EyeColor::White => Rgb::new(255, 255, 255),
+            EyeColor::Orange => Rgb::new(161, 69, 0),
         }
     }
     pub fn dark_rgb(self) -> Rgb<u8> {
         match self {
-            EyeColor::Black => Rgb::new(0, 0, 0),
-            EyeColor::Blue => Rgb::new(0, 0, 100),
-            EyeColor::Green => Rgb::new(0, 100, 0),
-            EyeColor::Brown => Rgb::new(50, 50, 0),
-            EyeColor::Red => Rgb::new(200, 0, 0),
+            EyeColor::Black => Rgb::new(32, 32, 32),
+            EyeColor::Blue => Rgb::new(62, 130, 159),
+            EyeColor::Green => Rgb::new(81, 124, 84),
+            EyeColor::Brown => Rgb::new(54, 30, 26),
+            EyeColor::Red => Rgb::new(148, 0, 0),
             EyeColor::White => Rgb::new(255, 255, 255),
+            EyeColor::Orange => Rgb::new(148, 64, 0),
         }
     }
     pub fn white_rgb(self) -> Rgb<u8> {
