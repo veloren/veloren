@@ -11,6 +11,7 @@ use crate::{
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
+use vek::*;
 
 /// This system is responsible for validating controller inputs
 pub struct Sys;
@@ -140,7 +141,14 @@ impl<'a> System<'a> for Sys {
                     if controller.main {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
-                            vel: controller.look_dir * 10.0,
+                            vel: controller.look_dir * 7.0,
+                        });
+                    }
+                    if controller.alt {
+                        // Go upward
+                        local_emitter.emit(LocalEvent::Boost {
+                            entity,
+                            vel: controller.look_dir * -7.0,
                         });
                     }
                 }
