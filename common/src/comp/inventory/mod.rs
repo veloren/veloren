@@ -72,7 +72,7 @@ impl Default for Inventory {
             slots: vec![None; 24],
         };
 
-        inventory.push(Item::Debug(Debug::Teleport));
+        inventory.push(Item::Debug(Debug::Boost));
         inventory.push(Item::Tool {
             kind: Tool::Daggers,
             power: 10,

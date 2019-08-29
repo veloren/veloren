@@ -137,7 +137,7 @@ impl<'a> System<'a> for Sys {
                         character.action = Idle;
                     }
                 }
-                Some(Item::Debug(item::Debug::Teleport)) => {
+                Some(Item::Debug(item::Debug::Boost)) => {
                     if controller.main {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
