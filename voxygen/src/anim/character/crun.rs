@@ -7,9 +7,9 @@ use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
 
-pub struct CrunAnimation;
+pub struct WieldAnimation;
 
-impl Animation for CrunAnimation {
+impl Animation for WieldAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = (f32, f64);
 

@@ -20,6 +20,8 @@ const HUMANOID_AIR_SPEED: f32 = 100.0;
 const ROLL_SPEED: f32 = 13.0;
 const GLIDE_ACCEL: f32 = 15.0;
 const GLIDE_SPEED: f32 = 45.0;
+const BLOCK_ACCEL: f32 = 30.0;
+const BLOCK_SPEED: f32 = 75.0;
 // Gravity is 9.81 * 4, so this makes gravity equal to .15
 const GLIDE_ANTIGRAV: f32 = 9.81 * 3.95;
 
@@ -80,6 +82,21 @@ impl<'a> System<'a> for Sys {
                         .try_normalized()
                         .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default())
                         * ROLL_SPEED
+            }
+            if character.action.is_block() {
+                vel.0 += Vec2::broadcast(dt.0)
+                    * controller.move_dir
+                    * match (physics.on_ground) {
+                        (true) if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
+                        _ => 0.0,
+                    }
+            } else if character.action.is_attack() {
+                vel.0 += Vec2::broadcast(dt.0)
+                    * controller.move_dir
+                    * match (physics.on_ground) {
+                        (true) if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
+                        _ => 0.0,
+                    }
             } else {
                 // Move player according to move_dir
                 vel.0 += Vec2::broadcast(dt.0)
