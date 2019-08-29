@@ -321,7 +321,7 @@ impl FigureModelCache {
                     Tool::Bow => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                     Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
                 },
-                Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-2.5, -6.5, -2.0)),
+                Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
                 _ => ("figure.empty", Vec3::default()),
             };
             Self::load_mesh(name, offset)
