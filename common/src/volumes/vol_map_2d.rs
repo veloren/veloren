@@ -26,19 +26,13 @@ pub struct VolMap2d<V: BaseVol, S: VolSize> {
 impl<V: BaseVol, S: VolSize> VolMap2d<V, S> {
     #[inline(always)]
     pub fn chunk_key<P: Into<Vec2<i32>>>(pos: P) -> Vec2<i32> {
-        pos.into().map2(S::SIZE.into(), |e, sz: u32| {
-            // Horrid, but it's faster than a cheetah with a red bull blood transfusion
-            let log2 = (sz - 1).count_ones();
-            ((((i64::from(e) + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
-        })
+        pos.into()
+            .map2(S::SIZE.into(), |e, sz: u32| e >> (sz - 1).count_ones())
     }
 
     #[inline(always)]
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
-        let offs = pos.map2(S::SIZE, |e, sz| {
-            // Horrid, but it's even faster than the aforementioned cheetah
-            (((i64::from(e) + (1 << 32)) as u64) & u64::from(sz - 1)) as i32
-        });
+        let offs = pos.map2(S::SIZE, |e, sz| e & (sz - 1) as i32);
         Vec3::new(offs.x, offs.y, pos.z)
     }
 }
