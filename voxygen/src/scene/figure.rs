@@ -314,7 +314,7 @@ impl FigureModelCache {
             let (name, offset) = match item {
                 Item::Tool { kind, .. } => match kind {
                     Tool::Sword => ("weapon.sword.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
-                    Tool::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -6.5, -4.0)),
+                    Tool::Axe => ("weapon.axe.rusty_2h", Vec3::new(-1.5, -5.0, -4.0)),
                     Tool::Hammer => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                     Tool::Daggers => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                     Tool::SwordShield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
