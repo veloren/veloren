@@ -9,9 +9,9 @@ use vek::*;
 pub struct Input {
     pub attack: bool,
 }
-pub struct BlockAnimation;
+pub struct BlockIdleAnimation;
 
-impl Animation for BlockAnimation {
+impl Animation for BlockIdleAnimation {
     type Skeleton = CharacterSkeleton;
     type Dependency = f64;
 
@@ -26,7 +26,6 @@ impl Animation for BlockAnimation {
         let wave_ultra_slow = (anim_time as f32 * 3.0 + PI).sin();
         let wave_ultra_slow_cos = (anim_time as f32 * 3.0 + PI).cos();
         let wave_slow_cos = (anim_time as f32 * 6.0 + PI).cos();
-        let _wave_slow = (anim_time as f32 * 6.0 + PI).sin();
 
         let _head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 1.5)
@@ -107,19 +106,19 @@ impl Animation for BlockAnimation {
                 next.weapon.scale = Vec3::one();
             }
             Tool::Hammer => {
-                next.l_hand.offset = Vec3::new(-5.5, 10.0, 9.5);
+                next.l_hand.offset = Vec3::new(-5.5, 10.0 + wave_ultra_slow * 2.0, 9.5);
                 next.l_hand.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(0.5);
                 next.l_hand.scale = Vec3::one() * 1.01;
-                next.r_hand.offset = Vec3::new(8.4, 9.3, 7.5);
+                next.r_hand.offset = Vec3::new(8.4, 9.3 + wave_ultra_slow * 2.0, 7.5);
                 next.r_hand.ori = Quaternion::rotation_x(-0.3)
                     * Quaternion::rotation_y(-1.35)
                     * Quaternion::rotation_z(0.5);
                 next.r_hand.scale = Vec3::one() * 1.01;
                 next.weapon.offset = Vec3::new(
                     7.0 + skeleton_attr.weapon_x,
-                    10.75 + skeleton_attr.weapon_y,
+                    10.75 + skeleton_attr.weapon_y + wave_ultra_slow * 2.0,
                     7.5,
                 );
                 next.weapon.ori = Quaternion::rotation_x(-0.3)
@@ -224,13 +223,13 @@ impl Animation for BlockAnimation {
                 next.weapon.scale = Vec3::one();
             }
         }
-        //next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
-        //next.l_foot.ori = Quaternion::rotation_x(-0.3);
-        //next.l_foot.scale = Vec3::one();
+        next.l_foot.offset = Vec3::new(-3.4, 0.3, 8.0 + wave_ultra_slow_cos * 0.1);
+        next.l_foot.ori = Quaternion::rotation_x(-0.3);
+        next.l_foot.scale = Vec3::one();
 
-        //next.r_foot.offset = Vec3::new(3.4, 1.2, 8.0 + wave_ultra_slow * 0.1);
-        //next.r_foot.ori = Quaternion::rotation_x(0.3);
-        //next.r_foot.scale = Vec3::one();
+        next.r_foot.offset = Vec3::new(3.4, 1.2, 8.0 + wave_ultra_slow * 0.1);
+        next.r_foot.ori = Quaternion::rotation_x(0.3);
+        next.r_foot.scale = Vec3::one();
 
         next.l_shoulder.offset = Vec3::new(-5.0, 0.0, 4.7);
         next.l_shoulder.ori = Quaternion::rotation_x(0.0);

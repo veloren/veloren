@@ -75,7 +75,6 @@ impl Animation for StandAnimation {
         next.r_hand.ori = Quaternion::rotation_x(0.0 + wave_ultra_slow * -0.06);
         next.r_hand.scale = Vec3::one();
 
-
         next.l_foot.offset = Vec3::new(-3.4, -0.1, 8.0);
         next.l_foot.ori = Quaternion::identity();
         next.l_foot.scale = Vec3::one();
@@ -107,7 +106,6 @@ impl Animation for StandAnimation {
         next.torso.offset = Vec3::new(0.0, -0.2, 0.1) * skeleton_attr.scaler;
         next.torso.ori = Quaternion::rotation_x(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
-
 
         next
     }
