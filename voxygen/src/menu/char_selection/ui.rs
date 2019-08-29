@@ -883,36 +883,28 @@ impl CharSelectionUi {
                 self.character_body.hair_style = humanoid::ALL_HAIR_STYLES[new_val];
             }
             // Hair Color
-            let current_hair_color = self.character_body.hair_color;
             if let Some(new_val) = char_slider(
                 self.ids.hairstyle_slider,
                 "Hair Color",
                 self.ids.haircolor_text,
-                humanoid::ALL_HAIR_COLORS.len() - 1,
-                humanoid::ALL_HAIR_COLORS
-                    .iter()
-                    .position(|&c| c == current_hair_color)
-                    .unwrap_or(0),
+                self.character_body.race.num_hair_colors() - 1,
+                self.character_body.hair_color as usize,
                 self.ids.haircolor_slider,
                 ui_widgets,
             ) {
-                self.character_body.hair_color = humanoid::ALL_HAIR_COLORS[new_val];
+                self.character_body.hair_color = new_val as u8;
             }
             // Skin
-            let current_skin = self.character_body.skin;
             if let Some(new_val) = char_slider(
                 self.ids.haircolor_slider,
                 "Skin",
                 self.ids.skin_text,
-                humanoid::ALL_SKINS.len() - 1,
-                humanoid::ALL_SKINS
-                    .iter()
-                    .position(|&c| c == current_skin)
-                    .unwrap_or(0),
+                self.character_body.race.num_skin_colors() - 1,
+                self.character_body.skin as usize,
                 self.ids.skin_slider,
                 ui_widgets,
             ) {
-                self.character_body.skin = humanoid::ALL_SKINS[new_val];
+                self.character_body.skin = new_val as u8;
             }
             // Eyebrows
             let current_eyebrows = self.character_body.eyebrows;
@@ -931,20 +923,16 @@ impl CharSelectionUi {
                 self.character_body.eyebrows = humanoid::ALL_EYEBROWS[new_val];
             }
             // EyeColor
-            let current_eye_color = self.character_body.eye_color;
             if let Some(new_val) = char_slider(
                 self.ids.eyebrows_slider,
                 "Eye Color",
                 self.ids.eyecolor_text,
-                humanoid::ALL_EYE_COLORS.len() - 1,
-                humanoid::ALL_EYE_COLORS
-                    .iter()
-                    .position(|&c| c == current_eye_color)
-                    .unwrap_or(0),
+                self.character_body.race.num_eye_colors() - 1,
+                self.character_body.eye_color as usize,
                 self.ids.eyecolor_slider,
                 ui_widgets,
             ) {
-                self.character_body.eye_color = humanoid::ALL_EYE_COLORS[new_val];
+                self.character_body.eye_color = new_val as u8;
             }
             // Accessories
             let current_accessory = self.character_body.accessory;
