@@ -112,7 +112,6 @@ impl FigureModelCache {
                                     Some(Self::load_grizzly_bear_lower_head(body.head_lower)),
                                     Some(Self::load_grizzly_bear_upper_torso(body.upper_torso)),
                                     Some(Self::load_grizzly_bear_lower_torso(body.lower_torso)),
-                                    Some(Self::load_grizzly_bear_ears(body.ears)),
                                     Some(Self::load_grizzly_bear_leg_lf(body.leg_lf)),
                                     Some(Self::load_grizzly_bear_leg_rf(body.leg_rf)),
                                     Some(Self::load_grizzly_bear_leg_lb(body.leg_lb)),
@@ -121,6 +120,7 @@ impl FigureModelCache {
                                     Some(Self::load_grizzly_bear_foot_rf(body.foot_rf)),
                                     Some(Self::load_grizzly_bear_foot_lb(body.foot_lb)),
                                     Some(Self::load_grizzly_bear_foot_rb(body.foot_rb)),
+                                    None,
                                     None,
                                     None,
                                     None,
@@ -541,15 +541,6 @@ impl FigureModelCache {
         Self::load_mesh(
             match lower_torso {
                 grizzly_bear::Lower_Torso::Default => "npc.grizzly_bear.grizzly_bear_lower_torso",
-            },
-            Vec3::new(-2.0, -12.0, -5.0),
-        )
-    }
-
-    fn load_grizzly_bear_ears(ears: grizzly_bear::Ears) -> Mesh<FigurePipeline> {
-        Self::load_mesh(
-            match ears {
-                grizzly_bear::Ears::Default => "npc.grizzly_bear.grizzly_bear_ears",
             },
             Vec3::new(-2.0, -12.0, -5.0),
         )

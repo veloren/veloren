@@ -39,10 +39,6 @@ impl Animation for JumpAnimation {
         next.grizzly_bear_lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
         next.grizzly_bear_lower_torso.scale = Vec3::one() / 11.0;
 
-        next.grizzly_bear_ears.offset = Vec3::new(0.0, 0.75, 5.25);
-        next.grizzly_bear_ears.ori = Quaternion::rotation_x(0.1);
-        next.grizzly_bear_ears.scale = Vec3::one() / 11.0;
-
         next.grizzly_bear_leg_lf.offset = Vec3::new(8.5, 5.0, 9.0) / 11.0;
         next.grizzly_bear_leg_lf.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
         next.grizzly_bear_leg_lf.scale = Vec3::one() / 11.0;

@@ -16,7 +16,6 @@ pub struct GrizzlyBearSkeleton {
     grizzly_bear_lower_head: Bone,
     grizzly_bear_upper_torso: Bone,
     grizzly_bear_lower_torso: Bone,
-    grizzly_bear_ears: Bone,
     grizzly_bear_leg_lf: Bone,
     grizzly_bear_leg_rf: Bone,
     grizzly_bear_leg_lb: Bone,
@@ -34,7 +33,6 @@ impl GrizzlyBearSkeleton {
             grizzly_bear_lower_head: Bone::default(),
             grizzly_bear_upper_torso: Bone::default(),
             grizzly_bear_lower_torso: Bone::default(),
-            grizzly_bear_ears: Bone::default(),
             grizzly_bear_leg_lf: Bone::default(),
             grizzly_bear_leg_rf: Bone::default(),
             grizzly_bear_leg_lb: Bone::default(),
@@ -54,7 +52,6 @@ impl Skeleton for GrizzlyBearSkeleton {
             FigureBoneData::new(self.grizzly_bear_lower_head.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_upper_torso.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_lower_torso.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_ears.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_leg_lf.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_leg_rf.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_leg_lb.compute_base_matrix()),
@@ -63,6 +60,7 @@ impl Skeleton for GrizzlyBearSkeleton {
             FigureBoneData::new(self.grizzly_bear_foot_rf.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_foot_lb.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_foot_rb.compute_base_matrix()),
+            FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
@@ -75,7 +73,6 @@ impl Skeleton for GrizzlyBearSkeleton {
         self.grizzly_bear_lower_head.interpolate(&target.grizzly_bear_lower_head, dt);
         self.grizzly_bear_upper_torso.interpolate(&target.grizzly_bear_upper_torso, dt);
         self.grizzly_bear_lower_torso.interpolate(&target.grizzly_bear_lower_torso, dt);
-        self.grizzly_bear_ears.interpolate(&target.grizzly_bear_ears, dt);
         self.grizzly_bear_leg_lf.interpolate(&target.grizzly_bear_leg_lf, dt);
         self.grizzly_bear_leg_rf.interpolate(&target.grizzly_bear_leg_rf, dt);
         self.grizzly_bear_leg_lb.interpolate(&target.grizzly_bear_leg_lb, dt);

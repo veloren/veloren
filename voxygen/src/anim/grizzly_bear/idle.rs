@@ -53,10 +53,6 @@ impl Animation for IdleAnimation {
         next.grizzly_bear_lower_torso.ori = Quaternion::rotation_y(wave_slow * 0.015);
         next.grizzly_bear_lower_torso.scale = Vec3::one() / 11.0;
 
-        next.grizzly_bear_ears.offset = Vec3::new(-5.0, 27.5, 22.5 + wave_ultra_slow * 1.0) / 11.0;
-        next.grizzly_bear_ears.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
-        next.grizzly_bear_ears.scale = Vec3::one() / 11.0;
-
         next.grizzly_bear_leg_lf.offset = Vec3::new(8.5, 5.0, 9.0 + wave_ultra_slow * 0.7) / 11.0;
         next.grizzly_bear_leg_lf.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_leg_lf.scale = Vec3::one() / 11.0;
