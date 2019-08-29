@@ -78,7 +78,7 @@ pub enum ConsumptionEffect {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Debug {
-    Teleport,
+    Boost,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
