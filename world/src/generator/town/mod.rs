@@ -71,7 +71,7 @@ impl<'a> Sampler<'a> for TownGen {
                         (Vec2::new(1, 0), Vec2::unit_y(), -Vec2::unit_x()),
                     ];
 
-                    MODULES[module.vol_idx]
+                    HOUSE_MODULES[module.vol_idx]
                         .0
                         .get(
                             Vec3::from(
@@ -510,7 +510,7 @@ impl TownVol {
                             .unwrap_or(ModuleKind::That);
                     }
 
-                    let module = MODULES
+                    let module = HOUSE_MODULES
                         .iter()
                         .enumerate()
                         .filter_map(|(i, module)| {
@@ -553,70 +553,48 @@ pub enum ModuleKind {
     That,
 }
 
+fn module(name: &str, sig: [ModuleKind; 6]) -> (Arc<Structure>, [ModuleKind; 6]) {
+    (
+        assets::load(&format!("world.module.{}", name)).unwrap(),
+        sig,
+    )
+}
+
 lazy_static! {
-    pub static ref MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
+    pub static ref HOUSE_MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
         use ModuleKind::*;
         vec![
-            (
-                assets::load("world.module.human.floor_ground").unwrap(),
-                [This, This, This, This, This, That],
-            ),
-            (
-                assets::load("world.module.human.stair_ground").unwrap(),
-                [This, This, This, This, This, That],
-            ),
-            (
-                assets::load("world.module.human.corner_ground").unwrap(),
-                [This, This, That, That, This, That],
-            ),
-            (
-                assets::load("world.module.human.wall_ground").unwrap(),
-                [This, This, This, That, This, That],
-            ),
-            (
-                assets::load("world.module.human.door_ground").unwrap(),
-                [This, This, This, That, This, That],
-            ),
-            (
-                assets::load("world.module.human.window_ground").unwrap(),
-                [This, This, This, That, This, That],
-            ),
-            (
-                assets::load("world.module.human.floor_roof").unwrap(),
-                [This, This, This, This, That, This],
-            ),
-            (
-                assets::load("world.module.human.corner_roof").unwrap(),
-                [This, This, That, That, That, This],
-            ),
-            (
-                assets::load("world.module.human.chimney_roof").unwrap(),
-                [This, This, That, That, That, This],
-            ),
-            (
-                assets::load("world.module.human.wall_roof").unwrap(),
-                [This, This, This, That, That, This],
-            ),
-            (
-                assets::load("world.module.human.floor_upstairs").unwrap(),
+            module("human.floor_ground", [This, This, This, This, This, That]),
+            module("human.stair_ground", [This, This, This, This, This, That]),
+            module("human.corner_ground", [This, This, That, That, This, That]),
+            module("human.wall_ground", [This, This, This, That, This, That]),
+            module("human.door_ground", [This, This, This, That, This, That]),
+            module("human.window_ground", [This, This, This, That, This, That]),
+            module("human.floor_roof", [This, This, This, This, That, This]),
+            module("human.corner_roof", [This, This, That, That, That, This]),
+            module("human.chimney_roof", [This, This, That, That, That, This]),
+            module("human.wall_roof", [This, This, This, That, That, This]),
+            module("human.floor_upstairs", [This, This, This, This, This, This]),
+            module(
+                "human.balcony_upstairs",
                 [This, This, This, This, This, This],
             ),
-            (
-                assets::load("world.module.human.balcony_upstairs").unwrap(),
-                [This, This, This, This, This, This],
-            ),
-            (
-                assets::load("world.module.human.corner_upstairs").unwrap(),
+            module(
+                "human.corner_upstairs",
                 [This, This, That, That, This, This],
             ),
-            (
-                assets::load("world.module.human.wall_upstairs").unwrap(),
+            module("human.wall_upstairs", [This, This, This, That, This, This]),
+            module(
+                "human.window_upstairs",
                 [This, This, This, That, This, This],
             ),
-            (
-                assets::load("world.module.human.window_upstairs").unwrap(),
-                [This, This, This, That, This, This],
-            ),
+        ]
+    };
+    pub static ref WALL_MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
+        use ModuleKind::*;
+        vec![
+            module("wall.edge_ground", [This, That, This, That, This, That]),
+            module("wall.corner_ground", [This, This, That, That, This, That]),
         ]
     };
 }
