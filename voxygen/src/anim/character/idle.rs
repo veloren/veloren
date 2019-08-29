@@ -82,7 +82,7 @@ impl Animation for IdleAnimation {
         next.r_foot.offset = Vec3::new(3.4, -0.1, 8.0);
         next.r_foot.ori = Quaternion::identity();
         next.r_foot.scale = Vec3::one();
-        
+
         next.weapon.offset = Vec3::new(
             -7.0 + skeleton_attr.weapon_x,
             -5.0 + skeleton_attr.weapon_y,

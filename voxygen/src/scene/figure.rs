@@ -747,13 +747,21 @@ impl FigureMgr {
                             time_since_action_change,
                             skeleton_attr,
                         ),
+                        (Stand, Block { .. }) => {
+                            anim::character::BlockIdleAnimation::update_skeleton(
+                                &target_base,
+                                time,
+                                time_since_action_change,
+                                skeleton_attr,
+                            )
+                        }
                         (_, Attack { .. }) => anim::character::AttackAnimation::update_skeleton(
                             &target_base,
                             time,
                             time_since_action_change,
                             skeleton_attr,
                         ),
-                        (_, Wield { .. }) => anim::character::CrunAnimation::update_skeleton(
+                        (_, Wield { .. }) => anim::character::WieldAnimation::update_skeleton(
                             &target_base,
                             (vel.0.magnitude(), time),
                             time_since_action_change,
