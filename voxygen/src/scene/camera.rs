@@ -4,8 +4,8 @@ use frustum_query::frustum::Frustum;
 use std::f32::consts::PI;
 use vek::*;
 
-const NEAR_PLANE: f32 = 0.01;
-const FAR_PLANE: f32 = 10000.0;
+const NEAR_PLANE: f32 = 0.15;
+const FAR_PLANE: f32 = 5000.0;
 
 const INTERP_TIME: f32 = 0.1;
 pub const MIN_ZOOM: f32 = 0.1;

@@ -165,7 +165,7 @@ impl<'a> BlockGen<'a> {
         let (definitely_underground, height, water_height) =
             if (wposf.z as f32) < alt - 64.0 * chaos {
                 // Shortcut warping
-                (true, alt, CONFIG.sea_level /*water_level*/)
+                (true, alt, water_level.max(CONFIG.sea_level)/*water_level*/)
             } else {
                 // Apply warping
                 let warp = (world
@@ -209,7 +209,8 @@ impl<'a> BlockGen<'a> {
                 (
                     false,
                     height,
-                    /*(water_level + warp).max(*/ CONFIG.sea_level, /*)*/
+                    // water_level.max(CONFIG.sea_level),
+                    /*(water_level + warp).max(*/ water_level.max(CONFIG.sea_level), /*)*/
                 )
             };
 

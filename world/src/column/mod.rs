@@ -142,6 +142,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
+        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
         let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
@@ -189,6 +190,20 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
+        // Logistic regression.  Make sure x ∈ (0, 1).
+        let logit = |x: f32| x.ln() - x.neg().ln_1p();
+        // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
+        let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
+        // Assumes μ = 0, σ = 1
+        let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
+
+        /* let water_level =
+            riverless_alt - 4.0 /*- 5.0 * chaos */+ logistic_cdf(logit(flux)) * 8.0;
+            /*if flux > 0.98 {
+            riverless_alt
+        } else {
+            riverless_alt - 4.0 - 5.0 * chaos
+        }; */ */
         let water_level = riverless_alt - 4.0 - 5.0 * chaos;
 
         let rock = (sim.gen_ctx.small_nz.get(
@@ -470,22 +485,23 @@ impl<'a> Sampler for ColumnGen<'a> {
             surface_color: Rgb::lerp(
                 sand,
                 // Land
-                Rgb::lerp(
+                /*Rgb::lerp(
                     ground,
                     // Mountain
                     Rgb::lerp(
                         cliff,
                         snow,
                         (alt - CONFIG.sea_level
-                            - 0.4 * CONFIG.mountain_scale
-                            - alt_base
+                            - 0.7 * CONFIG.mountain_scale
+                            // - alt_base
                             - temp * 96.0
                             - marble * 24.0)
                             / 12.0,
                     ),
                     (alt - CONFIG.sea_level - 0.25 * CONFIG.mountain_scale + marble * 128.0)
                         / (0.25 * CONFIG.mountain_scale),
-                ),
+                ),*/
+                ground,
                 // Beach
                 ((alt - CONFIG.sea_level - 1.0) / 2.0)
                     .min(1.0 - river * 2.0)

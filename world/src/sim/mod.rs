@@ -6,12 +6,14 @@ mod util;
 pub use self::location::Location;
 pub use self::settlement::Settlement;
 use self::util::{
-    cdf_irwin_hall, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx, InverseCdf,
+    cdf_irwin_hall, do_erosion, downhill, get_flux, height_sorted, map_edge_factor,
+    uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
+    InverseCdf,
 };
 
 use crate::{
     all::ForestKind,
-    util::{seed_expan, Sampler, StructureGen2d},
+    util::{seed_expan, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
@@ -19,7 +21,8 @@ use common::{
     vol::VolSize,
 };
 use noise::{
-    BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex,
+    BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable,
+    SuperSimplex,
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
@@ -31,21 +34,6 @@ use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
-/// Calculates the smallest distance along an axis (x, y) from an edge of
-/// the world.  This value is maximal at WORLD_SIZE / 2 and minimized at the extremes
-/// (0 or WORLD_SIZE on one or more axes).  It then divides the quantity by cell_size,
-/// so the final result is 1 when we are not in a cell along the edge of the world, and
-/// ranges between 0 and 1 otherwise (lower when the chunk is closer to the edge).
-fn map_edge_factor(posi: usize) -> f32 {
-    uniform_idx_as_vec2(posi)
-        .map2(WORLD_SIZE.map(|e| e as i32), |e, sz| {
-            (sz / 2 - (e - sz / 2).abs()) as f32 / 16.0
-        })
-        .reduce_partial_min()
-        .max(0.0)
-        .min(1.0)
-}
-
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
 /// interpret the types of its fields.
@@ -54,8 +42,9 @@ struct GenCdf {
     temp_base: InverseCdf,
     alt_base: InverseCdf,
     chaos: InverseCdf,
-    alt: InverseCdf,
-    alt_no_seawater: InverseCdf,
+    alt: Box<[f32]>,
+    flux: InverseCdf,
+    alt_no_water: InverseCdf,
 }
 
 pub(crate) struct GenCtx {
@@ -134,6 +123,11 @@ impl WorldSim {
                 // .set_persistence(0.5)
                 .set_seed(gen_seed()),
         };
+        let river_seed = RandomField::new(gen_seed());
+        let rock_strength_nz = Fbm::new()
+                .set_octaves(12)
+                .set_persistence(0.75)
+                .set_seed(gen_seed());
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
         // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
@@ -220,15 +214,30 @@ impl WorldSim {
             Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
         });
 
-        // Check whether any tiles around this tile are not water (since Lerp will ensure that they
+        // Perform some erosion (maybe not needed)
+        // let v = vec![(5.0, 5.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+        /* let v = alt.iter()
+            .map(|&(i, j)|
+                 (i, if j < 5.0 / CONFIG.mountain_scale {
+                     j
+                 } else {
+                    (5.0 + j) / CONFIG.mountain_scale
+                 }))
+            .collect::<Vec<_>>().into_boxed_slice();
+        let alt = do_erosion(&/*alt*/v, 0.0, 50, &river_seed, &rock_strength_nz, |posi| {
+            alt[posi].1 * 0.05//0.05
+        }); */
+        let alt = do_erosion(&alt, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
+
+        // Check whether any tiles around this tile are not seawater (since Lerp will ensure that they
         // are included).
-        let pure_water = |posi| {
+        let sea_water = |posi| {
             let pos = uniform_idx_as_vec2(posi);
             for x in pos.x - 1..=pos.x + 1 {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if alt[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
+                        if alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
                             return false;
                         }
                     }
@@ -237,12 +246,41 @@ impl WorldSim {
             true
         };
 
-        // A version of alt that is uniform over *non-seawater* (or land-adjacent seawater) chunks.
-        let alt_no_seawater = uniform_noise(|posi, wposf| {
+        // Calculate flux.
+        let dh = downhill(&alt);
+        let new_alt = height_sorted(&alt);
+        let flux = get_flux(&new_alt, &dh);
+        let flux = uniform_noise(|posi, _| {
+            if sea_water(posi) {
+                None
+            } else {
+                Some(flux[posi])
+            }
+        });
+
+        // Check whether any tiles around this tile are not water (since Lerp will ensure that they
+        // are included).
+        let pure_water = |posi| {
+            let pos = uniform_idx_as_vec2(posi);
+            for x in pos.x - 1..=pos.x + 1 {
+                for y in pos.y - 1..=pos.y + 1 {
+                    if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
+                        let posi = vec2_as_uniform_idx(Vec2::new(x, y));
+                        if /*flux[posi].0 > 0.95 || */alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
+                            return false;
+                        }
+                    }
+                }
+            }
+            true
+        };
+
+        // A version of alt that is uniform over *non-water* (or land-adjacent water) chunks.
+        let alt_no_water = uniform_noise(|posi, wposf| {
             if pure_water(posi) {
                 None
             } else {
-                Some(alt[posi].1)
+                Some(alt[posi])
             }
         });
 
@@ -275,7 +313,8 @@ impl WorldSim {
             alt_base,
             chaos,
             alt,
-            alt_no_seawater,
+            flux,
+            alt_no_water,
         };
 
         let mut chunks = Vec::new();
@@ -490,6 +529,7 @@ pub struct SimChunk {
     pub chaos: f32,
     pub alt_base: f32,
     pub alt: f32,
+    pub flux: f32,
     pub temp: f32,
     pub dryness: f32,
     pub humidity: f32,
@@ -541,15 +581,19 @@ impl SimChunk {
         let map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
-        let (_, alt_pre) = gen_cdf.alt[posi];
-        let (alt_uniform, _) = gen_cdf.alt_no_seawater[posi];
+        let alt_pre = gen_cdf.alt[posi];
+        let (flux_uniform, _) = gen_cdf.flux[posi];
+        let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
 
+        // Flux is just flux_uniform, currently.
+        let flux = flux_uniform;
+
         // Take the weighted average of our randomly generated base humidity, the scaled
-        // negative altitude, and other random variable (to add some noise) to yield the
-        // final humidity.  Note that we are using the "old" version of chaos here.
-        const HUMID_WEIGHTS: [f32; 2] = [1.0, 1.0];
-        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, 1.0 - alt_uniform]);
+        // negative altitude, and the calculated water flux over this point in order to compute
+        // humidity.
+        const HUMID_WEIGHTS: [f32; 3] = [1.0, 1.0, 1.0];
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform, 1.0 - alt_uniform]);
 
         // We also correlate temperature negatively with altitude using different weighting than we
         // use for humidity.
@@ -604,6 +648,7 @@ impl SimChunk {
         Self {
             chaos,
             alt_base,
+            flux,
             alt,
             temp,
             dryness,
@@ -636,6 +681,9 @@ impl SimChunk {
                     }
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
+                        if tree_density > 0.0 {
+                            println!("Mangrove: {:?}", wposf);
+                        }
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
                         // NOTE: Probably the wrong kind of tree for this climate.
