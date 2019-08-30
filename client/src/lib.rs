@@ -290,12 +290,7 @@ impl Client {
                 {
                     if last_character_states
                         .get(entity)
-                        .map(|&l| {
-                            std::mem::discriminant(&l.0.movement)
-                                != std::mem::discriminant(&client_character_state.movement)
-                                || std::mem::discriminant(&l.0.action)
-                                    != std::mem::discriminant(&client_character_state.action)
-                        })
+                        .map(|&l| !client_character_state.is_same_state(&l.0))
                         .unwrap_or(true)
                     {
                         let _ = last_character_states
