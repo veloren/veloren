@@ -45,24 +45,25 @@ impl Inventory {
         }
     }
 
-    // Get info about an item slot
-    pub fn get(&self, cell: usize) -> Option<Item> {
-        self.slots.get(cell).cloned().flatten()
+    /// Get content of a slot
+    pub fn get(&self, cell: usize) -> Option<&Item> {
+        self.slots.get(cell).and_then(Option::as_ref)
     }
 
-    // Insert an item to a slot if its empty
+    /// Insert an item into a slot if its empty
     pub fn swap(&mut self, cell: usize, item: Item) -> Option<Item> {
         //TODO: Check if a slot is empty first.
         self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }
 
+    /// Swap the items inside of two slots
     pub fn swap_slots(&mut self, a: usize, b: usize) {
         if a.max(b) < self.slots.len() {
             self.slots.swap(a, b);
         }
     }
 
-    // Remove an item from the slot
+    /// Remove an item from the slot
     pub fn remove(&mut self, cell: usize) -> Option<Item> {
         self.slots.get_mut(cell).and_then(|item| item.take())
     }
