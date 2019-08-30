@@ -11,8 +11,8 @@ use vek::*;
 /// Represents a key that the game recognises after keyboard mapping.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum GameInput {
-    Main,
-    Alt,
+    Primary,
+    Secondary,
     ToggleCursor,
     MoveForward,
     MoveBack,
@@ -109,12 +109,12 @@ impl Window {
             .map_err(|err| Error::BackendError(Box::new(err)))?;
 
         let mut map: HashMap<_, Vec<_>> = HashMap::new();
-        map.entry(settings.controls.main)
+        map.entry(settings.controls.primary)
             .or_default()
-            .push(GameInput::Main);
-        map.entry(settings.controls.alt)
+            .push(GameInput::Primary);
+        map.entry(settings.controls.secondary)
             .or_default()
-            .push(GameInput::Alt);
+            .push(GameInput::Secondary);
         map.entry(settings.controls.toggle_cursor)
             .or_default()
             .push(GameInput::ToggleCursor);

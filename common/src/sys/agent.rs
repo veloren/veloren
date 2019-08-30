@@ -87,9 +87,9 @@ impl<'a> System<'a> for Sys {
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.5;
 
                             if rand::random::<f32>() < 0.05 {
-                                controller.main = true;
+                                controller.primary = true;
                             } else {
-                                controller.main = false;
+                                controller.primary = false;
                             }
                         } else if dist < SIGHT_DIST {
                             controller.move_dir =
