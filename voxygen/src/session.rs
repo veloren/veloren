@@ -376,9 +376,7 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     }
-                    HudEvent::ActivateInventorySlot(x) => {
-                        self.client.borrow_mut().activate_inventory_slot(x)
-                    }
+                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
                     }
