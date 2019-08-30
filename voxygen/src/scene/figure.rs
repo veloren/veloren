@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, Animation, Skeleton, SkeletonAttr,
+        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, wild_boar::WildBoarSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -12,7 +12,7 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, Body},
+    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, wild_boar, Body},
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -120,6 +120,24 @@ impl FigureModelCache {
                                     Some(Self::load_grizzly_bear_foot_rf(body.foot_rf)),
                                     Some(Self::load_grizzly_bear_foot_lb(body.foot_lb)),
                                     Some(Self::load_grizzly_bear_foot_rb(body.foot_rb)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::wild_boar(body) => [
+                                    Some(Self::load_wild_boar_head(body.head)),
+                                    Some(Self::load_wild_boar_torso(body.torso)),
+                                    Some(Self::load_wild_boar_tail(body.tail)),
+                                    Some(Self::load_wild_boar_leg_lf(body.leg_lf)),
+                                    Some(Self::load_wild_boar_leg_rf(body.leg_rf)),
+                                    Some(Self::load_wild_boar_leg_lb(body.leg_lb)),
+                                    Some(Self::load_wild_boar_leg_rb(body.leg_rb)),
+                                    Some(Self::load_wild_boar_foot_lf(body.foot_lf)),
+                                    Some(Self::load_wild_boar_foot_rf(body.foot_rf)),
+                                    Some(Self::load_wild_boar_foot_lb(body.foot_lb)),
+                                    Some(Self::load_wild_boar_foot_rb(body.foot_rb)),
+                                    None,
                                     None,
                                     None,
                                     None,
@@ -616,6 +634,103 @@ impl FigureModelCache {
         )
     }
     ///////
+    fn load_wild_boar_head(head: wild_boar::Head) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match head {
+                wild_boar::Head::Default => "npc.wild_boar.wild_boar_head",
+            },
+            Vec3::new(-4.0, -4.0, -1.5),
+        )
+    }
+
+    fn load_wild_boar_torso(torso: wild_boar::Torso) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match torso {
+                wild_boar::Torso::Default => "npc.wild_boar.wild_boar_torso",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+
+    fn load_wild_boar_tail(tail: wild_boar::Tail) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match tail {
+                wild_boar::Tail::Default => "npc.wild_boar.wild_boar_tail",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+
+    fn load_wild_boar_leg_lf(leg_lf: wild_boar::LegLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lf {
+                wild_boar::LegLF::Default => "npc.wild_boar.wild_boar_leg_lf",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_wild_boar_leg_rf(leg_rf: wild_boar::LegRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rf {
+                wild_boar::LegRF::Default => "npc.wild_boar.wild_boar_leg_rf",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_wild_boar_leg_lb(leg_lb: wild_boar::LegLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lb {
+                wild_boar::LegLB::Default => "npc.wild_boar.wild_boar_leg_lb",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_wild_boar_leg_rb(leg_rb: wild_boar::LegRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rb {
+                wild_boar::LegRB::Default => "npc.wild_boar.wild_boar_leg_rb",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_wild_boar_foot_lf(foot_lf: wild_boar::FootLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lf {
+                wild_boar::FootLF::Default => "npc.wild_boar.wild_boar_foot_lf",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+
+    fn load_wild_boar_foot_rf(foot_rf: wild_boar::FootRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rf {
+                wild_boar::FootRF::Default => "npc.wild_boar.wild_boar_foot_rf",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_wild_boar_foot_lb(foot_lb: wild_boar::FootLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lb {
+                wild_boar::FootLB::Default => "npc.wild_boar.wild_boar_foot_lb",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_wild_boar_foot_rb(foot_rb: wild_boar::FootRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rb {
+                wild_boar::FootRB::Default => "npc.wild_boar.wild_boar_foot_rb",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    ///////
     fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
         let (name, offset) = match obj {
             object::Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
@@ -692,6 +807,7 @@ pub struct FigureMgr {
     quadruped_states: HashMap<EcsEntity, FigureState<QuadrupedSkeleton>>,
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
     grizzly_bear_states: HashMap<EcsEntity, FigureState<GrizzlyBearSkeleton>>,
+    wild_boar_states: HashMap<EcsEntity, FigureState<WildBoarSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -703,6 +819,7 @@ impl FigureMgr {
             quadruped_states: HashMap::new(),
             quadruped_medium_states: HashMap::new(),
             grizzly_bear_states: HashMap::new(),
+            wild_boar_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -753,6 +870,9 @@ impl FigureMgr {
                         self.quadruped_medium_states.remove(&entity);
                     }
                     Body::grizzly_bear(_) => {
+                        self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::wild_boar(_) => {
                         self.quadruped_medium_states.remove(&entity);
                     }
                     Body::Object(_) => {
@@ -993,6 +1113,52 @@ impl FigureMgr {
                     state.skeleton.interpolate(&target_skeleton, dt);
                     state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
+                Body::wild_boar(_) => {
+                    let state = self
+                        .wild_boar_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, WildBoarSkeleton::new())
+                        });
+
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
+                    let target_skeleton = match animation_info.animation {
+                        comp::Animation::Run | comp::Animation::Crun => {
+                            anim::wild_boar::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Idle | comp::Animation::Cidle => {
+                            anim::wild_boar::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Jump | comp::Animation::Cjump => {
+                            anim::wild_boar::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_skeleton, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -1013,6 +1179,8 @@ impl FigureMgr {
         self.quadruped_medium_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.grizzly_bear_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.wild_boar_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -1068,6 +1236,10 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::grizzly_bear(_) => self
                     .grizzly_bear_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::wild_boar(_) => self
+                    .wild_boar_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self

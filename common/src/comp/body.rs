@@ -3,6 +3,7 @@ pub mod object;
 pub mod quadruped;
 pub mod quadruped_medium;
 pub mod grizzly_bear;
+pub mod wild_boar;
 
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
@@ -13,6 +14,7 @@ pub enum Body {
     Quadruped(quadruped::Body),
     QuadrupedMedium(quadruped_medium::Body),
     grizzly_bear(grizzly_bear::Body),
+    wild_boar(wild_boar::Body),
     Object(object::Body),
 }
 
