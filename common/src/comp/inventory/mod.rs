@@ -33,27 +33,22 @@ impl Inventory {
         }
     }
 
-    /// Replaces an item in a specific slot of the inventory. Returns the item again if that slot
+    /// Replaces an item in a specific slot of the inventory. Returns the old item or the same item again if that slot
     /// was not found.
-    pub fn insert(&mut self, cell: usize, item: Option<Item>) -> Option<Item> {
+    pub fn insert(&mut self, cell: usize, item: Item) -> Result<Option<Item>, Item> {
         match self.slots.get_mut(cell) {
             Some(slot) => {
-                *slot = item;
-                None
+                let old = slot.take();
+                *slot = Some(item);
+                Ok(old)
             }
-            None => item,
+            None => Err(item),
         }
     }
 
     /// Get content of a slot
     pub fn get(&self, cell: usize) -> Option<&Item> {
         self.slots.get(cell).and_then(Option::as_ref)
-    }
-
-    /// Insert an item into a slot if its empty
-    pub fn swap(&mut self, cell: usize, item: Item) -> Option<Item> {
-        //TODO: Check if a slot is empty first.
-        self.slots.get_mut(cell).and_then(|cell| cell.replace(item))
     }
 
     /// Swap the items inside of two slots
