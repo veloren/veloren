@@ -15,8 +15,6 @@ pub const ROLL_DURATION: Duration = Duration::from_millis(600);
 
 const HUMANOID_ACCEL: f32 = 70.0;
 const HUMANOID_SPEED: f32 = 120.0;
-const WIELD_ACCEL: f32 = 70.0;
-const WIELD_SPEED: f32 = 120.0;
 const HUMANOID_AIR_ACCEL: f32 = 10.0;
 const HUMANOID_AIR_SPEED: f32 = 100.0;
 const ROLL_SPEED: f32 = 13.0;

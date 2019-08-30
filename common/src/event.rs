@@ -6,6 +6,7 @@ use vek::*;
 
 pub enum LocalEvent {
     Jump(EcsEntity),
+    Boost { entity: EcsEntity, vel: Vec3<f32> },
     LandOnGround { entity: EcsEntity, vel: Vec3<f32> },
 }
 

@@ -162,6 +162,7 @@ pub enum Event {
     ToggleShortcutNumbers(ShortcutNumbers),
     UiScale(ScaleChange),
     CharacterSelection,
+    UseInventorySlot(usize),
     SwapInventorySlots(usize, usize),
     DropInventorySlot(usize),
     Logout,

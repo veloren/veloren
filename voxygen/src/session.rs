@@ -129,7 +129,7 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    Event::InputUpdate(GameInput::Main, state) => {
+                    Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
@@ -152,11 +152,11 @@ impl PlayState for SessionState {
                                 client.place_block(pos, self.selected_block);
                             }
                         } else {
-                            self.controller.attack = state
+                            self.controller.primary = state
                         }
                     }
 
-                    Event::InputUpdate(GameInput::Alt, state) => {
+                    Event::InputUpdate(GameInput::Secondary, state) => {
                         let mut client = self.client.borrow_mut();
                         if state
                             && client
@@ -176,7 +176,7 @@ impl PlayState for SessionState {
                                 client.remove_block(pos);
                             }
                         } else {
-                            self.controller.block = state;
+                            self.controller.secondary = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
@@ -376,6 +376,7 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
                     }

@@ -209,7 +209,7 @@ pub struct CharSelectionUi {
     character_creation: bool,
     pub character_name: String,
     pub character_body: humanoid::Body,
-    pub character_weapon: Tool, // TODO: Move into ecs inventory struct?
+    pub character_tool: Option<Tool>,
 }
 
 impl CharSelectionUi {
@@ -235,7 +235,7 @@ impl CharSelectionUi {
             character_creation: false,
             character_name: "Character Name".to_string(),
             character_body: humanoid::Body::random(),
-            character_weapon: Tool::Sword,
+            character_tool: Some(Tool::Sword),
         }
     }
 
@@ -344,7 +344,7 @@ impl CharSelectionUi {
                 .was_clicked()
             {
                 self.character_creation = true;
-                self.character_weapon = Tool::Sword;
+                self.character_tool = Some(Tool::Sword);
             }
 
             // Alpha Version
@@ -710,7 +710,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .bottom_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
                 .set(self.ids.hammer, ui_widgets);
-            if Button::image(if let Tool::Hammer = self.character_weapon {
+            if Button::image(if let Some(Tool::Hammer) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -721,7 +721,7 @@ impl CharSelectionUi {
             .set(self.ids.hammer_button, ui_widgets)
             .was_clicked()
             {
-                self.character_weapon = Tool::Hammer;
+                self.character_tool = Some(Tool::Hammer);
             }
             // REMOVE THIS AFTER IMPLEMENTATION
             /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
@@ -734,7 +734,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .right_from(self.ids.hammer, 2.0)
                 .set(self.ids.bow, ui_widgets);
-            if Button::image(if let Tool::Bow = self.character_weapon {
+            if Button::image(if let Some(Tool::Bow) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -745,7 +745,7 @@ impl CharSelectionUi {
             .set(self.ids.bow_button, ui_widgets)
             .was_clicked()
             {
-                //self.character_weapon = Tool::Bow;
+                //self.character_tool = Some(Tool::Bow);
             }
             // REMOVE THIS AFTER IMPLEMENTATION
             Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
@@ -756,7 +756,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .right_from(self.ids.bow, 2.0)
                 .set(self.ids.staff, ui_widgets);
-            if Button::image(if let Tool::Staff = self.character_weapon {
+            if Button::image(if let Some(Tool::Staff) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -767,7 +767,7 @@ impl CharSelectionUi {
             .set(self.ids.staff_button, ui_widgets)
             .was_clicked()
             {
-                //self.character_weapon = Tool::Staff;
+                //self.character_tool = Some(Tool::Staff);
             }
             // REMOVE THIS AFTER IMPLEMENTATION
             Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
@@ -778,7 +778,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .up_from(self.ids.hammer, 2.0)
                 .set(self.ids.sword, ui_widgets);
-            if Button::image(if let Tool::Sword = self.character_weapon {
+            if Button::image(if let Some(Tool::Sword) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -789,7 +789,7 @@ impl CharSelectionUi {
             .set(self.ids.sword_button, ui_widgets)
             .was_clicked()
             {
-                self.character_weapon = Tool::Sword;
+                self.character_tool = Some(Tool::Sword);
             }
 
             // Daggers
@@ -797,7 +797,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .right_from(self.ids.sword, 2.0)
                 .set(self.ids.daggers, ui_widgets);
-            if Button::image(if let Tool::Daggers = self.character_weapon {
+            if Button::image(if let Some(Tool::Daggers) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -808,7 +808,7 @@ impl CharSelectionUi {
             .set(self.ids.daggers_button, ui_widgets)
             .was_clicked()
             {
-                // self.character_weapon = Tool::Daggers;
+                // self.character_tool = Some(Tool::Daggers);
             } // REMOVE THIS AFTER IMPLEMENTATION
             Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                 .middle_of(self.ids.daggers)
@@ -819,7 +819,7 @@ impl CharSelectionUi {
                 .w_h(70.0, 70.0)
                 .right_from(self.ids.daggers, 2.0)
                 .set(self.ids.axe, ui_widgets);
-            if Button::image(if let Tool::Axe = self.character_weapon {
+            if Button::image(if let Some(Tool::Axe) = self.character_tool {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
@@ -830,7 +830,7 @@ impl CharSelectionUi {
             .set(self.ids.axe_button, ui_widgets)
             .was_clicked()
             {
-                self.character_weapon = Tool::Axe;
+                self.character_tool = Some(Tool::Axe);
             }
             // REMOVE THIS AFTER IMPLEMENTATION
             /*Rectangle::fill_with([67.0, 67.0], color::rgba(0.0, 0.0, 0.0, 0.8))
