@@ -713,35 +713,29 @@ impl Server {
                             _ => {}
                         },
                         ClientMsg::ActivateInventorySlot(x) => {
-                            let item_opt = state
+                            let item = state
                                 .ecs()
                                 .write_storage::<comp::Inventory>()
                                 .get_mut(entity)
                                 .and_then(|inv| inv.remove(x));
 
-                            if let Some(item) = item_opt {
-                                match item {
-                                    comp::Item::Tool { .. } | comp::Item::Debug(_) => {
-                                        if let Some(stats) = state
+                            match item {
+                                Some(comp::Item::Tool { .. }) | Some(comp::Item::Debug(_)) => {
+                                    if let Some(stats) =
+                                        state.ecs().write_storage::<comp::Stats>().get_mut(entity)
+                                    {
+                                        state
                                             .ecs()
-                                            .write_storage::<comp::Stats>()
+                                            .write_storage::<comp::Inventory>()
                                             .get_mut(entity)
-                                        {
-                                            state
-                                                .ecs()
-                                                .write_storage::<comp::Inventory>()
-                                                .get_mut(entity)
-                                                .map(|inv| {
-                                                    inv.insert(x, stats.equipment.main.take())
-                                                });
+                                            .map(|inv| inv.insert(x, stats.equipment.main.take()));
 
-                                            stats.equipment.main = Some(item);
-                                        }
+                                        stats.equipment.main = item;
                                     }
-                                    _ => {}
                                 }
-                                state.write_component(entity, comp::InventoryUpdate);
+                                _ => {}
                             }
+                            state.write_component(entity, comp::InventoryUpdate);
                         }
                         ClientMsg::SwapInventorySlots(a, b) => {
                             state

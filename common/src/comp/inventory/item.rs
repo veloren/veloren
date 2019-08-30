@@ -81,7 +81,7 @@ pub enum Debug {
     Boost,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Item {
     Tool {
         kind: Tool,
