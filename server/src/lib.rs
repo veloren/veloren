@@ -724,11 +724,14 @@ impl Server {
                                     if let Some(stats) =
                                         state.ecs().write_storage::<comp::Stats>().get_mut(entity)
                                     {
-                                        state
-                                            .ecs()
-                                            .write_storage::<comp::Inventory>()
-                                            .get_mut(entity)
-                                            .map(|inv| inv.insert(x, stats.equipment.main.take()));
+                                        // Insert old item into inventory
+                                        if let Some(old_item) = stats.equipment.main.take() {
+                                            state
+                                                .ecs()
+                                                .write_storage::<comp::Inventory>()
+                                                .get_mut(entity)
+                                                .map(|inv| inv.insert(x, old_item));
+                                        }
 
                                         stats.equipment.main = item;
                                     }
