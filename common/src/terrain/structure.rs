@@ -61,7 +61,7 @@ impl Structure {
     pub fn get_bounds(&self) -> Aabb<i32> {
         Aabb {
             min: -self.center,
-            max: self.vol.get_size().map(|e| e as i32) - self.center,
+            max: self.vol.size().map(|e| e as i32) - self.center,
         }
     }
 

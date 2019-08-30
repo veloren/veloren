@@ -1,11 +1,11 @@
 use crate::{
     vol::{
-        BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
-        SizedVol, VolSize, Vox, WriteVol,
+        BaseVol, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize, SizedVol, VolSize, Vox,
+        WriteVol,
     },
     volumes::{
         chunk::{Chunk, ChunkError},
-        morton::{morton_to_xyz, xyz_to_morton, MortonIter},
+        morton::{morton_to_xyz, MortonIter},
     },
 };
 use serde_derive::{Deserialize, Serialize};

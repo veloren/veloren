@@ -64,7 +64,7 @@ pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u
     let mut color = Buffer2d::new(dims, [0; 4]);
     let mut depth = Buffer2d::new(dims, 1.0);
 
-    let (w, h, d) = segment.get_size().map(|e| e as f32).into_tuple();
+    let (w, h, d) = segment.size().map(|e| e as f32).into_tuple();
 
     let mvp = Mat4::<f32>::orthographic_rh_no(FrustumPlanes {
         left: -1.0,

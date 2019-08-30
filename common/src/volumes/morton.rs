@@ -122,8 +122,8 @@ impl Iterator for MortonIter {
             if defects == 0 {
                 break;
             }
-            let mask = std::i32::MAX as u32 >> defects.leading_zeros();
-            self.current = (self.current & !mask) + (defects & !mask);
+            let mask = !(std::i32::MAX as u32 >> defects.leading_zeros());
+            self.current = (self.current & mask) + (defects & mask);
         }
 
         let c = self.current;

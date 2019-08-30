@@ -32,6 +32,8 @@ pub trait BaseVol {
     type Error: Debug;
 }
 
+/// Implementing `BaseVol` for any `&'a BaseVol` makes it possible to implement
+/// `IntoVolIterator` for references.
 impl<'a, T: BaseVol> BaseVol for &'a T {
     type Vox = T::Vox;
     type Error = T::Error;
@@ -39,20 +41,23 @@ impl<'a, T: BaseVol> BaseVol for &'a T {
 
 // Utility types
 
-/// A volume that has a finite size.
+/// A volume that is a cuboid.
 pub trait SizedVol: BaseVol {
-    /// Returns the (exclusive) upper bound of the volume.
+    /// Returns the (inclusive) lower bound of the volume.
     fn lower_bound(&self) -> Vec3<i32>;
 
-    /// Returns the (inclusive) lower bound of the volume.
+    /// Returns the (exclusive) upper bound of the volume.
     fn upper_bound(&self) -> Vec3<i32>;
 
     /// Returns the size of the volume.
-    fn get_size(&self) -> Vec3<u32> {
+    fn size(&self) -> Vec3<u32> {
         (self.upper_bound() - self.lower_bound()).map(|e| e as u32)
     }
 }
 
+/// A volume that is compile-time sized and has its lower bound at `(0, 0, 0)`.
+/// The name `RasterableVol` was chosen because such a volume can be used with
+/// `VolGrid3d`.
 pub trait RasterableVol: BaseVol {
     const SIZE: Vec3<u32>;
 }
@@ -67,6 +72,7 @@ impl<V: RasterableVol> SizedVol for V {
     }
 }
 
+/// A volume whose cross section with the XY-plane is a rectangle.
 pub trait RectSizedVol: BaseVol {
     fn lower_bound_xy(&self) -> Vec2<i32>;
 
@@ -77,6 +83,10 @@ pub trait RectSizedVol: BaseVol {
     }
 }
 
+/// A volume that is compile-time sized in x and y direction and has its lower
+/// bound at `(0, 0, z)`. In z direction there's no restriction on the lower
+/// or upper bound. The name `RectRasterableVol` was chosen because such a
+/// volume can be used with `VolGrid2d`.
 pub trait RectRasterableVol: BaseVol {
     const RECT_SIZE: Vec2<u32>;
 }
@@ -109,6 +119,8 @@ pub trait ReadVol: BaseVol {
 }
 
 /// A volume that provides the ability to sample (i.e., clone a section of) its voxel data.
+///
+/// TODO (haslersn): Do we still need this now that we have `IntoVolIterator`?
 pub trait SampleVol<I>: BaseVol {
     type Sample: BaseVol + ReadVol;
     /// Take a sample of the volume by cloning voxels within the provided range.
@@ -127,7 +139,8 @@ pub trait WriteVol: BaseVol {
     fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
 }
 
-/// A volume that shall be iterable.
+/// A volume (usually rather a reference to a volume) that is convertible into
+/// an iterator to a cuboid subsection of the volume.
 pub trait IntoVolIterator<'a>: BaseVol
 where
     Self::Vox: 'a,
@@ -137,6 +150,8 @@ where
     fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter;
 }
 
+/// A volume (usually rather a reference to a volume) that is convertible into
+/// an iterator.
 pub trait IntoFullVolIterator<'a>: BaseVol
 where
     Self::Vox: 'a,
@@ -146,6 +161,10 @@ where
     fn into_iter(self) -> Self::IntoIter;
 }
 
+/// For any `&'a SizedVol: IntoVolIterator` we implement `IntoFullVolIterator`.
+/// Unfortunately we can't just implement `IntoIterator` in this generic way
+/// because it's defined in another crate. That's actually the only reason why
+/// the trait `IntoFullVolIterator` exists.
 impl<'a, T: 'a + SizedVol> IntoFullVolIterator<'a> for &'a T
 where
     Self: IntoVolIterator<'a>,
@@ -159,7 +178,8 @@ where
 
 // Defaults
 
-/// Iterator type for the default implementation of `IterateVol`
+/// Convenience iterator type that can be used to quickly implement
+/// `IntoVolIterator`.
 pub struct DefaultVolIterator<'a, T: ReadVol> {
     vol: &'a T,
     current: Vec3<i32>,
