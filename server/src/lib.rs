@@ -712,7 +712,7 @@ impl Server {
                             }
                             _ => {}
                         },
-                        ClientMsg::ActivateInventorySlot(x) => {
+                        ClientMsg::UseInventorySlot(x) => {
                             let item = state
                                 .ecs()
                                 .write_storage::<comp::Inventory>()
