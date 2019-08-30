@@ -1161,13 +1161,7 @@ impl Server {
             {
                 if last_character_state
                     .get(entity)
-                    .map(|&l| {
-                        // Check if enum item is the same without looking at the inner data
-                        std::mem::discriminant(&l.0.movement)
-                            != std::mem::discriminant(&client_character_state.movement)
-                            || std::mem::discriminant(&l.0.action)
-                                != std::mem::discriminant(&client_character_state.action)
-                    })
+                    .map(|&l| !client_character_state.is_same_state(&l.0))
                     .unwrap_or(true)
                 {
                     let _ =
