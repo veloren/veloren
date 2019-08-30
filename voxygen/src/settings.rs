@@ -13,8 +13,8 @@ use std::{fs, io::prelude::*, path::PathBuf};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct ControlSettings {
-    pub main: KeyMouse,
-    pub alt: KeyMouse,
+    pub primary: KeyMouse,
+    pub secondary: KeyMouse,
     pub toggle_cursor: KeyMouse,
     pub escape: KeyMouse,
     pub enter: KeyMouse,
@@ -46,8 +46,8 @@ pub struct ControlSettings {
 impl Default for ControlSettings {
     fn default() -> Self {
         Self {
-            main: KeyMouse::Mouse(MouseButton::Left),
-            alt: KeyMouse::Mouse(MouseButton::Right),
+            primary: KeyMouse::Mouse(MouseButton::Left),
+            secondary: KeyMouse::Mouse(MouseButton::Right),
             toggle_cursor: KeyMouse::Key(VirtualKeyCode::Tab),
             escape: KeyMouse::Key(VirtualKeyCode::Escape),
             enter: KeyMouse::Key(VirtualKeyCode::Return),
