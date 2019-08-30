@@ -21,25 +21,27 @@ impl Inventory {
         self.slots.len()
     }
 
+    /// Adds a new item to the first empty slot of the inventory. Returns the item again if no free
+    /// slot was found.
     pub fn push(&mut self, item: Item) -> Option<Item> {
         match self.slots.iter_mut().find(|slot| slot.is_none()) {
             Some(slot) => {
-                let old = slot.take();
                 *slot = Some(item);
-                old
+                None
             }
-            None => None,
+            None => Some(item),
         }
     }
 
+    /// Replaces an item in a specific slot of the inventory. Returns the item again if that slot
+    /// was not found.
     pub fn insert(&mut self, cell: usize, item: Option<Item>) -> Option<Item> {
         match self.slots.get_mut(cell) {
             Some(slot) => {
-                let old = slot.take();
                 *slot = item;
-                old
+                None
             }
-            None => None,
+            None => item,
         }
     }
 
