@@ -30,7 +30,7 @@ pub enum ClientMsg {
         vel: comp::Vel,
         ori: comp::Ori,
     },
-    ActivateInventorySlot(usize),
+    UseInventorySlot(usize),
     SwapInventorySlots(usize, usize),
     DropInventorySlot(usize),
     PickUp(u64),
