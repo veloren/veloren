@@ -121,7 +121,7 @@ pub struct TownState {
 
 impl TownState {
     pub fn generate(center: Vec2<i32>, gen: &mut ColumnGen, rng: &mut impl Rng) -> Option<Self> {
-        let radius = rng.gen_range(12, 24) * 9;
+        let radius = rng.gen_range(18, 20) * 9;
         let size = Vec2::broadcast(radius * 2 / 9 - 2);
 
         let alt = gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) as i32;
@@ -155,7 +155,7 @@ impl TownState {
         vol.gen_roads(rng, 30);
         //vol.gen_parks(rng, 8);
         vol.emplace_columns();
-        let houses = vol.gen_houses(rng, 60);
+        let houses = vol.gen_houses(rng, 50);
         vol.gen_walls();
         vol.resolve_modules(rng);
         vol.cull_unused();
