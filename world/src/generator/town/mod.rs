@@ -348,7 +348,7 @@ impl TownVol {
         for wall in walls.iter() {
             let col = self.col(*wall).unwrap();
             let ground = col.ground;
-            for z in -1..2 {
+            for z in -1..3 {
                 self.set(Vec3::new(wall.x, wall.y, ground + z), CellKind::Wall.into());
             }
         }
