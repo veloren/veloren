@@ -37,7 +37,7 @@ impl Animation for IdleAnimation {
                 * 0.25,
         );
 
-        next.grizzly_bear_upper_head.offset = Vec3::new(-3.0, 17.5, 9.0 + wave_ultra_slow * 1.0) / 11.0;
+        next.grizzly_bear_upper_head.offset = Vec3::new(-3.0, 14.5, 9.0 + wave_ultra_slow * 1.0) / 11.0;
         next.grizzly_bear_upper_head.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.grizzly_bear_upper_head.scale = Vec3::one() / 11.0;
 
