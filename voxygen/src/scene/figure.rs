@@ -691,15 +691,10 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if std::mem::discriminant(&last_character.0.movement)
-                        != std::mem::discriminant(&character.movement)
-                    {
+                    if !character.is_same_movement(&last_character.0) {
                         state.last_movement_change = Instant::now();
                     }
-
-                    if std::mem::discriminant(&last_character.0.action)
-                        != std::mem::discriminant(&character.action)
-                    {
+                    if !character.is_same_action(&last_character.0) {
                         state.last_action_change = Instant::now();
                     }
 
@@ -790,9 +785,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if std::mem::discriminant(&last_character.0.movement)
-                        != std::mem::discriminant(&character.movement)
-                    {
+                    if !character.is_same_movement(&last_character.0) {
                         state.last_movement_change = Instant::now();
                     }
 
@@ -839,9 +832,7 @@ impl FigureMgr {
                         _ => continue,
                     };
 
-                    if std::mem::discriminant(&last_character.0.movement)
-                        != std::mem::discriminant(&character.movement)
-                    {
+                    if !character.is_same_movement(&last_character.0) {
                         state.last_movement_change = Instant::now();
                     }
 
