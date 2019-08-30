@@ -12,6 +12,7 @@ pub enum ClientMsg {
     Character {
         name: String,
         body: comp::Body,
+        main: Option<comp::item::Tool>,
     },
     Controller(comp::Controller),
     RequestState(ClientState),
@@ -29,6 +30,7 @@ pub enum ClientMsg {
         vel: comp::Vel,
         ori: comp::Ori,
     },
+    UseInventorySlot(usize),
     SwapInventorySlots(usize, usize),
     DropInventorySlot(usize),
     PickUp(u64),

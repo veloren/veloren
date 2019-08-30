@@ -1,7 +1,7 @@
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Tool {
     Daggers,
     SwordShield,
@@ -36,7 +36,7 @@ pub const ALL_TOOLS: [Tool; 7] = [
     Tool::Staff,
 ];
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Armor {
     // TODO: Don't make armor be a body part. Wearing enemy's head is funny but also creepy thing to do.
     Helmet,
@@ -77,6 +77,11 @@ pub enum ConsumptionEffect {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Debug {
+    Boost,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Item {
     Tool {
         kind: Tool,
@@ -91,6 +96,7 @@ pub enum Item {
         effect: ConsumptionEffect,
     },
     Ingredient,
+    Debug(Debug),
 }
 
 impl Item {
@@ -100,6 +106,7 @@ impl Item {
             Item::Armor { kind, .. } => kind.name(),
             Item::Consumable { .. } => "<consumable>",
             Item::Ingredient => "<ingredient>",
+            Item::Debug(_) => "Debugging item",
         }
     }
 
@@ -109,6 +116,7 @@ impl Item {
             Item::Armor { .. } => "armour",
             Item::Consumable { .. } => "consumable",
             Item::Ingredient => "ingredient",
+            Item::Debug(_) => "debug",
         }
     }
 

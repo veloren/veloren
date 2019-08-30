@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::Stats;
+use common::comp::{item::Tool, Item, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -351,10 +351,16 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(self.imgs.twohhammer_m1) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m1_slot_bg)
-            .set(state.ids.m1_content, ui);
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m1,
+                _ => self.imgs.twohhammer_m1,
+            },
+            _ => self.imgs.twohhammer_m1,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m1_slot_bg)
+        .set(state.ids.m1_content, ui);
         // M2 Slot
         Image::new(self.imgs.skillbar_slot_big)
             .w_h(40.0 * scale, 40.0 * scale)
@@ -365,10 +371,16 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(self.imgs.twohhammer_m2) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m2_slot_bg)
-            .set(state.ids.m2_content, ui);
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m2,
+                _ => self.imgs.twohhammer_m2,
+            },
+            _ => self.imgs.twohhammer_m2,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m2_slot_bg)
+        .set(state.ids.m2_content, ui);
         //Slot 5
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)

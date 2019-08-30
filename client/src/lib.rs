@@ -149,9 +149,14 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, name: String, body: comp::Body) {
+    pub fn request_character(
+        &mut self,
+        name: String,
+        body: comp::Body,
+        main: Option<comp::item::Tool>,
+    ) {
         self.postbox
-            .send_message(ClientMsg::Character { name, body });
+            .send_message(ClientMsg::Character { name, body, main });
         self.client_state = ClientState::Pending;
     }
 
@@ -174,6 +179,10 @@ impl Client {
         self.postbox
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap()));
         // Can't fail
+    }
+
+    pub fn use_inventory_slot(&mut self, x: usize) {
+        self.postbox.send_message(ClientMsg::UseInventorySlot(x))
     }
 
     pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {

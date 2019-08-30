@@ -273,9 +273,7 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mut vel, _) in
-            (&positions, scales.maybe(), &mut velocities, &bodies).join()
-        {
+        for (pos, scale, vel, _) in (&positions, scales.maybe(), &mut velocities, &bodies).join() {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             for (pos_other, scale_other, _) in (&positions, scales.maybe(), &bodies).join() {
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);

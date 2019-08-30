@@ -4,13 +4,14 @@ use super::{
 };
 use crate::{
     comp::{
-        ActionState::*, Body, CharacterState, Controller, MovementState::*, PhysicsState, Stats,
-        Vel,
+        item, ActionState::*, Body, CharacterState, Controller, Item, MovementState::*,
+        PhysicsState, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 use std::time::Duration;
+use vek::*;
 
 /// This system is responsible for validating controller inputs
 pub struct Sys;
@@ -96,7 +97,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Wield
-            if controller.attack
+            if controller.primary
                 && character.action == Idle
                 && (character.movement == Stand || character.movement == Run)
             {
@@ -105,33 +106,53 @@ impl<'a> System<'a> for Sys {
                 };
             }
 
-            // Attack
-            if controller.attack
-                && (character.movement == Stand
-                    || character.movement == Run
-                    || character.movement == Jump)
-            {
-                // TODO: Check if wield ability exists
-                if let Wield { time_left } = character.action {
-                    if time_left == Duration::default() {
-                        character.action = Attack {
-                            time_left: ATTACK_DURATION,
-                            applied: false,
+            match stats.equipment.main {
+                Some(Item::Tool { .. }) => {
+                    // Attack
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        // TODO: Check if wield ability exists
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                character.action = Attack {
+                                    time_left: ATTACK_DURATION,
+                                    applied: false,
+                                };
+                            }
+                        }
+                    }
+
+                    // Block
+                    if controller.secondary
+                        && (character.movement == Stand || character.movement == Run)
+                        && (character.action == Idle || character.action.is_wield())
+                    {
+                        character.action = Block {
+                            time_left: Duration::from_secs(5),
                         };
+                    } else if !controller.secondary && character.action.is_block() {
+                        character.action = Idle;
                     }
                 }
-            }
-
-            // Block
-            if controller.block
-                && (character.movement == Stand || character.movement == Run)
-                && (character.action == Idle || character.action.is_wield())
-            {
-                character.action = Block {
-                    time_left: Duration::from_secs(5),
-                };
-            } else if !controller.block && character.action.is_block() {
-                character.action = Idle;
+                Some(Item::Debug(item::Debug::Boost)) => {
+                    if controller.primary {
+                        local_emitter.emit(LocalEvent::Boost {
+                            entity,
+                            vel: controller.look_dir * 7.0,
+                        });
+                    }
+                    if controller.secondary {
+                        // Go upward
+                        local_emitter.emit(LocalEvent::Boost {
+                            entity,
+                            vel: Vec3::new(0.0, 0.0, 7.0),
+                        });
+                    }
+                }
+                _ => {}
             }
 
             // Roll

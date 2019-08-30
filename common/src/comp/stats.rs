@@ -1,4 +1,4 @@
-use crate::state::Uid;
+use crate::{comp, state::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -42,6 +42,13 @@ pub struct Exp {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Level {
     amount: u32,
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub struct Equipment {
+    pub main: Option<comp::Item>,
+    pub alt: Option<comp::Item>,
+    // TODO: Armor
 }
 
 impl Health {
@@ -145,12 +152,12 @@ pub struct Stats {
     pub energy: Energy,
     pub level: Level,
     pub exp: Exp,
+    pub equipment: Equipment,
     pub is_dead: bool,
 }
 
 impl Stats {
     pub fn should_die(&self) -> bool {
-        // TODO: Remove
         self.health.current == 0
     }
     pub fn revive(&mut self) {
@@ -161,7 +168,7 @@ impl Stats {
 }
 
 impl Stats {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, main: Option<comp::Item>) -> Self {
         Self {
             name,
             health: Health {
@@ -178,6 +185,10 @@ impl Stats {
                 current: 200,
                 maximum: 200,
                 last_change: None,
+            },
+            equipment: Equipment {
+                main: main,
+                alt: None,
             },
             is_dead: false,
         }
