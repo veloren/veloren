@@ -602,7 +602,7 @@ impl Terrain {
         focus_pos: Vec3<f32>,
     ) {
         // Opaque
-        for (pos, chunk) in &self.chunks {
+        for (_, chunk) in &self.chunks {
             if chunk.visible {
                 renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
             }
