@@ -200,12 +200,13 @@ impl Server {
         client: &mut Client,
         name: String,
         body: comp::Body,
+        main: Option<comp::Item>,
         server_settings: &ServerSettings,
     ) {
         let spawn_point = state.ecs().read_resource::<SpawnPoint>().0;
 
         state.write_component(entity, body);
-        state.write_component(entity, comp::Stats::new(name));
+        state.write_component(entity, comp::Stats::new(name, main));
         state.write_component(entity, comp::Controller::default());
         state.write_component(entity, comp::Pos(spawn_point));
         state.write_component(entity, comp::Vel(Vec3::zero()));
@@ -433,11 +434,17 @@ impl Server {
             // Handle chunk supplement
             for npc in supplement.npcs {
                 let (mut stats, mut body) = if rand::random() {
-                    let stats = comp::Stats::new("Humanoid".to_string());
+                    let stats = comp::Stats::new(
+                        "Humanoid".to_string(),
+                        Some(comp::Item::Tool {
+                            kind: comp::item::Tool::Sword,
+                            power: 10,
+                        }),
+                    );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     (stats, body)
                 } else {
-                    let stats = comp::Stats::new("Wolf".to_string());
+                    let stats = comp::Stats::new("Wolf".to_string(), None);
                     let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
                     (stats, body)
                 };
@@ -445,7 +452,13 @@ impl Server {
 
                 if npc.boss {
                     if rand::random::<f32>() < 0.8 {
-                        stats = comp::Stats::new("Humanoid".to_string());
+                        stats = comp::Stats::new(
+                            "Humanoid".to_string(),
+                            Some(comp::Item::Tool {
+                                kind: comp::item::Tool::Sword,
+                                power: 10,
+                            }),
+                        );
                         body = comp::Body::Humanoid(comp::humanoid::Body::random());
                     }
                     stats = stats.with_max_health(500 + rand::random::<u32>() % 400);
@@ -699,6 +712,34 @@ impl Server {
                             }
                             _ => {}
                         },
+                        ClientMsg::UseInventorySlot(x) => {
+                            let item = state
+                                .ecs()
+                                .write_storage::<comp::Inventory>()
+                                .get_mut(entity)
+                                .and_then(|inv| inv.remove(x));
+
+                            match item {
+                                Some(comp::Item::Tool { .. }) | Some(comp::Item::Debug(_)) => {
+                                    if let Some(stats) =
+                                        state.ecs().write_storage::<comp::Stats>().get_mut(entity)
+                                    {
+                                        // Insert old item into inventory
+                                        if let Some(old_item) = stats.equipment.main.take() {
+                                            state
+                                                .ecs()
+                                                .write_storage::<comp::Inventory>()
+                                                .get_mut(entity)
+                                                .map(|inv| inv.insert(x, old_item));
+                                        }
+
+                                        stats.equipment.main = item;
+                                    }
+                                }
+                                _ => {}
+                            }
+                            state.write_component(entity, comp::InventoryUpdate);
+                        }
                         ClientMsg::SwapInventorySlots(a, b) => {
                             state
                                 .ecs()
@@ -740,11 +781,11 @@ impl Server {
                                 item_entity.and_then(|item_entity| {
                                     ecs.write_storage::<comp::Item>()
                                         .get_mut(item_entity)
-                                        .map(|item| (*item, item_entity))
+                                        .map(|item| (item.clone(), item_entity))
                                 }),
                                 ecs.write_storage::<comp::Inventory>().get_mut(entity),
                             ) {
-                                if inv.insert(item).is_none() {
+                                if inv.push(item).is_none() {
                                     Some(item_entity)
                                 } else {
                                     None
@@ -759,7 +800,7 @@ impl Server {
 
                             state.write_component(entity, comp::InventoryUpdate);
                         }
-                        ClientMsg::Character { name, body } => match client.client_state {
+                        ClientMsg::Character { name, body, main } => match client.client_state {
                             // Become Registered first.
                             ClientState::Connected => {
                                 client.error_state(RequestStateError::Impossible)
@@ -773,6 +814,7 @@ impl Server {
                                     client,
                                     name,
                                     body,
+                                    main.map(|t| comp::Item::Tool { kind: t, power: 10 }),
                                     &server_settings,
                                 );
                                 if let Some(player) =

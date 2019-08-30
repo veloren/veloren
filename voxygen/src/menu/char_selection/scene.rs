@@ -15,7 +15,7 @@ use crate::{
 };
 use client::Client;
 use common::{
-    comp::{humanoid, Body},
+    comp::{humanoid, Body, Equipment},
     state::DeltaTime,
     terrain::BlockKind,
 };
@@ -132,12 +132,23 @@ impl Scene {
         );
     }
 
-    pub fn render(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
+    pub fn render(
+        &mut self,
+        renderer: &mut Renderer,
+        client: &Client,
+        body: humanoid::Body,
+        equipment: &Equipment,
+    ) {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         let model = &self
             .figure_model_cache
-            .get_or_create_model(renderer, Body::Humanoid(body), client.get_tick())
+            .get_or_create_model(
+                renderer,
+                Body::Humanoid(body),
+                Some(equipment),
+                client.get_tick(),
+            )
             .0;
 
         renderer.render_figure(

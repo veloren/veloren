@@ -24,5 +24,5 @@ pub use inventory::{item, Inventory, InventoryUpdate, Item};
 pub use last::Last;
 pub use phys::{ForceUpdate, Ori, PhysicsState, Pos, Scale, Vel};
 pub use player::Player;
-pub use stats::{Exp, HealthSource, Level, Stats};
+pub use stats::{Equipment, Exp, HealthSource, Level, Stats};
 pub use visual::LightEmitter;
