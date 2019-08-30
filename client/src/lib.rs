@@ -149,9 +149,14 @@ impl Client {
     }
 
     /// Request a state transition to `ClientState::Character`.
-    pub fn request_character(&mut self, name: String, body: comp::Body) {
+    pub fn request_character(
+        &mut self,
+        name: String,
+        body: comp::Body,
+        main: Option<comp::item::Tool>,
+    ) {
         self.postbox
-            .send_message(ClientMsg::Character { name, body });
+            .send_message(ClientMsg::Character { name, body, main });
         self.client_state = ClientState::Pending;
     }
 
@@ -174,6 +179,10 @@ impl Client {
         self.postbox
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap()));
         // Can't fail
+    }
+
+    pub fn use_inventory_slot(&mut self, x: usize) {
+        self.postbox.send_message(ClientMsg::UseInventorySlot(x))
     }
 
     pub fn swap_inventory_slots(&mut self, a: usize, b: usize) {
@@ -444,12 +453,12 @@ impl Client {
                             self.state.write_component(entity, ori);
                         }
                     }
-                    ServerMsg::EntityActionState {
+                    ServerMsg::EntityCharacterState {
                         entity,
-                        action_state,
+                        character_state,
                     } => {
                         if let Some(entity) = self.state.ecs().entity_from_uid(entity) {
-                            self.state.write_component(entity, action_state);
+                            self.state.write_component(entity, character_state);
                         }
                     }
                     ServerMsg::InventoryUpdate(inventory) => {

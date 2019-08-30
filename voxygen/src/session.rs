@@ -2,7 +2,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
-    scene::{camera::Camera, Scene},
+    scene::Scene,
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -105,19 +105,19 @@ impl PlayState for SessionState {
                 self.client.borrow_mut().send_chat(cmd.to_string());
             }
         }
-        // Compute camera data
-        let get_cam_data = |camera: &Camera, client: &Client| {
-            let (view_mat, _, cam_pos) = camera.compute_dependents(client);
-            let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
-
-            (cam_dir, cam_pos)
-        };
 
         // Game loop
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Character | ClientState::Dead =
             current_client_state
         {
+            // Compute camera data
+            let (view_mat, _, cam_pos) = self
+                .scene
+                .camera()
+                .compute_dependents(&self.client.borrow());
+            let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
+
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -129,9 +129,7 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    Event::InputUpdate(GameInput::Attack, state) => {
-                        self.controller.respawn = state; // TODO: Move this into separate GameInput
-
+                    Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
@@ -142,8 +140,6 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            let (cam_dir, cam_pos) = get_cam_data(&self.scene.camera(), &client);
-
                             let (d, b) = {
                                 let terrain = client.state().terrain();
                                 let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
@@ -156,36 +152,31 @@ impl PlayState for SessionState {
                                 client.place_block(pos, self.selected_block);
                             }
                         } else {
-                            self.controller.attack = state
+                            self.controller.primary = state
                         }
                     }
 
-                    Event::InputUpdate(GameInput::SecondAttack, state) => {
-                        if state {
-                            let mut client = self.client.borrow_mut();
-                            if client
+                    Event::InputUpdate(GameInput::Secondary, state) => {
+                        let mut client = self.client.borrow_mut();
+                        if state
+                            && client
                                 .state()
                                 .read_storage::<comp::CanBuild>()
                                 .get(client.entity())
                                 .is_some()
-                            {
-                                let (cam_dir, cam_pos) =
-                                    get_cam_data(&self.scene.camera(), &client);
+                        {
+                            let (d, b) = {
+                                let terrain = client.state().terrain();
+                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
+                            };
 
-                                let (d, b) = {
-                                    let terrain = client.state().terrain();
-                                    let ray =
-                                        terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                    (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                                };
-
-                                if b {
-                                    let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                    client.remove_block(pos);
-                                }
-                            } else {
-                                // TODO: Handle secondary attack
+                            if b {
+                                let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
+                                client.remove_block(pos);
                             }
+                        } else {
+                            self.controller.secondary = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
@@ -197,9 +188,6 @@ impl PlayState for SessionState {
                             .is_some()
                         {
                             if state {
-                                let (cam_dir, cam_pos) =
-                                    get_cam_data(&self.scene.camera(), &client);
-
                                 if let Ok(Some(block)) = client
                                     .state()
                                     .terrain()
@@ -213,6 +201,9 @@ impl PlayState for SessionState {
                         } else {
                             self.controller.roll = state;
                         }
+                    }
+                    Event::InputUpdate(GameInput::Respawn, state) => {
+                        self.controller.respawn = state;
                     }
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.controller.jump = state;
@@ -270,6 +261,8 @@ impl PlayState for SessionState {
             );
             let dir_vec = self.key_state.dir_vec();
             self.controller.move_dir = unit_vecs.0 * dir_vec[0] + unit_vecs.1 * dir_vec[1];
+
+            self.controller.look_dir = cam_dir;
 
             // Perform an in-game tick.
             if let Err(err) = self.tick(clock.get_avg_delta()) {
@@ -383,6 +376,7 @@ impl PlayState for SessionState {
                         global_state.settings.graphics.max_fps = fps;
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::UseInventorySlot(x) => self.client.borrow_mut().use_inventory_slot(x),
                     HudEvent::SwapInventorySlots(a, b) => {
                         self.client.borrow_mut().swap_inventory_slots(a, b)
                     }

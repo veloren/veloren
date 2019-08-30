@@ -3,7 +3,7 @@ use super::{
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
-use common::comp::Stats;
+use common::comp::{item::Tool, Item, Stats};
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
@@ -116,7 +116,7 @@ impl<'a> Skillbar<'a> {
 pub struct State {
     ids: Ids,
 
-    last_xp_value: f64,
+    last_xp_value: u32,
     last_level: u32,
     last_update_xp: Instant,
     last_update_level: Instant,
@@ -131,7 +131,7 @@ impl<'a> Widget for Skillbar<'a> {
         State {
             ids: Ids::new(id_gen),
 
-            last_xp_value: 0.0,
+            last_xp_value: 0,
             last_level: 1,
             last_update_xp: Instant::now(),
             last_update_level: Instant::now(),
@@ -148,7 +148,7 @@ impl<'a> Widget for Skillbar<'a> {
         let level = (self.stats.level.level()).to_string();
         let next_level = (self.stats.level.level() + 1).to_string();
 
-        let exp_percentage = self.stats.exp.current() / self.stats.exp.maximum();
+        let exp_percentage = (self.stats.exp.current() as f64) / (self.stats.exp.maximum() as f64);
 
         let hp_percentage =
             self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
@@ -217,11 +217,14 @@ impl<'a> Widget for Skillbar<'a> {
                 .font_size(40)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
-            Text::new("Press L-Mouse to respawn.")
-                .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
-                .font_size(15)
-                .color(CRITICAL_HP_COLOR)
-                .set(state.ids.death_message_2, ui);
+            Text::new(&format!(
+                "Press {:?} to respawn.",
+                self.global_state.settings.controls.respawn
+            ))
+            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .font_size(15)
+            .color(CRITICAL_HP_COLOR)
+            .set(state.ids.death_message_2, ui);
         }
         // Experience-Bar
         match self.global_state.settings.gameplay.xp_bar {
@@ -278,7 +281,7 @@ impl<'a> Widget for Skillbar<'a> {
                 }
 
                 let seconds_xp = state.last_update_xp.elapsed().as_secs_f32();
-                let fade_xp = if current_xp == 0.0 {
+                let fade_xp = if current_xp == 0 {
                     0.0
                 } else if seconds_xp < FADE_IN_XP {
                     seconds_xp / FADE_IN_XP
@@ -348,10 +351,16 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m1_slot)
             .set(state.ids.m1_slot_bg, ui);
-        Button::image(self.imgs.twohhammer_m1) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m1_slot_bg)
-            .set(state.ids.m1_content, ui);
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m1,
+                _ => self.imgs.twohhammer_m1,
+            },
+            _ => self.imgs.twohhammer_m1,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m1_slot_bg)
+        .set(state.ids.m1_content, ui);
         // M2 Slot
         Image::new(self.imgs.skillbar_slot_big)
             .w_h(40.0 * scale, 40.0 * scale)
@@ -362,10 +371,16 @@ impl<'a> Widget for Skillbar<'a> {
             .color(Some(BG_COLOR))
             .middle_of(state.ids.m2_slot)
             .set(state.ids.m2_slot_bg, ui);
-        Button::image(self.imgs.twohhammer_m2) // Insert Icon here
-            .w_h(38.0 * scale, 38.0 * scale)
-            .middle_of(state.ids.m2_slot_bg)
-            .set(state.ids.m2_content, ui);
+        Button::image(match self.stats.equipment.main {
+            Some(Item::Tool { kind, .. }) => match kind {
+                Tool::Sword => self.imgs.twohsword_m2,
+                _ => self.imgs.twohhammer_m2,
+            },
+            _ => self.imgs.twohhammer_m2,
+        }) // Insert Icon here
+        .w_h(38.0 * scale, 38.0 * scale)
+        .middle_of(state.ids.m2_slot_bg)
+        .set(state.ids.m2_content, ui);
         //Slot 5
         Image::new(self.imgs.skillbar_slot)
             .w_h(20.0 * scale, 20.0 * scale)

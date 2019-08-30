@@ -11,5 +11,5 @@ uvth = "3.1.1"
 num_cpus = "1.10.1"
 log = "0.4.8"
 specs = "0.14.2"
-vek = "0.9.8"
+vek = { version = "0.9.9", features = ["serde"] }
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }

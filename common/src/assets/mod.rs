@@ -188,8 +188,8 @@ impl Asset for String {
     }
 }
 
-/// Lazy static to find and cache where the asset directory is.
 lazy_static! {
+    /// Lazy static to find and cache where the asset directory is.
     static ref ASSETS_PATH: PathBuf = {
         let mut paths = Vec::new();
 

@@ -1,4 +1,4 @@
-use crate::state::Uid;
+use crate::{comp, state::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -35,13 +35,20 @@ pub struct Energy {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Exp {
-    current: f64,
-    maximum: f64,
+    current: u32,
+    maximum: u32,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Level {
     amount: u32,
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+pub struct Equipment {
+    pub main: Option<comp::Item>,
+    pub alt: Option<comp::Item>,
+    // TODO: Armor
 }
 
 impl Health {
@@ -97,29 +104,29 @@ impl Energy {
 }
 
 impl Exp {
-    pub fn current(&self) -> f64 {
+    pub fn current(&self) -> u32 {
         self.current
     }
 
-    pub fn maximum(&self) -> f64 {
+    pub fn maximum(&self) -> u32 {
         self.maximum
     }
 
-    pub fn set_current(&mut self, current: f64) {
+    pub fn set_current(&mut self, current: u32) {
         self.current = current;
     }
 
     // TODO: Uncomment when needed
-    // pub fn set_maximum(&mut self, maximum: f64) {
+    // pub fn set_maximum(&mut self, maximum: u32) {
     // self.maximum = maximum;
     // }
 
-    pub fn change_by(&mut self, current: f64) {
-        self.current = self.current + current;
+    pub fn change_by(&mut self, current: i64) {
+        self.current = ((self.current as i64) + current) as u32;
     }
 
-    pub fn change_maximum_by(&mut self, maximum: f64) {
-        self.maximum = self.maximum + maximum;
+    pub fn change_maximum_by(&mut self, maximum: i64) {
+        self.maximum = ((self.maximum as i64) + maximum) as u32;
     }
 }
 
@@ -145,12 +152,12 @@ pub struct Stats {
     pub energy: Energy,
     pub level: Level,
     pub exp: Exp,
+    pub equipment: Equipment,
     pub is_dead: bool,
 }
 
 impl Stats {
     pub fn should_die(&self) -> bool {
-        // TODO: Remove
         self.health.current == 0
     }
     pub fn revive(&mut self) {
@@ -161,7 +168,7 @@ impl Stats {
 }
 
 impl Stats {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: String, main: Option<comp::Item>) -> Self {
         Self {
             name,
             health: Health {
@@ -171,13 +178,17 @@ impl Stats {
             },
             level: Level { amount: 1 },
             exp: Exp {
-                current: 0.0,
-                maximum: 50.0,
+                current: 0,
+                maximum: 50,
             },
             energy: Energy {
                 current: 200,
                 maximum: 200,
                 last_change: None,
+            },
+            equipment: Equipment {
+                main: main,
+                alt: None,
             },
             is_dead: false,
         }
