@@ -851,6 +851,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
             let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+            let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
             let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
             let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
             let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
@@ -862,12 +863,13 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
 alt_base {:?}
 alt {:?}
 chaos {:?}
+flux {:?}
 temp {:?}
 humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
-                wpos, alt_base, alt, chaos, temp, humidity, rockiness, tree_density, spawn_rate
+                wpos, alt_base, alt, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
             ))
         };
         if let Some(s) = foo() {

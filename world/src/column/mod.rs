@@ -204,7 +204,26 @@ impl<'a> Sampler for ColumnGen<'a> {
         } else {
             riverless_alt - 4.0 - 5.0 * chaos
         }; */ */
-        let water_level = riverless_alt - 4.0 - 5.0 * chaos;
+        // let water_level = riverless_alt - 4.0 - 5.0 * chaos;
+        let water_factor = (1024.0 * 1024.0) / 50.0;
+        let water_factor_diff = water_factor / 2.0;
+        let (alt, water_level) = (
+            Lerp::lerp(
+                   alt,
+                   Lerp::lerp(alt - 32.0, alt, (1.0 - flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)),
+                   (flux * water_factor - /*0.33*/0.25) * 256.0,
+            ),
+            /*Lerp::lerp(
+                   alt,*/
+                   Lerp::lerp(alt - 16.0, alt, (/*(flux - 0.85) / (1.0 - 0.85)*/flux) * water_factor),
+                   /*(flux - water_factor * 0.33) * 256.0,
+            ),*/
+        );
+
+        /*} else {
+            (alt, CONFIG.sea_level)
+            // riverless_alt - 4.0 - 5.0 * chaos
+        }*/;
 
         let rock = (sim.gen_ctx.small_nz.get(
             Vec3::new(wposf.x, wposf.y, alt as f64)

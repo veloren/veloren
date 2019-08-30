@@ -3,6 +3,7 @@ use crate::{
     util::{RandomField, RandomPerm, Sampler},
 };
 use noise::{Point3, NoiseFn};
+use rayon::prelude::*;
 use std::{f32, mem, u32};
 use super::WORLD_SIZE;
 use common::{terrain::TerrainChunkSize, vol::VolSize};
@@ -157,8 +158,9 @@ pub fn vec2_as_uniform_idx(idx: Vec2<i32>) -> usize {
 /// this one, and the actual noise value (we don't need to cache it, but it makes ensuring that
 /// subsequent code that needs the noise value actually uses the same one we were using here
 /// easier).
-pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32>) -> InverseCdf {
+pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) -> InverseCdf {
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+        .into_par_iter()
         .filter_map(|i| {
             (f(
                 i,
@@ -172,7 +174,7 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32>) -> InverseCdf 
     // sort_unstable_by is equivalent to sort_by here since we include a unique index in the
     // comparison.  We could leave out the index, but this might make the order not
     // reproduce the same way between different versions of Rust (for example).
-    noise.sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
+    noise.par_sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
 
     // Construct a vector that associates each chunk position with the 1-indexed
     // position of the noise in the sorted vector (divided by the vector length).
@@ -198,8 +200,10 @@ fn neighbors(posi: usize) -> impl Clone + Iterator<Item=usize> {
 }
 
 /// Compute the neighbor "most downhill" from all chunks.
+///
+/// TODO: See if allocating in advance is worthwhile.
 pub fn downhill(h: &[f32]) -> Box<[isize]> {
-    h.iter().enumerate().map(|(posi, &nh)| {
+    h.par_iter().enumerate().map(|(posi, &nh)| {
         if map_edge_factor(posi) == 0.0 || nh <= 0.0 {
             -2
         } else {
@@ -217,18 +221,27 @@ pub fn downhill(h: &[f32]) -> Box<[isize]> {
     }).collect::<Vec<_>>().into_boxed_slice()
 }
 
+/// Construct an initial list of chunk indices.
+pub fn alt_positions() -> Box<[u32]> {
+    (0..(WORLD_SIZE.x * WORLD_SIZE.y) as u32).collect::<Vec<_>>().into_boxed_slice()
+}
+
 /// Sort the chunk indices by (increasing) height.
-pub fn height_sorted(h: &[f32]) -> Box<[usize]> {
-    let mut newh = (0..h.len()).collect::<Vec<_>>().into_boxed_slice();
+pub fn sort_by_height(h: &[f32], newh: &mut [u32]) {
+    // We trade off worse cache locality (not keeping the key with the height) for hopefully much
+    // faster sorts after the first time (since we expect height orders to be mostly unchanged
+    // after the first iteration or two).
+    newh.par_sort_unstable_by(|&i, &j| h[i as usize].partial_cmp(&h[j as usize]).unwrap());
+    /* let mut newh = (0..h.len()).collect::<Vec<_>>().into_boxed_slice();
 
     // Sort by altitude.
     newh.sort_unstable_by(|&i, &j| h[i].partial_cmp(&h[j]).unwrap());
-    newh
+    newh */
 }
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted by increasing
 /// height.
-pub fn get_flux(newh: &[usize], downhill: &[isize]) -> Box<[f32]> {
+pub fn get_flux(newh: &[u32], downhill: &[isize]) -> Box<[f32]> {
     /* let mut newh = h.iter().enumerate().collect::<Vec<_>>();
 
     // Sort by altitude
@@ -242,6 +255,7 @@ pub fn get_flux(newh: &[usize], downhill: &[isize]) -> Box<[f32]> {
     let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
     let mut flux = vec![base_flux ; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     for &chunk_idx in newh.into_iter().rev() {
+        let chunk_idx = chunk_idx as usize;
         let downhill_idx = downhill[chunk_idx];
         if downhill_idx >= 0 {
             flux[downhill_idx as usize] += flux[chunk_idx];
@@ -267,7 +281,7 @@ pub fn get_flux(newh: &[usize], downhill: &[isize]) -> Box<[f32]> {
     return flux; */
 }
 
-/// trislope algorithm
+/* /// trislope algorithm
 fn tri_slope(h: &[f32], posi: usize, seed: &RandomField) -> Vec2<f32> {
     // Compute a random contiguous group of 3 adjacent vertices.
     let pos = uniform_idx_as_vec2(posi);
@@ -363,7 +377,7 @@ fn tri_slope(h: &[f32], posi: usize, seed: &RandomField) -> Vec2<f32> {
 
     return [(y2 * h1 - y1 * h2) / det,
             (-x2 * h1 + x1 * h2) / det]; */
-}
+} */
 
 /* /// Compute the slope at all chunks.
 fn get_slope(h: &[f32], newh: &[usize], downhill: &[isize], seed: &RandomField) -> Box<[f32]> {
@@ -421,6 +435,35 @@ fn get_slope(h: &[f32], newh: &[usize], downhill: &[isize], seed: &RandomField) 
 //
 // s(p) = ∇h(p).
 
+/// Precompute the maximum slope at all points.
+///
+/// TODO: See if allocating in advance is worthwhile.
+fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync)) -> Box<[f32]> {
+    const MIN_MAX_ANGLE : f32 = 6.0 / 360.0 * 2.0 * f32::consts::PI;
+    const MAX_MAX_ANGLE : f32 = 54.0 / 360.0 * 2.0 * f32::consts::PI;
+    const MAX_ANGLE_RANGE : f32 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
+    h.par_iter().enumerate().map(|(posi, &z)| {
+        let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::SIZE.map(|e| e as i32))
+            .map(|e| e as f64);
+        // let wposf = uniform_idx_as_vec2(posi)
+        //     .map(|e| e as f64) / WORLD_SIZE.map(|e| e as f64);
+        let wposz = (z * CONFIG.mountain_scale) as f64;
+        // let wposz = h[posi] as f64;
+        // Normalized to be between 6 and and 54 degrees.
+        let rock_strength = (rock_strength_nz.get([wposf.x, wposf.y, wposz]) * 0.5 + 0.5)
+            .min(1.0)
+            .max(0.0) as f32;
+        /* if rock_strength < 0.0 || rock_strength > 1.0 {
+            println!("Huh strength?: {:?}", rock_strength);
+        } */
+        let max_slope = (rock_strength * MAX_ANGLE_RANGE + MIN_MAX_ANGLE).tan();
+        /* if max_slope > 1.48 || max_slope < 0.0 {
+            println!("Huh? {:?}", max_slope);
+        } */
+        max_slope
+    }).collect::<Vec<_>>().into_boxed_slice()
+}
+/*
 /// Compute the maximum slope at a point.
 fn get_max_slope(posi: usize, z: f32, rock_strength_nz: &impl NoiseFn<Point3<f64>>) -> f32 {
     const MIN_MAX_ANGLE : f32 = 6.0 / 360.0 * 2.0 * f32::consts::PI;
@@ -444,6 +487,7 @@ fn get_max_slope(posi: usize, z: f32, rock_strength_nz: &impl NoiseFn<Point3<f64
     } */
     max_slope
 }
+*/
 
 /* /// Compute erosion rates for all chunks.
 fn erosion_rate(k: f32, h: &[f32], downhill: &[isize], seed: &RandomField,
@@ -582,18 +626,43 @@ fn erosion_rate(k: f32, h: &[f32], downhill: &[isize], seed: &RandomField,
 ///     Computer Graphics Forum, Wiley, 2016, Proc. EUROGRAPHICS 2016, 35 (2), pp.165-175.
 ///     ⟨10.1111/cgf.12820⟩. ⟨hal-01262376⟩
 ///
-fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
-         rock_strength_nz: &impl NoiseFn<Point3<f64>>,
+fn erode(h: &mut [f32], newh: &mut [u32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
+         rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
          uplift: impl Fn(usize) -> f32) {
-    let dh = downhill(h);
+    println!("Done draining...");
+    let mmaxh = 1.0;
+    let k = erosion_base + 2.244 / mmaxh * max_uplift;
+    let ((dh, area), max_slope) = rayon::join(
+        || {
+            let (dh, ()) = rayon::join(
+                || {
+                    let dh = downhill(h);
+                    println!("Computed downhill...");
+                    dh
+                },
+                || {
+                    sort_by_height(h, newh);
+                    println!("Sorted... (max height: {:?}",
+                             newh.last().map(|&posi| h[posi as usize]));
+                },
+            );
+            let area = get_flux(newh, &dh);
+            println!("Got flux...");
+            (dh, area)
+        },
+        || {
+            let max_slope = get_max_slope(h, rock_strength_nz);
+            println!("Got max slopes...");
+            max_slope
+        },
+    );
     /* // 1. Sort nodes in h by height.
     let mut newh = h.iter().enumerate().collect::<Vec<_>>();
     newh.sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap());
     // 2. Iterate through in reverse and compute drainage area. */
-    let mmaxh = 1.0;
-    let k = erosion_base + 2.244 / mmaxh * max_uplift;
-    let maxh = *h.iter().max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
-    println!("Eroding... (max height: {:?})", maxh);
+    // let maxh = *h.iter().max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
+    // println!("Computed downhill...");
+    // println!("Eroding... (max height: {:?})", maxh);
     /* let er = erosion_rate(k, h, &dh, seed, rock_strength_nz, uplift);
     let maxh = *h.iter().max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
     // let maxr = er.iter().max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
@@ -618,8 +687,9 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
     /* for (var i = 0; i < h.length; i++) {
         newh[i] = h[i] - amount * (er[i] / maxr);
     } */ */
-    let newh = height_sorted(h);
-    let area = get_flux(&newh, &dh);
+    /* let max_slope = get_max_slope(h, rock_strength_nz);
+    println!("Got max slopes..."); */
+    //let newh = height_sorted(h);
     // let slope = get_slope(h, newh, downhill, seed);
     assert!(h.len() == dh.len() &&
             dh.len() == /*flux*/area.len()/* &&
@@ -633,10 +703,12 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
     /* let min_max_angle = 6.0 / 360.0 * 2.0 * f32::consts::PI;
     let max_max_angle = 54.0 / 360.0 * 2.0 * f32::consts::PI;
     let max_angle_range = max_max_angle - min_max_angle; */
-    let neighbor_distance = TerrainChunkSize::SIZE.map(|e| e as f32).magnitude();
+    let neighbor_coef = Vec2::new(TerrainChunkSize::SIZE.x as f32, TerrainChunkSize::SIZE.y as f32);
+    // let neighbor_distance = TerrainChunkSize::SIZE.map(|e| e as f32).magnitude();
     // let mut rate = vec![0.0; h.len()].into_boxed_slice();
     // Iterate in ascending height order.
     for &posi in &*newh {
+        let posi = posi as usize;
         let posj = dh[posi];
         if posj < 0 {
             // Egress with no outgoing flows.
@@ -644,12 +716,13 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
             // 0.0 // Egress with no outgoing flows.
         } else {
             let posj = posj as usize;
-            let dist = Vec2::new(TerrainChunkSize::SIZE.x as f32, TerrainChunkSize::SIZE.y as f32);
+            let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f32);
             // let dist = Vec3::new(TerrainChunkSize::SIZE.x as f32, TerrainChunkSize::SIZE.y as f32, zdist);
             // zdist / dist.magnitude()
 
             // Has an outgoing flow edge (posi, posj).
             // flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1
+            let neighbor_distance = (neighbor_coef * dxy).magnitude();
             let flux = k * area[posi].sqrt() / neighbor_distance;
             // h[i](t + dt) = (h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt))) / (1 + flux(i) * δt).
             // NOTE: posj has already been computed since it's downhill from us.
@@ -661,7 +734,8 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
             /* if dz < 0.0 {
                 println!("Huh?: {:?}", dz);
             } */
-            let max_slope = get_max_slope(posi, new_h_i, rock_strength_nz);
+            // let max_slope = get_max_slope(posi, old_h_i/*new_h_i*/, rock_strength_nz);
+            let max_slope = max_slope[posi];
             /*rate[posi] =*/
             h[posi] = if dz.abs() / neighbor_distance > max_slope {
                 // println!("{:?}", max_slope);
@@ -676,6 +750,7 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, seed: &RandomField,
             }
         }
     }
+    println!("Done eroding.");
 }
 
 /// The Planchon-Darboux algorithm for extracting drainage networks.
@@ -687,7 +762,7 @@ pub fn fill_sinks(h: Box<[f32]>/*, epsilon: f64*/) -> Box<[f32]> {
     //let epsilon = 1e-5f32;
     let epsilon = 1e-7f32 / CONFIG.mountain_scale;
     let infinity = f32::INFINITY;
-    let mut newh = h.iter().enumerate().map(|(posi, &h)| {
+    let mut newh = h.par_iter().enumerate().map(|(posi, &h)| {
         let is_near_edge = map_edge_factor(posi) < 1.0 || h < 5.0 / CONFIG.mountain_scale;
         if is_near_edge {
             h
@@ -763,15 +838,18 @@ pub fn fill_sinks(h: Box<[f32]>/*, epsilon: f64*/) -> Box<[f32]> {
 }
 
 /// Perform erosion n times.
-pub fn do_erosion(h: &InverseCdf/*, epsilon: f64*/, erosion_base: f32, /*amount: f32, */n: usize,
-                  seed: &RandomField, rock_strength_nz: &impl NoiseFn<Point3<f64>>,
-                  uplift: impl Fn(usize) -> f32) -> Box<[f32]> {
+pub fn do_erosion(h: &InverseCdf/*, epsilon: f64*/, newh: &mut [u32],
+                  erosion_base: f32, /*amount: f32, */n: usize,
+                  seed: &RandomField, rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
+                  uplift: impl Fn(usize) -> f32 + Sync) -> Box<[f32]> {
     let max_uplift = (0..h.len())
+        .into_par_iter()
         .map( |posi| uplift(posi))
         .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
-    let mut h = fill_sinks(h.iter().map(|&(_, h)| h).collect::<Vec<_>>().into_boxed_slice());
+    let mut h = fill_sinks(h.par_iter().map(|&(_, h)| h).collect::<Vec<_>>().into_boxed_slice());
     for i in 0..n {
-        erode(&mut h, /*amount*/erosion_base, max_uplift, seed, rock_strength_nz, |posi| uplift(posi));
+        erode(&mut h, newh, /*amount*/erosion_base, max_uplift, seed,
+              rock_strength_nz, |posi| uplift(posi));
         h = fill_sinks(h);
     }
     h

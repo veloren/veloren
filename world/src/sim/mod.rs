@@ -6,8 +6,8 @@ mod util;
 pub use self::location::Location;
 pub use self::settlement::Settlement;
 use self::util::{
-    cdf_irwin_hall, do_erosion, downhill, get_flux, height_sorted, map_edge_factor,
-    uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
+    alt_positions, cdf_irwin_hall, do_erosion, downhill, get_flux, map_edge_factor,
+    sort_by_height, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
     InverseCdf,
 };
 
@@ -26,6 +26,7 @@ use noise::{
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
+use rayon::prelude::*;
 use std::{
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
@@ -90,7 +91,7 @@ impl WorldSim {
             *seed
         };
 
-        let mut gen_ctx = GenCtx {
+        let gen_ctx = GenCtx {
             turb_x_nz: SuperSimplex::new().set_seed(gen_seed()),
             turb_y_nz: SuperSimplex::new().set_seed(gen_seed()),
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed()),
@@ -125,94 +126,102 @@ impl WorldSim {
         };
         let river_seed = RandomField::new(gen_seed());
         let rock_strength_nz = Fbm::new()
-                .set_octaves(12)
-                .set_persistence(0.75)
+                .set_octaves(8)
+                .set_persistence(0.9)
                 .set_seed(gen_seed());
 
-        // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
-        // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
-        // but value here is from -0.275 to 0.225).
-        let alt_base = uniform_noise(|_, wposf| {
-            Some(
-                (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-                    .sub(0.1)
-                    .mul(0.25),
-            )
-        });
+        let (alt_base, chaos) = rayon::join(
+            || uniform_noise(|_, wposf| {
+                // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value
+                // is from -0.25 * (CONFIG.mountain_scale * 1.1) to
+                // 0.25 * (CONFIG.mountain_scale * 0.9), but value here is from -0.275 to 0.225).
+                Some(
+                    (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
+                        .sub(0.1)
+                        .mul(0.25),
+                )
+            }),
+            || uniform_noise(|posi, wposf| {
+                // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is
+                // a 50% chance that hill will end up at 0.
+                let hill = (0.0
+                    + gen_ctx
+                        .hill_nz
+                        .get((wposf.div(1_500.0)).into_array())
+                        .mul(1.0) as f32
+                    + gen_ctx
+                        .hill_nz
+                        .get((wposf.div(400.0)).into_array())
+                        .mul(0.3) as f32)
+                    .add(0.3)
+                    .max(0.0);
 
-        // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
-        // "chaotic" the region is--how much weird stuff is going on on this terrain.
-        let chaos = uniform_noise(|posi, wposf| {
-            // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is a
-            // 50% chance that hill will end up at 0.
-            let hill = (0.0
-                + gen_ctx
-                    .hill_nz
-                    .get((wposf.div(1_500.0)).into_array())
-                    .mul(1.0) as f32
-                + gen_ctx
-                    .hill_nz
-                    .get((wposf.div(400.0)).into_array())
-                    .mul(0.3) as f32)
-                .add(0.3)
-                .max(0.0);
-
-            Some(
-                (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
-                    .add(1.0)
-                    .mul(0.5)
-                    // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
-                    .mul(
-                        (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
-                            .abs()
-                            .max(0.25)
-                            .min(1.0),
-                    )
-                    // Chaos is always increased by a little when we're on a hill (but remember that
-                    // hill is 0 about 50% of the time).
-                    // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
-                    .add(0.2 * hill)
-                    // We can't have *no* chaos!
-                    .max(0.1),
-            )
-        });
+                // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to
+                // reflect how "chaotic" the region is--how much weird stuff is going on on this
+                // terrain.
+                Some(
+                    (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+                        .add(1.0)
+                        .mul(0.5)
+                        // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
+                        .mul(
+                            (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
+                                .abs()
+                                .max(0.25)
+                                .min(1.0),
+                        )
+                        // Chaos is always increased by a little when we're on a hill (but remember
+                        // that hill is 0 about 50% of the time).
+                        // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
+                        .add(0.2 * hill)
+                        // We can't have *no* chaos!
+                        .max(0.1),
+                )
+            }),
+        );
 
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
-        let alt = uniform_noise(|posi, wposf| {
-            // This is the extension upwards from the base added to some extra noise from -1 to 1.
-            // The extra noise is multiplied by alt_main (the mountain part of the extension)
-            // clamped to [0.25, 1], and made 60% larger (so the extra noise is between [-1.6, 1.6],
-            // and the final noise is never more than 160% or less than 40% of the original noise,
-            // depending on altitude).
-            // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
-            // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated small_nz
-            // value hits -0.625 the value crosses 0, so most of the points are above 0.
-            //
-            // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
-            let alt_main = {
-                // Extension upwards from the base.  A positive number from 0 to 1 curved to be
-                // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
-                let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
-                    .abs()
-                    .powf(1.45);
+        let (alt, mut alt_pos) = rayon::join(
+            || uniform_noise(|posi, wposf| {
+                // This is the extension upwards from the base added to some extra noise from -1 to
+                // 1.
+                // The extra noise is multiplied by alt_main (the mountain part of the extension)
+                // clamped to [0.25, 1], and made 60% larger (so the extra noise is between
+                // [-1.6, 1.6],
+                // and the final noise is never more than 160% or less than 40% of the original
+                // noise, depending on altitude).
+                // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
+                // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated
+                // small_nz
+                // value hits -0.625 the value crosses 0, so most of the points are above 0.
+                //
+                // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
+                let alt_main = {
+                    // Extension upwards from the base.  A positive number from 0 to 1 curved to be
+                    // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
+                    let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
+                        .abs()
+                        .powf(1.45);
 
-                (0.0 + alt_main
-                    + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
-                        .mul(alt_main.max(0.25))
-                        .mul(0.3)
-                        .add(1.0)
-                        .mul(0.5))
-            };
+                    (0.0 + alt_main
+                        + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
+                            .mul(alt_main.max(0.25))
+                            .mul(0.3)
+                            .add(1.0)
+                            .mul(0.5))
+                };
 
-            // Now we can compute the final altitude using chaos.
-            // We multiply by chaos clamped to [0.1, 1.24] to get a value between 0.03 and 2.232 for
-            // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to
-            // get an adjusted value, then multiply the whole thing by map_edge_factor
-            // (TODO: compute final bounds).
-            Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
-        });
+                // Now we can compute the final altitude using chaos.
+                // We multiply by chaos clamped to [0.1, 1.24] to get a value between [0.03, 2.232]
+                // for alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea
+                // level to get an adjusted value, then multiply the whole thing by map_edge_factor
+                // (TODO: compute final bounds).
+                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
+            }),
+            alt_positions,
+        );
 
         // Perform some erosion (maybe not needed)
         // let v = vec![(5.0, 5.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
@@ -223,11 +232,11 @@ impl WorldSim {
                  } else {
                     (5.0 + j) / CONFIG.mountain_scale
                  }))
-            .collect::<Vec<_>>().into_boxed_slice();
-        let alt = do_erosion(&/*alt*/v, 0.0, 50, &river_seed, &rock_strength_nz, |posi| {
+            .collect::<Vec<_>>().into_boxed_slice(); */
+        let alt = do_erosion(&alt/*v*/, &mut *alt_pos, 0.0, 8, &river_seed, &rock_strength_nz, |posi| {
             alt[posi].1 * 0.05//0.05
-        }); */
-        let alt = do_erosion(&alt, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
+        });
+        // let alt = do_erosion(&alt, &mut *alt_pos, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
 
         // Check whether any tiles around this tile are not seawater (since Lerp will ensure that they
         // are included).
@@ -247,9 +256,11 @@ impl WorldSim {
         };
 
         // Calculate flux.
-        let dh = downhill(&alt);
-        let new_alt = height_sorted(&alt);
-        let flux = get_flux(&new_alt, &dh);
+        let (dh, ()) = rayon::join(
+            || downhill(&alt),
+            || sort_by_height(&alt, &mut *alt_pos),
+        );
+        let flux = get_flux(&alt_pos, &dh);
         let flux = uniform_noise(|posi, _| {
             if sea_water(posi) {
                 None
@@ -266,7 +277,7 @@ impl WorldSim {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if /*flux[posi].0 > 0.95 || */alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
+                        if flux[posi].0 > 0.99 || alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
                             return false;
                         }
                     }
@@ -275,37 +286,40 @@ impl WorldSim {
             true
         };
 
-        // A version of alt that is uniform over *non-water* (or land-adjacent water) chunks.
-        let alt_no_water = uniform_noise(|posi, wposf| {
-            if pure_water(posi) {
-                None
-            } else {
-                Some(alt[posi])
-            }
-        });
-
-        // -1 to 1.
-        let temp_base = uniform_noise(|posi, wposf| {
-            if pure_water(posi) {
-                None
-            } else {
-                Some(gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
-            }
-        });
-
-        // 0 to 1, hopefully.
-        let humid_base = uniform_noise(|posi, wposf| {
-            // Check whether any tiles around this tile are water.
-            if pure_water(posi) {
-                None
-            } else {
-                Some(
-                    (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
-                        .add(1.0)
-                        .mul(0.5),
-                )
-            }
-        });
+        let (alt_no_water, (temp_base, humid_base)) = rayon::join(
+            || uniform_noise(|posi, wposf| {
+                if pure_water(posi) {
+                    None
+                } else {
+                    // A version of alt that is uniform over *non-water* (or land-adjacent water)
+                    // chunks.
+                    Some(alt[posi])
+                }
+            }),
+            || rayon::join(
+                || uniform_noise(|posi, wposf| {
+                    if pure_water(posi) {
+                        None
+                    } else {
+                        // -1 to 1.
+                        Some(gen_ctx.temp_nz.get((wposf.div(12000.0)).into_array()) as f32)
+                    }
+                }),
+                || uniform_noise(|posi, wposf| {
+                    // Check whether any tiles around this tile are water.
+                    if pure_water(posi) {
+                        None
+                    } else {
+                        // 0 to 1, hopefully.
+                        Some(
+                            (gen_ctx.humid_nz.get(wposf.div(1024.0).into_array()) as f32)
+                                .add(1.0)
+                                .mul(0.5),
+                        )
+                    }
+                }),
+            ),
+        );
 
         let gen_cdf = GenCdf {
             humid_base,
@@ -317,10 +331,14 @@ impl WorldSim {
             alt_no_water,
         };
 
-        let mut chunks = Vec::new();
+        /* let mut chunks = Vec::new();
         for i in 0..WORLD_SIZE.x * WORLD_SIZE.y {
             chunks.push(SimChunk::generate(i, &mut gen_ctx, &gen_cdf));
-        }
+        } */
+        let chunks = (0..WORLD_SIZE.x * WORLD_SIZE.y)
+            .into_par_iter()
+            .map(|i| SimChunk::generate(i, &gen_ctx, &gen_cdf))
+            .collect::<Vec<_>>();
 
         let mut this = Self {
             seed: *seed,
@@ -557,7 +575,7 @@ pub struct LocationInfo {
 }
 
 impl SimChunk {
-    fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {
+    fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
 
@@ -582,23 +600,37 @@ impl SimChunk {
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
         let alt_pre = gen_cdf.alt[posi];
-        let (flux_uniform, _) = gen_cdf.flux[posi];
+        let (flux_uniform, flux) = gen_cdf.flux[posi];
         let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
 
-        // Flux is just flux_uniform, currently.
-        let flux = flux_uniform;
+        /* // Flux is just flux_uniform, currently.
+        let flux = flux_uniform; */
+
+        /* // Vertical difference from the equator (NOTE: "uniform" with much lower granularity than
+        // other uniform quantities, but hopefully this doesn't matter *too* much--if it does, we
+        // can always add a small x component).
+        //
+        // Not clear that we want this yet, let's see.
+        let latitude_uniform = (pos.y as f32 / WORLD_SIZE.y as f32).sub(0.5).mul(2.0);
+
+        // Even less granular--if this matters we can make the sign affect the quantiy slightly.
+        let abs_lat_uniform = latitude_uniform.abs(); */
 
         // Take the weighted average of our randomly generated base humidity, the scaled
         // negative altitude, and the calculated water flux over this point in order to compute
         // humidity.
         const HUMID_WEIGHTS: [f32; 3] = [1.0, 1.0, 1.0];
-        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [humid_uniform, flux_uniform, 1.0 - alt_uniform]);
+        let humidity = cdf_irwin_hall(&HUMID_WEIGHTS, [
+            humid_uniform, flux_uniform, 1.0 - alt_uniform
+        ]);
 
-        // We also correlate temperature negatively with altitude using different weighting than we
-        // use for humidity.
-        const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0];
-        let temp = cdf_irwin_hall(&TEMP_WEIGHTS, [temp_uniform, 1.0 - alt_uniform])
+        // We also correlate temperature negatively with altitude and absolute latitude, using
+        // different weighting than we use for humidity.
+        const TEMP_WEIGHTS: [f32; 2] = [2.0, 1.0/*, 1.0*/];
+        let temp = cdf_irwin_hall(&TEMP_WEIGHTS, [
+            temp_uniform, 1.0 - alt_uniform,/* 1.0 - abs_lat_uniform*/
+        ])
             // Convert to [-1, 1]
             .sub(0.5)
             .mul(2.0);
