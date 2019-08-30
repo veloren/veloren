@@ -153,7 +153,7 @@ impl TownState {
         // Generation passes
         vol.setup(rng);
         vol.gen_roads(rng, 30);
-        vol.gen_parks(rng, 4);
+        vol.gen_parks(rng, 3);
         vol.emplace_columns();
         let houses = vol.gen_houses(rng, 50);
         vol.gen_walls();
@@ -292,7 +292,7 @@ impl TownVol {
                     .unwrap();
 
                 let mut park =
-                    self.floodfill(Some(25), [start].iter().copied().collect(), |_, col| {
+                    self.floodfill(Some(16), [start].iter().copied().collect(), |_, col| {
                         col.is_empty()
                     });
 
@@ -498,14 +498,14 @@ impl TownVol {
     fn cull_unused(&mut self) {
         for x in 0..self.size().x {
             for y in 0..self.size().y {
-                for z in self.col_range(Vec2::new(x, y)).unwrap() {
+                for z in self.col_range(Vec2::new(x, y)).unwrap().rev() {
                     let pos = Vec3::new(x, y, z);
 
                     // Remove foundations that don't have anything on top of them
                     if self.get(pos).unwrap().is_foundation()
                         && self
                             .get(pos + Vec3::unit_z())
-                            .map(Vox::is_empty)
+                            .map(TownCell::is_space)
                             .unwrap_or(true)
                     {
                         self.set(pos, TownCell::empty());

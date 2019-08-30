@@ -64,6 +64,15 @@ impl TownCell {
         }
     }
 
+    pub fn is_space(&self) -> bool {
+        match self.kind {
+            CellKind::Empty => true,
+            CellKind::Park => true,
+            CellKind::Road => true,
+            _ => false,
+        }
+    }
+
     pub fn is_foundation(&self) -> bool {
         match self.kind {
             CellKind::Rock => true,
