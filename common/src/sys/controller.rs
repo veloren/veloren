@@ -148,7 +148,7 @@ impl<'a> System<'a> for Sys {
                         // Go upward
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
-                            vel: controller.look_dir * -7.0,
+                            vel: Vec3::new(0.0, 0.0, 7.0),
                         });
                     }
                 }
