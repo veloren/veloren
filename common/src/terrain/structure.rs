@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use vek::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum StructureBlock {
     None,
     TemperateLeaves,

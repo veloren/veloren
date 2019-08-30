@@ -13,7 +13,7 @@ pub trait RectVolSize: Clone {
 }
 
 /// A voxel.
-pub trait Vox: Sized + Clone {
+pub trait Vox: Sized + Clone + PartialEq {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
 

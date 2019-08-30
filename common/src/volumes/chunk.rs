@@ -172,8 +172,12 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
     }
 
     fn set_from_morton_unchecked(&mut self, morton: u32, vox: V) {
-        let idx = self.force_idx_from_morton_unchecked(morton);
-        self.vox[idx] = vox;
+        if vox != self.default {
+            let idx = self.force_idx_from_morton_unchecked(morton);
+            self.vox[idx] = vox;
+        } else if let Some(idx) = self.idx_from_morton_unchecked(morton) {
+            self.vox[idx] = vox;
+        }
     }
 
     fn set_from_morton(&mut self, morton: u32, vox: V) -> Result<(), ChunkError> {
