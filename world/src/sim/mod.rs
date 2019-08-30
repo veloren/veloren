@@ -146,7 +146,7 @@ impl WorldSim {
             fast_turb_x_nz: FastNoise::new(gen_seed()),
             fast_turb_y_nz: FastNoise::new(gen_seed()),
 
-            town_gen: StructureGen2d::new(gen_seed(), 1024, 512),
+            town_gen: StructureGen2d::new(gen_seed(), 2048, 1024),
         };
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
