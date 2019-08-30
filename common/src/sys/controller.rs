@@ -97,7 +97,7 @@ impl<'a> System<'a> for Sys {
             }
 
             // Wield
-            if controller.main
+            if controller.primary
                 && character.action == Idle
                 && (character.movement == Stand || character.movement == Run)
             {
@@ -109,7 +109,7 @@ impl<'a> System<'a> for Sys {
             match stats.equipment.main {
                 Some(Item::Tool { .. }) => {
                     // Attack
-                    if controller.main
+                    if controller.primary
                         && (character.movement == Stand
                             || character.movement == Run
                             || character.movement == Jump)
@@ -126,25 +126,25 @@ impl<'a> System<'a> for Sys {
                     }
 
                     // Block
-                    if controller.alt
+                    if controller.secondary
                         && (character.movement == Stand || character.movement == Run)
                         && (character.action == Idle || character.action.is_wield())
                     {
                         character.action = Block {
                             time_left: Duration::from_secs(5),
                         };
-                    } else if !controller.alt && character.action.is_block() {
+                    } else if !controller.secondary && character.action.is_block() {
                         character.action = Idle;
                     }
                 }
                 Some(Item::Debug(item::Debug::Boost)) => {
-                    if controller.main {
+                    if controller.primary {
                         local_emitter.emit(LocalEvent::Boost {
                             entity,
                             vel: controller.look_dir * 7.0,
                         });
                     }
-                    if controller.alt {
+                    if controller.secondary {
                         // Go upward
                         local_emitter.emit(LocalEvent::Boost {
                             entity,

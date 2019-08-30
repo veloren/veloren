@@ -129,7 +129,7 @@ impl PlayState for SessionState {
                     Event::Close => {
                         return PlayStateResult::Shutdown;
                     }
-                    Event::InputUpdate(GameInput::Main, state) => {
+                    Event::InputUpdate(GameInput::Primary, state) => {
                         // Check the existence of CanBuild component. If it's here, use LMB to
                         // place blocks, if not, use it to attack
                         let mut client = self.client.borrow_mut();
@@ -152,11 +152,11 @@ impl PlayState for SessionState {
                                 client.place_block(pos, self.selected_block);
                             }
                         } else {
-                            self.controller.main = state
+                            self.controller.primary = state
                         }
                     }
 
-                    Event::InputUpdate(GameInput::Alt, state) => {
+                    Event::InputUpdate(GameInput::Secondary, state) => {
                         let mut client = self.client.borrow_mut();
                         if state
                             && client
@@ -176,7 +176,7 @@ impl PlayState for SessionState {
                                 client.remove_block(pos);
                             }
                         } else {
-                            self.controller.alt = state;
+                            self.controller.secondary = state;
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
