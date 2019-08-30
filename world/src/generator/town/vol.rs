@@ -41,26 +41,32 @@ pub struct Module {
 }
 
 #[derive(Clone)]
-pub enum TownCell {
+pub enum CellKind {
     Empty,
     Park,
     Rock,
     Road,
     Wall,
-    House { idx: usize, module: Option<Module> },
+    House(usize),
+}
+
+#[derive(Clone)]
+pub struct TownCell {
+    pub kind: CellKind,
+    pub module: Option<Module>,
 }
 
 impl TownCell {
     pub fn is_road(&self) -> bool {
-        match self {
-            TownCell::Road => true,
+        match self.kind {
+            CellKind::Road => true,
             _ => false,
         }
     }
 
     pub fn is_foundation(&self) -> bool {
-        match self {
-            TownCell::Rock => true,
+        match self.kind {
+            CellKind::Rock => true,
             _ => false,
         }
     }
@@ -68,14 +74,23 @@ impl TownCell {
 
 impl Vox for TownCell {
     fn empty() -> Self {
-        TownCell::Empty
+        Self {
+            kind: CellKind::Empty,
+            module: None,
+        }
     }
 
     fn is_empty(&self) -> bool {
-        match self {
-            TownCell::Empty => true,
+        match self.kind {
+            CellKind::Empty => true,
             _ => false,
         }
+    }
+}
+
+impl From<CellKind> for TownCell {
+    fn from(kind: CellKind) -> Self {
+        Self { kind, module: None }
     }
 }
 
@@ -101,7 +116,7 @@ impl TownVol {
     ) -> Self {
         let mut this = Self {
             grid: Grid::new(
-                (0, TownColumn::default(), vec![TownCell::Empty; HEIGHT]),
+                (0, TownColumn::default(), vec![TownCell::empty(); HEIGHT]),
                 size,
             ),
         };

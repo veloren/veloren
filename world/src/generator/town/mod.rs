@@ -20,7 +20,7 @@ use rand_chacha::ChaChaRng;
 use std::{ops::Add, sync::Arc};
 use vek::*;
 
-use self::vol::{ColumnKind, Module, TownCell, TownColumn, TownVol};
+use self::vol::{CellKind, ColumnKind, Module, TownCell, TownColumn, TownVol};
 
 const CELL_SIZE: i32 = 9;
 const CELL_HEIGHT: i32 = 9;
@@ -42,59 +42,53 @@ impl<'a> Sampler<'a> for TownGen {
                 e.rem_euclid(sz)
             });
 
-        match town.vol.get(cell_pos).unwrap_or(&TownCell::Empty) {
-            TownCell::Empty => None,
-            TownCell::Park => None,
-            TownCell::Rock => Some(Block::new(BlockKind::Normal, Rgb::broadcast(100))),
-            TownCell::Wall => Some(Block::new(BlockKind::Normal, Rgb::broadcast(175))),
-            TownCell::Road => {
-                if (wpos.z as f32) < height - 1.0 {
-                    Some(Block::new(
-                        BlockKind::Normal,
-                        Lerp::lerp(
-                            Rgb::new(150.0, 140.0, 50.0),
-                            Rgb::new(100.0, 95.0, 30.0),
-                            sample.marble_small,
-                        )
-                        .map(|e| e as u8),
-                    ))
-                } else {
-                    Some(Block::empty())
-                }
-            }
-            TownCell::House { idx, module } => {
-                if let Some(module) = module {
-                    let transform = [
-                        (Vec2::new(0, 0), Vec2::unit_x(), Vec2::unit_y()),
-                        (Vec2::new(0, 1), -Vec2::unit_y(), Vec2::unit_x()),
-                        (Vec2::new(1, 1), -Vec2::unit_x(), -Vec2::unit_y()),
-                        (Vec2::new(1, 0), Vec2::unit_y(), -Vec2::unit_x()),
-                    ];
+        let cell = town.vol.get(cell_pos).ok()?;
 
-                    HOUSE_MODULES[module.vol_idx]
-                        .0
-                        .get(
-                            Vec3::from(
-                                transform[module.dir].0 * (CELL_SIZE - 1)
-                                    + transform[module.dir].1 * inner_pos.x
-                                    + transform[module.dir].2 * inner_pos.y,
-                            ) + Vec3::unit_z() * inner_pos.z,
-                        )
-                        .ok()
-                        .and_then(|sb| {
-                            block_from_structure(
-                                *sb,
-                                BlockKind::Normal,
-                                wpos,
-                                wpos.into(),
-                                0,
-                                sample,
-                            )
-                        })
-                } else {
-                    Some(Block::new(BlockKind::Normal, town.houses[*idx].color))
-                }
+        match (modules_from_kind(&cell.kind), &cell.module) {
+            (Some(module_list), Some(module)) => {
+                let transform = [
+                    (Vec2::new(0, 0), Vec2::unit_x(), Vec2::unit_y()),
+                    (Vec2::new(0, 1), -Vec2::unit_y(), Vec2::unit_x()),
+                    (Vec2::new(1, 1), -Vec2::unit_x(), -Vec2::unit_y()),
+                    (Vec2::new(1, 0), Vec2::unit_y(), -Vec2::unit_x()),
+                ];
+
+                module_list[module.vol_idx]
+                    .0
+                    .get(
+                        Vec3::from(
+                            transform[module.dir].0 * (CELL_SIZE - 1)
+                                + transform[module.dir].1 * inner_pos.x
+                                + transform[module.dir].2 * inner_pos.y,
+                        ) + Vec3::unit_z() * inner_pos.z,
+                    )
+                    .ok()
+                    .and_then(|sb| {
+                        block_from_structure(*sb, BlockKind::Normal, wpos, wpos.into(), 0, sample)
+                    })
             }
+            _ => match cell.kind {
+                CellKind::Empty => None,
+                CellKind::Park => None,
+                CellKind::Rock => Some(Block::new(BlockKind::Normal, Rgb::broadcast(100))),
+                CellKind::Wall => Some(Block::new(BlockKind::Normal, Rgb::broadcast(175))),
+                CellKind::Road => {
+                    if (wpos.z as f32) < height - 1.0 {
+                        Some(Block::new(
+                            BlockKind::Normal,
+                            Lerp::lerp(
+                                Rgb::new(150.0, 140.0, 50.0),
+                                Rgb::new(100.0, 95.0, 30.0),
+                                sample.marble_small,
+                            )
+                            .map(|e| e as u8),
+                        ))
+                    } else {
+                        Some(Block::empty())
+                    }
+                }
+                CellKind::House(idx) => Some(Block::new(BlockKind::Normal, town.houses[idx].color)),
+            },
         }
     }
 }
@@ -149,9 +143,9 @@ impl TownState {
             },
             |(col, pos)| {
                 if pos.z >= col.ground {
-                    TownCell::Empty
+                    TownCell::empty()
                 } else {
-                    TownCell::Rock
+                    TownCell::from(CellKind::Rock)
                 }
             },
         );
@@ -304,7 +298,7 @@ impl TownVol {
                     let col = self.col(cell).unwrap();
                     let ground = col.ground;
                     for z in 0..2 {
-                        self.set(Vec3::new(cell.x, cell.y, ground + z), TownCell::Park);
+                        self.set(Vec3::new(cell.x, cell.y, ground + z), CellKind::Park.into());
                     }
                 }
 
@@ -354,7 +348,7 @@ impl TownVol {
             let col = self.col(*wall).unwrap();
             let ground = col.ground;
             for z in -1..2 {
-                self.set(Vec3::new(wall.x, wall.y, ground + z), TownCell::Wall);
+                self.set(Vec3::new(wall.x, wall.y, ground + z), CellKind::Wall.into());
             }
         }
     }
@@ -371,7 +365,7 @@ impl TownVol {
                     Some(ColumnKind::External) => {}
                     Some(ColumnKind::Road) => {
                         for z in -1..2 {
-                            self.set(Vec3::new(i, j, ground + z), TownCell::Road);
+                            self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
                         }
                     }
                     _ => unimplemented!(),
@@ -465,13 +459,7 @@ impl TownVol {
                 }
 
                 for cell in cells {
-                    self.set(
-                        cell,
-                        TownCell::House {
-                            idx: houses.len(),
-                            module: None,
-                        },
-                    );
+                    self.set(cell, CellKind::House(houses.len()).into());
                     self.set_col_kind(Vec2::from(cell), Some(ColumnKind::Internal));
                 }
 
@@ -485,19 +473,20 @@ impl TownVol {
     }
 
     fn resolve_modules(&mut self, rng: &mut impl Rng) {
-        fn classify(cell: &TownCell, this_house: usize) -> ModuleKind {
-            match cell {
-                TownCell::House { idx, .. } if *idx == this_house => ModuleKind::This,
+        fn classify(cell: &TownCell, this_cell: &TownCell) -> ModuleKind {
+            match (&cell.kind, &this_cell.kind) {
+                (CellKind::House(a), CellKind::House(b)) if a == b => ModuleKind::This,
+                (CellKind::Wall, CellKind::Wall) => ModuleKind::This,
                 _ => ModuleKind::That,
             }
         }
 
         for x in 0..self.size().x {
             for y in 0..self.size().y {
-                'cell: for z in self.col_range(Vec2::new(x, y)).unwrap() {
+                for z in self.col_range(Vec2::new(x, y)).unwrap() {
                     let pos = Vec3::new(x, y, z);
-                    let this_idx = if let Ok(TownCell::House { idx, module }) = self.get(pos) {
-                        idx
+                    let this_cell = if let Ok(this_cell) = self.get(pos) {
+                        this_cell
                     } else {
                         continue;
                     };
@@ -506,11 +495,17 @@ impl TownVol {
                     for i in 0..6 {
                         signature[i] = self
                             .get(pos + util::dir_3d(i))
-                            .map(|cell| classify(cell, *this_idx))
+                            .map(|cell| classify(cell, this_cell))
                             .unwrap_or(ModuleKind::That);
                     }
 
-                    let module = HOUSE_MODULES
+                    let module_list = if let Some(modules) = modules_from_kind(&this_cell.kind) {
+                        modules
+                    } else {
+                        continue;
+                    };
+
+                    let module = module_list
                         .iter()
                         .enumerate()
                         .filter_map(|(i, module)| {
@@ -534,13 +529,16 @@ impl TownVol {
                         })
                         .choose(rng);
 
-                    self.set(
-                        pos,
-                        TownCell::House {
-                            idx: *this_idx,
-                            module,
-                        },
-                    );
+                    if let Some(module) = module {
+                        let kind = this_cell.kind.clone();
+                        self.set(
+                            pos,
+                            TownCell {
+                                kind,
+                                module: Some(module),
+                            },
+                        );
+                    }
                 }
             }
         }
@@ -558,6 +556,14 @@ fn module(name: &str, sig: [ModuleKind; 6]) -> (Arc<Structure>, [ModuleKind; 6])
         assets::load(&format!("world.module.{}", name)).unwrap(),
         sig,
     )
+}
+
+fn modules_from_kind(kind: &CellKind) -> Option<&'static [(Arc<Structure>, [ModuleKind; 6])]> {
+    match kind {
+        CellKind::House(_) => Some(&HOUSE_MODULES),
+        CellKind::Wall => Some(&WALL_MODULES),
+        _ => None,
+    }
 }
 
 lazy_static! {
@@ -594,7 +600,13 @@ lazy_static! {
         use ModuleKind::*;
         vec![
             module("wall.edge_ground", [This, That, This, That, This, That]),
+            module("wall.edge_mid", [This, That, This, That, This, This]),
+            module("wall.edge_top", [This, That, This, That, That, This]),
             module("wall.corner_ground", [This, This, That, That, This, That]),
+            module("wall.corner_mid", [This, This, That, That, This, This]),
+            module("wall.corner_top", [This, This, That, That, That, This]),
+            module("wall.end_top", [That, This, That, That, That, This]),
+            module("wall.single_top", [That, That, That, That, That, This]),
         ]
     };
 }
