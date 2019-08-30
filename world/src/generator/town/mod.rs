@@ -153,7 +153,7 @@ impl TownState {
         // Generation passes
         vol.setup(rng);
         vol.gen_roads(rng, 30);
-        //vol.gen_parks(rng, 8);
+        vol.gen_parks(rng, 4);
         vol.emplace_columns();
         let houses = vol.gen_houses(rng, 50);
         vol.gen_walls();
@@ -180,6 +180,7 @@ impl TownState {
 impl TownVol {
     fn floodfill(
         &self,
+        limit: Option<usize>,
         mut opens: HashSet<Vec2<i32>>,
         mut f: impl FnMut(Vec2<i32>, &TownColumn) -> bool,
     ) -> HashSet<Vec2<i32>> {
@@ -188,14 +189,24 @@ impl TownVol {
         while opens.len() > 0 {
             let mut new_opens = HashSet::new();
 
-            for open in opens.iter() {
+            'search: for open in opens.iter() {
                 for i in -1..2 {
                     for j in -1..2 {
                         let pos = *open + Vec2::new(i, j);
 
                         if let Some(col) = self.col(pos) {
                             if !closed.contains(&pos) && !opens.contains(&pos) && f(pos, col) {
-                                new_opens.insert(pos);
+                                match limit {
+                                    Some(limit)
+                                        if limit
+                                            <= new_opens.len() + closed.len() + opens.len() =>
+                                    {
+                                        break 'search
+                                    }
+                                    _ => {
+                                        new_opens.insert(pos);
+                                    }
+                                }
                             }
                         }
                     }
@@ -280,15 +291,10 @@ impl TownVol {
                     })
                     .unwrap();
 
-                let mut energy = 50;
-                let mut park = self.floodfill([start].iter().copied().collect(), |_, col| {
-                    if col.is_empty() && energy > 0 {
-                        energy -= 1;
-                        true
-                    } else {
-                        false
-                    }
-                });
+                let mut park =
+                    self.floodfill(Some(25), [start].iter().copied().collect(), |_, col| {
+                        col.is_empty()
+                    });
 
                 if park.len() < 4 {
                     continue;
@@ -319,25 +325,41 @@ impl TownVol {
             outer.insert(Vec2::new(self.size().x - 1, j));
         }
 
-        let mut outer = self.floodfill(outer, |_, col| col.is_empty());
+        let mut outer = self.floodfill(None, outer, |_, col| col.is_empty());
 
         let mut walls = HashSet::new();
-        let inner = self.floodfill([self.size() / 2].iter().copied().collect(), |pos, _| {
-            if outer.contains(&pos) {
-                walls.insert(pos);
-                false
-            } else {
-                true
-            }
-        });
+        let inner = self.floodfill(
+            None,
+            [self.size() / 2].iter().copied().collect(),
+            |pos, _| {
+                if outer.contains(&pos) {
+                    walls.insert(pos);
+                    false
+                } else {
+                    true
+                }
+            },
+        );
 
         while let Some(wall) = walls
             .iter()
             .filter(|pos| {
-                (0..4)
+                let lateral_count = (0..4)
                     .filter(|i| walls.contains(&(**pos + util::dir(*i))))
-                    .count()
-                    < 2
+                    .count();
+                let max_quadrant_count = (0..4)
+                    .map(|i| {
+                        let units = util::unit(i);
+                        (0..2)
+                            .map(|i| (0..2).map(move |j| (i, j)))
+                            .flatten()
+                            .filter(|(i, j)| walls.contains(&(**pos + units.0 * *i + units.1 * *j)))
+                            .count()
+                    })
+                    .max()
+                    .unwrap();
+
+                lateral_count < 2 || (lateral_count == 2 && max_quadrant_count == 4)
             })
             .next()
         {
@@ -376,7 +398,7 @@ impl TownVol {
     }
 
     fn gen_houses(&mut self, rng: &mut impl Rng, n: usize) -> Vec<House> {
-        const ATTEMPTS: usize = 20;
+        const ATTEMPTS: usize = 10;
 
         let mut houses = Vec::new();
         for _ in 0..n {
