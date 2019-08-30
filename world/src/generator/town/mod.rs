@@ -158,6 +158,7 @@ impl TownState {
         let houses = vol.gen_houses(rng, 60);
         vol.gen_walls();
         vol.resolve_modules(rng);
+        vol.cull_unused();
 
         Some(Self {
             center: Vec3::new(center.x, center.y, alt),
@@ -321,7 +322,7 @@ impl TownVol {
         let mut outer = self.floodfill(outer, |_, col| col.is_empty());
 
         let mut walls = HashSet::new();
-        self.floodfill([self.size() / 2].iter().copied().collect(), |pos, _| {
+        let inner = self.floodfill([self.size() / 2].iter().copied().collect(), |pos, _| {
             if outer.contains(&pos) {
                 walls.insert(pos);
                 false
@@ -470,6 +471,26 @@ impl TownVol {
         }
 
         houses
+    }
+
+    fn cull_unused(&mut self) {
+        for x in 0..self.size().x {
+            for y in 0..self.size().y {
+                for z in self.col_range(Vec2::new(x, y)).unwrap() {
+                    let pos = Vec3::new(x, y, z);
+
+                    // Remove foundations that don't have anything on top of them
+                    if self.get(pos).unwrap().is_foundation()
+                        && self
+                            .get(pos + Vec3::unit_z())
+                            .map(Vox::is_empty)
+                            .unwrap_or(true)
+                    {
+                        self.set(pos, TownCell::empty());
+                    }
+                }
+            }
+        }
     }
 
     fn resolve_modules(&mut self, rng: &mut impl Rng) {
