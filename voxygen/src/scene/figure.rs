@@ -1,7 +1,7 @@
 use crate::{
     anim::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, wild_boar::WildBoarSkeleton, Animation, Skeleton, SkeletonAttr,
+        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, wild_boar::WildBoarSkeleton, stag::StagSkeleton, Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -12,7 +12,7 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, wild_boar, Body},
+    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, wild_boar, stag, Body},
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -137,6 +137,24 @@ impl FigureModelCache {
                                     Some(Self::load_wild_boar_foot_rf(body.foot_rf)),
                                     Some(Self::load_wild_boar_foot_lb(body.foot_lb)),
                                     Some(Self::load_wild_boar_foot_rb(body.foot_rb)),
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                    None,
+                                ],
+                                Body::stag(body) => [
+                                    Some(Self::load_stag_head(body.head)),
+                                    Some(Self::load_stag_torso(body.torso)),
+                                    Some(Self::load_stag_neck(body.neck)),
+                                    Some(Self::load_stag_leg_lf(body.leg_lf)),
+                                    Some(Self::load_stag_leg_rf(body.leg_rf)),
+                                    Some(Self::load_stag_leg_lb(body.leg_lb)),
+                                    Some(Self::load_stag_leg_rb(body.leg_rb)),
+                                    Some(Self::load_stag_foot_lf(body.foot_lf)),
+                                    Some(Self::load_stag_foot_rf(body.foot_rf)),
+                                    Some(Self::load_stag_foot_lb(body.foot_lb)),
+                                    Some(Self::load_stag_foot_rb(body.foot_rb)),
                                     None,
                                     None,
                                     None,
@@ -731,6 +749,103 @@ impl FigureModelCache {
         )
     }
     ///////
+    fn load_stag_head(head: stag::Head) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match head {
+                stag::Head::Default => "npc.stag.stag_head",
+            },
+            Vec3::new(-4.0, -4.0, -1.5),
+        )
+    }
+
+    fn load_stag_torso(torso: stag::Torso) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match torso {
+                stag::Torso::Default => "npc.stag.stag_torso",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+
+    fn load_stag_neck(neck: stag::Neck) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match neck {
+                stag::Neck::Default => "npc.stag.stag_neck",
+            },
+            Vec3::new(-2.0, -12.0, -5.0),
+        )
+    }
+
+    fn load_stag_leg_lf(leg_lf: stag::LegLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lf {
+                stag::LegLF::Default => "npc.stag.stag_leg_lf",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_stag_leg_rf(leg_rf: stag::LegRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rf {
+                stag::LegRF::Default => "npc.stag.stag_leg_rf",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_stag_leg_lb(leg_lb: stag::LegLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_lb {
+                stag::LegLB::Default => "npc.stag.stag_leg_lb",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_stag_leg_rb(leg_rb: stag::LegRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match leg_rb {
+                stag::LegRB::Default => "npc.stag.stag_leg_rb",
+            },
+            Vec3::new(-2.5, -2.0, -4.5),
+        )
+    }
+
+    fn load_stag_foot_lf(foot_lf: stag::FootLF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lf {
+                stag::FootLF::Default => "npc.stag.stag_foot_lf",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+
+    fn load_stag_foot_rf(foot_rf: stag::FootRF) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rf {
+                stag::FootRF::Default => "npc.stag.stag_foot_rf",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_stag_foot_lb(foot_lb: stag::FootLB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_lb {
+                stag::FootLB::Default => "npc.stag.stag_foot_lb",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    fn load_stag_foot_rb(foot_rb: stag::FootRB) -> Mesh<FigurePipeline> {
+        Self::load_mesh(
+            match foot_rb {
+                stag::FootRB::Default => "npc.stag.stag_foot_rb",
+            },
+            Vec3::new(-2.5, -4.0, -2.5),
+        )
+    }
+    ///////
     fn load_object(obj: object::Body) -> Mesh<FigurePipeline> {
         let (name, offset) = match obj {
             object::Body::Bomb => ("object.bomb", Vec3::new(-5.5, -5.5, 0.0)),
@@ -808,6 +923,7 @@ pub struct FigureMgr {
     quadruped_medium_states: HashMap<EcsEntity, FigureState<QuadrupedMediumSkeleton>>,
     grizzly_bear_states: HashMap<EcsEntity, FigureState<GrizzlyBearSkeleton>>,
     wild_boar_states: HashMap<EcsEntity, FigureState<WildBoarSkeleton>>,
+    stag_states: HashMap<EcsEntity, FigureState<StagSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
 }
 
@@ -820,6 +936,7 @@ impl FigureMgr {
             quadruped_medium_states: HashMap::new(),
             grizzly_bear_states: HashMap::new(),
             wild_boar_states: HashMap::new(),
+            stag_states: HashMap::new(),
             object_states: HashMap::new(),
         }
     }
@@ -873,6 +990,9 @@ impl FigureMgr {
                         self.quadruped_medium_states.remove(&entity);
                     }
                     Body::wild_boar(_) => {
+                        self.quadruped_medium_states.remove(&entity);
+                    }
+                    Body::stag(_) => {
                         self.quadruped_medium_states.remove(&entity);
                     }
                     Body::Object(_) => {
@@ -1159,6 +1279,52 @@ impl FigureMgr {
                     state.skeleton.interpolate(&target_skeleton, dt);
                     state.update(renderer, pos.0, ori.0, scale, col, dt);
                 }
+                Body::stag(_) => {
+                    let state = self
+                        .stag_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, StagSkeleton::new())
+                        });
+
+                    let animation_info = match animation_info {
+                        Some(a_i) => a_i,
+                        None => continue,
+                    };
+
+                    let target_skeleton = match animation_info.animation {
+                        comp::Animation::Run | comp::Animation::Crun => {
+                            anim::stag::RunAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Idle | comp::Animation::Cidle => {
+                            anim::stag::IdleAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                time,
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+                        comp::Animation::Jump | comp::Animation::Cjump => {
+                            anim::stag::JumpAnimation::update_skeleton(
+                                state.skeleton_mut(),
+                                (vel.0.magnitude(), time),
+                                animation_info.time,
+                                skeleton_attr,
+                            )
+                        }
+
+                        // TODO!
+                        _ => state.skeleton_mut().clone(),
+                    };
+
+                    state.skeleton.interpolate(&target_skeleton, dt);
+                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                }
                 Body::Object(_) => {
                     let state = self
                         .object_states
@@ -1181,6 +1347,8 @@ impl FigureMgr {
         self.grizzly_bear_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.wild_boar_states
+            .retain(|entity, _| ecs.entities().is_alive(*entity));
+        self.stag_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
         self.object_states
             .retain(|entity, _| ecs.entities().is_alive(*entity));
@@ -1240,6 +1408,10 @@ impl FigureMgr {
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::wild_boar(_) => self
                     .wild_boar_states
+                    .get(&entity)
+                    .map(|state| (state.locals(), state.bone_consts())),
+                Body::stag(_) => self
+                    .stag_states
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
                 Body::Object(_) => self

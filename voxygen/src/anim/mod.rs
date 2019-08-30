@@ -5,6 +5,7 @@ pub mod quadruped;
 pub mod quadrupedmedium;
 pub mod grizzly_bear;
 pub mod wild_boar;
+pub mod stag;
 
 use crate::render::FigureBoneData;
 use common::comp::{self, item::Tool};
