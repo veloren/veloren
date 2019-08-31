@@ -10,11 +10,11 @@ pub struct RunAnimation;
 
 impl Animation for RunAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (f32, f64);
+    type Dependency = (f32, f32, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, global_time): Self::Dependency,
+        (velocity, orientation, global_time): Self::Dependency,
         anim_time: f64,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
@@ -38,6 +38,20 @@ impl Animation for RunAnimation {
                 .sin()
                 * 0.1,
         );
+
+        let vel = Vec2::from(velocity);
+        let ori = (Vec2::from(orientation)).normalized();
+
+        let _tilt = if Vec2::new(ori, vel)
+            .map(|v| Vec2::<f32>::from(v).magnitude_squared())
+            .reduce_partial_min()
+            > 0.001
+        {
+            vel.normalized().dot(ori.normalized()).min(1.0).acos()
+        } else {
+            0.0
+        };
+
         next.head.offset = Vec3::new(
             0.0,
             -1.0 + skeleton_attr.neck_forward,
@@ -106,7 +120,8 @@ impl Animation for RunAnimation {
 
         next.torso.offset = Vec3::new(0.0, -0.2 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
-            Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005);
+            Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005)
+                * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next
