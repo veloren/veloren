@@ -32,7 +32,7 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{
-    audio::base::Genre, audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
+    audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
     window::Window,
 };
 use heaptrack::track_mem;
@@ -59,8 +59,7 @@ impl GlobalState {
     }
 
     pub fn maintain(&mut self) {
-        // TODO: Maintain both `Bgm` and `Sfx` audio threads.
-        self.audio.play();
+        self.audio.maintain();
     }
 }
 
@@ -104,10 +103,28 @@ lazy_static! {
 fn main() {
     // Load the settings
     let settings = Settings::load();
+<<<<<<< HEAD
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
+=======
+    let audio_device = match &settings.audio.audio_device {
+        Some(d) => d.to_string(),
+        None => audio::get_default_device(),
+    };
+    let audio = if settings.audio.audio_on {
+        AudioFrontend::new(audio_device)
+    } else {
+        AudioFrontend::no_audio()
+    };
+
+    let mut global_state = GlobalState {
+        audio,
+        window: Window::new(&settings).expect("Failed to create window!"),
+        settings,
+    };
+>>>>>>> Revamp AudioFrontend
 
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
@@ -185,39 +202,6 @@ fn main() {
 
         default_hook(panic_info);
     }));
-
-    // Set up the global state.
-    let audio = if settings.audio.audio_on {
-        AudioFrontend::new()
-    } else {
-        AudioFrontend::no_audio()
-    };
-
-    let mut global_state = GlobalState {
-        audio,
-        window: Window::new(&settings).expect("Failed to create window!"),
-        settings,
-    };
-
-    // Initialize discord. (lazy_static initalise lazily...)
-    #[cfg(feature = "discord")]
-    {
-        match DISCORD_INSTANCE.lock() {
-            Ok(_disc) => {
-                //great
-            }
-            Err(e) => log::error!("Couldn't init discord: {}", e),
-        }
-    }
-
-    match global_state.audio.model.get_genre() {
-        Genre::Bgm => {
-            global_state.settings.audio.audio_device =
-                Some(crate::audio::base::get_default_device())
-        }
-        Genre::Sfx => unimplemented!(),
-        Genre::None => global_state.settings.audio.audio_device = None,
-    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
