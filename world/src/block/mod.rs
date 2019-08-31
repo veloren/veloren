@@ -2,6 +2,7 @@ mod natural;
 
 use crate::{
     column::{ColumnGen, ColumnSample, StructureData},
+    generator::{Generator, TownGen},
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
 };
@@ -136,6 +137,7 @@ impl<'a> BlockGen<'a> {
             column_gen,
         } = self;
 
+        let sample = &z_cache?.sample;
         let &ColumnSample {
             alt,
             chaos,
@@ -155,8 +157,10 @@ impl<'a> BlockGen<'a> {
             cliff_hill,
             close_cliffs,
             temp,
+
+            chunk,
             ..
-        } = &z_cache?.sample;
+        } = sample;
 
         let structures = &z_cache?.structures;
 
@@ -168,31 +172,21 @@ impl<'a> BlockGen<'a> {
                 (true, alt, CONFIG.sea_level /*water_level*/)
             } else {
                 // Apply warping
-                let warp = (world
-                    .sim()
-                    .gen_ctx
-                    .warp_nz
-                    .get((wposf.div(Vec3::new(150.0, 150.0, 150.0))).into_array())
-                    as f32)
+                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
                     .mul((chaos - 0.1).max(0.0))
-                    .mul(96.0);
+                    .mul(48.0)
+                    + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
+                        .mul((chaos - 0.1).max(0.0))
+                        .mul(24.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
                     alt + warp
                 } else {
                     let turb = Vec2::new(
-                        world
-                            .sim()
-                            .gen_ctx
-                            .turb_x_nz
-                            .get((wposf.div(48.0)).into_array()) as f32,
-                        world
-                            .sim()
-                            .gen_ctx
-                            .turb_y_nz
-                            .get((wposf.div(48.0)).into_array()) as f32,
-                    ) * 12.0;
+                        world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
+                        world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
+                    ) * 8.0;
 
                     let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
                     let cliff_height = Self::get_cliff_height(
@@ -352,6 +346,14 @@ impl<'a> BlockGen<'a> {
             }
         });
 
+        // Structures (like towns)
+        let block = chunk
+            .structures
+            .town
+            .as_ref()
+            .and_then(|town| TownGen.get((town, wpos, sample, height)))
+            .or(block);
+
         let block = structures
             .iter()
             .find_map(|st| {
@@ -406,11 +408,24 @@ impl<'a> ZCache<'a> {
             .max(self.sample.water_level)
             .max(CONFIG.sea_level + 2.0);
 
+        // Structures
+        let (min, max) = self
+            .sample
+            .chunk
+            .structures
+            .town
+            .as_ref()
+            .map(|town| {
+                let (town_min, town_max) = TownGen.get_z_limits(town, self.wpos, &self.sample);
+                (town_min.min(min), town_max.max(max))
+            })
+            .unwrap_or((min, max));
+
         (min, max)
     }
 }
 
-impl<'a> SamplerMut for BlockGen<'a> {
+impl<'a> SamplerMut<'static> for BlockGen<'a> {
     type Index = Vec3<i32>;
     type Sample = Option<Block>;
 
@@ -499,7 +514,7 @@ impl StructureInfo {
     }
 }
 
-fn block_from_structure(
+pub fn block_from_structure(
     sblock: StructureBlock,
     default_kind: BlockKind,
     pos: Vec3<i32>,
