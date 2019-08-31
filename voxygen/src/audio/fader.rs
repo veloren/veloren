@@ -57,11 +57,6 @@ impl Fader {
         lerp(self.running_time / self.length, self.volume_from, self.volume_to)
     }
 
-    // TODO: Remove
-    pub fn get_running_time(&self) -> f32 {
-        self.running_time
-    }
-
     pub fn is_finished(&self) -> bool {
         self.running_time >= self.length || !self.is_running
     }
