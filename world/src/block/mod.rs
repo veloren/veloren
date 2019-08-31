@@ -177,7 +177,7 @@ impl<'a> BlockGen<'a> {
                     .mul(48.0)
                     + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
                         .mul((chaos - 0.1).max(0.0))
-                        .mul(15.0);
+                        .mul(24.0);
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
