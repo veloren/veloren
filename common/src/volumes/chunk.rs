@@ -101,18 +101,18 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
         // 2. The `stretch_unchecked()` implementation only works for up to 11
         //    bits.
         // 3. The morton curve extends in the order `x, y, z, x, y, z, ...`
-        assert!(0 < S::SIZE.x);
-        assert!(0 < S::SIZE.y);
-        assert!(0 < S::SIZE.z);
-        assert!(S::SIZE.x <= 64);
-        assert!(S::SIZE.y <= 64);
-        assert!(S::SIZE.z <= 64);
-        assert!(S::SIZE.x & (S::SIZE.x - 1) == 0);
-        assert!(S::SIZE.y & (S::SIZE.y - 1) == 0);
-        assert!(S::SIZE.z & (S::SIZE.z - 1) == 0);
-        assert!(S::SIZE.x >= S::SIZE.y);
-        assert!(S::SIZE.y >= S::SIZE.z);
-        assert!(2 * S::SIZE.z >= S::SIZE.x);
+        debug_assert!(0 < S::SIZE.x);
+        debug_assert!(0 < S::SIZE.y);
+        debug_assert!(0 < S::SIZE.z);
+        debug_assert!(S::SIZE.x <= 64);
+        debug_assert!(S::SIZE.y <= 64);
+        debug_assert!(S::SIZE.z <= 64);
+        debug_assert!(S::SIZE.x & (S::SIZE.x - 1) == 0);
+        debug_assert!(S::SIZE.y & (S::SIZE.y - 1) == 0);
+        debug_assert!(S::SIZE.z & (S::SIZE.z - 1) == 0);
+        debug_assert!(S::SIZE.x >= S::SIZE.y);
+        debug_assert!(S::SIZE.y >= S::SIZE.z);
+        debug_assert!(2 * S::SIZE.z >= S::SIZE.x);
 
         Self {
             indices: vec![255; Self::BLOCK_GROUP_COUNT],

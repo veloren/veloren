@@ -75,8 +75,8 @@ pub struct MortonIter {
 
 impl MortonIter {
     pub fn new(lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self {
-        assert!(lower_bound.map(|l| l >= 0).reduce_and());
-        assert!(upper_bound.map(|u| u >= 0).reduce_and());
+        debug_assert!(lower_bound.map(|l| l >= 0).reduce_and());
+        debug_assert!(upper_bound.map(|u| u >= 0).reduce_and());
         if lower_bound.map2(upper_bound, |l, u| l < u).reduce_and() {
             let begin = xyz_to_morton(lower_bound);
             // The implementation treats `end` as inclusive.
