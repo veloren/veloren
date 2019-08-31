@@ -2,7 +2,6 @@ use crate::{
     vol::{BaseVol, IntoVolIterator, RasterableVol, ReadVol, SizedVol, VolSize, Vox, WriteVol},
     volumes::morton::{morton_to_xyz, xyz_to_morton, MortonIter},
 };
-use core::cmp::PartialOrd;
 use serde_derive::{Deserialize, Serialize};
 use std::marker::PhantomData;
 use vek::*;
@@ -223,7 +222,7 @@ impl<'a, V: 'a + Vox, S: VolSize, M> Iterator for ChunkMortonIter<&'a Chunk<V, S
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .next()
-            .map(|c| (morton_to_xyz(c), self.chunk.get_from_morton_unchecked(c)))
+            .map(|m| (morton_to_xyz(m), self.chunk.get_from_morton_unchecked(m)))
     }
 }
 
