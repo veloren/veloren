@@ -3,7 +3,7 @@ mod start_singleplayer;
 mod ui;
 
 use super::char_selection::CharSelectionState;
-use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
+use crate::{audio::fader::Fader, window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;
@@ -34,7 +34,8 @@ impl PlayState for MainMenuState {
         // Used for client creation.
         let mut client_init: Option<ClientInit> = None;
 
-        global_state.audio.play_sound("voxygen.audio.soundtrack.veloren_title_tune-3".to_string());
+        let music = global_state.audio.play_sound("voxygen.audio.soundtrack.veloren_title_tune-3".to_string());
+        global_state.audio.stop_channel(music, Fader::fade_out(10.0));
 
         loop {
             // Handle window events.
@@ -78,7 +79,7 @@ impl PlayState for MainMenuState {
             }
 
             // Maintain global_state
-            global_state.maintain();
+            global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Maintain the UI.
             for event in self.main_menu_ui.maintain(global_state) {
