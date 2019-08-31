@@ -338,18 +338,18 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
                 Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
             },
             Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
-            _ => ("figure.empty", Vec3::default()),
+            _ => return Mesh::new(),
         };
         load_mesh(name, offset)
     } else {
-        load_mesh("figure.empty", Vec3::default())
+        Mesh::new()
     }
 }
 
 pub fn mesh_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
     load_mesh(
         match shoulder {
-            Shoulder::None => "figure.empty",
+            Shoulder::None => return Mesh::new(),
             Shoulder::Brown1 => "armor.shoulder.shoulder_l_brown",
         },
         Vec3::new(-2.5, -3.5, -1.5),
@@ -359,7 +359,7 @@ pub fn mesh_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
 pub fn mesh_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
     load_mesh(
         match shoulder {
-            Shoulder::None => "figure.empty",
+            Shoulder::None => return Mesh::new(),
             Shoulder::Brown1 => "armor.shoulder.shoulder_r_brown",
         },
         Vec3::new(-2.5, -3.5, -1.5),
