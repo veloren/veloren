@@ -13,9 +13,8 @@ use client::Client;
 use common::{
     assets,
     comp::{
-
-        self, humanoid, item::Tool, object, quadruped, quadruped_medium, Body, Equipment, Item, ActionState::*, Body,
-        CharacterState, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
+        self, humanoid, item::Tool, object, quadruped, quadruped_medium, ActionState::*, Body,
+        CharacterState, Equipment, Item, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
     },
     figure::Segment,
     terrain::TerrainChunkSize,
