@@ -29,7 +29,7 @@ impl Channel {
             sink,
             audio_type: AudioType::Music,
             state: ChannelState::Playing,
-            fader: Fader::fade_in(0.25),
+            fader: Fader::fade_in(0.0),
         }
     }
 
