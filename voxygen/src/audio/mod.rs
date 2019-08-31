@@ -1,5 +1,7 @@
 pub mod fader;
+pub mod channel;
 use fader::Fader;
+use channel::{AudioType, Channel};
 
 use common::assets;
 use rodio::{Decoder, Device, Sink, SpatialSink};
@@ -7,71 +9,6 @@ use rodio::{Decoder, Device, Sink, SpatialSink};
 const LEFT_EAR : [f32; 3] = [1.0, 0.0, 0.0];
 const RIGHT_EAR : [f32; 3] = [-1.0, 0.0, 0.0];
 
-#[derive(PartialEq)]
-enum AudioType {
-    Sfx,
-    Music,
-}
-
-#[derive(PartialEq, Clone, Copy)]
-enum ChannelState {
-    Playing,
-    Stopping,
-    Stopped,
-}
-
-struct Channel {
-    id: usize,
-    sink: SpatialSink,
-    audio_type: AudioType,
-    state: ChannelState,
-    fader: Fader,
-}
-
-impl Channel {
-    pub fn music(id: usize, sink: SpatialSink) -> Self {
-        Self {
-            id,
-            sink,
-            audio_type: AudioType::Music,
-            state: ChannelState::Playing,
-            fader: Fader::fade_in(0.25),
-        }
-    }
-
-    pub fn sfx(id: usize, sink: SpatialSink) -> Self {
-        Self {
-            id,
-            sink,
-            audio_type: AudioType::Sfx,
-            state: ChannelState::Playing,
-            fader: Fader::fade_in(0.0),
-        }
-    }
-
-    pub fn stop(&mut self, fader: Fader) {
-        self.state = ChannelState::Stopping;
-        self.fader = fader;
-    }
-
-    pub fn get_state(&self) -> ChannelState {
-        self.state
-    }
-
-    pub fn update(&mut self, dt: f32) {
-        match self.state {
-            ChannelState::Playing => {},
-            ChannelState::Stopping  => {
-                self.fader.update(dt);
-                self.sink.set_volume(self.fader.get_volume());
-                if self.fader.is_finished() {
-                    self.state = ChannelState::Stopped;
-                }
-            },
-            ChannelState::Stopped => {},
-        }
-    }
-}
 
 pub struct AudioFrontend {
     pub device: String,
@@ -117,7 +54,7 @@ impl AudioFrontend {
         let mut stopped_channels = Vec::<usize>::new();
         for (i, channel) in self.channels.iter_mut().enumerate() {
             channel.update(dt);
-            if channel.sink.empty() || channel.get_state() == ChannelState::Stopped {
+            if channel.is_done() {
                 stopped_channels.push(i);
             }
         }
@@ -149,7 +86,7 @@ impl AudioFrontend {
     }
 
     pub fn stop_channel(&mut self, channel_id: usize, fader: Fader) {
-        let index = self.channels.iter().position(|c| c.id == channel_id);
+        let index = self.channels.iter().position(|c| c.get_id() == channel_id);
         if let Some(index) = index {
             self.channels[index].stop(fader);
         }
@@ -166,9 +103,9 @@ impl AudioFrontend {
     pub fn set_sfx_volume(&mut self, volume: f32) {
         self.sfx_volume = volume;
 
-        for channel in self.channels.iter() {
-            if channel.audio_type == AudioType::Sfx {
-                channel.sink.set_volume(volume);
+        for channel in self.channels.iter_mut() {
+            if channel.get_audio_type() == AudioType::Sfx {
+                channel.set_volume(volume);
             }
         }
     }
@@ -176,9 +113,9 @@ impl AudioFrontend {
     pub fn set_music_volume(&mut self, volume: f32) {
         self.music_volume = volume;
 
-        for channel in self.channels.iter() {
-            if channel.audio_type == AudioType::Music {
-                channel.sink.set_volume(volume);
+        for channel in self.channels.iter_mut() {
+            if channel.get_audio_type() == AudioType::Music {
+                channel.set_volume(volume);
             }
         }
     }
