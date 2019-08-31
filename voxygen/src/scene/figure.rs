@@ -711,7 +711,7 @@ impl FigureMgr {
                         ),
                         Run => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (vel.0.magnitude(), time),
+                            (vel.0.magnitude(), ori.0.magnitude(), time),
                             time_since_movement_change,
                             skeleton_attr,
                         ),

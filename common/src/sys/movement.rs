@@ -83,14 +83,7 @@ impl<'a> System<'a> for Sys {
                         .unwrap_or(Vec2::from(vel.0).try_normalized().unwrap_or_default())
                         * ROLL_SPEED
             }
-            if character.action.is_block() {
-                vel.0 += Vec2::broadcast(dt.0)
-                    * controller.move_dir
-                    * match (physics.on_ground) {
-                        (true) if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
-                        _ => 0.0,
-                    }
-            } else if character.action.is_attack() {
+            if character.action.is_block() || character.action.is_attack() {
                 vel.0 += Vec2::broadcast(dt.0)
                     * controller.move_dir
                     * match (physics.on_ground) {
