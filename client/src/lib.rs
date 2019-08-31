@@ -100,12 +100,6 @@ impl Client {
         // We reduce the thread count by 1 to keep rendering smooth
         thread_pool.set_num_threads((num_cpus::get() - 1).max(1));
 
-        // Set client-only components
-        let _ = state
-            .ecs_mut()
-            .write_storage()
-            .insert(entity, comp::AnimationInfo::default());
-
         Ok(Self {
             client_state,
             thread_pool,
@@ -279,10 +273,30 @@ impl Client {
         // 2) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
+        // Prepare for new events
+        {
+            let ecs = self.state.ecs_mut();
+            for (entity, _) in (&ecs.entities(), &ecs.read_storage::<comp::Body>()).join() {
+                let mut last_character_states =
+                    ecs.write_storage::<comp::Last<comp::CharacterState>>();
+                if let Some(client_character_state) =
+                    ecs.read_storage::<comp::CharacterState>().get(entity)
+                {
+                    if last_character_states
+                        .get(entity)
+                        .map(|&l| !client_character_state.is_same_state(&l.0))
+                        .unwrap_or(true)
+                    {
+                        let _ = last_character_states
+                            .insert(entity, comp::Last(*client_character_state));
+                    }
+                }
+            }
+        }
         // Handle new messages from the server.
         frontend_events.append(&mut self.handle_new_messages()?);
 
-        // 3)
+        // 3) Update client local data
 
         // 4) Tick the client's LocalState
         self.state.tick(dt);
@@ -395,7 +409,6 @@ impl Client {
         }
 
         // 7) Finish the tick, pass control back to the frontend.
-
         self.tick += 1;
         Ok(frontend_events)
     }
