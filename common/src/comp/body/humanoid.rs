@@ -277,11 +277,10 @@ pub const ALL_SHOULDERS: [Shoulder; 2] = [Shoulder::None, Shoulder::Brown1];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum HairStyle {
-    None,
     Temp1,
     Temp2,
 }
-pub const ALL_HAIR_STYLES: [HairStyle; 3] = [HairStyle::None, HairStyle::Temp1, HairStyle::Temp2];
+pub const ALL_HAIR_STYLES: [HairStyle; 2] = [HairStyle::Temp1, HairStyle::Temp2];
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Eyebrows {
