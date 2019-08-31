@@ -13,7 +13,9 @@ use self::util::{
 
 use crate::{
     all::ForestKind,
-    util::{seed_expan, RandomField, Sampler, StructureGen2d},
+    column::ColumnGen,
+    generator::TownState,
+    util::{seed_expan, FastNoise, RandomField, Sampler, StructureGen2d},
     CONFIG,
 };
 use common::{
@@ -28,8 +30,10 @@ use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use std::{
+    collections::HashMap,
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
+    sync::Arc,
 };
 use vek::*;
 
@@ -63,7 +67,7 @@ pub(crate) struct GenCtx {
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
     pub cliff_nz: HybridMulti,
-    pub warp_nz: BasicMulti,
+    pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
     pub cave_0_nz: SuperSimplex,
@@ -72,6 +76,11 @@ pub(crate) struct GenCtx {
     pub structure_gen: StructureGen2d,
     pub region_gen: StructureGen2d,
     pub cliff_gen: StructureGen2d,
+
+    pub fast_turb_x_nz: FastNoise,
+    pub fast_turb_y_nz: FastNoise,
+
+    pub town_gen: StructureGen2d,
 }
 
 pub struct WorldSim {
@@ -105,7 +114,7 @@ impl WorldSim {
             small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
             cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            warp_nz: BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+            warp_nz: FastNoise::new(gen_seed()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
@@ -123,6 +132,11 @@ impl WorldSim {
                 // .set_octaves(6)
                 // .set_persistence(0.5)
                 .set_seed(gen_seed()),
+
+            fast_turb_x_nz: FastNoise::new(gen_seed()),
+            fast_turb_y_nz: FastNoise::new(gen_seed()),
+
+            town_gen: StructureGen2d::new(gen_seed(), 2048, 1024),
         };
         let river_seed = RandomField::new(gen_seed());
         let rock_strength_nz = Fbm::new()
@@ -203,7 +217,7 @@ impl WorldSim {
                     // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
                     let alt_main = (gen_ctx.alt_nz.get((wposf.div(2_000.0)).into_array()) as f32)
                         .abs()
-                        .powf(1.45);
+                        .powf(1.35);
 
                     (0.0 + alt_main
                         + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
@@ -467,6 +481,40 @@ impl WorldSim {
             }
         }
 
+        // Stage 2 - towns!
+        let mut maybe_towns = HashMap::new();
+        for i in 0..WORLD_SIZE.x {
+            for j in 0..WORLD_SIZE.y {
+                let chunk_pos = Vec2::new(i as i32, j as i32);
+                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    e * sz as i32 + sz as i32 / 2
+                });
+
+                let near_towns = self.gen_ctx.town_gen.get(wpos);
+                let town = near_towns
+                    .iter()
+                    .min_by_key(|(pos, seed)| wpos.distance_squared(*pos));
+
+                if let Some((pos, _)) = town {
+                    let maybe_town = maybe_towns
+                        .entry(*pos)
+                        .or_insert_with(|| {
+                            TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
+                                .map(|t| Arc::new(t))
+                        })
+                        .as_mut()
+                        // Only care if we're close to the town
+                        .filter(|town| {
+                            Vec2::from(town.center()).distance_squared(wpos)
+                                < town.radius().add(64).pow(2)
+                        })
+                        .cloned();
+
+                    self.get_mut(chunk_pos).unwrap().structures.town = maybe_town;
+                }
+            }
+        }
+
         self.rng = rng;
         self.locations = locations;
     }
@@ -480,6 +528,12 @@ impl WorldSim {
         } else {
             None
         }
+    }
+
+    pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
+        self.get(wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            e / sz as i32
+        }))
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -549,7 +603,6 @@ pub struct SimChunk {
     pub alt: f32,
     pub flux: f32,
     pub temp: f32,
-    pub dryness: f32,
     pub humidity: f32,
     pub rockiness: f32,
     pub is_cliffs: bool,
@@ -558,6 +611,8 @@ pub struct SimChunk {
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
+
+    pub structures: Structures,
 }
 
 #[derive(Copy, Clone)]
@@ -574,26 +629,15 @@ pub struct LocationInfo {
     pub near: Vec<RegionInfo>,
 }
 
+#[derive(Clone)]
+pub struct Structures {
+    pub town: Option<Arc<TownState>>,
+}
+
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
-
-        // FIXME: Currently unused, but should represent fresh groundwater level.
-        // Should be correlated a little with humidity, somewhat negatively with altitude,
-        // and very negatively with difference in temperature from zero.
-        let dryness = gen_ctx.dry_nz.get(
-            (wposf
-                .add(Vec2::new(
-                    gen_ctx
-                        .dry_nz
-                        .get((wposf.add(10000.0).div(500.0)).into_array())
-                        * 150.0,
-                    gen_ctx.dry_nz.get((wposf.add(0.0).div(500.0)).into_array()) * 150.0,
-                ))
-                .div(2_000.0))
-            .into_array(),
-        ) as f32;
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);
@@ -683,17 +727,13 @@ impl SimChunk {
             flux,
             alt,
             temp,
-            dryness,
             humidity,
             rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
                 .sub(0.1)
                 .mul(1.3)
                 .max(0.0),
-            is_cliffs: cliff > 0.5
-                && dryness > 0.05
-                && alt > CONFIG.sea_level + 5.0
-                && dryness.abs() > 0.075,
-            near_cliffs: cliff > 0.25,
+            is_cliffs: cliff > 0.5 && alt > CONFIG.sea_level + 5.0,
+            near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > 0.0 {
                 if temp > CONFIG.desert_temp {
@@ -758,6 +798,8 @@ impl SimChunk {
             },
             spawn_rate: 1.0,
             location: None,
+
+            structures: Structures { town: None },
         }
     }
 

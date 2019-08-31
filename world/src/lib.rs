@@ -3,13 +3,15 @@
     const_generics,
     euclidean_division,
     bind_by_move_pattern_guards,
-    option_flattening
+    option_flattening,
+    label_break_value
 )]
 
 mod all;
 mod block;
 mod column;
 pub mod config;
+pub mod generator;
 pub mod sim;
 pub mod util;
 
@@ -56,11 +58,11 @@ impl World {
     pub fn sample_columns(
         &self,
     ) -> impl Sampler<Index = Vec2<i32>, Sample = Option<ColumnSample>> + '_ {
-        ColumnGen::new(self)
+        ColumnGen::new(&self.sim)
     }
 
     pub fn sample_blocks(&self) -> BlockGen {
-        BlockGen::new(self, ColumnGen::new(self))
+        BlockGen::new(self, ColumnGen::new(&self.sim))
     }
 
     pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
