@@ -243,6 +243,8 @@ impl Server {
             let state = &mut self.state;
             let clients = &mut self.clients;
 
+            let mut todo_remove = None;
+
             match event {
                 ServerEvent::Explosion { pos, radius } => {
                     const RAYS: usize = 500;
@@ -306,23 +308,21 @@ impl Server {
                         clients.notify_registered(ServerMsg::kill(msg));
                     }
 
-                    {
-                        // Give EXP to the client
-                        let mut stats = ecs.write_storage::<comp::Stats>();
+                    // Give EXP to the client
+                    let mut stats = ecs.write_storage::<comp::Stats>();
 
-                        if let Some(entity_stats) = stats.get(entity).cloned() {
-                            if let comp::HealthSource::Attack { by } = cause {
-                                ecs.entity_from_uid(by.into()).map(|attacker| {
-                                    if let Some(attacker_stats) = stats.get_mut(attacker) {
-                                        // TODO: Discuss whether we should give EXP by Player Killing or not.
-                                        attacker_stats.exp.change_by(
-                                            (entity_stats.health.maximum() as f64 / 10.0
-                                                + entity_stats.level.level() as f64 * 10.0)
-                                                as i64,
-                                        );
-                                    }
-                                });
-                            }
+                    if let Some(entity_stats) = stats.get(entity).cloned() {
+                        if let comp::HealthSource::Attack { by } = cause {
+                            ecs.entity_from_uid(by.into()).map(|attacker| {
+                                if let Some(attacker_stats) = stats.get_mut(attacker) {
+                                    // TODO: Discuss whether we should give EXP by Player Killing or not.
+                                    attacker_stats.exp.change_by(
+                                        (entity_stats.health.maximum() as f64 / 10.0
+                                            + entity_stats.level.level() as f64 * 10.0)
+                                            as i64,
+                                    );
+                                }
+                            });
                         }
                     }
 
@@ -331,7 +331,7 @@ impl Server {
                         let _ = ecs.write_storage().insert(entity, comp::ForceUpdate);
                         client.force_state(ClientState::Dead);
                     } else {
-                        let _ = state.ecs_mut().delete_entity_synced(entity);
+                        todo_remove = Some(entity.clone());
                     }
                 }
 
@@ -355,6 +355,10 @@ impl Server {
                             .insert(entity, comp::ForceUpdate);
                     }
                 }
+            }
+
+            if let Some(entity) = todo_remove {
+                let _ = state.ecs_mut().delete_entity_synced(entity);
             }
         }
     }
@@ -1101,7 +1105,7 @@ impl Server {
             if let Some(client_pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 if last_pos
                     .get(entity)
-                    .map(|&l| l != *client_pos)
+                    .map(|&l| l.0 != *client_pos)
                     .unwrap_or(true)
                 {
                     let _ = last_pos.insert(entity, comp::Last(*client_pos));
@@ -1119,7 +1123,7 @@ impl Server {
             if let Some(client_vel) = ecs.read_storage::<comp::Vel>().get(entity) {
                 if last_vel
                     .get(entity)
-                    .map(|&l| l != *client_vel)
+                    .map(|&l| l.0 != *client_vel)
                     .unwrap_or(true)
                 {
                     let _ = last_vel.insert(entity, comp::Last(*client_vel));
@@ -1137,7 +1141,7 @@ impl Server {
             if let Some(client_ori) = ecs.read_storage::<comp::Ori>().get(entity) {
                 if last_ori
                     .get(entity)
-                    .map(|&l| l != *client_ori)
+                    .map(|&l| l.0 != *client_ori)
                     .unwrap_or(true)
                 {
                     let _ = last_ori.insert(entity, comp::Last(*client_ori));
@@ -1157,7 +1161,7 @@ impl Server {
             {
                 if last_character_state
                     .get(entity)
-                    .map(|&l| l != *client_character_state)
+                    .map(|&l| !client_character_state.is_same_state(&l.0))
                     .unwrap_or(true)
                 {
                     let _ =
