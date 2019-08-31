@@ -237,18 +237,21 @@ impl HumHeadSpec {
 
 pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
     let color = match chest {
-        Chest::Brown => (125, 53, 0),
-        Chest::Dark => (0, 38, 43),
-        Chest::Green => (0, 255, 34),
-        Chest::Orange => (255, 106, 0),
-        Chest::Blue => (0, 38, 255),
+        Chest::Blue => (28, 66, 109),
+        Chest::Brown => (54, 30, 26),
+        Chest::Dark => (24, 19, 17),
+        Chest::Green => (49, 95, 59),
+        Chest::Orange => (148, 52, 33),
     };
 
-    let bare_chest = load_segment("figure.body.chest");
-    let chest_armor = load_segment("armor.chest.generic");
+    let bare_chest = graceful_load_segment("figure.body.chest");
+    let chest_armor = graceful_load_segment("armor.chest.grayscale");
     let chest = DynaUnionizer::new()
         .add(bare_chest, Vec3::new(0, 0, 0))
-        .add(chest_armor.chromify(Rgb::from(color)), Vec3::new(0, 0, 0))
+        .add(
+            recolor_greys(chest_armor, Rgb::from(color)),
+            Vec3::new(0, 0, 0),
+        )
         .unify()
         .0;
 
@@ -266,16 +269,24 @@ pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
 }
 
 pub fn mesh_pants(pants: Pants) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match pants {
-            Pants::Blue => "armor.pants.pants_blue",
-            Pants::Brown => "armor.pants.pants_brown",
-            Pants::Dark => "armor.pants.pants_dark",
-            Pants::Green => "armor.pants.pants_green",
-            Pants::Orange => "armor.pants.pants_orange",
-        },
+    let color = match pants {
+        Pants::Blue => (28, 66, 109),
+        Pants::Brown => (54, 30, 26),
+        Pants::Dark => (24, 19, 17),
+        Pants::Green => (49, 95, 59),
+        Pants::Orange => (148, 52, 33),
+    };
+
+    let pants_segment = recolor_greys(
+        graceful_load_segment("armor.pants.grayscale"),
+        Rgb::from(color),
+    );
+
+    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(
+        &pants_segment,
         Vec3::new(-5.0, -3.5, 0.0),
     )
+    .0
 }
 
 pub fn mesh_left_hand(hand: Hand) -> Mesh<FigurePipeline> {

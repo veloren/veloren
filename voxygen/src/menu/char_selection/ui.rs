@@ -86,10 +86,13 @@ widget_ids! {
         eyebrows_slider,
         eyebrows_text,
         beard_slider,
-        beard_slider_2,
         beard_text,
         accessories_slider,
         accessories_text,
+        chest_slider,
+        chest_text,
+        pants_slider,
+        pants_text,
 
         // Buttons
         enter_world_button,
@@ -132,8 +135,6 @@ widget_ids! {
         undead,
         elf,
         danari,
-        // Body Features
-        chest_slider,
     }
 }
 
@@ -974,7 +975,7 @@ impl CharSelectionUi {
                     .font_id(self.fonts.metamorph)
                     .color(TEXT_COLOR_2)
                     .set(self.ids.beard_text, ui_widgets);
-                ImageSlider::continuous(5.0, 0.0, 10.0, self.imgs.nothing, self.imgs.slider_range)
+                ImageSlider::discrete(5, 0, 10, self.imgs.nothing, self.imgs.slider_range)
                     .w_h(208.0, 22.0)
                     .mid_bottom_with_margin_on(self.ids.beard_text, -30.0)
                     .track_breadth(12.0)
@@ -982,7 +983,39 @@ impl CharSelectionUi {
                     .track_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
                     .slider_color(Color::Rgba(1.0, 1.0, 1.0, 0.2))
                     .pad_track((5.0, 5.0))
-                    .set(self.ids.beard_slider_2, ui_widgets);
+                    .set(self.ids.beard_slider, ui_widgets);
+            }
+            // Chest
+            let current_chest = self.character_body.chest;
+            if let Some(new_val) = char_slider(
+                self.ids.beard_slider,
+                "Chest",
+                self.ids.chest_text,
+                humanoid::ALL_CHESTS.len() - 1,
+                humanoid::ALL_CHESTS
+                    .iter()
+                    .position(|&c| c == current_chest)
+                    .unwrap_or(0),
+                self.ids.chest_slider,
+                ui_widgets,
+            ) {
+                self.character_body.chest = humanoid::ALL_CHESTS[new_val];
+            }
+            // Pants
+            let current_pants = self.character_body.pants;
+            if let Some(new_val) = char_slider(
+                self.ids.chest_slider,
+                "Pants",
+                self.ids.pants_text,
+                humanoid::ALL_PANTS.len() - 1,
+                humanoid::ALL_PANTS
+                    .iter()
+                    .position(|&c| c == current_pants)
+                    .unwrap_or(0),
+                self.ids.pants_slider,
+                ui_widgets,
+            ) {
+                self.character_body.pants = humanoid::ALL_PANTS[new_val];
             }
         } // Char Creation fin
 

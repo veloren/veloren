@@ -70,13 +70,13 @@ impl Segment {
     pub fn replace(self, old: Cell, new: Cell) -> Self {
         self.map(|cell| if cell == old { Some(new) } else { None })
     }
-    /// Preserve the luminance of all the colors but set the chomaticity to match the provided color
-    pub fn chromify(self, chroma: Rgb<u8>) -> Self {
+    // Preserve the luminance of all the colors but set the chomaticity to match the provided color
+    /*pub fn chromify(self, chroma: Rgb<u8>) -> Self {
         let chroma = chroma.map(|e| e as f32 / 255.0);
         self.map_rgb(|rgb| {
             chromify_srgb(rgb.map(|e| e as f32 / 255.0), chroma).map(|e| (e * 255.0) as u8)
         })
-    }
+    }*/
     // Sets the chromaticity based on the provided color
     // Multiplies luma with luma of the provided color (might not be what we want)
     /*pub fn colorify(mut self, color: Rgb<u8>) -> Self {
