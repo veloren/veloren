@@ -271,7 +271,7 @@ impl PlayState for SessionState {
             }
 
             // Maintain global state.
-            global_state.maintain();
+            global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let hud_events = self.hud.maintain(

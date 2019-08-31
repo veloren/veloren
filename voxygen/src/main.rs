@@ -58,8 +58,8 @@ impl GlobalState {
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self) {
-        self.audio.maintain();
+    pub fn maintain(&mut self, dt: f32) {
+        self.audio.maintain(dt);
     }
 }
 
