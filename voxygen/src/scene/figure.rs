@@ -551,7 +551,7 @@ impl FigureModelCache {
             match head_upper {
                 grizzly_bear::HeadUpper::Default => "npc.grizzly_bear.grizzly_bear_upper_head",
             },
-            Vec3::new(-4.0, -4.0, -1.5),
+            Vec3::new(-7.0, -2.0, -7.5),
         )
     }
 
@@ -560,7 +560,7 @@ impl FigureModelCache {
             match head_lower {
                 grizzly_bear::HeadLower::Default => "npc.grizzly_bear.grizzly_bear_lower_head",
             },
-            Vec3::new(-4.0, -4.0, -2.5),
+            Vec3::new(-6.0, -5.0, -3.0),
         )
     }
 
@@ -587,7 +587,7 @@ impl FigureModelCache {
             match leg_lf {
                 grizzly_bear::LegLF::Default => "npc.grizzly_bear.grizzly_bear_lf_leg",
             },
-            Vec3::new(-2.5, -2.0, -4.5),
+            Vec3::new(-2.5, -5.5, -10.0),
         )
     }
 
@@ -596,7 +596,7 @@ impl FigureModelCache {
             match leg_rf {
                 grizzly_bear::LegRF::Default => "npc.grizzly_bear.grizzly_bear_rf_leg",
             },
-            Vec3::new(-2.5, -2.0, -4.5),
+            Vec3::new(-2.5, -5.5, -10.0),
         )
     }
 
@@ -605,7 +605,7 @@ impl FigureModelCache {
             match leg_lb {
                 grizzly_bear::LegLB::Default => "npc.grizzly_bear.grizzly_bear_lb_leg",
             },
-            Vec3::new(-2.5, -2.0, -4.5),
+            Vec3::new(-3.5, -5.0, -8.0),
         )
     }
 
@@ -614,7 +614,7 @@ impl FigureModelCache {
             match leg_rb {
                 grizzly_bear::LegRB::Default => "npc.grizzly_bear.grizzly_bear_rb_leg",
             },
-            Vec3::new(-2.5, -2.0, -4.5),
+            Vec3::new(-3.5, -5.0, -8.0),
         )
     }
 
@@ -623,7 +623,7 @@ impl FigureModelCache {
             match foot_lf {
                 grizzly_bear::FootLF::Default => "npc.grizzly_bear.grizzly_bear_lf_foot",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-3.5, -6.0, -6.0),
         )
     }
 
@@ -632,7 +632,7 @@ impl FigureModelCache {
             match foot_rf {
                 grizzly_bear::FootRF::Default => "npc.grizzly_bear.grizzly_bear_rf_foot",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-3.5, -6.0, -6.0),
         )
     }
     fn load_grizzly_bear_foot_lb(foot_lb: grizzly_bear::FootLB) -> Mesh<FigurePipeline> {
@@ -640,7 +640,7 @@ impl FigureModelCache {
             match foot_lb {
                 grizzly_bear::FootLB::Default => "npc.grizzly_bear.grizzly_bear_lb_foot",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-3.5, -6.0, -6.0),
         )
     }
     fn load_grizzly_bear_foot_rb(foot_rb: grizzly_bear::FootRB) -> Mesh<FigurePipeline> {
@@ -648,7 +648,7 @@ impl FigureModelCache {
             match foot_rb {
                 grizzly_bear::FootRB::Default => "npc.grizzly_bear.grizzly_bear_rb_foot",
             },
-            Vec3::new(-2.5, -4.0, -2.5),
+            Vec3::new(-3.5, -6.0, -6.0),
         )
     }
     ///////

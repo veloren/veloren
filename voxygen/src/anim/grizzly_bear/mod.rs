@@ -45,21 +45,27 @@ impl GrizzlyBearSkeleton {
     }
 }
 
+
 impl Skeleton for GrizzlyBearSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
+        let leg_lf_mat = self.grizzly_bear_leg_lf.compute_base_matrix();
+        let leg_rf_mat = self.grizzly_bear_leg_rf.compute_base_matrix();
+        let leg_lb_mat = self.grizzly_bear_leg_lb.compute_base_matrix();
+        let leg_rb_mat = self.grizzly_bear_leg_rb.compute_base_matrix();
+        let upper_head_mat = self.grizzly_bear_upper_head.compute_base_matrix();    
         [
-            FigureBoneData::new(self.grizzly_bear_upper_head.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_lower_head.compute_base_matrix()),
+            FigureBoneData::new(upper_head_mat),
+            FigureBoneData::new(upper_head_mat * self.grizzly_bear_lower_head.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_upper_torso.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_lower_torso.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_leg_lf.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_leg_rf.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_leg_lb.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_leg_rb.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_foot_lf.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_foot_rf.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_foot_lb.compute_base_matrix()),
-            FigureBoneData::new(self.grizzly_bear_foot_rb.compute_base_matrix()),
+            FigureBoneData::new(leg_lf_mat),
+            FigureBoneData::new(leg_rf_mat),
+            FigureBoneData::new(leg_lb_mat),
+            FigureBoneData::new(leg_rb_mat),
+            FigureBoneData::new(leg_lf_mat * self.grizzly_bear_foot_lf.compute_base_matrix()),
+            FigureBoneData::new(leg_rf_mat * self.grizzly_bear_foot_rf.compute_base_matrix()),
+            FigureBoneData::new(leg_lb_mat * self.grizzly_bear_foot_lb.compute_base_matrix()),
+            FigureBoneData::new(leg_rb_mat * self.grizzly_bear_foot_rb.compute_base_matrix()),
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
