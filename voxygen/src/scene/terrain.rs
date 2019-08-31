@@ -608,11 +608,9 @@ impl Terrain {
             }
         }
 
-        // Translucent
+        // Terrain sprites
         for (pos, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
-
                 const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
                 let chunk_center = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
@@ -630,6 +628,13 @@ impl Terrain {
                         );
                     }
                 }
+            }
+        }
+
+        // Translucent
+        for (_, chunk) in &self.chunks {
+            if chunk.visible {
+                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
             }
         }
     }
