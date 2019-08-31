@@ -1,7 +1,8 @@
 use crate::{
     all::ForestKind,
     block::StructureMeta,
-    sim::{LocationInfo, SimChunk},
+    generator::{Generator, SpawnRules, TownGen},
+    sim::{LocationInfo, SimChunk, WorldSim},
     util::{RandomPerm, Sampler, UnitChooser},
     World, CONFIG,
 };
@@ -20,7 +21,7 @@ use std::{
 use vek::*;
 
 pub struct ColumnGen<'a> {
-    world: &'a World,
+    pub sim: &'a WorldSim,
 }
 
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
@@ -55,14 +56,13 @@ lazy_static! {
 }
 
 impl<'a> ColumnGen<'a> {
-    pub fn new(world: &'a World) -> Self {
-        Self { world }
+    pub fn new(sim: &'a WorldSim) -> Self {
+        Self { sim }
     }
 
     fn get_local_structure(&self, wpos: Vec2<i32>) -> Option<StructureData> {
         let (pos, seed) = self
-            .world
-            .sim()
+            .sim
             .gen_ctx
             .region_gen
             .get(wpos)
@@ -74,7 +74,7 @@ impl<'a> ColumnGen<'a> {
         let chunk_pos = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
             e / sz as i32
         });
-        let chunk = self.world.sim().get(chunk_pos)?;
+        let chunk = self.sim.get(chunk_pos)?;
 
         if seed % 5 == 2
             && chunk.temp > CONFIG.desert_temp
@@ -102,8 +102,7 @@ impl<'a> ColumnGen<'a> {
 
     fn gen_close_structures(&self, wpos: Vec2<i32>) -> [Option<StructureData>; 9] {
         let mut metas = [None; 9];
-        self.world
-            .sim()
+        self.sim
             .gen_ctx
             .structure_gen
             .get(wpos)
@@ -121,7 +120,7 @@ impl<'a> ColumnGen<'a> {
     }
 }
 
-impl<'a> Sampler for ColumnGen<'a> {
+impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Index = Vec2<i32>;
     type Sample = Option<ColumnSample<'a>>;
 
@@ -131,7 +130,7 @@ impl<'a> Sampler for ColumnGen<'a> {
             e / sz as i32
         });
 
-        let sim = self.world.sim();
+        let sim = &self.sim;
 
         let turb = Vec2::new(
             sim.gen_ctx.turb_x_nz.get((wposf.div(48.0)).into_array()) as f32,
@@ -142,7 +141,6 @@ impl<'a> Sampler for ColumnGen<'a> {
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
-        let dryness = sim.get_interpolated(wpos, |chunk| chunk.dryness)?;
         let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
@@ -175,8 +173,16 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .small_nz
                 .get((wposf_turb.div(150.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.15))
-                .mul(64.0);
+                .mul(chaos.max(0.025))
+                .mul(64.0)
+            + (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb.div(450.0)).into_array()) as f32)
+                .abs()
+                .mul(1.0 - chaos)
+                .mul(1.0 - humidity)
+                .mul(96.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
         let near_cliffs = sim_chunk.near_cliffs;
@@ -376,6 +382,7 @@ impl<'a> Sampler for ColumnGen<'a> {
                 .add((marble_small - 0.5) * 0.5),
         );
 
+        /*
         // Work out if we're on a path or near a town
         let dist_to_path = match &sim_chunk.location {
             Some(loc) => {
@@ -412,9 +419,11 @@ impl<'a> Sampler for ColumnGen<'a> {
         } else {
             (alt, ground)
         };
+        */
 
         // Cities
         // TODO: In a later MR
+        /*
         let building = match &sim_chunk.location {
             Some(loc) => {
                 let loc = &sim.locations[loc.loc_idx];
@@ -433,6 +442,7 @@ impl<'a> Sampler for ColumnGen<'a> {
         };
 
         let alt = alt + building;
+        */
 
         // Caves
         let cave_at = |wposf: Vec2<f64>| {
@@ -507,6 +517,14 @@ impl<'a> Sampler for ColumnGen<'a> {
             temp,
             spawn_rate,
             location: sim_chunk.location.as_ref(),
+
+            chunk: sim_chunk,
+            spawn_rules: sim_chunk
+                .structures
+                .town
+                .as_ref()
+                .map(|town| TownGen.spawn_rules(town, wpos))
+                .unwrap_or(SpawnRules::default()),
         })
     }
 }
@@ -534,6 +552,9 @@ pub struct ColumnSample<'a> {
     pub temp: f32,
     pub spawn_rate: f32,
     pub location: Option<&'a LocationInfo>,
+
+    pub chunk: &'a SimChunk,
+    pub spawn_rules: SpawnRules,
 }
 
 #[derive(Copy, Clone)]

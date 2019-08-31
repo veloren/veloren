@@ -24,7 +24,7 @@ impl UnitChooser {
     }
 }
 
-impl Sampler for UnitChooser {
+impl Sampler<'static> for UnitChooser {
     type Index = u32;
     type Sample = (Vec2<i32>, Vec2<i32>);
 
