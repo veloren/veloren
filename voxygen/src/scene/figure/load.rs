@@ -63,6 +63,22 @@ fn color_segment(
     })
 }
 
+fn recolor_greys(segment: Segment, color: Rgb<u8>) -> Segment {
+    use common::util::{linear_to_srgb, srgb_to_linear};
+
+    segment.map_rgb(|rgb| {
+        const BASE_GREY: f32 = 178.0;
+        if rgb.r == rgb.g && rgb.g == rgb.b {
+            let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
+            let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
+
+            linear_to_srgb(c1 * c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
+        } else {
+            rgb
+        }
+    })
+}
+
 #[derive(Serialize, Deserialize)]
 struct VoxSpec(String, [i32; 3]); // All offsets should be relative to an initial origin that doesn't change when combining segments
                                   // All reliant on humanoid::Race and humanoid::BodyType
@@ -115,22 +131,6 @@ impl HumHeadSpec {
         let hair_rgb = race.hair_color(hair_color);
         let skin_rgb = race.skin_color(skin);
         let eye_color = race.eye_color(eye_color);
-
-        fn recolor_greys(segment: Segment, color: Rgb<u8>) -> Segment {
-            use common::util::{linear_to_srgb, srgb_to_linear};
-
-            segment.map_rgb(|rgb| {
-                const BASE_GREY: f32 = 178.0;
-                if rgb.r == rgb.g && rgb.g == rgb.b {
-                    let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
-                    let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
-
-                    linear_to_srgb(c1 * c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
-                } else {
-                    rgb
-                }
-            })
-        }
 
         // Load segment pieces
         let bare_head = graceful_load_mat_segment(&spec.head.0);
@@ -234,14 +234,6 @@ impl HumHeadSpec {
         //load_mesh(name, offset)
     }
 }
-// loads models with different offsets
-//    pub fn mesh_beard(beard: Beard) -> Mesh<FigurePipeline> {
-//        let (name, offset) = match beard {
-//            Beard::None => ("figure/body/empty", Vec3::new(0.0, 0.0, 0.0)),
-//            Beard::Human1 => ("figure/empty", Vec3::new(0.0, 0.0, 0.0)),
-//        };
-//        load_mesh(name, offset)
-//    }
 
 pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
     let color = match chest {

@@ -61,6 +61,7 @@ pub const ALL_RACES: [Race; 6] = [
     Race::Orc,
     Race::Undead,
 ];
+
 // Hair Colors
 pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 4] = [
     (198, 169, 113),
@@ -73,6 +74,7 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 3] = [(66, 83, 113), (13, 76, 41), (66
 pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 3] = [(73, 42, 36), (73, 42, 36), (73, 42, 36)];
 pub const ORC_HAIR_COLORS: [(u8, u8, u8); 3] = [(11, 11, 11), (54, 30, 26), (54, 30, 26)];
 pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 3] = [(0, 131, 122), (24, 19, 17), (0, 131, 122)];
+
 // Skin colors
 pub const DANARI_SKIN_COLORS: [(u8, u8, u8); 4] = [
     (57, 120, 148),
@@ -87,6 +89,63 @@ pub const HUMAN_SKIN_COLORS: [(u8, u8, u8); 3] =
 pub const ORC_SKIN_COLORS: [(u8, u8, u8); 3] = [(68, 129, 44), (77, 150, 51), (45, 95, 32)];
 pub const UNDEAD_SKIN_COLORS: [(u8, u8, u8); 3] =
     [(255, 255, 255), (203, 255, 215), (213, 220, 180)];
+
+// Eye colors
+pub const DANARI_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+pub const DWARF_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+pub const ELF_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+pub const HUMAN_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+pub const ORC_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+pub const UNDEAD_EYE_COLORS: [EyeColor; 7] = [
+    EyeColor::Black,
+    EyeColor::Blue,
+    EyeColor::Green,
+    EyeColor::Brown,
+    EyeColor::Red,
+    EyeColor::White,
+    EyeColor::Orange,
+];
+
 impl Race {
     fn hair_colors(self) -> &'static [(u8, u8, u8)] {
         match self {
@@ -110,7 +169,12 @@ impl Race {
     }
     fn eye_colors(self) -> &'static [EyeColor] {
         match self {
-            _ => &ALL_EYE_COLORS,
+            Race::Danari => &DANARI_EYE_COLORS,
+            Race::Dwarf => &DWARF_EYE_COLORS,
+            Race::Elf => &ELF_EYE_COLORS,
+            Race::Human => &HUMAN_EYE_COLORS,
+            Race::Orc => &ORC_EYE_COLORS,
+            Race::Undead => &UNDEAD_EYE_COLORS,
         }
     }
     pub fn hair_color(self, val: u8) -> Rgb<u8> {
