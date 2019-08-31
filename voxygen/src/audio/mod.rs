@@ -74,7 +74,25 @@ impl AudioFrontend {
         if let Some(device) = &self.audio_device {
             let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], LEFT_EAR, RIGHT_EAR);
 
-            let file = assets::load_file(&sound, &["wav", "ogg"]).unwrap();
+            let file = assets::load_file(&sound, &["wav"]).unwrap();
+            let sound = Decoder::new(file).unwrap();
+
+            sink.append(sound);
+
+            self.channels.push(Channel::sfx(id, sink));
+        }
+
+        id
+    }
+
+    pub fn play_music(&mut self, sound: String) -> usize {
+        let id = self.next_channel_id;
+        self.next_channel_id += 1;
+
+        if let Some(device) = &self.audio_device {
+            let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], LEFT_EAR, RIGHT_EAR);
+
+            let file = assets::load_file(&sound, &["ogg"]).unwrap();
             let sound = Decoder::new(file).unwrap();
 
             sink.append(sound);
