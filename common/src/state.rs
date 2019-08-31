@@ -133,9 +133,6 @@ impl State {
         ecs.register::<comp::Ori>();
         ecs.register::<comp::Inventory>();
 
-        // Register client-local components
-        ecs.register::<comp::AnimationInfo>();
-
         // Register server-local components
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
