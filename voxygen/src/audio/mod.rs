@@ -13,7 +13,7 @@ const RIGHT_EAR : [f32; 3] = [-1.0, 0.0, 0.0];
 const EAR_LEFT : Vec3<f32> = Vec3::new(1.0, 0.0, 0.0);
 const EAR_RIGHT : Vec3<f32> = Vec3::new(-1.0, 0.0, 0.0);
 
-const LISTEN_DISTANCE : f32 = 25.0;
+const FALLOFF : f32 = 0.13;
 
 
 pub struct AudioFrontend {
@@ -26,8 +26,12 @@ pub struct AudioFrontend {
 
     sfx_volume: f32,
     music_volume: f32,
-    listener_pos_left: Vec3::<f32>,
-    listener_pos_right: Vec3::<f32>,
+
+    listener_pos: Vec3::<f32>,
+    listener_ori: Vec3::<f32>,
+
+    listener_pos_left: [f32; 3],
+    listener_pos_right: [f32; 3],
 }
 
 impl AudioFrontend {
@@ -41,8 +45,10 @@ impl AudioFrontend {
             next_channel_id: 0,
             sfx_volume: 1.0,
             music_volume: 1.0,
-            listener_pos_left: Vec3::from_slice(&LEFT_EAR),
-            listener_pos_right: Vec3::from_slice(&RIGHT_EAR),
+            listener_pos: Vec3::zero(),
+            listener_ori: Vec3::zero(),
+            listener_pos_left: [0.0; 3],
+            listener_pos_right: [0.0; 3],
         }
     }
 
@@ -56,8 +62,10 @@ impl AudioFrontend {
             next_channel_id: 0,
             sfx_volume: 1.0,
             music_volume: 1.0,
-            listener_pos_left: Vec3::from_slice(&LEFT_EAR),
-            listener_pos_right: Vec3::from_slice(&RIGHT_EAR),
+            listener_pos: Vec3::zero(),
+            listener_ori: Vec3::zero(),
+            listener_pos_left: [0.0; 3],
+            listener_pos_right: [0.0; 3],
         }
     }
 
@@ -84,31 +92,47 @@ impl AudioFrontend {
         self.next_channel_id += 1;
 
         if let Some(device) = &self.audio_device {
-            let pos = pos / LISTEN_DISTANCE;
-            let sink = SpatialSink::new(device, pos.into_array(),
-                                        self.listener_pos_left.into_array(),
-                                        self.listener_pos_right.into_array());
+            let calc_pos = [
+                (pos.x - self.listener_pos.x) * FALLOFF,
+                (pos.y - self.listener_pos.y) * FALLOFF,
+                (pos.z - self.listener_pos.z) * FALLOFF,
+            ];
+            let sink = SpatialSink::new(device, calc_pos,
+                                        self.listener_pos_left,
+                                        self.listener_pos_right);
 
             let file = assets::load_file(&sound, &["wav"]).unwrap();
             let sound = Decoder::new(file).unwrap();
 
             sink.append(sound);
 
-            self.channels.push(Channel::sfx(id, sink));
+            self.channels.push(Channel::sfx(id, sink, pos));
         }
 
         id
     }
 
-    pub fn set_listener_pos(&mut self, pos: &Vec3::<f32>) {
-        let pos_left = (pos.clone() + EAR_LEFT) / LISTEN_DISTANCE;
-        let pos_right = (pos.clone() + EAR_RIGHT) / LISTEN_DISTANCE;
+    pub fn set_listener_pos(&mut self, pos: &Vec3::<f32>, ori: &Vec3::<f32>) {
+        self.listener_pos = pos.clone();
+        self.listener_ori = ori.normalized();
 
-        self.listener_pos_left = pos_left.clone();
-        self.listener_pos_right = pos_right.clone();
+        let up = Vec3::new(0.0, 0.0, 1.0);
+
+        let pos_left = up.cross(self.listener_ori.clone()).normalized();
+        dbg!(pos_left);
+        let pos_right = self.listener_ori.cross(up.clone()).normalized();
+        dbg!(pos_right);
+
+        self.listener_pos_left = pos_left.into_array();
+        self.listener_pos_right = pos_right.into_array();
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Sfx {
+                channel.set_emitter_position([
+                    (channel.pos.x - self.listener_pos.x) * FALLOFF,
+                    (channel.pos.y - self.listener_pos.y) * FALLOFF,
+                    (channel.pos.z - self.listener_pos.z) * FALLOFF,
+                ]);
                 channel.set_left_ear_position(pos_left.into_array());
                 channel.set_right_ear_position(pos_right.into_array());
             }

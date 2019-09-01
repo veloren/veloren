@@ -3,6 +3,7 @@ use crate::{
 };
 use common::comp::{
     Pos,
+    Ori,
     Body,
     CharacterState,
     MovementState::*,
@@ -29,17 +30,19 @@ impl SoundMgr {
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
-        let time = client.state().get_time();
-        let tick = client.get_tick();
         let ecs = client.state().ecs();
-        let dt = client.state().get_delta_time();
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        audio.set_listener_pos(&player_pos);
+        let player_ori = ecs
+            .read_storage::<Ori>()
+            .get(client.entity())
+            .map_or(Vec3::zero(), |pos| pos.0);
+
+        audio.set_listener_pos(&player_pos, &player_ori);
 
         for (entity, pos, body, character) in (
             &ecs.entities(),
