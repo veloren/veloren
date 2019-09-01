@@ -39,6 +39,8 @@ impl SoundMgr {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
+        audio.set_listener_pos(&player_pos);
+
         for (entity, pos, body, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -60,7 +62,7 @@ impl SoundMgr {
                 if let Run = &character.movement {
                     if state.last_step_sound.elapsed().as_secs_f64() > 0.5 {
                         let rand_step = (rand::random::<usize>() % 7) + 1;
-                        audio.play_sound(format!("voxygen.audio.footsteps.stepdirt_{}", rand_step));
+                        audio.play_sound(format!("voxygen.audio.footsteps.stepdirt_{}", rand_step), pos.0);
                         state.last_step_sound = Instant::now();
                     }
                 }

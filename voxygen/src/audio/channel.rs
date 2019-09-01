@@ -64,6 +64,14 @@ impl Channel {
         self.sink.set_volume(volume);
     }
 
+    pub fn set_left_ear_position(&mut self, pos: [f32; 3]) {
+        self.sink.set_left_ear_position(pos);
+    }
+
+    pub fn set_right_ear_position(&mut self, pos: [f32; 3]) {
+        self.sink.set_right_ear_position(pos);
+    }
+
     pub fn update(&mut self, dt: f32) {
         match self.state {
             ChannelState::Playing => {},
