@@ -162,6 +162,25 @@ impl MainMenuUi {
         let version = env!("CARGO_PKG_VERSION");
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
+
+        // Tooltip
+        let tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(15)
+        .desc_font_size(10)
+        .title_text_color(TEXT_COLOR)
+        .desc_text_color(TEXT_COLOR_2);
+
         // Background image, Veloren logo, Alpha-Version Label
         Image::new(self.imgs.bg)
             .middle_of(ui_widgets.window)
@@ -480,24 +499,11 @@ impl MainMenuUi {
                     .label_y(Relative::Scalar(5.0))
                     .with_tooltip(
                         tooltip_manager,
-                        // TODO improve this interface
-                        Tooltip::new("Login", "Click to login with the entered details", &{
-                            // Edge images [t, b, r, l]
-                            // Corner images [tr, tl, br, bl]
-                            let edge = &self.rot_imgs.tt_side;
-                            let corner = &self.rot_imgs.tt_corner;
-                            ImageFrame::new(
-                                [edge.cw180, edge.none, edge.cw270, edge.cw90],
-                                [corner.none, corner.cw270, corner.cw90, corner.cw180],
-                                Color::Rgba(0.08, 0.07, 0.04, 1.0),
-                                5.0,
-                            )
-                        })
-                        .title_font_size(60)
-                        .desc_font_size(10)
-                        .title_text_color(TEXT_COLOR)
-                        .desc_text_color(TEXT_COLOR_2),
+                        "Login",
+                        "Click to login with the entered details",
+                        &tooltip,
                     )
+                    .tooltip_image(self.imgs.v_logo)
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()
                 {
