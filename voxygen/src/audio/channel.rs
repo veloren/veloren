@@ -1,5 +1,6 @@
 use rodio::SpatialSink;
 use crate::audio::fader::Fader;
+use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum AudioType {
@@ -20,6 +21,7 @@ pub struct Channel {
     audio_type: AudioType,
     state: ChannelState,
     fader: Fader,
+    pub pos: Vec3::<f32>,
 }
 
 impl Channel {
@@ -30,16 +32,18 @@ impl Channel {
             audio_type: AudioType::Music,
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
+            pos: Vec3::zero(),
         }
     }
 
-    pub fn sfx(id: usize, sink: SpatialSink) -> Self {
+    pub fn sfx(id: usize, sink: SpatialSink, pos: Vec3::<f32>) -> Self {
         Self {
             id,
             sink,
             audio_type: AudioType::Sfx,
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
+            pos
         }
     }
 
@@ -62,6 +66,10 @@ impl Channel {
 
     pub fn set_volume(&mut self, volume: f32) {
         self.sink.set_volume(volume);
+    }
+
+    pub fn set_emitter_position(&mut self, pos: [f32; 3]) {
+        self.sink.set_emitter_position(pos);
     }
 
     pub fn set_left_ear_position(&mut self, pos: [f32; 3]) {
