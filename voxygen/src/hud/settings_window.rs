@@ -1,6 +1,5 @@
 use super::{
-    img_ids::Imgs, BarNumbers, CrosshairType, EnBars, Fonts, ShortcutNumbers, Show, XpBar,
-    TEXT_COLOR,
+    img_ids::Imgs, BarNumbers, CrosshairType, Fonts, ShortcutNumbers, Show, XpBar, TEXT_COLOR,
 };
 use crate::{
     audio::base::Genre,
@@ -145,7 +144,6 @@ pub enum Event {
     ToggleHelp,
     ToggleDebug,
     ToggleXpBar(XpBar),
-    ToggleEnBars(EnBars),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
     ChangeTab(SettingsTab),
@@ -644,36 +642,6 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .graphics_for(state.ids.show_xpbar_button)
                 .color(TEXT_COLOR)
                 .set(state.ids.show_xpbar_text, ui);
-            // Show Health & Energy Bars
-            if Button::image(match self.global_state.settings.gameplay.en_bars {
-                EnBars::Always => self.imgs.checkbox_checked,
-                EnBars::OnLoss => self.imgs.checkbox,
-            })
-            .w_h(18.0, 18.0)
-            .hover_image(match self.global_state.settings.gameplay.en_bars {
-                EnBars::Always => self.imgs.checkbox_checked_mo,
-                EnBars::OnLoss => self.imgs.checkbox_mo,
-            })
-            .press_image(match self.global_state.settings.gameplay.en_bars {
-                EnBars::Always => self.imgs.checkbox_checked,
-                EnBars::OnLoss => self.imgs.checkbox_press,
-            })
-            .down_from(state.ids.show_xpbar_button, 8.0)
-            .set(state.ids.show_bars_button, ui)
-            .was_clicked()
-            {
-                match self.global_state.settings.gameplay.en_bars {
-                    EnBars::Always => events.push(Event::ToggleEnBars(EnBars::OnLoss)),
-                    EnBars::OnLoss => events.push(Event::ToggleEnBars(EnBars::Always)),
-                }
-            }
-            Text::new("Always show Health and Energy Bars")
-                .right_from(state.ids.show_bars_button, 10.0)
-                .font_size(14)
-                .font_id(self.fonts.opensans)
-                .graphics_for(state.ids.show_bars_button)
-                .color(TEXT_COLOR)
-                .set(state.ids.show_bars_text, ui);
             // Show Shortcut Numbers
             if Button::image(match self.global_state.settings.gameplay.shortcut_numbers {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
@@ -688,7 +656,7 @@ impl<'a> Widget for SettingsWindow<'a> {
                 ShortcutNumbers::On => self.imgs.checkbox_checked,
                 ShortcutNumbers::Off => self.imgs.checkbox_press,
             })
-            .down_from(state.ids.show_bars_button, 8.0)
+            .down_from(state.ids.show_xpbar_button, 8.0)
             .set(state.ids.show_shortcuts_button, ui)
             .was_clicked()
             {

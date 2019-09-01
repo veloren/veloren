@@ -34,11 +34,11 @@ void main() {
 		sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
 		sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
 		0.0
-	) * pow(v_pos.z * SCALE, 1.3) * 0.2;
+	) * pow(abs(v_pos.z) * SCALE, 1.3) * 0.2;
 
 	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
 
-	f_col = v_col * inst_col;
+	f_col = srgb_to_linear(v_col) * srgb_to_linear(inst_col);
 
 	f_light = 1.0;
 

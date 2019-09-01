@@ -5,6 +5,7 @@ use crate::{
         SpritePipeline, TerrainLocals, TerrainPipeline,
     },
 };
+
 use client::Client;
 use common::{
     assets,
@@ -62,48 +63,72 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 1,
             wind_sway: 0.0,
         }),
+        BlockKind::RoundCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ShortCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::MedFlatCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
+        BlockKind::ShortFlatCactus => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
 
         BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 2,
-            wind_sway: 0.3,
+            variations: 5,
+            wind_sway: 0.1,
         }),
         BlockKind::PinkFlower => Some(SpriteConfig {
-            variations: 3,
-            wind_sway: 0.3,
+            variations: 4,
+            wind_sway: 0.1,
         }),
         BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.3,
+            variations: 2,
+            wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
             variations: 1,
-            wind_sway: 0.3,
+            wind_sway: 0.1,
         }),
         BlockKind::YellowFlower => Some(SpriteConfig {
             variations: 1,
-            wind_sway: 0.3,
+            wind_sway: 0.1,
         }),
         BlockKind::Sunflower => Some(SpriteConfig {
             variations: 2,
-            wind_sway: 0.3,
+            wind_sway: 0.1,
         }),
 
         BlockKind::LongGrass => Some(SpriteConfig {
-            variations: 5,
-            wind_sway: 1.0,
+            variations: 7,
+            wind_sway: 0.8,
         }),
         BlockKind::MediumGrass => Some(SpriteConfig {
             variations: 5,
-            wind_sway: 1.0,
+            wind_sway: 0.5,
         }),
         BlockKind::ShortGrass => Some(SpriteConfig {
             variations: 5,
-            wind_sway: 1.0,
+            wind_sway: 0.1,
         }),
 
         BlockKind::Apple => Some(SpriteConfig {
             variations: 1,
             wind_sway: 0.0,
+        }),
+        BlockKind::Mushroom => Some(SpriteConfig {
+            variations: 10,
+            wind_sway: 0.0,
+        }),
+        BlockKind::Liana => Some(SpriteConfig {
+            variations: 2,
+            wind_sway: 0.05,
         }),
         _ => None,
     }
@@ -137,7 +162,7 @@ fn mesh_worker(
                         let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
 
                         if let Some(cfg) = sprite_config_for(kind) {
-                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.z * 13 + wpos.x * wpos.y;
+                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.x * wpos.y; // Awful PRNG
 
                             let instance = SpriteInstance::new(
                                 Mat4::identity()
@@ -183,12 +208,12 @@ impl Terrain {
         // worker threads that are meshing chunks.
         let (send, recv) = channel::unbounded();
 
-        let mut make_model = |s| {
+        let mut make_model = |s, offset| {
             renderer
                 .create_model(
                     &Meshable::<SpritePipeline, SpritePipeline>::generate_mesh(
                         &Segment::from(assets::load_expect::<DotVoxData>(s).as_ref()),
-                        Vec3::new(-6.0, -6.0, 0.0),
+                        offset,
                     )
                     .0,
                 )
@@ -204,122 +229,370 @@ impl Terrain {
                 // Cacti
                 (
                     (BlockKind::LargeCactus, 0),
-                    make_model("voxygen.voxel.sprite.cacti.large_cactus"),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.large_cactus",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::BarrelCactus, 0),
-                    make_model("voxygen.voxel.sprite.cacti.barrel_cactus"),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.barrel_cactus",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::RoundCactus, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.cactus_round",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::ShortCactus, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.cactus_short",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::MedFlatCactus, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.flat_cactus_med",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::ShortFlatCactus, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.cacti.flat_cactus_short",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 // Fruit
                 (
                     (BlockKind::Apple, 0),
-                    make_model("voxygen.voxel.sprite.fruit.apple"),
+                    make_model(
+                        "voxygen.voxel.sprite.fruit.apple",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 // Flowers
                 (
                     (BlockKind::BlueFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_blue_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::BlueFlower, 1),
-                    make_model("voxygen.voxel.sprite.flowers.flower_blue_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::BlueFlower, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_blue_5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::PinkFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_pink_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_pink_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::PinkFlower, 1),
-                    make_model("voxygen.voxel.sprite.flowers.flower_pink_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_pink_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::PinkFlower, 2),
-                    make_model("voxygen.voxel.sprite.flowers.flower_pink_3"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_pink_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::PinkFlower, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_pink_4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::PurpleFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_purple_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::RedFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_red_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_red_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::RedFlower, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_red_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::WhiteFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_white_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_white_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::YellowFlower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.flower_purple_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_purple_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::Sunflower, 0),
-                    make_model("voxygen.voxel.sprite.flowers.sunflower_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.sunflower_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::Sunflower, 1),
-                    make_model("voxygen.voxel.sprite.flowers.sunflower_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.sunflower_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 // Grass
                 (
                     (BlockKind::LongGrass, 0),
-                    make_model("voxygen.voxel.sprite.grass.grass_long_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::LongGrass, 1),
-                    make_model("voxygen.voxel.sprite.grass.grass_long_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::LongGrass, 2),
-                    make_model("voxygen.voxel.sprite.grass.grass_long_3"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::LongGrass, 3),
-                    make_model("voxygen.voxel.sprite.grass.grass_long_4"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::LongGrass, 4),
-                    make_model("voxygen.voxel.sprite.grass.grass_long_5"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LongGrass, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::LongGrass, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_long_7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::MediumGrass, 0),
-                    make_model("voxygen.voxel.sprite.grass.grass_med_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_med_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::MediumGrass, 1),
-                    make_model("voxygen.voxel.sprite.grass.grass_med_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_med_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::MediumGrass, 2),
-                    make_model("voxygen.voxel.sprite.grass.grass_med_3"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_med_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::MediumGrass, 3),
-                    make_model("voxygen.voxel.sprite.grass.grass_med_4"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_med_4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::MediumGrass, 4),
-                    make_model("voxygen.voxel.sprite.grass.grass_med_5"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_med_5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::ShortGrass, 0),
-                    make_model("voxygen.voxel.sprite.grass.grass_short_1"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_short_1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::ShortGrass, 1),
-                    make_model("voxygen.voxel.sprite.grass.grass_short_2"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_short_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::ShortGrass, 2),
-                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_short_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::ShortGrass, 3),
-                    make_model("voxygen.voxel.sprite.grass.grass_short_3"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_short_3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
                 ),
                 (
                     (BlockKind::ShortGrass, 4),
-                    make_model("voxygen.voxel.sprite.grass.grass_short_5"),
+                    make_model(
+                        "voxygen.voxel.sprite.grass.grass_short_5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-0",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-1",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 2),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 3),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-3",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 4),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-4",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 5),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-5",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 6),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-6",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 7),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-7",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 8),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-8",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Mushroom, 9),
+                    make_model(
+                        "voxygen.voxel.sprite.mushrooms.mushroom-9",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Liana, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.lianas.liana-0",
+                        Vec3::new(-1.5, -0.5, -88.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Liana, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.lianas.liana-1",
+                        Vec3::new(-1.0, -0.5, -55.0),
+                    ),
                 ),
             ]
             .into_iter()

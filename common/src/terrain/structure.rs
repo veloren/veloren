@@ -15,11 +15,13 @@ pub enum StructureBlock {
     TemperateLeaves,
     PineLeaves,
     Acacia,
+    Mangrove,
     PalmLeaves,
     Water,
     GreenSludge,
     Fruit,
     Hollow,
+    Liana,
     Normal(Rgb<u8>),
 }
 
@@ -110,8 +112,10 @@ impl Asset for Structure {
                     2 => StructureBlock::PalmLeaves,
                     3 => StructureBlock::Water,
                     4 => StructureBlock::Acacia,
+                    5 => StructureBlock::Mangrove,
                     6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
+                    9 => StructureBlock::Liana,
                     15 => StructureBlock::Hollow,
                     index => {
                         let color = palette
