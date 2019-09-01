@@ -5,18 +5,10 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Rect, Sizeable, UiCell, Widget, WidgetCommon,
 };
 
-/// Linear value selection.
-///
-/// If the slider's width is greater than its height, it will automatically become a horizontal
-/// slider, otherwise it will be a vertical slider.
-///
-/// Its reaction is triggered if the value is updated or if the mouse button is released while
-/// the cursor is above the rectangle.
 #[derive(Clone, WidgetCommon)]
 pub struct ImageFrame {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
-    // TODO: use type that is not just an array
     // Edge images [t, b, r, l]
     edges: [image::Id; 4],
     edge_src_rects: [Option<Rect>; 4],
