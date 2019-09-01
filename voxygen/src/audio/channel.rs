@@ -1,4 +1,6 @@
-use rodio::SpatialSink;
+use rodio::{SpatialSink, Decoder, Device};
+use std::io::BufReader;
+use std::fs::File;
 use crate::audio::fader::Fader;
 use vek::*;
 
@@ -10,6 +12,9 @@ pub enum AudioType {
 
 #[derive(PartialEq, Clone, Copy)]
 enum ChannelState {
+    Init,
+    ToPlay,
+    Loading,
     Playing,
     Stopping,
     Stopped,
@@ -22,10 +27,16 @@ pub struct Channel {
     state: ChannelState,
     fader: Fader,
     pub pos: Vec3::<f32>,
+    // sound_cache: Option<&SoundCache>,
 }
 
 impl Channel {
-    pub fn music(id: usize, sink: SpatialSink) -> Self {
+    pub fn music(id: usize, device: &Device, bufr: BufReader<File>) -> Self {
+        let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
+        let sound = Decoder::new(bufr).unwrap();
+
+        sink.append(sound);
+
         Self {
             id,
             sink,
@@ -33,6 +44,7 @@ impl Channel {
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
             pos: Vec3::zero(),
+            // sound_cache: None,
         }
     }
 
@@ -43,7 +55,8 @@ impl Channel {
             audio_type: AudioType::Sfx,
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
-            pos
+            pos,
+            // sound_cache,
         }
     }
 
@@ -82,6 +95,9 @@ impl Channel {
 
     pub fn update(&mut self, dt: f32) {
         match self.state {
+            ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {
+                
+            }
             ChannelState::Playing => {},
             ChannelState::Stopping  => {
                 self.fader.update(dt);
