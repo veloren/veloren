@@ -5,9 +5,15 @@ use channel::{AudioType, Channel};
 
 use common::assets;
 use rodio::{Decoder, Device, SpatialSink};
+use vek::*;
 
 const LEFT_EAR : [f32; 3] = [1.0, 0.0, 0.0];
 const RIGHT_EAR : [f32; 3] = [-1.0, 0.0, 0.0];
+
+const EAR_LEFT : Vec3<f32> = Vec3::new(1.0, 0.0, 0.0);
+const EAR_RIGHT : Vec3<f32> = Vec3::new(-1.0, 0.0, 0.0);
+
+const LISTEN_DISTANCE : f32 = 25.0;
 
 
 pub struct AudioFrontend {
@@ -20,6 +26,8 @@ pub struct AudioFrontend {
 
     sfx_volume: f32,
     music_volume: f32,
+    listener_pos_left: Vec3::<f32>,
+    listener_pos_right: Vec3::<f32>,
 }
 
 impl AudioFrontend {
@@ -33,6 +41,8 @@ impl AudioFrontend {
             next_channel_id: 0,
             sfx_volume: 1.0,
             music_volume: 1.0,
+            listener_pos_left: Vec3::from_slice(&LEFT_EAR),
+            listener_pos_right: Vec3::from_slice(&RIGHT_EAR),
         }
     }
 
@@ -46,6 +56,8 @@ impl AudioFrontend {
             next_channel_id: 0,
             sfx_volume: 1.0,
             music_volume: 1.0,
+            listener_pos_left: Vec3::from_slice(&LEFT_EAR),
+            listener_pos_right: Vec3::from_slice(&RIGHT_EAR),
         }
     }
 
@@ -67,12 +79,15 @@ impl AudioFrontend {
     ///```ignore
     ///audio.play_sound("voxygen.audio.sfx.step");
     ///```
-    pub fn play_sound(&mut self, sound: String) -> usize {
+    pub fn play_sound(&mut self, sound: String, pos: Vec3::<f32>) -> usize {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
         if let Some(device) = &self.audio_device {
-            let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], LEFT_EAR, RIGHT_EAR);
+            let pos = pos / LISTEN_DISTANCE;
+            let sink = SpatialSink::new(device, pos.into_array(),
+                                        self.listener_pos_left.into_array(),
+                                        self.listener_pos_right.into_array());
 
             let file = assets::load_file(&sound, &["wav"]).unwrap();
             let sound = Decoder::new(file).unwrap();
@@ -83,6 +98,21 @@ impl AudioFrontend {
         }
 
         id
+    }
+
+    pub fn set_listener_pos(&mut self, pos: &Vec3::<f32>) {
+        let pos_left = (pos.clone() + EAR_LEFT) / LISTEN_DISTANCE;
+        let pos_right = (pos.clone() + EAR_RIGHT) / LISTEN_DISTANCE;
+
+        self.listener_pos_left = pos_left.clone();
+        self.listener_pos_right = pos_right.clone();
+
+        for channel in self.channels.iter_mut() {
+            if channel.get_audio_type() == AudioType::Sfx {
+                channel.set_left_ear_position(pos_left.into_array());
+                channel.set_right_ear_position(pos_right.into_array());
+            }
+        }
     }
 
     pub fn play_music(&mut self, sound: String) -> usize {
@@ -138,6 +168,7 @@ impl AudioFrontend {
         }
     }
 
+    // TODO: figure out how badly this will break things when it is called
     pub fn set_device(&mut self, name: String) {
         self.device = name.clone();
         self.audio_device = get_device_raw(name);
