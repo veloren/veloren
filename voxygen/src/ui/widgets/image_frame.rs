@@ -12,7 +12,7 @@ use conrod_core::{
 ///
 /// Its reaction is triggered if the value is updated or if the mouse button is released while
 /// the cursor is above the rectangle.
-#[derive(WidgetCommon)]
+#[derive(Clone, WidgetCommon)]
 pub struct ImageFrame {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
@@ -32,6 +32,7 @@ pub struct ImageFrame {
     // TODO: would it be useful to have an optional close button be a part of this?
 }
 
+#[derive(Clone)]
 pub enum Center {
     Plain(Color),
     Image(image::Id, Option<Rect>),
@@ -52,6 +53,7 @@ impl From<(image::Id, Rect)> for Center {
     }
 }
 
+#[derive(Clone)]
 pub struct BorderSize {
     top: f64,
     bottom: f64,
@@ -296,7 +298,12 @@ impl Widget for ImageFrame {
                     .xy(rect.xy())
                     .parent(id)
                     .graphics_for(id)
-                    .and_then(maybe_color, |w, c| w.color(c))
+                    .and_then(maybe_color, |w, c| {
+                        w.color(color.alpha(match c {
+                            Color::Rgba(_, _, _, a) => a,
+                            Color::Hsla(_, _, _, a) => a,
+                        }))
+                    })
                     .set(state.ids.center_plain, ui);
             }
             Center::Image(image_id, maybe_src_rect) => {

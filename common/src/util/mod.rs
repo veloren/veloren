@@ -56,7 +56,7 @@ pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
     let h = if max == min {
         0.0
     } else {
-        let mut h = (60.0 * (add + diff / (max - min)));
+        let mut h = 60.0 * (add + diff / (max - min));
         if h < 0.0 {
             h += 360.0;
         }
