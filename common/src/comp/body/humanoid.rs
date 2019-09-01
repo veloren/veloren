@@ -84,65 +84,58 @@ pub const DANARI_SKIN_COLORS: [(u8, u8, u8); 4] = [
 ];
 pub const DWARF_SKIN_COLORS: [(u8, u8, u8); 3] = [(215, 175, 123), (191, 125, 94), (212, 128, 89)];
 pub const ELF_SKIN_COLORS: [(u8, u8, u8); 3] = [(176, 161, 181), (132, 139, 161), (138, 119, 201)];
-pub const HUMAN_SKIN_COLORS: [(u8, u8, u8); 3] =
-    [(255, 200, 159), (186, 140, 104), (87, 57, 34)];
+pub const HUMAN_SKIN_COLORS: [(u8, u8, u8); 3] = [(255, 200, 159), (186, 140, 104), (87, 57, 34)];
 pub const ORC_SKIN_COLORS: [(u8, u8, u8); 3] = [(77, 150, 51), (82, 117, 36), (71, 94, 42)];
 pub const UNDEAD_SKIN_COLORS: [(u8, u8, u8); 3] =
     [(255, 255, 255), (178, 178, 178), (145, 135, 121)];
 
 // Eye colors
-pub const DANARI_EYE_COLORS: [EyeColor; 7] = [
+pub const DANARI_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
-pub const DWARF_EYE_COLORS: [EyeColor; 7] = [
+pub const DWARF_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
-pub const ELF_EYE_COLORS: [EyeColor; 7] = [
+pub const ELF_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
-pub const HUMAN_EYE_COLORS: [EyeColor; 7] = [
+pub const HUMAN_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
-pub const ORC_EYE_COLORS: [EyeColor; 7] = [
+pub const ORC_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
-pub const UNDEAD_EYE_COLORS: [EyeColor; 7] = [
+pub const UNDEAD_EYE_COLORS: [EyeColor; 6] = [
     EyeColor::Black,
     EyeColor::Blue,
     EyeColor::Green,
     EyeColor::Brown,
     EyeColor::Red,
-    EyeColor::White,
     EyeColor::Orange,
 ];
 
@@ -296,17 +289,7 @@ pub enum EyeColor {
     Brown,
     Red,
     Orange,
-    White,
 }
-pub const ALL_EYE_COLORS: [EyeColor; 7] = [
-    EyeColor::Black,
-    EyeColor::Blue,
-    EyeColor::Green,
-    EyeColor::Brown,
-    EyeColor::Red,
-    EyeColor::White,
-    EyeColor::Orange,
-];
 impl EyeColor {
     pub fn light_rgb(self) -> Rgb<u8> {
         match self {
@@ -315,7 +298,6 @@ impl EyeColor {
             EyeColor::Green => Rgb::new(110, 167, 113),
             EyeColor::Brown => Rgb::new(73, 42, 36),
             EyeColor::Red => Rgb::new(182, 0, 0),
-            EyeColor::White => Rgb::new(255, 255, 255),
             EyeColor::Orange => Rgb::new(161, 69, 0),
         }
     }
@@ -326,15 +308,11 @@ impl EyeColor {
             EyeColor::Green => Rgb::new(81, 124, 84),
             EyeColor::Brown => Rgb::new(54, 30, 26),
             EyeColor::Red => Rgb::new(148, 0, 0),
-            EyeColor::White => Rgb::new(255, 255, 255),
             EyeColor::Orange => Rgb::new(148, 64, 0),
         }
     }
     pub fn white_rgb(self) -> Rgb<u8> {
-        match self {
-            EyeColor::White => Rgb::new(0, 0, 0),
-            _ => Rgb::new(255, 255, 255),
-        }
+        Rgb::new(255, 255, 255)
     }
 }
 
