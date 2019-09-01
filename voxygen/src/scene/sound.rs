@@ -10,13 +10,22 @@ use common::comp::{
 use client::Client;
 use vek::*;
 use specs::{Entity as EcsEntity, Join};
+use hashbrown::HashMap;
+use std::{f32, time::Instant};
+
+pub struct AnimState {
+    last_step_sound: Instant,
+}
 
 pub struct SoundMgr {
+    character_states: HashMap<EcsEntity, AnimState>
 }
 
 impl SoundMgr {
     pub fn new() -> Self {
-        Self {}
+        Self {
+           character_states: HashMap::new(),
+        }
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
@@ -43,9 +52,17 @@ impl SoundMgr {
                     Some(c) => c,
                     _ => continue,
                 };
+                let state = self
+                    .character_states
+                    .entry(entity)
+                    .or_insert_with(|| AnimState {last_step_sound: Instant::now()});
+
                 if let Run = &character.movement {
-                    let rand_step = (rand::random::<usize>() % 7) + 1;
-                    audio.play_sound(format!("voxygen.audio.footsteps.stepdirt_{}", rand_step));
+                    if state.last_step_sound.elapsed().as_secs_f64() > 0.5 {
+                        let rand_step = (rand::random::<usize>() % 7) + 1;
+                        audio.play_sound(format!("voxygen.audio.footsteps.stepdirt_{}", rand_step));
+                        state.last_step_sound = Instant::now();
+                    }
                 }
             }
         }
