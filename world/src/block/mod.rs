@@ -265,6 +265,7 @@ impl<'a> BlockGen<'a> {
                 BlockKind::WhiteFlower,
                 BlockKind::YellowFlower,
                 BlockKind::Sunflower,
+                BlockKind::Mushroom,
             ];
 
             let grasses = [
@@ -285,11 +286,20 @@ impl<'a> BlockGen<'a> {
             && temp > CONFIG.desert_temp
             && (marble * 4423.5).fract() < 0.0005
         {
+            let large_cacti = [BlockKind::LargeCactus, BlockKind::MedFlatCactus];
+
+            let small_cacti = [
+                BlockKind::BarrelCactus,
+                BlockKind::RoundCactus,
+                BlockKind::ShortCactus,
+                BlockKind::ShortFlatCactus,
+            ];
+
             Some(Block::new(
                 if (height * 1271.0).fract() < 0.5 {
-                    BlockKind::LargeCactus
+                    large_cacti[(height * 0.2) as usize % large_cacti.len()]
                 } else {
-                    BlockKind::BarrelCactus
+                    small_cacti[(height * 0.3) as usize % small_cacti.len()]
                 },
                 Rgb::broadcast(0),
             ))
@@ -565,6 +575,20 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
+        StructureBlock::Liana => Some(Block::new(
+            BlockKind::Liana,
+            Lerp::lerp(
+                Rgb::new(0.0, 125.0, 107.0),
+                Rgb::new(0.0, 155.0, 129.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        )),
+        StructureBlock::Mangrove => Some(Block::new(
+            BlockKind::Normal,
+            Lerp::lerp(Rgb::new(32.0, 56.0, 22.0), Rgb::new(57.0, 69.0, 27.0), lerp)
+                .map(|e| e as u8),
+        )),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())

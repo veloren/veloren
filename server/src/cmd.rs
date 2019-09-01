@@ -262,9 +262,12 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let time = scan_fmt_some!(&args, action.arg_fmt, String);
     let new_time = match time.as_ref().map(|s| s.as_str()) {
-        Some("night") => NaiveTime::from_hms(0, 0, 0),
+        Some("midnight") => NaiveTime::from_hms(0, 0, 0),
+        Some("night") => NaiveTime::from_hms(20, 0, 0),
         Some("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Some("day") => NaiveTime::from_hms(12, 0, 0),
+        Some("morning") => NaiveTime::from_hms(8, 0, 0),
+        Some("day") => NaiveTime::from_hms(10, 0, 0),
+        Some("noon") => NaiveTime::from_hms(12, 0, 0),
         Some("dusk") => NaiveTime::from_hms(17, 0, 0),
         Some(n) => match n.parse() {
             Ok(n) => n,
@@ -797,14 +800,12 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                         .get(entity)
                         .map(|s| s.alias.clone())
                     {
-                        server.clients.notify(
-                            player,
-                            ServerMsg::tell(format!("[{}] tells you:{}", name, msg)),
-                        );
-                        server.clients.notify(
-                            entity,
-                            ServerMsg::tell(format!("You tell [{}]:{}", alias, msg)),
-                        );
+                        server
+                            .clients
+                            .notify(player, ServerMsg::tell(format!("[{}] tells:{}", name, msg)));
+                        server
+                            .clients
+                            .notify(entity, ServerMsg::tell(format!("To [{}]:{}", alias, msg)));
                     } else {
                         server.clients.notify(
                             entity,
