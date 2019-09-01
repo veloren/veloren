@@ -35,7 +35,6 @@ impl PlayState for MainMenuState {
         let mut client_init: Option<ClientInit> = None;
 
         let music = global_state.audio.play_music("voxygen.audio.soundtrack.veloren_title_tune-3".to_string());
-        global_state.audio.stop_channel(music, Fader::fade_out(10.0));
 
         loop {
             // Handle window events.

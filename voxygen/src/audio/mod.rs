@@ -4,7 +4,7 @@ use fader::Fader;
 use channel::{AudioType, Channel};
 
 use common::assets;
-use rodio::{Decoder, Device, Sink, SpatialSink};
+use rodio::{Decoder, Device, SpatialSink};
 
 const LEFT_EAR : [f32; 3] = [1.0, 0.0, 0.0];
 const RIGHT_EAR : [f32; 3] = [-1.0, 0.0, 0.0];
