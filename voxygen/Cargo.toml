@@ -59,3 +59,4 @@ crossbeam = "0.7.2"
 heaptrack = "0.3.0"
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
 parking_lot = "0.9.0"
+chrono = "0.4.7"
