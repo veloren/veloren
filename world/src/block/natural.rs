@@ -440,16 +440,16 @@ lazy_static! {
             .with_center(Vec3::new(18, 16, 8)))
         .unwrap(),
         assets::load_map("world.tree.mangroves.5", |s: Structure| s
-            .with_center(Vec3::new(16, 17, 8)))
+            .with_center(Vec3::new(19, 20, 9)))
         .unwrap(),
         assets::load_map("world.tree.mangroves.6", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 8)))
+            .with_center(Vec3::new(18, 18, 9)))
         .unwrap(),
         assets::load_map("world.tree.mangroves.7", |s: Structure| s
-            .with_center(Vec3::new(18, 17, 8)))
+            .with_center(Vec3::new(18, 17, 9)))
         .unwrap(),
         assets::load_map("world.tree.mangroves.8", |s: Structure| s
-            .with_center(Vec3::new(18, 18, 8)))
+            .with_center(Vec3::new(18, 18, 9)))
         .unwrap(),
     ];
 
