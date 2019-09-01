@@ -58,11 +58,6 @@ widget_ids! {
         error_frame,
         button_ok,
         version,
-
-
-        // TODO remove
-        frame_test,
-        test2,
     }
 }
 
@@ -90,8 +85,8 @@ rotation_image_ids! {
         <VoxelGraphic>
 
         // Tooltip Test
-        tt_side: "voxygen/element/frames/tt_test_edge.vox",
-        tt_corner: "voxygen/element/frames/tt_test_corner_tr.vox",
+        tt_side: "voxygen/element/frames/tt_test_edge",
+        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
     }
 }
 
@@ -175,26 +170,6 @@ impl MainMenuUi {
             .w_h(123.0 * 3.0, 35.0 * 3.0)
             .top_right_with_margins(30.0, 30.0)
             .set(self.ids.v_logo, ui_widgets);
-
-        Image::new(self.rot_imgs.tt_side.cw90)
-            .w_h(50.0, 50.0)
-            .top_left_with_margins_on(ui_widgets.window, 25.0, 25.0)
-            .set(self.ids.test2, ui_widgets);
-        // TODO: remove me
-        // Test image frame
-        // Edge images [t, b, r, l]
-        // Corner images [tr, tl, br, bl]
-        let edge = &self.rot_imgs.tt_side;
-        let corner = &self.rot_imgs.tt_corner;
-        ImageFrame::new(
-            [edge.cw180, edge.none, edge.cw270, edge.cw90],
-            [corner.none, corner.cw270, corner.cw90, corner.cw180],
-            Color::Rgba(0.8, 0.7, 0.4, 1.0),
-            30.0,
-        )
-        .w_h(250.0, 200.0)
-        .down(5.0)
-        .set(self.ids.frame_test, ui_widgets);
 
         Text::new(version)
             .top_right_with_margins_on(ui_widgets.window, 5.0, 5.0)
@@ -505,11 +480,23 @@ impl MainMenuUi {
                     .label_y(Relative::Scalar(5.0))
                     .with_tooltip(
                         tooltip_manager,
-                        Tooltip::new("Login", "Click to login with the entered details")
-                            .title_font_size(15)
-                            .desc_font_size(10)
-                            .title_text_color(TEXT_COLOR)
-                            .desc_text_color(TEXT_COLOR_2),
+                        // TODO improve this interface
+                        Tooltip::new("Login", "Click to login with the entered details", &{
+                            // Edge images [t, b, r, l]
+                            // Corner images [tr, tl, br, bl]
+                            let edge = &self.rot_imgs.tt_side;
+                            let corner = &self.rot_imgs.tt_corner;
+                            ImageFrame::new(
+                                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                                5.0,
+                            )
+                        })
+                        .title_font_size(60)
+                        .desc_font_size(10)
+                        .title_text_color(TEXT_COLOR)
+                        .desc_text_color(TEXT_COLOR_2),
                     )
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()

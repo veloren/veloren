@@ -1,6 +1,8 @@
+use super::image_frame::ImageFrame;
 use conrod_core::{
-    builder_method, builder_methods, input::global::Global, text, widget, widget_ids, Color,
-    Colorable, FontSize, Positionable, Sizeable, UiCell, Widget, WidgetCommon, WidgetStyle,
+    builder_method, builder_methods, image, input::global::Global, position::Dimension, text,
+    widget, widget_ids, Color, Colorable, FontSize, Positionable, Sizeable, Ui, UiCell, Widget,
+    WidgetCommon, WidgetStyle,
 };
 use std::time::{Duration, Instant};
 
@@ -162,6 +164,15 @@ impl<W: Widget> Tooltipable for W {
     }
 }
 
+/// Vertical spacing between elements of the tooltip
+const V_PAD: f64 = 10.0;
+/// Horizontal spacing between elements of the tooltip
+const H_PAD: f64 = 10.0;
+/// Default portion of inner width that goes to an image
+const IMAGE_W_FRAC: f64 = 0.3;
+/// Default width multiplied by the description font size
+const DEFAULT_CHAR_W: f64 = 30.0;
+
 /// A widget for displaying tooltips
 #[derive(Clone, WidgetCommon)]
 pub struct Tooltip<'a> {
@@ -169,13 +180,16 @@ pub struct Tooltip<'a> {
     common: widget::CommonBuilder,
     title_text: &'a str,
     desc_text: &'a str,
+    image: Option<image::Id>,
+    image_dims: Option<(f64, f64)>,
     style: Style,
     transparency: f32,
+    image_frame: &'a ImageFrame,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "theme.background_color")]
+    #[conrod(default = "Color::Rgba(1.0, 1.0, 1.0, 1.0)")]
     pub color: Option<Color>,
     title: widget::text::Style,
     desc: widget::text::Style,
@@ -186,7 +200,8 @@ widget_ids! {
     struct Ids {
         title,
         desc,
-        back_rect,
+        image_frame,
+        image,
     }
 }
 
@@ -195,13 +210,16 @@ pub struct State {
 }
 
 impl<'a> Tooltip<'a> {
-    pub fn new(title: &'a str, desc: &'a str) -> Self {
+    pub fn new(title: &'a str, desc: &'a str, image_frame: &'a ImageFrame) -> Self {
         Tooltip {
             common: widget::CommonBuilder::default(),
             style: Style::default(),
             title_text: title,
             desc_text: desc,
             transparency: 1.0,
+            image_frame,
+            image: None,
+            image_dims: None,
         }
     }
 
@@ -220,7 +238,29 @@ impl<'a> Tooltip<'a> {
     //    self.justify(text::Justify::Right)
     //}
 
-    // TODO: add method(s) to make children widgets and use that to determine height in height function (and in update to draw the widgets)
+    fn title_desc_image_width(&self, total_width: f64) -> (f64, f64, f64) {
+        let inner_width = (total_width - H_PAD * 2.0).max(0.0);
+        let title_w = inner_width;
+        // Image defaults to 30% of the width
+        let image_w = if self.image.is_some() {
+            match self.image_dims {
+                Some((w, _)) => w,
+                None => (inner_width - H_PAD).max(0.0) * IMAGE_W_FRAC,
+            }
+        } else {
+            0.0
+        };
+        // Description gets the remaining width
+        let desc_w = (inner_width
+            - if self.image.is_some() {
+                image_w + H_PAD
+            } else {
+                0.0
+            })
+        .max(0.0);
+
+        (title_w, desc_w, image_w)
+    }
 
     /// Specify the font used for displaying the text.
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
@@ -236,6 +276,8 @@ impl<'a> Tooltip<'a> {
         pub desc_font_size { style.desc.font_size = Some(FontSize) }
         pub title_justify { style.title.justify = Some(text::Justify) }
         pub desc_justify { style.desc.justify = Some(text::Justify) }
+        pub image { image = Some(image::Id) }
+        pub image_dims { image_dims = Some((f64, f64)) }
         transparency { transparency = f32 }
     }
 }
@@ -268,35 +310,105 @@ impl<'a> Widget for Tooltip<'a> {
         // Apply transparency
         let color = style.color(ui.theme()).alpha(self.transparency);
 
-        // Background rectangle
-        widget::Rectangle::fill(rect.dim())
+        // Background image frame
+        self.image_frame
+            .clone()
+            .wh(rect.dim())
             .xy(rect.xy())
             .graphics_for(id)
             .parent(id)
             .color(color)
-            .set(state.ids.back_rect, ui);
+            .set(state.ids.image_frame, ui);
+
+        // Widths
+        let (title_w, desc_w, image_w) = self.title_desc_image_width(rect.w());
 
         // Title of tooltip
         widget::Text::new(self.title_text)
-            .w(rect.w())
+            .w(title_w)
             .graphics_for(id)
             .parent(id)
-            .top_left_with_margins_on(state.ids.back_rect, 5.0, 5.0)
+            .top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
             .with_style(self.style.title)
             // Apply transparency
             .color(style.title.color(ui.theme()).alpha(self.transparency))
             .set(state.ids.title, ui);
 
+        // Image
+        if let Some(img_id) = self.image {
+            widget::Image::new(img_id)
+                .w_h(image_w, self.image_dims.map_or(image_w, |(_, h)| h))
+                .graphics_for(id)
+                .parent(id)
+                .down_from(state.ids.title, V_PAD)
+                .align_left_of(state.ids.title)
+                .color(Some(color))
+                .set(state.ids.image, ui);
+        }
+
         // Description of tooltip
-        widget::Text::new(self.desc_text)
-            .w(rect.w())
+        let desc = widget::Text::new(self.desc_text)
+            .w(desc_w)
             .graphics_for(id)
             .parent(id)
-            .down_from(state.ids.title, 10.0)
-            .with_style(self.style.desc)
             // Apply transparency
             .color(style.desc.color(ui.theme()).alpha(self.transparency))
-            .set(state.ids.desc, ui);
+            .with_style(self.style.desc);
+
+        if self.image.is_some() {
+            desc.right_from(state.ids.image, H_PAD)
+                .align_top_of(state.ids.image)
+        } else {
+            desc.down_from(state.ids.title, V_PAD)
+                .align_left_of(state.ids.title)
+        }
+        .set(state.ids.desc, ui);
+    }
+
+    /// Default width is based on the description font size unless the text is small enough to fit on a single line
+    fn default_x_dimension(&self, ui: &Ui) -> Dimension {
+        let single_line_title_w = widget::Text::new(self.title_text)
+            .with_style(self.style.title)
+            .get_w(ui)
+            .unwrap_or(0.0);
+        let single_line_desc_w = widget::Text::new(self.desc_text)
+            .with_style(self.style.desc)
+            .get_w(ui)
+            .unwrap_or(0.0);
+        let body_w = if self.image.is_some() {
+            match self.image_dims {
+                Some((w, _)) => w + single_line_desc_w + H_PAD,
+                None => single_line_desc_w / (1.0 - IMAGE_W_FRAC) + H_PAD,
+            }
+        } else {
+            single_line_desc_w
+        };
+
+        let width = single_line_title_w
+            .max(body_w)
+            .min(self.style.desc.font_size(&ui.theme) as f64 * DEFAULT_CHAR_W)
+            + 2.0 * H_PAD;
+        Dimension::Absolute(width)
+    }
+
+    fn default_y_dimension(&self, ui: &Ui) -> Dimension {
+        let (title_w, desc_w, image_w) = self.title_desc_image_width(self.get_w(ui).unwrap_or(0.0));
+        let title_h = widget::Text::new(self.title_text)
+            .with_style(self.style.title)
+            .w(title_w)
+            .get_h(ui)
+            .unwrap_or(0.0);
+        let desc_h = widget::Text::new(self.desc_text)
+            .with_style(self.style.desc)
+            .w(desc_w)
+            .get_h(ui)
+            .unwrap_or(0.0);
+        // Image defaults to square shape
+        let body_h = desc_h.max(self.image_dims.map_or(image_w, |(_, h)| h));
+        // Title height + body height + padding/spacing
+        // TODO: add spacing dependent on text size
+        let height = title_h + body_h + 3.0 * V_PAD;
+        Dimension::Absolute(height)
     }
 }
 
