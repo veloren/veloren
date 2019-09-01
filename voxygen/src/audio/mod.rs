@@ -1,17 +1,13 @@
 pub mod fader;
 pub mod channel;
+pub mod soundcache;
 use fader::Fader;
 use channel::{AudioType, Channel};
+use soundcache::SoundCache;
 
 use common::assets;
 use rodio::{Decoder, Device, SpatialSink};
 use vek::*;
-
-const LEFT_EAR : [f32; 3] = [1.0, 0.0, 0.0];
-const RIGHT_EAR : [f32; 3] = [-1.0, 0.0, 0.0];
-
-const EAR_LEFT : Vec3<f32> = Vec3::new(1.0, 0.0, 0.0);
-const EAR_RIGHT : Vec3<f32> = Vec3::new(-1.0, 0.0, 0.0);
 
 const FALLOFF : f32 = 0.13;
 
@@ -20,6 +16,7 @@ pub struct AudioFrontend {
     pub device: String,
     pub device_list: Vec<String>,
     audio_device: Option<Device>,
+    sound_cache: SoundCache,
 
     channels: Vec<Channel>,
     next_channel_id: usize,
@@ -41,6 +38,7 @@ impl AudioFrontend {
             device: device.clone(),
             device_list: list_devices(),
             audio_device: get_device_raw(device),
+            sound_cache: SoundCache::new(),
             channels: Vec::new(),
             next_channel_id: 0,
             sfx_volume: 1.0,
@@ -58,6 +56,7 @@ impl AudioFrontend {
             device: "none".to_string(),
             device_list: list_devices(),
             audio_device: None,
+            sound_cache: SoundCache::new(),
             channels: Vec::new(),
             next_channel_id: 0,
             sfx_volume: 1.0,
@@ -101,8 +100,7 @@ impl AudioFrontend {
                                         self.listener_pos_left,
                                         self.listener_pos_right);
 
-            let file = assets::load_file(&sound, &["wav"]).unwrap();
-            let sound = Decoder::new(file).unwrap();
+            let sound = self.sound_cache.load_sound(sound);
 
             sink.append(sound);
 
@@ -119,9 +117,7 @@ impl AudioFrontend {
         let up = Vec3::new(0.0, 0.0, 1.0);
 
         let pos_left = up.cross(self.listener_ori.clone()).normalized();
-        dbg!(pos_left);
         let pos_right = self.listener_ori.cross(up.clone()).normalized();
-        dbg!(pos_right);
 
         self.listener_pos_left = pos_left.into_array();
         self.listener_pos_right = pos_right.into_array();
@@ -144,14 +140,9 @@ impl AudioFrontend {
         self.next_channel_id += 1;
 
         if let Some(device) = &self.audio_device {
-            let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], LEFT_EAR, RIGHT_EAR);
-
             let file = assets::load_file(&sound, &["ogg"]).unwrap();
-            let sound = Decoder::new(file).unwrap();
 
-            sink.append(sound);
-
-            self.channels.push(Channel::music(id, sink));
+            self.channels.push(Channel::music(id, device, file));
         }
 
         id
