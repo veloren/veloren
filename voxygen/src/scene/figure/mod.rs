@@ -15,8 +15,7 @@ use crate::{
 use client::Client;
 use common::{
     comp::{
-        ActionState::*, Body,
-        CharacterState, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
+        ActionState::*, Body, CharacterState, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
     },
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -24,8 +23,8 @@ use common::{
 use hashbrown::HashMap;
 use log::debug;
 use specs::{Entity as EcsEntity, Join};
-use vek::*;
 use std::time::Instant;
+use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
 
