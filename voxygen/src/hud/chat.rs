@@ -310,9 +310,12 @@ impl<'a> Widget for Chat<'a> {
             state.update(|s| {
                 s.input.clear();
                 // Update the history
-                s.history.push_front(msg.clone());
+                // Don't add if this is identical to the last message in the history
                 s.history_pos = 0;
-                s.history.truncate(self.history_max);
+                if s.history.get(0).map_or(true, |h| h != &msg) {
+                    s.history.push_front(msg.clone());
+                    s.history.truncate(self.history_max);
+                }
             });
             Some(Event::SendMessage(msg))
         } else {
