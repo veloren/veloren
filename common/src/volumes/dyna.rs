@@ -1,10 +1,16 @@
 use crate::vol::{BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, SizedVol, Vox, WriteVol};
 use serde_derive::{Deserialize, Serialize};
+use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug, Clone)]
 pub enum DynaError {
     OutOfBounds,
+}
+
+#[derive(Clone)]
+pub struct DynaPos {
+    idx: u32,
 }
 
 /// A volume with dimensions known only at the creation of the object.
@@ -22,25 +28,38 @@ impl<V: Vox, M> Dyna<V, M> {
     /// Used to transform a voxel position in the volume into its corresponding index
     /// in the voxel array.
     #[inline(always)]
-    fn idx_for(sz: Vec3<u32>, pos: Vec3<i32>) -> Option<usize> {
-        if pos.map(|e| e >= 0).reduce_and() && pos.map2(sz, |e, lim| e < lim as i32).reduce_and() {
-            Some(Self::idx_for_unchecked(sz, pos))
-        } else {
-            None
+    fn to_pos_unchecked(&self, pos: Vec3<i32>) -> DynaPos {
+        DynaPos {
+            idx: (pos.x * self.sz.y as i32 * self.sz.z as i32 + pos.y * self.sz.z as i32 + pos.z)
+                as u32,
         }
-    }
-
-    /// Used to transform a voxel position in the volume into its corresponding index
-    /// in the voxel array.
-    #[inline(always)]
-    fn idx_for_unchecked(sz: Vec3<u32>, pos: Vec3<i32>) -> usize {
-        (pos.x * sz.y as i32 * sz.z as i32 + pos.y * sz.z as i32 + pos.z) as usize
     }
 }
 
 impl<V: Vox, M> BaseVol for Dyna<V, M> {
     type Vox = V;
     type Error = DynaError;
+    type Pos = DynaPos;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        if pos.map(|e| e >= 0).reduce_and()
+            && pos.map2(self.sz, |e, lim| e < lim as i32).reduce_and()
+        {
+            Ok(self.to_pos_unchecked(pos))
+        } else {
+            Err(Self::Error::OutOfBounds)
+        }
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        let mut idx = pos.idx;
+        let z = idx % self.sz.z;
+        idx /= self.sz.z;
+        let y = idx % self.sz.y;
+        idx /= self.sz.y;
+        let x = idx;
+        Vec3::new(x, y, z).map(|e| e as i32)
+    }
 }
 
 impl<V: Vox, M> SizedVol for Dyna<V, M> {
@@ -57,27 +76,22 @@ impl<V: Vox, M> SizedVol for Dyna<V, M> {
 
 impl<V: Vox, M> ReadVol for Dyna<V, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaError> {
-        Self::idx_for(self.sz, pos)
-            .and_then(|idx| self.vox.get(idx))
-            .ok_or(DynaError::OutOfBounds)
+    fn get_pos(&self, pos: Self::Pos) -> &V {
+        &self.vox[pos.idx as usize]
     }
 }
 
 impl<V: Vox, M> WriteVol for Dyna<V, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaError> {
-        Self::idx_for(self.sz, pos)
-            .and_then(|idx| self.vox.get_mut(idx))
-            .map(|old_vox| *old_vox = vox)
-            .ok_or(DynaError::OutOfBounds)
+    fn set_pos(&mut self, pos: Self::Pos, vox: Self::Vox) {
+        self.vox[pos.idx as usize] = vox;
     }
 }
 
 impl<'a, V: Vox, M> IntoVolIterator<'a> for &'a Dyna<V, M> {
     type IntoIter = DefaultVolIterator<'a, Dyna<V, M>>;
 
-    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
         Self::IntoIter::new(self, lower_bound, upper_bound)
     }
 }

@@ -30,6 +30,10 @@ pub trait Vox: Sized + Clone + PartialEq {
 pub trait BaseVol {
     type Vox: Vox;
     type Error: Debug;
+    type Pos: Clone;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error>;
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32>;
 }
 
 /// Implementing `BaseVol` for any `&'a BaseVol` makes it possible to implement
@@ -37,6 +41,15 @@ pub trait BaseVol {
 impl<'a, T: BaseVol> BaseVol for &'a T {
     type Vox = T::Vox;
     type Error = T::Error;
+    type Pos = T::Pos;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        <T as BaseVol>::to_pos(self, pos)
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        <T as BaseVol>::to_vec3(self, pos)
+    }
 }
 
 // Utility types
@@ -104,7 +117,11 @@ impl<V: RectRasterableVol> RectSizedVol for V {
 /// A volume that provides read access to its voxel data.
 pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
-    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error>;
+    fn get_pos<'a>(&'a self, pos: Self::Pos) -> &'a Self::Vox;
+
+    fn get<'a>(&'a self, pos: Vec3<i32>) -> Result<&'a Self::Vox, Self::Error> {
+        self.to_pos(pos).map(|pos| self.get_pos(pos))
+    }
 
     fn ray<'a>(
         &'a self,
@@ -135,8 +152,12 @@ pub trait SampleVol<I>: BaseVol {
 
 /// A volume that provides write access to its voxel data.
 pub trait WriteVol: BaseVol {
-    /// Set the voxel at the provided position in the volume to the provided value.
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error>;
+    /// Write the voxel at the provided position in the volume.
+    fn set_pos(&mut self, pos: Self::Pos, vox: Self::Vox);
+
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error> {
+        self.to_pos(pos).map(|pos| self.set_pos(pos, vox))
+    }
 }
 
 /// A volume (usually rather a reference to a volume) that is convertible into
@@ -145,10 +166,18 @@ pub trait IntoVolIterator<'a>: BaseVol
 where
     Self::Vox: 'a,
 {
-    type IntoIter: Iterator<Item = (Vec3<i32>, &'a Self::Vox)>;
+    type IntoIter: Iterator<Item = (Self::Pos, &'a Self::Vox)>;
 
-    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter;
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter;
 }
+
+pub trait IntoPosIterator: BaseVol {
+    type IntoIter: Iterator<Item = Self::Pos>;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter;
+}
+
+// Helpers
 
 /// A volume (usually rather a reference to a volume) that is convertible into
 /// an iterator.
@@ -156,9 +185,9 @@ pub trait IntoFullVolIterator<'a>: BaseVol
 where
     Self::Vox: 'a,
 {
-    type IntoIter: Iterator<Item = (Vec3<i32>, &'a Self::Vox)>;
+    type IntoIter: Iterator<Item = (Self::Pos, &'a Self::Vox)>;
 
-    fn into_iter(self) -> Self::IntoIter;
+    fn full_vol_iter(self) -> Self::IntoIter;
 }
 
 /// For any `&'a SizedVol: IntoVolIterator` we implement `IntoFullVolIterator`.
@@ -171,8 +200,25 @@ where
 {
     type IntoIter = <Self as IntoVolIterator<'a>>::IntoIter;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.into_vol_iter(self.lower_bound(), self.upper_bound())
+    fn full_vol_iter(self) -> Self::IntoIter {
+        self.vol_iter(self.lower_bound(), self.upper_bound())
+    }
+}
+
+pub trait IntoFullPosIterator: BaseVol {
+    type IntoIter: Iterator<Item = Self::Pos>;
+
+    fn full_pos_iter(self) -> Self::IntoIter;
+}
+
+impl<'a, T: 'a + SizedVol> IntoFullPosIterator for &'a T
+where
+    Self: IntoPosIterator,
+{
+    type IntoIter = <Self as IntoPosIterator>::IntoIter;
+
+    fn full_pos_iter(self) -> Self::IntoIter {
+        self.pos_iter(self.lower_bound(), self.upper_bound())
     }
 }
 
@@ -199,9 +245,9 @@ impl<'a, T: ReadVol> DefaultVolIterator<'a, T> {
 }
 
 impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
-    type Item = (Vec3<i32>, &'a T::Vox);
+    type Item = (T::Pos, &'a T::Vox);
 
-    fn next(&mut self) -> Option<(Vec3<i32>, &'a T::Vox)> {
+    fn next(&mut self) -> Option<(T::Pos, &'a T::Vox)> {
         loop {
             self.current.x += (self.current.x < self.end.x) as i32;
             if self.current.x == self.end.x {
@@ -215,8 +261,8 @@ impl<'a, T: ReadVol> Iterator for DefaultVolIterator<'a, T> {
                     }
                 }
             }
-            if let Ok(vox) = self.vol.get(self.current) {
-                return Some((self.current, vox));
+            if let Ok(pos) = self.vol.to_pos(self.current) {
+                return Some((pos.clone(), self.vol.get_pos(pos)));
             }
         }
     }

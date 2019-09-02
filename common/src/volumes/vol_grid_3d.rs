@@ -3,6 +3,7 @@ use crate::{
     volumes::dyna::DynaError,
 };
 use hashbrown::{hash_map, HashMap};
+use std::marker::PhantomData;
 use std::{fmt::Debug, sync::Arc};
 use vek::*;
 
@@ -12,6 +13,20 @@ pub enum VolGrid3dError<V: RasterableVol> {
     ChunkErr(V::Error),
     DynaError(DynaError),
     InvalidChunkSize,
+}
+
+pub struct VolGrid3dPos<V: RasterableVol> {
+    key: Vec3<i32>,
+    sub_pos: <V as BaseVol>::Pos,
+}
+
+impl<V: RasterableVol> Clone for VolGrid3dPos<V> {
+    fn clone(&self) -> Self {
+        VolGrid3dPos::<V> {
+            key: self.key,
+            sub_pos: self.sub_pos.clone(),
+        }
+    }
 }
 
 // V = Voxel
@@ -44,19 +59,29 @@ impl<V: RasterableVol> VolGrid3d<V> {
 impl<V: RasterableVol + Debug> BaseVol for VolGrid3d<V> {
     type Vox = V::Vox;
     type Error = VolGrid3dError<V>;
+    type Pos = VolGrid3dPos<V>;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        let key = self.pos_key(pos);
+        if let Some(chunk) = self.chunks.get(&key) {
+            Ok(Self::Pos {
+                key,
+                sub_pos: chunk.as_ref().to_pos(pos - self.key_pos(key)).unwrap(),
+            })
+        } else {
+            Err(Self::Error::NoSuchChunk)
+        }
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        self.key_pos(pos.key) + self.chunks[&pos.key].to_vec3(pos.sub_pos)
+    }
 }
 
 impl<V: RasterableVol + ReadVol + Debug> ReadVol for VolGrid3d<V> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid3dError<V>> {
-        let ck = Self::chunk_key(pos);
-        self.chunks
-            .get(&ck)
-            .ok_or(VolGrid3dError::NoSuchChunk)
-            .and_then(|chunk| {
-                let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolGrid3dError::ChunkErr)
-            })
+    fn get_pos(&self, pos: Self::Pos) -> &V::Vox {
+        self.chunks[&pos.key].get_pos(pos.sub_pos)
     }
 }
 
@@ -93,17 +118,9 @@ impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for Vo
 
 impl<V: RasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid3d<V> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolGrid3dError<V>> {
-        let ck = Self::chunk_key(pos);
-        self.chunks
-            .get_mut(&ck)
-            .ok_or(VolGrid3dError::NoSuchChunk)
-            .and_then(|chunk| {
-                let co = Self::chunk_offs(pos);
-                Arc::make_mut(chunk)
-                    .set(co, vox)
-                    .map_err(VolGrid3dError::ChunkErr)
-            })
+    fn set_pos(&mut self, pos: Self::Pos, vox: V::Vox) {
+        // This clones the chunk in case there are other references (clone-on-write).
+        Arc::make_mut(self.chunks.get_mut(&pos.key).unwrap()).set_pos(pos.sub_pos, vox);
     }
 }
 

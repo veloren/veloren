@@ -70,18 +70,30 @@ impl Structure {
     }
 }
 
+#[derive(Clone)]
+pub struct StructurePos(Vec3<i32>);
+
 impl BaseVol for Structure {
     type Vox = StructureBlock;
     type Error = StructureError;
+    type Pos = StructurePos;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        Ok(StructurePos(pos))
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        pos.0
+    }
 }
 
 impl ReadVol for Structure {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
-        match self.vol.get(pos + self.center) {
-            Ok(block) => Ok(block),
-            Err(DynaError::OutOfBounds) => Ok(&self.empty),
-        }
+    fn get_pos(&self, pos: Self::Pos) -> &Self::Vox {
+        self.vol
+            .get(pos.0 + self.center)
+            .ok()
+            .unwrap_or(&self.empty)
     }
 }
 

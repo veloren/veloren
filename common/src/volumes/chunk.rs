@@ -1,14 +1,24 @@
 use crate::{
-    vol::{BaseVol, IntoVolIterator, RasterableVol, ReadVol, SizedVol, VolSize, Vox, WriteVol},
+    vol::{
+        BaseVol, IntoPosIterator, IntoVolIterator, RasterableVol, ReadVol, SizedVol, VolSize, Vox,
+        WriteVol,
+    },
     volumes::morton::{morton_to_xyz, xyz_to_morton, MortonIter},
 };
 use serde_derive::{Deserialize, Serialize};
+use std::iter::Iterator;
 use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
 pub enum ChunkError {
     OutOfBounds,
+}
+
+#[derive(Clone)]
+pub struct ChunkPos<S: VolSize> {
+    morton: u32,
+    phantom: PhantomData<S>,
 }
 
 /// A `Chunk` is a volume with dimensions known at compile-time. The voxels are
@@ -186,11 +196,38 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
             Ok(self.set_from_morton_unchecked(morton, vox))
         }
     }
+
+    pub fn to_pos(pos: Vec3<i32>) -> Result<ChunkPos<S>, ChunkError> {
+        if !pos
+            .map2(S::SIZE, |e, s| 0 <= e && e < s as i32)
+            .reduce_and()
+        {
+            Err(ChunkError::OutOfBounds)
+        } else {
+            Ok(ChunkPos::<S> {
+                morton: xyz_to_morton(pos),
+                phantom: PhantomData,
+            })
+        }
+    }
+
+    pub fn to_vec3(pos: ChunkPos<S>) -> Vec3<i32> {
+        morton_to_xyz(pos.morton)
+    }
 }
 
 impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Vox = V;
     type Error = ChunkError;
+    type Pos = ChunkPos<S>;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        Self::to_pos(pos)
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        Self::to_vec3(pos)
+    }
 }
 
 impl<V: Vox, S: VolSize, M> RasterableVol for Chunk<V, S, M> {
@@ -199,42 +236,75 @@ impl<V: Vox, S: VolSize, M> RasterableVol for Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, ChunkError> {
-        self.get_from_morton(xyz_to_morton(pos))
+    fn get_pos(&self, pos: Self::Pos) -> &Self::Vox {
+        self.get_from_morton_unchecked(pos.morton)
     }
 }
 
 impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkError> {
-        self.set_from_morton(xyz_to_morton(pos), vox)
+    fn set_pos(&mut self, pos: Self::Pos, vox: Self::Vox) {
+        self.set_from_morton_unchecked(pos.morton, vox);
     }
 }
 
-pub struct ChunkMortonIter<C> {
-    chunk: C,
-    iter: MortonIter,
+pub struct ChunkPosIter<S: VolSize> {
+    morton_iter: MortonIter,
+    phantom: PhantomData<S>,
 }
 
-impl<'a, V: 'a + Vox, S: VolSize, M> Iterator for ChunkMortonIter<&'a Chunk<V, S, M>> {
-    type Item = (Vec3<i32>, &'a V);
+impl<S: VolSize> ChunkPosIter<S> {
+    pub fn new(lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self {
+        let lb = Vec3::partial_max(lower_bound, Vec3::zero());
+        let ub = Vec3::partial_min(upper_bound, S::SIZE.map(|e| e as i32));
+        Self {
+            morton_iter: MortonIter::new(lb, ub),
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<S: VolSize> Iterator for ChunkPosIter<S> {
+    type Item = ChunkPos<S>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.morton_iter.next().map(|morton| ChunkPos::<S> {
+            morton,
+            phantom: PhantomData,
+        })
+    }
+}
+
+pub struct ChunkVolIter<'a, V: 'a + Vox, S: VolSize, M> {
+    chunk: &'a Chunk<V, S, M>,
+    iter: ChunkPosIter<S>,
+}
+
+impl<'a, V: 'a + Vox, S: VolSize, M> Iterator for ChunkVolIter<'a, V, S, M> {
+    type Item = (ChunkPos<S>, &'a V);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.iter
             .next()
-            .map(|m| (morton_to_xyz(m), self.chunk.get_from_morton_unchecked(m)))
+            .map(|pos| (pos.clone(), self.chunk.get_pos(pos)))
+    }
+}
+
+impl<'a, V: Vox, S: VolSize, M> IntoPosIterator for &'a Chunk<V, S, M> {
+    type IntoIter = ChunkPosIter<S>;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter::new(lower_bound, upper_bound)
     }
 }
 
 impl<'a, V: Vox, S: VolSize, M> IntoVolIterator<'a> for &'a Chunk<V, S, M> {
-    type IntoIter = ChunkMortonIter<&'a Chunk<V, S, M>>;
+    type IntoIter = ChunkVolIter<'a, V, S, M>;
 
-    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
-        let lb = Vec3::partial_max(lower_bound, Vec3::zero());
-        let ub = Vec3::partial_min(upper_bound, S::SIZE.map(|e| e as i32));
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
         Self::IntoIter {
             chunk: self,
-            iter: MortonIter::new(lb, ub),
+            iter: self.pos_iter(lower_bound, upper_bound),
         }
     }
 }

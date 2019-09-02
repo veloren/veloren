@@ -1,12 +1,9 @@
 use crate::{
     vol::{
-        BaseVol, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize, SizedVol, VolSize, Vox,
-        WriteVol,
+        BaseVol, IntoPosIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
+        SizedVol, VolSize, Vox, WriteVol,
     },
-    volumes::{
-        chunk::{Chunk, ChunkError},
-        morton::{morton_to_xyz, MortonIter},
-    },
+    volumes::chunk::{Chunk, ChunkError, ChunkPos, ChunkPosIter},
 };
 use serde_derive::{Deserialize, Serialize};
 use std::marker::PhantomData;
@@ -77,20 +74,47 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
     }
 
     // Converts a z coordinate into a local z coordinate within a sub chunk
-    fn sub_chunk_z(&self, z: i32) -> i32 {
+    fn sub_chunk_relative_z(&self, z: i32) -> i32 {
         let diff = z - self.z_offset;
         diff & (SubChunkSize::<S>::SIZE.z - 1) as i32
     }
 
     // Returns the z_offset of the sub_chunk that contains layer z
-    fn sub_chunk_z_offset(&self, z: i32) -> i32 {
-        z - self.sub_chunk_z(z)
+    fn sub_chunk_min_z(&self, z: i32) -> i32 {
+        z - self.sub_chunk_relative_z(z)
     }
+}
+
+/// The type parameters make sure that `ChonkPos` instances from different
+/// `Chonk` types can't be mixed. Note: They shouldn't even be mixed when
+/// obtained from different `Chonk` INSTANCES which isn't enforced.
+#[derive(Clone)]
+pub struct ChonkPos<S: RectVolSize> {
+    sub_chunk_min_z: i32,
+    sub_chunk_pos: ChunkPos<SubChunkSize<S>>,
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
     type Vox = V;
     type Error = ChonkError;
+    type Pos = ChonkPos<S>;
+
+    fn to_pos(&self, pos: Vec3<i32>) -> Result<Self::Pos, Self::Error> {
+        let relative_z = self.sub_chunk_relative_z(pos.z);
+        match SubChunk::<V, S, M>::to_pos(Vec3::new(pos.x, pos.y, relative_z)) {
+            Ok(sub_chunk_pos) => Ok(ChonkPos {
+                sub_chunk_min_z: pos.z - relative_z,
+                sub_chunk_pos,
+            }),
+            Err(err) => Err(Self::Error::SubChunkError(err)),
+        }
+    }
+
+    fn to_vec3(&self, pos: Self::Pos) -> Vec3<i32> {
+        let mut p = SubChunk::<V, S, M>::to_vec3(pos.sub_chunk_pos);
+        p.z += pos.sub_chunk_min_z;
+        p
+    }
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
@@ -99,122 +123,114 @@ impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
 
 impl<V: Vox, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Error> {
-        if pos.z < self.get_min_z() {
+    fn get_pos(&self, pos: Self::Pos) -> &V {
+        // If this assertion fails, then a `Pos` that was obtained from a
+        // different chonk was used.
+        debug_assert_eq!(
+            pos.sub_chunk_min_z,
+            self.sub_chunk_min_z(pos.sub_chunk_min_z)
+        );
+        if pos.sub_chunk_min_z < self.get_min_z() {
             // Below the terrain
-            Ok(&self.below)
-        } else if pos.z >= self.get_max_z() {
+            &self.below
+        } else if pos.sub_chunk_min_z >= self.get_max_z() {
             // Above the terrain
-            Ok(&self.above)
+            &self.above
         } else {
             // Within the terrain
-            let sub_chunk_idx = self.sub_chunk_idx(pos.z);
-            let rpos = pos
-                - Vec3::unit_z()
-                    * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
-            self.sub_chunks[sub_chunk_idx as usize]
-                .get(rpos)
-                .map_err(Self::Error::SubChunkError)
+            let sub_chunk_idx = self.sub_chunk_idx(pos.sub_chunk_min_z);
+            self.sub_chunks[sub_chunk_idx as usize].get_pos(pos.sub_chunk_pos)
         }
     }
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
-        let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
+    fn set_pos(&mut self, pos: Self::Pos, vox: V) {
+        // If this assertion fails, then a `Pos` that was obtained from a
+        // different chonk was used.
+        debug_assert_eq!(
+            pos.sub_chunk_min_z,
+            self.sub_chunk_min_z(pos.sub_chunk_min_z)
+        );
 
-        if pos.z < self.get_min_z() {
+        let mut sub_chunk_idx = self.sub_chunk_idx(pos.sub_chunk_min_z);
+
+        if sub_chunk_idx < 0 {
             // Prepend exactly sufficiently many SubChunks via Vec::splice
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.below.clone(), self.meta.clone());
             let n = (-sub_chunk_idx) as usize;
             self.sub_chunks.splice(0..0, std::iter::repeat(c).take(n));
             self.z_offset += sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
             sub_chunk_idx = 0;
-        } else if pos.z >= self.get_max_z() {
+        } else if sub_chunk_idx >= self.sub_chunks.len() as i32 {
             // Append exactly sufficiently many SubChunks via Vec::extend
             let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());
             let n = 1 + sub_chunk_idx as usize - self.sub_chunks.len();
             self.sub_chunks.extend(std::iter::repeat(c).take(n));
         }
 
-        let rpos = pos
-            - Vec3::unit_z() * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
-        self.sub_chunks[sub_chunk_idx as usize] // TODO (haslersn): self.sub_chunks.get(...).and_then(...)
-            .set(rpos, block)
-            .map_err(Self::Error::SubChunkError)
+        self.sub_chunks[sub_chunk_idx as usize].set_pos(pos.sub_chunk_pos, vox);
     }
 }
 
-struct OuterChonkIter<'a, V: Vox, S: RectVolSize, M: Clone> {
-    chonk: &'a Chonk<V, S, M>,
+impl<V: Vox, S: RectVolSize, M: Clone> SizedVol for Chonk<V, S, M> {
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::new(0, 0, self.get_min_z())
+    }
+
+    fn upper_bound(&self) -> Vec3<i32> {
+        Vec3::new(
+            Self::RECT_SIZE.x as i32,
+            Self::RECT_SIZE.y as i32,
+            self.get_max_z(),
+        )
+    }
+}
+
+struct OuterChonkIter<S: RectVolSize> {
+    sub_chunk_min_z: i32,
     lower_bound: Vec3<i32>,
     upper_bound: Vec3<i32>,
+    phantom: PhantomData<S>,
 }
 
-enum OuterChonkIterItem<'a, V: Vox, S: RectVolSize, M: Clone> {
-    ChunkIter(<&'a SubChunk<V, S, M> as IntoVolIterator<'a>>::IntoIter),
-    DefaultIter((&'a V, MortonIter)),
-}
-
-impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for OuterChonkIter<'a, V, S, M> {
-    type Item = OuterChonkIterItem<'a, V, S, M>;
+impl<S: RectVolSize> Iterator for OuterChonkIter<S> {
+    type Item = (i32, ChunkPosIter<SubChunkSize<S>>);
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.lower_bound.z >= self.upper_bound.z {
             None
         } else {
-            let sub_chunk_idx = self.chonk.sub_chunk_idx(self.lower_bound.z);
-            let sub_chunk_min_z =
-                self.chonk.get_min_z() + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
             let mut lb = self.lower_bound;
-            self.lower_bound.z = sub_chunk_min_z + SubChunkSize::<S>::SIZE.z as i32;
             let mut ub = self.upper_bound;
-            ub.z = std::cmp::min(ub.z, self.upper_bound.z);
-            lb.z -= sub_chunk_min_z;
-            ub.z -= sub_chunk_min_z;
-            if sub_chunk_idx < 0 || sub_chunk_idx >= self.chonk.sub_chunks.len() as i32 {
-                let vox = if sub_chunk_idx < 0 {
-                    &self.chonk.below
-                } else {
-                    &self.chonk.above
-                };
-                Some(Self::Item::DefaultIter((vox, MortonIter::new(lb, ub))))
-            } else {
-                Some(Self::Item::ChunkIter(
-                    self.chonk.sub_chunks[sub_chunk_idx as usize].into_vol_iter(lb, ub),
-                ))
-            }
+            lb.z -= self.sub_chunk_min_z;
+            ub.z -= self.sub_chunk_min_z;
+            ub.z = std::cmp::min(ub.z, SubChunkSize::<S>::SIZE.z as i32);
+            let current_min_z = self.sub_chunk_min_z;
+            self.sub_chunk_min_z += SubChunkSize::<S>::SIZE.z as i32;
+            self.lower_bound.z = self.sub_chunk_min_z;
+            Some((current_min_z, ChunkPosIter::new(lb, ub)))
         }
     }
 }
 
-pub struct ChonkIter<'a, V: Vox, S: RectVolSize, M: Clone> {
-    outer: OuterChonkIter<'a, V, S, M>,
-    opt_inner: Option<OuterChonkIterItem<'a, V, S, M>>,
+pub struct ChonkPosIter<S: RectVolSize> {
+    outer: OuterChonkIter<S>,
+    opt_inner: Option<<OuterChonkIter<S> as Iterator>::Item>,
 }
 
-impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIter<'a, V, S, M> {
-    type Item = (Vec3<i32>, &'a V);
+impl<S: RectVolSize> Iterator for ChonkPosIter<S> {
+    type Item = ChonkPos<S>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if let Some(ref mut inner) = self.opt_inner {
-                match inner {
-                    OuterChonkIterItem::<'a, V, S, M>::ChunkIter(i) => {
-                        if let Some((mut pos, vox)) = i.next() {
-                            // Transform relative coordinates back to absolute ones.
-                            pos.z += self.outer.lower_bound.z - SubChunkSize::<S>::SIZE.z as i32;
-                            return Some((pos, vox));
-                        }
-                    }
-                    OuterChonkIterItem::<'a, V, S, M>::DefaultIter((vox, i)) => {
-                        if let Some(morton) = i.next() {
-                            let mut pos = morton_to_xyz(morton);
-                            pos.z += self.outer.lower_bound.z - SubChunkSize::<S>::SIZE.z as i32;
-                            return Some((pos, vox));
-                        }
-                    }
+            if let Some((sub_chunk_min_z, ref mut inner)) = self.opt_inner {
+                if let Some(sub_chunk_pos) = inner.next() {
+                    return Some(ChonkPos::<S> {
+                        sub_chunk_min_z,
+                        sub_chunk_pos,
+                    });
                 }
             }
             match self.outer.next() {
@@ -225,17 +241,44 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIter<'a, V, S, M> {
     }
 }
 
-impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
-    type IntoIter = ChonkIter<'a, V, S, M>;
+pub struct ChonkVolIter<'a, V: Vox, S: RectVolSize, M: Clone> {
+    chonk: &'a Chonk<V, S, M>,
+    iter: ChonkPosIter<S>,
+}
 
-    fn into_vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M> {
+    type Item = (ChonkPos<S>, &'a V);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter
+            .next()
+            .map(|pos| (pos.clone(), self.chonk.get_pos(pos)))
+    }
+}
+
+impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M> {
+    type IntoIter = ChonkPosIter<S>;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
         Self::IntoIter {
-            outer: OuterChonkIter::<'a, V, S, M> {
-                chonk: &self,
+            outer: OuterChonkIter::<S> {
+                sub_chunk_min_z: self.sub_chunk_min_z(lower_bound.z),
                 lower_bound,
                 upper_bound,
+                phantom: PhantomData,
             },
             opt_inner: None,
+        }
+    }
+}
+
+impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
+    type IntoIter = ChonkVolIter<'a, V, S, M>;
+
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter {
+            chonk: &self,
+            iter: self.pos_iter(lower_bound, upper_bound),
         }
     }
 }
