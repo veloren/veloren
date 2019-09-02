@@ -741,32 +741,16 @@ impl Hud {
         }
 
         // Chat box
-        let mut chat = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts);
-
-        if let Some(input) = self.force_chat_input.take() {
-            chat = chat.input(input);
-        }
-
-        if let Some(pos) = self.force_chat_cursor.take() {
-            chat = chat.cursor_pos(pos);
-        }
-
-        match chat.set(self.ids.chat, ui_widgets) {
+        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+            .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+            .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
+            .set(self.ids.chat, ui_widgets)
+        {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             }
             Some(chat::Event::Focus(focus_id)) => {
                 self.to_focus = Some(Some(focus_id));
-            }
-            Some(chat::Event::SetText(text)) => {
-                let mut q = VecDeque::new();
-                let mut chat = Chat::new(&mut q, &self.imgs, &self.fonts);
-                chat = chat.input(text.to_string());
-                chat = chat.cursor_pos(Index {
-                    line: 0,
-                    char: text.len(),
-                });
-                chat.set(self.ids.chat, ui_widgets);
             }
             None => {}
         }
