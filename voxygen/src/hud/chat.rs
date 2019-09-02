@@ -36,6 +36,9 @@ pub struct Chat<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+
+    // TODO: add an option to adjust this
+    history_max: usize,
 }
 
 impl<'a> Chat<'a> {
@@ -51,6 +54,7 @@ impl<'a> Chat<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            history_max: 32,
         }
     }
 
@@ -82,8 +86,11 @@ impl<'a> Chat<'a> {
 pub struct State {
     messages: VecDeque<ClientEvent>,
     input: String,
-
     ids: Ids,
+    history: VecDeque<String>,
+    // Index into the history Vec, history_pos == 0 is history not in use
+    // otherwise index is history_pos -1
+    history_pos: usize,
 }
 
 pub enum Event {
@@ -100,6 +107,8 @@ impl<'a> Widget for Chat<'a> {
         State {
             input: "".to_owned(),
             messages: VecDeque::new(),
+            history: VecDeque::new(),
+            history_pos: 0,
             ids: Ids::new(id_gen),
         }
     }
@@ -124,6 +133,39 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
+        // If up or down are pressed move through history
+        // TODO: move cursor to the end of the last line
+        match ui.widget_input(state.ids.input).presses().key().fold(
+            (false, false),
+            |(up, down), key_press| match key_press.key {
+                Key::Up => (true, down),
+                Key::Down => (up, true),
+                _ => (up, down),
+            },
+        ) {
+            (true, false) => {
+                if state.history_pos < state.history.len() {
+                    state.update(|s| {
+                        s.history_pos += 1;
+                        s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                    });
+                }
+            }
+            (false, true) => {
+                if state.history_pos > 0 {
+                    state.update(|s| {
+                        s.history_pos -= 1;
+                        if s.history_pos > 0 {
+                            s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                        } else {
+                            s.input.clear();
+                        }
+                    });
+                }
+            }
+            _ => {}
+        }
+
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
 
         if let Some(input) = &self.force_input {
@@ -136,8 +178,7 @@ impl<'a> Widget for Chat<'a> {
         // Only show if it has the keyboard captured.
         // Chat input uses a rectangle as its background.
         if input_focused {
-            let input = self.force_input.as_ref().unwrap_or(&state.input);
-            let mut text_edit = TextEdit::new(input)
+            let mut text_edit = TextEdit::new(&state.input)
                 .w(460.0)
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
@@ -266,7 +307,16 @@ impl<'a> Widget for Chat<'a> {
             })
         {
             let msg = state.input.clone();
-            state.update(|s| s.input.clear());
+            state.update(|s| {
+                s.input.clear();
+                // Update the history
+                // Don't add if this is identical to the last message in the history
+                s.history_pos = 0;
+                if s.history.get(0).map_or(true, |h| h != &msg) {
+                    s.history.push_front(msg.clone());
+                    s.history.truncate(self.history_max);
+                }
+            });
             Some(Event::SendMessage(msg))
         } else {
             None
