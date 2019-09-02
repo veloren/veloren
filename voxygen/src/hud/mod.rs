@@ -741,17 +741,11 @@ impl Hud {
         }
 
         // Chat box
-        let mut chat = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts);
-
-        if let Some(input) = self.force_chat_input.take() {
-            chat = chat.input(input);
-        }
-
-        if let Some(pos) = self.force_chat_cursor.take() {
-            chat = chat.cursor_pos(pos);
-        }
-
-        match chat.set(self.ids.chat, ui_widgets) {
+        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+            .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+            .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
+            .set(self.ids.chat, ui_widgets)
+        {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             }
@@ -760,6 +754,7 @@ impl Hud {
             }
             None => {}
         }
+
         self.new_messages = VecDeque::new();
 
         // Windows
