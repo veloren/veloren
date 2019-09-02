@@ -36,6 +36,9 @@ pub struct Chat<'a> {
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+
+    // TODO: add an option to adjust this
+    history_max: usize,
 }
 
 impl<'a> Chat<'a> {
@@ -51,6 +54,7 @@ impl<'a> Chat<'a> {
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            history_max: 32,
         }
     }
 
@@ -87,14 +91,11 @@ pub struct State {
     // Index into the history Vec, history_pos == 0 is history not in use
     // otherwise index is history_pos -1
     history_pos: usize,
-    history_max: usize,
-    history_command: Option<String>,
 }
 
 pub enum Event {
     SendMessage(String),
     Focus(Id),
-    SetText(String),
 }
 
 impl<'a> Widget for Chat<'a> {
@@ -108,8 +109,6 @@ impl<'a> Widget for Chat<'a> {
             messages: VecDeque::new(),
             history: VecDeque::new(),
             history_pos: 0,
-            history_max: 32,
-            history_command: None,
             ids: Ids::new(id_gen),
         }
     }
@@ -134,6 +133,39 @@ impl<'a> Widget for Chat<'a> {
             }
         });
 
+        // If up or down are pressed move through history
+        // TODO: move cursor to the end of the last line
+        match ui.widget_input(state.ids.input).presses().key().fold(
+            (false, false),
+            |(up, down), key_press| match key_press.key {
+                Key::Up => (true, down),
+                Key::Down => (up, true),
+                _ => (up, down),
+            },
+        ) {
+            (true, false) => {
+                if state.history_pos < state.history.len() {
+                    state.update(|s| {
+                        s.history_pos += 1;
+                        s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                    });
+                }
+            }
+            (false, true) => {
+                if state.history_pos > 0 {
+                    state.update(|s| {
+                        s.history_pos -= 1;
+                        if s.history_pos > 0 {
+                            s.input = s.history.get(s.history_pos - 1).unwrap().to_owned();
+                        } else {
+                            s.input.clear();
+                        }
+                    });
+                }
+            }
+            _ => {}
+        }
+
         let keyboard_capturer = ui.global_input().current.widget_capturing_keyboard;
 
         if let Some(input) = &self.force_input {
@@ -146,8 +178,7 @@ impl<'a> Widget for Chat<'a> {
         // Only show if it has the keyboard captured.
         // Chat input uses a rectangle as its background.
         if input_focused {
-            let input = self.force_input.as_ref().unwrap_or(&state.input);
-            let mut text_edit = TextEdit::new(input)
+            let mut text_edit = TextEdit::new(&state.input)
                 .w(460.0)
                 .restrict_to_height(false)
                 .color(TEXT_COLOR)
@@ -261,73 +292,29 @@ impl<'a> Widget for Chat<'a> {
             }
         }
 
-        // Take a key from the input queue
-        let keys = ui.widget_input(state.ids.input).presses().key().take(1);
-
         // If the chat widget is focused, return a focus event to pass the focus to the input box.
         if keyboard_capturer == Some(id) {
             Some(Event::Focus(state.ids.input))
         }
         // If enter is pressed and the input box is not empty, send the current message.
-        else if keys.clone().any(|key_press| match key_press.key {
-            Key::Return if !state.input.is_empty() => true,
-            _ => false,
-        }) {
+        else if ui
+            .widget_input(state.ids.input)
+            .presses()
+            .key()
+            .any(|key_press| match key_press.key {
+                Key::Return if !state.input.is_empty() => true,
+                _ => false,
+            })
+        {
             let msg = state.input.clone();
             state.update(|s| {
                 s.input.clear();
                 // Update the history
                 s.history.push_front(msg.clone());
                 s.history_pos = 0;
-                s.history.truncate(s.history_max);
+                s.history.truncate(self.history_max);
             });
             Some(Event::SendMessage(msg))
-        }
-        // If up is pressed, use history
-        else if keys.clone().any(|key_press| match key_press.key {
-            Key::Up => true,
-            _ => false,
-        }) {
-            if !state.history.is_empty() {
-                if state.history_pos < state.history.len() {
-                    state.update(|s| {
-                        s.history_pos += 1;
-                        s.history_command = match s.history.get(s.history_pos - 1) {
-                            Some(string) => Some(string.to_string()),
-                            None => None,
-                        }
-                    });
-                }
-            }
-            match &state.history_command {
-                Some(string) => Some(Event::SetText(string.to_string())),
-                None => None,
-            }
-        }
-        // If down is pressed, use history
-        else if keys.clone().any(|key_press| match key_press.key {
-            Key::Down => true,
-            _ => false,
-        }) {
-            if state.history_pos > 1 {
-                state.update(|s| {
-                    s.history_pos -= 1;
-                    s.history_command = match s.history.get(s.history_pos - 1) {
-                        Some(string) => Some(string.to_string()),
-                        None => None,
-                    }
-                });
-            } else {
-                state.update(|s| {
-                    s.history_command = None;
-                    s.history_pos = 0;
-                    s.input.clear();
-                });
-            }
-            match &state.history_command {
-                Some(string) => Some(Event::SetText(string.to_string())),
-                None => None,
-            }
         } else {
             None
         }
