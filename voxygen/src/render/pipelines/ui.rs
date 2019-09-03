@@ -97,12 +97,27 @@ pub fn create_quad(
 
     let (l, b, r, t) = aabr_to_lbrt(rect);
     let (uv_l, uv_b, uv_r, uv_t) = aabr_to_lbrt(uv_rect);
-    Quad::new(
-        v([r, t], [uv_r, uv_t]),
-        v([l, t], [uv_l, uv_t]),
-        v([l, b], [uv_l, uv_b]),
-        v([r, b], [uv_r, uv_b]),
-    )
+
+    match (uv_b > uv_t, uv_l > uv_r) {
+        (true, true) => Quad::new(
+            v([r, t], [uv_l, uv_b]),
+            v([l, t], [uv_l, uv_t]),
+            v([l, b], [uv_r, uv_t]),
+            v([r, b], [uv_r, uv_b]),
+        ),
+        (false, false) => Quad::new(
+            v([r, t], [uv_l, uv_b]),
+            v([l, t], [uv_l, uv_t]),
+            v([l, b], [uv_r, uv_t]),
+            v([r, b], [uv_r, uv_b]),
+        ),
+        _ => Quad::new(
+            v([r, t], [uv_r, uv_t]),
+            v([l, t], [uv_l, uv_t]),
+            v([l, b], [uv_l, uv_b]),
+            v([r, b], [uv_r, uv_b]),
+        ),
+    }
 }
 
 pub fn create_tri(
