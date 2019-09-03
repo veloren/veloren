@@ -1,5 +1,5 @@
 use super::WORLD_SIZE;
-use common::{terrain::TerrainChunkSize, vol::VolSize};
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
 /// Computes the cumulative distribution function of the weighted sum of k independent,
@@ -141,7 +141,7 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32>) -> InverseCdf 
         .filter_map(|i| {
             (f(
                 i,
-                (uniform_idx_as_vec2(i) * TerrainChunkSize::SIZE.map(|e| e as i32))
+                (uniform_idx_as_vec2(i) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
                     .map(|e| e as f64),
             )
             .map(|res| (i, res)))

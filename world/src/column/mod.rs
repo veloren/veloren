@@ -9,7 +9,7 @@ use crate::{
 use common::{
     assets,
     terrain::{BlockKind, Structure, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
 };
 use lazy_static::lazy_static;
 use noise::NoiseFn;
@@ -71,9 +71,7 @@ impl<'a> ColumnGen<'a> {
             .min_by_key(|(pos, _)| pos.distance_squared(wpos))
             .unwrap();
 
-        let chunk_pos = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        });
+        let chunk_pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
         let chunk = self.sim.get(chunk_pos)?;
 
         if seed % 5 == 2
@@ -126,9 +124,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
     fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
-        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        });
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
 
         let sim = &self.sim;
 
