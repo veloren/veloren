@@ -186,7 +186,7 @@ impl Renderer {
         )
     }
 
-    /// Queue the clearing of the color and depth targets ready for a new frame to be rendered.
+    /// Queue the clearing of the depth target ready for a new frame to be rendered.
     pub fn clear(&mut self) {
         self.encoder.clear_depth(&self.tgt_depth_view, 1.0);
         self.encoder.clear_depth(&self.win_depth_view, 1.0);
