@@ -13,7 +13,7 @@ use common::{
     net::PostBox,
     state::{State, Uid},
     terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
     ChatType,
 };
 use hashbrown::HashMap;
@@ -210,7 +210,7 @@ impl Client {
                 .cloned()?
                 .0,
         )
-        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| {
+        .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {
             (e as u32).div_euclid(sz) as i32
         });
 

@@ -34,13 +34,13 @@ impl TownColumn {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Module {
     pub vol_idx: usize,
     pub dir: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum CellKind {
     Empty,
     Park,
@@ -50,7 +50,7 @@ pub enum CellKind {
     House(usize),
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct TownCell {
     pub kind: CellKind,
     pub module: Option<Module>,
@@ -200,11 +200,11 @@ impl TownVol {
 
 impl BaseVol for TownVol {
     type Vox = TownCell;
-    type Err = TownError;
+    type Error = TownError;
 }
 
 impl ReadVol for TownVol {
-    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Err> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         match self.grid.get(Vec2::from(pos)) {
             Some((base, _, cells)) => cells
                 .get((pos.z + UNDERGROUND_DEPTH - *base) as usize)
@@ -215,7 +215,7 @@ impl ReadVol for TownVol {
 }
 
 impl WriteVol for TownVol {
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Err> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), Self::Error> {
         match self.grid.get_mut(Vec2::from(pos)) {
             Some((base, _, cells)) => cells
                 .get_mut((pos.z + UNDERGROUND_DEPTH - *base) as usize)
