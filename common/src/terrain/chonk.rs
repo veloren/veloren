@@ -1,7 +1,7 @@
 use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{BaseVol, ReadVol, VolSize, WriteVol},
-    volumes::chunk::{Chunk, ChunkErr},
+    vol::{BaseVol, ReadVol, RectRasterableVol, RectVolSize, VolSize, WriteVol},
+    volumes::chunk::{Chunk, ChunkError},
 };
 use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use vek::*;
 
 #[derive(Debug)]
 pub enum ChonkError {
-    ChunkError(ChunkErr),
+    ChunkError(ChunkError),
     OutOfBounds,
 }
 
@@ -21,8 +21,8 @@ pub struct SubChunkSize;
 
 impl VolSize for SubChunkSize {
     const SIZE: Vec3<u32> = Vec3 {
-        x: TerrainChunkSize::SIZE.x,
-        y: TerrainChunkSize::SIZE.y,
+        x: TerrainChunkSize::RECT_SIZE.x,
+        y: TerrainChunkSize::RECT_SIZE.y,
         z: SUB_CHUNK_HEIGHT,
     };
 }
@@ -111,7 +111,11 @@ impl Chonk {
 
 impl BaseVol for Chonk {
     type Vox = Block;
-    type Err = ChonkError;
+    type Error = ChonkError;
+}
+
+impl RectRasterableVol for Chonk {
+    const RECT_SIZE: Vec2<u32> = TerrainChunkSize::RECT_SIZE;
 }
 
 impl ReadVol for Chonk {

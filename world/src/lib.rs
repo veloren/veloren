@@ -25,7 +25,7 @@ use crate::{
 };
 use common::{
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
-    vol::{ReadVol, VolSize, Vox, WriteVol},
+    vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
 use std::time::Duration;
@@ -70,7 +70,7 @@ impl World {
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-        let chunk_size2d = Vec2::from(TerrainChunkSize::SIZE);
+        let chunk_size2d = TerrainChunkSize::RECT_SIZE;
         let (base_z, sim_chunk) = match self
             .sim
             .get_interpolated(
@@ -96,13 +96,13 @@ impl World {
         let meta = TerrainChunkMeta::new(sim_chunk.get_name(&self.sim), sim_chunk.get_biome());
         let mut sampler = self.sample_blocks();
 
-        let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+        let chunk_block_pos = Vec3::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
-        for x in 0..TerrainChunkSize::SIZE.x as i32 {
-            for y in 0..TerrainChunkSize::SIZE.y as i32 {
+        for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
+            for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
                 let wpos2d = Vec2::new(x, y)
-                    + Vec3::from(chunk_pos) * TerrainChunkSize::SIZE.map(|e| e as i32);
+                    + Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
                 let z_cache = match sampler.get_z_cache(wpos2d) {
                     Some(z_cache) => z_cache,
@@ -127,7 +127,7 @@ impl World {
         }
 
         let gen_entity_pos = || {
-            let lpos2d = Vec2::from(TerrainChunkSize::SIZE)
+            let lpos2d = TerrainChunkSize::RECT_SIZE
                 .map(|sz| rand::thread_rng().gen::<u32>().rem_euclid(sz));
             let mut lpos = Vec3::new(lpos2d.x as i32, lpos2d.y as i32, 0);
 

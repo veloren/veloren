@@ -22,9 +22,8 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
-    vol::Vox,
-    vol::{ReadVol, VolSize},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
 use hashbrown::HashSet;
@@ -261,7 +260,7 @@ impl Server {
                         let mut block_change = ecs.write_resource::<BlockChange>();
 
                         let _ = ecs
-                            .read_resource::<TerrainMap>()
+                            .read_resource::<TerrainGrid>()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
                             .for_each(|pos| block_change.set(pos, Block::empty()))
@@ -479,7 +478,7 @@ impl Server {
         fn chunk_in_vd(
             player_pos: Vec3<f32>,
             chunk_pos: Vec2<i32>,
-            terrain: &TerrainMap,
+            terrain: &TerrainGrid,
             vd: u32,
         ) -> bool {
             let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
@@ -1085,8 +1084,8 @@ impl Server {
                 ) {
                     {
                         // Check if the entity is in the client's range
-                        (pos.0 - client_pos.0)
-                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        Vec2::from(pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::RECT_SIZE, |d: f32, sz| {
                                 (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
                             })
                             .magnitude_squared()

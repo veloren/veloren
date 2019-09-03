@@ -18,7 +18,7 @@ use crate::{
 };
 use common::{
     terrain::{BiomeKind, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
 };
 use noise::{
     BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex,
@@ -328,7 +328,7 @@ impl WorldSim {
                 self.rng.gen::<usize>() % grid_size.y,
             );
             let wpos = (cell_pos * cell_size + cell_size / 2)
-                .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                     e as i32 * sz as i32 + sz as i32 / 2
                 });
 
@@ -378,8 +378,8 @@ impl WorldSim {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
                 let block_pos = Vec2::new(
-                    chunk_pos.x * TerrainChunkSize::SIZE.x as i32,
-                    chunk_pos.y * TerrainChunkSize::SIZE.y as i32,
+                    chunk_pos.x * TerrainChunkSize::RECT_SIZE.x as i32,
+                    chunk_pos.y * TerrainChunkSize::RECT_SIZE.y as i32,
                 );
                 let _cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
@@ -389,9 +389,8 @@ impl WorldSim {
                     .iter()
                     .map(|(pos, seed)| RegionInfo {
                         chunk_pos: *pos,
-                        block_pos: pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-                            e * sz as i32
-                        }),
+                        block_pos: pos
+                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e * sz as i32),
                         dist: (pos - chunk_pos).map(|e| e as f32).magnitude(),
                         seed: *seed,
                     })
@@ -429,7 +428,7 @@ impl WorldSim {
         for i in 0..WORLD_SIZE.x {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
-                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
                     e * sz as i32 + sz as i32 / 2
                 });
 
@@ -474,9 +473,11 @@ impl WorldSim {
     }
 
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
-        self.get(wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        }))
+        self.get(
+            wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                e / sz as i32
+            }),
+        )
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -509,7 +510,7 @@ impl WorldSim {
         T: Copy + Default + Add<Output = T> + Mul<f32, Output = T>,
         F: FnMut(&SimChunk) -> T,
     {
-        let pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
+        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e as f64 / sz as f64
         });
 
@@ -579,7 +580,7 @@ pub struct Structures {
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
-        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
+        let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);
