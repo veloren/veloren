@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
-pub enum ChunkErr {
+pub enum ChunkError {
     OutOfBounds,
 }
 
@@ -43,32 +43,37 @@ impl<V: Vox, S: VolSize, M> Chunk<V, S, M> {
 
 impl<V: Vox, S: VolSize, M> BaseVol for Chunk<V, S, M> {
     type Vox = V;
-    type Err = ChunkErr;
+    type Error = ChunkError;
 }
 
 impl<V: Vox, S: VolSize, M> SizedVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> {
-        S::SIZE
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::zero()
+    }
+
+    #[inline(always)]
+    fn upper_bound(&self) -> Vec3<i32> {
+        S::SIZE.map(|e| e as i32)
     }
 }
 
 impl<V: Vox, S: VolSize, M> ReadVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, ChunkErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V, ChunkError> {
         Self::idx_for(pos)
             .and_then(|idx| self.vox.get(idx))
-            .ok_or(ChunkErr::OutOfBounds)
+            .ok_or(ChunkError::OutOfBounds)
     }
 }
 
 impl<V: Vox, S: VolSize, M> WriteVol for Chunk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkErr> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), ChunkError> {
         Self::idx_for(pos)
             .and_then(|idx| self.vox.get_mut(idx))
             .map(|old_vox| *old_vox = vox)
-            .ok_or(ChunkErr::OutOfBounds)
+            .ok_or(ChunkError::OutOfBounds)
     }
 }
 

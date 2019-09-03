@@ -1,16 +1,16 @@
 use crate::{
-    vol::{BaseVol, ReadVol, SampleVol, VolSize, WriteVol},
-    volumes::dyna::DynaErr,
+    vol::{BaseVol, RasterableVol, ReadVol, SampleVol, WriteVol},
+    volumes::dyna::DynaError,
 };
 use hashbrown::{hash_map, HashMap};
-use std::{fmt::Debug, marker::PhantomData, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 use vek::*;
 
 #[derive(Debug)]
-pub enum VolMap3dErr<V: BaseVol> {
+pub enum VolGrid3dError<V: RasterableVol> {
     NoSuchChunk,
-    ChunkErr(V::Err),
-    DynaErr(DynaErr),
+    ChunkErr(V::Error),
+    DynaError(DynaError),
     InvalidChunkSize,
 }
 
@@ -18,15 +18,14 @@ pub enum VolMap3dErr<V: BaseVol> {
 // S = Size (replace with a const when const generics is a thing)
 // M = Chunk metadata
 #[derive(Clone)]
-pub struct VolMap3d<V: BaseVol, S: VolSize> {
+pub struct VolGrid3d<V: RasterableVol> {
     chunks: HashMap<Vec3<i32>, Arc<V>>,
-    phantom: PhantomData<S>,
 }
 
-impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
+impl<V: RasterableVol> VolGrid3d<V> {
     #[inline(always)]
     pub fn chunk_key(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(S::SIZE, |e, sz| {
+        pos.map2(V::SIZE, |e, sz| {
             // Horrid, but it's faster than a cheetah with a red bull blood transfusion
             let log2 = (sz - 1).count_ones();
             ((((i64::from(e) + (1 << 32)) as u64) >> log2) - (1 << (32 - log2))) as i32
@@ -35,43 +34,43 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
 
     #[inline(always)]
     pub fn chunk_offs(pos: Vec3<i32>) -> Vec3<i32> {
-        pos.map2(S::SIZE, |e, sz| {
+        pos.map2(V::SIZE, |e, sz| {
             // Horrid, but it's even faster than the aforementioned cheetah
             (((i64::from(e) + (1 << 32)) as u64) & u64::from(sz - 1)) as i32
         })
     }
 }
 
-impl<V: BaseVol + Debug, S: VolSize> BaseVol for VolMap3d<V, S> {
+impl<V: RasterableVol + Debug> BaseVol for VolGrid3d<V> {
     type Vox = V::Vox;
-    type Err = VolMap3dErr<V>;
+    type Error = VolGrid3dError<V>;
 }
 
-impl<V: BaseVol + ReadVol + Debug, S: VolSize> ReadVol for VolMap3d<V, S> {
+impl<V: RasterableVol + ReadVol + Debug> ReadVol for VolGrid3d<V> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolMap3dErr<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid3dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
-            .ok_or(VolMap3dErr::NoSuchChunk)
+            .ok_or(VolGrid3dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
-                chunk.get(co).map_err(VolMap3dErr::ChunkErr)
+                chunk.get(co).map_err(VolGrid3dError::ChunkErr)
             })
     }
 }
 
 // TODO: This actually breaks the API: samples are supposed to have an offset of zero!
 // TODO: Should this be changed, perhaps?
-impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> for VolMap3d<V, S> {
-    type Sample = VolMap3d<V, S>;
+impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for VolGrid3d<V> {
+    type Sample = VolGrid3d<V>;
 
     /// Take a sample of the terrain by cloning the voxels within the provided range.
     ///
     /// Note that the resultant volume does not carry forward metadata from the original chunks.
-    fn sample(&self, range: I) -> Result<Self::Sample, VolMap3dErr<V>> {
+    fn sample(&self, range: I) -> Result<Self::Sample, VolGrid3dError<V>> {
         let range = range.into();
-        let mut sample = VolMap3d::new()?;
+        let mut sample = VolGrid3d::new()?;
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -92,39 +91,38 @@ impl<I: Into<Aabb<i32>>, V: BaseVol + ReadVol + Debug, S: VolSize> SampleVol<I> 
     }
 }
 
-impl<V: BaseVol + WriteVol + Clone + Debug, S: VolSize + Clone> WriteVol for VolMap3d<V, S> {
+impl<V: RasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid3d<V> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolMap3dErr<V>> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), VolGrid3dError<V>> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get_mut(&ck)
-            .ok_or(VolMap3dErr::NoSuchChunk)
+            .ok_or(VolGrid3dError::NoSuchChunk)
             .and_then(|chunk| {
                 let co = Self::chunk_offs(pos);
                 Arc::make_mut(chunk)
                     .set(co, vox)
-                    .map_err(VolMap3dErr::ChunkErr)
+                    .map_err(VolGrid3dError::ChunkErr)
             })
     }
 }
 
-impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
-    pub fn new() -> Result<Self, VolMap3dErr<V>> {
+impl<V: RasterableVol> VolGrid3d<V> {
+    pub fn new() -> Result<Self, VolGrid3dError<V>> {
         if Self::chunk_size()
             .map(|e| e.is_power_of_two() && e > 0)
             .reduce_and()
         {
             Ok(Self {
                 chunks: HashMap::new(),
-                phantom: PhantomData,
             })
         } else {
-            Err(VolMap3dErr::InvalidChunkSize)
+            Err(VolGrid3dError::InvalidChunkSize)
         }
     }
 
     pub fn chunk_size() -> Vec3<u32> {
-        S::SIZE
+        V::SIZE
     }
 
     pub fn insert(&mut self, key: Vec3<i32>, chunk: Arc<V>) -> Option<Arc<V>> {
@@ -147,7 +145,7 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
     }
 
     pub fn key_pos(&self, key: Vec3<i32>) -> Vec3<i32> {
-        key * S::SIZE.map(|e| e as i32)
+        key * V::SIZE.map(|e| e as i32)
     }
 
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec3<i32> {
@@ -161,11 +159,11 @@ impl<V: BaseVol, S: VolSize> VolMap3d<V, S> {
     }
 }
 
-pub struct ChunkIter<'a, V: BaseVol> {
+pub struct ChunkIter<'a, V: RasterableVol> {
     iter: hash_map::Iter<'a, Vec3<i32>, Arc<V>>,
 }
 
-impl<'a, V: BaseVol> Iterator for ChunkIter<'a, V> {
+impl<'a, V: RasterableVol> Iterator for ChunkIter<'a, V> {
     type Item = (Vec3<i32>, &'a Arc<V>);
 
     fn next(&mut self) -> Option<Self::Item> {
