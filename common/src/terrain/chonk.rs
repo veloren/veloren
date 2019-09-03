@@ -1,6 +1,9 @@
 use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
-    vol::{BaseVol, ReadVol, RectRasterableVol, RectVolSize, VolSize, WriteVol},
+    vol::{
+        BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
+        RectRasterableVol, RectVolSize, VolSize, WriteVol,
+    },
     volumes::chunk::{Chunk, ChunkError},
 };
 use hashbrown::HashMap;
@@ -270,5 +273,21 @@ impl Add for ChonkMetrics {
             hash: self.hash + other.hash,
             heterogeneous: self.heterogeneous + other.heterogeneous,
         }
+    }
+}
+
+impl<'a> IntoPosIterator for &'a Chonk {
+    type IntoIter = DefaultPosIterator;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        DefaultPosIterator::new(lower_bound, upper_bound)
+    }
+}
+
+impl<'a> IntoVolIterator<'a> for &'a Chonk {
+    type IntoIter = DefaultVolIterator<'a, Chonk>;
+
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        DefaultVolIterator::new(self, lower_bound, upper_bound)
     }
 }
