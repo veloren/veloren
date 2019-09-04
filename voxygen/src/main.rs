@@ -36,7 +36,7 @@ use crate::{
     window::Window,
 };
 use heaptrack::track_mem;
-use log::{self, debug, error, info, warn};
+use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
@@ -102,19 +102,12 @@ lazy_static! {
 }
 
 fn main() {
-    // Set up the global state.
+    // Load the settings
     let settings = Settings::load();
-    let audio = if settings.audio.audio_on {
-        AudioFrontend::new()
-    } else {
-        AudioFrontend::no_audio()
-    };
-
-    let mut global_state = GlobalState {
-        audio,
-        window: Window::new(&settings).expect("Failed to create window!"),
-        settings,
-    };
+    // Save settings to add new fields or create the file if it is not already there
+    if let Err(err) = settings.save_to_file() {
+        panic!("Failed to save settings: {:?}", err);
+    }
 
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
@@ -126,24 +119,13 @@ fn main() {
         WriteLogger::new(
             log::LevelFilter::Info,
             Config::default(),
-            File::create(&global_state.settings.log.file).unwrap(),
+            File::create(&settings.log.file).unwrap(),
         ),
     ])
     .unwrap();
 
-    // Initialize discord. (lazy_static initalise lazily...)
-    #[cfg(feature = "discord")]
-    {
-        match DISCORD_INSTANCE.lock() {
-            Ok(_disc) => {
-                //great
-            }
-            Err(e) => log::error!("Couldn't init discord: {}", e),
-        }
-    }
-
     // Set up panic handler to relay swish panic messages to the user
-    let settings_clone = global_state.settings.clone();
+    let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
@@ -203,6 +185,30 @@ fn main() {
 
         default_hook(panic_info);
     }));
+
+    // Set up the global state.
+    let audio = if settings.audio.audio_on {
+        AudioFrontend::new()
+    } else {
+        AudioFrontend::no_audio()
+    };
+
+    let mut global_state = GlobalState {
+        audio,
+        window: Window::new(&settings).expect("Failed to create window!"),
+        settings,
+    };
+
+    // Initialize discord. (lazy_static initalise lazily...)
+    #[cfg(feature = "discord")]
+    {
+        match DISCORD_INSTANCE.lock() {
+            Ok(_disc) => {
+                //great
+            }
+            Err(e) => log::error!("Couldn't init discord: {}", e),
+        }
+    }
 
     match global_state.audio.model.get_genre() {
         Genre::Bgm => {
@@ -290,8 +296,6 @@ fn main() {
         }
     }
 
-    // Save settings to add new fields or create the file if it is not already there
-    if let Err(err) = global_state.settings.save_to_file() {
-        warn!("Failed to save settings: {:?}", err);
-    }
+    // Save any unsaved changes to settings
+    global_state.settings.save_to_file_warn();
 }
