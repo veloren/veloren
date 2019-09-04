@@ -1,4 +1,7 @@
-use crate::vol::{BaseVol, DefaultVolIterator, IntoVolIterator, ReadVol, SizedVol, Vox, WriteVol};
+use crate::vol::{
+    BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
+    SizedVol, Vox, WriteVol,
+};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
@@ -71,6 +74,14 @@ impl<V: Vox, M> WriteVol for Dyna<V, M> {
             .and_then(|idx| self.vox.get_mut(idx))
             .map(|old_vox| *old_vox = vox)
             .ok_or(DynaError::OutOfBounds)
+    }
+}
+
+impl<'a, V: Vox, M> IntoPosIterator for &'a Dyna<V, M> {
+    type IntoIter = DefaultPosIterator;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter::new(lower_bound, upper_bound)
     }
 }
 

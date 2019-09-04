@@ -5,7 +5,7 @@ pub use mat_cell::Material;
 use self::cell::Cell;
 use self::mat_cell::MatCell;
 use crate::{
-    vol::{ReadVol, SizedVol, Vox, WriteVol},
+    vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
 };
 use dot_vox::DotVoxData;
@@ -52,7 +52,7 @@ impl From<&DotVoxData> for Segment {
 impl Segment {
     /// Transform cells
     pub fn map(mut self, transform: impl Fn(Cell) -> Option<Cell>) -> Self {
-        for pos in self.iter_positions() {
+        for pos in self.full_pos_iter() {
             if let Some(new) = transform(*self.get(pos).unwrap()) {
                 self.set(pos, new).unwrap();
             }
@@ -91,9 +91,9 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
 
         // Determine size of the new Dyna
         let mut min_point = self.0[0].1;
-        let mut max_point = self.0[0].1 + self.0[0].0.get_size().map(|e| e as i32);
+        let mut max_point = self.0[0].1 + self.0[0].0.size().map(|e| e as i32);
         for (dyna, offset) in self.0.iter().skip(1) {
-            let size = dyna.get_size().map(|e| e as i32);
+            let size = dyna.size().map(|e| e as i32);
             min_point = min_point.map2(*offset, std::cmp::min);
             max_point = max_point.map2(offset + size, std::cmp::max);
         }
@@ -103,8 +103,7 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         // Copy segments into combined
         let origin = min_point.map(|e| e * -1);
         for (dyna, offset) in self.0 {
-            for pos in dyna.iter_positions() {
-                let vox = dyna.get(pos).unwrap();
+            for (pos, vox) in dyna.full_vol_iter() {
                 if !vox.is_empty() {
                     combined.set(origin + offset + pos, *vox).unwrap();
                 }
@@ -119,9 +118,9 @@ pub type MatSegment = Dyna<MatCell, ()>;
 
 impl MatSegment {
     pub fn to_segment(&self, map: impl Fn(Material) -> Rgb<u8>) -> Segment {
-        let mut vol = Dyna::filled(self.get_size(), Cell::empty(), ());
-        for pos in self.iter_positions() {
-            let rgb = match self.get(pos).unwrap() {
+        let mut vol = Dyna::filled(self.size(), Cell::empty(), ());
+        for (pos, vox) in self.full_vol_iter() {
+            let rgb = match vox {
                 MatCell::None => continue,
                 MatCell::Mat(mat) => map(*mat),
                 MatCell::Normal(rgb) => *rgb,

@@ -21,9 +21,9 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
-    vol::{ReadVol, RectVolSize, Vox},
+    state::{State, TimeOfDay, Uid},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainDiff, TerrainGrid},
+    vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use crossbeam::channel;
 use hashbrown::HashSet;
@@ -257,13 +257,16 @@ impl Server {
                         .normalized();
 
                         let ecs = state.ecs_mut();
-                        let mut block_change = ecs.write_resource::<BlockChange>();
+                        let mut diff = ecs.write_resource::<TerrainDiff>();
+                        // TODO (haslersn): Why does the server frontend write directly to the ECS?
 
                         let _ = ecs
                             .read_resource::<TerrainGrid>()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
-                            .for_each(|pos| block_change.set(pos, Block::empty()))
+                            .for_each(|pos| {
+                                diff.set(pos, Block::empty()).unwrap();
+                            })
                             .cast();
                     }
                 }
@@ -431,7 +434,7 @@ impl Server {
                 }
             }
 
-            self.state.insert_chunk(key, chunk);
+            self.state.insert_chunk(key, Arc::new(chunk));
             self.pending_chunks.remove(&key);
 
             // Handle chunk supplement
@@ -524,7 +527,7 @@ impl Server {
         self.sync_clients();
 
         // Sync changed chunks
-        'chunk: for chunk_key in &self.state.terrain_changes().modified_chunks {
+        'chunk: for (chunk_key, chunk) in self.state.terrain_diff().chunk_changes() {
             let terrain = self.state.terrain();
 
             for (entity, player, pos) in (
@@ -543,8 +546,8 @@ impl Server {
                         entity,
                         ServerMsg::TerrainChunkUpdate {
                             key: *chunk_key,
-                            chunk: Box::new(match self.state.terrain().get_key(*chunk_key) {
-                                Some(chunk) => chunk.clone(),
+                            chunk: Box::new(match chunk {
+                                Some(chunk) => chunk.as_ref().clone(),
                                 None => break 'chunk,
                             }),
                         },
@@ -554,8 +557,7 @@ impl Server {
         }
 
         // Sync changed blocks
-        let msg =
-            ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
+        let msg = ServerMsg::TerrainBlockUpdates(self.state.terrain_diff().vox_changes().clone());
         for (entity, player) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<comp::Player>(),

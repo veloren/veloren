@@ -11,14 +11,15 @@ use common::{
     assets,
     figure::Segment,
     terrain::{Block, BlockKind},
-    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, Vox},
-    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError},
+    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, SizedVol, Vox},
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dDiff, VolGrid2dError},
 };
 use crossbeam::channel;
 use dot_vox::DotVoxData;
 use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
 use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
+use uvth::ThreadPool;
 use vek::*;
 
 struct TerrainChunk {
@@ -188,7 +189,7 @@ fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
     }
 }
 
-pub struct Terrain<V: RectRasterableVol> {
+pub struct Terrain<V> {
     chunks: HashMap<Vec2<i32>, TerrainChunk>,
 
     // The mpsc sender and receiver used for talking to meshing worker threads.
@@ -203,7 +204,17 @@ pub struct Terrain<V: RectRasterableVol> {
     phantom: PhantomData<V>,
 }
 
-impl<V: RectRasterableVol> Terrain<V> {
+impl<
+        V: BaseVol<Vox = Block>
+            + SizedVol
+            + RectRasterableVol
+            + ReadVol
+            + Debug
+            + Send
+            + Sync
+            + 'static,
+    > Terrain<V>
+{
     pub fn new(renderer: &mut Renderer) -> Self {
         // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
         // worker threads that are meshing chunks.
@@ -605,75 +616,19 @@ impl<V: RectRasterableVol> Terrain<V> {
     /// Maintain terrain data. To be called once per tick.
     pub fn maintain(
         &mut self,
+        thread_pool: &ThreadPool,
         renderer: &mut Renderer,
-        client: &Client,
+        grid: &VolGrid2d<V>,
+        diff: &VolGrid2dDiff<V>,
+        current_tick: u64,
         focus_pos: Vec3<f32>,
         loaded_distance: f32,
         view_mat: Mat4<f32>,
         proj_mat: Mat4<f32>,
     ) {
-        let current_tick = client.get_tick();
-
-        // Add any recently created or changed chunks to the list of chunks to be meshed.
-        for (modified, pos) in client
-            .state()
-            .terrain_changes()
-            .modified_chunks
-            .iter()
-            .map(|c| (true, c))
-            .chain(
-                client
-                    .state()
-                    .terrain_changes()
-                    .new_chunks
-                    .iter()
-                    .map(|c| (false, c)),
-            )
-        {
-            // TODO: ANOTHER PROBLEM HERE!
-            // What happens if the block on the edge of a chunk gets modified? We need to spawn
-            // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
-            // elision information changes too!
-            for i in -1..2 {
-                for j in -1..2 {
-                    let pos = pos + Vec2::new(i, j);
-
-                    if !self.chunks.contains_key(&pos) || modified {
-                        let mut neighbours = true;
-                        for i in -1..2 {
-                            for j in -1..2 {
-                                neighbours &= client
-                                    .state()
-                                    .terrain()
-                                    .get_key(pos + Vec2::new(i, j))
-                                    .is_some();
-                            }
-                        }
-
-                        if neighbours {
-                            self.mesh_todo.insert(
-                                pos,
-                                ChunkMeshState {
-                                    pos,
-                                    started_tick: current_tick,
-                                    active_worker: None,
-                                },
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
         // Add the chunks belonging to recently changed blocks to the list of chunks to be meshed
-        for pos in client
-            .state()
-            .terrain_changes()
-            .modified_blocks
-            .iter()
-            .map(|(p, _)| *p)
-        {
-            let chunk_pos = client.state().terrain().pos_key(pos);
+        for pos in diff.vox_changes().iter().map(|(p, _)| *p) {
+            let chunk_pos = grid.pos_key(pos);
 
             self.mesh_todo.insert(
                 chunk_pos,
@@ -685,10 +640,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             );
 
             // Handle chunks on chunk borders
-            for x in -1..2 {
-                for y in -1..2 {
+            for x in -1..=1 {
+                for y in -1..=1 {
                     let neighbour_pos = pos + Vec3::new(x, y, 0);
-                    let neighbour_chunk_pos = client.state().terrain().pos_key(neighbour_pos);
+                    let neighbour_chunk_pos = grid.pos_key(neighbour_pos);
 
                     if neighbour_chunk_pos != chunk_pos {
                         self.mesh_todo.insert(
@@ -704,10 +659,42 @@ impl<V: RectRasterableVol> Terrain<V> {
             }
         }
 
-        // Remove any models for chunks that have been recently removed.
-        for pos in &client.state().terrain_changes().removed_chunks {
-            self.chunks.remove(pos);
-            self.mesh_todo.remove(pos);
+        // Add any recently created or changed chunks to the list of chunks to be meshed.
+        for (pos, c) in diff.chunk_changes() {
+            // TODO: ANOTHER PROBLEM HERE!
+            // What happens if the block on the edge of a chunk gets modified? We need to spawn
+            // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
+            // elision information changes too!
+            if let Some(_) = c {
+                for i in -1..=1 {
+                    'outer: for j in -1..=1 {
+                        let pos = pos + Vec2::new(i, j);
+
+                        if !self.chunks.contains_key(&pos) || grid.get_key(pos).is_some() {
+                            for i in -1..=1 {
+                                for j in -1..=1 {
+                                    if grid.get_key(pos + Vec2::new(i, j)).is_none() {
+                                        continue 'outer;
+                                    }
+                                }
+                            }
+
+                            self.mesh_todo.insert(
+                                pos,
+                                ChunkMeshState {
+                                    pos,
+                                    started_tick: current_tick,
+                                    active_worker: None,
+                                },
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Remove any models for chunks that have been recently removed.
+                self.chunks.remove(pos);
+                self.mesh_todo.remove(pos);
+            }
         }
 
         for todo in self
@@ -720,7 +707,7 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
             .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
         {
-            if client.thread_pool().queued_jobs() > 0 {
+            if thread_pool.queued_jobs() > 0 {
                 break;
             }
 
@@ -738,7 +725,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Copy out the chunk data we need to perform the meshing. We do this by taking a
             // sample of the terrain that includes both the chunk we want and its neighbours.
-            let volume = match client.state().terrain().sample(aabr) {
+            let volume = match grid.sample(aabr) {
                 Ok(sample) => sample,
                 // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
                 // queue to be processed at a later date when we have its neighbours.
@@ -749,10 +736,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             // The region to actually mesh
             let min_z = volume
                 .iter()
-                .fold(i32::MAX, |min, (_, chunk)| chunk.get_min_z().min(min));
+                .fold(i32::MAX, |min, (_, chunk)| chunk.lower_bound().z.min(min));
             let max_z = volume
                 .iter()
-                .fold(i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
+                .fold(i32::MIN, |max, (_, chunk)| chunk.upper_bound().z.max(max));
 
             let aabb = Aabb {
                 min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
@@ -765,7 +752,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
             // Queue the worker thread.
             let started_tick = todo.started_tick;
-            client.thread_pool().execute(move || {
+            thread_pool.execute(move || {
                 let _ = send.send(mesh_worker(
                     pos,
                     (min_z as f32, max_z as f32),

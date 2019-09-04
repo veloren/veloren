@@ -3,6 +3,7 @@ use crate::{
     volumes::dyna::DynaError,
 };
 use hashbrown::{hash_map, HashMap};
+use specs::{Component, VecStorage};
 use std::{fmt::Debug, sync::Arc};
 use vek::*;
 
@@ -11,7 +12,6 @@ pub enum VolGrid2dError<V: RectRasterableVol> {
     NoSuchChunk,
     ChunkError(V::Error),
     DynaError(DynaError),
-    InvalidChunkSize,
 }
 
 // V = Voxel
@@ -43,7 +43,7 @@ impl<V: RectRasterableVol + Debug> BaseVol for VolGrid2d<V> {
 
 impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
@@ -66,7 +66,7 @@ impl<I: Into<Aabr<i32>>, V: RectRasterableVol + ReadVol + Debug> SampleVol<I> fo
     fn sample(&self, range: I) -> Result<Self::Sample, VolGrid2dError<V>> {
         let range = range.into();
 
-        let mut sample = VolGrid2d::new()?;
+        let mut sample = VolGrid2d::new();
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -102,16 +102,13 @@ impl<V: RectRasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid2d<V> 
 }
 
 impl<V: RectRasterableVol> VolGrid2d<V> {
-    pub fn new() -> Result<Self, VolGrid2dError<V>> {
-        if Self::chunk_size()
+    pub fn new() -> Self {
+        // TODO (haslersn): Turn this into a compile time assertion.
+        assert!(V::RECT_SIZE
             .map(|e| e.is_power_of_two() && e > 0)
-            .reduce_and()
-        {
-            Ok(Self {
-                chunks: HashMap::default(),
-            })
-        } else {
-            Err(VolGrid2dError::InvalidChunkSize)
+            .reduce_and());
+        Self {
+            chunks: HashMap::default(),
         }
     }
 
@@ -159,6 +156,104 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
             iter: self.chunks.iter(),
         }
     }
+}
+
+impl<V: RectRasterableVol + WriteVol + Clone + Debug> VolGrid2d<V> {
+    pub fn apply(&mut self, diff: &VolGrid2dDiff<V>) -> Result<(), VolGrid2dError<V>> {
+        for (key, chunk) in diff.chunk_changes() {
+            if let Some(chunk) = chunk {
+                self.insert(*key, chunk.clone()); // Clones the `Arc`.
+            } else {
+                self.remove(*key);
+            }
+        }
+        for (pos, vox) in diff.vox_changes() {
+            self.set(*pos, vox.clone())?;
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum VolGrid2dDiffError {
+    VoxUnchanged,
+    ChunkRemoved,
+}
+
+#[derive(Clone)]
+pub struct VolGrid2dDiff<V: RectRasterableVol> {
+    chunk_changes: HashMap<Vec2<i32>, Option<Arc<V>>>,
+    vox_changes: HashMap<Vec3<i32>, V::Vox>,
+}
+
+impl<V: RectRasterableVol> VolGrid2dDiff<V> {
+    pub fn new() -> Self {
+        Self {
+            chunk_changes: Default::default(),
+            vox_changes: Default::default(),
+        }
+    }
+
+    pub fn set_chunk(&mut self, key: Vec2<i32>, chunk: Option<Arc<V>>) {
+        self.chunk_changes.insert(key, chunk);
+        // TODO (haslersn): Remove from `vox_changes` within that chunk
+    }
+
+    pub fn chunk_changes(&self) -> &HashMap<Vec2<i32>, Option<Arc<V>>> {
+        &self.chunk_changes
+    }
+
+    pub fn vox_changes(&self) -> &HashMap<Vec3<i32>, V::Vox> {
+        &self.vox_changes
+    }
+
+    pub fn clear(&mut self) {
+        self.chunk_changes.clear();
+        self.vox_changes.clear();
+    }
+}
+
+impl<V: RectRasterableVol> BaseVol for VolGrid2dDiff<V> {
+    type Vox = V::Vox;
+    type Error = VolGrid2dDiffError;
+}
+
+impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2dDiff<V> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
+        if let Some(vox) = self.vox_changes.get(&pos) {
+            Ok(vox)
+        } else if let Some(c) = self.chunk_changes.get(&VolGrid2d::<V>::chunk_key(pos)) {
+            if let Some(c) = c {
+                let offs = VolGrid2d::<V>::chunk_offs(pos);
+                Ok(c.as_ref().get(offs).unwrap()) // Can't fail because we got the `offs` from `chunk_offs()`.
+            } else {
+                Err(Self::Error::ChunkRemoved)
+            }
+        } else {
+            Err(Self::Error::VoxUnchanged)
+        }
+    }
+}
+
+impl<V: RectRasterableVol> WriteVol for VolGrid2dDiff<V> {
+    fn set(&mut self, pos: Vec3<i32>, vox: V::Vox) -> Result<(), Self::Error> {
+        self.vox_changes.insert(pos, vox);
+        Ok(())
+    }
+}
+
+impl<V: RectRasterableVol + Send + Sync + 'static> Component for VolGrid2d<V>
+where
+    V::Vox: Send + Sync,
+{
+    type Storage = VecStorage<Self>;
+}
+
+impl<V: RectRasterableVol + Send + Sync + 'static> Component for VolGrid2dDiff<V>
+where
+    V::Vox: Send + Sync,
+{
+    type Storage = VecStorage<Self>;
 }
 
 pub struct ChunkIter<'a, V: RectRasterableVol> {

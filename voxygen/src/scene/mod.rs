@@ -210,8 +210,11 @@ impl Scene {
 
         // Maintain the terrain.
         self.terrain.maintain(
+            client.thread_pool(),
             renderer,
-            client,
+            &client.state().terrain(),
+            &client.state().terrain_diff(),
+            client.get_tick(),
             self.camera.get_focus_pos(),
             self.loaded_distance,
             view_mat,

@@ -17,8 +17,8 @@ use common::{
     comp::{
         ActionState::*, Body, CharacterState, Last, MovementState::*, Ori, Pos, Scale, Stats, Vel,
     },
-    terrain::TerrainChunkSize,
-    vol::VolSize,
+    terrain::TerrainChunk,
+    vol::RectRasterableVol,
 };
 use hashbrown::HashMap;
 use log::debug;
@@ -77,8 +77,10 @@ impl FigureMgr {
             .join()
         {
             // Don't process figures outside the vd
-            let vd_frac = (pos.0 - player_pos)
-                .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+            let vd_frac = Vec2::from(pos.0 - player_pos)
+                .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                    d.abs() as f32 / sz as f32
+                })
                 .magnitude()
                 / view_distance as f32;
             // Keep from re-adding/removing entities on the border of the vd

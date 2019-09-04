@@ -6,7 +6,7 @@ use crate::{
     event::{EventBus, LocalEvent, ServerEvent},
     msg::{EcsCompPacket, EcsResPacket},
     sys,
-    terrain::{Block, TerrainChunk, TerrainGrid},
+    terrain::{Block, TerrainChunk, TerrainDiff, TerrainGrid},
     vol::WriteVol,
 };
 use hashbrown::{HashMap, HashSet};
@@ -43,37 +43,6 @@ pub struct DeltaTime(pub f32);
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
 const HUMANOID_JUMP_ACCEL: f32 = 18.0;
-
-#[derive(Default)]
-pub struct BlockChange {
-    blocks: HashMap<Vec3<i32>, Block>,
-}
-
-impl BlockChange {
-    pub fn set(&mut self, pos: Vec3<i32>, block: Block) {
-        self.blocks.insert(pos, block);
-    }
-
-    pub fn clear(&mut self) {
-        self.blocks.clear();
-    }
-}
-
-#[derive(Default)]
-pub struct TerrainChanges {
-    pub new_chunks: HashSet<Vec2<i32>>,
-    pub modified_chunks: HashSet<Vec2<i32>>,
-    pub removed_chunks: HashSet<Vec2<i32>>,
-    pub modified_blocks: HashMap<Vec3<i32>, Block>,
-}
-
-impl TerrainChanges {
-    pub fn clear(&mut self) {
-        self.new_chunks.clear();
-        self.modified_chunks.clear();
-        self.removed_chunks.clear();
-    }
-}
 
 /// A type used to represent game state stored on both the client and the server. This includes
 /// things like entity components, terrain data, and global states like weather, time of day, etc.
@@ -150,9 +119,8 @@ impl State {
         // Register unsynced resources used by the ECS.
         ecs.add_resource(Time(0.0));
         ecs.add_resource(DeltaTime(0.0));
-        ecs.add_resource(TerrainGrid::new().unwrap());
-        ecs.add_resource(BlockChange::default());
-        ecs.add_resource(TerrainChanges::default());
+        ecs.add_resource(TerrainGrid::new());
+        ecs.add_resource(TerrainDiff::new());
         ecs.add_resource(EventBus::<ServerEvent>::default());
         ecs.add_resource(EventBus::<LocalEvent>::default());
     }
@@ -191,9 +159,9 @@ impl State {
         &mut self.ecs
     }
 
-    /// Get a reference to the `TerrainChanges` structure of the state. This contains
+    /// Get a reference to the `TerrainDiff` structure of the state. This contains
     /// information about terrain state that has changed since the last game tick.
-    pub fn terrain_changes(&self) -> Fetch<TerrainChanges> {
+    pub fn terrain_diff(&self) -> Fetch<TerrainDiff> {
         self.ecs.read_resource()
     }
 
@@ -222,61 +190,40 @@ impl State {
     }
 
     /// Get a writable reference to this state's terrain.
-    pub fn terrain_mut(&self) -> FetchMut<TerrainGrid> {
-        self.ecs.write_resource()
-    }
-
-    /// Get a writable reference to this state's terrain.
     pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {
-        self.ecs.write_resource::<BlockChange>().set(pos, block);
+        // TODO (haslersn): There's an inconsistency here. The methods
+        // `set_block()`, `clear_terrain()`, `insert_chunk()` and
+        // `remove_chunk()` instantly alter the `TerrainGrid`. On the other
+        // hand, inside `tick()` during dispatching, systems write changes only
+        // to the `TerrainDiff` and the changes get applied afterwards.
+        self.ecs
+            .write_resource::<TerrainDiff>()
+            .set(pos, block)
+            .unwrap();
+        self.ecs
+            .write_resource::<TerrainGrid>()
+            .set(pos, block)
+            .unwrap();
     }
 
     /// Removes every chunk of the terrain.
     pub fn clear_terrain(&mut self) {
-        let keys = self
-            .terrain_mut()
-            .drain()
-            .map(|(key, _)| key)
-            .collect::<Vec<_>>();
-
-        for key in keys {
-            self.remove_chunk(key);
+        for (key, _) in self.terrain().iter() {
+            (*self.ecs.write_resource::<TerrainDiff>()).set_chunk(key, None);
         }
+        self.ecs.write_resource::<TerrainGrid>().clear();
     }
 
     /// Insert the provided chunk into this state's terrain.
-    pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: TerrainChunk) {
-        if self
-            .ecs
-            .write_resource::<TerrainGrid>()
-            .insert(key, Arc::new(chunk))
-            .is_some()
-        {
-            self.ecs
-                .write_resource::<TerrainChanges>()
-                .modified_chunks
-                .insert(key);
-        } else {
-            self.ecs
-                .write_resource::<TerrainChanges>()
-                .new_chunks
-                .insert(key);
-        }
+    pub fn insert_chunk(&mut self, key: Vec2<i32>, chunk: Arc<TerrainChunk>) {
+        (*self.ecs.write_resource::<TerrainDiff>()).set_chunk(key, Some(chunk.clone()));
+        (*self.ecs.write_resource::<TerrainGrid>()).insert(key, chunk);
     }
 
     /// Remove the chunk with the given key from this state's terrain, if it exists.
     pub fn remove_chunk(&mut self, key: Vec2<i32>) {
-        if self
-            .ecs
-            .write_resource::<TerrainGrid>()
-            .remove(key)
-            .is_some()
-        {
-            self.ecs
-                .write_resource::<TerrainChanges>()
-                .removed_chunks
-                .insert(key);
-        }
+        (*self.ecs.write_resource::<TerrainDiff>()).set_chunk(key, None);
+        (*self.ecs.write_resource::<TerrainGrid>()).remove(key);
     }
 
     /// Execute a single tick, simulating the game state by the given duration.
@@ -299,18 +246,10 @@ impl State {
         self.ecs.maintain();
 
         // Apply terrain changes
-        let mut terrain = self.ecs.write_resource::<TerrainGrid>();
         self.ecs
-            .read_resource::<BlockChange>()
-            .blocks
-            .iter()
-            .for_each(|(pos, block)| {
-                let _ = terrain.set(*pos, *block);
-            });
-        self.ecs.write_resource::<TerrainChanges>().modified_blocks = std::mem::replace(
-            &mut self.ecs.write_resource::<BlockChange>().blocks,
-            Default::default(),
-        );
+            .write_resource::<TerrainGrid>()
+            .apply(&self.ecs.read_resource::<TerrainDiff>())
+            .unwrap();
 
         // Process local events
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
@@ -346,7 +285,22 @@ impl State {
 
     /// Clean up the state after a tick.
     pub fn cleanup(&mut self) {
+        // TODO (haslersn): If frontend code makes changes between calling
+        // `tick()` and `cleanup()`, then those changes are not observed by
+        // the next `tick()`. (Therefore, for example, required remeshing might
+        // be omitted.) We also can't just do the following `clear()`
+        // at the end of `tick()` because then, on the other hand, frontend
+        // could wouldn't be able to observe any changes.
+        //
+        // I can think of two alternative solutions:
+        //
+        // 1. Use an abstraction that forbids the frontend to perform changes
+        //    between calling `tick()` and `cleanup()`.
+        // 2. Or use two `TerrainDiff` instances where one is for observation
+        //    by the frontend and one is for observation by code inside `tick()`
+        //    (like for instance the ECS).
+
         // Clean up data structures from the last tick.
-        self.ecs.write_resource::<TerrainChanges>().clear();
+        self.ecs.write_resource::<TerrainDiff>().clear();
     }
 }
