@@ -1,4 +1,4 @@
-use super::{BlockGen, StructureInfo, StructureMeta, ZCache};
+use super::{BlockGen, StructureInfo, StructureMeta};
 use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},

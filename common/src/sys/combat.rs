@@ -77,9 +77,7 @@ impl<'a> System<'a> for Sys {
             };
 
             if deal_damage {
-                if let Some(Attack { time_left, applied }) =
-                    &character_states.get(entity).map(|c| c.action)
-                {
+                if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
                     // Go through all other entities
                     for (b, pos_b, ori_b, character_b, mut vel_b, stat_b) in (
                         &entities,
