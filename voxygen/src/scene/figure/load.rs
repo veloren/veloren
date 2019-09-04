@@ -185,53 +185,6 @@ impl HumHeadSpec {
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
         )
         .0
-        /*let (name, offset) = match (race, body_type) {
-            // z-value should be 0.25 of the total z
-            (Race::Human, BodyType::Male) => {
-                ("figure.head.head_human_male", Vec3::new(-7.0, -5.0, -2.25))
-            }
-            (Race::Human, BodyType::Female) => (
-                "figure.head.head_human_female",
-                Vec3::new(-7.0, -7.5, -3.25),
-            ),
-            (Race::Elf, BodyType::Male) => ("figure.head.head_elf_male", Vec3::new(-8.0, -5.0, -2.25)),
-            (Race::Elf, BodyType::Female) => {
-                ("figure.head.head_elf_female", Vec3::new(-8.0, -5.5, -3.0))
-            }
-            (Race::Dwarf, BodyType::Male) => {
-                ("figure.head.head_dwarf_male", Vec3::new(-6.0, -5.0, -12.5))
-            }
-            (Race::Dwarf, BodyType::Female) => (
-                "figure.head.head_dwarf_female",
-                Vec3::new(-6.0, -6.0, -9.25),
-            ),
-            (Race::Orc, BodyType::Male) => ("figure.head.head_orc_male", Vec3::new(-8.0, -5.0, -2.50)),
-            (Race::Orc, BodyType::Female) => {
-                ("figure.head.head_orc_female", Vec3::new(-8.0, -8.0, -3.5))
-            }
-            (Race::Undead, BodyType::Male) => {
-                ("figure.head.head_undead_male", Vec3::new(-5.5, -5.0, -2.5))
-            }
-            (Race::Undead, BodyType::Female) => (
-                "figure.head.head_undead_female",
-                Vec3::new(-6.0, -5.0, -2.5),
-            ),
-            (Race::Danari, BodyType::Male) => {
-                ("figure.head.head_danari_male", Vec3::new(-9.0, -5.0, -2.75))
-            }
-            (Race::Danari, BodyType::Female) => {
-                let hair = load_segment("figure.hair.danari.female");
-                let accessory = load_segment("figure.accessory.danari.horns");
-                let bare_head = load_segment("figure.head.danari.female");
-                let head = bare_head
-                    .union(&eyes, Vec3::new(0, 0, 0))
-                    .union(&hair, Vec3::new(0, 0, 0))
-                    .union(&accessory, Vec3::new(0, 0, 0));
-
-                return head.generate_mesh(Vec3::new(-9.0, -7.5, -3.0)).0;
-            }
-        };*/
-        //load_mesh(name, offset)
     }
 }
 
