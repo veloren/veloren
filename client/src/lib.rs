@@ -64,7 +64,7 @@ impl Client {
         let mut postbox = PostBox::to(addr)?;
 
         // Wait for initial sync
-        let (mut state, entity, server_info) = match postbox.next_message() {
+        let (state, entity, server_info) = match postbox.next_message() {
             Some(ServerMsg::InitialSync {
                 ecs_state,
                 entity_uid,

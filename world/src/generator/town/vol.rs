@@ -7,9 +7,9 @@ use vek::*;
 #[derive(Clone)]
 pub enum ColumnKind {
     Road,
-    Wall,
+    //Wall,
     Internal,
-    External, // Outside the boundary wall
+    //External, // Outside the boundary wall
 }
 
 #[derive(Clone, Default)]
