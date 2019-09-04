@@ -5,7 +5,6 @@ pub use mat_cell::Material;
 use self::cell::Cell;
 use self::mat_cell::MatCell;
 use crate::{
-    util::chromify_srgb,
     vol::{ReadVol, SizedVol, Vox, WriteVol},
     volumes::dyna::Dyna,
 };
