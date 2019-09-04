@@ -4,7 +4,7 @@ use crate::{
         Stats, Vel,
     },
     state::DeltaTime,
-    terrain::TerrainGrid,
+    terrain::TerrainJournal,
 };
 use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::time::Duration;
@@ -30,7 +30,7 @@ pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        ReadExpect<'a, TerrainGrid>,
+        ReadExpect<'a, TerrainJournal>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Controller>,
@@ -44,7 +44,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            _terrain,
+            _terrain_journal,
             dt,
             stats,
             controllers,

@@ -70,7 +70,8 @@ impl Camera {
 
             match client
                 .state()
-                .terrain()
+                .terrain_journal()
+                .grid()
                 .ray(start, end)
                 .ignore_error()
                 .max_iter(500)

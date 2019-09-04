@@ -12,11 +12,20 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
     state::{State, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize},
-    vol::RectVolSize,
+    terrain::{
+        block::{Block, BlockKind},
+        chonk::Chonk,
+        TerrainChange, TerrainChunk, TerrainChunkSize,
+    },
+    vol::{
+        DefaultPosIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize, SizedVol,
+        Vox, WriteVol,
+    },
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dChange, VolGrid2dJournal},
     ChatType,
 };
-use hashbrown::HashMap;
+use crossbeam::channel;
+use hashbrown::{HashMap, HashSet};
 use log::warn;
 use std::{
     net::SocketAddr,
@@ -36,6 +45,11 @@ pub enum Event {
     Disconnect,
 }
 
+pub type MapChunk = Chonk<Block, TerrainChunkSize, ()>;
+pub type MapGrid = VolGrid2d<MapChunk>;
+pub type MapJournal = VolGrid2dJournal<MapChunk>;
+pub type MapChange = VolGrid2dChange<MapChunk>;
+
 pub struct Client {
     client_state: ClientState,
     thread_pool: ThreadPool,
@@ -54,6 +68,11 @@ pub struct Client {
     loaded_distance: Option<u32>,
 
     pending_chunks: HashMap<Vec2<i32>, Instant>,
+
+    map_journal: MapJournal,
+
+    map_tx: channel::Sender<(Vec2<i32>, MapChunk)>,
+    map_rx: channel::Receiver<(Vec2<i32>, MapChunk)>,
 }
 
 impl Client {
@@ -62,6 +81,7 @@ impl Client {
     pub fn new<A: Into<SocketAddr>>(addr: A, view_distance: Option<u32>) -> Result<Self, Error> {
         let client_state = ClientState::Connected;
         let mut postbox = PostBox::to(addr)?;
+        let (map_tx, map_rx) = channel::unbounded();
 
         // Wait for initial sync
         let (state, entity, server_info) = match postbox.next_message() {
@@ -117,6 +137,10 @@ impl Client {
             loaded_distance: None,
 
             pending_chunks: HashMap::new(),
+
+            map_journal: MapJournal::new(),
+            map_tx,
+            map_rx,
         })
     }
 
@@ -214,7 +238,11 @@ impl Client {
             (e as u32).div_euclid(sz) as i32
         });
 
-        self.state.terrain().get_key_arc(chunk_pos).cloned()
+        self.state
+            .terrain_journal()
+            .grid()
+            .get_key_arc(chunk_pos)
+            .cloned()
     }
 
     pub fn inventories(&self) -> ReadStorage<comp::Inventory> {
@@ -242,6 +270,10 @@ impl Client {
         self.postbox.send_message(ClientMsg::BreakBlock(pos));
     }
 
+    pub fn map_journal(&self) -> &MapJournal {
+        &self.map_journal
+    }
+
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
     pub fn tick(
@@ -261,7 +293,7 @@ impl Client {
         // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Sync information to the server
-        // 7) Finish the tick, passing actions of the main thread back to the frontend
+        // 3 Finish the tick, passing actions of the main thread back to the frontend
 
         // 1) Handle input from frontend.
         // Pass character actions from frontend input to the player's entity.
@@ -308,19 +340,27 @@ impl Client {
             .get(self.entity)
             .cloned();
         if let (Some(pos), Some(view_distance)) = (pos, self.view_distance) {
-            let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+            let chunk_pos = self
+                .state
+                .terrain_journal()
+                .grid()
+                .pos_key(pos.0.map(|e| e as i32));
 
             // Remove chunks that are too far from the player.
             let mut chunks_to_remove = Vec::new();
-            self.state.terrain().iter().for_each(|(key, _)| {
-                if (chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
-                    .magnitude_squared()
-                    > view_distance.pow(2)
-                {
-                    chunks_to_remove.push(key);
-                }
-            });
+            self.state
+                .terrain_journal()
+                .grid()
+                .iter()
+                .for_each(|(key, _)| {
+                    if (chunk_pos - key)
+                        .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
+                        .magnitude_squared()
+                        > view_distance.pow(2)
+                    {
+                        chunks_to_remove.push(key);
+                    }
+                });
             for key in chunks_to_remove {
                 self.state.remove_chunk(key);
             }
@@ -353,7 +393,7 @@ impl Client {
                     ];
 
                     for key in keys.iter() {
-                        if self.state.terrain().get_key(*key).is_none() {
+                        if self.state.terrain_journal().grid().get_key(*key).is_none() {
                             if !self.pending_chunks.contains_key(key) {
                                 if self.pending_chunks.len() < 4 {
                                     self.postbox
@@ -379,6 +419,111 @@ impl Client {
             self.pending_chunks
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
         }
+
+        // Update map
+        let terrain_journal = self.state.terrain_journal();
+        let terrain_changes = (*terrain_journal.previous_changes()).clone();
+        // TODO (haslersn): Check if `terrain_changes` is empty.
+        // TODO (haslersn): This must be solved without cloning the terrain.
+        let terrain = (*terrain_journal.grid()).clone();
+        let map_tx = self.map_tx.clone();
+        self.thread_pool.execute(move || {
+            // TODO: outsource the calculation.
+            let mut todos = HashSet::<Vec2<i32>>::new();
+            // TODO: What if chunks were removed?
+            for (key, chunk) in terrain_changes {
+                if let TerrainChange::Insert(_) = chunk {
+                    todos.insert(key >> 2);
+                }
+            }
+            'doing: for map_key in todos {
+                let key_lb = map_key * 4;
+                // Only generate the map chunk if all necessary terrain chunks are available.
+                for key_offs_y in 0..4 {
+                    for key_offs_x in 0..4 {
+                        if terrain
+                            .get_key(key_lb + Vec2::new(key_offs_x, key_offs_y))
+                            .is_none()
+                        {
+                            continue 'doing;
+                        }
+                    }
+                }
+                // Generate the map chunk.
+                let mut map_chunk =
+                    MapChunk::new(140 >> 2, Block::empty(), Block::empty(), Default::default());
+                for key_offs_y in 0..4 {
+                    for key_offs_x in 0..4 {
+                        let key = key_lb + Vec2::new(key_offs_x, key_offs_y);
+                        let key_pos = Vec3::<i32>::from(terrain.key_pos(key));
+                        let chunk = terrain.get_key(key).unwrap();
+                        for pos_by4 in DefaultPosIterator::new(
+                            chunk.lower_bound() >> 2,
+                            (chunk.upper_bound() + Vec3::one() * 3) >> 2,
+                        ) {
+                            let pos_lb = 4 * pos_by4;
+                            let mut vox_found_cnt: u32 = 0;
+                            let mut vox_summed_cnt: u32 = 0;
+                            let mut color_sum = Rgb::<u32>::zero();
+                            for (pos, vox) in chunk.vol_iter(pos_lb, pos_lb + Vec3::one() * 4) {
+                                if let Some(color) = vox.get_color() {
+                                    vox_found_cnt += 1;
+                                    if terrain
+                                        .get(key_pos + pos - Vec3::unit_x())
+                                        .ok()
+                                        .map_or(false, |v| v.is_air())
+                                        || terrain
+                                            .get(key_pos + pos + Vec3::unit_x())
+                                            .ok()
+                                            .map_or(false, |v| v.is_air())
+                                        || terrain
+                                            .get(key_pos + pos - Vec3::unit_y())
+                                            .ok()
+                                            .map_or(false, |v| v.is_air())
+                                        || terrain
+                                            .get(key_pos + pos + Vec3::unit_y())
+                                            .ok()
+                                            .map_or(false, |v| v.is_air())
+                                        || terrain
+                                            .get(key_pos + pos - Vec3::unit_z())
+                                            .ok()
+                                            .map_or(false, |v| v.is_air())
+                                        || terrain
+                                            .get(key_pos + pos + Vec3::unit_z())
+                                            .ok()
+                                            .map_or(false, |v| v.is_air())
+                                    {
+                                        vox_summed_cnt += 1;
+                                        color_sum += color.map(|e| e as u32);
+                                    }
+                                }
+                            }
+                            if vox_found_cnt >= 4 * 4 && vox_summed_cnt > 0 {
+                                let map_pos = Vec3::from(
+                                    (TerrainChunk::RECT_SIZE >> 2).map(|e| e as i32)
+                                        * Vec2::new(key_offs_x, key_offs_y),
+                                ) + pos_by4;
+                                let block = Block::new(
+                                    BlockKind::Dense,
+                                    color_sum.map(|e| (e / vox_summed_cnt) as u8),
+                                );
+                                map_chunk.set(map_pos, block).unwrap();
+                            }
+                        }
+                    }
+                }
+                map_tx.send((map_key, map_chunk)).unwrap();
+            }
+        });
+        if let Ok((map_key, map_chunk)) = self.map_rx.try_recv() {
+            self.map_journal
+                .request_change(map_key, MapChange::Insert(Arc::new(map_chunk)));
+        } else {
+            // TODO (haslersn): How to handle this error?
+        }
+
+        // Apply map changes; this must be called **exactly** once per tick!
+        self.map_journal.apply();
 
         // Send a ping to the server once every second
         if Instant::now().duration_since(self.last_server_ping) > Duration::from_secs(1) {
@@ -410,7 +555,7 @@ impl Client {
         }
         */
 
-        // 7) Finish the tick, pass control back to the frontend.
+        // 3 Finish the tick, pass control back to the frontend.
         self.tick += 1;
         Ok(frontend_events)
     }
@@ -480,7 +625,7 @@ impl Client {
                         self.state.write_component(self.entity, inventory)
                     }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
-                        self.state.insert_chunk(key, *chunk);
+                        self.state.insert_chunk(key, From::from(chunk));
                         self.pending_chunks.remove(&key);
                     }
                     ServerMsg::TerrainBlockUpdates(mut blocks) => blocks

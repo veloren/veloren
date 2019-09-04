@@ -11,7 +11,6 @@ pub enum VolGrid2dError<V: RectRasterableVol> {
     NoSuchChunk,
     ChunkError(V::Error),
     DynaError(DynaError),
-    InvalidChunkSize,
 }
 
 // V = Voxel
@@ -43,7 +42,7 @@ impl<V: RectRasterableVol + Debug> BaseVol for VolGrid2d<V> {
 
 impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error> {
         let ck = Self::chunk_key(pos);
         self.chunks
             .get(&ck)
@@ -66,7 +65,7 @@ impl<I: Into<Aabr<i32>>, V: RectRasterableVol + ReadVol + Debug> SampleVol<I> fo
     fn sample(&self, range: I) -> Result<Self::Sample, VolGrid2dError<V>> {
         let range = range.into();
 
-        let mut sample = VolGrid2d::new()?;
+        let mut sample = VolGrid2d::new();
         let chunk_min = Self::chunk_key(range.min);
         let chunk_max = Self::chunk_key(range.max);
         for x in chunk_min.x..=chunk_max.x {
@@ -102,16 +101,13 @@ impl<V: RectRasterableVol + WriteVol + Clone + Debug> WriteVol for VolGrid2d<V> 
 }
 
 impl<V: RectRasterableVol> VolGrid2d<V> {
-    pub fn new() -> Result<Self, VolGrid2dError<V>> {
-        if Self::chunk_size()
+    pub fn new() -> Self {
+        // TODO (haslersn): Turn this into a compile time assertion.
+        assert!(V::RECT_SIZE
             .map(|e| e.is_power_of_two() && e > 0)
-            .reduce_and()
-        {
-            Ok(Self {
-                chunks: HashMap::default(),
-            })
-        } else {
-            Err(VolGrid2dError::InvalidChunkSize)
+            .reduce_and());
+        Self {
+            chunks: HashMap::default(),
         }
     }
 
@@ -132,6 +128,10 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
 
     pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
         self.chunks.get(&key)
+    }
+
+    pub fn get_key_arc_mut(&mut self, key: Vec2<i32>) -> Option<&mut Arc<V>> {
+        self.chunks.get_mut(&key)
     }
 
     pub fn clear(&mut self) {
@@ -158,6 +158,127 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }
+    }
+}
+
+#[derive(Clone)]
+pub enum VolGrid2dChange<V: RectRasterableVol + ReadVol + WriteVol + Clone> {
+    Insert(Arc<V>),
+    Remove,
+}
+
+#[derive(Clone)]
+pub struct VolGrid2dJournal<V: RectRasterableVol + ReadVol + WriteVol + Clone> {
+    grid: VolGrid2d<V>,
+    requested_changes: HashMap<Vec2<i32>, VolGrid2dChange<V>>,
+    requested_vox_changes: HashMap<Vec3<i32>, V::Vox>,
+    previous_changes: HashMap<Vec2<i32>, VolGrid2dChange<V>>,
+    previous_vox_changes: HashMap<Vec3<i32>, V::Vox>,
+}
+
+impl<V: RectRasterableVol + ReadVol + WriteVol + Clone> VolGrid2dJournal<V> {
+    pub fn new() -> Self {
+        Self {
+            grid: VolGrid2d::<V>::new(),
+            requested_changes: Default::default(),
+            requested_vox_changes: Default::default(),
+            previous_changes: Default::default(),
+            previous_vox_changes: Default::default(),
+        }
+    }
+
+    fn foreseen_chunk(&self, key: Vec2<i32>) -> Option<&Arc<V>> {
+        self.requested_changes.get(&key).map_or_else(
+            || self.grid.get_key_arc(key),
+            |c| {
+                if let VolGrid2dChange::<V>::Insert(c) = c {
+                    Some(c)
+                } else {
+                    None
+                }
+            },
+        )
+    }
+
+    fn foreseen_chunk_mut(&mut self, key: Vec2<i32>) -> Option<&mut Arc<V>> {
+        if let Some(change) = self.requested_changes.get_mut(&key) {
+            if let VolGrid2dChange::<V>::Insert(chunk) = change {
+                Some(chunk)
+            } else {
+                None
+            }
+        } else {
+            self.grid.get_key_arc_mut(key)
+        }
+    }
+
+    pub fn request_change(&mut self, key: Vec2<i32>, change: VolGrid2dChange<V>) {
+        if let VolGrid2dChange::<V>::Insert(ref chunk) = change {
+            if self
+                .foreseen_chunk(key)
+                .map_or(true, |c| !Arc::ptr_eq(c, chunk))
+            {
+                self.requested_changes.insert(key, change);
+            }
+        } else if self.grid.get_key(key).is_some() {
+            self.requested_changes.insert(key, change);
+        } else {
+            self.requested_changes.remove(&key);
+        }
+    }
+
+    pub fn request_vox_change(&mut self, pos: Vec3<i32>, vox: V::Vox) {
+        let key = VolGrid2d::<V>::chunk_key(pos);
+        let offs = VolGrid2d::<V>::chunk_offs(pos);
+        if let Some(chunk) = self.foreseen_chunk_mut(key) {
+            let old_vox = chunk.get(offs).unwrap();
+            if *old_vox != vox {
+                // Can't fail because we got the `offs` from `VolGrid2d::<V>::chunk_offs`.
+                Arc::make_mut(chunk).set(offs, vox.clone()).unwrap();
+                self.requested_vox_changes.insert(pos, vox);
+            }
+        } else {
+            // TODO (haslersn): Error! What to do?
+        }
+    }
+
+    pub fn request_clearance(&mut self) {
+        self.requested_changes.clear();
+        self.requested_vox_changes.clear();
+        for (key, _) in self.grid.iter() {
+            self.requested_changes
+                .insert(key, VolGrid2dChange::<V>::Remove);
+        }
+    }
+
+    pub fn apply(&mut self) {
+        for (&key, change) in &self.requested_changes {
+            if let VolGrid2dChange::<V>::Insert(chunk) = change {
+                self.grid.insert(key, chunk.clone()); // Clones the `Arc`.
+            } else {
+                self.grid.remove(key);
+            }
+        }
+        self.previous_changes.clear();
+        self.previous_vox_changes.clear();
+        // Swap them as in a double buffer.
+        std::mem::swap(&mut self.requested_changes, &mut self.previous_changes);
+        std::mem::swap(
+            &mut self.requested_vox_changes,
+            &mut self.previous_vox_changes,
+        );
+    }
+
+    pub fn grid(&self) -> &VolGrid2d<V> {
+        &self.grid
+    }
+
+    pub fn previous_changes(&self) -> &HashMap<Vec2<i32>, VolGrid2dChange<V>> {
+        &self.previous_changes
+    }
+
+    pub fn previous_vox_changes(&self) -> &HashMap<Vec3<i32>, V::Vox> {
+        &self.previous_vox_changes
     }
 }
 

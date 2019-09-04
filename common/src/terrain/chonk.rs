@@ -1,7 +1,7 @@
 use crate::{
     vol::{
         BaseVol, IntoPosIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
-        VolSize, Vox, WriteVol,
+        SizedVol, VolSize, Vox, WriteVol,
     },
     volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
@@ -88,6 +88,22 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
     type Vox = V;
     type Error = ChonkError;
+}
+
+// TODO (haslersn): Implementing this for `Chonk` feels weird, but it's
+// currently required by `voxygen::scene::terrain::Terrain<Self>::maintain()`.
+impl<V: Vox, S: RectVolSize, M: Clone> SizedVol for Chonk<V, S, M> {
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::new(0, 0, self.get_min_z())
+    }
+
+    fn upper_bound(&self) -> Vec3<i32> {
+        Vec3::new(
+            Self::RECT_SIZE.x as i32,
+            Self::RECT_SIZE.y as i32,
+            self.get_max_z(),
+        )
+    }
 }
 
 impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {

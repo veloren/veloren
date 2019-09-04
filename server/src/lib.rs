@@ -21,8 +21,8 @@ use common::{
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
-    state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    state::{State, TimeOfDay, Uid},
+    terrain::{block::Block, TerrainChange, TerrainChunk, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
@@ -83,6 +83,8 @@ impl Server {
         let (chunk_tx, chunk_rx) = channel::unbounded();
 
         let mut state = State::default();
+
+        // Add server-only resources
         state
             .ecs_mut()
             .add_resource(SpawnPoint(Vec3::new(16_384.0, 16_384.0, 512.0)));
@@ -256,14 +258,12 @@ impl Server {
                         )
                         .normalized();
 
-                        let ecs = state.ecs_mut();
-                        let mut block_change = ecs.write_resource::<BlockChange>();
-
-                        let _ = ecs
-                            .read_resource::<TerrainGrid>()
+                        let _ = TerrainGrid::new()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
-                            .for_each(|pos| block_change.set(pos, Block::empty()))
+                            .for_each(|pos| {
+                                state.set_block(pos, Block::empty());
+                            })
                             .cast();
                     }
                 }
@@ -373,8 +373,8 @@ impl Server {
         // 2) Go through any events (timer-driven or otherwise) that need handling and apply them
         //    to the state of the game
         // 3) Go through all incoming client network communications, apply them to the game state
-        // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
-        // 5) Go through the terrain update queue and apply all changes to the terrain
+        // 4) Go through the terrain update queue and apply all changes to the terrain
+        // 5) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 6) Send relevant state updates to all clients
         // 7) Finish the tick, passing control of the main thread back to the frontend
 
@@ -395,13 +395,7 @@ impl Server {
         // Handle game events
         self.handle_events();
 
-        // 4) Tick the client's LocalState.
-        self.state.tick(dt);
-
-        // Tick the world
-        self.world.tick(dt);
-
-        // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
+        // 4) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
             // Send the chunk to all nearby players.
@@ -415,7 +409,11 @@ impl Server {
                     player.view_distance.map(|vd| (entity, vd, pos))
                 })
             {
-                let chunk_pos = self.state.terrain().pos_key(pos.0.map(|e| e as i32));
+                let chunk_pos = self
+                    .state
+                    .terrain_journal()
+                    .grid()
+                    .pos_key(pos.0.map(|e| e as i32));
                 let adjusted_dist_sqr = (Vec2::from(chunk_pos) - Vec2::from(key))
                     .map(|e: i32| (e.abs() as u32).checked_sub(2).unwrap_or(0))
                     .magnitude_squared();
@@ -431,7 +429,7 @@ impl Server {
                 }
             }
 
-            self.state.insert_chunk(key, chunk);
+            self.state.insert_chunk(key, Arc::new(chunk));
             self.pending_chunks.remove(&key);
 
             // Handle chunk supplement
@@ -492,70 +490,53 @@ impl Server {
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain().iter().for_each(|(chunk_key, _)| {
-            let mut should_drop = true;
+        self.state
+            .terrain_journal()
+            .grid()
+            .iter()
+            .for_each(|(chunk_key, _)| {
+                let mut should_drop = true;
 
-            // For each player with a position, calculate the distance.
-            for (player, pos) in (
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-            )
-                .join()
-            {
-                if player
-                    .view_distance
-                    .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
-                    .unwrap_or(false)
+                // For each player with a position, calculate the distance.
+                for (player, pos) in (
+                    &self.state.ecs().read_storage::<comp::Player>(),
+                    &self.state.ecs().read_storage::<comp::Pos>(),
+                )
+                    .join()
                 {
-                    should_drop = false;
-                    break;
+                    if player
+                        .view_distance
+                        .map(|vd| {
+                            chunk_in_vd(pos.0, chunk_key, &self.state.terrain_journal().grid(), vd)
+                        })
+                        .unwrap_or(false)
+                    {
+                        should_drop = false;
+                        break;
+                    }
                 }
-            }
 
-            if should_drop {
-                chunks_to_remove.push(chunk_key);
-            }
-        });
+                if should_drop {
+                    chunks_to_remove.push(chunk_key);
+                }
+            });
         for key in chunks_to_remove {
             self.state.remove_chunk(key);
         }
 
+        // 5) Tick the client's LocalState.
+        self.state.tick(dt);
+
+        // Tick the world
+        self.world.tick(dt);
+
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
-        // Sync changed chunks
-        'chunk: for chunk_key in &self.state.terrain_changes().modified_chunks {
-            let terrain = self.state.terrain();
-
-            for (entity, player, pos) in (
-                &self.state.ecs().entities(),
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-            )
-                .join()
-            {
-                if player
-                    .view_distance
-                    .map(|vd| chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
-                    .unwrap_or(false)
-                {
-                    self.clients.notify(
-                        entity,
-                        ServerMsg::TerrainChunkUpdate {
-                            key: *chunk_key,
-                            chunk: Box::new(match self.state.terrain().get_key(*chunk_key) {
-                                Some(chunk) => chunk.clone(),
-                                None => break 'chunk,
-                            }),
-                        },
-                    );
-                }
-            }
-        }
-
         // Sync changed blocks
-        let msg =
-            ServerMsg::TerrainBlockUpdates(self.state.terrain_changes().modified_blocks.clone());
+        let msg = ServerMsg::TerrainBlockUpdates(
+            self.state.terrain_journal().previous_vox_changes().clone(),
+        );
         for (entity, player) in (
             &self.state.ecs().entities(),
             &self.state.ecs().read_storage::<comp::Player>(),
@@ -567,16 +548,48 @@ impl Server {
             }
         }
 
+        // Sync changed chunks
+        {
+            let terrain_journal = self.state.terrain_journal();
+            let terrain = terrain_journal.grid();
+            'chunk: for (chunk_key, chunk) in terrain_journal.previous_changes() {
+                for (entity, player, pos) in (
+                    &self.state.ecs().entities(),
+                    &self.state.ecs().read_storage::<comp::Player>(),
+                    &self.state.ecs().read_storage::<comp::Pos>(),
+                )
+                    .join()
+                {
+                    if player
+                        .view_distance
+                        .map(|vd| chunk_in_vd(pos.0, *chunk_key, &terrain, vd))
+                        .unwrap_or(false)
+                    {
+                        self.clients.notify(
+                            entity,
+                            ServerMsg::TerrainChunkUpdate {
+                                key: *chunk_key,
+                                chunk: Box::new(match chunk {
+                                    TerrainChange::Insert(chunk) => chunk.as_ref().clone(),
+                                    TerrainChange::Remove => break 'chunk,
+                                }),
+                            },
+                        );
+                    }
+                }
+            }
+        }
+
         // Remove NPCs that are outside the view distances of all players
         let to_delete = {
-            let terrain = self.state.terrain();
+            let terrain_journal = self.state.terrain_journal();
             (
                 &self.state.ecs().entities(),
                 &self.state.ecs().read_storage::<comp::Pos>(),
                 &self.state.ecs().read_storage::<comp::Agent>(),
             )
                 .join()
-                .filter(|(_, pos, _)| terrain.get(pos.0.map(|e| e.floor() as i32)).is_err())
+                .filter(|(_, pos, _)| terrain_journal.grid().get(pos.0.map(|e| e as i32)).is_err())
                 .map(|(entity, _, _)| entity)
                 .collect::<Vec<_>>()
         };
@@ -895,7 +908,7 @@ impl Server {
                                 client.error_state(RequestStateError::Impossible);
                             }
                             ClientState::Spectator | ClientState::Character => {
-                                match state.terrain().get_key(key) {
+                                match state.terrain_journal().grid().get_key(key) {
                                     Some(chunk) => {
                                         client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                             key,

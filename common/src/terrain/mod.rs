@@ -10,7 +10,11 @@ pub use self::{
     structure::Structure,
 };
 
-use crate::{vol::RectVolSize, volumes::vol_grid_2d::VolGrid2d};
+use crate::{
+    terrain::chonk::Chonk,
+    vol::RectVolSize,
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dChange, VolGrid2dJournal},
+};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
@@ -57,5 +61,7 @@ impl TerrainChunkMeta {
 
 // Terrain type aliases
 
-pub type TerrainChunk = chonk::Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainChunk = Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
 pub type TerrainGrid = VolGrid2d<TerrainChunk>;
+pub type TerrainJournal = VolGrid2dJournal<TerrainChunk>;
+pub type TerrainChange = VolGrid2dChange<TerrainChunk>;

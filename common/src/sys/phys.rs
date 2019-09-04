@@ -3,7 +3,7 @@ use {
         comp::{Body, Ori, PhysicsState, Pos, Scale, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
-        terrain::TerrainGrid,
+        terrain::TerrainJournal,
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
@@ -32,7 +32,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, TerrainGrid>,
+        ReadExpect<'a, TerrainJournal>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<LocalEvent>>,
         ReadStorage<'a, Scale>,
@@ -47,7 +47,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
-            terrain,
+            terrain_journal,
             dt,
             event_bus,
             scales,
@@ -102,7 +102,8 @@ impl<'a> System<'a> for Sys {
                 for (i, j, k) in near_iter {
                     let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-                    if terrain
+                    if terrain_journal
+                        .grid()
                         .get(block_pos)
                         .map(|vox| vox.is_solid())
                         .unwrap_or(false)
@@ -131,8 +132,13 @@ impl<'a> System<'a> for Sys {
             let mut attempts = 0; // Don't loop infinitely here
 
             // Don't move if we're not in a loaded chunk
-            let pos_delta = if terrain
-                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+            let pos_delta = if terrain_journal
+                .grid()
+                .get_key(
+                    terrain_journal
+                        .grid()
+                        .pos_key(pos.0.map(|e| e.floor() as i32)),
+                )
                 .is_some()
             {
                 vel.0 * dt.0
@@ -177,7 +183,8 @@ impl<'a> System<'a> for Sys {
                         .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
                         // Make sure the block is actually solid
                         .filter(|(block_pos, _)| {
-                            terrain
+                            terrain_journal
+                                .grid()
                                 .get(*block_pos)
                                 .map(|vox| vox.is_solid())
                                 .unwrap_or(false)
@@ -223,7 +230,7 @@ impl<'a> System<'a> for Sys {
                         // ...and the vertical resolution direction is sufficiently great...
                         && -dir.z > 0.1
                         // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                        && (vel.0.z <= 0.0 || terrain
+                        && (vel.0.z <= 0.0 || terrain_journal.grid()
                             .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
                             .map(|vox| vox.is_solid())
                             .unwrap_or(false))

@@ -13,3 +13,4 @@ log = "0.4.8"
 specs = "0.14.2"
 vek = { version = "0.9.9", features = ["serde"] }
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
+crossbeam = "0.7.2"

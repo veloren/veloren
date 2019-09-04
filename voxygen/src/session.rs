@@ -2,7 +2,7 @@ use crate::{
     hud::{DebugInfo, Event as HudEvent, Hud},
     key_state::KeyState,
     render::Renderer,
-    scene::Scene,
+    scene::{MapScene, Scene},
     window::{Event, GameInput},
     Direction, Error, GlobalState, PlayState, PlayStateResult,
 };
@@ -23,6 +23,7 @@ use vek::*;
 
 pub struct SessionState {
     scene: Scene,
+    map_scene: MapScene,
     client: Rc<RefCell<Client>>,
     hud: Hud,
     key_state: KeyState,
@@ -39,8 +40,14 @@ impl SessionState {
         scene
             .camera_mut()
             .set_fov_deg(global_state.settings.graphics.fov);
+        let map_scene = MapScene::new(global_state.window.renderer_mut());
+        // TODO (haslersn): Is this needed or is the default ok?
+        // map_scene
+        //     .camera_mut()
+        //     .set_fov_deg(global_state.settings.graphics.fov);
         Self {
             scene,
+            map_scene,
             client,
             key_state: KeyState::new(),
             controller: comp::Controller::default(),
@@ -82,6 +89,11 @@ impl SessionState {
 
         // Render the screen using the global renderer
         self.scene.render(renderer, &mut self.client.borrow_mut());
+
+        renderer.clear();
+        self.map_scene
+            .render(renderer, &mut self.client.borrow_mut());
+
         // Draw the UI to the screen
         self.hud.render(renderer, self.scene.globals());
 
@@ -141,8 +153,11 @@ impl PlayState for SessionState {
                                 .is_some()
                         {
                             let (d, b) = {
-                                let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                let terrain_journal = &client.state().terrain_journal();
+                                let ray = terrain_journal
+                                    .grid()
+                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                    .cast();
                                 (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                             };
 
@@ -166,8 +181,11 @@ impl PlayState for SessionState {
                                 .is_some()
                         {
                             let (d, b) = {
-                                let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                let terrain_journal = &client.state().terrain_journal();
+                                let ray = terrain_journal
+                                    .grid()
+                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                    .cast();
                                 (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                             };
 
@@ -188,9 +206,9 @@ impl PlayState for SessionState {
                             .is_some()
                         {
                             if state {
-                                if let Ok(Some(block)) = client
-                                    .state()
-                                    .terrain()
+                                let terrain_journal = &client.state().terrain_journal();
+                                if let Ok(Some(block)) = terrain_journal
+                                    .grid()
                                     .ray(cam_pos, cam_pos + cam_dir * 100.0)
                                     .cast()
                                     .1
@@ -392,6 +410,11 @@ impl PlayState for SessionState {
                 global_state.window.renderer_mut(),
                 &mut global_state.audio,
                 &self.client.borrow(),
+            );
+            self.map_scene.maintain(
+                global_state.window.renderer_mut(),
+                &self.client.borrow(),
+                self.scene.camera().get_orientation().x,
             );
 
             // Render the session.
