@@ -1,6 +1,4 @@
 use specs::{Component, FlaggedStorage, NullStorage};
-use specs_idvs::IDVStorage;
-use vek::*;
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct CanBuild;
