@@ -90,8 +90,23 @@ impl FigureModelCache {
                                         CameraMode::ThirdPerson => Some(mesh_pants(body.pants)),
                                         CameraMode::FirstPerson => None,
                                     },
-                                    Some(mesh_left_hand(body.hand)),
-                                    Some(mesh_right_hand(body.hand)),
+                                    if camera_mode == CameraMode::FirstPerson
+                                        && character_state
+                                            .map(|cs| cs.movement.is_roll())
+                                            .unwrap_or_default()
+                                    {
+                                        None
+                                    } else {
+                                        Some(mesh_left_hand(body.hand))
+                                    },
+                                    if character_state
+                                        .map(|cs| cs.movement.is_roll())
+                                        .unwrap_or_default()
+                                    {
+                                        None
+                                    } else {
+                                        Some(mesh_right_hand(body.hand))
+                                    },
                                     match camera_mode {
                                         CameraMode::ThirdPerson => Some(mesh_left_foot(body.foot)),
                                         CameraMode::FirstPerson => None,
