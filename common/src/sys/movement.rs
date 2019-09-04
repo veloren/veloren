@@ -5,9 +5,8 @@ use crate::{
     },
     state::DeltaTime,
     terrain::TerrainMap,
-    vol::{ReadVol, Vox},
 };
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
+use specs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use std::time::Duration;
 use vek::*;
 
@@ -31,7 +30,6 @@ pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
-        Entities<'a>,
         ReadExpect<'a, TerrainMap>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Stats>,
@@ -46,8 +44,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
-            entities,
-            terrain,
+            _terrain,
             dt,
             stats,
             controllers,
@@ -59,8 +56,7 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         // Apply movement inputs
-        for (entity, stats, controller, physics, mut character, mut pos, mut vel, mut ori) in (
-            &entities,
+        for (stats, controller, physics, mut character, mut _pos, mut vel, mut ori) in (
             &stats,
             &controllers,
             &physics_states,
@@ -86,8 +82,8 @@ impl<'a> System<'a> for Sys {
             if character.action.is_block() || character.action.is_attack() {
                 vel.0 += Vec2::broadcast(dt.0)
                     * controller.move_dir
-                    * match (physics.on_ground) {
-                        (true) if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
+                    * match physics.on_ground {
+                        true if vel.0.magnitude_squared() < BLOCK_SPEED.powf(2.0) => BLOCK_ACCEL,
                         _ => 0.0,
                     }
             } else {

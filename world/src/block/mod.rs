@@ -1,7 +1,7 @@
 mod natural;
 
 use crate::{
-    column::{ColumnGen, ColumnSample, StructureData},
+    column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
@@ -11,7 +11,6 @@ use common::{
     util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
-use noise::NoiseFn;
 use std::ops::{Add, Div, Mul, Neg};
 use vek::*;
 
@@ -79,7 +78,7 @@ impl<'a> BlockGen<'a> {
 
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
-            world,
+            world: _,
             column_cache,
             column_gen,
         } = self;
@@ -141,7 +140,7 @@ impl<'a> BlockGen<'a> {
         let &ColumnSample {
             alt,
             chaos,
-            water_level,
+            water_level: _,
             //river,
             surface_color,
             sub_surface_color,
@@ -166,7 +165,7 @@ impl<'a> BlockGen<'a> {
 
         let wposf = wpos.map(|e| e as f64);
 
-        let (definitely_underground, height, water_height) =
+        let (_definitely_underground, height, water_height) =
             if (wposf.z as f32) < alt - 64.0 * chaos {
                 // Shortcut warping
                 (true, alt, CONFIG.sea_level /*water_level*/)
@@ -214,7 +213,7 @@ impl<'a> BlockGen<'a> {
 
         // let dirt_col = Rgb::new(79, 67, 60);
 
-        let air = Block::empty();
+        let _air = Block::empty();
         // let stone = Block::new(2, stone_col);
         // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
         // let dirt = Block::new(1, dirt_col);
@@ -399,7 +398,7 @@ impl<'a> ZCache<'a> {
             .structures
             .iter()
             .filter_map(|st| st.as_ref())
-            .fold((0.0f32, 0.0f32), |(min, max), (st_info, st_sample)| {
+            .fold((0.0f32, 0.0f32), |(min, max), (st_info, _st_sample)| {
                 let bounds = st_info.get_bounds();
                 let st_area = Aabr {
                     min: Vec2::from(bounds.min),

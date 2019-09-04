@@ -1,5 +1,5 @@
 use specs::{Component, FlaggedStorage, HashMapStorage};
-use specs_idvs::IDVStorage;
+//use specs_idvs::IDVStorage;
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
