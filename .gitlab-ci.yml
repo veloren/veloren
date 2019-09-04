@@ -39,7 +39,7 @@ before_script:
     fi;
 
 #############
-# BUILD
+# Build
 #############
 
 build-voxygen:
@@ -48,7 +48,7 @@ build-voxygen:
   tags:
     - veloren-docker
   script:
-    - (cd voxygen && cargo rustc -v -- -D warnings)
+    - (cd voxygen && RUSTFLAGS="-D warnings" cargo check)
 
 build-server-cli:
   stage: build
@@ -56,7 +56,7 @@ build-server-cli:
   tags:
     - veloren-docker
   script:
-    - (cd server-cli && cargo rustc -v -- -D warnings)
+    - (cd server-cli && RUSTFLAGS="-D warnings" cargo check)
 
 #############
 # TEST
