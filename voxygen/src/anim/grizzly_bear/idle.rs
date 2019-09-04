@@ -69,19 +69,19 @@ impl Animation for IdleAnimation {
         next.grizzly_bear_leg_rb.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_leg_rb.scale = Vec3::one() / 8.46;
 
-        next.grizzly_bear_foot_lf.offset = Vec3::new(-1.0, 2.0, -10.0 - wave_ultra_slow * 0.7);
+        next.grizzly_bear_foot_lf.offset = Vec3::new(-1.0, 2.0, -11.0 - wave_ultra_slow * 0.7);
         next.grizzly_bear_foot_lf.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_foot_lf.scale = Vec3::one();
 
-        next.grizzly_bear_foot_rf.offset = Vec3::new(1.0, 2.0, -10.0 - wave_ultra_slow * 0.7);
+        next.grizzly_bear_foot_rf.offset = Vec3::new(1.0, 2.0, -11.0 - wave_ultra_slow * 0.7);
         next.grizzly_bear_foot_rf.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_foot_rf.scale = Vec3::one();
 
-        next.grizzly_bear_foot_lb.offset = Vec3::new(-1.0, 0.0, -7.0 - wave_ultra_slow * 0.7);
+        next.grizzly_bear_foot_lb.offset = Vec3::new(-1.0, 0.0, -8.0 - wave_ultra_slow * 0.7);
         next.grizzly_bear_foot_lb.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_foot_lb.scale = Vec3::one();
 
-        next.grizzly_bear_foot_rb.offset = Vec3::new(1.0, 0.0, -7.0 - wave_ultra_slow * 0.7);
+        next.grizzly_bear_foot_rb.offset = Vec3::new(1.0, 0.0, -8.0 - wave_ultra_slow * 0.7);
         next.grizzly_bear_foot_rb.ori = Quaternion::rotation_x(0.0);
         next.grizzly_bear_foot_rb.scale = Vec3::one();
 
