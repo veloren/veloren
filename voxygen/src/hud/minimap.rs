@@ -15,6 +15,7 @@ widget_ids! {
         mmap_frame_bg,
         mmap_location,
         mmap_button,
+        zone_display_bg,
         zone_display,
     }
 }
@@ -148,6 +149,11 @@ impl<'a> Widget for MiniMap<'a> {
                 // Region Name
                 Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
                     .mid_top_with_margin_on(ui.window, 200.0)
+                    .font_size(80)
+                    .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                    .set(state.ids.zone_display_bg, ui);
+                Text::new(state.last_region_name.as_ref().unwrap_or(&"".to_owned()))
+                    .top_left_with_margins_on(state.ids.zone_display_bg, -2.5, -2.5)
                     .font_size(80)
                     .color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .set(state.ids.zone_display, ui);

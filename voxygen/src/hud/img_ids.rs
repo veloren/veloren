@@ -80,7 +80,10 @@ image_ids! {
         twohsword_m2: "voxygen.element.icons.2hsword_m2",
         twohhammer_m1: "voxygen.element.icons.2hhammer_m1",
         twohhammer_m2: "voxygen.element.icons.2hhammer_m2",
-
+        twohaxe_m1: "voxygen.element.icons.2haxe_m1",
+        twohaxe_m2: "voxygen.element.icons.2haxe_m2",
+        flyingrod_m1: "voxygen.element.icons.debug_wand_m1",
+        flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
 
