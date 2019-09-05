@@ -1,4 +1,4 @@
-use rodio::{SpatialSink, Decoder, Device};
+use rodio::{SpatialSink, Decoder, Device, Source, Sample};
 use std::io::BufReader;
 use std::fs::File;
 use crate::audio::fader::Fader;
@@ -8,6 +8,7 @@ use vek::*;
 pub enum AudioType {
     Sfx,
     Music,
+    None,
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -27,10 +28,22 @@ pub struct Channel {
     state: ChannelState,
     fader: Fader,
     pub pos: Vec3::<f32>,
-    // sound_cache: Option<&SoundCache>,
 }
 
+// TODO: Implement asynchronous loading
 impl Channel {
+    /// Create an empty channel for future use
+    pub fn new(device: &Device) -> Self {
+        Self {
+            id: 0,
+            sink: SpatialSink::new(device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]),
+            audio_type: AudioType::None,
+            state: ChannelState::Stopped,
+            fader: Fader::fade_in(0.0),
+            pos: Vec3::zero(),
+        }
+    }
+
     pub fn music(id: usize, device: &Device, bufr: BufReader<File>) -> Self {
         let sink = SpatialSink::new(device, [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]);
         let sound = Decoder::new(bufr).unwrap();
@@ -44,7 +57,6 @@ impl Channel {
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
             pos: Vec3::zero(),
-            // sound_cache: None,
         }
     }
 
@@ -56,8 +68,18 @@ impl Channel {
             state: ChannelState::Playing,
             fader: Fader::fade_in(0.0),
             pos,
-            // sound_cache,
         }
+    }
+
+    pub fn play<S>(&mut self, source: S)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+    <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.state = ChannelState::Playing;
+        self.sink.append(source);
     }
 
     pub fn is_done(&self) -> bool {
@@ -71,6 +93,10 @@ impl Channel {
 
     pub fn get_id(&self) -> usize {
         self.id
+    }
+
+    pub fn set_id(&mut self, new_id: usize) {
+        self.id = new_id;
     }
 
     pub fn get_audio_type(&self) -> AudioType {
@@ -102,6 +128,7 @@ impl Channel {
             ChannelState::Stopping  => {
                 self.fader.update(dt);
                 self.sink.set_volume(self.fader.get_volume());
+
                 if self.fader.is_finished() {
                     self.state = ChannelState::Stopped;
                 }

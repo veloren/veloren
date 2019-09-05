@@ -114,7 +114,7 @@ fn main() {
         None => audio::get_default_device(),
     };
     let audio = if settings.audio.audio_on {
-        AudioFrontend::new(audio_device)
+        AudioFrontend::new(audio_device, 16)
     } else {
         AudioFrontend::no_audio()
     };
