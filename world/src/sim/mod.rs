@@ -104,7 +104,7 @@ pub struct WorldSim {
 
 impl WorldSim {
     pub fn generate(mut seed: u32) -> Self {
-        let mut seed = &mut seed;
+        let seed = &mut seed;
         let mut gen_seed = || {
             *seed = seed_expan::diffuse(*seed);
             *seed
@@ -162,7 +162,7 @@ impl WorldSim {
 
         // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to reflect how
         // "chaotic" the region is--how much weird stuff is going on on this terrain.
-        let chaos = uniform_noise(|posi, wposf| {
+        let chaos = uniform_noise(|_posi, wposf| {
             // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is a
             // 50% chance that hill will end up at 0.
             let hill = (0.0
@@ -252,7 +252,7 @@ impl WorldSim {
         };
 
         // A version of alt that is uniform over *non-seawater* (or land-adjacent seawater) chunks.
-        let alt_no_seawater = uniform_noise(|posi, wposf| {
+        let alt_no_seawater = uniform_noise(|posi, _wposf| {
             if pure_water(posi) {
                 None
             } else {
@@ -436,7 +436,7 @@ impl WorldSim {
                 let near_towns = self.gen_ctx.town_gen.get(wpos);
                 let town = near_towns
                     .iter()
-                    .min_by_key(|(pos, seed)| wpos.distance_squared(*pos));
+                    .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
 
                 if let Some((pos, _)) = town {
                     let maybe_town = maybe_towns

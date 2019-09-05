@@ -5,8 +5,7 @@ use super::{Generator, SpawnRules};
 use crate::{
     block::block_from_structure,
     column::{ColumnGen, ColumnSample},
-    sim::WorldSim,
-    util::{seed_expan, Grid, Sampler, UnitChooser},
+    util::Sampler,
 };
 use common::{
     assets,
@@ -16,7 +15,6 @@ use common::{
 use hashbrown::HashSet;
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use rand_chacha::ChaChaRng;
 use std::{ops::Add, sync::Arc};
 use vek::*;
 
@@ -96,14 +94,14 @@ impl<'a> Sampler<'a> for TownGen {
 impl<'a> Generator<'a, TownState> for TownGen {
     fn get_z_limits(
         &self,
-        town: &'a TownState,
-        wpos: Vec2<i32>,
+        _town: &'a TownState,
+        _wpos: Vec2<i32>,
         sample: &ColumnSample,
     ) -> (f32, f32) {
         (sample.alt - 32.0, sample.alt + 75.0)
     }
 
-    fn spawn_rules(&self, town: &'a TownState, wpos: Vec2<i32>) -> SpawnRules {
+    fn spawn_rules(&self, _town: &'a TownState, _wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules { trees: false }
     }
 }
@@ -234,7 +232,7 @@ impl TownVol {
         let mut junctions = HashSet::new();
         junctions.insert(self.choose_column(rng, |_, col| col.is_road()).unwrap());
 
-        for road in 0..n {
+        for _road in 0..n {
             for _ in 0..ATTEMPTS {
                 let start = *junctions.iter().choose(rng).unwrap();
                 //let start = self.choose_column(rng, |pos, col| pos.map(|e| e % 2 == 0).reduce_and() && col.is_road()).unwrap();
@@ -291,10 +289,9 @@ impl TownVol {
                     })
                     .unwrap();
 
-                let mut park =
-                    self.floodfill(Some(16), [start].iter().copied().collect(), |_, col| {
-                        col.is_empty()
-                    });
+                let park = self.floodfill(Some(16), [start].iter().copied().collect(), |_, col| {
+                    col.is_empty()
+                });
 
                 if park.len() < 4 {
                     continue;
@@ -305,7 +302,8 @@ impl TownVol {
                     let col = self.col(cell).unwrap();
                     let ground = col.ground;
                     for z in 0..2 {
-                        self.set(Vec3::new(cell.x, cell.y, ground + z), CellKind::Park.into());
+                        let _ =
+                            self.set(Vec3::new(cell.x, cell.y, ground + z), CellKind::Park.into());
                     }
                 }
 
@@ -314,7 +312,7 @@ impl TownVol {
         }
     }
 
-    fn gen_walls(&mut self, rng: &mut impl Rng) {
+    fn gen_walls(&mut self, _rng: &mut impl Rng) {
         let mut outer = HashSet::new();
         for i in 0..self.size().x {
             outer.insert(Vec2::new(i, 0));
@@ -325,10 +323,10 @@ impl TownVol {
             outer.insert(Vec2::new(self.size().x - 1, j));
         }
 
-        let mut outer = self.floodfill(None, outer, |_, col| col.is_empty());
+        let outer = self.floodfill(None, outer, |_, col| col.is_empty());
 
         let mut walls = HashSet::new();
-        let inner = self.floodfill(
+        let _inner = self.floodfill(
             None,
             [self.size() / 2].iter().copied().collect(),
             |pos, _| {
@@ -371,7 +369,7 @@ impl TownVol {
             let col = self.col(*wall).unwrap();
             let ground = col.ground;
             for z in -1..3 {
-                self.set(Vec3::new(wall.x, wall.y, ground + z), CellKind::Wall.into());
+                let _ = self.set(Vec3::new(wall.x, wall.y, ground + z), CellKind::Wall.into());
             }
         }
     }
@@ -385,13 +383,12 @@ impl TownVol {
                 match col.kind {
                     None => {}
                     Some(ColumnKind::Internal) => {}
-                    Some(ColumnKind::External) => {}
+                    //Some(ColumnKind::External) => {}
                     Some(ColumnKind::Road) => {
                         for z in -1..2 {
-                            self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
+                            let _ = self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
                         }
                     }
-                    _ => unimplemented!(),
                 }
             }
         }
@@ -482,7 +479,7 @@ impl TownVol {
                 }
 
                 for cell in cells {
-                    self.set(cell, CellKind::House(houses.len()).into());
+                    let _ = self.set(cell, CellKind::House(houses.len()).into());
                     self.set_col_kind(Vec2::from(cell), Some(ColumnKind::Internal));
                 }
 
@@ -508,7 +505,7 @@ impl TownVol {
                             .map(TownCell::is_space)
                             .unwrap_or(true)
                     {
-                        self.set(pos, TownCell::empty());
+                        let _ = self.set(pos, TownCell::empty());
                     }
                 }
             }
@@ -574,7 +571,7 @@ impl TownVol {
 
                     if let Some(module) = module {
                         let kind = this_cell.kind.clone();
-                        self.set(
+                        let _ = self.set(
                             pos,
                             TownCell {
                                 kind,
