@@ -31,11 +31,11 @@ impl Animation for JumpAnimation {
         next.grizzly_bear_lower_head.ori = Quaternion::rotation_z(wave_slow * 0.015);
         next.grizzly_bear_lower_head.scale = Vec3::one();
 
-        next.grizzly_bear_upper_torso.offset = Vec3::new(-8.0, 5.5, 15.6) / 11.0;
+        next.grizzly_bear_upper_torso.offset = Vec3::new(0.0, 5.5, 15.6) / 11.0;
         next.grizzly_bear_upper_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
         next.grizzly_bear_upper_torso.scale = Vec3::one() / 8.46;
 
-        next.grizzly_bear_lower_torso.offset = Vec3::new(-8.0, -11.5, 13.0) / 11.0;
+        next.grizzly_bear_lower_torso.offset = Vec3::new(0.0, -11.5, 13.0) / 11.0;
         next.grizzly_bear_lower_torso.ori = Quaternion::rotation_z(0.0) * Quaternion::rotation_x(wave_slow * -0.25);
         next.grizzly_bear_lower_torso.scale = Vec3::one() / 8.46;
 

@@ -569,7 +569,7 @@ impl FigureModelCache {
             match upper_torso {
                 grizzly_bear::Upper_Torso::Default => "npc.grizzly_bear.grizzly_bear_upper_torso",
             },
-            Vec3::new(-2.0, -12.0, -5.0),
+            Vec3::new(-9.0, -10.0, -8.5),
         )
     }
 
@@ -578,7 +578,7 @@ impl FigureModelCache {
             match lower_torso {
                 grizzly_bear::Lower_Torso::Default => "npc.grizzly_bear.grizzly_bear_lower_torso",
             },
-            Vec3::new(-2.0, -12.0, -5.0),
+            Vec3::new(-8.0, -7.0, -7.0),
         )
     }
 
@@ -587,7 +587,7 @@ impl FigureModelCache {
             match leg_lf {
                 grizzly_bear::LegLF::Default => "npc.grizzly_bear.grizzly_bear_lf_leg",
             },
-            Vec3::new(-2.5, -5.5, -10.0),
+            Vec3::new(-1.5, -3.5, -6.0),
         )
     }
 
@@ -596,7 +596,7 @@ impl FigureModelCache {
             match leg_rf {
                 grizzly_bear::LegRF::Default => "npc.grizzly_bear.grizzly_bear_rf_leg",
             },
-            Vec3::new(-2.5, -5.5, -10.0),
+            Vec3::new(-1.5, -3.5, -6.0),
         )
     }
 
