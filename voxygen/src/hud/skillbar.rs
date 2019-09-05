@@ -15,6 +15,8 @@ widget_ids! {
     struct Ids {
         death_message_1,
         death_message_2,
+        death_message_1_bg,
+        death_message_2_bg,
         level_text,
         next_level_text,
         xp_bar_mid,
@@ -215,13 +217,27 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new("You Died")
                 .mid_top_with_margin_on(ui.window, 60.0)
                 .font_size(40)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_1_bg, ui);
+            Text::new(&format!(
+                "Press {:?} to respawn.",
+                self.global_state.settings.controls.respawn
+            ))
+            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .font_size(15)
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.death_message_2_bg, ui);
+
+            Text::new("You Died")
+                .top_left_with_margins_on(state.ids.death_message_1_bg, -2.0, -2.0)
+                .font_size(40)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
             Text::new(&format!(
                 "Press {:?} to respawn.",
                 self.global_state.settings.controls.respawn
             ))
-            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .top_left_with_margins_on(state.ids.death_message_2_bg, -1.5, -1.5)
             .font_size(15)
             .color(CRITICAL_HP_COLOR)
             .set(state.ids.death_message_2, ui);
@@ -354,9 +370,11 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(match self.stats.equipment.main {
             Some(Item::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m1,
-                _ => self.imgs.twohhammer_m1,
+                Tool::Hammer => self.imgs.twohhammer_m1,
+                Tool::Axe => self.imgs.twohaxe_m1,
+                _ => self.imgs.flyingrod_m1,
             },
-            _ => self.imgs.twohhammer_m1,
+            _ => self.imgs.flyingrod_m1,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
         .middle_of(state.ids.m1_slot_bg)
@@ -374,9 +392,11 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(match self.stats.equipment.main {
             Some(Item::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m2,
-                _ => self.imgs.twohhammer_m2,
+                Tool::Hammer => self.imgs.twohhammer_m2,
+                Tool::Axe => self.imgs.twohaxe_m2,
+                _ => self.imgs.flyingrod_m2,
             },
-            _ => self.imgs.twohhammer_m2,
+            _ => self.imgs.flyingrod_m2,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
         .middle_of(state.ids.m2_slot_bg)
