@@ -70,19 +70,23 @@ impl Animation for RunAnimation {
         next.wild_boar_leg_rb.ori = Quaternion::rotation_x(wave_quick * 0.15);
         next.wild_boar_leg_rb.scale = Vec3::one() / 11.0;
 
-        next.wild_boar_foot_lf.offset = Vec3::new(-3.5, 5.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
+        next.wild_boar_foot_lf.offset =
+            Vec3::new(-3.5, 5.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
         next.wild_boar_foot_lf.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.wild_boar_foot_lf.scale = Vec3::one() / 11.0;
 
-        next.wild_boar_foot_rf.offset = Vec3::new(6.5, 5.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
+        next.wild_boar_foot_rf.offset =
+            Vec3::new(6.5, 5.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
         next.wild_boar_foot_rf.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.wild_boar_foot_rf.scale = Vec3::one() / 11.0;
 
-        next.wild_boar_foot_lb.offset = Vec3::new(-2.5, -4.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
+        next.wild_boar_foot_lb.offset =
+            Vec3::new(-2.5, -4.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
         next.wild_boar_foot_lb.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.wild_boar_foot_lb.scale = Vec3::one() / 11.0;
 
-        next.wild_boar_foot_rb.offset = Vec3::new(5.5, -4.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
+        next.wild_boar_foot_rb.offset =
+            Vec3::new(5.5, -4.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
         next.wild_boar_foot_rb.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.wild_boar_foot_rb.scale = Vec3::one() / 11.0;
 

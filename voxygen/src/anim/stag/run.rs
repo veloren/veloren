@@ -70,19 +70,23 @@ impl Animation for RunAnimation {
         next.stag_leg_rb.ori = Quaternion::rotation_x(wave_quick * 0.15);
         next.stag_leg_rb.scale = Vec3::one() / 9.0;
 
-        next.stag_foot_lf.offset = Vec3::new(-3.5, 14.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
+        next.stag_foot_lf.offset =
+            Vec3::new(-3.5, 14.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
         next.stag_foot_lf.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.stag_foot_lf.scale = Vec3::one() / 9.0;
 
-        next.stag_foot_rf.offset = Vec3::new(7.5, 14.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
+        next.stag_foot_rf.offset =
+            Vec3::new(7.5, 14.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
         next.stag_foot_rf.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.stag_foot_rf.scale = Vec3::one() / 9.0;
 
-        next.stag_foot_lb.offset = Vec3::new(-2.0, 0.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
+        next.stag_foot_lb.offset =
+            Vec3::new(-2.0, 0.0 - wave_quick_cos * 2.5, 3.0 + wave_quick * 3.0) / 11.0;
         next.stag_foot_lb.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.stag_foot_lb.scale = Vec3::one() / 9.0;
 
-        next.stag_foot_rb.offset = Vec3::new(6.5, 0.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
+        next.stag_foot_rb.offset =
+            Vec3::new(6.5, 0.0 + wave_quick * 3.0 + wave_quick_cos * 2.5, 3.0) / 11.0;
         next.stag_foot_rb.ori = Quaternion::rotation_x(0.0 + wave_quick * 0.6);
         next.stag_foot_rb.scale = Vec3::one() / 9.0;
 

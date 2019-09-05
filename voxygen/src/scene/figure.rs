@@ -1,7 +1,9 @@
 use crate::{
     anim::{
-        self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
-        quadrupedmedium::QuadrupedMediumSkeleton, grizzly_bear::GrizzlyBearSkeleton, wild_boar::WildBoarSkeleton, stag::StagSkeleton, Animation, Skeleton, SkeletonAttr,
+        self, character::CharacterSkeleton, grizzly_bear::GrizzlyBearSkeleton,
+        object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
+        quadrupedmedium::QuadrupedMediumSkeleton, stag::StagSkeleton, wild_boar::WildBoarSkeleton,
+        Animation, Skeleton, SkeletonAttr,
     },
     mesh::Meshable,
     render::{
@@ -12,7 +14,10 @@ use crate::{
 use client::Client;
 use common::{
     assets,
-    comp::{self, humanoid, item::Tool, object, quadruped, quadruped_medium, grizzly_bear, wild_boar, stag, Body},
+    comp::{
+        self, grizzly_bear, humanoid, item::Tool, object, quadruped, quadruped_medium, stag,
+        wild_boar, Body,
+    },
     figure::Segment,
     terrain::TerrainChunkSize,
     vol::VolSize,
@@ -545,7 +550,7 @@ impl FigureModelCache {
             Vec3::new(-2.5, -4.0, -2.5),
         )
     }
-/////
+    /////
     fn load_grizzly_bear_upper_head(head_upper: grizzly_bear::HeadUpper) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match head_upper {
@@ -564,7 +569,9 @@ impl FigureModelCache {
         )
     }
 
-    fn load_grizzly_bear_upper_torso(upper_torso: grizzly_bear::Upper_Torso) -> Mesh<FigurePipeline> {
+    fn load_grizzly_bear_upper_torso(
+        upper_torso: grizzly_bear::Upper_Torso,
+    ) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match upper_torso {
                 grizzly_bear::Upper_Torso::Default => "npc.grizzly_bear.grizzly_bear_upper_torso",
@@ -573,7 +580,9 @@ impl FigureModelCache {
         )
     }
 
-    fn load_grizzly_bear_lower_torso(lower_torso: grizzly_bear::Lower_Torso) -> Mesh<FigurePipeline> {
+    fn load_grizzly_bear_lower_torso(
+        lower_torso: grizzly_bear::Lower_Torso,
+    ) -> Mesh<FigurePipeline> {
         Self::load_mesh(
             match lower_torso {
                 grizzly_bear::Lower_Torso::Default => "npc.grizzly_bear.grizzly_bear_lower_torso",
@@ -1191,9 +1200,7 @@ impl FigureMgr {
                     let state = self
                         .grizzly_bear_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, GrizzlyBearSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, GrizzlyBearSkeleton::new()));
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,
@@ -1237,9 +1244,7 @@ impl FigureMgr {
                     let state = self
                         .wild_boar_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, WildBoarSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, WildBoarSkeleton::new()));
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,
@@ -1283,9 +1288,7 @@ impl FigureMgr {
                     let state = self
                         .stag_states
                         .entry(entity)
-                        .or_insert_with(|| {
-                            FigureState::new(renderer, StagSkeleton::new())
-                        });
+                        .or_insert_with(|| FigureState::new(renderer, StagSkeleton::new()));
 
                     let animation_info = match animation_info {
                         Some(a_i) => a_i,

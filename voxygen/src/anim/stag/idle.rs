@@ -40,11 +40,11 @@ impl Animation for IdleAnimation {
         next.stag_head.offset = Vec3::new(-5.2, 20.0, 26.0 + wave_ultra_slow * 1.0) / 11.0;
         next.stag_head.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.stag_head.scale = Vec3::one() / 8.0;
-        
+
         next.stag_torso.offset = Vec3::new(-1.0, 3.0, 13.0 + wave_ultra_slow * 1.0) / 11.0;
         next.stag_torso.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.stag_torso.scale = Vec3::one() / 9.0;
-        
+
         next.stag_neck.offset = Vec3::new(0.2, 24.0, 13.0 + wave_ultra_slow * 1.0) / 11.0;
         next.stag_neck.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.stag_neck.scale = Vec3::one() / 8.95;
@@ -56,7 +56,7 @@ impl Animation for IdleAnimation {
         next.stag_leg_rf.offset = Vec3::new(4.5, 8.0, 11.0 + wave_ultra_slow * 0.9) / 11.0;
         next.stag_leg_rf.ori = Quaternion::rotation_x(0.0);
         next.stag_leg_rf.scale = Vec3::one() / 9.0;
-        
+
         next.stag_leg_lb.offset = Vec3::new(-3.0, -7.0, 10.5 + wave_ultra_slow * 0.85) / 11.0;
         next.stag_leg_lb.ori = Quaternion::rotation_x(0.0);
         next.stag_leg_lb.scale = Vec3::one() / 9.0;

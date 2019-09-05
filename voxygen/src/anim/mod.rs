@@ -1,11 +1,11 @@
 pub mod character;
 pub mod fixture;
+pub mod grizzly_bear;
 pub mod object;
 pub mod quadruped;
 pub mod quadrupedmedium;
-pub mod grizzly_bear;
-pub mod wild_boar;
 pub mod stag;
+pub mod wild_boar;
 
 use crate::render::FigureBoneData;
 use common::comp::{self, item::Tool};

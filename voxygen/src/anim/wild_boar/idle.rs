@@ -40,11 +40,11 @@ impl Animation for IdleAnimation {
         next.wild_boar_head.offset = Vec3::new(-1.5, 5.5, 6.0 + wave_ultra_slow * 0.8) / 11.0;
         next.wild_boar_head.ori = Quaternion::rotation_x(wave_slow_cos * 0.015);
         next.wild_boar_head.scale = Vec3::one() / 11.0;
-        
+
         next.wild_boar_torso.offset = Vec3::new(-1.5, 2.5, 10.0 + wave_ultra_slow * 1.0) / 11.0;
         next.wild_boar_torso.ori = Quaternion::rotation_y(wave_slow_cos * 0.015);
         next.wild_boar_torso.scale = Vec3::one() / 11.0;
-        
+
         next.wild_boar_tail.offset = Vec3::new(0.5, -1.5, 8.5 + wave_ultra_slow * 1.0) / 11.0;
         next.wild_boar_tail.ori = Quaternion::rotation_y(wave_slow * 0.15);
         next.wild_boar_tail.scale = Vec3::one() / 11.0;
@@ -56,7 +56,7 @@ impl Animation for IdleAnimation {
         next.wild_boar_leg_rf.offset = Vec3::new(6.0, 1.0, 8.0 + wave_ultra_slow * 0.9) / 11.0;
         next.wild_boar_leg_rf.ori = Quaternion::rotation_x(0.0);
         next.wild_boar_leg_rf.scale = Vec3::one() / 11.0;
-        
+
         next.wild_boar_leg_lb.offset = Vec3::new(-2.0, -6.0, 7.5 + wave_ultra_slow * 0.85) / 11.0;
         next.wild_boar_leg_lb.ori = Quaternion::rotation_x(0.0);
         next.wild_boar_leg_lb.scale = Vec3::one() / 11.0;

@@ -62,21 +62,29 @@ impl Skeleton for WildBoarSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-
         ]
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
         self.wild_boar_head.interpolate(&target.wild_boar_head, dt);
-        self.wild_boar_torso.interpolate(&target.wild_boar_torso, dt);
+        self.wild_boar_torso
+            .interpolate(&target.wild_boar_torso, dt);
         self.wild_boar_tail.interpolate(&target.wild_boar_tail, dt);
-        self.wild_boar_leg_lf.interpolate(&target.wild_boar_leg_lf, dt);
-        self.wild_boar_leg_rf.interpolate(&target.wild_boar_leg_rf, dt);
-        self.wild_boar_leg_lb.interpolate(&target.wild_boar_leg_lb, dt);
-        self.wild_boar_leg_rb.interpolate(&target.wild_boar_leg_rb, dt);
-        self.wild_boar_foot_lf.interpolate(&target.wild_boar_foot_lf, dt);
-        self.wild_boar_foot_rf.interpolate(&target.wild_boar_foot_rf, dt);
-        self.wild_boar_foot_lb.interpolate(&target.wild_boar_foot_lb, dt);
-        self.wild_boar_foot_rb.interpolate(&target.wild_boar_foot_rb, dt);
+        self.wild_boar_leg_lf
+            .interpolate(&target.wild_boar_leg_lf, dt);
+        self.wild_boar_leg_rf
+            .interpolate(&target.wild_boar_leg_rf, dt);
+        self.wild_boar_leg_lb
+            .interpolate(&target.wild_boar_leg_lb, dt);
+        self.wild_boar_leg_rb
+            .interpolate(&target.wild_boar_leg_rb, dt);
+        self.wild_boar_foot_lf
+            .interpolate(&target.wild_boar_foot_lf, dt);
+        self.wild_boar_foot_rf
+            .interpolate(&target.wild_boar_foot_rf, dt);
+        self.wild_boar_foot_lb
+            .interpolate(&target.wild_boar_foot_lb, dt);
+        self.wild_boar_foot_rb
+            .interpolate(&target.wild_boar_foot_rb, dt);
     }
 }

@@ -17,7 +17,9 @@ pub use action_state::ActionState;
 pub use admin::Admin;
 pub use agent::Agent;
 pub use animation::{Animation, AnimationInfo};
-pub use body::{humanoid, object, quadruped, quadruped_medium, grizzly_bear, wild_boar, stag, Body};
+pub use body::{
+    grizzly_bear, humanoid, object, quadruped, quadruped_medium, stag, wild_boar, Body,
+};
 pub use controller::Controller;
 pub use inputs::{
     Attacking, CanBuild, Gliding, Jumping, MoveDir, OnGround, Respawning, Rolling, Wielding,

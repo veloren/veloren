@@ -1,10 +1,10 @@
+pub mod grizzly_bear;
 pub mod humanoid;
 pub mod object;
 pub mod quadruped;
 pub mod quadruped_medium;
-pub mod grizzly_bear;
-pub mod wild_boar;
 pub mod stag;
+pub mod wild_boar;
 
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;

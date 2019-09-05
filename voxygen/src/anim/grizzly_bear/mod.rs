@@ -45,17 +45,18 @@ impl GrizzlyBearSkeleton {
     }
 }
 
-
 impl Skeleton for GrizzlyBearSkeleton {
     fn compute_matrices(&self) -> [FigureBoneData; 16] {
         let leg_lf_mat = self.grizzly_bear_leg_lf.compute_base_matrix();
         let leg_rf_mat = self.grizzly_bear_leg_rf.compute_base_matrix();
         let leg_lb_mat = self.grizzly_bear_leg_lb.compute_base_matrix();
         let leg_rb_mat = self.grizzly_bear_leg_rb.compute_base_matrix();
-        let upper_head_mat = self.grizzly_bear_upper_head.compute_base_matrix();    
+        let upper_head_mat = self.grizzly_bear_upper_head.compute_base_matrix();
         [
             FigureBoneData::new(upper_head_mat),
-            FigureBoneData::new(upper_head_mat * self.grizzly_bear_lower_head.compute_base_matrix()),
+            FigureBoneData::new(
+                upper_head_mat * self.grizzly_bear_lower_head.compute_base_matrix(),
+            ),
             FigureBoneData::new(self.grizzly_bear_upper_torso.compute_base_matrix()),
             FigureBoneData::new(self.grizzly_bear_lower_torso.compute_base_matrix()),
             FigureBoneData::new(leg_lf_mat),
@@ -70,22 +71,33 @@ impl Skeleton for GrizzlyBearSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-
         ]
     }
 
     fn interpolate(&mut self, target: &Self, dt: f32) {
-        self.grizzly_bear_upper_head.interpolate(&target.grizzly_bear_upper_head, dt);
-        self.grizzly_bear_lower_head.interpolate(&target.grizzly_bear_lower_head, dt);
-        self.grizzly_bear_upper_torso.interpolate(&target.grizzly_bear_upper_torso, dt);
-        self.grizzly_bear_lower_torso.interpolate(&target.grizzly_bear_lower_torso, dt);
-        self.grizzly_bear_leg_lf.interpolate(&target.grizzly_bear_leg_lf, dt);
-        self.grizzly_bear_leg_rf.interpolate(&target.grizzly_bear_leg_rf, dt);
-        self.grizzly_bear_leg_lb.interpolate(&target.grizzly_bear_leg_lb, dt);
-        self.grizzly_bear_leg_rb.interpolate(&target.grizzly_bear_leg_rb, dt);
-        self.grizzly_bear_foot_lf.interpolate(&target.grizzly_bear_foot_lf, dt);
-        self.grizzly_bear_foot_rf.interpolate(&target.grizzly_bear_foot_rf, dt);
-        self.grizzly_bear_foot_lb.interpolate(&target.grizzly_bear_foot_lb, dt);
-        self.grizzly_bear_foot_rb.interpolate(&target.grizzly_bear_foot_rb, dt);
+        self.grizzly_bear_upper_head
+            .interpolate(&target.grizzly_bear_upper_head, dt);
+        self.grizzly_bear_lower_head
+            .interpolate(&target.grizzly_bear_lower_head, dt);
+        self.grizzly_bear_upper_torso
+            .interpolate(&target.grizzly_bear_upper_torso, dt);
+        self.grizzly_bear_lower_torso
+            .interpolate(&target.grizzly_bear_lower_torso, dt);
+        self.grizzly_bear_leg_lf
+            .interpolate(&target.grizzly_bear_leg_lf, dt);
+        self.grizzly_bear_leg_rf
+            .interpolate(&target.grizzly_bear_leg_rf, dt);
+        self.grizzly_bear_leg_lb
+            .interpolate(&target.grizzly_bear_leg_lb, dt);
+        self.grizzly_bear_leg_rb
+            .interpolate(&target.grizzly_bear_leg_rb, dt);
+        self.grizzly_bear_foot_lf
+            .interpolate(&target.grizzly_bear_foot_lf, dt);
+        self.grizzly_bear_foot_rf
+            .interpolate(&target.grizzly_bear_foot_rf, dt);
+        self.grizzly_bear_foot_lb
+            .interpolate(&target.grizzly_bear_foot_lb, dt);
+        self.grizzly_bear_foot_rb
+            .interpolate(&target.grizzly_bear_foot_rb, dt);
     }
 }

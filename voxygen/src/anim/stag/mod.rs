@@ -62,7 +62,6 @@ impl Skeleton for StagSkeleton {
             FigureBoneData::default(),
             FigureBoneData::default(),
             FigureBoneData::default(),
-
         ]
     }
 
