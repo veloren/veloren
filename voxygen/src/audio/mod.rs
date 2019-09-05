@@ -33,14 +33,21 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(device: String) -> Self {
+    pub fn new(device: String, channel_num: usize) -> Self {
+        let mut channels = Vec::with_capacity(channel_num);
+        let audio_device = get_device_raw(&device);
+        if let Some(audio_device) = &audio_device {
+            for i in (0..channel_num) {
+                channels.push(Channel::new(&audio_device));
+            }
+        }
         Self {
             device: device.clone(),
             device_list: list_devices(),
-            audio_device: get_device_raw(device),
+            audio_device,
             sound_cache: SoundCache::new(),
-            channels: Vec::new(),
-            next_channel_id: 0,
+            channels: channels,
+            next_channel_id: 1,
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
@@ -58,7 +65,7 @@ impl AudioFrontend {
             audio_device: None,
             sound_cache: SoundCache::new(),
             channels: Vec::new(),
-            next_channel_id: 0,
+            next_channel_id: 1,
             sfx_volume: 1.0,
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
@@ -70,16 +77,13 @@ impl AudioFrontend {
 
     /// Maintain audio
     pub fn maintain(&mut self, dt: f32) {
-        let mut stopped_channels = Vec::<usize>::new();
         for (i, channel) in self.channels.iter_mut().enumerate() {
             channel.update(dt);
-            if channel.is_done() {
-                stopped_channels.push(i);
-            }
         }
-        for i in stopped_channels.iter().rev() {
-            self.channels.remove(*i);
-        }
+    }
+
+    pub fn get_channel(&mut self) -> Option<&mut Channel> {
+        self.channels.iter_mut().find(|c| c.is_done())
     }
 
     /// Play specfied sound file.
@@ -96,15 +100,21 @@ impl AudioFrontend {
                 (pos.y - self.listener_pos.y) * FALLOFF,
                 (pos.z - self.listener_pos.z) * FALLOFF,
             ];
-            let sink = SpatialSink::new(device, calc_pos,
-                                        self.listener_pos_left,
-                                        self.listener_pos_right);
 
             let sound = self.sound_cache.load_sound(sound);
 
-            sink.append(sound);
+            let left_ear = self.listener_pos_left;
+            let right_ear = self.listener_pos_right;
 
-            self.channels.push(Channel::sfx(id, sink, pos));
+            if let Some(channel) = self.get_channel() {
+                channel.set_id(id);
+                channel.set_emitter_position(calc_pos);
+                channel.set_left_ear_position(left_ear);
+                channel.set_right_ear_position(right_ear);
+                channel.play(sound);
+            } else {
+                println!("No available channels!");
+            }
         }
 
         id
@@ -141,8 +151,12 @@ impl AudioFrontend {
 
         if let Some(device) = &self.audio_device {
             let file = assets::load_file(&sound, &["ogg"]).unwrap();
+            let sound = Decoder::new(file).unwrap();
 
-            self.channels.push(Channel::music(id, device, file));
+            if let Some(channel) = self.get_channel() {
+                channel.set_id(id);
+                channel.play(sound);
+            }
         }
 
         id
@@ -186,7 +200,7 @@ impl AudioFrontend {
     // TODO: figure out how badly this will break things when it is called
     pub fn set_device(&mut self, name: String) {
         self.device = name.clone();
-        self.audio_device = get_device_raw(name);
+        self.audio_device = get_device_raw(&name);
     }
 }
 
@@ -230,6 +244,6 @@ fn list_devices_raw() -> Vec<Device> {
     rodio::output_devices().collect()
 }
 
-fn get_device_raw(device: String) -> Option<Device> {
+fn get_device_raw(device: &str) -> Option<Device> {
     rodio::output_devices().find(|d| d.name() == device)
 }
