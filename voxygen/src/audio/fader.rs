@@ -1,15 +1,14 @@
-
 #[derive(PartialEq, Clone, Copy)]
 pub struct Fader {
     length: f32,
     running_time: f32,
     volume_from: f32,
     volume_to: f32,
-    is_running: bool
+    is_running: bool,
 }
 
 fn lerp(t: f32, a: f32, b: f32) -> f32 {
-    (1.0 - t) * a  + t * b
+    (1.0 - t) * a + t * b
 }
 
 impl Fader {
@@ -54,7 +53,11 @@ impl Fader {
     }
 
     pub fn get_volume(&self) -> f32 {
-        lerp(self.running_time / self.length, self.volume_from, self.volume_to)
+        lerp(
+            self.running_time / self.length,
+            self.volume_from,
+            self.volume_to,
+        )
     }
 
     pub fn is_finished(&self) -> bool {
