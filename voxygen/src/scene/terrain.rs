@@ -499,7 +499,7 @@ impl Terrain {
                 (
                     (BlockKind::ShortGrass, 3),
                     make_model(
-                        "voxygen.voxel.sprite.grass.grass_short_3",
+                        "voxygen.voxel.sprite.grass.grass_short_4",
                         Vec3::new(-6.0, -6.0, 0.0),
                     ),
                 ),
