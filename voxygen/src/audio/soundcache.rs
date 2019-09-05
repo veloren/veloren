@@ -1,14 +1,14 @@
-use rodio;
+use common::assets;
 use hashbrown::HashMap;
+use rodio;
+use std::convert::AsRef;
 use std::io;
 use std::io::Read;
-use std::convert::AsRef;
-use common::assets;
 use std::sync::Arc;
 
 // Implementation of sound taken from this github issue:
 // https://github.com/RustAudio/rodio/issues/141
-pub struct Sound (Arc<Vec<u8>>);
+pub struct Sound(Arc<Vec<u8>>);
 
 impl AsRef<[u8]> for Sound {
     fn as_ref(&self) -> &[u8] {
@@ -40,7 +40,7 @@ pub struct SoundCache {
 impl SoundCache {
     pub fn new() -> Self {
         Self {
-            sounds: HashMap::new()
+            sounds: HashMap::new(),
         }
     }
 

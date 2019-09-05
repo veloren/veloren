@@ -1,16 +1,15 @@
-pub mod fader;
 pub mod channel;
+pub mod fader;
 pub mod soundcache;
-use fader::Fader;
 use channel::{AudioType, Channel};
+use fader::Fader;
 use soundcache::SoundCache;
 
 use common::assets;
 use rodio::{Decoder, Device, SpatialSink};
 use vek::*;
 
-const FALLOFF : f32 = 0.13;
-
+const FALLOFF: f32 = 0.13;
 
 pub struct AudioFrontend {
     pub device: String,
@@ -24,8 +23,8 @@ pub struct AudioFrontend {
     sfx_volume: f32,
     music_volume: f32,
 
-    listener_pos: Vec3::<f32>,
-    listener_ori: Vec3::<f32>,
+    listener_pos: Vec3<f32>,
+    listener_ori: Vec3<f32>,
 
     listener_pos_left: [f32; 3],
     listener_pos_right: [f32; 3],
@@ -90,7 +89,7 @@ impl AudioFrontend {
     ///```ignore
     ///audio.play_sound("voxygen.audio.sfx.step");
     ///```
-    pub fn play_sound(&mut self, sound: String, pos: Vec3::<f32>) -> usize {
+    pub fn play_sound(&mut self, sound: String, pos: Vec3<f32>) -> usize {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
@@ -120,7 +119,7 @@ impl AudioFrontend {
         id
     }
 
-    pub fn set_listener_pos(&mut self, pos: &Vec3::<f32>, ori: &Vec3::<f32>) {
+    pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
         self.listener_pos = pos.clone();
         self.listener_ori = ori.normalized();
 

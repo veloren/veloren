@@ -1,7 +1,7 @@
-use rodio::{SpatialSink, Decoder, Device, Source, Sample};
-use std::io::BufReader;
-use std::fs::File;
 use crate::audio::fader::Fader;
+use rodio::{Decoder, Device, Sample, Source, SpatialSink};
+use std::fs::File;
+use std::io::BufReader;
 use vek::*;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -27,7 +27,7 @@ pub struct Channel {
     audio_type: AudioType,
     state: ChannelState,
     fader: Fader,
-    pub pos: Vec3::<f32>,
+    pub pos: Vec3<f32>,
 }
 
 // TODO: Implement asynchronous loading
@@ -60,7 +60,7 @@ impl Channel {
         }
     }
 
-    pub fn sfx(id: usize, sink: SpatialSink, pos: Vec3::<f32>) -> Self {
+    pub fn sfx(id: usize, sink: SpatialSink, pos: Vec3<f32>) -> Self {
         Self {
             id,
             sink,
@@ -76,7 +76,7 @@ impl Channel {
         S: Source + Send + 'static,
         S::Item: Sample,
         S::Item: Send,
-    <S as std::iter::Iterator>::Item: std::fmt::Debug,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
     {
         self.state = ChannelState::Playing;
         self.sink.append(source);
@@ -121,19 +121,17 @@ impl Channel {
 
     pub fn update(&mut self, dt: f32) {
         match self.state {
-            ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {
-                
-            }
-            ChannelState::Playing => {},
-            ChannelState::Stopping  => {
+            ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {}
+            ChannelState::Playing => {}
+            ChannelState::Stopping => {
                 self.fader.update(dt);
                 self.sink.set_volume(self.fader.get_volume());
 
                 if self.fader.is_finished() {
                     self.state = ChannelState::Stopped;
                 }
-            },
-            ChannelState::Stopped => {},
+            }
+            ChannelState::Stopped => {}
         }
     }
 }
