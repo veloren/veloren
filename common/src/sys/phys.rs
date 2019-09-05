@@ -1,10 +1,10 @@
 use {
     crate::{
-        comp::{Body, MovementState::*, Ori, PhysicsState, Pos, Scale, Stats, Vel},
+        comp::{Body, Ori, PhysicsState, Pos, Scale, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
         terrain::TerrainMap,
-        vol::{ReadVol, Vox},
+        vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
     vek::*,
@@ -61,7 +61,7 @@ impl<'a> System<'a> for Sys {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, scale, b, mut pos, mut vel, mut ori) in (
+        for (entity, scale, _, mut pos, mut vel, mut _ori) in (
             &entities,
             scales.maybe(),
             &bodies,

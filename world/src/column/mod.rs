@@ -4,7 +4,7 @@ use crate::{
     generator::{Generator, SpawnRules, TownGen},
     sim::{LocationInfo, SimChunk, WorldSim},
     util::{RandomPerm, Sampler, UnitChooser},
-    World, CONFIG,
+    CONFIG,
 };
 use common::{
     assets,
@@ -148,7 +148,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let sim_chunk = sim.get(chunk_pos)?;
 
-        const RIVER_PROPORTION: f32 = 0.025;
+        // Never used
+        //const RIVER_PROPORTION: f32 = 0.025;
 
         /*
         let river = dryness

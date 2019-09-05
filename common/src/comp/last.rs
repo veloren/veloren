@@ -1,5 +1,5 @@
 use specs::{Component, VecStorage};
-use std::{fmt::Debug, marker::Send, ops::Deref};
+use std::marker::Send;
 
 #[derive(Copy, Clone, Debug, Hash, Serialize, Deserialize)]
 pub struct Last<C: Component + PartialEq>(pub C);
