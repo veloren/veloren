@@ -1,5 +1,5 @@
 stages:
-  - build
+  - check
   - test
   - post-build
   - executable
@@ -39,24 +39,24 @@ before_script:
     fi;
 
 #############
-# BUILD
+# CHECK
 #############
 
-build-voxygen:
-  stage: build
+check-voxygen:
+  stage: check
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
   script:
-    - (cd voxygen && cargo rustc -v -- -D warnings)
+    - (cd voxygen && RUSTFLAGS="-D warnings" cargo check)
 
-build-server-cli:
-  stage: build
+check-server-cli:
+  stage: check
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
   script:
-    - (cd server-cli && cargo rustc -v -- -D warnings)
+    - (cd server-cli && RUSTFLAGS="-D warnings" cargo check)
 
 #############
 # TEST

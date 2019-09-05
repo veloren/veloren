@@ -1,4 +1,4 @@
-use super::{Block, BlockKind};
+use super::BlockKind;
 use crate::{
     assets::{self, Asset},
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
@@ -6,7 +6,7 @@ use crate::{
 };
 use dot_vox::DotVoxData;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::BufReader;
 use vek::*;
 
 #[derive(Copy, Clone)]

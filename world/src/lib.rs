@@ -21,7 +21,7 @@ pub use crate::config::CONFIG;
 use crate::{
     block::BlockGen,
     column::{ColumnGen, ColumnSample},
-    util::{Sampler, SamplerMut},
+    util::Sampler,
 };
 use common::{
     terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},

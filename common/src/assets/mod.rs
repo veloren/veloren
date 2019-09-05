@@ -9,10 +9,9 @@ use log::error;
 use serde_json::Value;
 use std::{
     any::Any,
-    env,
-    fs::{self, read_link, File, ReadDir},
+    fs::{self, File, ReadDir},
     io::{BufReader, Read},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::{Arc, RwLock},
 };
 
@@ -243,7 +242,7 @@ fn unpack_specifier(specifier: &str) -> PathBuf {
 
 /// Loads a file based on the specifier and possible extensions
 pub fn load_file(specifier: &str, endings: &[&str]) -> Result<BufReader<File>, Error> {
-    let mut path = unpack_specifier(specifier);
+    let path = unpack_specifier(specifier);
     for ending in endings {
         let mut path = path.clone();
         path.set_extension(ending);
