@@ -44,11 +44,7 @@ impl SoundMgr {
         )
             .join()
         {
-            if let Body::Humanoid(_) = body {
-                let character = match character {
-                    Some(c) => c,
-                    _ => continue,
-                };
+            if let (Body::Humanoid(_), Some(character)) = (body, character) {
                 let state = self
                     .character_states
                     .entry(entity)
@@ -56,15 +52,14 @@ impl SoundMgr {
                         last_step_sound: Instant::now(),
                     });
 
-                if let Run = &character.movement {
-                    if state.last_step_sound.elapsed().as_secs_f64() > 0.25 {
-                        let rand_step = (rand::random::<usize>() % 7) + 1;
-                        audio.play_sound(
-                            &format!("voxygen.audio.footsteps.stepdirt_{}", rand_step),
-                            pos.0,
-                        );
-                        state.last_step_sound = Instant::now();
-                    }
+                if character.movement == Run && state.last_step_sound.elapsed().as_secs_f64() > 0.25
+                {
+                    let rand_step = (rand::random::<usize>() % 7) + 1;
+                    audio.play_sound(
+                        &format!("voxygen.audio.footsteps.stepdirt_{}", rand_step),
+                        pos.0,
+                    );
+                    state.last_step_sound = Instant::now();
                 }
             }
         }
