@@ -271,7 +271,7 @@ impl PlayState for SessionState {
             }
 
             // Maintain global state.
-            global_state.maintain();
+            global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Extract HUD events ensuring the client borrow gets dropped.
             let hud_events = self.hud.maintain(
@@ -357,13 +357,13 @@ impl PlayState for SessionState {
                     }
 
                     HudEvent::AdjustVolume(volume) => {
-                        global_state.audio.model.player.set_volume(volume);
+                        global_state.audio.set_music_volume(volume);
 
                         global_state.settings.audio.music_volume = volume;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ChangeAudioDevice(name) => {
-                        global_state.audio.model.player.set_device(&name.clone());
+                        global_state.audio.set_device(name.clone());
 
                         global_state.settings.audio.audio_device = Some(name);
                         global_state.settings.save_to_file_warn();
@@ -388,8 +388,11 @@ impl PlayState for SessionState {
             }
 
             // Maintain the scene.
-            self.scene
-                .maintain(global_state.window.renderer_mut(), &self.client.borrow());
+            self.scene.maintain(
+                global_state.window.renderer_mut(),
+                &mut global_state.audio,
+                &self.client.borrow(),
+            );
 
             // Render the session.
             self.render(global_state.window.renderer_mut());

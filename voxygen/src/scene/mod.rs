@@ -1,13 +1,16 @@
 pub mod camera;
 pub mod figure;
+pub mod sound;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
+    sound::SoundMgr,
     terrain::Terrain,
 };
 use crate::{
+    audio::AudioFrontend,
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
@@ -46,6 +49,7 @@ pub struct Scene {
     loaded_distance: f32,
 
     figure_mgr: FigureMgr,
+    sound_mgr: SoundMgr,
 }
 
 impl Scene {
@@ -71,6 +75,7 @@ impl Scene {
             terrain: Terrain::new(renderer),
             loaded_distance: 0.0,
             figure_mgr: FigureMgr::new(),
+            sound_mgr: SoundMgr::new(),
         }
     }
 
@@ -115,7 +120,12 @@ impl Scene {
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        audio: &mut AudioFrontend,
+        client: &Client,
+    ) {
         // Get player position.
         let player_pos = client
             .state()
@@ -219,6 +229,9 @@ impl Scene {
 
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
+
+        // Maintain audio
+        self.sound_mgr.maintain(audio, client);
     }
 
     /// Render the scene using the provided `Renderer`.

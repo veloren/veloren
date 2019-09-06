@@ -78,7 +78,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Maintain global state.
-            global_state.maintain();
+            global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Maintain the scene.
             self.scene.maintain(
