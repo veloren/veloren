@@ -6,7 +6,7 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{ActionState, Body, CharacterState, Equipment},
+    comp::{Body, CharacterState, Equipment},
 };
 use hashbrown::HashMap;
 
