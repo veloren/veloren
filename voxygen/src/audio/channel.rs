@@ -13,9 +13,9 @@ pub enum AudioType {
 
 #[derive(PartialEq, Clone, Copy)]
 enum ChannelState {
-    Init,
-    ToPlay,
-    Loading,
+    // Init,
+    // ToPlay,
+    // Loading,
     Playing,
     Stopping,
     Stopped,
@@ -121,7 +121,7 @@ impl Channel {
 
     pub fn update(&mut self, dt: f32) {
         match self.state {
-            ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {}
+            // ChannelState::Init | ChannelState::ToPlay | ChannelState::Loading => {}
             ChannelState::Playing => {}
             ChannelState::Stopping => {
                 self.fader.update(dt);
