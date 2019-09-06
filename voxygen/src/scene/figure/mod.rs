@@ -116,7 +116,14 @@ impl FigureMgr {
 
             let skeleton_attr = &self
                 .model_cache
-                .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick)
+                .get_or_create_model(
+                    renderer,
+                    *body,
+                    stats.map(|s| &s.equipment),
+                    tick,
+                    CameraMode::default(),
+                    None,
+                )
                 .1;
 
             match body {
@@ -341,6 +348,11 @@ impl FigureMgr {
 
         let frustum = camera.frustum(client);
 
+        let character_state_storage = client
+            .state()
+            .read_storage::<common::comp::CharacterState>();
+        let character_state = character_state_storage.get(client.entity());
+
         for (entity, _, _, _, body, stats, _) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -381,22 +393,25 @@ impl FigureMgr {
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
             } {
+                let is_player = entity == client.entity();
+
+                let player_camera_mode = if is_player {
+                    camera.get_mode()
+                } else {
+                    CameraMode::default()
+                };
+
                 let model = &self
                     .model_cache
-                    .get_or_create_model(renderer, *body, stats.map(|s| &s.equipment), tick)
+                    .get_or_create_model(
+                        renderer,
+                        *body,
+                        stats.map(|s| &s.equipment),
+                        tick,
+                        player_camera_mode,
+                        if is_player { character_state } else { None },
+                    )
                     .0;
-
-                // Don't render the player's body while in first person mode
-                if camera.get_mode() == CameraMode::FirstPerson
-                    && client
-                        .state()
-                        .read_storage::<Body>()
-                        .get(client.entity())
-                        .is_some()
-                    && entity == client.entity()
-                {
-                    continue;
-                }
 
                 renderer.render_figure(model, globals, locals, bone_consts, lights);
             } else {
