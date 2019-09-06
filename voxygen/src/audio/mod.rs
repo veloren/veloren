@@ -89,16 +89,12 @@ impl AudioFrontend {
     ///```ignore
     ///audio.play_sound("voxygen.audio.sfx.step");
     ///```
-    pub fn play_sound(&mut self, sound: String, pos: Vec3<f32>) -> usize {
+    pub fn play_sound(&mut self, sound: &str, pos: Vec3<f32>) -> usize {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
         if let Some(_) = &self.audio_device {
-            let calc_pos = [
-                (pos.x - self.listener_pos.x) * FALLOFF,
-                (pos.y - self.listener_pos.y) * FALLOFF,
-                (pos.z - self.listener_pos.z) * FALLOFF,
-            ];
+            let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
 
             let sound = self.sound_cache.load_sound(sound);
 
@@ -112,7 +108,7 @@ impl AudioFrontend {
                 channel.set_right_ear_position(right_ear);
                 channel.play(sound);
             } else {
-                println!("No available channels!");
+                log::warn!("No available channels!");
             }
         }
 
@@ -133,18 +129,16 @@ impl AudioFrontend {
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Sfx {
-                channel.set_emitter_position([
-                    (channel.pos.x - self.listener_pos.x) * FALLOFF,
-                    (channel.pos.y - self.listener_pos.y) * FALLOFF,
-                    (channel.pos.z - self.listener_pos.z) * FALLOFF,
-                ]);
+                channel.set_emitter_position(
+                    ((channel.pos - self.listener_pos) * FALLOFF).into_array(),
+                );
                 channel.set_left_ear_position(pos_left.into_array());
                 channel.set_right_ear_position(pos_right.into_array());
             }
         }
     }
 
-    pub fn play_music(&mut self, sound: String) -> usize {
+    pub fn play_music(&mut self, sound: &str) -> usize {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 

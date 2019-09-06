@@ -44,10 +44,10 @@ impl SoundCache {
         }
     }
 
-    pub fn load_sound(&mut self, name: String) -> rodio::Decoder<io::Cursor<Sound>> {
+    pub fn load_sound(&mut self, name: &str) -> rodio::Decoder<io::Cursor<Sound>> {
         self.sounds
-            .entry(name.clone())
-            .or_insert(Sound::load(&name).unwrap())
+            .entry(name.to_string())
+            .or_insert(Sound::load(name).unwrap())
             .decoder()
     }
 }
