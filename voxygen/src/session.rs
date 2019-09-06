@@ -388,8 +388,11 @@ impl PlayState for SessionState {
             }
 
             // Maintain the scene.
-            self.scene
-                .maintain(global_state.window.renderer_mut(), &mut global_state.audio, &self.client.borrow());
+            self.scene.maintain(
+                global_state.window.renderer_mut(),
+                &mut global_state.audio,
+                &self.client.borrow(),
+            );
 
             // Render the session.
             self.render(global_state.window.renderer_mut());
