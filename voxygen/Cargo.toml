@@ -54,7 +54,7 @@ num = "0.2.0"
 backtrace = "0.3.33"
 rand = "0.7.0"
 frustum_query = "0.1.2"
-rodio = { git = "https://github.com/desttinghim/rodio.git", rev = "dd93f905c1afefaac03c496a666ecab27d3e391b"  }
+rodio = "0.9.0"
 crossbeam = "0.7.2"
 heaptrack = "0.3.0"
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
