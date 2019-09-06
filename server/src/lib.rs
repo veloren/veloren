@@ -7,6 +7,7 @@ pub mod cmd;
 pub mod error;
 pub mod input;
 pub mod settings;
+pub mod metrics;
 
 // Reexports
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
@@ -29,11 +30,12 @@ use crossbeam::channel;
 use hashbrown::HashSet;
 use log::debug;
 use rand::Rng;
-use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
-use std::{i32, net::SocketAddr, sync::Arc, time::Duration};
+use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, SystemData};
+use std::{i32, net::SocketAddr, sync::Arc, time::{Duration, Instant}};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
+use metrics::ServerMetrics;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -67,6 +69,7 @@ pub struct Server {
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
+    metrics: ServerMetrics,
 
     // TODO: anything but this
     accounts: AuthProvider,
@@ -112,6 +115,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
+            metrics: ServerMetrics::new(),
             accounts: AuthProvider::new(),
             server_settings: settings,
         };
@@ -376,8 +380,10 @@ impl Server {
         // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Send relevant state updates to all clients
-        // 7) Finish the tick, passing control of the main thread back to the frontend
+        // 7) Update Metrics with current data
+        // 8) Finish the tick, passing control of the main thread back to the frontend
 
+        let before_tick = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
@@ -584,7 +590,11 @@ impl Server {
             let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
-        // 7) Finish the tick, pass control back to the frontend.
+        // 7) Update Metrics
+        self.metrics.player_online.set(self.clients.len() as f64);
+        self.metrics.tick_time.set(before_tick.elapsed().as_nanos() as f64);
+
+        // 8) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
     }
