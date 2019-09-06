@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-#![feature(label_break_value, duration_float, euclidean_division)]
+#![feature(label_break_value)]
 
 pub mod error;
 
