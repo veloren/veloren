@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![allow(incomplete_features)]
 #![feature(
     const_generics,
     euclidean_division,
