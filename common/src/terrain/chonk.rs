@@ -1,59 +1,60 @@
-use super::{block::Block, TerrainChunkMeta, TerrainChunkSize};
 use crate::{
     vol::{
-        BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
-        RectRasterableVol, RectVolSize, VolSize, WriteVol,
+        BaseVol, IntoPosIterator, IntoVolIterator, ReadVol, RectRasterableVol, RectVolSize,
+        VolSize, Vox, WriteVol,
     },
-    volumes::chunk::{Chunk, ChunkError},
+    volumes::chunk::{Chunk, ChunkError, ChunkPosIter, ChunkVolIter},
 };
-use hashbrown::HashMap;
 use serde_derive::{Deserialize, Serialize};
-use std::ops::Add;
+use std::marker::PhantomData;
 use vek::*;
 
 #[derive(Debug)]
 pub enum ChonkError {
-    ChunkError(ChunkError),
+    SubChunkError(ChunkError),
     OutOfBounds,
 }
 
-const SUB_CHUNK_HEIGHT: u32 = 16;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubChunkSize;
+pub struct SubChunkSize<ChonkSize: RectVolSize> {
+    phantom: PhantomData<ChonkSize>,
+}
 
-impl VolSize for SubChunkSize {
+// TODO (haslersn): Assert ChonkSize::RECT_SIZE.x == ChonkSize::RECT_SIZE.y
+
+impl<ChonkSize: RectVolSize> VolSize for SubChunkSize<ChonkSize> {
     const SIZE: Vec3<u32> = Vec3 {
-        x: TerrainChunkSize::RECT_SIZE.x,
-        y: TerrainChunkSize::RECT_SIZE.y,
-        z: SUB_CHUNK_HEIGHT,
+        x: ChonkSize::RECT_SIZE.x,
+        y: ChonkSize::RECT_SIZE.x,
+        z: ChonkSize::RECT_SIZE.x / 2,
     };
 }
 
-const SUB_CHUNK_HASH_LIMIT: usize =
-    (SubChunkSize::SIZE.x * SubChunkSize::SIZE.y * SubChunkSize::SIZE.z) as usize / 4;
+type SubChunk<V, S, M> = Chunk<V, SubChunkSize<S>, M>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chonk {
+pub struct Chonk<V: Vox, S: RectVolSize, M: Clone> {
     z_offset: i32,
-    sub_chunks: Vec<SubChunk>,
-    below: Block,
-    above: Block,
-    meta: TerrainChunkMeta,
+    sub_chunks: Vec<SubChunk<V, S, M>>,
+    below: V,
+    above: V,
+    meta: M,
+    phantom: PhantomData<S>,
 }
 
-impl Chonk {
-    pub fn new(z_offset: i32, below: Block, above: Block, meta: TerrainChunkMeta) -> Self {
+impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
+    pub fn new(z_offset: i32, below: V, above: V, meta: M) -> Self {
         Self {
             z_offset,
             sub_chunks: Vec::new(),
             below,
             above,
             meta,
+            phantom: PhantomData,
         }
     }
 
-    pub fn meta(&self) -> &TerrainChunkMeta {
+    pub fn meta(&self) -> &M {
         &self.meta
     }
 
@@ -62,68 +63,40 @@ impl Chonk {
     }
 
     pub fn get_max_z(&self) -> i32 {
-        self.z_offset + (self.sub_chunks.len() as u32 * SUB_CHUNK_HEIGHT) as i32
-    }
-
-    pub fn get_metrics(&self) -> ChonkMetrics {
-        ChonkMetrics {
-            chonks: 1,
-            homogeneous: self
-                .sub_chunks
-                .iter()
-                .filter(|s| match s {
-                    SubChunk::Homogeneous(_) => true,
-                    _ => false,
-                })
-                .count(),
-            hash: self
-                .sub_chunks
-                .iter()
-                .filter(|s| match s {
-                    SubChunk::Hash(_, _) => true,
-                    _ => false,
-                })
-                .count(),
-            heterogeneous: self
-                .sub_chunks
-                .iter()
-                .filter(|s| match s {
-                    SubChunk::Heterogeneous(_) => true,
-                    _ => false,
-                })
-                .count(),
-        }
+        self.z_offset + (self.sub_chunks.len() as u32 * SubChunkSize::<S>::SIZE.z) as i32
     }
 
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
-    fn sub_chunk_idx(&self, z: i32) -> usize {
-        ((z - self.z_offset) / SUB_CHUNK_HEIGHT as i32) as usize
+    fn sub_chunk_idx(&self, z: i32) -> i32 {
+        let diff = z - self.z_offset;
+        diff >> (SubChunkSize::<S>::SIZE.z - 1).count_ones()
     }
 
-    // Returns the z_offset of the sub_chunk that contains layer z
-    fn sub_chunk_z_offset(&self, z: i32) -> i32 {
-        let rem = (z - self.z_offset) % SUB_CHUNK_HEIGHT as i32;
-        if rem < 0 {
-            z - (rem + SUB_CHUNK_HEIGHT as i32)
-        } else {
-            z - rem
-        }
+    // Converts a z coordinate into a local z coordinate within a sub chunk
+    fn sub_chunk_z(&self, z: i32) -> i32 {
+        let diff = z - self.z_offset;
+        diff & (SubChunkSize::<S>::SIZE.z - 1) as i32
+    }
+
+    // Returns the z offset of the sub_chunk that contains layer z
+    fn sub_chunk_min_z(&self, z: i32) -> i32 {
+        z - self.sub_chunk_z(z)
     }
 }
 
-impl BaseVol for Chonk {
-    type Vox = Block;
+impl<V: Vox, S: RectVolSize, M: Clone> BaseVol for Chonk<V, S, M> {
+    type Vox = V;
     type Error = ChonkError;
 }
 
-impl RectRasterableVol for Chonk {
-    const RECT_SIZE: Vec2<u32> = TerrainChunkSize::RECT_SIZE;
+impl<V: Vox, S: RectVolSize, M: Clone> RectRasterableVol for Chonk<V, S, M> {
+    const RECT_SIZE: Vec2<u32> = S::RECT_SIZE;
 }
 
-impl ReadVol for Chonk {
+impl<V: Vox, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&Block, ChonkError> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V, Self::Error> {
         if pos.z < self.get_min_z() {
             // Below the terrain
             Ok(&self.below)
@@ -132,162 +105,181 @@ impl ReadVol for Chonk {
             Ok(&self.above)
         } else {
             // Within the terrain
-
             let sub_chunk_idx = self.sub_chunk_idx(pos.z);
-
-            match &self.sub_chunks[sub_chunk_idx] {
-                // Can't fail
-                SubChunk::Homogeneous(block) => Ok(block),
-                SubChunk::Hash(cblock, map) => {
-                    let rpos = pos
-                        - Vec3::unit_z()
-                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
-
-                    Ok(map.get(&rpos.map(|e| e as u8)).unwrap_or(cblock))
-                }
-                SubChunk::Heterogeneous(chunk) => {
-                    let rpos = pos
-                        - Vec3::unit_z()
-                            * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
-
-                    chunk.get(rpos).map_err(ChonkError::ChunkError)
-                }
-            }
+            let rpos = pos
+                - Vec3::unit_z()
+                    * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
+            self.sub_chunks[sub_chunk_idx as usize]
+                .get(rpos)
+                .map_err(Self::Error::SubChunkError)
         }
     }
 }
 
-impl WriteVol for Chonk {
+impl<V: Vox, S: RectVolSize, M: Clone> WriteVol for Chonk<V, S, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, block: Block) -> Result<(), ChonkError> {
+    fn set(&mut self, pos: Vec3<i32>, block: Self::Vox) -> Result<(), Self::Error> {
+        let mut sub_chunk_idx = self.sub_chunk_idx(pos.z);
+
         if pos.z < self.get_min_z() {
             // Prepend exactly sufficiently many SubChunks via Vec::splice
-            let target_z_offset = self.sub_chunk_z_offset(pos.z);
-            let c = SubChunk::Homogeneous(self.below);
-            let n = (self.get_min_z() - target_z_offset) / SUB_CHUNK_HEIGHT as i32;
-            self.sub_chunks
-                .splice(0..0, std::iter::repeat(c).take(n as usize));
-            self.z_offset = target_z_offset;
+            let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.below.clone(), self.meta.clone());
+            let n = (-sub_chunk_idx) as usize;
+            self.sub_chunks.splice(0..0, std::iter::repeat(c).take(n));
+            self.z_offset += sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32;
+            sub_chunk_idx = 0;
         } else if pos.z >= self.get_max_z() {
             // Append exactly sufficiently many SubChunks via Vec::extend
-            let target_z_offset = self.sub_chunk_z_offset(pos.z);
-            let c = SubChunk::Homogeneous(self.above);
-            let n = (target_z_offset - self.get_max_z()) / SUB_CHUNK_HEIGHT as i32 + 1;
-            self.sub_chunks
-                .extend(std::iter::repeat(c).take(n as usize));
+            let c = Chunk::<V, SubChunkSize<S>, M>::filled(self.above.clone(), self.meta.clone());
+            let n = 1 + sub_chunk_idx as usize - self.sub_chunks.len();
+            self.sub_chunks.extend(std::iter::repeat(c).take(n));
         }
 
-        let sub_chunk_idx = self.sub_chunk_idx(pos.z);
+        let rpos = pos
+            - Vec3::unit_z() * (self.z_offset + sub_chunk_idx * SubChunkSize::<S>::SIZE.z as i32);
+        self.sub_chunks[sub_chunk_idx as usize] // TODO (haslersn): self.sub_chunks.get(...).and_then(...)
+            .set(rpos, block)
+            .map_err(Self::Error::SubChunkError)
+    }
+}
 
-        let rpos =
-            pos - Vec3::unit_z() * (self.z_offset + sub_chunk_idx as i32 * SUB_CHUNK_HEIGHT as i32);
+struct ChonkIterHelper<V: Vox, S: RectVolSize, M: Clone> {
+    sub_chunk_min_z: i32,
+    lower_bound: Vec3<i32>,
+    upper_bound: Vec3<i32>,
+    phantom: PhantomData<Chonk<V, S, M>>,
+}
 
-        match &mut self.sub_chunks[sub_chunk_idx] {
-            // Can't fail
-            SubChunk::Homogeneous(cblock) if block == *cblock => Ok(()),
-            SubChunk::Homogeneous(cblock) => {
-                let mut map = HashMap::default();
-                map.insert(rpos.map(|e| e as u8), block);
+impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkIterHelper<V, S, M> {
+    type Item = (i32, Vec3<i32>, Vec3<i32>);
 
-                self.sub_chunks[sub_chunk_idx] = SubChunk::Hash(*cblock, map);
-                Ok(())
-            }
-            SubChunk::Hash(cblock, map) if block == *cblock => {
-                map.remove(&rpos.map(|e| e as u8));
-                Ok(())
-            }
-            SubChunk::Hash(_cblock, map) if map.len() < SUB_CHUNK_HASH_LIMIT => {
-                map.insert(rpos.map(|e| e as u8), block);
-                Ok(())
-            }
-            SubChunk::Hash(cblock, map) => {
-                let mut new_chunk = Chunk::filled(*cblock, ());
-                for (map_pos, map_block) in map {
-                    new_chunk
-                        .set(map_pos.map(|e| i32::from(e)), *map_block)
-                        .unwrap(); // Can't fail (I hope!)
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.lower_bound.z >= self.upper_bound.z {
+            return None;
+        }
+        let mut lb = self.lower_bound;
+        let mut ub = self.upper_bound;
+        let current_min_z = self.sub_chunk_min_z;
+        lb.z -= current_min_z;
+        ub.z -= current_min_z;
+        ub.z = std::cmp::min(ub.z, SubChunkSize::<S>::SIZE.z as i32);
+        self.sub_chunk_min_z += SubChunkSize::<S>::SIZE.z as i32;
+        self.lower_bound.z = self.sub_chunk_min_z;
+        Some((current_min_z, lb, ub))
+    }
+}
+
+pub struct ChonkPosIter<V: Vox, S: RectVolSize, M: Clone> {
+    outer: ChonkIterHelper<V, S, M>,
+    opt_inner: Option<(i32, ChunkPosIter<V, SubChunkSize<S>, M>)>,
+}
+
+impl<V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkPosIter<V, S, M> {
+    type Item = Vec3<i32>;
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some((sub_chunk_min_z, ref mut inner)) = self.opt_inner {
+                if let Some(mut pos) = inner.next() {
+                    pos.z += sub_chunk_min_z;
+                    return Some(pos);
                 }
-
-                new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope)
-
-                self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
-                Ok(())
             }
-
-            /*
-            SubChunk::Homogeneous(cblock) => {
-                let mut new_chunk = Chunk::filled(*cblock, ());
-
-                new_chunk.set(rpos, block).unwrap(); // Can't fail (I hope!)
-
-                self.sub_chunks[sub_chunk_idx] = SubChunk::Heterogeneous(new_chunk);
-                Ok(())
+            match self.outer.next() {
+                None => return None,
+                Some((sub_chunk_min_z, lb, ub)) => {
+                    self.opt_inner = Some((sub_chunk_min_z, SubChunk::<V, S, M>::pos_iter(lb, ub)))
+                }
             }
-            */
-            SubChunk::Heterogeneous(chunk) => {
-                chunk.set(rpos, block).map_err(ChonkError::ChunkError)
-            } //_ => unimplemented!(),
         }
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SubChunk {
-    Homogeneous(Block),
-    Hash(Block, HashMap<Vec3<u8>, Block>),
-    Heterogeneous(Chunk<Block, SubChunkSize, ()>),
+enum InnerChonkVolIter<'a, V: Vox, S: RectVolSize, M: Clone> {
+    Vol(ChunkVolIter<'a, V, SubChunkSize<S>, M>),
+    Pos(ChunkPosIter<V, SubChunkSize<S>, M>),
 }
 
-impl SubChunk {
-    pub fn filled(block: Block) -> Self {
-        SubChunk::Homogeneous(block)
-    }
+pub struct ChonkVolIter<'a, V: Vox, S: RectVolSize, M: Clone> {
+    chonk: &'a Chonk<V, S, M>,
+    outer: ChonkIterHelper<V, S, M>,
+    opt_inner: Option<(i32, InnerChonkVolIter<'a, V, S, M>)>,
 }
 
-#[derive(Debug)]
-pub struct ChonkMetrics {
-    chonks: usize,
-    homogeneous: usize,
-    hash: usize,
-    heterogeneous: usize,
-}
+impl<'a, V: Vox, S: RectVolSize, M: Clone> Iterator for ChonkVolIter<'a, V, S, M> {
+    type Item = (Vec3<i32>, &'a V);
 
-impl Default for ChonkMetrics {
-    fn default() -> Self {
-        ChonkMetrics {
-            chonks: 0,
-            homogeneous: 0,
-            hash: 0,
-            heterogeneous: 0,
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some((sub_chunk_min_z, ref mut inner)) = self.opt_inner {
+                let got = match inner {
+                    InnerChonkVolIter::<'a, V, S, M>::Vol(iter) => iter.next(),
+                    InnerChonkVolIter::<'a, V, S, M>::Pos(iter) => iter.next().map(|pos| {
+                        if sub_chunk_min_z < self.chonk.get_min_z() {
+                            (pos, &self.chonk.below)
+                        } else {
+                            (pos, &self.chonk.above)
+                        }
+                    }),
+                };
+                if let Some((mut pos, vox)) = got {
+                    pos.z += sub_chunk_min_z;
+                    return Some((pos, vox));
+                }
+            }
+            match self.outer.next() {
+                None => return None,
+                Some((sub_chunk_min_z, lb, ub)) => {
+                    let inner = if sub_chunk_min_z < self.chonk.get_min_z()
+                        || sub_chunk_min_z >= self.chonk.get_max_z()
+                    {
+                        InnerChonkVolIter::<'a, V, S, M>::Pos(SubChunk::<V, S, M>::pos_iter(lb, ub))
+                    } else {
+                        InnerChonkVolIter::<'a, V, S, M>::Vol(
+                            self.chonk.sub_chunks
+                                [self.chonk.sub_chunk_idx(sub_chunk_min_z) as usize]
+                                .vol_iter(lb, ub),
+                        )
+                    };
+                    self.opt_inner = Some((sub_chunk_min_z, inner));
+                }
+            }
         }
     }
 }
 
-impl Add for ChonkMetrics {
-    type Output = Self;
-
-    fn add(self, other: Self::Output) -> Self {
-        Self::Output {
-            chonks: self.chonks + other.chonks,
-            homogeneous: self.homogeneous + other.homogeneous,
-            hash: self.hash + other.hash,
-            heterogeneous: self.heterogeneous + other.heterogeneous,
-        }
-    }
-}
-
-impl<'a> IntoPosIterator for &'a Chonk {
-    type IntoIter = DefaultPosIterator;
+impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M> {
+    type IntoIter = ChonkPosIter<V, S, M>;
 
     fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
-        DefaultPosIterator::new(lower_bound, upper_bound)
+        Self::IntoIter {
+            outer: ChonkIterHelper::<V, S, M> {
+                sub_chunk_min_z: self.sub_chunk_min_z(lower_bound.z),
+                lower_bound,
+                upper_bound,
+                phantom: PhantomData,
+            },
+            opt_inner: None,
+        }
     }
 }
 
-impl<'a> IntoVolIterator<'a> for &'a Chonk {
-    type IntoIter = DefaultVolIterator<'a, Chonk>;
+impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
+    type IntoIter = ChonkVolIter<'a, V, S, M>;
 
     fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
-        DefaultVolIterator::new(self, lower_bound, upper_bound)
+        Self::IntoIter {
+            chonk: self,
+            outer: ChonkIterHelper::<V, S, M> {
+                sub_chunk_min_z: self.sub_chunk_min_z(lower_bound.z),
+                lower_bound,
+                upper_bound,
+                phantom: PhantomData,
+            },
+            opt_inner: None,
+        }
     }
 }
