@@ -124,14 +124,28 @@ impl Scene {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
+        let player_rolling = client
+            .state()
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(client.entity())
+            .map_or(false, |cs| cs.movement.is_roll());
+
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
-        let up = if self.camera.get_mode() == CameraMode::FirstPerson {
-            1.5
-        } else {
-            1.2
+
+        let up = match self.camera.get_mode() {
+            CameraMode::FirstPerson => {
+                if player_rolling {
+                    0.75
+                } else {
+                    1.5
+                }
+            }
+            CameraMode::ThirdPerson => 1.2,
         };
+
         self.camera.set_focus_pos(
             player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
         );
