@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                 .flatten()
                 .flatten();
 
-            let old_vel = vel.clone();
+            let old_vel = vel;
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = if physics_state.on_ground {
@@ -114,7 +114,8 @@ impl<'a> System<'a> for Sys {
                 .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
                 .is_some()
             {
-                // this is an approximation that allows
+                // this is an approximation that allows most framerates to
+                // behave in a similar manner.
                 (vel.0 + old_vel.0 * 4.0) * dt.0 * 0.2
             } else {
                 Vec3::zero()
