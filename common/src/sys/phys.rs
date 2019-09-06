@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                 .flatten()
                 .flatten();
 
-            let old_vel = vel;
+            let old_vel = vel.clone();
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
             let friction = if physics_state.on_ground {
