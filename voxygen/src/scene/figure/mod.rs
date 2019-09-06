@@ -393,13 +393,6 @@ impl FigureMgr {
                     .get(&entity)
                     .map(|state| (state.locals(), state.bone_consts())),
             } {
-                // Don't render the player's body while in first person mode
-                // let has_body = client
-                //     .state()
-                //     .read_storage::<common::comp::Body>()
-                //     .get(client.entity())
-                //     .is_some();
-
                 let is_player = entity == client.entity();
 
                 let player_camera_mode = if is_player {
