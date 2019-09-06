@@ -6,7 +6,7 @@ use fader::Fader;
 use soundcache::SoundCache;
 
 use common::assets;
-use rodio::{Decoder, Device, SpatialSink};
+use rodio::{Decoder, Device};
 use vek::*;
 
 const FALLOFF: f32 = 0.13;
@@ -36,7 +36,7 @@ impl AudioFrontend {
         let mut channels = Vec::with_capacity(channel_num);
         let audio_device = get_device_raw(&device);
         if let Some(audio_device) = &audio_device {
-            for i in (0..channel_num) {
+            for _i in 0..channel_num {
                 channels.push(Channel::new(&audio_device));
             }
         }
@@ -76,7 +76,7 @@ impl AudioFrontend {
 
     /// Maintain audio
     pub fn maintain(&mut self, dt: f32) {
-        for (i, channel) in self.channels.iter_mut().enumerate() {
+        for channel in self.channels.iter_mut() {
             channel.update(dt);
         }
     }
@@ -93,7 +93,7 @@ impl AudioFrontend {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
-        if let Some(device) = &self.audio_device {
+        if let Some(_) = &self.audio_device {
             let calc_pos = [
                 (pos.x - self.listener_pos.x) * FALLOFF,
                 (pos.y - self.listener_pos.y) * FALLOFF,
@@ -148,7 +148,7 @@ impl AudioFrontend {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
-        if let Some(device) = &self.audio_device {
+        if let Some(_) = &self.audio_device {
             let file = assets::load_file(&sound, &["ogg"]).unwrap();
             let sound = Decoder::new(file).unwrap();
 

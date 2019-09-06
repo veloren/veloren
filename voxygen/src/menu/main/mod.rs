@@ -3,7 +3,7 @@ mod start_singleplayer;
 mod ui;
 
 use super::char_selection::CharSelectionState;
-use crate::{audio::fader::Fader, window::Event, Direction, GlobalState, PlayState, PlayStateResult};
+use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;

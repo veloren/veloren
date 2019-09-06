@@ -1,31 +1,23 @@
-use crate::{
-    audio::AudioFrontend,
-};
-use common::comp::{
-    Pos,
-    Ori,
-    Body,
-    CharacterState,
-    MovementState::*,
-};
+use crate::audio::AudioFrontend;
 use client::Client;
-use vek::*;
-use specs::{Entity as EcsEntity, Join};
+use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos};
 use hashbrown::HashMap;
-use std::{f32, time::Instant};
+use specs::{Entity as EcsEntity, Join};
+use std::time::Instant;
+use vek::*;
 
 pub struct AnimState {
     last_step_sound: Instant,
 }
 
 pub struct SoundMgr {
-    character_states: HashMap<EcsEntity, AnimState>
+    character_states: HashMap<EcsEntity, AnimState>,
 }
 
 impl SoundMgr {
     pub fn new() -> Self {
         Self {
-           character_states: HashMap::new(),
+            character_states: HashMap::new(),
         }
     }
 
@@ -60,12 +52,17 @@ impl SoundMgr {
                 let state = self
                     .character_states
                     .entry(entity)
-                    .or_insert_with(|| AnimState {last_step_sound: Instant::now()});
+                    .or_insert_with(|| AnimState {
+                        last_step_sound: Instant::now(),
+                    });
 
                 if let Run = &character.movement {
                     if state.last_step_sound.elapsed().as_secs_f64() > 0.25 {
                         let rand_step = (rand::random::<usize>() % 7) + 1;
-                        audio.play_sound(format!("voxygen.audio.footsteps.stepdirt_{}", rand_step), pos.0);
+                        audio.play_sound(
+                            format!("voxygen.audio.footsteps.stepdirt_{}", rand_step),
+                            pos.0,
+                        );
                         state.last_step_sound = Instant::now();
                     }
                 }
