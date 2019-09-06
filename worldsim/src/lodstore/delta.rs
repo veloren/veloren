@@ -18,18 +18,8 @@ use super::{
     However i belive that most algorithms only change every Value once.
 */
 
-pub trait LodDelta {
-    type Config: LodConfig;
-
-    fn apply(&self, data: &mut LodData::<Self::Config>);
-    fn filter(&self, area: LodArea) -> Self;
-
-    fn changed0(&mut self, index: LodIndex, value: Option<<Self::Config as LodConfig>::L0>);
-    fn changed15(&mut self, index: LodIndex, value: Option<<Self::Config as LodConfig>::L15>);
-}
-
 #[derive(Debug, Clone)]
-pub struct DefaultLodDelta<X: LodConfig> {
+pub struct LodDelta<X: LodConfig> {
     pub layer0: Vec<(LodIndex, Option<X::L0>)>, // 1/16
     pub layer1: Vec<(LodIndex, Option<X::L1>)>, // 1/8
     pub layer2: Vec<(LodIndex, Option<X::L2>)>, // 1/4
@@ -48,8 +38,8 @@ pub struct DefaultLodDelta<X: LodConfig> {
     pub layer15: Vec<(LodIndex, Option<X::L15>)>,  // 2048
 }
 
-impl<X: LodConfig> DefaultLodDelta<X> {
-    fn new() -> Self {
+impl<X: LodConfig> LodDelta<X> {
+    pub fn new() -> Self {
         Self {
             layer0: Vec::new(),
             layer1: Vec::new(),
@@ -69,29 +59,109 @@ impl<X: LodConfig> DefaultLodDelta<X> {
             layer15: Vec::new(),
         }
     }
-}
-
-impl<X: LodConfig> LodDelta for DefaultLodDelta<X> {
-    type Config = X;
 
     //TODO: apply that moves out
-    fn apply(&self, data: &mut LodData::<Self::Config>) {
+    pub fn apply(&self, data: &mut LodData<X>) {
         for (index, item) in &self.layer15 {
-            if item.is_some() {
-                data.set15(*index, item.clone().unwrap(), None);
+            if let Some(item) = item {
+                data.set15(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer14 {
+            if let Some(item) = item {
+                data.set14(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer13 {
+            if let Some(item) = item {
+                data.set13(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer12 {
+            if let Some(item) = item {
+                data.set12(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer11 {
+            if let Some(item) = item {
+                data.set11(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer10 {
+            if let Some(item) = item {
+                data.set10(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer9 {
+            if let Some(item) = item {
+                data.set9(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer8 {
+            if let Some(item) = item {
+                data.set8(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer7 {
+            if let Some(item) = item {
+                data.set7(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer6 {
+            if let Some(item) = item {
+                data.set6(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer5 {
+            if let Some(item) = item {
+                data.set5(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer4 {
+            if let Some(item) = item {
+                data.set4(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer3 {
+            if let Some(item) = item {
+                data.set3(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer2 {
+            if let Some(item) = item {
+                data.set2(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer1 {
+            if let Some(item) = item {
+                data.set1(*index, item.clone(), None);
+            }
+        }
+        for (index, item) in &self.layer0 {
+            if let Some(item) = item {
+                data.set0(*index, item.clone(), None);
             }
         }
     }
 
-    fn filter(&self, area: LodArea) -> Self {
-        Self::new()
-    }
-
-    fn changed0(&mut self, index: LodIndex, value: Option<<Self::Config as LodConfig>::L0>) {
-        self.layer0.push((index, value));
-    }
-
-    fn changed15(&mut self, index: LodIndex, value: Option<<Self::Config as LodConfig>::L15>){
-        self.layer15.push((index, value));
+    pub fn filter(&self, area: LodArea) -> Self {
+        Self {
+            layer0: self.layer0.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer1: self.layer1.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer2: self.layer2.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer3: self.layer3.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer4: self.layer4.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer5: self.layer5.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer6: self.layer6.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer7: self.layer7.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer8: self.layer8.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer9: self.layer9.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer10: self.layer10.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer11: self.layer11.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer12: self.layer12.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer13: self.layer13.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer14: self.layer14.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+            layer15: self.layer15.iter().filter(|(index, _)| area.is_inside(index.clone())).cloned().collect(),
+        }
     }
 }

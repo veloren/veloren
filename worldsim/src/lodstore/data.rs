@@ -60,7 +60,6 @@ pub trait LodConfig {
     type I14: LodIntoOptionUsize;
     type I15: LodIntoOptionUsize;
 
-    type Delta: LodDelta;
     type Additional;
 
     /*
@@ -93,8 +92,29 @@ pub trait LodConfig {
     ];
 
     fn setup(&mut self);
-    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex, delta: &mut Option<Self::Delta>) where Self: Sized;
-    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex, delta: &mut Option<Self::Delta>) where Self: Sized;
+    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) where Self: Sized;
+    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) where Self: Sized;
+}
+
+pub struct CacheLine {
+    last_parent_abs: AbsIndex,
+    last_parent_area: LodArea,
+    //Cache for performance
+    last_parent_lod: LodIndex,
+    //unsafe performance improvement if LodData changes between 2 accesses:
+    last_parent_child_index: usize,
+
+}
+
+impl CacheLine {
+    pub fn new() -> Self {
+        CacheLine {
+            last_parent_abs: AbsIndex::new(0,0), /*invalid*/
+            last_parent_area: LodArea::new(LodIndex::new(Vec3::new(1,1,1)), LodIndex::new(Vec3::new(0,0,0))), /*never matches*/
+            last_parent_lod: LodIndex::new(Vec3::new(0,0,0)),
+            last_parent_child_index: 0,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -242,6 +262,44 @@ impl<X: LodConfig> LodData<X>
         wanted_abs
     }
 
+    // target_layer is requiered because same LodIndex can exist for multiple layers, and guessing is stupid here
+    fn int_recursive_get_cached(&self, cache: &mut CacheLine, parent_abs: AbsIndex, child_lod: LodIndex, target_layer:u8) -> AbsIndex {
+        let mut parent_abs = parent_abs;
+        let mut old_parent_abs = parent_abs;
+        while true {
+            //println!("{} int_recursive_get {} - {}", Self::debug_offset(parent_abs.layer), parent_abs, target_layer);
+            old_parent_abs = parent_abs;
+            parent_abs = self.int_get_lockup(parent_abs, child_lod);
+            if parent_abs.layer <= target_layer {
+                let parent_width = two_pow_u(old_parent_abs.layer ) as u32;
+                let parent_lod = child_lod.align_to_layer_id(old_parent_abs.layer);
+                //TODO: Dont recalc the first 3 values
+                cache.last_parent_area = LodArea::new(parent_lod, parent_lod + LodIndex::new(Vec3::new(parent_width,parent_width,parent_width)));
+                cache.last_parent_lod = child_lod.align_to_layer_id(old_parent_abs.layer);
+                cache.last_parent_child_index = self.int_get_child_index(old_parent_abs);
+                cache.last_parent_abs = old_parent_abs;
+                return parent_abs;
+            }
+        }
+        unreachable!();
+    }
+
+    pub fn int_get_n_cached(&self, cache: &mut CacheLine, index: LodIndex, layer: u8) -> AbsIndex {
+        let wanted_abs =  if cache.last_parent_area.is_inside(index) {
+            //println!("yay");
+            Self::int_get(cache.last_parent_abs, index, cache.last_parent_lod, cache.last_parent_child_index)
+        } else {
+            //println!("nay");
+            //println!("{} {}", cache.last_parent_area.lower, cache.last_parent_area.upper);
+            //println!("{}", index);
+            let anchor_lod = index.align_to_layer_id(X::anchor_layer_id);
+            let anchor_abs = AbsIndex::new(X::anchor_layer_id, self.anchor[&anchor_lod]);
+            self.int_recursive_get_cached(cache, anchor_abs, index, layer)
+        };
+        debug_assert_eq!(wanted_abs.layer, layer);
+        wanted_abs
+    }
+
     pub fn get15(&self, index: LodIndex) -> &X::L15 { &self.layer15[self.int_get_n(index,15).index] }
 
     pub fn get14(&self, index: LodIndex) -> &X::L14 { &self.layer14[self.int_get_n(index,14).index] }
@@ -290,14 +348,104 @@ impl<X: LodConfig> LodData<X>
         &self.layer1[self.int_get_n(index,1).index]
     }
 
-    pub fn get0(&self, index: LodIndex) -> &X::L0 {
-        &self.layer0[self.int_get_n(index,0).index]
+    pub fn get0(&self, index: LodIndex) -> &X::L0 { &self.layer0[self.int_get_n(index,0).index] }
+
+    pub fn get0_cached(&self, cache: &mut CacheLine, index: LodIndex) -> &X::L0 { &self.layer0[self.int_get_n_cached(cache, index, 0).index] }
+
+    pub fn set15(&mut self, index: LodIndex, value: X::L15, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,15).index;
+        delta.map(|d| d.layer15.push((index, Some(value.clone()))));
+        self.layer15[n] = value;
     }
 
-    pub fn set15(&mut self, index: LodIndex, value: X::L15, delta: Option<X::Delta>) {
-        let n = self.int_get_n(index,15).index;
-        delta.map(|d| d.changed15(index, Some(value.clone())));
-        self.layer15[n] = value;
+    pub fn set14(&mut self, index: LodIndex, value: X::L14, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,14).index;
+        delta.map(|d| d.layer14.push((index, Some(value.clone()))));
+        self.layer14[n] = value;
+    }
+
+    pub fn set13(&mut self, index: LodIndex, value: X::L13, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,13).index;
+        delta.map(|d| d.layer13.push((index, Some(value.clone()))));
+        self.layer13[n] = value;
+    }
+
+    pub fn set12(&mut self, index: LodIndex, value: X::L12, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,12).index;
+        delta.map(|d| d.layer12.push((index, Some(value.clone()))));
+        self.layer12[n] = value;
+    }
+
+    pub fn set11(&mut self, index: LodIndex, value: X::L11, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,11).index;
+        delta.map(|d| d.layer11.push((index, Some(value.clone()))));
+        self.layer11[n] = value;
+    }
+
+    pub fn set10(&mut self, index: LodIndex, value: X::L10, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,10).index;
+        delta.map(|d| d.layer10.push((index, Some(value.clone()))));
+        self.layer10[n] = value;
+    }
+
+    pub fn set9(&mut self, index: LodIndex, value: X::L9, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,9).index;
+        delta.map(|d| d.layer9.push((index, Some(value.clone()))));
+        self.layer9[n] = value;
+    }
+
+    pub fn set8(&mut self, index: LodIndex, value: X::L8, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,8).index;
+        delta.map(|d| d.layer8.push((index, Some(value.clone()))));
+        self.layer8[n] = value;
+    }
+
+    pub fn set7(&mut self, index: LodIndex, value: X::L7, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,7).index;
+        delta.map(|d| d.layer7.push((index, Some(value.clone()))));
+        self.layer7[n] = value;
+    }
+
+    pub fn set6(&mut self, index: LodIndex, value: X::L6, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,6).index;
+        delta.map(|d| d.layer6.push((index, Some(value.clone()))));
+        self.layer6[n] = value;
+    }
+
+    pub fn set5(&mut self, index: LodIndex, value: X::L5, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,5).index;
+        delta.map(|d| d.layer5.push((index, Some(value.clone()))));
+        self.layer5[n] = value;
+    }
+
+    pub fn set4(&mut self, index: LodIndex, value: X::L4, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,4).index;
+        delta.map(|d| d.layer4.push((index, Some(value.clone()))));
+        self.layer4[n] = value;
+    }
+
+    pub fn set3(&mut self, index: LodIndex, value: X::L3, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,3).index;
+        delta.map(|d| d.layer3.push((index, Some(value.clone()))));
+        self.layer3[n] = value;
+    }
+
+    pub fn set2(&mut self, index: LodIndex, value: X::L2, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,2).index;
+        delta.map(|d| d.layer2.push((index, Some(value.clone()))));
+        self.layer2[n] = value;
+    }
+
+    pub fn set1(&mut self, index: LodIndex, value: X::L1, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,1).index;
+        delta.map(|d| d.layer1.push((index, Some(value.clone()))));
+        self.layer1[n] = value;
+    }
+
+    pub fn set0(&mut self, index: LodIndex, value: X::L0, delta: Option<&mut LodDelta<X>>) {
+        let n = self.int_get_n(index,0).index;
+        delta.map(|d| d.layer0.push((index, Some(value.clone()))));
+        self.layer0[n] = value;
     }
 
     // returns the last LodIndex, that belongs to a parent AbsIndex
@@ -321,15 +469,29 @@ impl<X: LodConfig> LodData<X>
         lower: must always be a LodIndex inside parent
         upper: must always have same parent as lower -> parent
     */
-    fn int_make_at_least(&mut self, parent: AbsIndex, /*parent_lod2: LodIndex,*/ area: LodArea, target_layer: u8, delta: &mut Option<X::Delta>) {
+    fn int_make_at_least(&mut self, parent: AbsIndex, /*parent_lod2: LodIndex,*/ area: LodArea, target_layer: u8, delta: &Option<&mut LodDelta<X>>) {
         let child_layer = X::child_layer_id[parent.layer as usize];
         let parent_lod_width = two_pow_u(parent.layer) as u32;
         let parent_lod = area.lower.align_to_layer_id(parent.layer);
         //assert_eq!(parent_lod, parent_lod2);
         //println!("{} lower, upper {} {} {} - {:?}", Self::debug_offset(parent.layer), area.lower, area.upper, parent_lod_width, child_layer);
+        //let delta = delta.unwrap();
         if parent.layer > target_layer {
             // create necessary childs:
-            X::drill_down(self, parent, delta);
+            X::drill_down(self, parent);
+            // TODO: Handle correct Delta
+            /*
+            if let Some(delta) = delta {
+                for x in lower_xyz[0]..upper_xyz[0] + 1 {
+                    for y in lower_xyz[1]..upper_xyz[1] + 1 {
+                        for z in lower_xyz[2]..upper_xyz[2] + 1 {
+                            let child_lod = LodIndex::new(Vec3::new(x,y,z));
+                            let i = relative_to_1d(child_lod, parent_lod, child_layer.unwrap(), relative_size: Vec3::new(child_lod_width,child_lod_width,child_lod_width));
+                            delta.layer15.push((index,self.layer15.get(parent.abs + i)))
+                        }
+                    }
+                }
+            }*/
             //println!("{} DRILLED DOWN", Self::debug_offset(parent.layer));
             if child_layer.is_some() && child_layer.unwrap() > target_layer {
                 let child_layer = child_layer.unwrap();
@@ -372,7 +534,7 @@ impl<X: LodConfig> LodData<X>
     */
     /*is at least minimum or maximum*/
 
-    pub fn make_at_least(&mut self, area: LodArea, target_layer: u8, delta: &mut Option<X::Delta>) {
+    pub fn make_at_least(&mut self, area: LodArea, target_layer: u8, delta: Option<&mut LodDelta<X>>) {
         let anchor_layer_id = X::anchor_layer_id;
         let anchor_lower = area.lower.align_to_layer_id(anchor_layer_id);
         let anchor_upper = area.upper.align_to_layer_id(anchor_layer_id);
@@ -389,7 +551,6 @@ impl<X: LodConfig> LodData<X>
                     let anchor_lod = LodIndex::new(Vec3::new(x,y,z));
                     let anchor_abs = AbsIndex::new(anchor_layer_id, self.anchor[&anchor_lod]); ;
                     if anchor_abs.layer > target_layer {
-                        X::drill_down(self, anchor_abs, delta);
                         let child_lod_upper = Self::get_last_child_lod(anchor_lod, anchor_abs.layer);
 
                         let inner_lower = index::max(area.lower, anchor_lod);
@@ -397,7 +558,7 @@ impl<X: LodConfig> LodData<X>
 
                         //println!("{}call child with lower, upper {} {} instead of {} {} ", Self::debug_offset(anchor_layer_id), inner_lower, inner_upper, anchor_lod, child_lod_upper);
                         let inner_area = LodArea::new(inner_lower, inner_upper);
-                        self.int_make_at_least(anchor_abs, inner_area, target_layer, delta);
+                        self.int_make_at_least(anchor_abs, inner_area, target_layer, &delta);
                     }
                     z += anchor_width;
                 }

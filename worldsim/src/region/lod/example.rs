@@ -1,11 +1,11 @@
 use crate::lodstore::{
     LodData,
     LodConfig,
+    data::CacheLine,
     index::LodIndex,
     index::AbsIndex,
     area::LodArea,
     delta::LodDelta,
-    delta::DefaultLodDelta,
 };
 use vek::*;
 use std::u32;
@@ -76,7 +76,6 @@ impl LodConfig for ExampleLodConfig {
     type I14 = ();
     type I15 = ();
 
-    type Delta = DefaultLodDelta<Self>;
     type Additional = ();
 
     const anchor_layer_id: u8 = 13;
@@ -123,7 +122,7 @@ impl LodConfig for ExampleLodConfig {
 
     }
 
-    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
+    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) {
         match abs.layer {
             0 => {
                 panic!("cannot drill down further");
@@ -179,7 +178,7 @@ impl LodConfig for ExampleLodConfig {
 
     }
 
-    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
+    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) {
         match parent_abs.layer {
             0 => {
                 panic!("SubBlocks_4 does not have children");
@@ -234,9 +233,11 @@ mod tests {
 
 
     pub type Example = LodData<ExampleLodConfig>;
+    pub type ExampleDelta = LodDelta::<ExampleLodConfig>;
 
-    fn createRegion(p_e5: f32, p_e0: f32, p_e_4: f32, p_foreign: f32) -> Example {
+    fn createRegion(p_e5: f32, p_e0: f32, p_e_4: f32, p_foreign: f32) -> ( Example, ExampleDelta ) {
         let mut rng = rand::thread_rng();
+        let mut delta = ExampleDelta::new();
         let mut result = Example::new();
         let abs9 = (index::two_pow_u(15-13) as u64).pow(3);
         let abs5 = (index::two_pow_u(15-9) as u64).pow(3);
@@ -268,25 +269,25 @@ mod tests {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(9);
             let area = LodArea::new(low, low);
-            result.make_at_least(area,9);
+            result.make_at_least(area,9, Some(&mut delta));
         }
         while result.layer4.len() < act0 as usize {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(4);
             let area = LodArea::new(low, low);
-            result.make_at_least(area, 4);
+            result.make_at_least(area, 4, Some(&mut delta));
         }
         while result.layer0.len() < act_4 as usize {
             let index = randIndex(&mut rng);
             let low = index.align_to_layer_id(0);
             let area = LodArea::new(low, low);
-            result.make_at_least(area, 0);
+            result.make_at_least(area, 0, Some(&mut delta));
         }
 
         println!("creating Region with {} 5er, {} 0er, {} -4er", act5, act0 , act_4);
         println!("created Region l13: {} l9: {} l5: {} l0: {}", result.layer13.len(), result.layer9.len(), result.layer4.len(), result.layer0.len());
         println!("size {} {} {}", size_of::<Example>(), size_of::<Example9>(), size_of::<Example5>());
-        result
+        (result, delta)
     }
 
     #[test]
@@ -296,20 +297,20 @@ mod tests {
 
     #[test]
     fn reagionmake_at_least() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(16384, 16384, 16384));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 4);
+        reg.make_at_least(area, 4, None);
     }
 
     #[test]
     fn access_0a() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         reg.get0(LodIndex::new(Vec3::new(0, 0, 0)));
         reg.get0(LodIndex::new(Vec3::new(1, 0, 0)));
         reg.get0(LodIndex::new(Vec3::new(0, 1, 0)));
@@ -322,11 +323,11 @@ mod tests {
 
     #[test]
     fn access_0b() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8704)));
         reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9000)));
         reg.get0(LodIndex::new(Vec3::new(9000, 9000, 9001)));
@@ -340,42 +341,42 @@ mod tests {
     #[test]
     #[should_panic]
     fn access_0c_fail() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         reg.get0(LodIndex::new(Vec3::new(8704, 8704, 8703)));
     }
 
     #[test]
     #[should_panic]
     fn access_0d_fail() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
         let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area,0);
+        reg.make_at_least(area, 0, None);
         reg.get0(LodIndex::new(Vec3::new(10240, 10240, 10240)));
     }
 
     #[test]
     fn access_4() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 4);
+        reg.make_at_least(area, 4, None);
     }
 
     #[test]
     #[should_panic]
     fn access_0_fail() {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         reg.get0(LodIndex::new(Vec3::new(5, 5, 5))); //this access is not guaranteed but will work
         reg.get0(LodIndex::new(Vec3::new(16, 16, 16))); // out of range
     }
@@ -387,64 +388,76 @@ mod tests {
 
     #[bench]
     fn bench_clone_region(b: &mut Bencher) {
-        let region = createRegion(0.00015, 0.0001, 0.00000001, 0.1);
-        b.iter(|| region.clone());
+        let (mut reg, _) = createRegion(0.00015, 0.0001, 0.00000001, 0.1);
+        b.iter(|| reg.clone());
     }
 
     #[bench]
     fn bench_make_at_least1(b: &mut Bencher) {
-        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(255, 255, 255));
         b.iter(|| {
-            let mut reg2 = region.clone();
+            let mut reg2 = reg.clone();
             let area = LodArea::new(low, high);
-            reg2.make_at_least(area, 0);
+            reg2.make_at_least(area, 0, None);
         });
     }
 
     #[bench]
     fn bench_make_at_least2(b: &mut Bencher) {
-        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(0, 0, 0));
         let high = LodIndex::new(Vec3::new(4, 4, 4));
         b.iter(|| {
-            let mut reg2 = region.clone();
+            let mut reg2 = reg.clone();
             let area = LodArea::new(low, high);
-            reg2.make_at_least(area, 0);
+            reg2.make_at_least(area, 0, None);
         });
     }
 
     #[bench]
     fn bench_make_at_least3(b: &mut Bencher) {
-        let region = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
         b.iter(|| {
-            let mut reg2 = region.clone();
+            let mut reg2 = reg.clone();
             let area = LodArea::new(low, high);
-            reg2.make_at_least(area, 4);
+            reg2.make_at_least(area, 4, None);
         });
     }
 
     #[bench]
-    fn bench_access_0(b: &mut Bencher) {
-        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+    fn bench_access_0_cached(b: &mut Bencher) {
+        let (mut reg, _) = createRegion(0.0015, 0.001, 0.001, 0.1);
         let access = LodIndex::new(Vec3::new(8561, 8312, 8412));
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
+        let mut cache = CacheLine::new();
+        b.iter(|| reg.get0_cached(&mut cache, access));
+    }
+
+    #[bench]
+    fn bench_access_0(b: &mut Bencher) {
+        let (mut reg, _) = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let access = LodIndex::new(Vec3::new(8561, 8312, 8412));
+        let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
+        let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 0, None);
         b.iter(|| reg.get0(access));
     }
 
     #[bench]
     fn bench_access_0_4_multiple(b: &mut Bencher) {
-        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let (mut reg, _) = createRegion(0.0015, 0.001, 0.001, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(8800, 8800, 8800));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         b.iter(|| {
             reg.get0(LodIndex::new(Vec3::new(8561, 8312, 8412)));
             reg.get0(LodIndex::new(Vec3::new(8200, 8599, 8413)));
@@ -466,7 +479,7 @@ mod tests {
     #[bench]
     fn bench_access_0_random1(b: &mut Bencher) {
         let mut rng = rand::thread_rng();
-        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let (mut reg, _) = createRegion(0.0015, 0.001, 0.001, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(9192, 9192, 9192));
         let mut accesslist = Vec::new();
@@ -477,7 +490,7 @@ mod tests {
             accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
         }
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         b.iter(|| {
             for i in 0..1000000 {
                 reg.get0(accesslist[i]);
@@ -488,7 +501,7 @@ mod tests {
     #[bench]
     fn bench_access_0_random2(b: &mut Bencher) {
         let mut rng = rand::thread_rng();
-        let mut reg = createRegion(0.0015, 0.001, 0.001, 0.1);
+        let (mut reg, _) = createRegion(0.0015, 0.001, 0.001, 0.1);
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(9192, 9192, 9192));
         let mut accesslist = Vec::new();
@@ -499,7 +512,7 @@ mod tests {
             accesslist.push(LodIndex::new(Vec3::new(x,y,z).map(|x| (8192 + x / 66) as u32)));
         }
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 0);
+        reg.make_at_least(area, 0, None);
         b.iter(|| {
             for i in 0..9990000 {
                 reg.get0(accesslist[i]);
@@ -509,15 +522,68 @@ mod tests {
 
     #[bench]
     fn bench_access_4(b: &mut Bencher) {
-        let mut reg = createRegion(0.0, 0.0, 0.0, 0.1);
+        let (mut reg, _) = createRegion(0.0, 0.0, 0.0, 0.1);
         let access = LodIndex::new(Vec3::new(9561, 9312, 8412));
         let low = LodIndex::new(Vec3::new(8192, 8192, 8192));
         let high = LodIndex::new(Vec3::new(10240, 10240, 10240));
         let area = LodArea::new(low, high);
-        reg.make_at_least(area, 4);
+        reg.make_at_least(area, 4, None);
 
         b.iter(|| reg.get4(access));
     }
 
     // DELTA TESTS
+    #[test]
+    fn delta_make_at_least() {
+        let (mut reg, mut delta) = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 4, Some(&mut delta));
+
+        //assert_eq!(delta.layer4.len(), 20);
+    }
+    #[test]
+    fn delta_set() {
+        let (mut reg, mut delta) = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        let access = LodIndex::new(Vec3::new(9000, 9000, 9000));
+        let area = LodArea::new(low, high);
+        reg.make_at_least(area, 4, Some(&mut delta));
+        let x = reg.get4(access);
+        assert_eq!(delta.layer4.len(), 0);
+        reg.set4(access, x.clone(), Some(&mut delta));
+        assert_eq!(delta.layer4.len(), 1);
+    }
+
+    #[test]
+    fn delta_filter() {
+        let (mut reg, mut delta) = createRegion(0.0, 0.0, 0.0, 0.1);
+        let low = LodIndex::new(Vec3::new(8704, 8704, 8704));
+        let high = LodIndex::new(Vec3::new(9216, 9216, 9216));
+        let access1 = LodIndex::new(Vec3::new(9000, 9000, 9000));
+        let access2 = LodIndex::new(Vec3::new(9001, 9000, 9000));
+        let access3 = LodIndex::new(Vec3::new(9002, 9001, 9000));
+        let access4 = LodIndex::new(Vec3::new(9003, 9000, 9000));
+        let area = LodArea::new(low, high);
+        let area2 = LodArea::new(low, access2);
+        let area3 = LodArea::new(low, access1);
+        reg.make_at_least(area, 4, Some(&mut delta));
+        let x = reg.get4(access1).clone();
+        reg.set4(access1, x.clone(), Some(&mut delta));
+        reg.set4(access2, x.clone(), Some(&mut delta));
+        reg.set4(access3, x.clone(), Some(&mut delta));
+        reg.set4(access4, x.clone(), Some(&mut delta));
+        assert_eq!(delta.layer4.len(), 4);
+        let delta = delta.filter(area);
+        assert_eq!(delta.layer4.len(), 4);
+        let delta = delta.filter(area2);
+        assert_eq!(delta.layer4.len(), 2);
+        let delta = delta.filter(area);
+        assert_eq!(delta.layer4.len(), 2);
+        let delta = delta.filter(area3);
+        assert_eq!(delta.layer4.len(), 1);
+    }
+
 }

@@ -4,7 +4,6 @@ use crate::lodstore::{
     index::LodIndex,
     index::AbsIndex,
     delta::LodDelta,
-    delta::DefaultLodDelta,
 };
 use vek::*;
 use std::u32;
@@ -63,7 +62,6 @@ impl LodConfig for TerrainLodConfig {
     type I14 = ();
     type I15 = ();
 
-    type Delta = DefaultLodDelta<Self>;
     type Additional = ();
 
     const anchor_layer_id: u8 = 13;
@@ -109,7 +107,7 @@ impl LodConfig for TerrainLodConfig {
 
     }
 
-    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
+    fn drill_down(data: &mut LodData::<Self>, abs: AbsIndex) {
         match abs.layer {
             0 => {
                 panic!("cannot drill down further");
@@ -161,7 +159,7 @@ impl LodConfig for TerrainLodConfig {
         }
     }
 
-    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex, delta: &mut Option<DefaultLodDelta<Self>>) {
+    fn drill_up(data: &mut LodData::<Self>, parent_abs: AbsIndex) {
     unreachable!("finish this like in example");
         match parent_abs.layer {
             0 => {
