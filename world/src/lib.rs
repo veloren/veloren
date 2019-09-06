@@ -2,7 +2,6 @@
 #![allow(incomplete_features)]
 #![feature(
     const_generics,
-    euclidean_division,
     bind_by_move_pattern_guards,
     option_flattening,
     label_break_value
