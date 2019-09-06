@@ -26,8 +26,8 @@ pub struct AudioFrontend {
     listener_pos: Vec3<f32>,
     listener_ori: Vec3<f32>,
 
-    listener_pos_left: [f32; 3],
-    listener_pos_right: [f32; 3],
+    listener_ear_left: Vec3<f32>,
+    listener_ear_right: Vec3<f32>,
 }
 
 impl AudioFrontend {
@@ -51,8 +51,8 @@ impl AudioFrontend {
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
             listener_ori: Vec3::zero(),
-            listener_pos_left: [0.0; 3],
-            listener_pos_right: [0.0; 3],
+            listener_ear_left: Vec3::zero(),
+            listener_ear_right: Vec3::zero(),
         }
     }
 
@@ -69,8 +69,8 @@ impl AudioFrontend {
             music_volume: 1.0,
             listener_pos: Vec3::zero(),
             listener_ori: Vec3::zero(),
-            listener_pos_left: [0.0; 3],
-            listener_pos_right: [0.0; 3],
+            listener_ear_left: Vec3::zero(),
+            listener_ear_right: Vec3::zero(),
         }
     }
 
@@ -98,8 +98,8 @@ impl AudioFrontend {
 
             let sound = self.sound_cache.load_sound(sound);
 
-            let left_ear = self.listener_pos_left;
-            let right_ear = self.listener_pos_right;
+            let left_ear = self.listener_ear_left.into_array();
+            let right_ear = self.listener_ear_right.into_array();
 
             if let Some(channel) = self.get_channel() {
                 channel.set_id(id);
@@ -124,8 +124,8 @@ impl AudioFrontend {
         let pos_left = up.cross(self.listener_ori.clone()).normalized();
         let pos_right = self.listener_ori.cross(up.clone()).normalized();
 
-        self.listener_pos_left = pos_left.into_array();
-        self.listener_pos_right = pos_right.into_array();
+        self.listener_ear_left = pos_left;
+        self.listener_ear_right = pos_right;
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Sfx {
