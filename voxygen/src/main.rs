@@ -31,10 +31,7 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{
-    audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
-    window::Window,
-};
+use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use heaptrack::track_mem;
 use log::{self, debug, error, info};
 
@@ -103,12 +100,10 @@ lazy_static! {
 fn main() {
     // Load the settings
     let settings = Settings::load();
-<<<<<<< HEAD
     // Save settings to add new fields or create the file if it is not already there
     if let Err(err) = settings.save_to_file() {
         panic!("Failed to save settings: {:?}", err);
     }
-=======
     let audio_device = match &settings.audio.audio_device {
         Some(d) => d.to_string(),
         None => audio::get_default_device(),
@@ -124,7 +119,7 @@ fn main() {
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
->>>>>>> Revamp AudioFrontend
+    let settings = &global_state.settings;
 
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
