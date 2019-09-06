@@ -57,5 +57,5 @@ impl TerrainChunkMeta {
 
 // Terrain type aliases
 
-pub type TerrainChunk = chonk::Chonk;
+pub type TerrainChunk = chonk::Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
 pub type TerrainGrid = VolGrid2d<TerrainChunk>;
