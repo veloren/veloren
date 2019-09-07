@@ -5,7 +5,7 @@ pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
-    figure::FigureMgr,
+    figure::{FigureMgr, MapFigureMgr},
     sound::SoundMgr,
     terrain::Terrain,
 };
@@ -280,6 +280,7 @@ impl Scene {
 
 pub struct MapScene {
     globals: Consts<Globals>,
+    terrain_globals: Consts<Globals>,
     lights: Consts<Light>,
     camera: Camera,
 
@@ -287,7 +288,7 @@ pub struct MapScene {
     terrain: Terrain<MapChunk>,
     loaded_distance: f32,
 
-    figure_mgr: FigureMgr,
+    figure_mgr: MapFigureMgr,
 }
 
 impl MapScene {
@@ -297,6 +298,7 @@ impl MapScene {
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
+            terrain_globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
@@ -308,7 +310,7 @@ impl MapScene {
             },
             terrain: Terrain::new(renderer),
             loaded_distance: 0.0,
-            figure_mgr: FigureMgr::new(),
+            figure_mgr: MapFigureMgr::new(),
         }
     }
 
@@ -365,16 +367,24 @@ impl MapScene {
         // Alter camera position to match player.
         // TODO (haslersn): Insert see level instead of `140`.
         self.camera
-            .set_focus_pos(Vec3::new(player_pos.x, player_pos.y, 140.0) / 4.0);
+            .set_focus_pos(Vec3::new(player_pos.x, player_pos.y, 140.0));
         self.camera
-            .set_orientation(Vec3::new(orientation, 0.8, 0.0));
-        self.camera.set_distance(200.0);
+            .set_orientation(Vec3::new(orientation, 0.7, 0.0));
+        self.camera.set_distance(1024.0);
 
         // Tick camera for interpolation.
         self.camera.update(client.state().get_time());
 
         // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
+        let terrain_view_mat = view_mat * Mat4::scaling_3d(Vec3::broadcast(4.0));
+
+        // Move minimap to the top right.
+        let proj_mat = Mat4::<f32>::translation_3d(Vec3::new(
+            1.0 - 0.3,
+            1.0 - 0.3 * self.camera().get_aspect_ratio(),
+            0.0,
+        )) * proj_mat;
 
         // Update chunk loaded distance smoothly for nice shader fog
         let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0; // TODO: No magic!
@@ -400,7 +410,7 @@ impl MapScene {
                     }
                 };
                 Light::new(
-                    (pos.0 + (rot * light_emitter.offset)) / 4.0,
+                    pos.0 + (rot * light_emitter.offset),
                     light_emitter.col,
                     light_emitter.strength,
                 )
@@ -413,6 +423,25 @@ impl MapScene {
         renderer
             .update_consts(&mut self.lights, &lights)
             .expect("Failed to update light constants");
+
+        // Update global constants for terrain.
+        renderer
+            .update_consts(
+                &mut self.terrain_globals,
+                &[Globals::new(
+                    terrain_view_mat,
+                    proj_mat,
+                    cam_pos,
+                    self.camera.get_focus_pos() / 4.0, // Hack because the fog calculation is done in model space.
+                    10_000.0, // Hack that prevents the rendering of fog of war on the map.
+                    client.state().get_time_of_day(),
+                    client.state().get_time(),
+                    renderer.get_resolution(),
+                    lights.len(),
+                    BlockKind::Air,
+                )],
+            )
+            .expect("Failed to update global constants");
 
         // Update global constants.
         renderer
@@ -428,12 +457,7 @@ impl MapScene {
                     client.state().get_time(),
                     renderer.get_resolution(),
                     lights.len(),
-                    client
-                        .map_journal()
-                        .grid()
-                        .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.kind())
-                        .unwrap_or(BlockKind::Air),
+                    BlockKind::Air,
                 )],
             )
             .expect("Failed to update global constants");
@@ -444,9 +468,9 @@ impl MapScene {
             renderer,
             &client.map_journal(),
             client.get_tick(),
-            self.camera.get_focus_pos(),
-            self.loaded_distance,
-            view_mat,
+            self.camera.get_focus_pos() / 4.0, // Hack because the fog calculation is done in model space.
+            50.0,
+            terrain_view_mat,
             proj_mat,
         );
 
@@ -464,7 +488,7 @@ impl MapScene {
             .render(renderer, client, &self.globals, &self.lights, &self.camera);
         self.terrain.render(
             renderer,
-            &self.globals,
+            &self.terrain_globals,
             &self.lights,
             self.camera.get_focus_pos(),
         );
