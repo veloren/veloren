@@ -6,8 +6,8 @@ pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod input;
-pub mod settings;
 pub mod metrics;
+pub mod settings;
 
 // Reexports
 pub use crate::{error::Error, input::Input, settings::ServerSettings};
@@ -23,19 +23,24 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
 use hashbrown::HashSet;
 use log::debug;
+use metrics::ServerMetrics;
 use rand::Rng;
-use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity, SystemData};
-use std::{i32, net::SocketAddr, sync::Arc, time::{Duration, Instant}};
+use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
+use std::{
+    i32,
+    net::SocketAddr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
-use metrics::ServerMetrics;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -383,7 +388,7 @@ impl Server {
         // 7) Update Metrics with current data
         // 8) Finish the tick, passing control of the main thread back to the frontend
 
-        let before_tick = Instant::now();
+        let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
@@ -401,12 +406,14 @@ impl Server {
         // Handle game events
         self.handle_events();
 
+        let before_tick_4 = Instant::now();
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
         // Tick the world
         self.world.tick(dt);
 
+        let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
@@ -526,6 +533,7 @@ impl Server {
             self.state.remove_chunk(key);
         }
 
+        let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
@@ -590,9 +598,47 @@ impl Server {
             let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
+        let before_tick_7 = Instant::now();
         // 7) Update Metrics
-        self.metrics.player_online.set(self.clients.len() as f64);
-        self.metrics.tick_time.set(before_tick.elapsed().as_nanos() as f64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["input"])
+            .set((before_tick_4 - before_tick_1).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["world"])
+            .set((before_tick_5 - before_tick_4).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["terrain"])
+            .set((before_tick_6 - before_tick_5).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["sync"])
+            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+        self.metrics.player_online.set(self.clients.len() as i64);
+        let cm = self
+            .state
+            .terrain()
+            .iter()
+            .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
+        self.metrics
+            .chonks_count
+            .with_label_values(&["homogeneous"])
+            .set(cm.homogeneous() as i64);
+        self.metrics
+            .chonks_count
+            .with_label_values(&["hash"])
+            .set(cm.hash() as i64);
+        self.metrics
+            .chonks_count
+            .with_label_values(&["heterogeneous"])
+            .set(cm.heterogeneous() as i64);
+        //self.metrics.entity_count.set(self.state.);
+        self.metrics
+            .tick_time
+            .with_label_values(&["metrics"])
+            .set(before_tick_7.elapsed().as_nanos() as i64);
 
         // 8) Finish the tick, pass control back to the frontend.
 
