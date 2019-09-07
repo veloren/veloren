@@ -11,8 +11,14 @@ use {
 };
 
 const GRAVITY: f32 = 9.81 * 4.0;
-const FRIC_GROUND: f32 = 0.15;
-const FRIC_AIR: f32 = 0.015;
+
+// Friction values used for linear damping. They are unitless quantities. The
+// value of these quantities must be between zero and one. They represent the
+// amount an object will slow down within 1/60th of a second. Eg. if the frction
+// is 0.01, and the speed is 1.0, then after 1/60th of a second the speed will
+// be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^ 60.
+const FRIC_GROUND: f32 = 0.125;
+const FRIC_AIR: f32 = 0.0125;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time
@@ -20,10 +26,16 @@ const FRIC_AIR: f32 = 0.015;
 // damp = linear damping
 // Friction is a type of damping.
 fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f32> {
+    // this is not linear damping, because it is proportional to the original
+    // velocity this "linear" damping in in fact, quite exponential. and thus
+    // must be interpolated accordingly
+    let linear_damp = if damp < 1.0 {
+        (1.0 - damp).powf(dt * 60.0)
+    } else {
+        0.0
+    };
+
     lv.z = (lv.z - grav * dt).max(-50.0);
-
-    let linear_damp = (1.0 - dt * damp).max(0.0);
-
     lv * linear_damp
 }
 
@@ -74,16 +86,6 @@ impl<'a> System<'a> for Sys {
             let mut physics_state = physics_states.get(entity).cloned().unwrap_or_default();
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
 
-            // Integrate forces
-            // Friction is assumed to be a constant dependent on location
-            let friction = 50.0
-                * if physics_state.on_ground {
-                    FRIC_GROUND
-                } else {
-                    FRIC_AIR
-                };
-            vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
-
             // Basic collision with terrain
             let player_rad = 0.3 * scale; // half-width of the player's AABB
             let player_height = 1.5 * scale;
@@ -96,6 +98,28 @@ impl<'a> System<'a> for Sys {
                 .map(move |i| (-hdist..=hdist).map(move |j| (0..=vdist).map(move |k| (i, j, k))))
                 .flatten()
                 .flatten();
+
+            let old_vel = *vel;
+            // Integrate forces
+            // Friction is assumed to be a constant dependent on location
+            let friction = if physics_state.on_ground {
+                FRIC_GROUND
+            } else {
+                FRIC_AIR
+            };
+            vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
+
+            // Don't move if we're not in a loaded chunk
+            let pos_delta = if terrain
+                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
+                .is_some()
+            {
+                // this is an approximation that allows most framerates to
+                // behave in a similar manner.
+                (vel.0 + old_vel.0 * 4.0) * dt.0 * 0.2
+            } else {
+                Vec3::zero()
+            };
 
             // Function for determining whether the player at a specific position collides with the ground
             let collision_with = |pos: Vec3<f32>, near_iter| {
@@ -129,16 +153,6 @@ impl<'a> System<'a> for Sys {
 
             let mut on_ground = false;
             let mut attempts = 0; // Don't loop infinitely here
-
-            // Don't move if we're not in a loaded chunk
-            let pos_delta = if terrain
-                .get_key(terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
-                .is_some()
-            {
-                vel.0 * dt.0
-            } else {
-                Vec3::zero()
-            };
 
             // Don't jump too far at once
             let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
