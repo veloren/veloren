@@ -39,7 +39,7 @@ use crate::{
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
-use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
+use common::{comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
@@ -482,8 +482,10 @@ impl Hud {
                 .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _, _, _)| {
-                    (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
                         .magnitude()
                         < view_distance as f32
                 })
@@ -523,8 +525,10 @@ impl Hud {
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _, _)| {
-                    (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
                         .magnitude()
                         < view_distance as f32
                 })

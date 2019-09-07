@@ -846,7 +846,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
     let sim = server.world.sim();
     if let Ok((x, y)) = scan_fmt!(&args, action.arg_fmt, i32, i32) {
         let wpos = Vec2::new(x, y);
-        /* let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+        /* let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e / sz as i32
         }); */
 
