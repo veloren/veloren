@@ -65,6 +65,7 @@ impl<'a> System<'a> for Sys {
                 }
                 Agent::Enemy { bearing, target } => {
                     const SIGHT_DIST: f32 = 30.0;
+                    const MIN_ATTACK_DIST: f32 = 3.5;
                     let mut choose_new = false;
 
                     if let Some((Some(target_pos), Some(target_stats), Some(target_character))) =
@@ -81,16 +82,11 @@ impl<'a> System<'a> for Sys {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
-                        } else if dist < 6.0 {
-                            // Fight and slowly move closer
+                        } else if dist < MIN_ATTACK_DIST {
+                            // Fight (and slowly move closer)
                             controller.move_dir =
-                                Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.5;
-
-                            if rand::random::<f32>() < 0.05 {
-                                controller.primary = true;
-                            } else {
-                                controller.primary = false;
-                            }
+                                Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
+                            controller.primary = true;
                         } else if dist < SIGHT_DIST {
                             controller.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.96;
