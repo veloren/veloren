@@ -2461,7 +2461,7 @@ dependencies = [
 
 [[package]]
 name = "prometheus-static-metric"
-version = "0.1.4"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3091,7 +3091,7 @@ dependencies = [
 [[package]]
 name = "specs-idvs"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/specs-idvs.git#18ad795469f45d58fdcfcb4ee48435b2061bc7bc"
+source = "git+https://gitlab.com/veloren/specs-idvs.git#4ce792042f951a29874954582234836c0eccaed6"
 dependencies = [
  "hibitset 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3584,7 +3584,7 @@ dependencies = [
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "prometheus-static-metric 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "prometheus-static-metric 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "scan_fmt 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4151,7 +4151,7 @@ dependencies = [
 "checksum proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)" = "cf3d2011ab5c909338f7887f4fc896d35932e29146c12c8d01da6b22a80ba759"
 "checksum proc-macro2 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4c5c2380ae88876faae57698be9e9775e3544decad214599c3a6266cca6ac802"
 "checksum prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5567486d5778e2c6455b1b90ff1c558f29e751fc018130fa182e15828e728af1"
-"checksum prometheus-static-metric 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "1d2b4a6a1ae793e7eb6773a5301a5a08e8929ea5517b677c93e57ce2d0973c02"
+"checksum prometheus-static-metric 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1baa57413523cff73783204f73299a3f602ebcf51a5e64752b32bc1b3c376013"
 "checksum protobuf 2.8.1 (registry+https://github.com/rust-lang/crates.io-index)" = "40361836defdd5871ff7e84096c6f6444af7fc157f8ef1789f54f147687caa20"
 "checksum quasi 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)" = "18c45c4854d6d1cf5d531db97c75880feb91c958b0720f4ec1057135fec358b3"
 "checksum quasi_codegen 0.32.0 (registry+https://github.com/rust-lang/crates.io-index)" = "51b9e25fa23c044c1803f43ca59c98dac608976dd04ce799411edd58ece776d4"
