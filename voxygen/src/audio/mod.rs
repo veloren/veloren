@@ -60,7 +60,7 @@ impl AudioFrontend {
     pub fn no_audio() -> Self {
         Self {
             device: "none".to_string(),
-            device_list: list_devices(),
+            device_list: Vec::new(),
             audio_device: None,
             sound_cache: SoundCache::new(),
             channels: Vec::new(),
