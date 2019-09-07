@@ -114,7 +114,6 @@ impl<'a> System<'a> for Sys {
                             || character.movement == Run
                             || character.movement == Jump)
                     {
-                        // TODO: Check if wield ability exists
                         if let Wield { time_left } = character.action {
                             if time_left == Duration::default() {
                                 character.action = Attack {
@@ -150,6 +149,20 @@ impl<'a> System<'a> for Sys {
                             entity,
                             vel: Vec3::new(0.0, 0.0, 7.0),
                         });
+                    }
+                }
+                None => {
+                    // Attack
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                        && !character.action.is_attack()
+                    {
+                        character.action = Attack {
+                            time_left: ATTACK_DURATION,
+                            applied: false,
+                        };
                     }
                 }
                 _ => {}
