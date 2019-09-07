@@ -267,6 +267,40 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub struct ChonkMetrics {
+    chonks: usize,
+    homogeneous: usize,
+    hash: usize,
+    heterogeneous: usize,
+}
+
+impl ChonkMetrics {
+    pub fn chonks(&self) -> usize {
+        self.chonks
+    }
+    pub fn homogeneous(&self) -> usize {
+        self.homogeneous
+    }
+    pub fn hash(&self) -> usize {
+        self.hash
+    }
+    pub fn heterogeneous(&self) -> usize {
+        self.heterogeneous
+    }
+}
+
+impl Default for ChonkMetrics {
+    fn default() -> Self {
+        ChonkMetrics {
+            chonks: 0,
+            homogeneous: 0,
+            hash: 0,
+            heterogeneous: 0,
+        }
+    }
+}
+
 impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoVolIterator<'a> for &'a Chonk<V, S, M> {
     type IntoIter = ChonkVolIter<'a, V, S, M>;
 
