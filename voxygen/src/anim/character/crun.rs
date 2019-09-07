@@ -40,7 +40,6 @@ impl Animation for WieldAnimation {
                 * 0.1,
         );
 
-
         match Tool::Hammer {
             //TODO: Inventory
             Tool::Sword => {

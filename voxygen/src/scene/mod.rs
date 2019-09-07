@@ -18,7 +18,11 @@ use crate::{
     window::Event,
 };
 use client::Client;
-use common::{comp, terrain::BlockKind, vol::ReadVol};
+use common::{
+    comp,
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
+};
 use specs::Join;
 use vek::*;
 
@@ -45,7 +49,7 @@ pub struct Scene {
 
     skybox: Skybox,
     postprocess: PostProcess,
-    terrain: Terrain,
+    terrain: Terrain<TerrainChunk>,
     loaded_distance: f32,
 
     figure_mgr: FigureMgr,
