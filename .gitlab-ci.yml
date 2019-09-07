@@ -1,8 +1,7 @@
 stages:
-  - check
-  - test
+  - optional-builds
+  - check-compile
   - post-build
-  - executable
 
 # Our own git fetch command like https://gitlab.com/gitlab-org/gitlab-runner/blob/master/shells/abstract.go
 # speeds up building because we skip the git clean and don't need any gitlab caches.
@@ -39,135 +38,11 @@ before_script:
     fi;
 
 #############
-# CHECK
-#############
-
-check-voxygen:
-  stage: check
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - (cd voxygen && RUSTFLAGS="-D warnings" cargo check)
-
-check-server-cli:
-  stage: check
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - (cd server-cli && RUSTFLAGS="-D warnings" cargo check)
-
-#############
-# TEST
-#############
-
-unittests:
-  stage: test
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo test
-
-benchmarktests:
-  stage: test
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo bench
-  allow_failure: true
-
-
-#############
-# POST-BUILD
-#############
-
-clean-code:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo fmt --all -- --check
-
-# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
-# # https://github.com/rust-lang/rust/issues/58375
-# coverage:
-#   stage: post-build
-#   image: registry.gitlab.com/veloren/veloren-docker-ci
-#   tags:
-#     - veloren-docker
-#   script:
-#     - cargo tarpaulin --all
-#   allow_failure: true
-
-# For now, Clippy will just care about performance improvements as much of the
-# codebase is not in a place that cleaning warnings will be benificial
-clippy:
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  script:
-    - cargo clippy -- -W clippy::all
-
-#############
-# Commit build
-#############
-
-.commit: &commit
-  stage: executable
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  except:
-    - schedules
-  only:
-    refs:
-      - master
-
-commit:linux-debug:
-  <<: *commit
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
-    - rm -r -f commit-build
-    - mkdir commit-build
-    - cp target/debug/veloren-server-cli commit-build
-    - cp target/debug/veloren-voxygen commit-build
-    - cp -r assets commit-build/
-    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
-    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - commit-linux-debug.tar.bz2
-    expire_in: 1 week
-
-commit:windows-debug:
-  <<: *commit
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - rm -r -f commit-build
-    - mkdir commit-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe commit-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
-    - cp -r assets commit-build/
-    - zip -r bin/commit-windows-debug.zip commit-build
-    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - commit-windows-debug.zip
-    expire_in: 1 week
-
-#############
 # Optional build
 #############
 
 .optional: &optional
-  stage: executable
+  stage: optional-builds
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
@@ -214,7 +89,7 @@ optional:windows-debug:
 #############
 
 .optional-release: &optional-release
-  stage: executable
+  stage: optional-builds
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
@@ -257,11 +132,127 @@ optional-release:windows-debug:
     expire_in: 1 month
 
 #############
+# CHECK
+#############
+
+check-voxygen:
+  stage: check-compile
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - (cd voxygen && RUSTFLAGS="-D warnings" cargo check)
+
+check-server-cli:
+  stage: check-compile
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - (cd server-cli && RUSTFLAGS="-D warnings" cargo check)
+
+#############
+# POST-BUILD
+#############
+
+unittests:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - cargo test
+
+benchmarktests:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - cargo bench
+  allow_failure: true
+
+clean-code:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - cargo fmt --all -- --check
+
+# # Coverage needs to be disabled until an issue in the Rust compiler is fixed
+# # https://github.com/rust-lang/rust/issues/58375
+# coverage:
+#   stage: post-build
+#   image: registry.gitlab.com/veloren/veloren-docker-ci
+#   tags:
+#     - veloren-docker
+#   script:
+#     - cargo tarpaulin --all
+#   allow_failure: true
+
+# For now, Clippy will just care about performance improvements as much of the
+# codebase is not in a place that cleaning warnings will be benificial
+
+clippy:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - cargo clippy -- -W clippy::all
+
+.commit: &commit
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  except:
+    - schedules
+  only:
+    refs:
+      - master
+
+commit:linux-debug:
+  <<: *commit
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
+    - rm -r -f commit-build
+    - mkdir commit-build
+    - cp target/debug/veloren-server-cli commit-build
+    - cp target/debug/veloren-voxygen commit-build
+    - cp -r assets commit-build/
+    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
+    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - commit-linux-debug.tar.bz2
+    expire_in: 1 week
+
+commit:windows-debug:
+  <<: *commit
+  script:
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
+    - rm -r -f commit-build
+    - mkdir commit-build
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe commit-build
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
+    - cp -r assets commit-build/
+    - zip -r bin/commit-windows-debug.zip commit-build
+    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
+  artifacts:
+    paths:
+      - commit-windows-debug.zip
+    expire_in: 1 week
+
+#############
 # NIGHTLY
 #############
 
 .nightly: &nightly
-  stage: executable
+  stage: post-build
   image: registry.gitlab.com/veloren/veloren-docker-ci
   tags:
     - veloren-docker
