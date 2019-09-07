@@ -12,12 +12,12 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostBox,
     state::{State, Uid},
-    terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize},
-    vol::VolSize,
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize},
+    vol::RectVolSize,
     ChatType,
 };
 use hashbrown::HashMap;
-use log::{info, log_enabled, warn};
+use log::warn;
 use std::{
     net::SocketAddr,
     sync::Arc,
@@ -210,7 +210,7 @@ impl Client {
                 .cloned()?
                 .0,
         )
-        .map2(Vec2::from(TerrainChunkSize::SIZE), |e: f32, sz| {
+        .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {
             (e as u32).div_euclid(sz) as i32
         });
 
@@ -398,6 +398,7 @@ impl Client {
             }
         }
 
+        /*
         // Output debug metrics
         if log_enabled!(log::Level::Info) && self.tick % 600 == 0 {
             let metrics = self
@@ -407,6 +408,7 @@ impl Client {
                 .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
             info!("{:?}", metrics);
         }
+        */
 
         // 7) Finish the tick, pass control back to the frontend.
         self.tick += 1;

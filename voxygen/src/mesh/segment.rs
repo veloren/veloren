@@ -5,7 +5,7 @@ use crate::{
 use common::{
     figure::Segment,
     util::{linear_to_srgb, srgb_to_linear},
-    vol::{ReadVol, SizedVol, Vox},
+    vol::{IntoFullVolIterator, Vox},
 };
 use vek::*;
 
@@ -23,8 +23,8 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut mesh = Mesh::new();
 
-        for pos in self.iter_positions() {
-            if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
+        for (pos, vox) in self.full_vol_iter() {
+            if let Some(col) = vox.get_color() {
                 let col = col.map(|e| e as f32 / 255.0);
 
                 vol::push_vox_verts(
@@ -64,8 +64,8 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
     ) -> (Mesh<Self::Pipeline>, Mesh<Self::TranslucentPipeline>) {
         let mut mesh = Mesh::new();
 
-        for pos in self.iter_positions() {
-            if let Some(col) = self.get(pos).ok().and_then(|vox| vox.get_color()) {
+        for (pos, vox) in self.full_vol_iter() {
+            if let Some(col) = vox.get_color() {
                 let col = col.map(|e| e as f32 / 255.0);
 
                 vol::push_vox_verts(
