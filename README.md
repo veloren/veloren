@@ -34,6 +34,12 @@ As of 0.2, due to rapid developement stable versions are **outdated** and **inco
 
 If you want to compile Veloren yourself, take a look at the [How to Compile Guide](https://book.veloren.net/compile/index.html) in the book.
 
+### Packaging status
+
+#### Fedora
+
+[COPR repo](https://copr.fedorainfracloud.org/coprs/atim/veloren/): `sudo dnf copr enable atim/veloren -y && sudo dnf install veloren -y`
+
 ## F.A.Q.
 ### **Q:** How is this game licensed?
 
