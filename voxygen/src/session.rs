@@ -16,9 +16,61 @@ use common::{
     vol::ReadVol,
 };
 use log::error;
+use serde_derive::{Deserialize, Serialize};
 use specs::Join;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 use vek::*;
+
+#[derive(Serialize, Deserialize)]
+struct VoxSpec(String, [i32; 3]);
+
+#[derive(Serialize, Deserialize)]
+struct PlaceSpec {
+    pieces: Vec<VoxSpec>,
+}
+
+impl common::assets::Asset for PlaceSpec {
+    const ENDINGS: &'static [&'static str] = &["ron"];
+    fn parse(buf_reader: std::io::BufReader<std::fs::File>) -> Result<Self, common::assets::Error> {
+        Ok(ron::de::from_reader(buf_reader).expect("Error parsing place spec"))
+    }
+}
+
+impl PlaceSpec {
+    pub fn load_watched(
+        indicator: &mut common::assets::watch::ReloadIndicator,
+    ) -> std::sync::Arc<Self> {
+        common::assets::load_watched::<Self>("place", indicator).unwrap()
+    }
+    pub fn build_place(
+        &self,
+        indicator: &mut common::assets::watch::ReloadIndicator,
+    ) -> (common::figure::Segment, Vec3<i32>) {
+        use common::assets;
+        use common::figure::{DynaUnionizer, Segment};
+        use dot_vox::DotVoxData;
+        use std::sync::Arc;
+        fn graceful_load_vox(
+            name: &str,
+            indicator: &mut assets::watch::ReloadIndicator,
+        ) -> Arc<DotVoxData> {
+            match assets::load_watched::<DotVoxData>(name, indicator) {
+                Ok(dot_vox) => dot_vox,
+                Err(_) => {
+                    error!("Could not load vox file for figure: {}", name);
+                    assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
+                }
+            }
+        }
+        let mut unionizer = DynaUnionizer::new();
+        for VoxSpec(specifier, offset) in &self.pieces {
+            let seg = Segment::from(graceful_load_vox(&specifier, indicator).as_ref());
+            unionizer = unionizer.add(seg, (*offset).into());
+        }
+
+        unionizer.unify()
+    }
+}
 
 pub struct SessionState {
     scene: Scene,
@@ -106,9 +158,10 @@ impl PlayState for SessionState {
         }
 
         let mut placing_vox = false;
-        let vox = common::figure::Segment::from(
-            common::assets::load_expect::<dot_vox::DotVoxData>("place").as_ref(),
-        );
+        let mut place_indicator = common::assets::watch::ReloadIndicator::new();
+        // TODO: use offset
+        let (mut vox, _) =
+            PlaceSpec::load_watched(&mut place_indicator).build_place(&mut place_indicator);
         let mut curpos = Vec3::<i32>::zero();
         let mut placepos = Vec3::zero();
 
@@ -358,6 +411,12 @@ impl PlayState for SessionState {
             global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             if placing_vox {
+                // check if vox was reloaded
+                if place_indicator.reloaded() {
+                    vox = PlaceSpec::load_watched(&mut place_indicator)
+                        .build_place(&mut place_indicator)
+                        .0;
+                }
                 loop {
                     use common::vol::SizedVol;
                     let size = vox.get_size();
