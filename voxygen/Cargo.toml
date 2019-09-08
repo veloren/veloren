@@ -18,7 +18,7 @@ server = { package = "veloren-server", path = "../server" }
 
 # Graphics
 gfx = "0.18.1"
-gfx_device_gl = { version = "0.16.1", optional = true }
+gfx_device_gl = { version = "0.16.2", optional = true }
 gfx_window_glutin = "0.31.0"
 glutin = "0.21.0"
 winit = { version = "0.19.1", features = ["serde"] }
