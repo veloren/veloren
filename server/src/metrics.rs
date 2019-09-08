@@ -1,10 +1,9 @@
-extern crate hyper;
 extern crate prometheus;
 extern crate prometheus_static_metric;
-use hyper::rt::Future;
-use hyper::service::service_fn_ok;
-use hyper::{Body, Request, Response, Server};
+extern crate rouille;
 use prometheus::{Encoder, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
+use rouille::router;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread;
 use std::thread::JoinHandle;
 
@@ -19,30 +18,7 @@ pub struct ServerMetrics {
     pub handle: Option<JoinHandle<()>>,
 }
 
-fn metric_service(_req: Request<Body>) -> Response<Body> {
-    let encoder = TextEncoder::new();
-    let mut buffer = vec![];
-    let mf = prometheus::gather();
-    encoder.encode(&mf, &mut buffer).unwrap();
-    Response::builder()
-        .header(hyper::header::CONTENT_TYPE, encoder.format_type())
-        .body(Body::from(buffer))
-        .unwrap()
-}
-
 impl ServerMetrics {
-    /*
-    fn metric_service(&self, _req: Request<Body>) -> Response<Body> {
-        let encoder = TextEncoder::new();
-        let mut buffer = vec![];
-        let mf = self.registry.gather();
-        encoder.encode(&mf, &mut buffer).unwrap();
-        Response::builder()
-            .header(hyper::header::CONTENT_TYPE, encoder.format_type())
-            .body(Body::from(buffer))
-            .unwrap()
-    }*/
-
     pub fn new() -> Self {
         let opts = Opts::new(
             "player_online",
@@ -105,14 +81,20 @@ impl ServerMetrics {
             handle: None,
         };
 
-        let addr = ([0, 0, 0, 0], 14005).into();
-        let service = || service_fn_ok(metric_service);
-        let server = Server::bind(&addr)
-            .serve(service)
-            .map_err(|e| panic!("{}", e));
-
         let handle = thread::spawn(|| {
-            hyper::rt::run(server);
+            let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 14005);
+            rouille::start_server(addr, move |request| {
+                router!(request,
+                        (GET) (/metrics) => {
+                        let encoder = TextEncoder::new();
+                        let mut buffer = vec![];
+                        let mf = prometheus::gather();
+                        encoder.encode(&mf, &mut buffer).unwrap();
+                        rouille::Response::text(String::from_utf8(buffer).unwrap())
+                },
+                _ => rouille::Response::empty_404()
+                )
+            });
         });
         metrics.handle = Some(handle);
 
