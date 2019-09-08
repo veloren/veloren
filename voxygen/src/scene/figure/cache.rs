@@ -6,14 +6,35 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, Equipment},
+    comp::{ActionState, Body, CharacterState, Equipment, MovementState},
 };
 use hashbrown::HashMap;
+use std::mem::{discriminant, Discriminant};
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(Body, Option<Equipment>, CameraMode, Option<CharacterState>),
+    Complex(
+        Body,
+        Option<Equipment>,
+        CameraMode,
+        Option<CharacterStateCacheKey>,
+    ),
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+struct CharacterStateCacheKey {
+    movement: Discriminant<MovementState>,
+    action: Discriminant<ActionState>,
+}
+
+impl From<&CharacterState> for CharacterStateCacheKey {
+    fn from(cs: &CharacterState) -> Self {
+        Self {
+            movement: discriminant(&cs.movement),
+            action: discriminant(&cs.action),
+        }
+    }
 }
 
 pub struct FigureModelCache {
@@ -43,7 +64,7 @@ impl FigureModelCache {
                 body,
                 equipment.cloned(),
                 camera_mode,
-                character_state.cloned(),
+                character_state.map(|cs| CharacterStateCacheKey::from(cs)),
             )
         } else {
             FigureKey::Simple(body)
