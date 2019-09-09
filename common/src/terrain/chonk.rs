@@ -66,6 +66,10 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
         self.z_offset + (self.sub_chunks.len() as u32 * SubChunkSize::<S>::SIZE.z) as i32
     }
 
+    pub fn sub_chunks_len(&self) -> usize {
+        self.sub_chunks.len()
+    }
+
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
     fn sub_chunk_idx(&self, z: i32) -> i32 {

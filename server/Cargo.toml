@@ -21,3 +21,6 @@ rand = "0.7.0"
 chrono = "0.4.7"
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }
 crossbeam = "0.7.2"
+prometheus = "0.7"
+prometheus-static-metric = "0.2"
+rouille = "3.0.0"
