@@ -66,6 +66,10 @@ impl<V: Vox, S: RectVolSize, M: Clone> Chonk<V, S, M> {
         self.z_offset + (self.sub_chunks.len() as u32 * SubChunkSize::<S>::SIZE.z) as i32
     }
 
+    pub fn sub_chunks_len(&self) -> usize {
+        self.sub_chunks.len()
+    }
+
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
     fn sub_chunk_idx(&self, z: i32) -> i32 {
@@ -263,40 +267,6 @@ impl<'a, V: Vox, S: RectVolSize, M: Clone> IntoPosIterator for &'a Chonk<V, S, M
                 phantom: PhantomData,
             },
             opt_inner: None,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct ChonkMetrics {
-    chonks: usize,
-    homogeneous: usize,
-    hash: usize,
-    heterogeneous: usize,
-}
-
-impl ChonkMetrics {
-    pub fn chonks(&self) -> usize {
-        self.chonks
-    }
-    pub fn homogeneous(&self) -> usize {
-        self.homogeneous
-    }
-    pub fn hash(&self) -> usize {
-        self.hash
-    }
-    pub fn heterogeneous(&self) -> usize {
-        self.heterogeneous
-    }
-}
-
-impl Default for ChonkMetrics {
-    fn default() -> Self {
-        ChonkMetrics {
-            chonks: 0,
-            homogeneous: 0,
-            hash: 0,
-            heterogeneous: 0,
         }
     }
 }
