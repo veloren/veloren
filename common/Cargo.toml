@@ -5,7 +5,7 @@ authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Maciej Ćwięka <mc
 edition = "2018"
 
 [dependencies]
-sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"], rev = "11cdc7422568aaabd376c87242a60f636e68b40d" }
+sphynx = { git = "https://gitlab.com/veloren/sphynx.git", features = ["serde1"], rev = "ac4adf54d181339a789907acd27f61fe81daa455" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 specs = { version = "0.14.2", features = ["serde", "nightly"] }

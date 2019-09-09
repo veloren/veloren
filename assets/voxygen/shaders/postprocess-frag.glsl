@@ -163,6 +163,10 @@ vec3 hsv2rgb(vec3 c) {
 void main() {
 	vec2 uv = (f_pos + 1.0) * 0.5;
 
+	if (medium.x == 1u) {
+		uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
+	}
+
 	vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy, screen_res.xy);
 	//vec4 fxaa_color = texture(src_color, uv);
 
@@ -172,6 +176,10 @@ void main() {
 	//hsva_color.z = 1.0 - 1.0 / (1.0 * hsva_color.z + 1.0);
 	vec4 final_color = fxaa_color;
     //vec4 final_color = vec4(hsv2rgb(hsva_color.rgb), hsva_color.a);
+
+	if (medium.x == 1u) {
+		final_color *= vec4(0.2, 0.2, 0.8, 1.0);
+	}
 
 	tgt_color = vec4(final_color.rgb, 1);
 }

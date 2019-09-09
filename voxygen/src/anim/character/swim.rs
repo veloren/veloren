@@ -6,39 +6,26 @@ use std::f32::consts::PI;
 use std::ops::Mul;
 use vek::*;
 
-pub struct RunAnimation;
+pub struct SwimAnimation;
 
-impl Animation for RunAnimation {
+impl Animation for SwimAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (f32, f32, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time): Self::Dependency,
+        (velocity, orientation, global_time): Self::Dependency,
         anim_time: f64,
-        rate: &mut f32,
+        _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let speed = Vec2::<f32>::from(velocity).magnitude();
-        *rate = speed;
+        let wave = (anim_time as f32 * velocity * 1.2).sin();
+        let wave_cos = (anim_time as f32 * velocity * 1.2).cos();
 
-        let constant = 1.0;
-        let wave = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * constant as f32 * 1.2).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * constant as f32 * 1.2).sin());
-        let wave_cos = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * constant as f32 * 2.4).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * constant as f32 * 1.5).sin());
-        let wave_cos_dub = (((5.0)
-            / (1.1 + 3.9 * ((anim_time as f32 * constant as f32 * 1.5).sin()).powf(2.0 as f32)))
-        .sqrt())
-            * ((anim_time as f32 * constant as f32 * 1.5).sin());
-
-        let wave_diff = (anim_time as f32 * 0.6).sin();
+        let wave_diff = (anim_time as f32 * velocity * 0.6).sin();
+        let wave_cos_dub = (anim_time as f32 * velocity * 2.4).cos();
         let wave_stop = (anim_time as f32 * 2.6).min(PI / 2.0).sin();
         let head_look = Vec2::new(
             ((global_time + anim_time) as f32 / 2.0)
@@ -53,20 +40,18 @@ impl Animation for RunAnimation {
                 * 0.1,
         );
 
-        let ori = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
+        let vel = Vec2::from(velocity);
+        let ori = (Vec2::from(orientation)).normalized();
 
-        let tilt = if Vec2::new(ori, last_ori)
-            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
-            .map(|m| m > 0.001 && m.is_finite())
-            .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
+        let _tilt = if Vec2::new(ori, vel)
+            .map(|v| Vec2::<f32>::from(v).magnitude_squared())
+            .reduce_partial_min()
+            > 0.001
         {
-            ori.angle_between(last_ori).min(0.5)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
+            vel.normalized().dot(ori.normalized()).min(1.0).acos()
         } else {
             0.0
-        } * 1.3;
+        };
 
         next.head.offset = Vec3::new(
             0.0,
@@ -106,11 +91,11 @@ impl Animation for RunAnimation {
         next.r_hand.scale = Vec3::one();
 
         next.l_foot.offset = Vec3::new(-3.4, 0.0 + wave_cos * 1.0, 6.0 - wave_cos_dub * 0.7);
-        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.2);
+        next.l_foot.ori = Quaternion::rotation_x(-0.0 - wave_cos * 1.5);
         next.l_foot.scale = Vec3::one();
 
         next.r_foot.offset = Vec3::new(3.4, 0.0 - wave_cos * 1.0, 6.0 - wave_cos_dub * 0.7);
-        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.2);
+        next.r_foot.ori = Quaternion::rotation_x(-0.0 + wave_cos * 1.5);
         next.r_foot.scale = Vec3::one();
 
         next.weapon.offset = Vec3::new(
@@ -136,8 +121,8 @@ impl Animation for RunAnimation {
 
         next.torso.offset = Vec3::new(0.0, -0.2 + wave * -0.08, 0.4) * skeleton_attr.scaler;
         next.torso.ori =
-            Quaternion::rotation_x(wave_stop * speed * -0.06 + wave_diff * speed * -0.005)
-                * Quaternion::rotation_y(tilt);
+            Quaternion::rotation_x(wave_stop * velocity * -0.06 + wave_diff * velocity * -0.005)
+                * Quaternion::rotation_y(0.0);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next

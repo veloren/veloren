@@ -178,6 +178,7 @@ pub trait Animation {
         skeleton: &Self::Skeleton,
         dependency: Self::Dependency,
         anim_time: f64,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton;
 }
