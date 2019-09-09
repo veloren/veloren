@@ -23,7 +23,7 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, chonk::ChonkMetrics, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
@@ -617,23 +617,13 @@ impl Server {
             .with_label_values(&["sync"])
             .set((before_tick_7 - before_tick_6).as_nanos() as i64);
         self.metrics.player_online.set(self.clients.len() as i64);
-        let cm = self
-            .state
-            .terrain()
-            .iter()
-            .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
-        self.metrics
-            .chonks_count
-            .with_label_values(&["homogeneous"])
-            .set(cm.homogeneous() as i64);
-        self.metrics
-            .chonks_count
-            .with_label_values(&["hash"])
-            .set(cm.hash() as i64);
-        self.metrics
-            .chonks_count
-            .with_label_values(&["heterogeneous"])
-            .set(cm.heterogeneous() as i64);
+        let mut chonk_cnt = 0;
+        let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
+            chonk_cnt += 1;
+            a + c.sub_chunks_len()
+        });
+        self.metrics.chonks_count.set(chonk_cnt as i64);
+        self.metrics.chunks_count.set(chunk_cnt as i64);
         //self.metrics.entity_count.set(self.state.);
         self.metrics
             .tick_time
