@@ -5,11 +5,13 @@ use std::time::Duration;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MovementState {
     Stand,
+    Sit,
     Run,
     Jump,
     Glide,
     Roll { time_left: Duration },
-    //Swim,
+    Swim,
+    Climb,
 }
 
 impl MovementState {

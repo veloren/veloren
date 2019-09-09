@@ -363,6 +363,53 @@ impl Server {
                             .insert(entity, comp::ForceUpdate);
                     }
                 }
+                ServerEvent::Mount(mounter, mountee) => {
+                    if state
+                        .ecs()
+                        .read_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .is_none()
+                    {
+                        let not_mounting_yet = if let Some(comp::MountState::Unmounted) = state
+                            .ecs()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee)
+                            .cloned()
+                        {
+                            true
+                        } else {
+                            false
+                        };
+
+                        if not_mounting_yet {
+                            if let (Some(mounter_uid), Some(mountee_uid)) = (
+                                state.ecs().uid_from_entity(mounter),
+                                state.ecs().uid_from_entity(mountee),
+                            ) {
+                                state.write_component(
+                                    mountee,
+                                    comp::MountState::MountedBy(mounter_uid.into()),
+                                );
+                                state.write_component(mounter, comp::Mounting(mountee_uid.into()));
+                            }
+                        }
+                    }
+                }
+                ServerEvent::Unmount(mounter) => {
+                    let mountee_entity = state
+                        .ecs()
+                        .write_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .and_then(|mountee| state.ecs().entity_from_uid(mountee.0.into()));
+                    if let Some(mountee_entity) = mountee_entity {
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee_entity)
+                            .map(|ms| *ms = comp::MountState::Unmounted);
+                    }
+                    state.delete_component::<comp::Mounting>(mounter);
+                }
             }
 
             if let Some(entity) = todo_remove {
