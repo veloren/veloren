@@ -3197,11 +3197,10 @@ dependencies = [
 [[package]]
 name = "sphynx"
 version = "0.1.0"
-source = "git+https://gitlab.com/veloren/sphynx.git?rev=11cdc7422568aaabd376c87242a60f636e68b40d#11cdc7422568aaabd376c87242a60f636e68b40d"
+source = "git+https://gitlab.com/veloren/sphynx.git?rev=ac4adf54d181339a789907acd27f61fe81daa455#ac4adf54d181339a789907acd27f61fe81daa455"
 dependencies = [
  "serde 1.0.99 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.99 (registry+https://github.com/rust-lang/crates.io-index)",
- "shred 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "sum_type 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -3601,7 +3600,7 @@ dependencies = [
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git)",
- "sphynx 0.1.0 (git+https://gitlab.com/veloren/sphynx.git?rev=11cdc7422568aaabd376c87242a60f636e68b40d)",
+ "sphynx 0.1.0 (git+https://gitlab.com/veloren/sphynx.git?rev=ac4adf54d181339a789907acd27f61fe81daa455)",
  "vek 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -4258,7 +4257,7 @@ dependencies = [
 "checksum smithay-client-toolkit 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2ccb8c57049b2a34d2cc2b203fa785020ba0129d31920ef0d317430adaf748fa"
 "checksum specs 0.14.3 (registry+https://github.com/rust-lang/crates.io-index)" = "de65613ada4338aa7ba71eca60eca24c60483433eec0077bc4f33cfc31f4bdf0"
 "checksum specs-idvs 0.1.0 (git+https://gitlab.com/veloren/specs-idvs.git)" = "<none>"
-"checksum sphynx 0.1.0 (git+https://gitlab.com/veloren/sphynx.git?rev=11cdc7422568aaabd376c87242a60f636e68b40d)" = "<none>"
+"checksum sphynx 0.1.0 (git+https://gitlab.com/veloren/sphynx.git?rev=ac4adf54d181339a789907acd27f61fe81daa455)" = "<none>"
 "checksum spin 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 "checksum stable_deref_trait 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dba1a27d3efae4351c8051072d619e3ade2820635c3958d826bfea39d59b54c8"
 "checksum static_assertions 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "c19be23126415861cb3a23e501d34a708f7f9b2183c5252d690941c2e69199d5"

@@ -19,7 +19,12 @@ pub enum GameInput {
     MoveLeft,
     MoveRight,
     Jump,
+    Sit,
     Glide,
+    Climb,
+    ClimbDown,
+    WallLeap,
+    Mount,
     Enter,
     Command,
     Escape,
@@ -142,9 +147,24 @@ impl Window {
         map.entry(settings.controls.jump)
             .or_default()
             .push(GameInput::Jump);
+        map.entry(settings.controls.sit)
+            .or_default()
+            .push(GameInput::Sit);
         map.entry(settings.controls.glide)
             .or_default()
             .push(GameInput::Glide);
+        map.entry(settings.controls.climb)
+            .or_default()
+            .push(GameInput::Climb);
+        map.entry(settings.controls.climb_down)
+            .or_default()
+            .push(GameInput::ClimbDown);
+        map.entry(settings.controls.wall_leap)
+            .or_default()
+            .push(GameInput::WallLeap);
+        map.entry(settings.controls.mount)
+            .or_default()
+            .push(GameInput::Mount);
         map.entry(settings.controls.map)
             .or_default()
             .push(GameInput::Map);

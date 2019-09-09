@@ -131,6 +131,7 @@ impl Scene {
             self.figure_state.skeleton_mut(),
             client.state().get_time(),
             client.state().get_time(),
+            &mut 0.0,
             &SkeletonAttr::from(&body),
         );
         self.figure_state.skeleton_mut().interpolate(
@@ -145,6 +146,8 @@ impl Scene {
             1.0,
             Rgba::broadcast(1.0),
             1.0 / 60.0, // TODO: Use actual deltatime here?
+            1.0,
+            1.0,
         );
     }
 

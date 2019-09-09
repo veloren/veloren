@@ -2,12 +2,15 @@ pub mod attack;
 pub mod block;
 pub mod blockidle;
 pub mod cidle;
+pub mod climb;
 pub mod gliding;
 pub mod idle;
 pub mod jump;
 pub mod roll;
 pub mod run;
+pub mod sit;
 pub mod stand;
+pub mod swim;
 pub mod wield;
 
 // Reexports
@@ -15,12 +18,15 @@ pub use self::attack::AttackAnimation;
 pub use self::block::BlockAnimation;
 pub use self::blockidle::BlockIdleAnimation;
 pub use self::cidle::CidleAnimation;
+pub use self::climb::ClimbAnimation;
 pub use self::gliding::GlidingAnimation;
 pub use self::idle::IdleAnimation;
 pub use self::jump::JumpAnimation;
 pub use self::roll::RollAnimation;
 pub use self::run::RunAnimation;
+pub use self::sit::SitAnimation;
 pub use self::stand::StandAnimation;
+pub use self::swim::SwimAnimation;
 pub use self::wield::WieldAnimation;
 
 use super::{Bone, Skeleton};

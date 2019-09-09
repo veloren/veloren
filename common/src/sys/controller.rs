@@ -4,12 +4,16 @@ use super::{
 };
 use crate::{
     comp::{
-        item, ActionState::*, Body, CharacterState, Controller, Item, MovementState::*,
-        PhysicsState, Stats, Vel,
+        item, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
+        MovementState::*, PhysicsState, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
-use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
+use specs::{
+    saveload::{Marker, MarkerAllocator},
+    Entities, Join, Read, ReadStorage, System, WriteStorage,
+};
+use sphynx::UidAllocator;
 use std::time::Duration;
 use vek::*;
 
@@ -17,6 +21,7 @@ use vek::*;
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
+        Read<'a, UidAllocator>,
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         Read<'a, EventBus<LocalEvent>>,
@@ -31,6 +36,7 @@ impl<'a> System<'a> for Sys {
     fn run(
         &mut self,
         (
+            uid_allocator,
             entities,
             server_bus,
             local_bus,
@@ -94,6 +100,20 @@ impl<'a> System<'a> for Sys {
                 character.movement = Glide;
             } else if !controller.glide && character.movement == Glide {
                 character.movement = Jump;
+            }
+
+            // Sit
+            if controller.sit
+                && physics.on_ground
+                && character.action == Idle
+                && character.movement != Sit
+                && body.is_humanoid()
+            {
+                character.movement = Sit;
+            } else if character.movement == Sit
+                && (controller.move_dir.magnitude_squared() > 0.0 || !physics.on_ground)
+            {
+                character.movement = Run;
             }
 
             // Wield
@@ -180,8 +200,33 @@ impl<'a> System<'a> for Sys {
             }
 
             // Jump
-            if controller.jump && physics.on_ground && vel.0.z <= 0.0 {
+            if controller.jump
+                && physics.on_ground
+                && vel.0.z <= 0.0
+                && !character.movement.is_roll()
+            {
                 local_emitter.emit(LocalEvent::Jump(entity));
+            }
+
+            // Wall leap
+            if controller.wall_leap {
+                if let (Some(_wall_dir), Climb) = (physics.on_wall, character.movement) {
+                    //local_emitter.emit(LocalEvent::WallLeap { entity, wall_dir });
+                }
+            }
+
+            // Process controller events
+            for event in std::mem::replace(&mut controller.events, Vec::new()) {
+                match event {
+                    ControlEvent::Mount(mountee_uid) => {
+                        if let Some(mountee_entity) =
+                            uid_allocator.retrieve_entity_internal(mountee_uid.id())
+                        {
+                            server_emitter.emit(ServerEvent::Mount(entity, mountee_entity));
+                        }
+                    }
+                    ControlEvent::Unmount => server_emitter.emit(ServerEvent::Unmount(entity)),
+                }
             }
         }
     }

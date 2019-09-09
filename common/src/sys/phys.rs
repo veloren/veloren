@@ -1,17 +1,17 @@
 use {
     crate::{
-        comp::{Body, Ori, PhysicsState, Pos, Scale, Vel},
+        comp::{Body, Mounting, Ori, PhysicsState, Pos, Scale, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
-        terrain::TerrainGrid,
+        terrain::{Block, TerrainGrid},
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
     vek::*,
 };
 
-const GRAVITY: f32 = 9.81 * 4.0;
-
+pub const GRAVITY: f32 = 9.81 * 4.0;
+const BOUYANCY: f32 = 0.0;
 // Friction values used for linear damping. They are unitless quantities. The
 // value of these quantities must be between zero and one. They represent the
 // amount an object will slow down within 1/60th of a second. Eg. if the frction
@@ -19,6 +19,7 @@ const GRAVITY: f32 = 9.81 * 4.0;
 // be 0.99. after 1 second the speed will be 0.54, which is 0.99 ^ 60.
 const FRIC_GROUND: f32 = 0.125;
 const FRIC_AIR: f32 = 0.0125;
+const FRIC_FLUID: f32 = 0.2;
 
 // Integrates forces, calculates the new velocity based off of the old velocity
 // dt = delta time
@@ -29,11 +30,7 @@ fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f3
     // this is not linear damping, because it is proportional to the original
     // velocity this "linear" damping in in fact, quite exponential. and thus
     // must be interpolated accordingly
-    let linear_damp = if damp < 1.0 {
-        (1.0 - damp).powf(dt * 60.0)
-    } else {
-        0.0
-    };
+    let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
 
     lv.z = (lv.z - grav * dt).max(-50.0);
     lv * linear_damp
@@ -53,6 +50,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        ReadStorage<'a, Mounting>,
     );
 
     fn run(
@@ -68,18 +66,20 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            mountings,
         ): Self::SystemData,
     ) {
         let mut event_emitter = event_bus.emitter();
 
         // Apply movement inputs
-        for (entity, scale, _, mut pos, mut vel, mut _ori) in (
+        for (entity, scale, _b, mut pos, mut vel, _ori, _) in (
             &entities,
             scales.maybe(),
             &bodies,
             &mut positions,
             &mut velocities,
             &mut orientations,
+            !&mountings,
         )
             .join()
         {
@@ -102,12 +102,23 @@ impl<'a> System<'a> for Sys {
             let old_vel = *vel;
             // Integrate forces
             // Friction is assumed to be a constant dependent on location
-            let friction = if physics_state.on_ground {
-                FRIC_GROUND
+            let friction = FRIC_AIR
+                .max(if physics_state.on_ground {
+                    FRIC_GROUND
+                } else {
+                    0.0
+                })
+                .max(if physics_state.in_fluid {
+                    FRIC_FLUID
+                } else {
+                    0.0
+                });
+            let downward_force = if physics_state.in_fluid {
+                (1.0 - BOUYANCY) * GRAVITY
             } else {
-                FRIC_AIR
+                GRAVITY
             };
-            vel.0 = integrate_forces(dt.0, vel.0, GRAVITY, friction);
+            vel.0 = integrate_forces(dt.0, vel.0, downward_force, friction);
 
             // Don't move if we're not in a loaded chunk
             let pos_delta = if terrain
@@ -122,15 +133,11 @@ impl<'a> System<'a> for Sys {
             };
 
             // Function for determining whether the player at a specific position collides with the ground
-            let collision_with = |pos: Vec3<f32>, near_iter| {
+            let collision_with = |pos: Vec3<f32>, hit: fn(&Block) -> bool, near_iter| {
                 for (i, j, k) in near_iter {
                     let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-                    if terrain
-                        .get(block_pos)
-                        .map(|vox| vox.is_solid())
-                        .unwrap_or(false)
-                    {
+                    if terrain.get(block_pos).map(hit).unwrap_or(false) {
                         let player_aabb = Aabb {
                             min: pos + Vec3::new(-player_rad, -player_rad, 0.0),
                             max: pos + Vec3::new(player_rad, player_rad, player_height),
@@ -165,7 +172,9 @@ impl<'a> System<'a> for Sys {
                 const MAX_ATTEMPTS: usize = 16;
 
                 // While the player is colliding with the terrain...
-                while collision_with(pos.0, near_iter.clone()) && attempts < MAX_ATTEMPTS {
+                while collision_with(pos.0, |vox| vox.is_solid(), near_iter.clone())
+                    && attempts < MAX_ATTEMPTS
+                {
                     // Calculate the player's AABB
                     let player_aabb = Aabb {
                         min: pos.0 + Vec3::new(-player_rad, -player_rad, 0.0),
@@ -187,8 +196,6 @@ impl<'a> System<'a> for Sys {
                                 },
                             )
                         })
-                        // Determine whether the block's AABB collides with the player's AABB
-                        .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
                         // Make sure the block is actually solid
                         .filter(|(block_pos, _)| {
                             terrain
@@ -196,13 +203,13 @@ impl<'a> System<'a> for Sys {
                                 .map(|vox| vox.is_solid())
                                 .unwrap_or(false)
                         })
+                        // Determine whether the block's AABB collides with the player's AABB
+                        .filter(|(_, block_aabb)| block_aabb.collides_with_aabb(player_aabb))
                         // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                        .max_by_key(|(_, block_aabb)| {
-                            ((player_aabb
-                                .collision_vector_with_aabb(*block_aabb)
+                        .min_by_key(|(_, block_aabb)| {
+                            ((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
                                 .map(|e| e.abs())
-                                .product()
-                                + block_aabb.min.z)
+                                .sum()
                                 * 1_000_000.0) as i32
                         })
                         .expect("Collision detected, but no colliding blocks found!");
@@ -231,7 +238,7 @@ impl<'a> System<'a> for Sys {
 
                     // When the resolution direction is non-vertical, we must be colliding with a wall
                     // If the space above is free...
-                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), near_iter.clone())
+                    if !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), |vox| vox.is_solid(), near_iter.clone())
                         // ...and we're being pushed out horizontally...
                         && resolve_dir.z == 0.0
                         // ...and the vertical resolution direction is sufficiently great...
@@ -244,6 +251,7 @@ impl<'a> System<'a> for Sys {
                         // ...and there is a collision with a block beneath our current hitbox...
                         && collision_with(
                             old_pos + resolve_dir - Vec3::unit_z() * 1.05,
+                            |vox| vox.is_solid(),
                             near_iter.clone(),
                         )
                     {
@@ -274,8 +282,11 @@ impl<'a> System<'a> for Sys {
             if on_ground {
                 physics_state.on_ground = true;
             // If the space below us is free, then "snap" to the ground
-            } else if collision_with(pos.0 - Vec3::unit_z() * 1.05, near_iter.clone())
-                && vel.0.z < 0.0
+            } else if collision_with(
+                pos.0 - Vec3::unit_z() * 1.05,
+                |vox| vox.is_solid(),
+                near_iter.clone(),
+            ) && vel.0.z < 0.0
                 && vel.0.z > -1.5
                 && was_on_ground
             {
@@ -283,13 +294,45 @@ impl<'a> System<'a> for Sys {
                 physics_state.on_ground = true;
             }
 
+            let dirs = [
+                Vec3::unit_x(),
+                Vec3::unit_y(),
+                -Vec3::unit_x(),
+                -Vec3::unit_y(),
+            ];
+
+            if let (wall_dir, true) = dirs.iter().fold((Vec3::zero(), false), |(a, hit), dir| {
+                if collision_with(pos.0 + *dir * 0.01, |vox| vox.is_solid(), near_iter.clone()) {
+                    (a + dir, true)
+                } else {
+                    (a, hit)
+                }
+            }) {
+                physics_state.on_wall = Some(wall_dir);
+            } else {
+                physics_state.on_wall = None;
+            }
+
+            // Figure out if we're in water
+            physics_state.in_fluid = collision_with(pos.0, |vox| vox.is_fluid(), near_iter.clone());
+
             let _ = physics_states.insert(entity, physics_state);
         }
 
         // Apply pushback
-        for (pos, scale, vel, _) in (&positions, scales.maybe(), &mut velocities, &bodies).join() {
+        for (pos, scale, vel, _, _) in (
+            &positions,
+            scales.maybe(),
+            &mut velocities,
+            &bodies,
+            !&mountings,
+        )
+            .join()
+        {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            for (pos_other, scale_other, _) in (&positions, scales.maybe(), &bodies).join() {
+            for (pos_other, scale_other, _, _) in
+                (&positions, scales.maybe(), &bodies, !&mountings).join()
+            {
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
                 let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
 

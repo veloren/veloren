@@ -13,9 +13,10 @@ use hashbrown::{HashMap, HashSet};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde_derive::{Deserialize, Serialize};
 use specs::{
+    saveload::Marker,
     shred::{Fetch, FetchMut},
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
-    Component, DispatcherBuilder, Entity as EcsEntity,
+    Component, DispatcherBuilder, Entity as EcsEntity, Join,
 };
 use sphynx;
 use std::{sync::Arc, time::Duration};
@@ -42,7 +43,7 @@ pub struct DeltaTime(pub f32);
 /// upper limit. If delta time exceeds this value, the game's physics will begin to produce time
 /// lag. Ideally, we'd avoid such a situation.
 const MAX_DELTA_TIME: f32 = 1.0;
-const HUMANOID_JUMP_ACCEL: f32 = 18.0;
+const HUMANOID_JUMP_ACCEL: f32 = 16.0;
 
 #[derive(Default)]
 pub struct BlockChange {
@@ -119,6 +120,8 @@ impl State {
         ecs.register_synced::<comp::LightEmitter>();
         ecs.register_synced::<comp::Item>();
         ecs.register_synced::<comp::Scale>();
+        ecs.register_synced::<comp::Mounting>();
+        ecs.register_synced::<comp::MountState>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -145,7 +148,7 @@ impl State {
         ecs.register::<comp::Admin>();
 
         // Register synced resources used by the ECS.
-        ecs.add_resource_synced(TimeOfDay(0.0));
+        ecs.insert_synced(TimeOfDay(0.0));
 
         // Register unsynced resources used by the ECS.
         ecs.add_resource(Time(0.0));
@@ -169,6 +172,11 @@ impl State {
     /// Write a component attributed to a particular entity.
     pub fn write_component<C: Component>(&mut self, entity: EcsEntity, comp: C) {
         let _ = self.ecs.write_storage().insert(entity, comp);
+    }
+
+    /// Delete a component attributed to a particular entity.
+    pub fn delete_component<C: Component>(&mut self, entity: EcsEntity) -> Option<C> {
+        self.ecs.write_storage().remove(entity)
     }
 
     /// Read a component attributed to a particular entity.
@@ -289,6 +297,68 @@ impl State {
         // Beyond a delta time of MAX_DELTA_TIME, start lagging to avoid skipping important physics events.
         self.ecs.write_resource::<DeltaTime>().0 = dt.as_secs_f32().min(MAX_DELTA_TIME);
 
+        // Mounted entities. We handle this here because we need access to the Uid registry and I
+        // forgot how to access that within a system. Anyhow, here goes.
+        for (entity, mount_state) in (
+            &self.ecs.entities(),
+            &mut self.ecs.write_storage::<comp::MountState>(),
+        )
+            .join()
+        {
+            match mount_state {
+                comp::MountState::Unmounted => {}
+                comp::MountState::MountedBy(mounter) => {
+                    if let Some((controller, mounter)) =
+                        self.ecs.entity_from_uid(mounter.id()).and_then(|mounter| {
+                            self.ecs
+                                .read_storage::<comp::Controller>()
+                                .get(mounter)
+                                .cloned()
+                                .map(|x| (x, mounter))
+                        })
+                    {
+                        let pos = self.ecs.read_storage::<comp::Pos>().get(entity).copied();
+                        let ori = self.ecs.read_storage::<comp::Ori>().get(entity).copied();
+                        let vel = self.ecs.read_storage::<comp::Vel>().get(entity).copied();
+                        if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
+                            let _ = self
+                                .ecs
+                                .write_storage()
+                                .insert(mounter, comp::Pos(pos.0 + Vec3::unit_z() * 1.0));
+                            let _ = self.ecs.write_storage().insert(mounter, ori);
+                            let _ = self.ecs.write_storage().insert(mounter, vel);
+                        }
+                        let _ = self
+                            .ecs
+                            .write_storage::<comp::Controller>()
+                            .insert(entity, controller);
+                    } else {
+                        *mount_state = comp::MountState::Unmounted;
+                    }
+                }
+            }
+        }
+
+        let mut to_unmount = Vec::new();
+        for (entity, comp::Mounting(mountee)) in (
+            &self.ecs.entities(),
+            &self.ecs.read_storage::<comp::Mounting>(),
+        )
+            .join()
+        {
+            if self
+                .ecs
+                .entity_from_uid(mountee.id())
+                .filter(|mountee| self.ecs.is_alive(*mountee))
+                .is_none()
+            {
+                to_unmount.push(entity);
+            }
+        }
+        for entity in to_unmount {
+            self.ecs.write_storage::<comp::Mounting>().remove(entity);
+        }
+
         // Run systems to update the world.
         // Create and run a dispatcher for ecs systems.
         let mut dispatch_builder = DispatcherBuilder::new().with_pool(self.thread_pool.clone());
@@ -316,6 +386,7 @@ impl State {
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
+            let mut controllers = self.ecs.write_storage::<comp::Controller>();
             match event {
                 LocalEvent::LandOnGround { entity, vel } => {
                     if let Some(stats) = self.ecs.write_storage::<comp::Stats>().get_mut(entity) {
@@ -325,13 +396,26 @@ impl State {
                         }
                     }
                 }
-
                 LocalEvent::Jump(entity) => {
                     if let Some(vel) = velocities.get_mut(entity) {
                         vel.0.z = HUMANOID_JUMP_ACCEL;
                     }
                 }
-
+                LocalEvent::WallLeap { entity, wall_dir } => {
+                    if let (Some(vel), Some(_controller)) =
+                        (velocities.get_mut(entity), controllers.get_mut(entity))
+                    {
+                        let hspeed = Vec2::<f32>::from(vel.0).magnitude();
+                        if hspeed > 0.001 && hspeed < 0.5 {
+                            vel.0 += vel.0.normalized()
+                                * Vec3::new(1.0, 1.0, 0.0)
+                                * HUMANOID_JUMP_ACCEL
+                                * 1.5
+                                - wall_dir * 0.03;
+                            vel.0.z = HUMANOID_JUMP_ACCEL * 0.5;
+                        }
+                    }
+                }
                 LocalEvent::Boost {
                     entity,
                     vel: extra_vel,
