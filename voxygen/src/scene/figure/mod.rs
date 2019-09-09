@@ -23,7 +23,6 @@ use common::{
 use hashbrown::HashMap;
 use log::debug;
 use specs::{Entity as EcsEntity, Join};
-use std::time::Instant;
 use vek::*;
 
 const DAMAGE_FADE_COEFFICIENT: f64 = 5.0;
@@ -128,6 +127,9 @@ impl FigureMgr {
                 )
                 .1;
 
+            let mut movement_animation_rate = 1.0;
+            let mut action_animation_rate = 1.0;
+
             match body {
                 Body::Humanoid(_) => {
                     let state = self
@@ -140,45 +142,67 @@ impl FigureMgr {
                     };
 
                     if !character.is_same_movement(&last_character.0) {
-                        state.last_movement_change = Instant::now();
+                        state.movement_time = 0.0;
                     }
                     if !character.is_same_action(&last_character.0) {
-                        state.last_action_change = Instant::now();
+                        state.action_time = 0.0;
                     }
-
-                    let time_since_movement_change =
-                        state.last_movement_change.elapsed().as_secs_f64();
-                    let time_since_action_change = state.last_action_change.elapsed().as_secs_f64();
 
                     let target_base = match &character.movement {
                         Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             time,
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Run => anim::character::RunAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (vel.0.magnitude(), ori.0.magnitude(), time),
-                            time_since_movement_change,
+                            (vel.0, ori.0, state.last_ori, time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Jump => anim::character::JumpAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             time,
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Roll { .. } => anim::character::RollAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
                             time,
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Glide => anim::character::GlidingAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (vel.0.magnitude(), time),
-                            time_since_movement_change,
+                            (vel.0, ori.0, state.last_ori, time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Swim => anim::character::SwimAnimation::update_skeleton(
+                            &CharacterSkeleton::new(),
+                            (vel.0.magnitude(), ori.0.magnitude(), time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Climb => anim::character::ClimbAnimation::update_skeleton(
+                            &CharacterSkeleton::new(),
+                            (vel.0, ori.0, time),
+                            state.movement_time,
+                            &mut movement_animation_rate,
+                            skeleton_attr,
+                        ),
+                        Sit => anim::character::SitAnimation::update_skeleton(
+                            &CharacterSkeleton::new(),
+                            time,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                     };
@@ -187,40 +211,54 @@ impl FigureMgr {
                         (Stand, Wield { .. }) => anim::character::CidleAnimation::update_skeleton(
                             &target_base,
                             time,
-                            time_since_action_change,
+                            state.action_time,
+                            &mut action_animation_rate,
                             skeleton_attr,
                         ),
                         (Stand, Block { .. }) => {
                             anim::character::BlockIdleAnimation::update_skeleton(
                                 &target_base,
                                 time,
-                                time_since_action_change,
+                                state.action_time,
+                                &mut action_animation_rate,
                                 skeleton_attr,
                             )
                         }
                         (_, Attack { .. }) => anim::character::AttackAnimation::update_skeleton(
                             &target_base,
                             time,
-                            time_since_action_change,
+                            state.action_time,
+                            &mut action_animation_rate,
                             skeleton_attr,
                         ),
                         (_, Wield { .. }) => anim::character::WieldAnimation::update_skeleton(
                             &target_base,
                             (vel.0.magnitude(), time),
-                            time_since_action_change,
+                            state.action_time,
+                            &mut action_animation_rate,
                             skeleton_attr,
                         ),
                         (_, Block { .. }) => anim::character::BlockAnimation::update_skeleton(
                             &target_base,
                             time,
-                            time_since_action_change,
+                            state.action_time,
+                            &mut action_animation_rate,
                             skeleton_attr,
                         ),
                         _ => target_base,
                     };
                     state.skeleton.interpolate(&target_bones, dt);
 
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
                 }
                 Body::Quadruped(_) => {
                     let state = self
@@ -234,29 +272,29 @@ impl FigureMgr {
                     };
 
                     if !character.is_same_movement(&last_character.0) {
-                        state.last_movement_change = Instant::now();
+                        state.movement_time = 0.0;
                     }
-
-                    let time_since_movement_change =
-                        state.last_movement_change.elapsed().as_secs_f64();
 
                     let target_base = match character.movement {
                         Stand => anim::quadruped::IdleAnimation::update_skeleton(
                             &QuadrupedSkeleton::new(),
                             time,
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Run => anim::quadruped::RunAnimation::update_skeleton(
                             &QuadrupedSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Jump => anim::quadruped::JumpAnimation::update_skeleton(
                             &QuadrupedSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -265,7 +303,16 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_base, dt);
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
                 }
                 Body::QuadrupedMedium(_) => {
                     let state = self
@@ -281,29 +328,29 @@ impl FigureMgr {
                     };
 
                     if !character.is_same_movement(&last_character.0) {
-                        state.last_movement_change = Instant::now();
+                        state.movement_time = 0.0;
                     }
-
-                    let time_since_movement_change =
-                        state.last_movement_change.elapsed().as_secs_f64();
 
                     let target_base = match character.movement {
                         Stand => anim::quadrupedmedium::IdleAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             time,
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Run => anim::quadrupedmedium::RunAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
                         Jump => anim::quadrupedmedium::JumpAnimation::update_skeleton(
                             &QuadrupedMediumSkeleton::new(),
                             (vel.0.magnitude(), time),
-                            time_since_movement_change,
+                            state.movement_time,
+                            &mut movement_animation_rate,
                             skeleton_attr,
                         ),
 
@@ -312,7 +359,16 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_base, dt);
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
                 }
                 Body::Object(_) => {
                     let state = self
@@ -321,7 +377,16 @@ impl FigureMgr {
                         .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
 
                     state.skeleton = state.skeleton_mut().clone();
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(
+                        renderer,
+                        pos.0,
+                        ori.0,
+                        scale,
+                        col,
+                        dt,
+                        movement_animation_rate,
+                        action_animation_rate,
+                    );
                 }
             }
         }
@@ -426,11 +491,12 @@ impl FigureMgr {
 pub struct FigureState<S: Skeleton> {
     bone_consts: Consts<FigureBoneData>,
     locals: Consts<FigureLocals>,
-    last_movement_change: Instant,
-    last_action_change: Instant,
+    movement_time: f64,
+    action_time: f64,
     skeleton: S,
     pos: Vec3<f32>,
     ori: Vec3<f32>,
+    last_ori: Vec3<f32>,
 }
 
 impl<S: Skeleton> FigureState<S> {
@@ -440,11 +506,12 @@ impl<S: Skeleton> FigureState<S> {
                 .create_consts(&skeleton.compute_matrices())
                 .unwrap(),
             locals: renderer.create_consts(&[FigureLocals::default()]).unwrap(),
-            last_movement_change: Instant::now(),
-            last_action_change: Instant::now(),
+            movement_time: 0.0,
+            action_time: 0.0,
             skeleton,
             pos: Vec3::zero(),
             ori: Vec3::zero(),
+            last_ori: Vec3::zero(),
         }
     }
 
@@ -456,7 +523,11 @@ impl<S: Skeleton> FigureState<S> {
         scale: f32,
         col: Rgba<f32>,
         dt: f32,
+        movement_rate: f32,
+        action_rate: f32,
     ) {
+        self.last_ori = Lerp::lerp(self.last_ori, ori, 15.0 * dt);
+
         // Update interpolation values
         if self.pos.distance_squared(pos) < 64.0 * 64.0 {
             self.pos = Lerp::lerp(self.pos, pos, 15.0 * dt);
@@ -465,6 +536,9 @@ impl<S: Skeleton> FigureState<S> {
             self.pos = pos;
             self.ori = ori;
         }
+
+        self.movement_time += (dt * movement_rate) as f64;
+        self.action_time += (dt * action_rate) as f64;
 
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)

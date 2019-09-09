@@ -28,6 +28,15 @@ image_ids! {
         bar_content: "voxygen.element.skillbar.bar_content",
         level_up: "voxygen.element.misc_bg.level_up",
         level_down:"voxygen.element.misc_bg.level_down",
+        stamina_0:"voxygen.element.skillbar.stamina_wheel-empty",
+        stamina_1:"voxygen.element.skillbar.stamina_wheel-0",
+        stamina_2:"voxygen.element.skillbar.stamina_wheel-1",
+        stamina_3:"voxygen.element.skillbar.stamina_wheel-2",
+        stamina_4:"voxygen.element.skillbar.stamina_wheel-3",
+        stamina_5:"voxygen.element.skillbar.stamina_wheel-4",
+        stamina_6:"voxygen.element.skillbar.stamina_wheel-5",
+        stamina_7:"voxygen.element.skillbar.stamina_wheel-6",
+        stamina_8:"voxygen.element.skillbar.stamina_wheel-7",
 
         // Window Parts
         window_3: "voxygen.element.frames.window_3",
