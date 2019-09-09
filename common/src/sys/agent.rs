@@ -1,4 +1,6 @@
-use crate::comp::{Agent, CharacterState, Controller, MovementState::Glide, Pos, Stats};
+use crate::comp::{
+    Agent, CharacterState, Controller, MountState, MovementState::Glide, Pos, Stats,
+};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -13,15 +15,38 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, CharacterState>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
+        ReadStorage<'a, MountState>,
     );
 
     fn run(
         &mut self,
-        (entities, positions, stats, character_states, mut agents, mut controllers): Self::SystemData,
+        (entities, positions, stats, character_states, mut agents, mut controllers, mount_states): Self::SystemData,
     ) {
-        for (entity, pos, agent, controller) in
-            (&entities, &positions, &mut agents, &mut controllers).join()
+        for (entity, pos, agent, controller, mount_state) in (
+            &entities,
+            &positions,
+            &mut agents,
+            &mut controllers,
+            mount_states.maybe(),
+        )
+            .join()
         {
+            // Skip mounted entities
+            if mount_state
+                .map(|ms| {
+                    if let MountState::Unmounted = ms {
+                        false
+                    } else {
+                        true
+                    }
+                })
+                .unwrap_or(false)
+            {
+                continue;
+            }
+
+            controller.reset();
+
             match agent {
                 Agent::Wanderer(bearing) => {
                     *bearing += Vec2::new(rand::random::<f32>() - 0.5, rand::random::<f32>() - 0.5)
@@ -29,7 +54,7 @@ impl<'a> System<'a> for Sys {
                         - *bearing * 0.01
                         - pos.0 * 0.0002;
 
-                    if bearing.magnitude_squared() != 0.0 {
+                    if bearing.magnitude_squared() > 0.001 {
                         controller.move_dir = bearing.normalized();
                     }
                 }
@@ -47,7 +72,7 @@ impl<'a> System<'a> for Sys {
                             let dist: f32 = Vec2::from(tgt_pos - pos.0).magnitude();
                             controller.move_dir = if dist > 5.0 {
                                 Vec2::from(tgt_pos - pos.0).normalized()
-                            } else if dist < 1.5 && dist > 0.0 {
+                            } else if dist < 1.5 && dist > 0.001 {
                                 Vec2::from(pos.0 - tgt_pos).normalized()
                             } else {
                                 Vec2::zero()
@@ -82,7 +107,7 @@ impl<'a> System<'a> for Sys {
                         let dist = Vec2::<f32>::from(target_pos.0 - pos.0).magnitude();
                         if target_stats.is_dead {
                             choose_new = true;
-                        } else if dist < MIN_ATTACK_DIST {
+                        } else if dist < MIN_ATTACK_DIST && dist > 0.001 {
                             // Fight (and slowly move closer)
                             controller.move_dir =
                                 Vec2::<f32>::from(target_pos.0 - pos.0).normalized() * 0.01;
@@ -109,7 +134,7 @@ impl<'a> System<'a> for Sys {
                                 * 0.1
                                 - *bearing * 0.005;
 
-                        controller.move_dir = if bearing.magnitude_squared() > 0.1 {
+                        controller.move_dir = if bearing.magnitude_squared() > 0.001 {
                             bearing.normalized()
                         } else {
                             Vec2::zero()

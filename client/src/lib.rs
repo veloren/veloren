@@ -194,6 +194,14 @@ impl Client {
         }
     }
 
+    pub fn is_mounted(&self) -> bool {
+        self.state
+            .ecs()
+            .read_storage::<comp::Mounting>()
+            .get(self.entity)
+            .is_some()
+    }
+
     pub fn view_distance(&self) -> Option<u32> {
         self.view_distance
     }
