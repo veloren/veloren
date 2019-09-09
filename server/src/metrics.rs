@@ -8,7 +8,8 @@ use std::thread;
 use std::thread::JoinHandle;
 
 pub struct ServerMetrics {
-    pub chonks_count: IntGaugeVec,
+    pub chonks_count: IntGauge,
+    pub chunks_count: IntGauge,
     pub player_online: IntGauge,
     pub entity_count: IntGauge,
     pub tick_time: IntGaugeVec,
@@ -39,15 +40,16 @@ impl ServerMetrics {
             "number of all lights currently active on the server",
         );
         let light_count = IntGauge::with_opts(opts).unwrap();
-        let vec = IntGaugeVec::new(
-            Opts::new(
-                "chonks_count",
-                "number of all chonks currently active on the server",
-            ),
-            &["type"],
-        )
-        .unwrap();
-        let chonks_count: IntGaugeVec = IntGaugeVec::from(vec);
+        let opts = Opts::new(
+            "chonks_count",
+            "number of all chonks currently active on the server",
+        );
+        let chonks_count = IntGauge::with_opts(opts).unwrap();
+        let opts = Opts::new(
+            "chunks_count",
+            "number of all chunks currently active on the server",
+        );
+        let chunks_count = IntGauge::with_opts(opts).unwrap();
         let vec = IntGaugeVec::new(
             Opts::new("tick_time", "time in ns requiered for a tick of the server"),
             &["period"],
@@ -62,16 +64,19 @@ impl ServerMetrics {
         registry.register(Box::new(build_info.clone())).unwrap();
         //registry.register(Box::new(light_count.clone())).unwrap();
         registry.register(Box::new(chonks_count.clone())).unwrap();
+        registry.register(Box::new(chunks_count.clone())).unwrap();
         registry.register(Box::new(tick_time.clone())).unwrap();
         prometheus::register(Box::new(player_online.clone())).unwrap();
         prometheus::register(Box::new(entity_count.clone())).unwrap();
         prometheus::register(Box::new(build_info.clone())).unwrap();
         //prometheus::register(Box::new(light_count.clone())).unwrap();
         prometheus::register(Box::new(chonks_count.clone())).unwrap();
+        prometheus::register(Box::new(chunks_count.clone())).unwrap();
         prometheus::register(Box::new(tick_time.clone())).unwrap();
 
         let mut metrics = Self {
             chonks_count,
+            chunks_count,
             player_online,
             entity_count,
             tick_time,
