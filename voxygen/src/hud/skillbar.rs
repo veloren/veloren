@@ -77,7 +77,7 @@ widget_ids! {
         level_down,
         level_align,
         level_message,
-
+        stamina_wheel,
     }
 }
 
@@ -163,6 +163,37 @@ impl<'a> Widget for Skillbar<'a> {
         let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
+
+        // Stamina Wheel
+        /*
+        let stamina_percentage =
+            self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
+        if stamina_percentage < 100.0 {
+            Image::new(if stamina_percentage <= 0.1 {
+                self.imgs.stamina_0
+            } else if stamina_percentage < 12.5 {
+                self.imgs.stamina_1
+            } else if stamina_percentage < 25.0 {
+                self.imgs.stamina_2
+            } else if stamina_percentage < 37.5 {
+                self.imgs.stamina_3
+            } else if stamina_percentage < 50.0 {
+                self.imgs.stamina_4
+            } else if stamina_percentage < 62.5 {
+                self.imgs.stamina_5
+            } else if stamina_percentage < 75.0 {
+                self.imgs.stamina_6
+            } else if stamina_percentage < 87.5 {
+                self.imgs.stamina_7
+            } else {
+                self.imgs.stamina_8
+            })
+            .w_h(37.0 * 3.0, 37.0 * 3.0)
+            .mid_bottom_with_margin_on(ui.window, 150.0)
+            .set(state.ids.stamina_wheel, ui);
+        }
+        */
+
         // Level Up Message
 
         let current_level = self.stats.level.level();

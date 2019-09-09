@@ -155,7 +155,7 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
 	float max_fog = 1.0;
 
 	if (medium == 1u) {
-		mist_radius = 32.0;
+		mist_radius = 96.0;
 		min_fog = 0.0;
 	}
 
