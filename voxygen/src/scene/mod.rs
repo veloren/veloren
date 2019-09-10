@@ -7,23 +7,25 @@ use self::{
     camera::{Camera, CameraMode},
     figure::{FigureMgr, MapFigureMgr},
     sound::SoundMgr,
-    terrain::Terrain,
+    terrain::TerrainRenderer,
 };
 use crate::{
     audio::AudioFrontend,
+    mesh::terrain::{ChunkModel, ChunkModelCache},
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
     },
     window::Event,
 };
-use client::{Client, MapChunk};
+use client::{Client, MapChunk, MapGrid};
 use common::{
     comp,
-    terrain::{BlockKind, TerrainChunk},
-    vol::ReadVol,
+    terrain::{BlockKind, TerrainChunk, TerrainGrid},
+    vol::{ReadVol, RectRasterableVol},
 };
 use specs::Join;
+use std::sync::Arc;
 use vek::*;
 
 // TODO: Don't hard-code this.
@@ -45,11 +47,15 @@ struct PostProcess {
 pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
+    view_mat: Mat4<f32>,
+    proj_mat: Mat4<f32>,
     camera: Camera,
 
     skybox: Skybox,
     postprocess: PostProcess,
-    terrain: Terrain<TerrainChunk>,
+    chunk_model_cache: ChunkModelCache<TerrainChunk>,
+    terrain_renderer: TerrainRenderer,
+    loaded_chunk_models: Vec<Arc<ChunkModel>>,
     loaded_distance: f32,
 
     figure_mgr: FigureMgr,
@@ -64,6 +70,8 @@ impl Scene {
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+            view_mat: Mat4::identity(),
+            proj_mat: Mat4::identity(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             skybox: Skybox {
@@ -76,7 +84,9 @@ impl Scene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            terrain: Terrain::new(renderer),
+            chunk_model_cache: ChunkModelCache::new(),
+            terrain_renderer: TerrainRenderer::new(renderer),
+            loaded_chunk_models: Vec::new(),
             loaded_distance: 0.0,
             figure_mgr: FigureMgr::new(),
             sound_mgr: SoundMgr::new(),
@@ -169,10 +179,63 @@ impl Scene {
 
         // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
+        self.view_mat = view_mat;
+        self.proj_mat = proj_mat;
+
+        // Maintain the terrain.
+        self.chunk_model_cache.maintain(
+            client.thread_pool(),
+            renderer,
+            &client.state().terrain_journal(),
+        );
+
+        // Fetch needed chunk models.
+        self.loaded_chunk_models.clear();
+        let focus_pos = self.camera.get_focus_pos();
+        let focus_key = TerrainGrid::chunk_key(focus_pos.map(|e| e as i32));
+        let view_distance = client.view_distance().unwrap_or(0);
+        let max_allowed_loaded_distance = (view_distance * TerrainChunk::RECT_SIZE.x) as f32; // Assumes quadratic chunks.
+        let mut list_of_key_and_dist_sqared = Vec::new();
+        let max_offs = view_distance as i32 + 1;
+        for key_offs_y in -max_offs..=max_offs {
+            for key_offs_x in -max_offs..=max_offs {
+                let key = focus_key + Vec2::new(key_offs_x, key_offs_y);
+                let chunk_pos = key * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let nearest_in_chunk = Vec2::<f32>::from(focus_pos).clamped(
+                    chunk_pos.map(|e| e as f32),
+                    (chunk_pos + TerrainChunk::RECT_SIZE.map(|e| e as i32)).map(|e| e as f32),
+                );
+                let dist_squared = Vec2::from(focus_pos).distance_squared(nearest_in_chunk);
+                if dist_squared < max_allowed_loaded_distance * max_allowed_loaded_distance {
+                    list_of_key_and_dist_sqared.push((key, dist_squared));
+                }
+            }
+        }
+        list_of_key_and_dist_sqared.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap()); // Sort by `dist_squared`.
+        let mut loaded_distance = 0.0; // Assumes quadratic chunks.
+        for (key, dist_squared) in list_of_key_and_dist_sqared {
+            if let Some(chunk_model) = self.chunk_model_cache.request_model(key) {
+                if chunk_model.in_frustum(&view_mat, &proj_mat) {
+                    self.loaded_chunk_models.push(chunk_model.clone());
+                }
+                loaded_distance = dist_squared;
+                continue;
+            }
+            // After the first model where the request returned `None`, we break. This way, we
+            // always have at most 1 pending request. (In this context, pending request means that
+            // we requested a chunk model that didn't exist and the `ChunkModelCache` therefore now
+            // generates it. At some point in the future, that model will exist and only then a
+            // request will be raised for a model that's even further away.)
+            break;
+        }
+        loaded_distance = loaded_distance.sqrt();
 
         // Update chunk loaded distance smoothly for nice shader fog
-        let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0; // TODO: No magic!
-        self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
+        if self.loaded_distance < loaded_distance {
+            self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
+        } else {
+            self.loaded_distance = loaded_distance;
+        }
 
         // Update light constants
         let mut lights = (
@@ -233,18 +296,6 @@ impl Scene {
             )
             .expect("Failed to update global constants");
 
-        // Maintain the terrain.
-        self.terrain.maintain(
-            client.thread_pool(),
-            renderer,
-            &client.state().terrain_journal(),
-            client.get_tick(),
-            self.camera.get_focus_pos(),
-            self.loaded_distance,
-            view_mat,
-            proj_mat,
-        );
-
         // Maintain the figures.
         self.figure_mgr.maintain(renderer, client);
 
@@ -263,11 +314,13 @@ impl Scene {
         // Render terrain and figures.
         self.figure_mgr
             .render(renderer, client, &self.globals, &self.lights, &self.camera);
-        self.terrain.render(
+
+        self.terrain_renderer.render(
             renderer,
             &self.globals,
             &self.lights,
             self.camera.get_focus_pos(),
+            self.loaded_chunk_models.iter().cloned(),
         );
 
         renderer.render_post_process(
@@ -282,11 +335,14 @@ pub struct MapScene {
     globals: Consts<Globals>,
     terrain_globals: Consts<Globals>,
     lights: Consts<Light>,
+    terrain_view_mat: Mat4<f32>,
+    proj_mat: Mat4<f32>,
     camera: Camera,
 
     postprocess: PostProcess,
-    terrain: Terrain<MapChunk>,
-    loaded_distance: f32,
+    chunk_model_cache: ChunkModelCache<MapChunk>,
+    terrain_renderer: TerrainRenderer,
+    loaded_chunk_models: Vec<Arc<ChunkModel>>,
 
     figure_mgr: MapFigureMgr,
 }
@@ -299,7 +355,9 @@ impl MapScene {
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             terrain_globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-            lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+            terrain_view_mat: Mat4::identity(),
+            proj_mat: Mat4::identity(),
+            lights: renderer.create_consts(&[]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             postprocess: PostProcess {
@@ -308,8 +366,9 @@ impl MapScene {
                     .create_consts(&[PostProcessLocals::default()])
                     .unwrap(),
             },
-            terrain: Terrain::new(renderer),
-            loaded_distance: 0.0,
+            chunk_model_cache: ChunkModelCache::new(),
+            terrain_renderer: TerrainRenderer::new(renderer),
+            loaded_chunk_models: Vec::new(),
             figure_mgr: MapFigureMgr::new(),
         }
     }
@@ -378,6 +437,8 @@ impl MapScene {
         // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
         let terrain_view_mat = view_mat * Mat4::scaling_3d(Vec3::broadcast(4.0));
+        self.terrain_view_mat = terrain_view_mat;
+        self.proj_mat = proj_mat;
 
         // Move minimap to the top right.
         let proj_mat = Mat4::<f32>::translation_3d(Vec3::new(
@@ -385,44 +446,6 @@ impl MapScene {
             1.0 - 0.3 * self.camera().get_aspect_ratio(),
             0.0,
         )) * proj_mat;
-
-        // Update chunk loaded distance smoothly for nice shader fog
-        let loaded_distance = client.loaded_distance().unwrap_or(0) as f32 * 32.0; // TODO: No magic!
-        self.loaded_distance = (0.98 * self.loaded_distance + 0.02 * loaded_distance).max(0.01);
-
-        // Update light constants
-        let mut lights = (
-            &client.state().ecs().read_storage::<comp::Pos>(),
-            client.state().ecs().read_storage::<comp::Ori>().maybe(),
-            &client.state().ecs().read_storage::<comp::LightEmitter>(),
-        )
-            .join()
-            .filter(|(pos, _, _)| {
-                (pos.0.distance_squared(player_pos) as f32)
-                    < self.loaded_distance.powf(2.0) + LIGHT_DIST_RADIUS
-            })
-            .map(|(pos, ori, light_emitter)| {
-                let rot = {
-                    if let Some(o) = ori {
-                        Mat3::rotation_z(-o.0.x.atan2(o.0.y))
-                    } else {
-                        Mat3::identity()
-                    }
-                };
-                Light::new(
-                    pos.0 + (rot * light_emitter.offset),
-                    light_emitter.col,
-                    light_emitter.strength,
-                )
-            })
-            .collect::<Vec<_>>();
-        lights.sort_by_key(|light| {
-            Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32
-        });
-        lights.truncate(MAX_LIGHT_COUNT);
-        renderer
-            .update_consts(&mut self.lights, &lights)
-            .expect("Failed to update light constants");
 
         // Update global constants for terrain.
         renderer
@@ -437,7 +460,7 @@ impl MapScene {
                     client.state().get_time_of_day(),
                     client.state().get_time(),
                     renderer.get_resolution(),
-                    lights.len(),
+                    0, // 0 lights.
                     BlockKind::Air,
                 )],
             )
@@ -456,23 +479,35 @@ impl MapScene {
                     client.state().get_time_of_day(),
                     client.state().get_time(),
                     renderer.get_resolution(),
-                    lights.len(),
+                    0, // 0 lights.
                     BlockKind::Air,
                 )],
             )
             .expect("Failed to update global constants");
 
         // Maintain the terrain.
-        self.terrain.maintain(
-            client.thread_pool(),
-            renderer,
-            &client.map_journal(),
-            client.get_tick(),
-            self.camera.get_focus_pos() / 4.0, // Hack because the fog calculation is done in model space.
-            50.0,
-            terrain_view_mat,
-            proj_mat,
-        );
+        self.chunk_model_cache
+            .maintain(client.thread_pool(), renderer, &client.map_journal());
+
+        // Fetch needed chunk models.
+        self.loaded_chunk_models.clear();
+        let focus_pos = self.camera.get_focus_pos();
+        let focus_key = MapGrid::chunk_key((focus_pos / 4.0).map(|e| e as i32));
+        for key_offs_y in -2..=2 {
+            for key_offs_x in -2..=2 {
+                // We only use models in `-1..=1`, but we request them for `-2..=2` such that they
+                // get prefetched.
+                let key = focus_key + Vec2::new(key_offs_x, key_offs_y);
+                let model = self.chunk_model_cache.request_model(key);
+                if key_offs_x.abs() != 2 && key_offs_y.abs() != 2 {
+                    if let Some(model) = model {
+                        if model.in_frustum(&terrain_view_mat, &proj_mat) {
+                            self.loaded_chunk_models.push(model);
+                        }
+                    }
+                }
+            }
+        }
 
         // Maintain the figures.
         self.figure_mgr.maintain(renderer, client);
@@ -486,11 +521,13 @@ impl MapScene {
         // Render terrain and figures.
         self.figure_mgr
             .render(renderer, client, &self.globals, &self.lights, &self.camera);
-        self.terrain.render(
+
+        self.terrain_renderer.render(
             renderer,
             &self.terrain_globals,
             &self.lights,
-            self.camera.get_focus_pos(),
+            self.camera.get_focus_pos() / 4.0,
+            self.loaded_chunk_models.iter().cloned(),
         );
 
         renderer.render_post_process(

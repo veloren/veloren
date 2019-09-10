@@ -1,226 +1,20 @@
 use crate::{
-    mesh::Meshable,
-    render::{
-        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, SpriteInstance,
-        SpritePipeline, TerrainLocals, TerrainPipeline,
-    },
+    mesh::{terrain::ChunkModel, Meshable},
+    render::{Consts, Globals, Light, Model, Renderer, SpritePipeline},
 };
 
-use common::{
-    assets,
-    figure::Segment,
-    terrain::{Block, BlockKind},
-    vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, SizedVol, Vox, WriteVol},
-    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dChange, VolGrid2dError, VolGrid2dJournal},
-};
-use crossbeam::channel;
+use common::{assets, figure::Segment, terrain::BlockKind};
 use dot_vox::DotVoxData;
-use frustum_query::frustum::Frustum;
 use hashbrown::HashMap;
-use std::{f32, fmt::Debug, i32, marker::PhantomData, ops::Mul, time::Duration};
-use uvth::ThreadPool;
+use std::sync::Arc;
 use vek::*;
 
-struct TerrainChunk {
-    // GPU data
-    opaque_model: Model<TerrainPipeline>,
-    fluid_model: Model<FluidPipeline>,
-    sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
-    locals: Consts<TerrainLocals>,
-
-    visible: bool,
-    z_bounds: (f32, f32),
-}
-
-struct ChunkMeshState {
-    pos: Vec2<i32>,
-    started_tick: u64,
-    active_worker: Option<u64>,
-}
-
-/// A type produced by mesh worker threads corresponding to the position and mesh of a chunk.
-struct MeshWorkerResponse {
-    pos: Vec2<i32>,
-    z_bounds: (f32, f32),
-    opaque_mesh: Mesh<TerrainPipeline>,
-    fluid_mesh: Mesh<FluidPipeline>,
-    sprite_instances: HashMap<(BlockKind, usize), Vec<SpriteInstance>>,
-    started_tick: u64,
-}
-
-struct SpriteConfig {
-    variations: usize,
-    wind_sway: f32, // 1.0 is normal
-}
-
-fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
-    match kind {
-        BlockKind::LargeCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::BarrelCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::RoundCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::ShortCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::MedFlatCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::ShortFlatCactus => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-
-        BlockKind::BlueFlower => Some(SpriteConfig {
-            variations: 5,
-            wind_sway: 0.1,
-        }),
-        BlockKind::PinkFlower => Some(SpriteConfig {
-            variations: 4,
-            wind_sway: 0.1,
-        }),
-        BlockKind::RedFlower => Some(SpriteConfig {
-            variations: 2,
-            wind_sway: 0.1,
-        }),
-        BlockKind::WhiteFlower => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.1,
-        }),
-        BlockKind::YellowFlower => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.1,
-        }),
-        BlockKind::Sunflower => Some(SpriteConfig {
-            variations: 2,
-            wind_sway: 0.1,
-        }),
-
-        BlockKind::LongGrass => Some(SpriteConfig {
-            variations: 7,
-            wind_sway: 0.8,
-        }),
-        BlockKind::MediumGrass => Some(SpriteConfig {
-            variations: 5,
-            wind_sway: 0.5,
-        }),
-        BlockKind::ShortGrass => Some(SpriteConfig {
-            variations: 5,
-            wind_sway: 0.1,
-        }),
-
-        BlockKind::Apple => Some(SpriteConfig {
-            variations: 1,
-            wind_sway: 0.0,
-        }),
-        BlockKind::Mushroom => Some(SpriteConfig {
-            variations: 10,
-            wind_sway: 0.0,
-        }),
-        BlockKind::Liana => Some(SpriteConfig {
-            variations: 2,
-            wind_sway: 0.05,
-        }),
-        _ => None,
-    }
-}
-
-/// Function executed by worker threads dedicated to chunk meshing.
-fn mesh_worker<V: BaseVol<Vox = Block> + RectRasterableVol + ReadVol + Debug>(
-    pos: Vec2<i32>,
-    z_bounds: (f32, f32),
-    started_tick: u64,
-    volume: <VolGrid2d<V> as SampleVol<Aabr<i32>>>::Sample,
-    range: Aabb<i32>,
-) -> MeshWorkerResponse {
-    let (opaque_mesh, fluid_mesh) = volume.generate_mesh(range);
-    MeshWorkerResponse {
-        pos,
-        z_bounds,
-        opaque_mesh,
-        fluid_mesh,
-        // Extract sprite locations from volume
-        sprite_instances: {
-            let mut instances = HashMap::new();
-
-            for x in 0..V::RECT_SIZE.x as i32 {
-                for y in 0..V::RECT_SIZE.y as i32 {
-                    for z in z_bounds.0 as i32..z_bounds.1 as i32 + 1 {
-                        let wpos = Vec3::from(pos * V::RECT_SIZE.map(|e: u32| e as i32))
-                            + Vec3::new(x, y, z);
-
-                        let kind = volume.get(wpos).unwrap_or(&Block::empty()).kind();
-
-                        if let Some(cfg) = sprite_config_for(kind) {
-                            let seed = wpos.x * 3 + wpos.y * 7 + wpos.x * wpos.y; // Awful PRNG
-
-                            let instance = SpriteInstance::new(
-                                Mat4::identity()
-                                    .rotated_z(f32::consts::PI * 0.5 * (seed % 4) as f32)
-                                    .translated_3d(
-                                        wpos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0),
-                                    ),
-                                Rgb::broadcast(1.0),
-                                cfg.wind_sway,
-                            );
-
-                            instances
-                                .entry((kind, seed as usize % cfg.variations))
-                                .or_insert_with(|| Vec::new())
-                                .push(instance);
-                        }
-                    }
-                }
-            }
-
-            instances
-        },
-        started_tick,
-    }
-}
-
-pub struct Terrain<V> {
-    chunks: HashMap<Vec2<i32>, TerrainChunk>,
-
-    // The mpsc sender and receiver used for talking to meshing worker threads.
-    // We keep the sender component for no reason other than to clone it and send it to new workers.
-    mesh_send_tmp: channel::Sender<MeshWorkerResponse>,
-    mesh_recv: channel::Receiver<MeshWorkerResponse>,
-    mesh_todo: HashMap<Vec2<i32>, ChunkMeshState>,
-
-    // GPU data
+pub struct TerrainRenderer {
     sprite_models: HashMap<(BlockKind, usize), Model<SpritePipeline>>,
-
-    phantom: PhantomData<V>,
 }
 
-impl<
-        V: BaseVol<Vox = Block>
-            + SizedVol
-            + RectRasterableVol
-            + ReadVol
-            + WriteVol
-            + Clone
-            + Debug
-            + Send
-            + Sync
-            + 'static,
-    > Terrain<V>
-{
+impl TerrainRenderer {
     pub fn new(renderer: &mut Renderer) -> Self {
-        // Create a new mpsc (Multiple Produced, Single Consumer) pair for communicating with
-        // worker threads that are meshing chunks.
-        let (send, recv) = channel::unbounded();
-
         let mut make_model = |s, offset| {
             renderer
                 .create_model(
@@ -234,10 +28,6 @@ impl<
         };
 
         Self {
-            chunks: HashMap::default(),
-            mesh_send_tmp: send,
-            mesh_recv: recv,
-            mesh_todo: HashMap::default(),
             sprite_models: vec![
                 // Cacti
                 (
@@ -610,263 +400,58 @@ impl<
             ]
             .into_iter()
             .collect(),
-            phantom: PhantomData,
         }
     }
+}
 
-    /// Maintain terrain data. To be called once per tick.
-    pub fn maintain(
+impl TerrainRenderer {
+    pub fn render<I: Iterator<Item = Arc<ChunkModel>> + Clone>(
         &mut self,
-        thread_pool: &ThreadPool,
-        renderer: &mut Renderer,
-        grid_journal: &VolGrid2dJournal<V>,
-        current_tick: u64,
-        focus_pos: Vec3<f32>,
-        loaded_distance: f32,
-        view_mat: Mat4<f32>,
-        proj_mat: Mat4<f32>,
-    ) {
-        // Add any recently created or changed chunks to the list of chunks to be meshed.
-        for (pos, c) in grid_journal.previous_changes() {
-            // TODO: ANOTHER PROBLEM HERE!
-            // What happens if the block on the edge of a chunk gets modified? We need to spawn
-            // a mesh worker to remesh its neighbour(s) too since their ambient occlusion and face
-            // elision information changes too!
-            if let VolGrid2dChange::<V>::Insert(_) = c {
-                for i in -1..=1 {
-                    'outer: for j in -1..=1 {
-                        let pos = pos + Vec2::new(i, j);
-
-                        if !self.chunks.contains_key(&pos)
-                            || grid_journal.grid().get_key(pos).is_some()
-                        {
-                            for i in -1..=1 {
-                                for j in -1..=1 {
-                                    if grid_journal.grid().get_key(pos + Vec2::new(i, j)).is_none()
-                                    {
-                                        continue 'outer;
-                                    }
-                                }
-                            }
-
-                            self.mesh_todo.insert(
-                                pos,
-                                ChunkMeshState {
-                                    pos,
-                                    started_tick: current_tick,
-                                    active_worker: None,
-                                },
-                            );
-                        }
-                    }
-                }
-            } else {
-                // Remove any models for chunks that have been recently removed.
-                self.chunks.remove(pos);
-                self.mesh_todo.remove(pos);
-            }
-        }
-
-        for todo in self
-            .mesh_todo
-            .values_mut()
-            .filter(|todo| {
-                todo.active_worker
-                    .map(|worker_tick| worker_tick < todo.started_tick)
-                    .unwrap_or(true)
-            })
-            .min_by_key(|todo| todo.active_worker.unwrap_or(todo.started_tick))
-        {
-            if thread_pool.queued_jobs() > 0 {
-                break;
-            }
-
-            // Find the area of the terrain we want. Because meshing needs to compute things like
-            // ambient occlusion and edge elision, we also need the borders of the chunk's
-            // neighbours too (hence the `- 1` and `+ 1`).
-            let aabr = Aabr {
-                min: todo
-                    .pos
-                    .map2(VolGrid2d::<V>::chunk_size(), |e, sz| e * sz as i32 - 1),
-                max: todo.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                    (e + 1) * sz as i32 + 1
-                }),
-            };
-
-            // Copy out the chunk data we need to perform the meshing. We do this by taking a
-            // sample of the terrain that includes both the chunk we want and its neighbours.
-            let volume = match grid_journal.grid().sample(aabr) {
-                Ok(sample) => sample,
-                // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
-                // queue to be processed at a later date when we have its neighbours.
-                Err(VolGrid2dError::NoSuchChunk) => return,
-                _ => panic!("Unhandled edge case"),
-            };
-
-            // The region to actually mesh
-            let min_z = volume
-                .iter()
-                .fold(i32::MAX, |min, (_, chunk)| chunk.lower_bound().z.min(min));
-            let max_z = volume
-                .iter()
-                .fold(i32::MIN, |max, (_, chunk)| chunk.upper_bound().z.max(max));
-
-            let aabb = Aabb {
-                min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
-                max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 1),
-            };
-
-            // Clone various things so that they can be moved into the thread.
-            let send = self.mesh_send_tmp.clone();
-            let pos = todo.pos;
-
-            // Queue the worker thread.
-            let started_tick = todo.started_tick;
-            thread_pool.execute(move || {
-                let _ = send.send(mesh_worker(
-                    pos,
-                    (min_z as f32, max_z as f32),
-                    started_tick,
-                    volume,
-                    aabb,
-                ));
-            });
-            todo.active_worker = Some(todo.started_tick);
-        }
-
-        // Receive a chunk mesh from a worker thread and upload it to the GPU, then store it.
-        // Only pull out one chunk per frame to avoid an unacceptable amount of blocking lag due
-        // to the GPU upload. That still gives us a 60 chunks / second budget to play with.
-        if let Ok(response) = self.mesh_recv.recv_timeout(Duration::new(0, 0)) {
-            match self.mesh_todo.get(&response.pos) {
-                // It's the mesh we want, insert the newly finished model into the terrain model
-                // data structure (convert the mesh to a model first of course).
-                Some(todo) if response.started_tick <= todo.started_tick => {
-                    self.chunks.insert(
-                        response.pos,
-                        TerrainChunk {
-                            opaque_model: renderer
-                                .create_model(&response.opaque_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
-                            fluid_model: renderer
-                                .create_model(&response.fluid_mesh)
-                                .expect("Failed to upload chunk mesh to the GPU!"),
-                            sprite_instances: response
-                                .sprite_instances
-                                .into_iter()
-                                .map(|(kind, instances)| {
-                                    (
-                                        kind,
-                                        renderer.create_instances(&instances).expect(
-                                            "Failed to upload chunk sprite instances to the GPU!",
-                                        ),
-                                    )
-                                })
-                                .collect(),
-                            locals: renderer
-                                .create_consts(&[TerrainLocals {
-                                    model_offs: Vec3::from(
-                                        response.pos.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                                            e as f32 * sz as f32
-                                        }),
-                                    )
-                                    .into_array(),
-                                }])
-                                .expect("Failed to upload chunk locals to the GPU!"),
-                            visible: false,
-                            z_bounds: response.z_bounds,
-                        },
-                    );
-
-                    if response.started_tick == todo.started_tick {
-                        self.mesh_todo.remove(&response.pos);
-                    }
-                }
-                // Chunk must have been removed, or it was spawned on an old tick. Drop the mesh
-                // since it's either out of date or no longer needed.
-                _ => {}
-            }
-        }
-
-        // Construct view frustum
-        let frustum = Frustum::from_modelview_and_projection(
-            &view_mat.into_col_array(),
-            &proj_mat.into_col_array(),
-        );
-
-        // Update chunk visibility
-        let chunk_sz = V::RECT_SIZE.x as f32;
-        for (pos, chunk) in &mut self.chunks {
-            let chunk_pos = pos.map(|e| e as f32 * chunk_sz);
-
-            // Limit focus_pos to chunk bounds and ensure the chunk is within the fog boundary
-            let nearest_in_chunk = Vec2::from(focus_pos).clamped(chunk_pos, chunk_pos + chunk_sz);
-            let in_range = Vec2::<f32>::from(focus_pos).distance_squared(nearest_in_chunk)
-                < loaded_distance.powf(2.0);
-
-            // Ensure the chunk is within the view frustrum
-            let chunk_mid = Vec3::new(
-                chunk_pos.x + chunk_sz / 2.0,
-                chunk_pos.y + chunk_sz / 2.0,
-                (chunk.z_bounds.0 + chunk.z_bounds.1) * 0.5,
-            );
-            let chunk_radius = ((chunk.z_bounds.1 - chunk.z_bounds.0) / 2.0)
-                .max(chunk_sz / 2.0)
-                .powf(2.0)
-                .mul(2.0)
-                .sqrt();
-            let in_frustum = frustum.sphere_intersecting(
-                &chunk_mid.x,
-                &chunk_mid.y,
-                &chunk_mid.z,
-                &chunk_radius,
-            );
-
-            chunk.visible = in_range && in_frustum;
-        }
-    }
-
-    pub fn render(
-        &self,
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
-        focus_pos: Vec3<f32>,
+        sprite_domain_center: Vec3<f32>,
+        chunk_model_iter: I,
     ) {
         // Opaque
-        for (_, chunk) in &self.chunks {
-            if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
-            }
+        for chunk_model in chunk_model_iter.clone() {
+            renderer.render_terrain_chunk(
+                &chunk_model.opaque_model,
+                globals,
+                &chunk_model.locals,
+                lights,
+            );
         }
 
         // Terrain sprites
-        for (pos, chunk) in &self.chunks {
-            if chunk.visible {
-                const SPRITE_RENDER_DISTANCE: f32 = 128.0;
+        for chunk_model in chunk_model_iter.clone() {
+            const SPRITE_RENDER_DISTANCE: f32 = 128.0;
 
-                let chunk_center =
-                    pos.map2(V::RECT_SIZE, |e, sz: u32| (e as f32 + 0.5) * sz as f32);
-                if Vec2::from(focus_pos).distance_squared(chunk_center)
-                    < SPRITE_RENDER_DISTANCE * SPRITE_RENDER_DISTANCE
-                {
-                    for (kind, instances) in &chunk.sprite_instances {
-                        renderer.render_sprites(
-                            &self.sprite_models[&kind],
-                            globals,
-                            &instances,
-                            lights,
-                        );
-                    }
+            let chunk_center = 0.5
+                * (Vec2::<f32>::from(chunk_model.upper_bound)
+                    + Vec2::<f32>::from(chunk_model.lower_bound));
+            if Vec2::from(sprite_domain_center).distance_squared(chunk_center)
+                < SPRITE_RENDER_DISTANCE * SPRITE_RENDER_DISTANCE
+            {
+                for (kind, instances) in &chunk_model.sprite_instances {
+                    renderer.render_sprites(
+                        &self.sprite_models[&kind],
+                        globals,
+                        &instances,
+                        lights,
+                    );
                 }
             }
         }
 
         // Translucent
-        for (_, chunk) in &self.chunks {
-            if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
-            }
+        for chunk_model in chunk_model_iter.clone() {
+            renderer.render_fluid_chunk(
+                &chunk_model.fluid_model,
+                globals,
+                &chunk_model.locals,
+                lights,
+            );
         }
     }
 }
