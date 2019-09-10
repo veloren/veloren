@@ -12,6 +12,9 @@ members = [
 [profile.dev]
 opt-level = 2
 overflow-checks = false
+panic="abort"
+debug = false
+
 
 [profile.release]
 debug = true

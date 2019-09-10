@@ -848,6 +848,8 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             // let sim_chunk = sim.get(chunk_pos)?;
             let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
             let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
+            let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)?;
+            let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
             let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
             let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
             let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
@@ -855,11 +857,16 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
             let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
             let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+            let chunk = sim.get(wpos)?;
+            let downhill = chunk.downhill;
 
             Some(format!(
                 r#"wpos: {:?}
 alt_base {:?}
+alt_old {:?}
 alt {:?}
+water_alt {:?}
+downhill {:?}
 chaos {:?}
 flux {:?}
 temp {:?}
@@ -867,7 +874,7 @@ humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
-                wpos, alt_base, alt, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
+                wpos, alt_base, alt_old, alt, water_alt, downhill, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
             ))
         };
         if let Some(s) = foo() {

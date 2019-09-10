@@ -6,8 +6,9 @@ mod util;
 pub use self::location::Location;
 pub use self::settlement::Settlement;
 use self::util::{
-    alt_positions, cdf_irwin_hall, do_erosion, downhill, get_flux, map_edge_factor,
-    sort_by_height, uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
+    alt_positions, cdf_irwin_hall, do_erosion, downhill, neighbors, fill_sinks,
+    get_flux, get_lakes, map_edge_factor, /*sort_by_height, */
+    uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
     InverseCdf,
 };
 
@@ -47,7 +48,10 @@ struct GenCdf {
     temp_base: InverseCdf,
     alt_base: InverseCdf,
     chaos: InverseCdf,
+    alt_old: InverseCdf,
     alt: Box<[f32]>,
+    water_alt: Box<[f32]>,
+    dh: Box<[isize]>,
     flux: InverseCdf,
     alt_no_water: InverseCdf,
 }
@@ -94,7 +98,7 @@ pub struct WorldSim {
 
 impl WorldSim {
     pub fn generate(mut seed: u32) -> Self {
-        let mut seed = &mut seed;
+        let seed = &mut seed;
         let mut gen_seed = || {
             *seed = seed_expan::diffuse(*seed);
             *seed
@@ -197,7 +201,7 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
-        let (alt, mut alt_pos) = rayon::join(
+        let (alt_old, mut alt_pos) = rayon::join(
             || uniform_noise(|posi, wposf| {
                 // This is the extension upwards from the base added to some extra noise from -1 to
                 // 1.
@@ -238,19 +242,100 @@ impl WorldSim {
         );
 
         // Perform some erosion (maybe not needed)
+        let old_height = |posi: usize| alt_old[posi].1;
         // let v = vec![(5.0, 5.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
-        /* let v = alt.iter()
+        // let v = vec![(0.0, 0.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+        /* let v = alt_old.iter()
             .map(|&(i, j)|
-                 (i, if j < 5.0 / CONFIG.mountain_scale {
+                 (i, if j <= /*5.0 / CONFIG.mountain_scale*/0.0 {
                      j
                  } else {
-                    (5.0 + j) / CONFIG.mountain_scale
+                    /*(5.0 + j) / CONFIG.mountain_scale*/
+                     1e-7 / CONFIG.mountain_scale
                  }))
             .collect::<Vec<_>>().into_boxed_slice(); */
-        let alt = do_erosion(&alt/*v*/, &mut *alt_pos, 0.0, 8, &river_seed, &rock_strength_nz, |posi| {
-            alt[posi].1 * 0.05//0.05
-        });
+        // let v = &alt_old;
+        let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*/ old_height);
+        // Clean up streams / lakes a little, make sure we have reasonable drainage.
+        let alt = do_erosion(/*&alt_old*//*v, */&mut *alt_pos, 0.0, 50, &river_seed, &rock_strength_nz,
+                             //|posi| v[posi].1,
+                             |posi| alt[posi],
+                             /*|posi| {
+            alt_old[posi].1 * 0.05/*0.05//0.05*/
+        }*/|posi| alt_old[posi].1 * 0.05);
+        let water_alt = alt.clone();
+        // let water_alt = fill_sinks(|posi| alt[posi], /*|posi| alt_old[posi].1 * 0.05*/ old_height);
+        // let alt = fill_sinks(&alt, |posi| alt_old[posi].1 * 0.05);
+        // let alt_old_ = alt_old.par_iter().map(|&(_, h)| h).collect::<Vec<_>>().into_boxed_slice();
         // let alt = do_erosion(&alt, &mut *alt_pos, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
+
+        // Calculate flux.
+        /* let (dh, ()) = rayon::join(
+            || downhill(&alt),
+            || sort_by_height(&alt, &mut *alt_pos),
+        ); */
+        let mut dh = downhill(&water_alt, old_height);
+        let (boundary_len, indirection, water_alt_pos) = get_lakes(&water_alt, &mut dh);
+        let flux_old = get_flux(&water_alt_pos, &dh, boundary_len);
+
+        let water_factor = (1024.0 * 1024.0) / 50.0;
+        let water_alt = indirection.par_iter()
+            .enumerate()
+            .map(|(chunk_idx, &indirection_idx)| {
+                // Find the lake this point is flowing into.
+                let lake_idx = if indirection_idx < 0 {
+                    chunk_idx
+                } else {
+                    indirection_idx as usize
+                };
+                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                // pushed towards the point identified by pass_idx).
+                let pass_idx = dh[lake_idx];
+                // Find our own height.
+                let height = alt[chunk_idx];
+                let water_height = water_alt[chunk_idx];
+                if pass_idx < 0 {
+                    // println!("Really, no passes at all?");
+                    /* if dh[chunk_idx] == -2 {
+                        // Boundary node, water is at sea level.
+                        0.0
+                    } else {
+                    // Flows into the ocean, so just make this a river.
+                        water_height.max(0.0)// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0))
+                    } */
+                    0.0
+                } else {
+                    // Find the height of the node into which we are flowing.
+                    let pass_height_i = water_alt[pass_idx as usize];
+                    // Find the minimum height among all neighbors of the pass which share the
+                    // chunk's lake (this is the other half of the pass).
+                    // The pass height is the maximum of these two heights.
+                    let pass_height = neighbors(pass_idx as usize)
+                        .filter( |&neighbor_id| {
+                            let neighbor_lake_idx = if indirection_idx < 0 {
+                                chunk_idx
+                            } else {
+                                indirection_idx as usize
+                            };
+                            // Same lake
+                            neighbor_lake_idx == lake_idx
+                        })
+                        .map(|neighbor_id| pass_height_i.max(water_alt[neighbor_id]))
+                        .min_by(|hi, hj| hi.partial_cmp(hj).unwrap())
+                        .expect("If there is a pass, it should be next to a lake.");
+                    // let pass_height = pass_height_i;
+                    // Now, if we are above the point into which this lake flows, we should form a
+                    // river (stay at our surface), while if we are below it we should form a lake
+                    // (stay at the height of the pass).
+                    let water_height = /*water_height.max(*/pass_height/*)*/;// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
+                    // println!("Water at {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), water_height);
+                    water_height
+                    // water_alt[chunk_idx]
+                }
+                /* if flux_old[posi] * water_factor < 0.25 {
+                } */
+            })
+            .collect::<Vec<_>>().into_boxed_slice();
 
         // Check whether any tiles around this tile are not seawater (since Lerp will ensure that they
         // are included).
@@ -260,7 +345,8 @@ impl WorldSim {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
+                        if flux_old[posi] * water_factor < 1.0 ||
+                           alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
                             return false;
                         }
                     }
@@ -268,18 +354,11 @@ impl WorldSim {
             }
             true
         };
-
-        // Calculate flux.
-        let (dh, ()) = rayon::join(
-            || downhill(&alt),
-            || sort_by_height(&alt, &mut *alt_pos),
-        );
-        let flux = get_flux(&alt_pos, &dh);
         let flux = uniform_noise(|posi, _| {
             if sea_water(posi) {
                 None
             } else {
-                Some(flux[posi])
+                Some(flux_old[posi])
             }
         });
 
@@ -287,11 +366,14 @@ impl WorldSim {
         // are included).
         let pure_water = |posi| {
             let pos = uniform_idx_as_vec2(posi);
+            // let water_factor_diff = water_factor / 2.0;
             for x in pos.x - 1..=pos.x + 1 {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if flux[posi].0 > 0.99 || alt[posi].mul(CONFIG.mountain_scale) > 0.0 {
+                        if /*flux[posi].0 > 0.99 || *//*flux[posi].1 * water_factor < 1.0 ||*/
+                            flux_old[posi] * water_factor < 1.0 ||
+                            alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
                             return false;
                         }
                     }
@@ -301,7 +383,7 @@ impl WorldSim {
         };
 
         let (alt_no_water, (temp_base, humid_base)) = rayon::join(
-            || uniform_noise(|posi, wposf| {
+            || uniform_noise(|posi, _| {
                 if pure_water(posi) {
                     None
                 } else {
@@ -340,7 +422,10 @@ impl WorldSim {
             temp_base,
             alt_base,
             chaos,
+            alt_old,
             alt,
+            water_alt,
+            dh,
             flux,
             alt_no_water,
         };
@@ -493,12 +578,13 @@ impl WorldSim {
                 let near_towns = self.gen_ctx.town_gen.get(wpos);
                 let town = near_towns
                     .iter()
-                    .min_by_key(|(pos, seed)| wpos.distance_squared(*pos));
+                    .min_by_key(|(pos, _)| wpos.distance_squared(*pos));
 
                 if let Some((pos, _)) = town {
                     let maybe_town = maybe_towns
                         .entry(*pos)
                         .or_insert_with(|| {
+                            println!("Town: {:?}", town);
                             TownState::generate(*pos, &mut ColumnGen::new(self), &mut rng)
                                 .map(|t| Arc::new(t))
                         })
@@ -509,7 +595,6 @@ impl WorldSim {
                                 < town.radius().add(64).pow(2)
                         })
                         .cloned();
-
                     self.get_mut(chunk_pos).unwrap().structures.town = maybe_town;
                 }
             }
@@ -601,6 +686,9 @@ pub struct SimChunk {
     pub chaos: f32,
     pub alt_base: f32,
     pub alt: f32,
+    pub water_alt: f32,
+    pub downhill: Option<Vec2<i32>>,
+    pub alt_old: f32,
     pub flux: f32,
     pub temp: f32,
     pub humidity: f32,
@@ -640,10 +728,13 @@ impl SimChunk {
         let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
+        let (_, alt_old) = gen_cdf.alt_old[posi];
         let map_edge_factor = map_edge_factor(posi);
         let (_, chaos) = gen_cdf.chaos[posi];
         let (humid_uniform, _) = gen_cdf.humid_base[posi];
         let alt_pre = gen_cdf.alt[posi];
+        let water_alt_pre = gen_cdf.water_alt[posi];
+        let downhill_pre = gen_cdf.dh[posi];
         let (flux_uniform, flux) = gen_cdf.flux[posi];
         let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
@@ -684,8 +775,27 @@ impl SimChunk {
             .sea_level
             .mul(map_edge_factor)
             .add(alt_pre.mul(CONFIG.mountain_scale));
+        let water_alt = CONFIG
+            .sea_level
+            .mul(map_edge_factor)
+            .add(water_alt_pre.mul(CONFIG.mountain_scale));
+        let alt_old = CONFIG
+            .sea_level
+            .mul(map_edge_factor)
+            .add(alt_old.mul(CONFIG.mountain_scale));
+        let downhill = if downhill_pre == -2 {
+            None
+        } else {
+            Some(uniform_idx_as_vec2(downhill_pre as usize) *
+                 TerrainChunkSize::SIZE.map(|e| e as i32))
+        };
 
-        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        let water_factor = (1024.0 * 1024.0) / 50.0;
+        let cliff = if flux * water_factor >= 0.25 {
+            gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2
+        } else {
+            0.0
+        };
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f32| x.ln() - x.neg().ln_1p();
@@ -695,7 +805,7 @@ impl SimChunk {
         let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 
         // No trees in the ocean or with zero humidity (currently)
-        let tree_density = if alt <= CONFIG.sea_level + 5.0 {
+        let tree_density = if alt_old <= CONFIG.sea_level + 5.0 || flux * water_factor >= /*0.25*/1.0 {
             0.0
         } else {
             let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
@@ -726,13 +836,20 @@ impl SimChunk {
             alt_base,
             flux,
             alt,
+            water_alt,
+            downhill,
+            alt_old,
             temp,
             humidity,
-            rockiness: (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
-                .sub(0.1)
-                .mul(1.3)
-                .max(0.0),
-            is_cliffs: cliff > 0.5 && alt > CONFIG.sea_level + 5.0,
+            rockiness: if /*flux * water_factor >= 0.25*/true {
+                (gen_ctx.rock_nz.get((wposf.div(1024.0)).into_array()) as f32)
+                    .sub(0.1)
+                    .mul(1.3)
+                    .max(0.0)
+            } else {
+                0.0
+            },
+            is_cliffs: cliff > 0.5 && alt_old > CONFIG.sea_level + 5.0,
             near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > 0.0 {
@@ -816,7 +933,7 @@ impl SimChunk {
     }
 
     pub fn get_biome(&self) -> BiomeKind {
-        if self.alt < CONFIG.sea_level {
+        if self.alt_old < CONFIG.sea_level {
             BiomeKind::Ocean
         } else if self.chaos > 0.6 {
             BiomeKind::Mountain

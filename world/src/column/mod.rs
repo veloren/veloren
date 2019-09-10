@@ -76,9 +76,16 @@ impl<'a> ColumnGen<'a> {
         });
         let chunk = self.sim.get(chunk_pos)?;
 
+        /* let sea_level = if alt_old < CONFIG.sea_level {
+            CONFIG.sea_level
+        } else {
+            water_level
+        }; */
+
         if seed % 5 == 2
             && chunk.temp > CONFIG.desert_temp
-            && chunk.alt > CONFIG.sea_level + 5.0
+            // && chunk.alt_old > CONFIG.sea_level + 5.0
+            && chunk.alt > chunk.water_alt + 5.0
             && chunk.chaos <= 0.35
         {
             Some(StructureData {
@@ -129,6 +136,10 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
             e / sz as i32
         });
+        let wpos_mid = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+            (e as u32 * sz) as i32
+        });
+        let wposf_mid = wpos_mid.map(|e| e as f64);
 
         let sim = &self.sim;
 
@@ -137,17 +148,27 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
         let wposf_turb = wposf + turb.map(|e| e as f64);
+        let turb_mid = Vec2::new(
+            sim.gen_ctx.turb_x_nz.get((wposf_mid.div(48.0)).into_array()) as f32,
+            sim.gen_ctx.turb_y_nz.get((wposf_mid.div(48.0)).into_array()) as f32,
+        );
+        let wposf_turb_mid = wposf_mid + turb_mid.map(|e| e as f64);
 
         let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
+        let chaos_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
-        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
+        /* let downhill_alt = sim.get_interpolated(wpos, |chunk| {
+            sim.get(chunk.downhill).map(|chunk| chunk.alt).unwrap_or(CONFIG.sea_level)
+        })?; */
         let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
+        let humidity_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.humidity)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
 
         let sim_chunk = sim.get(chunk_pos)?;
+        // let flux = sim_chunk.flux;
 
         const RIVER_PROPORTION: f32 = 0.025;
 
@@ -168,8 +189,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .get((wposf_turb.div(128.0)).into_array()) as f32)
             .mul(24.0);
 
-        let riverless_alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?
-            + (sim
+        let riverless_alt_delta =
+            0.0
+            /*(sim
                 .gen_ctx
                 .small_nz
                 .get((wposf_turb.div(150.0)).into_array()) as f32)
@@ -183,18 +205,127 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul(1.0 - chaos)
                 .mul(1.0 - humidity)
+                .mul(96.0)*/;
+
+        let riverless_alt_delta_mid =
+            (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb_mid.div(150.0)).into_array()) as f32)
+                .abs()
+                .mul(chaos_mid.max(0.025))
+                .mul(64.0)
+            + (sim
+                .gen_ctx
+                .small_nz
+                .get((wposf_turb_mid.div(450.0)).into_array()) as f32)
+                .abs()
+                .mul(1.0 - chaos_mid)
+                .mul(1.0 - humidity_mid)
                 .mul(96.0);
 
-        let is_cliffs = sim_chunk.is_cliffs;
-        let near_cliffs = sim_chunk.near_cliffs;
-
-        let alt = riverless_alt
+        let riverless_alt_delta = riverless_alt_delta
             - (1.0 - river)
                 .mul(f32::consts::PI)
                 .cos()
                 .add(1.0)
                 .mul(0.5)
                 .mul(24.0);
+
+        let alt_orig = sim_chunk.alt;
+        let downhill = sim_chunk.downhill;
+        let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
+        let downhill_alt = downhill_pos
+            .map(|downhill_chunk| downhill_chunk.alt)
+            .unwrap_or(CONFIG.sea_level);
+        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
+        // let flux = sim_chunk.flux;
+        let downhill_flux = downhill_pos
+            .map(|downhill_chunk| downhill_chunk.flux)
+            .unwrap_or(flux);
+        /* let downhill_pos_x = sim.get_interpolated(wpos, |chunk| {
+            chunk.downhill.map(|e|
+                e.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as f32 / sz as f32)
+            ).unwrap_or(wpos.map(|e| e as f32))
+                .x
+        })?;
+        let downhill_pos_y = sim.get_interpolated(wpos, |chunk| {
+            chunk.downhill.map(|e|
+                e.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as f32 / sz as f32)
+            ).unwrap_or(wpos.map(|e| e as f32))
+                .y
+        })?;
+        let downhill_pos = Vec2::new(downhill_pos_x, downhill_pos_y).map(|e| e as i32);
+        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
+        let downhill_flux = sim.get_interpolated(downhill_pos, |chunk| chunk.flux)?; */
+        /* let downhill_flux = sim.get_interpolated(wpos, |chunk| {
+            let downhill = chunk.downhill;
+            let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
+            let downhill_alt = downhill_pos.map(|downhill_chunk| downhill_chunk.alt)
+                .unwrap_or(CONFIG.sea_level);
+            // let flux = sim.get_interpolated(chunk., |chunk| chunk.flux)?;
+            // let flux = chunk.flux;
+            let downhill_flux = downhill_pos
+                .map(|downhill_chunk| downhill_chunk.flux)
+                .unwrap_or(flux);
+            downhill_flux
+            /* Lerp::lerp(
+                downhill_flux,
+                flux,
+                (wpos - downhill.unwrap_or(wpos))
+                    .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                        e as f32 / sz as f32
+                    })
+                    // TODO: Make from 0 to 1 on diagonals.
+                    .magnitude(),
+            ) */
+        })?; */
+        let flux =
+            Lerp::lerp(
+                downhill_flux,
+                flux,
+                (wpos - downhill.unwrap_or(wpos)/*downhill_pos*/)
+                    .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                        e as f32 / sz as f32
+                    })
+                    // TODO: Make from 0 to 1 on diagonals.
+                    .magnitude(),
+            );
+
+                /*Lerp::lerp((alt - 16.0).min(alt), alt.min(alt), (1.0 - flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)),
+                (flux * water_factor - /*0.33*/0.25) * 256.0,
+                    ),*/
+
+        let water_factor = (1024.0 * 1024.0) / 50.0;
+        let alt = sim.get_interpolated(wpos, |chunk| {
+            chunk.alt
+            /* let new_alt = Lerp::lerp(chunk.alt - 5.0, chunk.alt, chunk.flux * water_factor);
+            let new_water_alt = chunk.water_alt.max(new_alt);
+            Lerp::lerp(
+                chunk.alt - 5.0,
+                new_alt,
+                chunk.alt - new_water_alt,
+            ) */
+        })? + riverless_alt_delta;
+        let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)? + riverless_alt_delta;
+        let alt_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.alt)?;
+        let water_alt_orig = sim_chunk.water_alt;// + riverless_alt_delta;
+        let water_alt = sim.get_interpolated(wpos, |chunk| {
+            chunk.water_alt
+                .max(/*Lerp::lerp(chunk.alt - 5.0, chunk.alt, chunk.flux * water_factor)*/chunk.alt - 5.0)
+        /*    Lerp::lerp(
+                water_alt/*./*max(alt_orig).*/max(alt - 5.0)*/,
+                /*alt - 5.0*/
+                alt,
+                (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
+            );
+        }*/
+
+        })?;// + riverless_alt_delta;
+        // let water_alt = sim_chunk.water_alt;// + riverless_alt_delta;
+
+        let is_cliffs = sim_chunk.is_cliffs;
+        let near_cliffs = sim_chunk.near_cliffs;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f32| x.ln() - x.neg().ln_1p();
@@ -211,20 +342,87 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             riverless_alt - 4.0 - 5.0 * chaos
         }; */ */
         // let water_level = riverless_alt - 4.0 - 5.0 * chaos;
-        let water_factor = (1024.0 * 1024.0) / 50.0;
-        let water_factor_diff = water_factor / 2.0;
-        let (alt, water_level) = (
-            Lerp::lerp(
-                   alt,
-                   Lerp::lerp(alt - 32.0, alt, (1.0 - flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)),
-                   (flux * water_factor - /*0.33*/0.25) * 256.0,
-            ),
-            /*Lerp::lerp(
-                   alt,*/
-                   Lerp::lerp(alt - 16.0, alt, (/*(flux - 0.85) / (1.0 - 0.85)*/flux) * water_factor),
-                   /*(flux - water_factor * 0.33) * 256.0,
-            ),*/
-        );
+        let water_level = water_alt;
+        let (alt, water_level) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
+            // This is flowing into the ocean.
+            if alt_orig <= CONFIG.sea_level + 5.0 {
+                (alt, CONFIG.sea_level)
+            } else {
+                (
+                    Lerp::lerp(
+                        alt,
+                        Lerp::lerp((alt - 16.0).min(alt), alt.min(alt), (1.0 - flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)),
+                        (flux * water_factor - /*0.33*/0.25) * 256.0,
+                    ),
+                    /*Lerp::lerp(
+                       alt,*/
+                       // Lerp::lerp(alt.min(water_alt), water_alt, flux * water_factor * 16.0),
+                       Lerp::lerp(alt - 16.0, alt, (/*(flux - 0.85) / (1.0 - 0.85)*/flux) * water_factor),
+                       /*(flux - water_factor * 0.33) * 256.0,*/
+                )
+            }
+        } else *//*if let Some(downhill) = downhill */{
+            // This is flowing into a lake, or a lake, or is at least a non-ocean tile.
+            //
+            // If we are <= water_alt, we are in the lake; otherwise, we are flowing into it.
+            /* if alt <= water_alt {
+                (alt - 5.0, water_alt)
+            } else */{
+                /* // Compute the delta between alt and the "real" height of the chunk.
+                let z_delta = alt - alt_orig;
+                // Also find the horizontal delta.
+                let xy_delta = wposf - wposf_mid; */
+                // Find the slope, extend it to distance 5, and then project to the z axis.
+                let new_water_alt =
+                        Lerp::lerp(
+                            water_alt/*./*max(alt_orig).*/max(alt - 5.0)*/,
+                            /*alt - 5.0*/
+                            alt,
+                            (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
+                        );
+                let new_alt =
+                    Lerp::lerp(
+                        alt,
+                        alt - 5.0,
+                        (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
+                    );
+                (
+                    Lerp::lerp(
+                        alt - 5.0,
+                        new_alt,
+                        (alt - /*5.0 - */water_alt/*.max(alt_orig)*/)/*.div(CONFIG.mountain_scale * 0.25)*/ * 1.0,
+                    ),
+                    Lerp::lerp(
+                        /*water_alt_orig*/water_alt.max(water_alt_orig)/*./*max(alt_orig).*/max(alt - 5.0)*/,
+                        new_water_alt,
+                        (alt /*- 5.0 */- water_alt/*.max(alt_orig)*/) * 1.0,
+                    ),
+                )
+                /*(
+                    Lerp::lerp(
+                        alt,
+                        Lerp::lerp(water_alt, alt, (1.0 - flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)),
+                        (alt - water_alt) * 256.0 + (flux * water_factor - /*0.33*/0.25) * 256.0,
+                    ),
+                    /*Lerp::lerp(
+                       alt,*/
+                       // Lerp::lerp(alt.min(water_alt), water_alt, flux * water_factor * 16.0),
+                       Lerp::lerp(water_alt, alt, (/*(flux - 0.85) / (1.0 - 0.85)*/flux) * water_factor),
+                       /*(flux - water_factor * 0.33) * 256.0,*/
+                )*/
+            }
+        }/* else {
+            // Ocean tile, just use sea level.
+            (alt, water_alt_orig)
+        }*/;
+
+        // let water_factor_diff = water_factor / 2.0;
+        // let water_level = water_alt;
+        // water_level is not the minimum, the minimum is lake bottom.  Have the water dry up
+        // towards the lake bottom.
+        // let water_level = water_alt;// - 1.6 - 4.0 - 5.0 * chaos;
+        // let water_level = Lerp::lerp(alt.min(water_alt), water_alt, flux * water_factor * 16.0);// - 1.6 - 4.0 - 5.0 * chaos;
+        // let water_level = Lerp::lerp((alt - riverless_alt_delta).min(water_alt), water_alt, flux * water_factor * 16.0);
 
         /*} else {
             (alt, CONFIG.sea_level)
@@ -506,9 +704,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .powf(15.0)
                 .mul(150.0);
 
+        /* let sea_level = if alt_old < CONFIG.sea_level {
+            CONFIG.sea_level
+        } else {
+            water_level
+        }; */
+
         Some(ColumnSample {
             alt,
+            alt_old,
             chaos,
+            sea_level: water_alt_orig,
             water_level,
             river,
             surface_color: Rgb::lerp(
@@ -532,7 +738,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 ),*/
                 ground,
                 // Beach
-                ((alt - CONFIG.sea_level - 1.0) / 2.0)
+                ((alt_old - CONFIG.sea_level/*alt - sea_level*/ - 1.0) / 2.0)
                     .min(1.0 - river * 2.0)
                     .max(0.0),
             ),
@@ -567,7 +773,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 #[derive(Clone)]
 pub struct ColumnSample<'a> {
     pub alt: f32,
+    pub alt_old: f32,
     pub chaos: f32,
+    pub sea_level: f32,
     pub water_level: f32,
     pub river: f32,
     pub surface_color: Rgb<f32>,
