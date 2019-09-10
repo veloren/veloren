@@ -10,6 +10,8 @@ use common::{
     msg::ServerMsg,
     npc::{get_npc_name, NpcKind},
     state::TimeOfDay,
+    terrain::TerrainChunkSize,
+    vol::RectVolSize,
 };
 use rand::Rng;
 use specs::{Builder, Entity as EcsEntity, Join};
@@ -864,7 +866,8 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
             let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
             let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
-            let chunk = sim.get(wpos)?;
+            let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+            let chunk = sim.get(chunk_pos)?;
             let downhill = chunk.downhill;
 
             Some(format!(

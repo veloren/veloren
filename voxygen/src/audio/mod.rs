@@ -111,7 +111,7 @@ impl AudioFrontend {
                 channel.set_right_ear_position(right_ear);
                 channel.play(sound);
             } else {
-                log::warn!("No available channels!");
+                // log::warn!("No available channels!");
             }
         }
 

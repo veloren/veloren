@@ -11,7 +11,7 @@ use common::{
     util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
-use std::ops::{Add, Div, Neg};
+use std::ops::{Add, Div, Neg, Mul, Sub};
 use vek::*;
 
 pub struct BlockGen<'a> {
@@ -178,13 +178,18 @@ impl<'a> BlockGen<'a> {
                 (true, alt, water_level.max(sea_level)/*water_level*/)
             } else {
                 // Apply warping
-                let warp = /*(world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
+                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
                     .mul((chaos - 0.1).max(0.0))
                     .mul(48.0)
                     + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
                         .mul((chaos - 0.1).max(0.0))
-                        .mul(24.0)*/0.0;
-                // let warp = Lerp::lerp(0.0, warp, (alt - water_level).div(5.0));
+                        .mul(24.0);
+                let warp = Lerp::lerp(
+                    0.0,
+                    warp,
+                    alt.sub(water_level).max(0.1).min(4.9).div(5.0).powi(2)
+                        .div(1.0.sub(5.0f32.powi(2))).tanh()
+                );
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
                     // Shortcut cliffs
@@ -211,7 +216,7 @@ impl<'a> BlockGen<'a> {
                     false,
                     height,
                     // water_level.max(CONFIG.sea_level),
-                    /*(water_level + warp).max(*/ (water_level + warp.min(0.0)).max(sea_level), /*)*/
+                    /*(water_level + warp).max(*/ (water_level + warp/*.min(0.0)*/).max(sea_level), /*)*/
                 )
             };
 
@@ -356,7 +361,7 @@ impl<'a> BlockGen<'a> {
 
         // Water
         let block = block.or_else(|| {
-            if (wposf.z as f32) <= water_height {
+            if (wposf.z as f32) < water_height {
                 // Ocean
                 Some(water)
             } else {

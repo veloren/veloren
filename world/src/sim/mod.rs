@@ -794,11 +794,7 @@ impl SimChunk {
         };
 
         let water_factor = (1024.0 * 1024.0) / 50.0;
-        let cliff = if flux * water_factor >= 0.25 {
-            gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2
-        } else {
-            0.0
-        };
+        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f32| x.ln() - x.neg().ln_1p();

@@ -187,8 +187,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .mul(24.0);
 
         let riverless_alt_delta =
-            0.0
-            /*(sim
+            (sim
                 .gen_ctx
                 .small_nz
                 .get((wposf_turb.div(150.0)).into_array()) as f32)
@@ -202,7 +201,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul(1.0 - chaos)
                 .mul(1.0 - humidity)
-                .mul(96.0)*/;
+                .mul(96.0);
 
         /* let riverless_alt_delta_mid =
             (sim
@@ -303,8 +302,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 new_alt,
                 chunk.alt - new_water_alt,
             ) */
-        })? + riverless_alt_delta;
-        let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)? + riverless_alt_delta;
+        })?;
+        let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)?;
         // let alt_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.alt)?;
         let water_alt_orig = sim_chunk.water_alt;// + riverless_alt_delta;
         let water_alt = sim.get_interpolated(wpos, |chunk| {
@@ -412,6 +411,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             // Ocean tile, just use sea level.
             (alt, water_alt_orig)
         }*/;
+        let riverless_alt_delta = Lerp::lerp(
+            0.0,
+            riverless_alt_delta,
+            alt.sub(water_level).max(0.1).min(4.9).div(5.0).powi(2)
+                .div(1.0.sub(5.0f32.powi(2))).tanh()
+        );
+        let alt = alt + riverless_alt_delta;
+        let alt_old = alt_old + riverless_alt_delta;
 
         // let water_factor_diff = water_factor / 2.0;
         // let water_level = water_alt;
