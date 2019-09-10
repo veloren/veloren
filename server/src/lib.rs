@@ -664,13 +664,18 @@ impl Server {
             .with_label_values(&["sync"])
             .set((before_tick_7 - before_tick_6).as_nanos() as i64);
         self.metrics.player_online.set(self.clients.len() as i64);
-        let mut chonk_cnt = 0;
-        let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
-            chonk_cnt += 1;
-            a + c.sub_chunks_len()
-        });
-        self.metrics.chonks_count.set(chonk_cnt as i64);
-        self.metrics.chunks_count.set(chunk_cnt as i64);
+        self.metrics
+            .time_of_day
+            .set(self.state.ecs().read_resource::<TimeOfDay>().0);
+        if self.metrics.is_100th_tick() {
+            let mut chonk_cnt = 0;
+            let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
+                chonk_cnt += 1;
+                a + c.sub_chunks_len()
+            });
+            self.metrics.chonks_count.set(chonk_cnt as i64);
+            self.metrics.chunks_count.set(chunk_cnt as i64);
+        }
         //self.metrics.entity_count.set(self.state.);
         self.metrics
             .tick_time
