@@ -10,7 +10,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git" }
 
 specs = { version = "0.14.2", features = ["serde", "nightly"] }
 vek = { version = "0.9.9", features = ["serde"] }
-dot_vox = "4.0.0"
+dot_vox = { git = "https://github.com/Imberflur/dot_vox.git" }
 image = "0.22.0"
 mio = "0.6.19"
 mio-extras = "2.0.5"

@@ -5,8 +5,12 @@ pub use mat_cell::Material;
 use self::cell::Cell;
 use self::mat_cell::MatCell;
 use crate::{
-    vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, WriteVol},
-    volumes::dyna::Dyna,
+    vol::{IntoFullPosIterator, IntoFullVolIterator, ReadVol, SizedVol, Vox, VolSize, WriteVol},
+    volumes::{
+        dyna::Dyna,
+        chunk::Chunk,
+        vol_grid_3d::VolGrid3d,
+    },
 };
 use dot_vox::DotVoxData;
 use vek::*;
@@ -176,5 +180,67 @@ impl From<&DotVoxData> for MatSegment {
         } else {
             Dyna::filled(Vec3::zero(), MatCell::empty(), ())
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct SscSize;
+impl VolSize for SscSize {
+    const SIZE: Vec3<u32> = Vec3 { x: 32, y: 32, z: 32 };
+}
+
+pub type SparseScene = VolGrid3d<Chunk<Cell, SscSize, ()>>;
+
+impl From<&DotVoxData> for SparseScene {
+    fn from(dot_vox_data: &DotVoxData) -> Self {
+        let mut sparse_scene = match VolGrid3d::new() {
+            Ok(ok) => ok,
+            Err(_) => panic!(),
+        };
+
+        for (transform, model_id) in &dot_vox_data.scene {
+            if let Some(model) = dot_vox_data.models.get(*model_id) {
+                let palette = dot_vox_data
+                    .palette
+                    .iter()
+                    .map(|col| Rgba::from(col.to_ne_bytes()).into())
+                    .collect::<Vec<_>>();
+                
+                // Rotation
+                let rot = Mat3::from_row_arrays(transform.r).map(|e| e as i32);
+                // Get the rotated size of the model
+                let size = rot.map(|e| e.abs() as u32) * Vec3::new(model.size.x, model.size.y, model.size.z);
+                // Position of min corner
+                let pos = Vec3::<i32>::from(transform.t)
+                    .map2(size, |m, s| (s, m))
+                    .map2(rot * Vec3::<i32>::one(), |(s, m), f| m - (s as i32 + f.min(0) * -1) / 2);
+                dbg!(pos);
+                // Insert required chunks
+                let min_key = sparse_scene.pos_key(pos);
+                let max_key = sparse_scene.pos_key(pos+size.map(|e| e as i32 - 1));
+                for x in min_key.x..=max_key.x {
+                    for y in min_key.y..=max_key.y {
+                        for z in min_key.z..=max_key.z {
+                            let key = Vec3::new(x, y, z);
+                            if sparse_scene.get_key_arc(key).is_none() {
+                                sparse_scene.insert(key, std::sync::Arc::new(Chunk::filled(Cell::empty(), ())));
+                            }
+                        }
+                    }
+                }
+
+                let offset = (rot * Vec3::new(model.size.x, model.size.y, model.size.z).map(|e| e as i32)).map(|e| if e > 0 { 0 } else { - e - 1});
+                for voxel in &model.voxels {
+                    if let Some(&color) = palette.get(voxel.i as usize) {
+                        sparse_scene.set(
+                                (rot * Vec3::new(voxel.x, voxel.y, voxel.z).map(|e| i32::from(e))) + offset + pos,
+                                Cell::new(color),
+                            )
+                            .unwrap();
+                    }
+                }
+            }
+        }
+        sparse_scene
     }
 }

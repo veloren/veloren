@@ -40,7 +40,7 @@ glsl-include = "0.3.1"
 failure = "0.1.5"
 lazy_static = "1.3.0"
 log = "0.4.8"
-dot_vox = "4.0.0"
+dot_vox = { git = "https://github.com/Imberflur/dot_vox.git" }
 image = "0.22.0"
 serde = "1.0.98"
 serde_derive = "1.0.98"

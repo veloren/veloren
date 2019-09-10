@@ -45,9 +45,10 @@ impl PlaceSpec {
     pub fn build_place(
         &self,
         indicator: &mut common::assets::watch::ReloadIndicator,
-    ) -> (common::figure::Segment, Vec3<i32>) {
+    ) -> (common::figure::SparseScene, Vec3<i32>) {
         use common::assets;
-        use common::figure::{DynaUnionizer, Segment};
+        // TODO add sparse scene combination
+        //use common::figure::{DynaUnionizer, Segment};
         use dot_vox::DotVoxData;
         use std::sync::Arc;
         fn graceful_load_vox(
@@ -57,18 +58,22 @@ impl PlaceSpec {
             match assets::load_watched::<DotVoxData>(name, indicator) {
                 Ok(dot_vox) => dot_vox,
                 Err(_) => {
-                    error!("Could not load vox file for figure: {}", name);
+                    error!("Could not load vox file for placement: {}", name);
                     assets::load_expect::<DotVoxData>("voxygen.voxel.not_found")
                 }
             }
         }
-        let mut unionizer = DynaUnionizer::new();
-        for VoxSpec(specifier, offset) in &self.pieces {
-            let seg = Segment::from(graceful_load_vox(&specifier, indicator).as_ref());
-            unionizer = unionizer.add(seg, (*offset).into());
-        }
+        //let mut unionizer = DynaUnionizer::new();
+        //for VoxSpec(specifier, offset) in &self.pieces {
+        //    let seg = Segment::from(graceful_load_vox(&specifier, indicator).as_ref());
+        //    unionizer = unionizer.add(seg, (*offset).into());
+        //}
 
-        unionizer.unify()
+        //unionizer.unify()
+        (match self.pieces.get(0) {
+            Some(VoxSpec(specifier, _offset)) => common::figure::SparseScene::from(graceful_load_vox(&specifier, indicator).as_ref()),
+            None => assets::load_expect::<DotVoxData>("voxygen.voxel.not_found").as_ref().into(),
+        }, Vec3::zero())
     }
 }
 
@@ -417,33 +422,20 @@ impl PlayState for SessionState {
                         .build_place(&mut place_indicator)
                         .0;
                 }
-                loop {
-                    use common::vol::SizedVol;
-                    let size = vox.get_size();
-                    if curpos.x < size.x as i32 - 1 {
-                        curpos.x += 1;
-                    } else if curpos.y < size.y as i32 - 1 {
-                        curpos.x = 0;
-                        curpos.y += 1;
-                    } else if curpos.z < size.z as i32 - 1 {
-                        curpos.x = 0;
-                        curpos.y = 0;
-                        curpos.z += 1;
-                    } else {
-                        placing_vox = false;
-                        break;
-                    }
-                    if placing_vox {
-                        match vox.get(curpos).map(|v| v.get_color()) {
-                            Ok(Some(color)) => self.client.borrow_mut().place_block(
-                                curpos + placepos,
-                                common::terrain::block::Block::new(BlockKind::Normal, color),
-                            ),
-                            Ok(None) => self.client.borrow_mut().remove_block(curpos + placepos),
-                            Err(_) => {}
+                use common::vol::IntoFullVolIterator;
+                for (key, chunk) in vox.iter() {
+                    for (pos, cell) in chunk.full_vol_iter() {
+                        match cell.get_color() {
+                            Some(color) => self.client.borrow_mut().place_block(
+                                    vox.key_pos(key) + pos + placepos,
+                                    common::terrain::block::Block::new(BlockKind::Normal, color),
+                                ),
+                            None => self.client.borrow_mut().remove_block(curpos + placepos),
                         }
                     }
                 }
+            
+                placing_vox = false;
             }
 
             // Extract HUD events ensuring the client borrow gets dropped.
