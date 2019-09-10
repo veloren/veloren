@@ -1,5 +1,5 @@
 use crate::{
-    hud::{BarNumbers, CrosshairType, EnBars, ShortcutNumbers, XpBar},
+    hud::{BarNumbers, CrosshairType, ShortcutNumbers, XpBar},
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -24,7 +24,12 @@ pub struct ControlSettings {
     pub move_back: KeyMouse,
     pub move_right: KeyMouse,
     pub jump: KeyMouse,
+    pub sit: KeyMouse,
     pub glide: KeyMouse,
+    pub climb: KeyMouse,
+    pub climb_down: KeyMouse,
+    pub wall_leap: KeyMouse,
+    pub mount: KeyMouse,
     pub map: KeyMouse,
     pub bag: KeyMouse,
     pub quest_log: KeyMouse,
@@ -57,7 +62,12 @@ impl Default for ControlSettings {
             move_back: KeyMouse::Key(VirtualKeyCode::S),
             move_right: KeyMouse::Key(VirtualKeyCode::D),
             jump: KeyMouse::Key(VirtualKeyCode::Space),
+            sit: KeyMouse::Key(VirtualKeyCode::K),
             glide: KeyMouse::Key(VirtualKeyCode::LShift),
+            climb: KeyMouse::Key(VirtualKeyCode::Space),
+            climb_down: KeyMouse::Key(VirtualKeyCode::LShift),
+            wall_leap: KeyMouse::Mouse(MouseButton::Middle),
+            mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
             quest_log: KeyMouse::Key(VirtualKeyCode::L),
@@ -87,7 +97,6 @@ pub struct GameplaySettings {
     pub crosshair_transp: f32,
     pub crosshair_type: CrosshairType,
     pub xp_bar: XpBar,
-    pub en_bars: EnBars,
     pub shortcut_numbers: ShortcutNumbers,
     pub bar_numbers: BarNumbers,
     pub ui_scale: ScaleMode,
@@ -101,7 +110,6 @@ impl Default for GameplaySettings {
             crosshair_transp: 0.6,
             crosshair_type: CrosshairType::Round,
             xp_bar: XpBar::OnGain,
-            en_bars: EnBars::OnLoss,
             shortcut_numbers: ShortcutNumbers::On,
             bar_numbers: BarNumbers::Off,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
@@ -182,10 +190,10 @@ impl Default for AudioSettings {
     fn default() -> Self {
         Self {
             master_volume: 1.0,
-            music_volume: 0.5,
-            sfx_volume: 0.5,
+            music_volume: 0.4,
+            sfx_volume: 0.6,
             audio_device: None,
-            audio_on: true,
+            audio_on: false,
         }
     }
 }

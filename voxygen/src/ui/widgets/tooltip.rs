@@ -1,6 +1,8 @@
+use super::image_frame::ImageFrame;
 use conrod_core::{
-    builder_method, builder_methods, input::global::Global, text, widget, widget_ids, Color,
-    Colorable, FontSize, Positionable, Sizeable, UiCell, Widget, WidgetCommon, WidgetStyle,
+    builder_method, builder_methods, image, input::global::Global, position::Dimension, text,
+    widget, widget_ids, Color, Colorable, FontSize, Positionable, Sizeable, Ui, UiCell, Widget,
+    WidgetCommon, WidgetStyle,
 };
 use std::time::{Duration, Instant};
 
@@ -87,11 +89,28 @@ impl TooltipManager {
             }
         }
     }
-    fn set_tooltip(&mut self, tooltip: Tooltip, src_id: widget::Id, ui: &mut UiCell) {
+    fn set_tooltip(
+        &mut self,
+        tooltip: &Tooltip,
+        title_text: &str,
+        desc_text: &str,
+        img_id: Option<image::Id>,
+        image_dims: Option<(f64, f64)>,
+        src_id: widget::Id,
+        ui: &mut UiCell,
+    ) {
         let tooltip_id = self.tooltip_id;
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
 
         let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
+            // Fill in text and the potential image beforehand to get an accurate size for spacing
+            let tooltip = tooltip
+                .clone()
+                .title(title_text)
+                .desc(desc_text)
+                .image(img_id)
+                .image_dims(image_dims);
+
             let [t_w, t_h] = tooltip.get_wh(ui).unwrap_or([0.0, 0.0]);
             let [m_x, m_y] = mouse_pos;
             let (w_w, w_h) = (ui.win_w, ui.win_h);
@@ -128,12 +147,32 @@ impl TooltipManager {
 pub struct Tooltipped<'a, W> {
     inner: W,
     tooltip_manager: &'a mut TooltipManager,
-    tooltip: Tooltip<'a>,
+    title_text: &'a str,
+    desc_text: &'a str,
+    img_id: Option<image::Id>,
+    image_dims: Option<(f64, f64)>,
+    tooltip: &'a Tooltip<'a>,
 }
 impl<'a, W: Widget> Tooltipped<'a, W> {
+    pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
+        self.img_id = Some(img_id);
+        self
+    }
+    pub fn tooltip_image_dims(mut self, dims: (f64, f64)) -> Self {
+        self.image_dims = Some(dims);
+        self
+    }
     pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
         let event = self.inner.set(id, ui);
-        self.tooltip_manager.set_tooltip(self.tooltip, id, ui);
+        self.tooltip_manager.set_tooltip(
+            self.tooltip,
+            self.title_text,
+            self.desc_text,
+            self.img_id,
+            self.image_dims,
+            id,
+            ui,
+        );
         event
     }
 }
@@ -143,7 +182,9 @@ pub trait Tooltipable {
     fn with_tooltip<'a>(
         self,
         tooltip_manager: &'a mut TooltipManager,
-        tooltip: Tooltip<'a>,
+        title_text: &'a str,
+        desc_text: &'a str,
+        tooltip: &'a Tooltip<'a>,
     ) -> Tooltipped<'a, Self>
     where
         Self: std::marker::Sized;
@@ -152,15 +193,32 @@ impl<W: Widget> Tooltipable for W {
     fn with_tooltip<'a>(
         self,
         tooltip_manager: &'a mut TooltipManager,
-        tooltip: Tooltip<'a>,
+        title_text: &'a str,
+        desc_text: &'a str,
+        tooltip: &'a Tooltip<'a>,
     ) -> Tooltipped<'a, W> {
         Tooltipped {
             inner: self,
             tooltip_manager,
+            title_text,
+            desc_text,
+            img_id: None,
+            image_dims: None,
             tooltip,
         }
     }
 }
+
+/// Vertical spacing between elements of the tooltip
+const V_PAD: f64 = 10.0;
+/// Horizontal spacing between elements of the tooltip
+const H_PAD: f64 = 10.0;
+/// Default portion of inner width that goes to an image
+const IMAGE_W_FRAC: f64 = 0.3;
+/// Default width multiplied by the description font size
+const DEFAULT_CHAR_W: f64 = 30.0;
+/// Text vertical spacing factor to account for overhanging text
+const TEXT_SPACE_FACTOR: f64 = 0.35;
 
 /// A widget for displaying tooltips
 #[derive(Clone, WidgetCommon)]
@@ -169,13 +227,16 @@ pub struct Tooltip<'a> {
     common: widget::CommonBuilder,
     title_text: &'a str,
     desc_text: &'a str,
+    image: Option<image::Id>,
+    image_dims: Option<(f64, f64)>,
     style: Style,
     transparency: f32,
+    image_frame: ImageFrame,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, WidgetStyle)]
 pub struct Style {
-    #[conrod(default = "theme.background_color")]
+    #[conrod(default = "Color::Rgba(1.0, 1.0, 1.0, 1.0)")]
     pub color: Option<Color>,
     title: widget::text::Style,
     desc: widget::text::Style,
@@ -186,7 +247,8 @@ widget_ids! {
     struct Ids {
         title,
         desc,
-        back_rect,
+        image_frame,
+        image,
     }
 }
 
@@ -195,13 +257,16 @@ pub struct State {
 }
 
 impl<'a> Tooltip<'a> {
-    pub fn new(title: &'a str, desc: &'a str) -> Self {
+    pub fn new(image_frame: ImageFrame) -> Self {
         Tooltip {
             common: widget::CommonBuilder::default(),
             style: Style::default(),
-            title_text: title,
-            desc_text: desc,
+            title_text: "",
+            desc_text: "",
             transparency: 1.0,
+            image_frame,
+            image: None,
+            image_dims: None,
         }
     }
 
@@ -220,7 +285,28 @@ impl<'a> Tooltip<'a> {
     //    self.justify(text::Justify::Right)
     //}
 
-    // TODO: add method(s) to make children widgets and use that to determine height in height function (and in update to draw the widgets)
+    fn text_image_width(&self, total_width: f64) -> (f64, f64) {
+        let inner_width = (total_width - H_PAD * 2.0).max(0.0);
+        // Image defaults to 30% of the width
+        let image_w = if self.image.is_some() {
+            match self.image_dims {
+                Some((w, _)) => w,
+                None => (inner_width - H_PAD).max(0.0) * IMAGE_W_FRAC,
+            }
+        } else {
+            0.0
+        };
+        // Text gets the remaining width
+        let text_w = (inner_width
+            - if self.image.is_some() {
+                image_w + H_PAD
+            } else {
+                0.0
+            })
+        .max(0.0);
+
+        (text_w, image_w)
+    }
 
     /// Specify the font used for displaying the text.
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
@@ -236,6 +322,10 @@ impl<'a> Tooltip<'a> {
         pub desc_font_size { style.desc.font_size = Some(FontSize) }
         pub title_justify { style.title.justify = Some(text::Justify) }
         pub desc_justify { style.desc.justify = Some(text::Justify) }
+        image { image = Option<image::Id> }
+        title { title_text = &'a str }
+        desc { desc_text = &'a str }
+        image_dims { image_dims = Option<(f64, f64)> }
         transparency { transparency = f32 }
     }
 }
@@ -265,41 +355,132 @@ impl<'a> Widget for Tooltip<'a> {
             ..
         } = args;
 
+        // Widths
+        let (text_w, image_w) = self.text_image_width(rect.w());
+
         // Apply transparency
         let color = style.color(ui.theme()).alpha(self.transparency);
 
-        // Background rectangle
-        widget::Rectangle::fill(rect.dim())
+        // Background image frame
+        self.image_frame
+            .wh(rect.dim())
             .xy(rect.xy())
             .graphics_for(id)
             .parent(id)
             .color(color)
-            //.floating(true)
-            .set(state.ids.back_rect, ui);
+            .set(state.ids.image_frame, ui);
+
+        // Image
+        if let Some(img_id) = self.image {
+            widget::Image::new(img_id)
+                .w_h(image_w, self.image_dims.map_or(image_w, |(_, h)| h))
+                .graphics_for(id)
+                .parent(id)
+                .color(Some(color))
+                .top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
+                .set(state.ids.image, ui);
+        }
+
+        // Spacing for overhanging text
+        let title_space = self.style.title.font_size(&ui.theme) as f64 * TEXT_SPACE_FACTOR;
 
         // Title of tooltip
-        widget::Text::new(self.title_text)
-            .w(rect.w())
-            .graphics_for(id)
-            .parent(id)
-            .top_left_with_margins_on(state.ids.back_rect, 5.0, 5.0)
-            .with_style(self.style.title)
-            // Apply transparency
-            .color(style.title.color(ui.theme()).alpha(self.transparency))
-            //.floating(true)
+        if !self.title_text.is_empty() {
+            let title = widget::Text::new(self.title_text)
+                .w(text_w)
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.title)
+                // Apply transparency
+                .color(style.title.color(ui.theme()).alpha(self.transparency));
+
+            if self.image.is_some() {
+                title
+                    .right_from(state.ids.image, H_PAD)
+                    .align_top_of(state.ids.image)
+            } else {
+                title.top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
+            }
             .set(state.ids.title, ui);
+        }
 
         // Description of tooltip
-        widget::Text::new(self.desc_text)
-            .w(rect.w())
+        let desc = widget::Text::new(self.desc_text)
+            .w(text_w)
             .graphics_for(id)
             .parent(id)
-            .down_from(state.ids.title, 10.0)
-            .with_style(self.style.desc)
             // Apply transparency
             .color(style.desc.color(ui.theme()).alpha(self.transparency))
-            // .floating(true)
-            .set(state.ids.desc, ui);
+            .with_style(self.style.desc);
+
+        if !self.title_text.is_empty() {
+            desc.down_from(state.ids.title, V_PAD * 0.5 + title_space)
+                .align_left_of(state.ids.title)
+        } else {
+            if self.image.is_some() {
+                desc.right_from(state.ids.image, H_PAD)
+                    .align_top_of(state.ids.image)
+            } else {
+                desc.top_left_with_margins_on(state.ids.image_frame, V_PAD, H_PAD)
+            }
+        }
+        .set(state.ids.desc, ui);
+    }
+
+    /// Default width is based on the description font size unless the text is small enough to fit on a single line
+    fn default_x_dimension(&self, ui: &Ui) -> Dimension {
+        let single_line_title_w = widget::Text::new(self.title_text)
+            .with_style(self.style.title)
+            .get_w(ui)
+            .unwrap_or(0.0);
+        let single_line_desc_w = widget::Text::new(self.desc_text)
+            .with_style(self.style.desc)
+            .get_w(ui)
+            .unwrap_or(0.0);
+
+        let text_w = single_line_title_w.max(single_line_desc_w);
+        let inner_w = if self.image.is_some() {
+            match self.image_dims {
+                Some((w, _)) => w + text_w + H_PAD,
+                None => text_w / (1.0 - IMAGE_W_FRAC) + H_PAD,
+            }
+        } else {
+            text_w
+        };
+
+        let width =
+            inner_w.min(self.style.desc.font_size(&ui.theme) as f64 * DEFAULT_CHAR_W) + 2.0 * H_PAD;
+        Dimension::Absolute(width)
+    }
+
+    fn default_y_dimension(&self, ui: &Ui) -> Dimension {
+        let (text_w, image_w) = self.text_image_width(self.get_w(ui).unwrap_or(0.0));
+        let title_h = if self.title_text.is_empty() {
+            0.0
+        } else {
+            widget::Text::new(self.title_text)
+                .with_style(self.style.title)
+                .w(text_w)
+                .get_h(ui)
+                .unwrap_or(0.0)
+                + self.style.title.font_size(&ui.theme) as f64 * TEXT_SPACE_FACTOR
+                + 0.5 * V_PAD
+        };
+        let desc_h = if self.desc_text.is_empty() {
+            0.0
+        } else {
+            widget::Text::new(self.desc_text)
+                .with_style(self.style.desc)
+                .w(text_w)
+                .get_h(ui)
+                .unwrap_or(0.0)
+                + self.style.desc.font_size(&ui.theme) as f64 * TEXT_SPACE_FACTOR
+        };
+        // Image defaults to square shape
+        let image_h = self.image_dims.map_or(image_w, |(_, h)| h);
+        // Title height + desc height + padding/spacing
+        let height = (title_h + desc_h).max(image_h) + 2.0 * V_PAD;
+        Dimension::Absolute(height)
     }
 }
 

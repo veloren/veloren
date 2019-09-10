@@ -1,25 +1,27 @@
-use super::{Block, BlockKind};
+use super::BlockKind;
 use crate::{
     assets::{self, Asset},
     vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol},
-    volumes::dyna::{Dyna, DynaErr},
+    volumes::dyna::{Dyna, DynaError},
 };
 use dot_vox::DotVoxData;
 use std::fs::File;
-use std::io::{BufReader, Read};
+use std::io::BufReader;
 use vek::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum StructureBlock {
     None,
     TemperateLeaves,
     PineLeaves,
     Acacia,
+    Mangrove,
     PalmLeaves,
     Water,
     GreenSludge,
     Fruit,
     Hollow,
+    Liana,
     Normal(Rgb<u8>),
 }
 
@@ -61,7 +63,7 @@ impl Structure {
     pub fn get_bounds(&self) -> Aabb<i32> {
         Aabb {
             min: -self.center,
-            max: self.vol.get_size().map(|e| e as i32) - self.center,
+            max: self.vol.size().map(|e| e as i32) - self.center,
         }
     }
 
@@ -72,7 +74,7 @@ impl Structure {
 
 impl BaseVol for Structure {
     type Vox = StructureBlock;
-    type Err = StructureError;
+    type Error = StructureError;
 }
 
 impl ReadVol for Structure {
@@ -80,7 +82,7 @@ impl ReadVol for Structure {
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, StructureError> {
         match self.vol.get(pos + self.center) {
             Ok(block) => Ok(block),
-            Err(DynaErr::OutOfBounds) => Ok(&self.empty),
+            Err(DynaError::OutOfBounds) => Ok(&self.empty),
         }
     }
 }
@@ -110,8 +112,10 @@ impl Asset for Structure {
                     2 => StructureBlock::PalmLeaves,
                     3 => StructureBlock::Water,
                     4 => StructureBlock::Acacia,
+                    5 => StructureBlock::Mangrove,
                     6 => StructureBlock::GreenSludge,
                     7 => StructureBlock::Fruit,
+                    9 => StructureBlock::Liana,
                     15 => StructureBlock::Hollow,
                     index => {
                         let color = palette

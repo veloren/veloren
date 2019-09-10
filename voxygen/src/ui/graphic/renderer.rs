@@ -1,7 +1,7 @@
 use common::{
     figure::Segment,
     util::{linear_to_srgba, srgba_to_linear},
-    vol::{ReadVol, SizedVol, Vox},
+    vol::{IntoFullVolIterator, ReadVol, SizedVol, Vox},
 };
 use euc::{buffer::Buffer2d, rasterizer, Pipeline};
 use image::{DynamicImage, RgbaImage};
@@ -58,13 +58,18 @@ impl<'a> Pipeline for Voxel {
     }
 }
 
-pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u8>) -> RgbaImage {
+pub fn draw_vox(
+    segment: &Segment,
+    output_size: Vec2<u16>,
+    ori: Option<Quaternion<f32>>,
+    min_samples: Option<u8>,
+) -> RgbaImage {
     let scale = min_samples.map_or(1.0, |s| s as f32).sqrt().ceil() as usize;
     let dims = output_size.map(|e| e as usize * scale).into_array();
     let mut color = Buffer2d::new(dims, [0; 4]);
     let mut depth = Buffer2d::new(dims, 1.0);
 
-    let (w, h, d) = segment.get_size().map(|e| e as f32).into_tuple();
+    let (w, h, d) = segment.size().map(|e| e as f32).into_tuple();
 
     let mvp = Mat4::<f32>::orthographic_rh_no(FrustumPlanes {
         left: -1.0,
@@ -73,7 +78,8 @@ pub fn draw_vox(segment: &Segment, output_size: Vec2<u16>, min_samples: Option<u
         top: 1.0,
         near: 0.0,
         far: 1.0,
-    }) * Mat4::rotation_x(-std::f32::consts::PI / 2.0)
+    })  * Mat4::from(ori.unwrap_or(Quaternion::identity()))
+        * Mat4::rotation_x(-std::f32::consts::PI / 2.0) // TODO: remove
         * Mat4::scaling_3d([2.0 / w, 2.0 / h, 2.0 / d])
         * Mat4::translation_3d([-w / 2.0, -h / 2.0, -d / 2.0]);
     Voxel { mvp }.draw::<rasterizer::Triangles<_>, _>(
@@ -149,8 +155,8 @@ fn create_quad(
 fn generate_mesh(segment: &Segment, offs: Vec3<f32>) -> Vec<Vert> {
     let mut vertices = Vec::new();
 
-    for pos in segment.iter_positions() {
-        if let Some(col) = segment.get(pos).ok().and_then(|vox| vox.get_color()) {
+    for (pos, vox) in segment.full_vol_iter() {
+        if let Some(col) = vox.get_color() {
             let col = col.map(|e| e as f32 / 255.0);
 
             let is_empty = |pos| segment.get(pos).map(|v| v.is_empty()).unwrap_or(true);

@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
-fixedbitset = "0.1.9"
 vek = "0.9.9"
 noise = "0.5.1"
 hashbrown = { version = "0.5.0", features = ["serde", "nightly"] }

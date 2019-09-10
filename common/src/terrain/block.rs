@@ -12,6 +12,10 @@ pub enum BlockKind {
     Water,
     LargeCactus,
     BarrelCactus,
+    RoundCactus,
+    ShortCactus,
+    MedFlatCactus,
+    ShortFlatCactus,
     BlueFlower,
     PinkFlower,
     PurpleFlower,
@@ -23,6 +27,8 @@ pub enum BlockKind {
     MediumGrass,
     ShortGrass,
     Apple,
+    Mushroom,
+    Liana,
 }
 
 impl BlockKind {
@@ -31,6 +37,10 @@ impl BlockKind {
             BlockKind::Air => true,
             BlockKind::LargeCactus => false,
             BlockKind::BarrelCactus => true,
+            BlockKind::RoundCactus => true,
+            BlockKind::ShortCactus => true,
+            BlockKind::MedFlatCactus => true,
+            BlockKind::ShortFlatCactus => true,
             BlockKind::BlueFlower => true,
             BlockKind::PinkFlower => true,
             BlockKind::PurpleFlower => true,
@@ -42,6 +52,8 @@ impl BlockKind {
             BlockKind::MediumGrass => true,
             BlockKind::ShortGrass => true,
             BlockKind::Apple => true,
+            BlockKind::Mushroom => true,
+            BlockKind::Liana => true,
             _ => false,
         }
     }
@@ -59,6 +71,10 @@ impl BlockKind {
             BlockKind::Water => false,
             BlockKind::LargeCactus => false,
             BlockKind::BarrelCactus => false,
+            BlockKind::RoundCactus => false,
+            BlockKind::ShortCactus => false,
+            BlockKind::MedFlatCactus => false,
+            BlockKind::ShortFlatCactus => false,
             BlockKind::BlueFlower => false,
             BlockKind::PinkFlower => false,
             BlockKind::PurpleFlower => false,
@@ -70,6 +86,8 @@ impl BlockKind {
             BlockKind::MediumGrass => false,
             BlockKind::ShortGrass => false,
             BlockKind::Apple => false,
+            BlockKind::Mushroom => false,
+            BlockKind::Liana => false,
             _ => true,
         }
     }
@@ -80,6 +98,10 @@ impl BlockKind {
             BlockKind::Water => false,
             BlockKind::LargeCactus => true,
             BlockKind::BarrelCactus => true,
+            BlockKind::RoundCactus => true,
+            BlockKind::ShortCactus => true,
+            BlockKind::MedFlatCactus => true,
+            BlockKind::ShortFlatCactus => true,
             BlockKind::BlueFlower => false,
             BlockKind::PinkFlower => false,
             BlockKind::PurpleFlower => false,
@@ -91,6 +113,8 @@ impl BlockKind {
             BlockKind::MediumGrass => false,
             BlockKind::ShortGrass => false,
             BlockKind::Apple => true,
+            BlockKind::Mushroom => false,
+            BlockKind::Liana => false,
             _ => true,
         }
     }

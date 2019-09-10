@@ -16,9 +16,10 @@ pub fn unit(i: usize) -> (Vec2<i32>, Vec2<i32>) {
     (UNITS[i % 4], UNITS[(i + 1) % 4])
 }
 
-pub fn gen_unit(rng: &mut impl Rng) -> (Vec2<i32>, Vec2<i32>) {
-    unit(rng.gen_range(0, 4))
-}
+// unused
+//pub fn gen_unit(rng: &mut impl Rng) -> (Vec2<i32>, Vec2<i32>) {
+//    unit(rng.gen_range(0, 4))
+//}
 
 pub fn gen_dir(rng: &mut impl Rng) -> Vec2<i32> {
     UNITS[rng.gen_range(0, 4)]
@@ -37,6 +38,7 @@ pub fn dir_3d(i: usize) -> Vec3<i32> {
     UNITS_3D[i % 6]
 }
 
-pub fn gen_dir_3d(rng: &mut impl Rng) -> Vec3<i32> {
-    UNITS_3D[rng.gen_range(0, 6)]
-}
+// unused
+//pub fn gen_dir_3d(rng: &mut impl Rng) -> Vec3<i32> {
+//    UNITS_3D[rng.gen_range(0, 6)]
+//}

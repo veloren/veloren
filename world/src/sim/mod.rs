@@ -6,7 +6,7 @@ mod util;
 pub use self::location::Location;
 pub use self::settlement::Settlement;
 use self::util::{
-    alt_positions, cdf_irwin_hall, do_erosion, downhill, neighbors, fill_sinks,
+    cdf_irwin_hall, do_erosion, downhill, neighbors, fill_sinks,
     get_flux, get_lakes, map_edge_factor, /*sort_by_height, */
     uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
     InverseCdf,
@@ -21,7 +21,7 @@ use crate::{
 };
 use common::{
     terrain::{BiomeKind, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
 };
 use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable,
@@ -159,7 +159,7 @@ impl WorldSim {
                         .mul(0.25),
                 )
             }),
-            || uniform_noise(|posi, wposf| {
+            || uniform_noise(|_, wposf| {
                 // From 0 to 1.6, but the distribution before the max is from -1 and 1, so there is
                 // a 50% chance that hill will end up at 0.
                 let hill = (0.0
@@ -201,8 +201,9 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
-        let (alt_old, mut alt_pos) = rayon::join(
-            || uniform_noise(|posi, wposf| {
+        let alt_old =
+        /*let (alt_old, mut alt_pos) = rayon::join(
+            || */uniform_noise(|posi, wposf| {
                 // This is the extension upwards from the base added to some extra noise from -1 to
                 // 1.
                 // The extra noise is multiplied by alt_main (the mountain part of the extension)
@@ -237,9 +238,9 @@ impl WorldSim {
                 // level to get an adjusted value, then multiply the whole thing by map_edge_factor
                 // (TODO: compute final bounds).
                 Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
-            }),
+            })/*,
             alt_positions,
-        );
+        )*/;
 
         // Perform some erosion (maybe not needed)
         let old_height = |posi: usize| alt_old[posi].1;
@@ -257,7 +258,7 @@ impl WorldSim {
         // let v = &alt_old;
         let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*/ old_height);
         // Clean up streams / lakes a little, make sure we have reasonable drainage.
-        let alt = do_erosion(/*&alt_old*//*v, */&mut *alt_pos, 0.0, 50, &river_seed, &rock_strength_nz,
+        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, 50, &river_seed, &rock_strength_nz,
                              //|posi| v[posi].1,
                              |posi| alt[posi],
                              /*|posi| {
@@ -292,8 +293,8 @@ impl WorldSim {
                 // pushed towards the point identified by pass_idx).
                 let pass_idx = dh[lake_idx];
                 // Find our own height.
-                let height = alt[chunk_idx];
-                let water_height = water_alt[chunk_idx];
+                // let height = alt[chunk_idx];
+                // let water_height = water_alt[chunk_idx];
                 if pass_idx < 0 {
                     // println!("Really, no passes at all?");
                     /* if dh[chunk_idx] == -2 {
@@ -312,8 +313,9 @@ impl WorldSim {
                     // The pass height is the maximum of these two heights.
                     let pass_height = neighbors(pass_idx as usize)
                         .filter( |&neighbor_id| {
+                            let indirection_idx = indirection[neighbor_id];
                             let neighbor_lake_idx = if indirection_idx < 0 {
-                                chunk_idx
+                                neighbor_id
                             } else {
                                 indirection_idx as usize
                             };
@@ -470,7 +472,7 @@ impl WorldSim {
                 self.rng.gen::<usize>() % grid_size.y,
             );
             let wpos = (cell_pos * cell_size + cell_size / 2)
-                .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                     e as i32 * sz as i32 + sz as i32 / 2
                 });
 
@@ -520,8 +522,8 @@ impl WorldSim {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
                 let block_pos = Vec2::new(
-                    chunk_pos.x * TerrainChunkSize::SIZE.x as i32,
-                    chunk_pos.y * TerrainChunkSize::SIZE.y as i32,
+                    chunk_pos.x * TerrainChunkSize::RECT_SIZE.x as i32,
+                    chunk_pos.y * TerrainChunkSize::RECT_SIZE.y as i32,
                 );
                 let _cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
@@ -531,9 +533,8 @@ impl WorldSim {
                     .iter()
                     .map(|(pos, seed)| RegionInfo {
                         chunk_pos: *pos,
-                        block_pos: pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-                            e * sz as i32
-                        }),
+                        block_pos: pos
+                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e * sz as i32),
                         dist: (pos - chunk_pos).map(|e| e as f32).magnitude(),
                         seed: *seed,
                     })
@@ -571,14 +572,14 @@ impl WorldSim {
         for i in 0..WORLD_SIZE.x {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
-                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
                     e * sz as i32 + sz as i32 / 2
                 });
 
                 let near_towns = self.gen_ctx.town_gen.get(wpos);
                 let town = near_towns
                     .iter()
-                    .min_by_key(|(pos, _)| wpos.distance_squared(*pos));
+                    .min_by_key(|(pos, _seed)| wpos.distance_squared(*pos));
 
                 if let Some((pos, _)) = town {
                     let maybe_town = maybe_towns
@@ -616,9 +617,11 @@ impl WorldSim {
     }
 
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
-        self.get(wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        }))
+        self.get(
+            wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                e / sz as i32
+            }),
+        )
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -651,7 +654,7 @@ impl WorldSim {
         T: Copy + Default + Add<Output = T> + Mul<f32, Output = T>,
         F: FnMut(&SimChunk) -> T,
     {
-        let pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
+        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e as f64 / sz as f64
         });
 
@@ -725,7 +728,7 @@ pub struct Structures {
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
-        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
+        let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let (_, alt_old) = gen_cdf.alt_old[posi];
@@ -787,7 +790,7 @@ impl SimChunk {
             None
         } else {
             Some(uniform_idx_as_vec2(downhill_pre as usize) *
-                 TerrainChunkSize::SIZE.map(|e| e as i32))
+                 TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
         };
 
         let water_factor = (1024.0 * 1024.0) / 50.0;

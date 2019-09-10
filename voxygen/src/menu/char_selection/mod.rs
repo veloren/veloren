@@ -45,8 +45,10 @@ impl PlayState for CharSelectionState {
                     Event::Ui(event) => {
                         self.char_selection_ui.handle_event(event);
                     }
-                    // Ignore all other events.
-                    _ => {}
+                    // Pass all other events to the scene
+                    event => {
+                        self.scene.handle_input_event(event);
+                    } // TODO: Do something if the event wasn't handled?
                 }
             }
 
@@ -76,7 +78,7 @@ impl PlayState for CharSelectionState {
             }
 
             // Maintain global state.
-            global_state.maintain();
+            global_state.maintain(clock.get_last_delta().as_secs_f32());
 
             // Maintain the scene.
             self.scene.maintain(

@@ -1,7 +1,7 @@
 mod natural;
 
 use crate::{
-    column::{ColumnGen, ColumnSample, StructureData},
+    column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
@@ -11,8 +11,7 @@ use common::{
     util::saturate_srgb,
     vol::{ReadVol, Vox},
 };
-use noise::NoiseFn;
-use std::ops::{Add, Div, Mul, Neg};
+use std::ops::{Add, Div, Neg};
 use vek::*;
 
 pub struct BlockGen<'a> {
@@ -79,7 +78,7 @@ impl<'a> BlockGen<'a> {
 
     pub fn get_z_cache(&mut self, wpos: Vec2<i32>) -> Option<ZCache<'a>> {
         let BlockGen {
-            world,
+            world: _,
             column_cache,
             column_gen,
         } = self;
@@ -140,7 +139,6 @@ impl<'a> BlockGen<'a> {
         let sample = &z_cache?.sample;
         let &ColumnSample {
             alt,
-            alt_old,
             chaos,
             sea_level,
             water_level,
@@ -174,7 +172,7 @@ impl<'a> BlockGen<'a> {
             water_level
         }; */
 
-        let (definitely_underground, height, water_height) =
+        let (_definitely_underground, height, water_height) =
             if (wposf.z as f32) < alt - 64.0 * chaos {
                 // Shortcut warping
                 (true, alt, water_level.max(sea_level)/*water_level*/)
@@ -224,7 +222,7 @@ impl<'a> BlockGen<'a> {
 
         // let dirt_col = Rgb::new(79, 67, 60);
 
-        let air = Block::empty();
+        let _air = Block::empty();
         // let stone = Block::new(2, stone_col);
         // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
         // let dirt = Block::new(1, dirt_col);
@@ -233,7 +231,7 @@ impl<'a> BlockGen<'a> {
 
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-        let grass_depth = (1.5 + 2.0 * chaos);//.min((height - water_height).max(0.0));
+        let grass_depth = 1.5 + 2.0 * chaos;//.min((height - water_height).max(0.0));
         let block = if (wposf.z as f32) < height - grass_depth {
             let col = Lerp::lerp(
                 saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
@@ -275,6 +273,7 @@ impl<'a> BlockGen<'a> {
                 BlockKind::WhiteFlower,
                 BlockKind::YellowFlower,
                 BlockKind::Sunflower,
+                BlockKind::Mushroom,
             ];
 
             let grasses = [
@@ -295,11 +294,20 @@ impl<'a> BlockGen<'a> {
             && temp > CONFIG.desert_temp
             && (marble * 4423.5).fract() < 0.0005
         {
+            let large_cacti = [BlockKind::LargeCactus, BlockKind::MedFlatCactus];
+
+            let small_cacti = [
+                BlockKind::BarrelCactus,
+                BlockKind::RoundCactus,
+                BlockKind::ShortCactus,
+                BlockKind::ShortFlatCactus,
+            ];
+
             Some(Block::new(
                 if (height * 1271.0).fract() < 0.5 {
-                    BlockKind::LargeCactus
+                    large_cacti[(height * 0.2) as usize % large_cacti.len()]
                 } else {
-                    BlockKind::BarrelCactus
+                    small_cacti[(height * 0.3) as usize % small_cacti.len()]
                 },
                 Rgb::broadcast(0),
             ))
@@ -399,7 +407,7 @@ impl<'a> ZCache<'a> {
             .structures
             .iter()
             .filter_map(|st| st.as_ref())
-            .fold((0.0f32, 0.0f32), |(min, max), (st_info, st_sample)| {
+            .fold((0.0f32, 0.0f32), |(min, max), (st_info, _st_sample)| {
                 let bounds = st_info.get_bounds();
                 let st_area = Aabr {
                     min: Vec2::from(bounds.min),
@@ -581,6 +589,20 @@ pub fn block_from_structure(
             .map(|e| e as u8),
         )),
         StructureBlock::Fruit => Some(Block::new(BlockKind::Apple, Rgb::new(194, 30, 37))),
+        StructureBlock::Liana => Some(Block::new(
+            BlockKind::Liana,
+            Lerp::lerp(
+                Rgb::new(0.0, 125.0, 107.0),
+                Rgb::new(0.0, 155.0, 129.0),
+                lerp,
+            )
+            .map(|e| e as u8),
+        )),
+        StructureBlock::Mangrove => Some(Block::new(
+            BlockKind::Normal,
+            Lerp::lerp(Rgb::new(32.0, 56.0, 22.0), Rgb::new(57.0, 69.0, 27.0), lerp)
+                .map(|e| e as u8),
+        )),
         StructureBlock::Hollow => Some(Block::empty()),
         StructureBlock::Normal(color) => {
             Some(Block::new(default_kind, color)).filter(|block| !block.is_empty())

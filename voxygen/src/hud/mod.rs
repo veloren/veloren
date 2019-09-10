@@ -18,6 +18,7 @@ use bag::Bag;
 use buttons::Buttons;
 use character_window::CharacterWindow;
 use chat::Chat;
+use chrono::NaiveTime;
 use esc_menu::EscMenu;
 use img_ids::Imgs;
 use map::Map;
@@ -38,7 +39,7 @@ use crate::{
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
-use common::{comp, terrain::TerrainChunkSize, vol::VolSize};
+use common::{comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
@@ -94,6 +95,7 @@ widget_ids! {
         coordinates,
         velocity,
         loaded_distance,
+        time,
 
         // Game Version
         version,
@@ -157,7 +159,6 @@ pub enum Event {
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
-    ToggleEnBars(EnBars),
     ToggleBarNumbers(BarNumbers),
     ToggleShortcutNumbers(ShortcutNumbers),
     UiScale(ScaleChange),
@@ -188,11 +189,6 @@ pub enum CrosshairType {
 pub enum XpBar {
     Always,
     OnGain,
-}
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum EnBars {
-    Always,
-    OnLoss,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -486,8 +482,10 @@ impl Hud {
                 .filter(|(entity, _, stats, _, _)| *entity != me && !stats.is_dead)
                 // Don't process nametags outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _, _, _)| {
-                    (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
                         .magnitude()
                         < view_distance as f32
                 })
@@ -527,8 +525,10 @@ impl Hud {
                 })
                 // Don't process health bars outside the vd (visibility further limited by ui backend)
                 .filter(|(_, pos, _, _)| {
-                    (pos.0 - player_pos)
-                        .map2(TerrainChunkSize::SIZE, |d, sz| d.abs() as f32 / sz as f32)
+                    Vec2::from(pos.0 - player_pos)
+                        .map2(TerrainChunk::RECT_SIZE, |d: f32, sz| {
+                            d.abs() as f32 / sz as f32
+                        })
                         .magnitude()
                         < view_distance as f32
                 })
@@ -629,6 +629,22 @@ impl Hud {
             .font_id(self.fonts.opensans)
             .font_size(14)
             .set(self.ids.loaded_distance, ui_widgets);
+            // Time
+            let time_in_seconds = client.state().get_time_of_day();
+            let current_time = NaiveTime::from_num_seconds_from_midnight(
+                // Wraps around back to 0s if it exceeds 24 hours (24 hours = 86400s)
+                (time_in_seconds as u64 % 86400) as u32,
+                0,
+            );
+            Text::new(&format!(
+                "Time: {}",
+                current_time.format("%H:%M").to_string()
+            ))
+            .color(TEXT_COLOR)
+            .down_from(self.ids.loaded_distance, 5.0)
+            .font_id(self.fonts.opensans)
+            .font_size(14)
+            .set(self.ids.time, ui_widgets);
         }
 
         // Add Bag-Space Button.
@@ -729,17 +745,11 @@ impl Hud {
         }
 
         // Chat box
-        let mut chat = Chat::new(&mut self.new_messages, &self.imgs, &self.fonts);
-
-        if let Some(input) = self.force_chat_input.take() {
-            chat = chat.input(input);
-        }
-
-        if let Some(pos) = self.force_chat_cursor.take() {
-            chat = chat.cursor_pos(pos);
-        }
-
-        match chat.set(self.ids.chat, ui_widgets) {
+        match Chat::new(&mut self.new_messages, &self.imgs, &self.fonts)
+            .and_then(self.force_chat_input.take(), |c, input| c.input(input))
+            .and_then(self.force_chat_cursor.take(), |c, pos| c.cursor_pos(pos))
+            .set(self.ids.chat, ui_widgets)
+        {
             Some(chat::Event::SendMessage(message)) => {
                 events.push(Event::SendMessage(message));
             }
@@ -748,6 +758,7 @@ impl Hud {
             }
             None => {}
         }
+
         self.new_messages = VecDeque::new();
 
         // Windows
@@ -791,9 +802,6 @@ impl Hud {
                     }
                     settings_window::Event::ToggleXpBar(xp_bar) => {
                         events.push(Event::ToggleXpBar(xp_bar));
-                    }
-                    settings_window::Event::ToggleEnBars(en_bars) => {
-                        events.push(Event::ToggleEnBars(en_bars));
                     }
                     settings_window::Event::ToggleBarNumbers(bar_numbers) => {
                         events.push(Event::ToggleBarNumbers(bar_numbers));

@@ -6,6 +6,7 @@ pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod input;
+pub mod metrics;
 pub mod settings;
 
 // Reexports
@@ -22,16 +23,21 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
-    vol::Vox,
-    vol::{ReadVol, VolSize},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
 use hashbrown::HashSet;
 use log::debug;
+use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
-use std::{i32, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    i32,
+    net::SocketAddr,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
@@ -68,6 +74,7 @@ pub struct Server {
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
+    metrics: ServerMetrics,
 
     // TODO: anything but this
     accounts: AuthProvider,
@@ -113,6 +120,7 @@ impl Server {
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
+            metrics: ServerMetrics::new(),
             accounts: AuthProvider::new(),
             server_settings: settings,
         };
@@ -261,7 +269,7 @@ impl Server {
                         let mut block_change = ecs.write_resource::<BlockChange>();
 
                         let _ = ecs
-                            .read_resource::<TerrainMap>()
+                            .read_resource::<TerrainGrid>()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
                             .for_each(|pos| block_change.set(pos, Block::empty()))
@@ -355,6 +363,53 @@ impl Server {
                             .insert(entity, comp::ForceUpdate);
                     }
                 }
+                ServerEvent::Mount(mounter, mountee) => {
+                    if state
+                        .ecs()
+                        .read_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .is_none()
+                    {
+                        let not_mounting_yet = if let Some(comp::MountState::Unmounted) = state
+                            .ecs()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee)
+                            .cloned()
+                        {
+                            true
+                        } else {
+                            false
+                        };
+
+                        if not_mounting_yet {
+                            if let (Some(mounter_uid), Some(mountee_uid)) = (
+                                state.ecs().uid_from_entity(mounter),
+                                state.ecs().uid_from_entity(mountee),
+                            ) {
+                                state.write_component(
+                                    mountee,
+                                    comp::MountState::MountedBy(mounter_uid.into()),
+                                );
+                                state.write_component(mounter, comp::Mounting(mountee_uid.into()));
+                            }
+                        }
+                    }
+                }
+                ServerEvent::Unmount(mounter) => {
+                    let mountee_entity = state
+                        .ecs()
+                        .write_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .and_then(|mountee| state.ecs().entity_from_uid(mountee.0.into()));
+                    if let Some(mountee_entity) = mountee_entity {
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee_entity)
+                            .map(|ms| *ms = comp::MountState::Unmounted);
+                    }
+                    state.delete_component::<comp::Mounting>(mounter);
+                }
             }
 
             if let Some(entity) = todo_remove {
@@ -377,8 +432,10 @@ impl Server {
         // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Send relevant state updates to all clients
-        // 7) Finish the tick, passing control of the main thread back to the frontend
+        // 7) Update Metrics with current data
+        // 8) Finish the tick, passing control of the main thread back to the frontend
 
+        let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
@@ -396,12 +453,14 @@ impl Server {
         // Handle game events
         self.handle_events();
 
+        let before_tick_4 = Instant::now();
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
         // Tick the world
         self.world.tick(dt);
 
+        let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
         if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
@@ -479,7 +538,7 @@ impl Server {
         fn chunk_in_vd(
             player_pos: Vec3<f32>,
             chunk_pos: Vec2<i32>,
-            terrain: &TerrainMap,
+            terrain: &TerrainGrid,
             vd: u32,
         ) -> bool {
             let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
@@ -521,6 +580,7 @@ impl Server {
             self.state.remove_chunk(key);
         }
 
+        let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
@@ -585,7 +645,44 @@ impl Server {
             let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
-        // 7) Finish the tick, pass control back to the frontend.
+        let before_tick_7 = Instant::now();
+        // 7) Update Metrics
+        self.metrics
+            .tick_time
+            .with_label_values(&["input"])
+            .set((before_tick_4 - before_tick_1).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["world"])
+            .set((before_tick_5 - before_tick_4).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["terrain"])
+            .set((before_tick_6 - before_tick_5).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["sync"])
+            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+        self.metrics.player_online.set(self.clients.len() as i64);
+        self.metrics
+            .time_of_day
+            .set(self.state.ecs().read_resource::<TimeOfDay>().0);
+        if self.metrics.is_100th_tick() {
+            let mut chonk_cnt = 0;
+            let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
+                chonk_cnt += 1;
+                a + c.sub_chunks_len()
+            });
+            self.metrics.chonks_count.set(chonk_cnt as i64);
+            self.metrics.chunks_count.set(chunk_cnt as i64);
+        }
+        //self.metrics.entity_count.set(self.state.);
+        self.metrics
+            .tick_time
+            .with_label_values(&["metrics"])
+            .set(before_tick_7.elapsed().as_nanos() as i64);
+
+        // 8) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
     }
@@ -1085,8 +1182,8 @@ impl Server {
                 ) {
                     {
                         // Check if the entity is in the client's range
-                        (pos.0 - client_pos.0)
-                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        Vec2::from(pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::RECT_SIZE, |d: f32, sz| {
                                 (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
                             })
                             .magnitude_squared()

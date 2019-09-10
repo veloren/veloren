@@ -1,13 +1,16 @@
 pub mod camera;
 pub mod figure;
+pub mod sound;
 pub mod terrain;
 
 use self::{
     camera::{Camera, CameraMode},
     figure::FigureMgr,
+    sound::SoundMgr,
     terrain::Terrain,
 };
 use crate::{
+    audio::AudioFrontend,
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
         PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
@@ -15,7 +18,11 @@ use crate::{
     window::Event,
 };
 use client::Client;
-use common::{comp, terrain::BlockKind, vol::ReadVol};
+use common::{
+    comp,
+    terrain::{BlockKind, TerrainChunk},
+    vol::ReadVol,
+};
 use specs::Join;
 use vek::*;
 
@@ -42,10 +49,11 @@ pub struct Scene {
 
     skybox: Skybox,
     postprocess: PostProcess,
-    terrain: Terrain,
+    terrain: Terrain<TerrainChunk>,
     loaded_distance: f32,
 
     figure_mgr: FigureMgr,
+    sound_mgr: SoundMgr,
 }
 
 impl Scene {
@@ -71,6 +79,7 @@ impl Scene {
             terrain: Terrain::new(renderer),
             loaded_distance: 0.0,
             figure_mgr: FigureMgr::new(),
+            sound_mgr: SoundMgr::new(),
         }
     }
 
@@ -115,7 +124,12 @@ impl Scene {
     }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
-    pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) {
+    pub fn maintain(
+        &mut self,
+        renderer: &mut Renderer,
+        audio: &mut AudioFrontend,
+        client: &Client,
+    ) {
         // Get player position.
         let player_pos = client
             .state()
@@ -124,14 +138,28 @@ impl Scene {
             .get(client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
+        let player_rolling = client
+            .state()
+            .ecs()
+            .read_storage::<comp::CharacterState>()
+            .get(client.entity())
+            .map_or(false, |cs| cs.movement.is_roll());
+
         // Alter camera position to match player.
         let tilt = self.camera.get_orientation().y;
         let dist = self.camera.get_distance();
-        let up = if self.camera.get_mode() == CameraMode::FirstPerson {
-            1.5
-        } else {
-            1.2
+
+        let up = match self.camera.get_mode() {
+            CameraMode::FirstPerson => {
+                if player_rolling {
+                    0.75
+                } else {
+                    1.5
+                }
+            }
+            CameraMode::ThirdPerson => 1.2,
         };
+
         self.camera.set_focus_pos(
             player_pos + Vec3::unit_z() * (up + dist * 0.15 - tilt.min(0.0) * dist * 0.75),
         );
@@ -219,6 +247,9 @@ impl Scene {
 
         // Remove unused figures.
         self.figure_mgr.clean(client.get_tick());
+
+        // Maintain audio
+        self.sound_mgr.maintain(audio, client);
     }
 
     /// Render the scene using the provided `Renderer`.

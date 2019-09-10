@@ -4,12 +4,12 @@ use crate::{
     generator::{Generator, SpawnRules, TownGen},
     sim::{LocationInfo, SimChunk, WorldSim},
     util::{RandomPerm, Sampler, UnitChooser},
-    World, CONFIG,
+    CONFIG,
 };
 use common::{
     assets,
     terrain::{BlockKind, Structure, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
 };
 use lazy_static::lazy_static;
 use noise::NoiseFn;
@@ -71,9 +71,7 @@ impl<'a> ColumnGen<'a> {
             .min_by_key(|(pos, _)| pos.distance_squared(wpos))
             .unwrap();
 
-        let chunk_pos = pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        });
+        let chunk_pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
         let chunk = self.sim.get(chunk_pos)?;
 
         /* let sea_level = if alt_old < CONFIG.sea_level {
@@ -133,13 +131,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
     fn get(&self, wpos: Vec2<i32>) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
-        let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        });
-        let wpos_mid = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+        let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
+        /* let wpos_mid = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
             (e as u32 * sz) as i32
         });
-        let wposf_mid = wpos_mid.map(|e| e as f64);
+        let wposf_mid = wpos_mid.map(|e| e as f64); */
 
         let sim = &self.sim;
 
@@ -148,21 +144,21 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             sim.gen_ctx.turb_y_nz.get((wposf.div(48.0)).into_array()) as f32,
         ) * 12.0;
         let wposf_turb = wposf + turb.map(|e| e as f64);
-        let turb_mid = Vec2::new(
+        /* let turb_mid = Vec2::new(
             sim.gen_ctx.turb_x_nz.get((wposf_mid.div(48.0)).into_array()) as f32,
             sim.gen_ctx.turb_y_nz.get((wposf_mid.div(48.0)).into_array()) as f32,
         );
-        let wposf_turb_mid = wposf_mid + turb_mid.map(|e| e as f64);
+        let wposf_turb_mid = wposf_mid + turb_mid.map(|e| e as f64); */
 
-        let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
+        // let alt_base = sim.get_interpolated(wpos, |chunk| chunk.alt_base)?;
         let chaos = sim.get_interpolated(wpos, |chunk| chunk.chaos)?;
-        let chaos_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.chaos)?;
+        // let chaos_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.chaos)?;
         let temp = sim.get_interpolated(wpos, |chunk| chunk.temp)?;
         /* let downhill_alt = sim.get_interpolated(wpos, |chunk| {
             sim.get(chunk.downhill).map(|chunk| chunk.alt).unwrap_or(CONFIG.sea_level)
         })?; */
         let humidity = sim.get_interpolated(wpos, |chunk| chunk.humidity)?;
-        let humidity_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.humidity)?;
+        // let humidity_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.humidity)?;
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
@@ -170,7 +166,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let sim_chunk = sim.get(chunk_pos)?;
         // let flux = sim_chunk.flux;
 
-        const RIVER_PROPORTION: f32 = 0.025;
+        // Never used
+        //const RIVER_PROPORTION: f32 = 0.025;
 
         /*
         let river = dryness
@@ -207,7 +204,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .mul(1.0 - humidity)
                 .mul(96.0)*/;
 
-        let riverless_alt_delta_mid =
+        /* let riverless_alt_delta_mid =
             (sim
                 .gen_ctx
                 .small_nz
@@ -222,7 +219,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul(1.0 - chaos_mid)
                 .mul(1.0 - humidity_mid)
-                .mul(96.0);
+                .mul(96.0); */
 
         let riverless_alt_delta = riverless_alt_delta
             - (1.0 - river)
@@ -232,12 +229,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .mul(0.5)
                 .mul(24.0);
 
-        let alt_orig = sim_chunk.alt;
+        // let alt_orig = sim_chunk.alt;
         let downhill = sim_chunk.downhill;
         let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
-        let downhill_alt = downhill_pos
+        /* let downhill_alt = downhill_pos
             .map(|downhill_chunk| downhill_chunk.alt)
-            .unwrap_or(CONFIG.sea_level);
+            .unwrap_or(CONFIG.sea_level); */
         let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
         // let flux = sim_chunk.flux;
         let downhill_flux = downhill_pos
@@ -245,13 +242,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .unwrap_or(flux);
         /* let downhill_pos_x = sim.get_interpolated(wpos, |chunk| {
             chunk.downhill.map(|e|
-                e.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as f32 / sz as f32)
+                e.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| e as f32 / sz as f32)
             ).unwrap_or(wpos.map(|e| e as f32))
                 .x
         })?;
         let downhill_pos_y = sim.get_interpolated(wpos, |chunk| {
             chunk.downhill.map(|e|
-                e.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| e as f32 / sz as f32)
+                e.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| e as f32 / sz as f32)
             ).unwrap_or(wpos.map(|e| e as f32))
                 .y
         })?;
@@ -273,7 +270,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 downhill_flux,
                 flux,
                 (wpos - downhill.unwrap_or(wpos))
-                    .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
                         e as f32 / sz as f32
                     })
                     // TODO: Make from 0 to 1 on diagonals.
@@ -285,7 +282,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 downhill_flux,
                 flux,
                 (wpos - downhill.unwrap_or(wpos)/*downhill_pos*/)
-                    .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                    .map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
                         e as f32 / sz as f32
                     })
                     // TODO: Make from 0 to 1 on diagonals.
@@ -308,7 +305,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             ) */
         })? + riverless_alt_delta;
         let alt_old = sim.get_interpolated(wpos, |chunk| chunk.alt_old)? + riverless_alt_delta;
-        let alt_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.alt)?;
+        // let alt_mid = sim.get_interpolated(wpos_mid, |chunk| chunk.alt)?;
         let water_alt_orig = sim_chunk.water_alt;// + riverless_alt_delta;
         let water_alt = sim.get_interpolated(wpos, |chunk| {
             chunk.water_alt
@@ -328,11 +325,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let near_cliffs = sim_chunk.near_cliffs;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
-        let logit = |x: f32| x.ln() - x.neg().ln_1p();
+        // let logit = |x: f32| x.ln() - x.neg().ln_1p();
         // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
-        let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
+        // let logistic_2_base = 3.0f32.sqrt().mul(f32::consts::FRAC_2_PI);
         // Assumes μ = 0, σ = 1
-        let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
+        // let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 
         /* let water_level =
             riverless_alt - 4.0 /*- 5.0 * chaos */+ logistic_cdf(logit(flux)) * 8.0;
@@ -342,7 +339,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             riverless_alt - 4.0 - 5.0 * chaos
         }; */ */
         // let water_level = riverless_alt - 4.0 - 5.0 * chaos;
-        let water_level = water_alt;
+        // let water_level = water_alt;
         let (alt, water_level) = /*if /*water_alt_orig == alt_orig.max(0.0)*/water_alt_orig == CONFIG.sea_level {
             // This is flowing into the ocean.
             if alt_orig <= CONFIG.sea_level + 5.0 {
@@ -378,13 +375,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             water_alt/*./*max(alt_orig).*/max(alt - 5.0)*/,
                             /*alt - 5.0*/
                             alt,
-                            (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
+                            flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor
                         );
                 let new_alt =
                     Lerp::lerp(
                         alt,
                         alt - 5.0,
-                        (flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor)
+                        flux/*(flux - 0.85) / (1.0 - 0.85)*/ * water_factor
                     );
                 (
                     Lerp::lerp(

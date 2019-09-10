@@ -14,6 +14,7 @@ impl Animation for RunAnimation {
         skeleton: &Self::Skeleton,
         (_velocity, _global_time): Self::Dependency,
         anim_time: f64,
+        _rate: &mut f32,
         _skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();

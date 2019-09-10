@@ -1,5 +1,5 @@
 use super::{
-    img_ids::Imgs, BarNumbers, EnBars, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR,
+    img_ids::Imgs, BarNumbers, Fonts, ShortcutNumbers, XpBar, CRITICAL_HP_COLOR,
     /*FOCUS_COLOR, RAGE_COLOR,*/ HP_COLOR, LOW_HP_COLOR, MANA_COLOR, TEXT_COLOR, XP_COLOR,
 };
 use crate::GlobalState;
@@ -15,6 +15,8 @@ widget_ids! {
     struct Ids {
         death_message_1,
         death_message_2,
+        death_message_1_bg,
+        death_message_2_bg,
         level_text,
         next_level_text,
         xp_bar_mid,
@@ -75,7 +77,7 @@ widget_ids! {
         level_down,
         level_align,
         level_message,
-
+        stamina_wheel,
     }
 }
 
@@ -161,6 +163,37 @@ impl<'a> Widget for Skillbar<'a> {
         let shortcuts = self.global_state.settings.gameplay.shortcut_numbers;
 
         const BG_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 0.8);
+
+        // Stamina Wheel
+        /*
+        let stamina_percentage =
+            self.stats.health.current() as f64 / self.stats.health.maximum() as f64 * 100.0;
+        if stamina_percentage < 100.0 {
+            Image::new(if stamina_percentage <= 0.1 {
+                self.imgs.stamina_0
+            } else if stamina_percentage < 12.5 {
+                self.imgs.stamina_1
+            } else if stamina_percentage < 25.0 {
+                self.imgs.stamina_2
+            } else if stamina_percentage < 37.5 {
+                self.imgs.stamina_3
+            } else if stamina_percentage < 50.0 {
+                self.imgs.stamina_4
+            } else if stamina_percentage < 62.5 {
+                self.imgs.stamina_5
+            } else if stamina_percentage < 75.0 {
+                self.imgs.stamina_6
+            } else if stamina_percentage < 87.5 {
+                self.imgs.stamina_7
+            } else {
+                self.imgs.stamina_8
+            })
+            .w_h(37.0 * 3.0, 37.0 * 3.0)
+            .mid_bottom_with_margin_on(ui.window, 150.0)
+            .set(state.ids.stamina_wheel, ui);
+        }
+        */
+
         // Level Up Message
 
         let current_level = self.stats.level.level();
@@ -215,13 +248,27 @@ impl<'a> Widget for Skillbar<'a> {
             Text::new("You Died")
                 .mid_top_with_margin_on(ui.window, 60.0)
                 .font_size(40)
+                .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+                .set(state.ids.death_message_1_bg, ui);
+            Text::new(&format!(
+                "Press {:?} to respawn.",
+                self.global_state.settings.controls.respawn
+            ))
+            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .font_size(15)
+            .color(Color::Rgba(0.0, 0.0, 0.0, 1.0))
+            .set(state.ids.death_message_2_bg, ui);
+
+            Text::new("You Died")
+                .top_left_with_margins_on(state.ids.death_message_1_bg, -2.0, -2.0)
+                .font_size(40)
                 .color(CRITICAL_HP_COLOR)
                 .set(state.ids.death_message_1, ui);
             Text::new(&format!(
                 "Press {:?} to respawn.",
                 self.global_state.settings.controls.respawn
             ))
-            .mid_bottom_with_margin_on(state.ids.death_message_1, -30.0)
+            .top_left_with_margins_on(state.ids.death_message_2_bg, -1.5, -1.5)
             .font_size(15)
             .color(CRITICAL_HP_COLOR)
             .set(state.ids.death_message_2, ui);
@@ -354,9 +401,11 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(match self.stats.equipment.main {
             Some(Item::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m1,
-                _ => self.imgs.twohhammer_m1,
+                Tool::Hammer => self.imgs.twohhammer_m1,
+                Tool::Axe => self.imgs.twohaxe_m1,
+                _ => self.imgs.flyingrod_m1,
             },
-            _ => self.imgs.twohhammer_m1,
+            _ => self.imgs.flyingrod_m1,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
         .middle_of(state.ids.m1_slot_bg)
@@ -374,9 +423,11 @@ impl<'a> Widget for Skillbar<'a> {
         Button::image(match self.stats.equipment.main {
             Some(Item::Tool { kind, .. }) => match kind {
                 Tool::Sword => self.imgs.twohsword_m2,
-                _ => self.imgs.twohhammer_m2,
+                Tool::Hammer => self.imgs.twohhammer_m2,
+                Tool::Axe => self.imgs.twohaxe_m2,
+                _ => self.imgs.flyingrod_m2,
             },
-            _ => self.imgs.twohhammer_m2,
+            _ => self.imgs.flyingrod_m2,
         }) // Insert Icon here
         .w_h(38.0 * scale, 38.0 * scale)
         .middle_of(state.ids.m2_slot_bg)
@@ -546,173 +597,80 @@ impl<'a> Widget for Skillbar<'a> {
                 .set(state.ids.slotq_text, ui);
         };
 
-        // Option to show Energy Bars only on loss or Always
-        match self.global_state.settings.gameplay.en_bars {
-            EnBars::OnLoss => {
-                if { self.stats.health.current() < self.stats.health.maximum() } || {
-                    self.stats.energy.current() < self.stats.energy.maximum()
-                } {
-                    // Lifebar
-                    Image::new(self.imgs.healthbar_bg)
-                        .w_h(100.0 * scale, 20.0 * scale)
-                        .top_left_with_margins_on(state.ids.m1_slot, 0.0, -100.0 * scale)
-                        .set(state.ids.healthbar_bg, ui);
-                    Image::new(self.imgs.bar_content)
-                        .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
-                        .color(Some(if hp_percentage <= 20.0 {
-                            CRITICAL_HP_COLOR
-                        } else if hp_percentage <= 40.0 {
-                            LOW_HP_COLOR
-                        } else {
-                            HP_COLOR
-                        }))
-                        .top_right_with_margins_on(state.ids.healthbar_bg, 2.0 * scale, 1.0 * scale)
-                        .set(state.ids.healthbar_filling, ui);
-                    // Energybar
-                    Image::new(self.imgs.energybar_bg)
-                        .w_h(100.0 * scale, 20.0 * scale)
-                        .top_right_with_margins_on(state.ids.m2_slot, 0.0, -100.0 * scale)
-                        .set(state.ids.energybar_bg, ui);
-                    Image::new(self.imgs.bar_content)
-                        .w_h(97.0 * scale * energy_percentage / 100.0, 16.0 * scale)
-                        .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
-                        .color(Some(match self.current_resource {
-                            ResourceType::Mana => MANA_COLOR,
-                            //ResourceType::Focus => FOCUS_COLOR,
-                            //ResourceType::Rage => RAGE_COLOR,
-                        }))
-                        .set(state.ids.energybar_filling, ui);
-                    // Bar Text
-                    // Values
-                    if let BarNumbers::Values = bar_values {
-                        let hp_text = format!(
-                            "{}/{}",
-                            self.stats.health.current() as u32,
-                            self.stats.health.maximum() as u32
-                        );
-                        Text::new(&hp_text)
-                            .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
-                            .font_size(14)
-                            .color(TEXT_COLOR)
-                            .set(state.ids.health_text, ui);
-                        let energy_text = format!(
-                            "{}/{}",
-                            self.stats.energy.current() as u32,
-                            self.stats.energy.maximum() as u32
-                        );
-                        Text::new(&energy_text)
-                            .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
-                            .font_size(14)
-                            .color(TEXT_COLOR)
-                            .set(state.ids.energy_text, ui);
-                    }
-                    //Percentages
-                    if let BarNumbers::Percent = bar_values {
-                        let hp_text = format!("{}%", hp_percentage as u32);
-                        Text::new(&hp_text)
-                            .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
-                            .font_size(14)
-                            .color(TEXT_COLOR)
-                            .set(state.ids.health_text, ui);
-                        let energy_text = format!("{}%", energy_percentage as u32);
-                        Text::new(&energy_text)
-                            .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
-                            .font_size(14)
-                            .color(TEXT_COLOR)
-                            .set(state.ids.energy_text, ui);
-                    }
-                } else {
-                    // Lifebar
-                    Image::new(self.imgs.healthbar_bg)
-                        .w_h(100.0 * scale, 20.0 * scale)
-                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-                        .top_left_with_margins_on(state.ids.m1_slot, 0.0, -100.0 * scale)
-                        .set(state.ids.healthbar_bg, ui);
-                    // Energybar
-                    Image::new(self.imgs.energybar_bg)
-                        .w_h(100.0 * scale, 20.0 * scale)
-                        .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-                        .top_right_with_margins_on(state.ids.m2_slot, 0.0, -100.0 * scale)
-                        .set(state.ids.energybar_bg, ui);
-                }
-            }
-            EnBars::Always => {
-                // Lifebar
-                Image::new(self.imgs.healthbar_bg)
-                    .w_h(100.0 * scale, 20.0 * scale)
-                    .top_left_with_margins_on(state.ids.m1_slot, 0.0, -100.0 * scale)
-                    .set(state.ids.healthbar_bg, ui);
-                Image::new(self.imgs.bar_content)
-                    .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
-                    .color(Some(if hp_percentage <= 20.0 {
-                        CRITICAL_HP_COLOR
-                    } else if hp_percentage <= 40.0 {
-                        LOW_HP_COLOR
-                    } else {
-                        HP_COLOR
-                    }))
-                    .top_right_with_margins_on(state.ids.healthbar_bg, 2.0 * scale, 1.0 * scale)
-                    .set(state.ids.healthbar_filling, ui);
-                // Energybar
-                Image::new(self.imgs.energybar_bg)
-                    .w_h(100.0 * scale, 20.0 * scale)
-                    .top_right_with_margins_on(state.ids.m2_slot, 0.0, -100.0 * scale)
-                    .set(state.ids.energybar_bg, ui);
-                Image::new(self.imgs.bar_content)
-                    .w_h(97.0 * scale * energy_percentage / 100.0, 16.0 * scale)
-                    .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
-                    .color(Some(match self.current_resource {
-                        ResourceType::Mana => MANA_COLOR,
-                        //ResourceType::Focus => FOCUS_COLOR,
-                        //ResourceType::Rage => RAGE_COLOR,
-                    }))
-                    .set(state.ids.energybar_filling, ui);
-                // Bar Text
-                // Values
-                if let BarNumbers::Values = bar_values {
-                    let hp_text = format!(
-                        "{}/{}",
-                        self.stats.health.current() as u32,
-                        self.stats.health.maximum() as u32
-                    );
-                    Text::new(&hp_text)
-                        .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
-                        .font_size(14)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.health_text, ui);
-                    let energy_text = format!(
-                        "{}/{}",
-                        self.stats.energy.current() as u32,
-                        self.stats.energy.maximum() as u32
-                    );
-                    Text::new(&energy_text)
-                        .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
-                        .font_size(14)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.energy_text, ui);
-                }
-                //Percentages
-                if let BarNumbers::Percent = bar_values {
-                    let hp_text = format!("{}%", hp_percentage as u32);
-                    Text::new(&hp_text)
-                        .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
-                        .font_size(14)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.health_text, ui);
-                    let energy_text = format!("{}%", energy_percentage as u32);
-                    Text::new(&energy_text)
-                        .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
-                        .font_size(14)
-                        .color(TEXT_COLOR)
-                        .set(state.ids.energy_text, ui);
-                }
-            }
+        // Lifebar
+        Image::new(self.imgs.healthbar_bg)
+            .w_h(100.0 * scale, 20.0 * scale)
+            .top_left_with_margins_on(state.ids.m1_slot, 0.0, -100.0 * scale)
+            .set(state.ids.healthbar_bg, ui);
+        Image::new(self.imgs.bar_content)
+            .w_h(97.0 * scale * hp_percentage / 100.0, 16.0 * scale)
+            .color(Some(if hp_percentage <= 20.0 {
+                CRITICAL_HP_COLOR
+            } else if hp_percentage <= 40.0 {
+                LOW_HP_COLOR
+            } else {
+                HP_COLOR
+            }))
+            .top_right_with_margins_on(state.ids.healthbar_bg, 2.0 * scale, 1.0 * scale)
+            .set(state.ids.healthbar_filling, ui);
+        // Energybar
+        Image::new(self.imgs.energybar_bg)
+            .w_h(100.0 * scale, 20.0 * scale)
+            .top_right_with_margins_on(state.ids.m2_slot, 0.0, -100.0 * scale)
+            .set(state.ids.energybar_bg, ui);
+        Image::new(self.imgs.bar_content)
+            .w_h(97.0 * scale * energy_percentage / 100.0, 16.0 * scale)
+            .top_left_with_margins_on(state.ids.energybar_bg, 2.0 * scale, 1.0 * scale)
+            .color(Some(match self.current_resource {
+                ResourceType::Mana => MANA_COLOR,
+                //ResourceType::Focus => FOCUS_COLOR,
+                //ResourceType::Rage => RAGE_COLOR,
+            }))
+            .set(state.ids.energybar_filling, ui);
+        // Bar Text
+        // Values
+        if let BarNumbers::Values = bar_values {
+            let hp_text = format!(
+                "{}/{}",
+                self.stats.health.current() as u32,
+                self.stats.health.maximum() as u32
+            );
+            Text::new(&hp_text)
+                .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.health_text, ui);
+            let energy_text = format!(
+                "{}/{}",
+                self.stats.energy.current() as u32,
+                self.stats.energy.maximum() as u32
+            );
+            Text::new(&energy_text)
+                .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.energy_text, ui);
         }
-
-        // Buffs
-        // Add debuff slots above the health bar
-        // Add buff slots above the mana bar
-
-        // Debuffs
+        //Percentages
+        if let BarNumbers::Percent = bar_values {
+            let hp_text = format!("{}%", hp_percentage as u32);
+            Text::new(&hp_text)
+                .mid_top_with_margin_on(state.ids.healthbar_bg, 5.0 * scale)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.health_text, ui);
+            let energy_text = format!("{}%", energy_percentage as u32);
+            Text::new(&energy_text)
+                .mid_top_with_margin_on(state.ids.energybar_bg, 5.0 * scale)
+                .font_size(14)
+                .color(TEXT_COLOR)
+                .set(state.ids.energy_text, ui);
+        }
     }
+
+    // Buffs
+    // Add debuff slots above the health bar
+    // Add buff slots above the mana bar
+
+    // Debuffs
 }

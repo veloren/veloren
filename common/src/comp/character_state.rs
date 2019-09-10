@@ -1,15 +1,17 @@
 use specs::{Component, FlaggedStorage, HashMapStorage};
-use specs_idvs::IDVStorage;
+//use specs_idvs::IDVStorage;
 use std::time::Duration;
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MovementState {
     Stand,
+    Sit,
     Run,
     Jump,
     Glide,
     Roll { time_left: Duration },
-    //Swim,
+    Swim,
+    Climb,
 }
 
 impl MovementState {
@@ -22,7 +24,7 @@ impl MovementState {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
     Idle,
     Wield { time_left: Duration },
@@ -57,7 +59,7 @@ impl ActionState {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct CharacterState {
     pub movement: MovementState,
     pub action: ActionState,

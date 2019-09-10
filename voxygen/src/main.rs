@@ -31,12 +31,9 @@ pub mod window;
 // Reexports
 pub use crate::error::Error;
 
-use crate::{
-    audio::base::Genre, audio::AudioFrontend, menu::main::MainMenuState, settings::Settings,
-    window::Window,
-};
+use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
 use heaptrack::track_mem;
-use log::{self, debug, error, info, warn};
+use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
@@ -58,9 +55,8 @@ impl GlobalState {
         self.window.needs_refresh_resize();
     }
 
-    pub fn maintain(&mut self) {
-        // TODO: Maintain both `Bgm` and `Sfx` audio threads.
-        self.audio.play();
+    pub fn maintain(&mut self, dt: f32) {
+        self.audio.maintain(dt);
     }
 }
 
@@ -102,10 +98,18 @@ lazy_static! {
 }
 
 fn main() {
-    // Set up the global state.
+    // Load the settings
     let settings = Settings::load();
+    // Save settings to add new fields or create the file if it is not already there
+    if let Err(err) = settings.save_to_file() {
+        panic!("Failed to save settings: {:?}", err);
+    }
+    let audio_device = match &settings.audio.audio_device {
+        Some(d) => d.to_string(),
+        None => audio::get_default_device(),
+    };
     let audio = if settings.audio.audio_on {
-        AudioFrontend::new()
+        AudioFrontend::new(audio_device, 16)
     } else {
         AudioFrontend::no_audio()
     };
@@ -115,6 +119,7 @@ fn main() {
         window: Window::new(&settings).expect("Failed to create window!"),
         settings,
     };
+    let settings = &global_state.settings;
 
     // Initialize logging.
     let term_log_level = std::env::var_os("VOXYGEN_LOG")
@@ -126,24 +131,13 @@ fn main() {
         WriteLogger::new(
             log::LevelFilter::Info,
             Config::default(),
-            File::create(&global_state.settings.log.file).unwrap(),
+            File::create(&settings.log.file).unwrap(),
         ),
     ])
     .unwrap();
 
-    // Initialize discord. (lazy_static initalise lazily...)
-    #[cfg(feature = "discord")]
-    {
-        match DISCORD_INSTANCE.lock() {
-            Ok(_disc) => {
-                //great
-            }
-            Err(e) => log::error!("Couldn't init discord: {}", e),
-        }
-    }
-
     // Set up panic handler to relay swish panic messages to the user
-    let settings_clone = global_state.settings.clone();
+    let settings_clone = settings.clone();
     let default_hook = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         let panic_info_payload = panic_info.payload();
@@ -203,15 +197,6 @@ fn main() {
 
         default_hook(panic_info);
     }));
-
-    match global_state.audio.model.get_genre() {
-        Genre::Bgm => {
-            global_state.settings.audio.audio_device =
-                Some(crate::audio::base::get_default_device())
-        }
-        Genre::Sfx => unimplemented!(),
-        Genre::None => global_state.settings.audio.audio_device = None,
-    }
 
     // Set up the initial play state.
     let mut states: Vec<Box<dyn PlayState>> = vec![Box::new(MainMenuState::new(&mut global_state))];
@@ -290,8 +275,6 @@ fn main() {
         }
     }
 
-    // Save settings to add new fields or create the file if it is not already there
-    if let Err(err) = global_state.settings.save_to_file() {
-        warn!("Failed to save settings: {:?}", err);
-    }
+    // Save any unsaved changes to settings
+    global_state.settings.save_to_file_warn();
 }

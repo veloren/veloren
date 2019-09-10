@@ -262,9 +262,12 @@ fn handle_kill(server: &mut Server, entity: EcsEntity, _args: String, _action: &
 fn handle_time(server: &mut Server, entity: EcsEntity, args: String, action: &ChatCommand) {
     let time = scan_fmt_some!(&args, action.arg_fmt, String);
     let new_time = match time.as_ref().map(|s| s.as_str()) {
-        Some("night") => NaiveTime::from_hms(0, 0, 0),
+        Some("midnight") => NaiveTime::from_hms(0, 0, 0),
+        Some("night") => NaiveTime::from_hms(20, 0, 0),
         Some("dawn") => NaiveTime::from_hms(5, 0, 0),
-        Some("day") => NaiveTime::from_hms(12, 0, 0),
+        Some("morning") => NaiveTime::from_hms(8, 0, 0),
+        Some("day") => NaiveTime::from_hms(10, 0, 0),
+        Some("noon") => NaiveTime::from_hms(12, 0, 0),
         Some("dusk") => NaiveTime::from_hms(17, 0, 0),
         Some(n) => match n.parse() {
             Ok(n) => n,
@@ -411,6 +414,7 @@ fn handle_spawn(server: &mut Server, entity: EcsEntity, args: String, action: &C
                             server
                                 .create_npc(pos, comp::Stats::new(get_npc_name(id), None), body)
                                 .with(comp::Vel(vel))
+                                .with(comp::MountState::Unmounted)
                                 .with(agent)
                                 .build();
                         }
@@ -552,7 +556,8 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
     .create_object(pos, ori, obj_type)
     .with(ori);*/
     if let (Some(pos), Some(ori)) = (pos, ori) {
-        let obj_type = match obj_type.as_ref().map(String::as_str) {
+        let obj_str_res = obj_type.as_ref().map(String::as_str);
+        let obj_type = match obj_str_res {
             Ok("scarecrow") => comp::object::Body::Scarecrow,
             Ok("cauldron") => comp::object::Body::Cauldron,
             Ok("chest_vines") => comp::object::Body::ChestVines,
@@ -621,9 +626,13 @@ fn handle_object(server: &mut Server, entity: EcsEntity, args: String, _action: 
                     .normalized(),
             ))
             .build();
-        server
-            .clients
-            .notify(entity, ServerMsg::private(format!("Spawned object.")));
+        server.clients.notify(
+            entity,
+            ServerMsg::private(format!(
+                "Spawned: {}",
+                obj_str_res.unwrap_or("<Unknown object>")
+            )),
+        );
     } else {
         server
             .clients
@@ -797,14 +806,12 @@ fn handle_tell(server: &mut Server, entity: EcsEntity, args: String, action: &Ch
                         .get(entity)
                         .map(|s| s.alias.clone())
                     {
-                        server.clients.notify(
-                            player,
-                            ServerMsg::tell(format!("[{}] tells you:{}", name, msg)),
-                        );
-                        server.clients.notify(
-                            entity,
-                            ServerMsg::tell(format!("You tell [{}]:{}", alias, msg)),
-                        );
+                        server
+                            .clients
+                            .notify(player, ServerMsg::tell(format!("[{}] tells:{}", name, msg)));
+                        server
+                            .clients
+                            .notify(entity, ServerMsg::tell(format!("To [{}]:{}", alias, msg)));
                     } else {
                         server.clients.notify(
                             entity,
@@ -840,7 +847,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
     let sim = server.world.sim();
     if let Ok((x, y)) = scan_fmt!(&args, action.arg_fmt, i32, i32) {
         let wpos = Vec2::new(x, y);
-        /* let chunk_pos = wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+        /* let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e / sz as i32
         }); */
 
