@@ -122,6 +122,10 @@ impl AudioFrontend {
     }
 
     pub fn set_listener_pos(&mut self, pos: &Vec3<f32>, ori: &Vec3<f32>) {
+        if self.audio_device == None {
+            return;
+        }
+
         self.listener_pos = pos.clone();
         self.listener_ori = ori.normalized();
 

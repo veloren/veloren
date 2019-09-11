@@ -1,6 +1,7 @@
 use crate::audio::AudioFrontend;
 use client::Client;
 use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos};
+use common::terrain::biome::BiomeKind;
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
@@ -11,12 +12,14 @@ pub struct AnimState {
 }
 
 pub struct SoundMgr {
+    current_biome: BiomeKind,
     character_states: HashMap<EcsEntity, AnimState>,
 }
 
 impl SoundMgr {
     pub fn new() -> Self {
         Self {
+            current_biome: BiomeKind::Void,
             character_states: HashMap::new(),
         }
     }
@@ -60,6 +63,26 @@ impl SoundMgr {
                         pos.0,
                     );
                     state.last_step_sound = Instant::now();
+                }
+            }
+        }
+
+        if let Some(chunk) = client.current_chunk() {
+            let last_biome = self.current_biome;
+            let current_biome = chunk.meta().biome();
+
+            if current_biome != last_biome {
+                match current_biome {
+                    BiomeKind::Void => {
+                        // Play no music
+                    }
+                    BiomeKind::Grassland => {}
+                    BiomeKind::Ocean => {}
+                    BiomeKind::Mountain => {}
+                    BiomeKind::Snowlands => {}
+                    BiomeKind::Desert => {}
+                    BiomeKind::Swamp => {}
+                    BiomeKind::Forest => {}
                 }
             }
         }
