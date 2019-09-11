@@ -18,7 +18,7 @@ use crate::{
     },
     window::Event,
 };
-use client::{Client, MapChunk, MapGrid};
+use client::{Client, MapChunk, MapGrid, MAPPING_FACTOR};
 use common::{
     comp,
     terrain::{BlockKind, TerrainChunk, TerrainGrid},
@@ -419,21 +419,21 @@ impl MapScene {
             .set_focus_pos(Vec3::new(player_pos.x, player_pos.y, 140.0));
         self.camera
             .set_orientation(Vec3::new(orientation, 0.7, 0.0));
-        self.camera.set_distance(1024.0);
+        self.camera.set_distance(1280.0);
 
         // Tick camera for interpolation.
         self.camera.update(client.state().get_time());
 
         // Compute camera matrices.
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        let terrain_view_mat = view_mat * Mat4::scaling_3d(Vec3::broadcast(4.0));
+        let terrain_view_mat = view_mat * Mat4::scaling_3d(Vec3::broadcast(MAPPING_FACTOR as f32));
         self.terrain_view_mat = terrain_view_mat;
         self.proj_mat = proj_mat;
 
         // Move minimap to the top right.
         let proj_mat = Mat4::<f32>::translation_3d(Vec3::new(
-            1.0 - 0.3,
-            1.0 - 0.3 * self.camera().get_aspect_ratio(),
+            1.0 - 0.25,
+            1.0 - 0.25 * self.camera().get_aspect_ratio(),
             0.0,
         )) * proj_mat;
 
@@ -445,7 +445,7 @@ impl MapScene {
                     terrain_view_mat,
                     proj_mat,
                     cam_pos,
-                    self.camera.get_focus_pos() / 4.0, // Hack because the fog calculation is done in model space.
+                    self.camera.get_focus_pos() / MAPPING_FACTOR as f32, // Hack because the fog calculation is done in model space.
                     10_000.0, // Hack that prevents the rendering of fog of war on the map.
                     client.state().get_time_of_day(),
                     client.state().get_time(),
@@ -482,14 +482,14 @@ impl MapScene {
         // Fetch needed chunk models.
         self.loaded_chunk_models.clear();
         let focus_pos = self.camera.get_focus_pos();
-        let focus_key = MapGrid::chunk_key((focus_pos / 4.0).map(|e| e as i32));
-        for key_offs_y in -2..=2 {
-            for key_offs_x in -2..=2 {
-                // We only use models in `-1..=1`, but we request them for `-2..=2` such that they
+        let focus_key = MapGrid::chunk_key((focus_pos / MAPPING_FACTOR as f32).map(|e| e as i32));
+        for key_offs_y in -4..=4 {
+            for key_offs_x in -4..=4 {
+                // We only use models in `-3..=3`, but we request them for `-4..=4` such that they
                 // get prefetched.
                 let key = focus_key + Vec2::new(key_offs_x, key_offs_y);
                 let model = self.chunk_model_cache.request_model(key);
-                if key_offs_x.abs() != 2 && key_offs_y.abs() != 2 {
+                if key_offs_x.abs() != 4 && key_offs_y.abs() != 4 {
                     if let Some(model) = model {
                         if model.in_frustum(&terrain_view_mat, &proj_mat) {
                             self.loaded_chunk_models.push(model);
@@ -516,7 +516,7 @@ impl MapScene {
             renderer,
             &self.terrain_globals,
             &self.lights,
-            self.camera.get_focus_pos() / 4.0,
+            self.camera.get_focus_pos() / MAPPING_FACTOR as f32,
             self.loaded_chunk_models.iter().cloned(),
         );
 

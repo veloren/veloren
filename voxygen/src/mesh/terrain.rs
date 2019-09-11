@@ -8,7 +8,7 @@ use crate::{
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, SizedVol, Vox, WriteVol},
-    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dChange, VolGrid2dError, VolGrid2dJournal},
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError, VolGrid2dJournal},
 };
 use crossbeam::channel;
 use frustum_query::frustum::Frustum;
@@ -366,33 +366,13 @@ impl<
         self.internal_tick += 1;
 
         // Add any recently created or changed chunks to the list of chunks to be meshed.
-        for (key, c) in grid_journal.previous_changes() {
-            if let VolGrid2dChange::<V>::Insert(_) = c {
-                // If the block on the edge of a chunk gets modified, then we need to spawn a mesh
-                // worker to remesh its neighbour(s) too since their ambient occlusion and face
-                // elision information changes, too! Therefore we iterate [-1..1]x[-1..1].
-                for key_offs_y in -1..=1 {
-                    for key_offs_x in -1..=1 {
-                        let key = key + Vec2::new(key_offs_x, key_offs_y);
-
-                        if grid_journal.grid().get_key(key).is_some() {
-                            self.chunk_models
-                                .borrow_mut()
-                                .get_mut(&key)
-                                .map(|chunk_model| {
-                                    chunk_model.needs_worker = true;
-                                });
-                        }
-                    }
-                }
-            } else {
-                self.chunk_models
-                    .borrow_mut()
-                    .get_mut(key)
-                    .map(|chunk_model| {
-                        chunk_model.needs_worker = true;
-                    });
-            }
+        for (key, _) in grid_journal.previous_changes() {
+            self.chunk_models
+                .borrow_mut()
+                .get_mut(key)
+                .map(|chunk_model| {
+                    chunk_model.needs_worker = true;
+                });
         }
 
         'outer: for (&key, chunk_model) in self.chunk_models.borrow_mut().iter_mut() {

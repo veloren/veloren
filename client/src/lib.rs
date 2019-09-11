@@ -45,10 +45,24 @@ pub enum Event {
     Disconnect,
 }
 
-pub type MapChunk = Chonk<Block, TerrainChunkSize, ()>;
+#[derive(Debug, Clone)]
+pub struct MapChunkSize;
+
+impl RectVolSize for MapChunkSize {
+    const RECT_SIZE: Vec2<u32> = Vec2 { x: 16, y: 16 };
+}
+
+pub type MapChunk = Chonk<Block, MapChunkSize, ()>;
 pub type MapGrid = VolGrid2d<MapChunk>;
 pub type MapJournal = VolGrid2dJournal<MapChunk>;
 pub type MapChange = VolGrid2dChange<MapChunk>;
+
+pub const MAPPING_FACTOR: u32 = 4;
+pub const MAPPING_FACTOR_LOG2: u32 = (MAPPING_FACTOR - 1).count_ones();
+pub const CHUNKS_PER_MAP_CHUNK: Vec2<u32> = Vec2::new(
+    MapChunk::RECT_SIZE.x * MAPPING_FACTOR / TerrainChunk::RECT_SIZE.x,
+    MapChunk::RECT_SIZE.y * MAPPING_FACTOR / TerrainChunk::RECT_SIZE.y,
+);
 
 pub struct Client {
     client_state: ClientState,
@@ -433,16 +447,22 @@ impl Client {
             // TODO: What if chunks were removed?
             for (key, chunk) in terrain_changes {
                 if let TerrainChange::Insert(_) = chunk {
-                    todos.insert(key >> 2);
+                    todos.insert(key >> CHUNKS_PER_MAP_CHUNK.map(|e| (e - 1).count_ones() as i32));
                 }
             }
             'doing: for map_key in todos {
-                let key_lb = map_key * 4;
+                let terrain_key_lb = map_key * CHUNKS_PER_MAP_CHUNK.map(|e| e as i32);
                 // Only generate the map chunk if all necessary terrain chunks are available.
-                for key_offs_y in 0..4 {
-                    for key_offs_x in 0..4 {
+                for terrain_key_offs_y in 0..CHUNKS_PER_MAP_CHUNK.y {
+                    for terrain_key_offs_x in 0..CHUNKS_PER_MAP_CHUNK.x {
                         if terrain
-                            .get_key(key_lb + Vec2::new(key_offs_x, key_offs_y))
+                            .get_key(
+                                terrain_key_lb
+                                    + Vec2::new(
+                                        terrain_key_offs_x as i32,
+                                        terrain_key_offs_y as i32,
+                                    ),
+                            )
                             .is_none()
                         {
                             continue 'doing;
@@ -450,46 +470,54 @@ impl Client {
                     }
                 }
                 // Generate the map chunk.
-                let mut map_chunk =
-                    MapChunk::new(140 >> 2, Block::empty(), Block::empty(), Default::default());
-                for key_offs_y in 0..4 {
-                    for key_offs_x in 0..4 {
-                        let key = key_lb + Vec2::new(key_offs_x, key_offs_y);
-                        let key_pos = Vec3::<i32>::from(terrain.key_pos(key));
-                        let chunk = terrain.get_key(key).unwrap();
-                        for pos_by4 in DefaultPosIterator::new(
-                            chunk.lower_bound() >> 2,
-                            (chunk.upper_bound() + Vec3::one() * 3) >> 2,
+                let mut map_chunk = MapChunk::new(
+                    140 >> MAPPING_FACTOR_LOG2,
+                    Block::empty(),
+                    Block::empty(),
+                    Default::default(),
+                );
+                for terrain_key_offs_y in 0..CHUNKS_PER_MAP_CHUNK.y {
+                    for terrain_key_offs_x in 0..CHUNKS_PER_MAP_CHUNK.x {
+                        let terrain_key = terrain_key_lb
+                            + Vec2::new(terrain_key_offs_x as i32, terrain_key_offs_y as i32);
+                        let chunk = terrain.get_key(terrain_key).unwrap();
+                        for rel_pos_downscaled in DefaultPosIterator::new(
+                            chunk.lower_bound() >> MAPPING_FACTOR_LOG2 as i32,
+                            (chunk.upper_bound() + Vec3::broadcast(MAPPING_FACTOR as i32 - 1))
+                                >> MAPPING_FACTOR_LOG2 as i32,
                         ) {
-                            let pos_lb = 4 * pos_by4;
+                            let rel_pos_lb = rel_pos_downscaled << MAPPING_FACTOR_LOG2 as i32;
                             let mut vox_found_cnt: u32 = 0;
                             let mut vox_summed_cnt: u32 = 0;
                             let mut color_sum = Rgb::<u32>::zero();
-                            for (pos, vox) in chunk.vol_iter(pos_lb, pos_lb + Vec3::one() * 4) {
+                            for (rel_pos, vox) in chunk.vol_iter(
+                                rel_pos_lb,
+                                rel_pos_lb + Vec3::broadcast(MAPPING_FACTOR as i32),
+                            ) {
                                 if let Some(color) = vox.get_color() {
                                     vox_found_cnt += 1;
-                                    if terrain
-                                        .get(key_pos + pos - Vec3::unit_x())
+                                    if chunk
+                                        .get(rel_pos - Vec3::unit_x())
                                         .ok()
                                         .map_or(false, |v| v.is_air())
-                                        || terrain
-                                            .get(key_pos + pos + Vec3::unit_x())
+                                        || chunk
+                                            .get(rel_pos + Vec3::unit_x())
                                             .ok()
                                             .map_or(false, |v| v.is_air())
-                                        || terrain
-                                            .get(key_pos + pos - Vec3::unit_y())
+                                        || chunk
+                                            .get(rel_pos - Vec3::unit_y())
                                             .ok()
                                             .map_or(false, |v| v.is_air())
-                                        || terrain
-                                            .get(key_pos + pos + Vec3::unit_y())
+                                        || chunk
+                                            .get(rel_pos + Vec3::unit_y())
                                             .ok()
                                             .map_or(false, |v| v.is_air())
-                                        || terrain
-                                            .get(key_pos + pos - Vec3::unit_z())
+                                        || chunk
+                                            .get(rel_pos - Vec3::unit_z())
                                             .ok()
                                             .map_or(false, |v| v.is_air())
-                                        || terrain
-                                            .get(key_pos + pos + Vec3::unit_z())
+                                        || chunk
+                                            .get(rel_pos + Vec3::unit_z())
                                             .ok()
                                             .map_or(false, |v| v.is_air())
                                     {
@@ -498,16 +526,17 @@ impl Client {
                                     }
                                 }
                             }
-                            if vox_found_cnt >= 4 * 4 && vox_summed_cnt > 0 {
-                                let map_pos = Vec3::from(
-                                    (TerrainChunk::RECT_SIZE >> 2).map(|e| e as i32)
-                                        * Vec2::new(key_offs_x, key_offs_y),
-                                ) + pos_by4;
+                            if vox_found_cnt >= MAPPING_FACTOR && vox_summed_cnt > 0 {
+                                let map_rel_pos = Vec3::from(
+                                    Vec2::new(terrain_key_offs_x as i32, terrain_key_offs_y as i32)
+                                        * (TerrainChunk::RECT_SIZE >> MAPPING_FACTOR_LOG2)
+                                            .map(|e| e as i32),
+                                ) + rel_pos_downscaled;
                                 let block = Block::new(
                                     BlockKind::Dense,
                                     color_sum.map(|e| (e / vox_summed_cnt) as u8),
                                 );
-                                map_chunk.set(map_pos, block).unwrap();
+                                map_chunk.set(map_rel_pos, block).unwrap();
                             }
                         }
                     }
