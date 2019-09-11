@@ -388,30 +388,20 @@ impl MapScene {
         &mut self.camera
     }
 
-    // /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
-    // ///
-    // /// If the event is handled, return true.
-    // pub fn handle_input_event(&mut self, event: Event) -> bool {
-    //     match event {
-    //         // When the window is resized, change the camera's aspect ratio
-    //         Event::Resize(dims) => {
-    //             self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
-    //             true
-    //         }
-    //         // Panning the cursor makes the camera rotate
-    //         Event::CursorPan(delta) => {
-    //             self.camera.rotate_by(Vec3::from(delta) * CURSOR_PAN_SCALE);
-    //             true
-    //         }
-    //         // Zoom the camera when a zoom event occurs
-    //         Event::Zoom(delta) => {
-    //             self.camera.zoom_switch(delta * 0.3);
-    //             true
-    //         }
-    //         // All other events are unhandled
-    //         _ => false,
-    //     }
-    // }
+    /// Handle an incoming user input event.
+    ///
+    /// If the event is handled, return true.
+    pub fn handle_input_event(&mut self, event: Event) -> bool {
+        match event {
+            // When the window is resized, change the camera's aspect ratio
+            Event::Resize(dims) => {
+                self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
+                true
+            }
+            // All other events are unhandled
+            _ => false,
+        }
+    }
 
     /// Maintain data such as GPU constant buffers, models, etc. To be called once per tick.
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, orientation: f32) {

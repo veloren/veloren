@@ -265,7 +265,8 @@ impl PlayState for SessionState {
 
                     // Pass all other events to the scene
                     event => {
-                        self.scene.handle_input_event(event);
+                        self.scene.handle_input_event(event.clone());
+                        self.map_scene.handle_input_event(event);
                     } // TODO: Do something if the event wasn't handled?
                 }
             }
