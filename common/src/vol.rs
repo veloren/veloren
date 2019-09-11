@@ -213,10 +213,17 @@ pub struct DefaultPosIterator {
 
 impl DefaultPosIterator {
     pub fn new(lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self {
+        debug_assert!(lower_bound.map2(upper_bound, |l, u| l <= u).reduce_and());
+        let end = if lower_bound.map2(upper_bound, |l, u| l < u).reduce_and() {
+            upper_bound
+        } else {
+            // Special case because our implementation doesn't handle empty ranges for x or y:
+            lower_bound
+        };
         Self {
             current: lower_bound,
             begin: From::from(lower_bound),
-            end: upper_bound,
+            end,
         }
     }
 }
@@ -225,19 +232,20 @@ impl Iterator for DefaultPosIterator {
     type Item = Vec3<i32>;
 
     fn next(&mut self) -> Option<Vec3<i32>> {
-        self.current.x += (self.current.x < self.end.x) as i32;
+        if self.current.z == self.end.z {
+            return None;
+        }
+        let ret = self.current;
+        self.current.x += 1;
         if self.current.x == self.end.x {
             self.current.x = self.begin.x;
-            self.current.y += (self.current.y < self.end.y) as i32;
+            self.current.y += 1;
             if self.current.y == self.end.y {
                 self.current.y = self.begin.y;
-                self.current.z += (self.current.z < self.end.z) as i32;
-                if self.current.z == self.end.z {
-                    return None;
-                }
+                self.current.z += 1;
             }
         }
-        Some(self.current)
+        Some(ret)
     }
 }
 
