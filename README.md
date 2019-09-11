@@ -43,7 +43,9 @@ If you want to compile Veloren yourself, take a look at the [How to Compile Guid
 #### Arch
 
 [AUR latest binary release](https://aur.archlinux.org/packages/veloren-bin/): `yay -Sy veloren-bin`
+
 [AUR latest release](https://aur.archlinux.org/packages/veloren/): `yay -Sy veloren`
+
 [AUR latest master](https://aur.archlinux.org/packages/veloren-git): `yay -Sy veloren-git`
 
 ## F.A.Q.
