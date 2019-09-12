@@ -53,8 +53,8 @@ before_script:
 optional:linux-debug:
   <<: *optional
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build --dev)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build --dev)
     - rm -r -f optional-build
     - mkdir optional-build
     - cp target/debug/veloren-server-cli optional-build
@@ -109,23 +109,6 @@ optional-release:linux-debug:
     - cp -r assets optional-release-build/
     - tar -cvjSf bin/optional-release-linux-debug.tar.bz2 optional-release-build
     - cp bin/optional-release-linux-debug.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - optional-release-linux-debug.tar.bz2
-    expire_in: 1 month
-
-optional-release:linux-no-debug:
-  <<: *optional-release
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --version)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --version)
-    - rm -r -f optional-version-build
-    - mkdir optional-version-build
-    - cp target/debug/veloren-server-cli optional-version-build
-    - cp target/debug/veloren-voxygen optional-version-build
-    - cp -r assets optional-version-build/
-    - tar -cvjSf bin/optional-version-linux-debug.tar.bz2 optional-version-build
-    - cp bin/optional-version-linux-debug.tar.bz2 $CI_PROJECT_DIR
   artifacts:
     paths:
       - optional-release-linux-debug.tar.bz2

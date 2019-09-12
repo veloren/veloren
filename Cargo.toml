@@ -10,17 +10,6 @@ members = [
 ]
 
 [profile.dev]
-opt-level = 2
-debug = true
-rpath = false
-lto = false
-debug-assertions = true
-codegen-units = 16
-panic = 'unwind'
-incremental = true
-overflow-checks = false
-
-[profile.release]
 opt-level = 3
 debug = true
 rpath = false
@@ -31,7 +20,7 @@ panic = 'unwind'
 incremental = true
 overflow-checks = false
 
-[profile.version]
+[profile.release]
 opt-level = 3
 debug = false
 rpath = false
