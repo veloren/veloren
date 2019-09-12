@@ -45,8 +45,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
 
-        for x in range.min.x + 1..range.max.x - 1 {
-            for y in range.min.y + 1..range.max.y - 1 {
+        for y in range.min.y + 1..range.max.y - 1 {
+            for x in range.min.x + 1..range.max.x - 1 {
                 let mut neighbour_light = [[[1.0f32; 3]; 3]; 3];
 
                 for z in (range.min.z..range.max.z).rev() {
