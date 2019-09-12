@@ -29,6 +29,8 @@ void main() {
 
 	f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz;
 
+	f_pos = warpify(f_pos);
+
 	// Wind waving
 	f_pos += inst_wind_sway * vec3(
 		sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),

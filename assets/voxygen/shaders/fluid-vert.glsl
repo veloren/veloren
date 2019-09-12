@@ -25,6 +25,8 @@ void main() {
     	float((v_pos_norm >> 16) & 0x1FFFu)
     ) + model_offs;
 
+	f_pos = warpify(f_pos);
+
     // TODO: last 3 bits in v_pos_norm should be a number between 0 and 5, rather than 0-2 and a direction.
     uint norm_axis = (v_pos_norm >> 30) & 0x3u;
 
