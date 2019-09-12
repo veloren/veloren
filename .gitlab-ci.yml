@@ -53,8 +53,8 @@ before_script:
 optional:linux-debug:
   <<: *optional
   script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --dev)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --dev)
+    - (cd voxygen && VELOREN_ASSETS=assets cargo build)
+    - (cd server-cli && VELOREN_ASSETS=assets cargo build)
     - rm -r -f optional-build
     - mkdir optional-build
     - cp target/debug/veloren-server-cli optional-build
