@@ -8,7 +8,7 @@ use crate::{
 use common::{
     terrain::{Block, BlockKind},
     vol::{BaseVol, ReadVol, RectRasterableVol, SampleVol, SizedVol, Vox, WriteVol},
-    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dError, VolGrid2dJournal},
+    volumes::vol_grid_2d::{VolGrid2d, VolGrid2dJournal},
 };
 use crossbeam::channel;
 use frustum_query::frustum::Frustum;
@@ -45,13 +45,13 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
 
-        for y in range.min.y + 1..range.max.y - 1 {
-            for x in range.min.x + 1..range.max.x - 1 {
+        for y in range.min.y..range.max.y {
+            for x in range.min.x..range.max.x {
                 let mut neighbour_light = [[[1.0f32; 3]; 3]; 3];
 
                 for z in (range.min.z..range.max.z).rev() {
                     let pos = Vec3::new(x, y, z);
-                    let offs = (pos - (range.min + 1) * Vec3::new(1, 1, 0)).map(|e| e as f32);
+                    let offs = (pos - Vec2::from(range.min)).map(|e| e as f32);
 
                     let block = self.get(pos).ok();
 
@@ -392,37 +392,31 @@ impl<
 
                 // BEGIN enqueue job.
 
+                let chunk = grid_journal.grid().get_key(key).unwrap(); // We already checked this above.
+
+                // The region to actually mesh
+                let min_z = chunk.lower_bound().z;
+                let max_z = chunk.upper_bound().z;
+
+                let aabb = Aabb {
+                    min: Vec3::from(V::RECT_SIZE.map(|e| e as i32) * key) + Vec3::new(0, 0, min_z),
+                    max: Vec3::from(V::RECT_SIZE.map(|e| e as i32) * (key + Vec2::one()))
+                        + Vec3::new(0, 0, max_z),
+                };
+
                 // Find the area of the terrain we want. Because meshing needs to compute things like
                 // ambient occlusion and edge elision, we also need the borders of the chunk's
                 // neighbours too (hence the `- 1` and `+ 1`).
                 let aabr = Aabr {
-                    min: key.map2(VolGrid2d::<V>::chunk_size(), |e, sz| e * sz as i32 - 1),
-                    max: key.map2(VolGrid2d::<V>::chunk_size(), |e, sz| {
-                        (e + 1) * sz as i32 + 1
-                    }),
+                    min: Vec2::from(aabb.min) - Vec2::one(),
+                    max: Vec2::from(aabb.max) + Vec2::one(),
                 };
 
                 // Copy out the chunk data we need to perform the meshing. We do this by taking a
                 // sample of the terrain that includes both the chunk we want and its neighbours.
                 let volume = match grid_journal.grid().sample(aabr) {
                     Ok(sample) => sample,
-                    // Either this chunk or its neighbours doesn't yet exist, so we keep it in the
-                    // queue to be processed at a later date when we have its neighbours.
-                    Err(VolGrid2dError::NoSuchChunk) => return,
                     _ => panic!("Unhandled edge case"),
-                };
-
-                // The region to actually mesh
-                let min_z = volume.iter().fold(std::i32::MAX, |min, (_, chunk)| {
-                    chunk.lower_bound().z.min(min)
-                });
-                let max_z = volume.iter().fold(std::i32::MIN, |max, (_, chunk)| {
-                    chunk.upper_bound().z.max(max)
-                });
-
-                let aabb = Aabb {
-                    min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
-                    max: Vec3::from(aabr.max) + Vec3::unit_z() * (max_z + 1),
                 };
 
                 // Clone various things so that they can be moved into the thread.

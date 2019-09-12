@@ -72,7 +72,7 @@ impl<I: Into<Aabb<i32>>, V: RasterableVol + ReadVol + Debug> SampleVol<I> for Vo
         let range = range.into();
         let mut sample = VolGrid3d::new()?;
         let chunk_min = Self::chunk_key(range.min);
-        let chunk_max = Self::chunk_key(range.max);
+        let chunk_max = Self::chunk_key(range.max - Vec3::one()); // Upper bound is exclusive.
         for x in chunk_min.x..=chunk_max.x {
             for y in chunk_min.y..=chunk_max.y {
                 for z in chunk_min.z..=chunk_max.z {
