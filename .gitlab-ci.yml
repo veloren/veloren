@@ -44,6 +44,8 @@ before_script:
     fi;
   # Overwrite toolchain
   - cp /rust-toolchain /cache/veloren/rust-toolchain
+  # Get original md5 of lock to verify
+  - md5sum Cargo.lock > lock-checksum
 
 #############
 # Optional build
@@ -185,6 +187,35 @@ clippy:
     - veloren-docker
   script:
     - cargo clippy -- -W clippy::all
+
+verify-lock:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - NEW_SUM=$(md5sum Cargo.lock)
+    - OLD_SUM=$(cat lock-checksum)
+    - if [ $NEW_SUM != $OLD_SUM ]; then
+        echo "Something changed in the Cargo.lock file, please go and commit this file!";
+        return 1;
+      fi
+
+verify-rebase:
+  stage: post-build
+  image: registry.gitlab.com/veloren/veloren-docker-ci
+  tags:
+    - veloren-docker
+  script:
+    - git fetch origin master
+    - BRANCH_NAME=$(git branch --contains HEAD | tail -1 | xargs)
+    - LATEST_COMMIT=$(git show-ref --heads -s $BRANCH_NAME)
+    - SIMILAR_COMMIT=$(git merge-base $BRANCH_NAME origin/master)
+    - if [ $LATEST_COMMIT != $SIMILAR_COMMIT ]; then
+        echo "This branch needs to be rebased!"
+        return 1
+      fi
+
 
 .commit: &commit
   stage: post-build
