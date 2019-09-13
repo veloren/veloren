@@ -236,7 +236,7 @@ impl Settings {
 
         if let Ok(file) = fs::File::open(&path) {
             match ron::de::from_reader(file) {
-                Ok(s) => s,
+                Ok(s) => return s,
                 Err(e) => {
                     log::warn!("Failed to parse setting file! Fallback to default. {}", e);
                     // Rename the corrupted settings file
@@ -249,6 +249,9 @@ impl Settings {
                 }
             }
         }
+        // This is reached if either:
+        // - The file can't be opened (presumably it doesn't exist)
+        // - Or there was an error parsing the file
         let default_settings = Self::default();
         default_settings.save_to_file_warn();
         default_settings
