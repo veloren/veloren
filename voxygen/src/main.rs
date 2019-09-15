@@ -25,6 +25,7 @@ pub mod render;
 pub mod scene;
 pub mod session;
 pub mod settings;
+#[cfg(feature = "singleplayer")]
 pub mod singleplayer;
 pub mod window;
 
@@ -32,12 +33,14 @@ pub mod window;
 pub use crate::error::Error;
 
 use crate::{audio::AudioFrontend, menu::main::MainMenuState, settings::Settings, window::Window};
-use heaptrack::track_mem;
 use log::{self, debug, error, info};
 
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
+#[cfg(feature = "heaptracking")]
+use heaptrack::track_mem;
+#[cfg(feature = "heaptracking")]
 track_mem!();
 
 /// A type used to store state that is shared between all play states.
@@ -193,6 +196,7 @@ fn main() {
             backtrace::Backtrace::new(),
         );
 
+        #[cfg(feature = "errorbox")]
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
 
         default_hook(panic_info);
