@@ -103,6 +103,7 @@ pub enum Event {
         password: String,
         server_address: String,
     },
+    #[cfg(feature = "singleplayer")]
     StartSingleplayer,
     Quit,
     Settings,
@@ -274,6 +275,7 @@ impl MainMenuUi {
 
             // Singleplayer
             // Used when the singleplayer button is pressed
+            #[cfg(feature = "singleplayer")]
             macro_rules! singleplayer {
                 () => {
                     self.login_error = None;
@@ -512,21 +514,24 @@ impl MainMenuUi {
             };
 
             // Singleplayer button
-            if Button::image(self.imgs.button)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .w_h(258.0, 55.0)
-                .down_from(self.ids.login_button, 20.0)
-                .align_middle_x_of(self.ids.address_bg)
-                .label("Singleplayer")
-                .label_color(TEXT_COLOR)
-                .label_font_size(22)
-                .label_y(Relative::Scalar(5.0))
-                .label_x(Relative::Scalar(2.0))
-                .set(self.ids.singleplayer_button, ui_widgets)
-                .was_clicked()
+            #[cfg(feature = "singleplayer")]
             {
-                singleplayer!();
+                if Button::image(self.imgs.button)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .w_h(258.0, 55.0)
+                    .down_from(self.ids.login_button, 20.0)
+                    .align_middle_x_of(self.ids.address_bg)
+                    .label("Singleplayer")
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(22)
+                    .label_y(Relative::Scalar(5.0))
+                    .label_x(Relative::Scalar(2.0))
+                    .set(self.ids.singleplayer_button, ui_widgets)
+                    .was_clicked()
+                {
+                    singleplayer!();
+                }
             }
             // Quit
             if Button::image(self.imgs.button)
