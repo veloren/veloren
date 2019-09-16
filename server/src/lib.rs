@@ -288,7 +288,7 @@ impl Server {
                     }
                 }
 
-                ServerEvent::Shoot(entity) => {
+                ServerEvent::Shoot(entity, dir) => {
                     let pos = state
                         .ecs()
                         .read_storage::<comp::Pos>()
@@ -298,8 +298,8 @@ impl Server {
                     Self::create_projectile(
                         state,
                         comp::Pos(pos),
-                        comp::Vel(Vec3::new(0.0, 100.0, 3.0)),
-                        comp::Body::Object(comp::object::Body::Bomb),
+                        comp::Vel(dir * 100.0),
+                        comp::Body::Object(comp::object::Body::Arrow),
                     )
                     .build();
                 }
