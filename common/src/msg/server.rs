@@ -58,7 +58,7 @@ pub enum ServerMsg {
     InventoryUpdate(comp::Inventory),
     TerrainChunkUpdate {
         key: Vec2<i32>,
-        chunk: Box<TerrainChunk>,
+        chunk: Result<Box<TerrainChunk>, ()>,
     },
     TerrainBlockUpdates(HashMap<Vec3<i32>, Block>),
     Error(ServerError),
