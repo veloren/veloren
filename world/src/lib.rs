@@ -28,10 +28,7 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
-use std::{
-    sync::atomic::{AtomicBool, Ordering},
-    time::Duration,
-};
+use std::time::Duration;
 use vek::*;
 
 #[derive(Debug)]
@@ -71,7 +68,7 @@ impl World {
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,
-        flag: &AtomicBool,
+        mut should_continue: impl FnMut() -> bool,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let air = Block::empty();
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
@@ -108,7 +105,7 @@ impl World {
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
             for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
-                if flag.load(Ordering::Relaxed) {
+                if should_continue() {
                     return Err(());
                 };
                 let wpos2d = Vec2::new(x, y)
