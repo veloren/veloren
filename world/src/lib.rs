@@ -28,7 +28,10 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
-use std::time::Duration;
+use std::{
+    sync::atomic::{AtomicBool, Ordering},
+    time::Duration,
+};
 use vek::*;
 
 #[derive(Debug)]
