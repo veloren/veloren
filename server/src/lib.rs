@@ -27,7 +27,7 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
-use hashbrown::{HashMap, hash_map::Entry};
+use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
 use metrics::ServerMetrics;
 use rand::Rng;
@@ -73,11 +73,11 @@ pub struct Server {
     thread_pool: ThreadPool,
     chunk_tx: channel::Sender<(
         Vec2<i32>,
-        Result<(TerrainChunk, ChunkSupplement), EcsEntity>
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
     )>,
     chunk_rx: channel::Receiver<(
         Vec2<i32>,
-        Result<(TerrainChunk, ChunkSupplement), EcsEntity>
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
     )>,
     pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 
