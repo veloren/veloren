@@ -488,7 +488,9 @@ impl Client {
                         self.state.write_component(self.entity, inventory)
                     }
                     ServerMsg::TerrainChunkUpdate { key, chunk } => {
-                        self.state.insert_chunk(key, *chunk);
+                        if let Ok(chunk) = chunk {
+                            self.state.insert_chunk(key, *chunk);
+                        }
                         self.pending_chunks.remove(&key);
                     }
                     ServerMsg::TerrainBlockUpdates(mut blocks) => blocks
