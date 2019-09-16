@@ -68,8 +68,10 @@ impl World {
         BlockGen::new(self, ColumnGen::new(&self.sim))
     }
 
-    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>,
-                          flag: &AtomicBool) -> Result<(TerrainChunk, ChunkSupplement), ()> {
+    pub fn generate_chunk(
+        &self,
+        chunk_pos: Vec2<i32>,
+        flag: &AtomicBool) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let air = Block::empty();
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
@@ -105,7 +107,9 @@ impl World {
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
             for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
-                if flag.load(Ordering::Relaxed) { return Err(()) };
+                if flag.load(Ordering::Relaxed) {
+                    return Err(())
+                };
                 let wpos2d = Vec2::new(x, y)
                     + Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
