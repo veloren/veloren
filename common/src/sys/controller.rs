@@ -127,6 +127,25 @@ impl<'a> System<'a> for Sys {
             }
 
             match stats.equipment.main {
+                Some(Item::Tool {
+                    kind: item::Tool::Bow,
+                    ..
+                }) => {
+                    if controller.primary
+                        && (character.movement == Stand
+                            || character.movement == Run
+                            || character.movement == Jump)
+                    {
+                        if let Wield { time_left } = character.action {
+                            if time_left == Duration::default() {
+                                // Immediately end the wield
+                                character.action = Idle;
+                                server_emitter
+                                    .emit(ServerEvent::Shoot(entity, controller.look_dir));
+                            }
+                        }
+                    }
+                }
                 Some(Item::Tool { .. }) => {
                     // Attack
                     if controller.primary

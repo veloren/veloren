@@ -30,7 +30,7 @@ pub enum ServerEvent {
         cause: comp::HealthSource,
     },
     Respawn(EcsEntity),
-    Shoot(EcsEntity),
+    Shoot(EcsEntity, Vec3<f32>),
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
 }
