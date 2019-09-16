@@ -27,7 +27,7 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
-use hashbrown::HashSet;
+use hashbrown::{HashMap, hash_map::Entry};
 use log::debug;
 use metrics::ServerMetrics;
 use rand::Rng;
@@ -35,7 +35,7 @@ use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entit
 use std::{
     i32,
     net::SocketAddr,
-    sync::Arc,
+    sync::{Arc, atomic::{AtomicBool, Ordering}},
     time::{Duration, Instant},
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
@@ -68,9 +68,9 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: channel::Sender<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
-    chunk_rx: channel::Receiver<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
-    pending_chunks: HashSet<Vec2<i32>>,
+    chunk_tx: channel::Sender<(Vec2<i32>, Result<(TerrainChunk, ChunkSupplement), EcsEntity>)>,
+    chunk_rx: channel::Receiver<(Vec2<i32>, Result<(TerrainChunk, ChunkSupplement), EcsEntity>)>,
+    pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
@@ -113,7 +113,7 @@ impl Server {
                 .build(),
             chunk_tx,
             chunk_rx,
-            pending_chunks: HashSet::new(),
+            pending_chunks: HashMap::new(),
 
             server_info: ServerInfo {
                 name: settings.server_name.clone(),
@@ -463,7 +463,20 @@ impl Server {
         let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
-        if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
+        'insert_terrain_chunks: while let Ok((key, res)) = self.chunk_rx.try_recv() {
+            let (chunk, supplement) = match res {
+                Ok((chunk, supplement)) => (chunk, supplement),
+                Err(entity) => {
+                    self.clients.notify(
+                        entity,
+                        ServerMsg::TerrainChunkUpdate {
+                            key,
+                            chunk: Err(()),
+                        },
+                    );
+                    break 'insert_terrain_chunks;
+                }
+            };
             // Send the chunk to all nearby players.
             for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
@@ -485,7 +498,7 @@ impl Server {
                         entity,
                         ServerMsg::TerrainChunkUpdate {
                             key,
-                            chunk: Box::new(chunk.clone()),
+                            chunk: Ok(Box::new(chunk.clone())),
                         },
                     );
                 }
@@ -552,32 +565,38 @@ impl Server {
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain().iter().for_each(|(chunk_key, _)| {
-            let mut should_drop = true;
+        self.state.terrain()
+            .iter().map(|(k, _)| k)
+            .chain(self.pending_chunks.keys().cloned())
+            .for_each(|chunk_key| {
+                let mut should_drop = true;
 
-            // For each player with a position, calculate the distance.
-            for (player, pos) in (
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-            )
-                .join()
-            {
-                if player
-                    .view_distance
-                    .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
-                    .unwrap_or(false)
+                // For each player with a position, calculate the distance.
+                for (player, pos) in (
+                    &self.state.ecs().read_storage::<comp::Player>(),
+                    &self.state.ecs().read_storage::<comp::Pos>(),
+                )
+                    .join()
                 {
-                    should_drop = false;
-                    break;
+                    if player
+                        .view_distance
+                        .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
+                        .unwrap_or(false)
+                    {
+                        should_drop = false;
+                        break;
+                    }
                 }
-            }
 
-            if should_drop {
-                chunks_to_remove.push(chunk_key);
-            }
-        });
+                if should_drop {
+                    chunks_to_remove.push(chunk_key);
+                }
+            });
         for key in chunks_to_remove {
             self.state.remove_chunk(key);
+            if let Some(cancel) = self.pending_chunks.remove(&key) {
+                cancel.store(true, Ordering::Relaxed);
+            }
         }
 
         let before_tick_6 = Instant::now();
@@ -604,10 +623,10 @@ impl Server {
                         entity,
                         ServerMsg::TerrainChunkUpdate {
                             key: *chunk_key,
-                            chunk: Box::new(match self.state.terrain().get_key(*chunk_key) {
+                            chunk: Ok(Box::new(match self.state.terrain().get_key(*chunk_key) {
                                 Some(chunk) => chunk.clone(),
                                 None => break 'chunk,
-                            }),
+                            })),
                         },
                     );
                 }
@@ -997,10 +1016,10 @@ impl Server {
                                     Some(chunk) => {
                                         client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                             key,
-                                            chunk: Box::new(chunk.clone()),
+                                            chunk: Ok(Box::new(chunk.clone())),
                                         })
                                     }
-                                    None => requested_chunks.push(key),
+                                    None => requested_chunks.push((entity, key))
                                 }
                             }
                             ClientState::Pending => {}
@@ -1083,8 +1102,8 @@ impl Server {
         }
 
         // Generate requested chunks.
-        for key in requested_chunks {
-            self.generate_chunk(key);
+        for (entity, key) in requested_chunks {
+            self.generate_chunk(entity, key);
         }
 
         for (pos, block) in modified_blocks {
@@ -1298,14 +1317,15 @@ impl Server {
             .clear();
     }
 
-    pub fn generate_chunk(&mut self, key: Vec2<i32>) {
-        if self.pending_chunks.insert(key) {
-            let chunk_tx = self.chunk_tx.clone();
-            let world = self.world.clone();
-            self.thread_pool.execute(move || {
-                let _ = chunk_tx.send((key, world.generate_chunk(key)));
-            });
-        }
+    pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
+        let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) { v } else { return; };
+        let cancel = Arc::new(AtomicBool::new(false));
+        v.insert(Arc::clone(&cancel));
+        let chunk_tx = self.chunk_tx.clone();
+        let world = self.world.clone();
+        self.thread_pool.execute(move || {
+            let _ = chunk_tx.send((key, world.generate_chunk(key, &cancel).map_err(|_| entity)));
+        });
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {
