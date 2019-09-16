@@ -1,4 +1,5 @@
 mod client_init;
+#[cfg(feature = "singleplayer")]
 mod start_singleplayer;
 mod ui;
 
@@ -7,6 +8,7 @@ use crate::{window::Event, Direction, GlobalState, PlayState, PlayStateResult};
 use client_init::{ClientInit, Error as InitError};
 use common::{clock::Clock, comp};
 use log::warn;
+#[cfg(feature = "singleplayer")]
 use start_singleplayer::StartSingleplayerState;
 use std::time::Duration;
 use ui::{Event as MainMenuEvent, MainMenuUi};
@@ -114,6 +116,7 @@ impl PlayState for MainMenuState {
                                 .login_error("Invalid username or password".to_string());
                         }
                     }
+                    #[cfg(feature = "singleplayer")]
                     MainMenuEvent::StartSingleplayer => {
                         return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
                     }
