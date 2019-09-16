@@ -35,7 +35,10 @@ use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entit
 use std::{
     i32,
     net::SocketAddr,
-    sync::{Arc, atomic::{AtomicBool, Ordering}},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
     time::{Duration, Instant},
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
@@ -68,8 +71,14 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: channel::Sender<(Vec2<i32>, Result<(TerrainChunk, ChunkSupplement), EcsEntity>)>,
-    chunk_rx: channel::Receiver<(Vec2<i32>, Result<(TerrainChunk, ChunkSupplement), EcsEntity>)>,
+    chunk_tx: channel::Sender<(
+        Vec2<i32>,
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>
+    )>,
+    chunk_rx: channel::Receiver<(
+        Vec2<i32>,
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>
+    )>,
     pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 
     server_settings: ServerSettings,
@@ -565,8 +574,10 @@ impl Server {
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain()
-            .iter().map(|(k, _)| k)
+        self.state
+            .terrain()
+            .iter()
+            .map(|(k, _)| k)
             .chain(self.pending_chunks.keys().cloned())
             .for_each(|chunk_key| {
                 let mut should_drop = true;
@@ -1019,7 +1030,7 @@ impl Server {
                                             chunk: Ok(Box::new(chunk.clone())),
                                         })
                                     }
-                                    None => requested_chunks.push((entity, key))
+                                    None => requested_chunks.push((entity, key)),
                                 }
                             }
                             ClientState::Pending => {}
@@ -1318,7 +1329,11 @@ impl Server {
     }
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
-        let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) { v } else { return; };
+        let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) {
+            v
+        } else {
+            return;
+        };
         let cancel = Arc::new(AtomicBool::new(false));
         v.insert(Arc::clone(&cancel));
         let chunk_tx = self.chunk_tx.clone();
