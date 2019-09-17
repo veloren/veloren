@@ -203,6 +203,7 @@ impl Server {
         pos: comp::Pos,
         vel: comp::Vel,
         body: comp::Body,
+        projectile: comp::Projectile,
     ) -> EcsEntityBuilder {
         state
             .ecs_mut()
@@ -211,6 +212,7 @@ impl Server {
             .with(vel)
             .with(comp::Ori(Vec3::unit_y()))
             .with(body)
+            .with(projectile)
     }
 
     pub fn create_player_character(
@@ -288,7 +290,7 @@ impl Server {
                     }
                 }
 
-                ServerEvent::Shoot(entity, dir) => {
+                ServerEvent::Shoot(entity, dir /*, projectile*/) => {
                     let pos = state
                         .ecs()
                         .read_storage::<comp::Pos>()
@@ -300,11 +302,15 @@ impl Server {
                         comp::Pos(pos),
                         comp::Vel(dir * 100.0),
                         comp::Body::Object(comp::object::Body::Arrow),
+                        comp::Projectile {
+                            hit_ground: vec![comp::projectile::Effect::Vanish],
+                            hit_entity: vec![],
+                        },
                     )
                     .build();
                 }
 
-                ServerEvent::Die { entity, cause } => {
+                ServerEvent::Destroy { entity, cause } => {
                     let ecs = state.ecs_mut();
                     // Chat message
                     if let Some(player) = ecs.read_storage::<comp::Player>().get(entity) {
@@ -327,7 +333,7 @@ impl Server {
                         clients.notify_registered(ServerMsg::kill(msg));
                     }
 
-                    // Give EXP to the client
+                    // Give EXP to the killer if entity had stats
                     let mut stats = ecs.write_storage::<comp::Stats>();
 
                     if let Some(entity_stats) = stats.get(entity).cloned() {
