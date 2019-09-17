@@ -1,6 +1,6 @@
+use super::seed_expan;
 use super::Sampler;
 use vek::*;
-use super::seed_expan;
 
 pub struct RandomField {
     seed: u32,
