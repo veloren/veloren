@@ -103,50 +103,46 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    pub fn generate(mut seed: u32) -> Self {
-        let seed = &mut seed;
-        let mut gen_seed = || {
-            *seed = seed_expan::diffuse(*seed);
-            *seed
-        };
+    pub fn generate(seed: u32) -> Self {
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
         let mut gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new().set_seed(gen_seed()),
-            turb_y_nz: SuperSimplex::new().set_seed(gen_seed()),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed()),
-            hill_nz: SuperSimplex::new().set_seed(gen_seed()),
+            turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
+            turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
+            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
+            hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
                 .set_persistence(0.1)
-                .set_seed(gen_seed()),
-            temp_nz: SuperSimplex::new().set_seed(gen_seed()),
-            dry_nz: BasicMulti::new().set_seed(gen_seed()),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            warp_nz: FastNoise::new(gen_seed()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            temp_nz: SuperSimplex::new().set_seed(rng.gen()),
+            dry_nz: BasicMulti::new().set_seed(rng.gen()),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
+            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
-                .set_seed(gen_seed()),
-            cave_0_nz: SuperSimplex::new().set_seed(gen_seed()),
-            cave_1_nz: SuperSimplex::new().set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
+            cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(gen_seed(), 32, 24),
-            region_gen: StructureGen2d::new(gen_seed(), 400, 96),
-            cliff_gen: StructureGen2d::new(gen_seed(), 80, 56),
+            structure_gen: StructureGen2d::new(rng.gen(), 32, 24),
+            region_gen: StructureGen2d::new(rng.gen(), 400, 96),
+            cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(12)
                 .set_persistence(0.125)
                 .set_frequency(1.0)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
-                .set_seed(gen_seed()),
+                .set_seed(rng.gen()),
 
-            fast_turb_x_nz: FastNoise::new(gen_seed()),
-            fast_turb_y_nz: FastNoise::new(gen_seed()),
+            fast_turb_x_nz: FastNoise::new(rng.gen()),
+            fast_turb_y_nz: FastNoise::new(rng.gen()),
 
-            town_gen: StructureGen2d::new(gen_seed(), 2048, 1024),
+            town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
         };
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
@@ -298,11 +294,11 @@ impl WorldSim {
         }
 
         let mut this = Self {
-            seed: *seed,
+            seed: seed,
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: ChaChaRng::from_seed(seed_expan::rng_state(*seed)),
+            rng,
         };
 
         this.seed_elements();
