@@ -1,3 +1,6 @@
+/// The zerocopy crate exists and can replace this function.
+/// We should evaluate using it when we have multiple usage spots for it.
+/// For now we have this safe alternative.
 fn cast_u32x8_u8x32(a: [u32; 8]) -> [u8; 32] {
     let mut r = [0; 32];
     for i in 0..8 {
