@@ -157,6 +157,7 @@ impl State {
         ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
+        ecs.register::<comp::Projectile>();
 
         // Register synced resources used by the ECS.
         ecs.insert_synced(TimeOfDay(0.0));

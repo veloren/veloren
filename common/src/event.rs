@@ -25,7 +25,7 @@ pub enum ServerEvent {
         pos: Vec3<f32>,
         radius: f32,
     },
-    Die {
+    Destroy {
         entity: EcsEntity,
         cause: comp::HealthSource,
     },
