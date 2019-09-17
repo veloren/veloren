@@ -21,7 +21,7 @@ impl<'a> System<'a> for Sys {
 
         for (entity, mut stat) in (&entities, &mut stats).join() {
             if stat.should_die() && !stat.is_dead {
-                event_emitter.emit(ServerEvent::Die {
+                event_emitter.emit(ServerEvent::Destroy {
                     entity,
                     cause: match stat.health.last_change {
                         Some(change) => change.2,
