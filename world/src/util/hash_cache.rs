@@ -17,7 +17,7 @@ impl<K: Hash + Eq + Clone, V> HashCache<K, V> {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             capacity,
-            map: HashMap::default(),
+            map: HashMap::with_capacity(1024),
             counter: 0,
         }
     }
