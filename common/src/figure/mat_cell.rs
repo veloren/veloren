@@ -4,6 +4,8 @@ use vek::*;
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Material {
     Skin,
+    SkinDark,
+    SkinLight,
     Hair,
     EyeDark,
     EyeLight,
