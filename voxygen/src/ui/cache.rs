@@ -27,10 +27,13 @@ impl Cache {
 
         let max_texture_size = renderer.max_texture_size();
 
-        let graphic_cache_dims =
-            Vec2::new(w, h).map(|e| (e * GRAPHIC_CACHE_SIZE).min(max_texture_size as u16));
+        let graphic_cache_dims = Vec2::new(w, h).map(|e| {
+            (e * GRAPHIC_CACHE_SIZE)
+                .min(max_texture_size as u16)
+                .max(512)
+        });
         let glyph_cache_dims =
-            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16));
+            Vec2::new(w, h).map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16).max(512));
 
         Ok(Self {
             glyph_cache: GlyphCache::builder()
@@ -61,9 +64,11 @@ impl Cache {
     // Resizes and clears the GraphicCache
     pub fn resize_graphic_cache(&mut self, renderer: &mut Renderer) -> Result<(), Error> {
         let max_texture_size = renderer.max_texture_size();
-        let cache_dims = renderer
-            .get_resolution()
-            .map(|e| (e * GRAPHIC_CACHE_SIZE).min(max_texture_size as u16));
+        let cache_dims = renderer.get_resolution().map(|e| {
+            (e * GRAPHIC_CACHE_SIZE)
+                .min(max_texture_size as u16)
+                .max(512)
+        });
         self.graphic_cache.clear_cache(cache_dims);
         self.graphic_cache_tex = renderer.create_dynamic_texture(cache_dims)?;
         Ok(())
@@ -73,7 +78,7 @@ impl Cache {
         let max_texture_size = renderer.max_texture_size();
         let cache_dims = renderer
             .get_resolution()
-            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16));
+            .map(|e| (e * GLYPH_CACHE_SIZE).min(max_texture_size as u16).max(512));
         self.glyph_cache = GlyphCache::builder()
             .dimensions(cache_dims.x as u32, cache_dims.y as u32)
             .scale_tolerance(SCALE_TOLERANCE)
