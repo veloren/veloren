@@ -57,6 +57,10 @@ pub enum Event {
     Char(char),
     /// The cursor has been panned across the screen while grabbed.
     CursorPan(Vec2<f32>),
+    /// The cursor has been moved across the screen while ungrabbed.
+    CursorMove(Vec2<f32>),
+    /// A mouse button has been pressed or released
+    MouseButton(MouseButton, PressState),
     /// The camera has been requested to zoom.
     Zoom(f32),
     /// A key that the game recognises has been pressed or released.
@@ -70,6 +74,9 @@ pub enum Event {
     /// The window is (un)focused
     Focused(bool),
 }
+
+pub type MouseButton = winit::MouseButton;
+pub type PressState = winit::ElementState;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum KeyMouse {
@@ -277,8 +284,10 @@ impl Window {
                         events.push(Event::Resize(Vec2::new(width as u32, height as u32)));
                     }
                     glutin::WindowEvent::ReceivedCharacter(c) => events.push(Event::Char(c)),
-                    glutin::WindowEvent::MouseInput { button, state, .. } if cursor_grabbed => {
-                        if let Some(game_inputs) = key_map.get(&KeyMouse::Mouse(button)) {
+                    glutin::WindowEvent::MouseInput { button, state, .. } => {
+                        if let (true, Some(game_inputs)) =
+                            (cursor_grabbed, key_map.get(&KeyMouse::Mouse(button)))
+                        {
                             for game_input in game_inputs {
                                 events.push(Event::InputUpdate(
                                     *game_input,
@@ -286,6 +295,7 @@ impl Window {
                                 ));
                             }
                         }
+                        events.push(Event::MouseButton(button, state));
                     }
                     glutin::WindowEvent::KeyboardInput { input, .. } => match input.virtual_keycode
                     {
@@ -341,10 +351,18 @@ impl Window {
                 glutin::Event::DeviceEvent { event, .. } => match event {
                     glutin::DeviceEvent::MouseMotion {
                         delta: (dx, dy), ..
-                    } if cursor_grabbed && *focused => events.push(Event::CursorPan(Vec2::new(
-                        dx as f32 * (pan_sensitivity as f32 / 100.0),
-                        dy as f32 * (pan_sensitivity as f32 / 100.0),
-                    ))),
+                    } if *focused => {
+                        let delta = Vec2::new(
+                            dx as f32 * (pan_sensitivity as f32 / 100.0),
+                            dy as f32 * (pan_sensitivity as f32 / 100.0),
+                        );
+
+                        if cursor_grabbed {
+                            events.push(Event::CursorPan(delta));
+                        } else {
+                            events.push(Event::CursorMove(delta));
+                        }
+                    }
                     glutin::DeviceEvent::MouseWheel {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..

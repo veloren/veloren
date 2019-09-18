@@ -129,6 +129,23 @@ impl MatSegment {
         }
         vol
     }
+    /// Transform cells
+    pub fn map(mut self, transform: impl Fn(MatCell) -> Option<MatCell>) -> Self {
+        for pos in self.full_pos_iter() {
+            if let Some(new) = transform(*self.get(pos).unwrap()) {
+                self.set(pos, new).unwrap();
+            }
+        }
+
+        self
+    }
+    /// Transform cell colors
+    pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
+        self.map(|cell| match cell {
+            MatCell::Normal(rgb) => Some(MatCell::Normal(transform(rgb))),
+            _ => None,
+        })
+    }
 }
 
 impl From<&DotVoxData> for MatSegment {
@@ -152,9 +169,9 @@ impl From<&DotVoxData> for MatSegment {
                     1 => MatCell::Mat(Material::Hair),
                     2 => MatCell::Mat(Material::EyeDark),
                     3 => MatCell::Mat(Material::EyeLight),
+                    4 => MatCell::Mat(Material::SkinLight),
+                    5 => MatCell::Mat(Material::SkinDark),
                     7 => MatCell::Mat(Material::EyeWhite),
-                    //1 => MatCell::Mat(Material::HairLight),
-                    //1 => MatCell::Mat(Material::HairDark),
                     //6 => MatCell::Mat(Material::Clothing),
                     index => {
                         let color = palette

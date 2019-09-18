@@ -1,9 +1,9 @@
+use crate::window::{Event as WinEvent, PressState};
 use crate::{
     render::{Consts, Globals, Renderer},
     ui::{
-        self,
-        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        ImageSlider, Ui,
+        img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic},
+        ImageFrame, ImageSlider, Tooltip, Tooltipable, Ui,
     },
     GlobalState,
 };
@@ -35,6 +35,7 @@ widget_ids! {
         divider,
         bodyrace_text,
         facialfeatures_text,
+        char_delete,
 
         // REMOVE THIS AFTER IMPLEMENTATION
         daggers_grey,
@@ -73,6 +74,7 @@ widget_ids! {
         elf_skin_bg,
         danari_skin_bg,
         name_input_bg,
+        info,
 
         // Sliders
         hairstyle_slider,
@@ -151,6 +153,11 @@ image_ids! {
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
 
+        <VoxelMs9Graphic>
+        delete_button: "voxygen.element.buttons.x_red",
+        delete_button_hover: "voxygen.element.buttons.x_red_hover",
+        delete_button_press: "voxygen.element.buttons.x_red_press",
+
         <ImageGraphic>
 
         // Tool Icons
@@ -186,6 +193,15 @@ image_ids! {
         nothing: (),
     }
 }
+rotation_image_ids! {
+    pub struct ImgsRot {
+        <VoxelGraphic>
+
+        // Tooltip Test
+        tt_side: "voxygen/element/frames/tt_test_edge",
+        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
+    }
+}
 
 font_ids! {
     pub struct Fonts {
@@ -202,12 +218,21 @@ pub enum Event {
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
+/*enum InfoContent {
+    //Deletion,
+    Name,
+}*/
+
 pub struct CharSelectionUi {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
+    rot_imgs: ImgsRot,
     fonts: Fonts,
     character_creation: bool,
+    /*info_content: InfoContent,
+    info_window: bool,
+    deletion_confirmation: bool,*/
     pub character_name: String,
     pub character_body: humanoid::Body,
     pub character_tool: Option<Tool>,
@@ -224,6 +249,7 @@ impl CharSelectionUi {
         let ids = Ids::new(ui.id_generator());
         // Load images
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
+        let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load images!");
         // Load fonts
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
@@ -232,7 +258,11 @@ impl CharSelectionUi {
             ui,
             ids,
             imgs,
+            rot_imgs,
             fonts,
+            //info_window: false,
+            //info_content: InfoContent::Name,
+            //deletion_confirmation: false,
             character_creation: false,
             character_name: "Character Name".to_string(),
             character_body: humanoid::Body::random(),
@@ -243,8 +273,25 @@ impl CharSelectionUi {
     // TODO: Split this into multiple modules or functions.
     fn update_layout(&mut self, client: &Client) -> Vec<Event> {
         let mut events = Vec::new();
-        let ref mut ui_widgets = self.ui.set_widgets().0;
+        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
+        // Tooltip
+        let tooltip_human = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(15)
+        .desc_font_size(10)
+        .title_text_color(TEXT_COLOR)
+        .desc_text_color(TEXT_COLOR_2);
 
         // Character Selection /////////////////
         if !self.character_creation {
@@ -365,6 +412,15 @@ impl CharSelectionUi {
                 .press_image(self.imgs.selection)
                 .label_y(conrod_core::position::Relative::Scalar(20.0))
                 .set(self.ids.character_box_1, ui_widgets)
+                .was_clicked()
+            {}
+            if Button::image(self.imgs.delete_button)
+                .w_h(30.0 * 0.5, 30.0 * 0.5)
+                .top_right_with_margins_on(self.ids.character_box_1, 15.0, 15.0)
+                .hover_image(self.imgs.delete_button_hover)
+                .press_image(self.imgs.delete_button_press)
+                .with_tooltip(tooltip_manager, "Delete Character", "", &tooltip_human)
+                .set(self.ids.char_delete, ui_widgets)
                 .was_clicked()
             {}
             Text::new("Human Default")
@@ -532,6 +588,7 @@ impl CharSelectionUi {
             .was_clicked()
             {
                 self.character_body.body_type = humanoid::BodyType::Male;
+                self.character_body.validate();
             }
             // Female
             Image::new(self.imgs.female)
@@ -552,6 +609,7 @@ impl CharSelectionUi {
             .was_clicked()
             {
                 self.character_body.body_type = humanoid::BodyType::Female;
+                self.character_body.validate();
             }
 
             // Alignment for Races and Tools
@@ -559,17 +617,30 @@ impl CharSelectionUi {
                 .mid_bottom_with_margin_on(self.ids.creation_buttons_alignment_1, -324.0)
                 .set(self.ids.creation_buttons_alignment_2, ui_widgets);
 
+            let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
+                match self.character_body.body_type {
+                    humanoid::BodyType::Male => (
+                        self.imgs.human_m,
+                        self.imgs.orc_m,
+                        self.imgs.dwarf_m,
+                        self.imgs.elf_m,
+                        self.imgs.undead_m,
+                        self.imgs.danari_m,
+                    ),
+                    humanoid::BodyType::Female => (
+                        self.imgs.human_f,
+                        self.imgs.orc_f,
+                        self.imgs.dwarf_f,
+                        self.imgs.elf_f,
+                        self.imgs.undead_f,
+                        self.imgs.danari_f,
+                    ),
+                };
             // Human
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.human_m
-                } else {
-                    self.imgs.human_f
-                },
-            )
-            .w_h(70.0, 70.0)
-            .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
-            .set(self.ids.human, ui_widgets);
+            Image::new(human_icon)
+                .w_h(70.0, 70.0)
+                .top_left_with_margins_on(self.ids.creation_buttons_alignment_2, 0.0, 0.0)
+                .set(self.ids.human, ui_widgets);
             if Button::image(if let humanoid::Race::Human = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
@@ -578,23 +649,26 @@ impl CharSelectionUi {
             .middle_of(self.ids.human)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Human", "", &tooltip_human)
+            /*.tooltip_image(
+                if let humanoid::BodyType::Male = self.character_body.body_type {
+                    self.imgs.human_m
+                } else {
+                    self.imgs.human_f
+                },
+            )*/
             .set(self.ids.race_1, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Human;
+                self.character_body.validate();
             }
 
             // Orc
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.orc_m
-                } else {
-                    self.imgs.orc_f
-                },
-            )
-            .w_h(70.0, 70.0)
-            .right_from(self.ids.human, 2.0)
-            .set(self.ids.orc, ui_widgets);
+            Image::new(orc_icon)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.human, 2.0)
+                .set(self.ids.orc, ui_widgets);
             if Button::image(if let humanoid::Race::Orc = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
@@ -603,22 +677,18 @@ impl CharSelectionUi {
             .middle_of(self.ids.orc)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Orc", "", &tooltip_human)
             .set(self.ids.race_2, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Orc;
+                self.character_body.validate();
             }
             // Dwarf
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.dwarf_m
-                } else {
-                    self.imgs.dwarf_f
-                },
-            )
-            .w_h(70.0, 70.0)
-            .right_from(self.ids.orc, 2.0)
-            .set(self.ids.dwarf, ui_widgets);
+            Image::new(dwarf_icon)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.orc, 2.0)
+                .set(self.ids.dwarf, ui_widgets);
             if Button::image(if let humanoid::Race::Dwarf = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
@@ -627,22 +697,18 @@ impl CharSelectionUi {
             .middle_of(self.ids.dwarf)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Dwarf", "", &tooltip_human)
             .set(self.ids.race_3, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Dwarf;
+                self.character_body.validate();
             }
             // Elf
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.elf_m
-                } else {
-                    self.imgs.elf_f
-                },
-            )
-            .w_h(70.0, 70.0)
-            .down_from(self.ids.human, 2.0)
-            .set(self.ids.elf, ui_widgets);
+            Image::new(elf_icon)
+                .w_h(70.0, 70.0)
+                .down_from(self.ids.human, 2.0)
+                .set(self.ids.elf, ui_widgets);
             if Button::image(if let humanoid::Race::Elf = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
@@ -651,22 +717,18 @@ impl CharSelectionUi {
             .middle_of(self.ids.elf)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Elf", "", &tooltip_human)
             .set(self.ids.race_4, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Elf;
+                self.character_body.validate();
             }
             // Undead
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.undead_m
-                } else {
-                    self.imgs.undead_f
-                },
-            )
-            .w_h(70.0, 70.0)
-            .right_from(self.ids.elf, 2.0)
-            .set(self.ids.undead, ui_widgets);
+            Image::new(undead_icon)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.elf, 2.0)
+                .set(self.ids.undead, ui_widgets);
             if Button::image(if let humanoid::Race::Undead = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
@@ -675,34 +737,32 @@ impl CharSelectionUi {
             .middle_of(self.ids.undead)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Undead", "", &tooltip_human)
             .set(self.ids.race_5, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Undead;
+                self.character_body.validate();
             }
             // Danari
-            Image::new(
-                if let humanoid::BodyType::Male = self.character_body.body_type {
-                    self.imgs.danari_m
-                } else {
-                    self.imgs.danari_f
-                },
-            )
-            .right_from(self.ids.undead, 2.0)
-            .set(self.ids.danari, ui_widgets);
+            Image::new(danari_icon)
+                .w_h(70.0, 70.0)
+                .right_from(self.ids.undead, 2.0)
+                .set(self.ids.danari, ui_widgets);
             if Button::image(if let humanoid::Race::Danari = self.character_body.race {
                 self.imgs.icon_border_pressed
             } else {
                 self.imgs.icon_border
             })
-            .w_h(70.0, 70.0)
             .middle_of(self.ids.danari)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Danari", "", &tooltip_human)
             .set(self.ids.race_6, ui_widgets)
             .was_clicked()
             {
                 self.character_body.race = humanoid::Race::Danari;
+                self.character_body.validate();
             }
 
             // Hammer
@@ -719,6 +779,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.hammer)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Hammer", "", &tooltip_human)
             .set(self.ids.hammer_button, ui_widgets)
             .was_clicked()
             {
@@ -743,6 +804,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.bow)
             //.hover_image(self.imgs.icon_border_mo)
             //.press_image(self.imgs.icon_border_press)
+            //.with_tooltip(tooltip_manager, "Bow", "", &tooltip_human)
             .set(self.ids.bow_button, ui_widgets)
             .was_clicked()
             {
@@ -765,6 +827,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.staff)
             //.hover_image(self.imgs.icon_border_mo)
             //.press_image(self.imgs.icon_border_press)
+            //.with_tooltip(tooltip_manager, "Staff", "", &tooltip_human)
             .set(self.ids.staff_button, ui_widgets)
             .was_clicked()
             {
@@ -787,6 +850,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.sword)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Sword", "", &tooltip_human)
             .set(self.ids.sword_button, ui_widgets)
             .was_clicked()
             {
@@ -806,6 +870,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.daggers)
             //.hover_image(self.imgs.icon_border_mo)
             //.press_image(self.imgs.icon_border_press)
+            //.with_tooltip(tooltip_manager, "Daggers", "", &tooltip_human)
             .set(self.ids.daggers_button, ui_widgets)
             .was_clicked()
             {
@@ -828,6 +893,7 @@ impl CharSelectionUi {
             .middle_of(self.ids.axe)
             .hover_image(self.imgs.icon_border_mo)
             .press_image(self.imgs.icon_border_press)
+            .with_tooltip(tooltip_manager, "Axe", "", &tooltip_human)
             .set(self.ids.axe_button, ui_widgets)
             .was_clicked()
             {
@@ -868,27 +934,26 @@ impl CharSelectionUi {
                     .set(slider_id, ui_widgets)
             };
             // Hair Style
-            let current_hair_style = self.character_body.hair_style;
             if let Some(new_val) = char_slider(
                 self.ids.creation_buttons_alignment_2,
                 "Hair Style",
                 self.ids.hairstyle_text,
-                humanoid::ALL_HAIR_STYLES.len() - 1,
-                humanoid::ALL_HAIR_STYLES
-                    .iter()
-                    .position(|&c| c == current_hair_style)
-                    .unwrap_or(0),
+                self.character_body
+                    .race
+                    .num_hair_styles(self.character_body.body_type) as usize
+                    - 1,
+                self.character_body.hair_style as usize,
                 self.ids.hairstyle_slider,
                 ui_widgets,
             ) {
-                self.character_body.hair_style = humanoid::ALL_HAIR_STYLES[new_val];
+                self.character_body.hair_style = new_val as u8;
             }
             // Hair Color
             if let Some(new_val) = char_slider(
                 self.ids.hairstyle_slider,
                 "Hair Color",
                 self.ids.haircolor_text,
-                self.character_body.race.num_hair_colors() - 1,
+                self.character_body.race.num_hair_colors() as usize - 1,
                 self.character_body.hair_color as usize,
                 self.ids.haircolor_slider,
                 ui_widgets,
@@ -900,7 +965,7 @@ impl CharSelectionUi {
                 self.ids.haircolor_slider,
                 "Skin",
                 self.ids.skin_text,
-                self.character_body.race.num_skin_colors() - 1,
+                self.character_body.race.num_skin_colors() as usize - 1,
                 self.character_body.skin as usize,
                 self.ids.skin_slider,
                 ui_widgets,
@@ -928,7 +993,7 @@ impl CharSelectionUi {
                 self.ids.eyebrows_slider,
                 "Eye Color",
                 self.ids.eyecolor_text,
-                self.character_body.race.num_eye_colors() - 1,
+                self.character_body.race.num_eye_colors() as usize - 1,
                 self.character_body.eye_color as usize,
                 self.ids.eyecolor_slider,
                 ui_widgets,
@@ -936,37 +1001,41 @@ impl CharSelectionUi {
                 self.character_body.eye_color = new_val as u8;
             }
             // Accessories
-            let current_accessory = self.character_body.accessory;
+            let _current_accessory = self.character_body.accessory;
             if let Some(new_val) = char_slider(
                 self.ids.eyecolor_slider,
                 "Accessories",
                 self.ids.accessories_text,
-                humanoid::ALL_ACCESSORIES.len() - 1,
-                humanoid::ALL_ACCESSORIES
-                    .iter()
-                    .position(|&c| c == current_accessory)
-                    .unwrap_or(0),
+                self.character_body
+                    .race
+                    .num_accessories(self.character_body.body_type) as usize
+                    - 1,
+                self.character_body.accessory as usize,
                 self.ids.accessories_slider,
                 ui_widgets,
             ) {
-                self.character_body.accessory = humanoid::ALL_ACCESSORIES[new_val];
+                self.character_body.accessory = new_val as u8;
             }
             // Beard
-            if let humanoid::BodyType::Male = self.character_body.body_type {
-                let current_beard = self.character_body.beard;
+            if self
+                .character_body
+                .race
+                .num_beards(self.character_body.body_type)
+                > 1
+            {
                 if let Some(new_val) = char_slider(
                     self.ids.accessories_slider,
                     "Beard",
                     self.ids.beard_text,
-                    humanoid::ALL_BEARDS.len() - 1,
-                    humanoid::ALL_BEARDS
-                        .iter()
-                        .position(|&c| c == current_beard)
-                        .unwrap_or(0),
+                    self.character_body
+                        .race
+                        .num_beards(self.character_body.body_type) as usize
+                        - 1,
+                    self.character_body.beard as usize,
                     self.ids.beard_slider,
                     ui_widgets,
                 ) {
-                    self.character_body.beard = humanoid::ALL_BEARDS[new_val];
+                    self.character_body.beard = new_val as u8;
                 }
             } else {
                 Text::new("Beard")
@@ -1022,8 +1091,15 @@ impl CharSelectionUi {
         events
     }
 
-    pub fn handle_event(&mut self, event: ui::Event) {
-        self.ui.handle_event(event);
+    pub fn handle_event(&mut self, event: WinEvent) -> bool {
+        match event {
+            WinEvent::Ui(event) => {
+                self.ui.handle_event(event);
+                true
+            }
+            WinEvent::MouseButton(_, PressState::Pressed) => !self.ui.no_widget_capturing_mouse(),
+            _ => false,
+        }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client) -> Vec<Event> {

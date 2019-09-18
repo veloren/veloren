@@ -15,9 +15,6 @@ widget_ids! {
         spell_title,
         frame,
         content_align,
-
-
-
     }
 }
 
