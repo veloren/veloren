@@ -124,8 +124,8 @@ impl Ui {
         let mut ui = UiBuilder::new(win_dims).build();
         let tooltip_manager = TooltipManager::new(
             ui.widget_id_generator(),
-            Duration::from_millis(1000),
-            Duration::from_millis(1000),
+            Duration::from_millis(1),
+            Duration::from_millis(100),
             scale.scale_factor_logical(),
         );
 

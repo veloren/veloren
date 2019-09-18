@@ -100,7 +100,13 @@ impl FigureModelCache {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_chest(body.chest)),
+                                        CameraMode::ThirdPerson => Some(mesh_chest(
+                                            body.chest,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
@@ -108,7 +114,13 @@ impl FigureModelCache {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_pants(body.pants)),
+                                        CameraMode::ThirdPerson => Some(mesh_pants(
+                                            body.pants,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
@@ -118,7 +130,13 @@ impl FigureModelCache {
                                     {
                                         None
                                     } else {
-                                        Some(mesh_left_hand(body.hand))
+                                        Some(mesh_left_hand(
+                                            body.hand,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        ))
                                     },
                                     if character_state
                                         .map(|cs| cs.movement.is_roll())
@@ -126,14 +144,32 @@ impl FigureModelCache {
                                     {
                                         None
                                     } else {
-                                        Some(mesh_right_hand(body.hand))
+                                        Some(mesh_right_hand(
+                                            body.hand,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        ))
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_left_foot(body.foot)),
+                                        CameraMode::ThirdPerson => Some(mesh_left_foot(
+                                            body.foot,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_right_foot(body.foot)),
+                                        CameraMode::ThirdPerson => Some(mesh_right_foot(
+                                            body.foot,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode != CameraMode::FirstPerson
@@ -150,15 +186,23 @@ impl FigureModelCache {
                                         None
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(mesh_left_shoulder(body.shoulder))
-                                        }
+                                        CameraMode::ThirdPerson => Some(mesh_left_shoulder(
+                                            body.shoulder,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(mesh_right_shoulder(body.shoulder))
-                                        }
+                                        CameraMode::ThirdPerson => Some(mesh_right_shoulder(
+                                            body.shoulder,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_draw()),

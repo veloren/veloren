@@ -127,11 +127,11 @@ impl TooltipManager {
         };
 
         match self.state {
-            HoverState::Hovering(hover) => tooltip(1.0, hover.1, ui),
-            HoverState::Fading(start, hover, _) => tooltip(
-                (1.0f32 - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
+            HoverState::Hovering(Hover(id, xy)) if id == src_id => tooltip(1.0, xy, ui),
+            HoverState::Fading(start, Hover(id, xy), _) if id == src_id => tooltip(
+                (0.1f32 - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
                     .max(0.0),
-                hover.1,
+                xy,
                 ui,
             ),
             HoverState::Start(start, id) if id == src_id && start.elapsed() > self.hover_dur => {
@@ -139,7 +139,7 @@ impl TooltipManager {
                 self.state = HoverState::Hovering(Hover(id, xy));
                 tooltip(1.0, xy, ui);
             }
-            HoverState::Start(_, _) | HoverState::None => (),
+            _ => (),
         }
     }
 }

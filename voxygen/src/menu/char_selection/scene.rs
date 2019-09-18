@@ -12,7 +12,7 @@ use crate::{
         camera::{Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
-    window::Event,
+    window::{Event, PressState},
 };
 use client::Client;
 use common::{
@@ -45,6 +45,9 @@ pub struct Scene {
 
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
+
+    turning: bool,
+    char_ori: f32,
 }
 
 impl Scene {
@@ -76,6 +79,9 @@ impl Scene {
                 ))
                 .unwrap(),
             backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
+
+            turning: false,
+            char_ori: 0.0,
         }
     }
 
@@ -93,15 +99,23 @@ impl Scene {
                 self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
                 true
             }
+            Event::MouseButton(_, state) => {
+                self.turning = state == PressState::Pressed;
+                true
+            }
+            Event::CursorMove(delta) if self.turning => {
+                self.char_ori += delta.x * 0.01;
+                true
+            }
             // All other events are unhandled
             _ => false,
         }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
-        self.camera.set_focus_pos(Vec3::unit_z() * 2.0);
+        self.camera.set_focus_pos(Vec3::unit_z() * 1.5);
         self.camera.update(client.state().get_time());
-        self.camera.set_distance(4.2);
+        self.camera.set_distance(3.0); // 4.2
         self.camera
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
@@ -142,7 +156,7 @@ impl Scene {
         self.figure_state.update(
             renderer,
             Vec3::zero(),
-            -Vec3::unit_y(),
+            Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
             1.0,
             Rgba::broadcast(1.0),
             1.0 / 60.0, // TODO: Use actual deltatime here?
