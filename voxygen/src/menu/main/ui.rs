@@ -70,10 +70,10 @@ image_ids! {
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
         disclaimer: "voxygen.element.frames.disclaimer",
+        info_frame: "voxygen.element.frames.info_frame_2",
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
-        error_frame: "voxygen.element.frames.window_2",
 
         <BlankGraphic>
         nothing: (),
@@ -357,7 +357,7 @@ impl MainMenuUi {
                     .parent(ui_widgets.window)
                     .mid_top_with_margin_on(self.ids.username_bg, -35.0)
                     .set(self.ids.login_error_bg, ui_widgets);
-                Image::new(self.imgs.error_frame)
+                Image::new(self.imgs.info_frame)
                     .w_h(400.0, 100.0)
                     .middle_of(self.ids.login_error_bg)
                     .set(self.ids.error_frame, ui_widgets);
@@ -379,7 +379,7 @@ impl MainMenuUi {
                 };
             }
             if self.show_servers {
-                Image::new(self.imgs.error_frame)
+                Image::new(self.imgs.info_frame)
                     .mid_top_with_margin_on(self.ids.username_bg, -320.0)
                     .w_h(400.0, 300.0)
                     .set(self.ids.servers_frame, ui_widgets);

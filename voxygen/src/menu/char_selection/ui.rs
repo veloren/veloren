@@ -12,6 +12,7 @@ use common::comp::{humanoid, item::Tool};
 use conrod_core::{
     color,
     color::TRANSPARENT,
+    position::Relative,
     widget::{text_box::Event as TextBoxEvent, Button, Image, Rectangle, Scrollbar, Text, TextBox},
     widget_ids, Borderable, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget,
 };
@@ -36,6 +37,12 @@ widget_ids! {
         bodyrace_text,
         facialfeatures_text,
         char_delete,
+        info_bg,
+        info_frame,
+        info_button_align,
+        info_ok,
+        info_no,
+        delete_text,
 
         // REMOVE THIS AFTER IMPLEMENTATION
         daggers_grey,
@@ -153,6 +160,9 @@ image_ids! {
         slider_range: "voxygen.element.slider.track",
         slider_indicator: "voxygen.element.slider.indicator",
 
+        // Info Window
+        info_frame: "voxygen.element.frames.info_frame",
+
         <VoxelMs9Graphic>
         delete_button: "voxygen.element.buttons.x_red",
         delete_button_hover: "voxygen.element.buttons.x_red_hover",
@@ -218,10 +228,10 @@ pub enum Event {
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
 const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
-/*enum InfoContent {
-    //Deletion,
-    Name,
-}*/
+enum InfoContent {
+    Deletion,
+    //Name,
+}
 
 pub struct CharSelectionUi {
     ui: Ui,
@@ -230,9 +240,9 @@ pub struct CharSelectionUi {
     rot_imgs: ImgsRot,
     fonts: Fonts,
     character_creation: bool,
-    /*info_content: InfoContent,
+    info_content: InfoContent,
     info_window: bool,
-    deletion_confirmation: bool,*/
+    //deletion_confirmation: bool,
     pub character_name: String,
     pub character_body: humanoid::Body,
     pub character_tool: Option<Tool>,
@@ -260,8 +270,8 @@ impl CharSelectionUi {
             imgs,
             rot_imgs,
             fonts,
-            //info_window: false,
-            //info_content: InfoContent::Name,
+            info_window: false,
+            info_content: InfoContent::Deletion,
             //deletion_confirmation: false,
             character_creation: false,
             character_name: "Character Name".to_string(),
@@ -293,10 +303,61 @@ impl CharSelectionUi {
         .title_text_color(TEXT_COLOR)
         .desc_text_color(TEXT_COLOR_2);
 
+        // Information Window
+        if self.info_window {
+            Rectangle::fill_with([520.0, 150.0], color::rgba(0.0, 0.0, 0.0, 0.9))
+                .mid_top_with_margin_on(ui_widgets.window, 300.0)
+                .set(self.ids.info_bg, ui_widgets);
+            Image::new(self.imgs.info_frame)
+                .w_h(550.0, 150.0)
+                .middle_of(self.ids.info_bg)
+                .set(self.ids.info_frame, ui_widgets);
+            Rectangle::fill_with([275.0, 150.0], color::TRANSPARENT)
+                .bottom_left_with_margins_on(self.ids.info_frame, 0.0, 0.0)
+                .set(self.ids.info_button_align, ui_widgets);
+            match self.info_content {
+                InfoContent::Deletion => {
+                    Text::new("Permanently delete this Character?")
+                        .mid_top_with_margin_on(self.ids.info_frame, 40.0)
+                        .font_size(20)
+                        .color(TEXT_COLOR)
+                        .set(self.ids.delete_text, ui_widgets);
+                    if Button::image(self.imgs.button)
+                        .w_h(150.0, 40.0)
+                        .bottom_right_with_margins_on(self.ids.info_button_align, 20.0, 50.0)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .label_y(Relative::Scalar(2.0))
+                        .label("No")
+                        .label_font_size(18)
+                        .label_color(TEXT_COLOR)
+                        .set(self.ids.info_no, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.info_window = false
+                    };
+                    if Button::image(self.imgs.button)
+                        .w_h(150.0, 40.0)
+                        .right_from(self.ids.info_no, 100.0)
+                        //.hover_image(self.imgs.button_hover)
+                        //.press_image(self.imgs.button_press)
+                        .label_y(Relative::Scalar(2.0))
+                        .label("Yes")
+                        .label_font_size(18)
+                        .label_color(Color::Rgba(1.0, 1.0, 1.0, 0.1))
+                        .set(self.ids.info_ok, ui_widgets)
+                        .was_clicked()
+                    {
+                        //self.info_window = false
+                        // TODO -> Char Deletion Event
+                    };
+                }
+            }
+        }
         // Character Selection /////////////////
         if !self.character_creation {
             // Background for Server Frame
-            Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.8))
+            Rectangle::fill_with([386.0, 95.0], color::rgba(0.0, 0.0, 0.0, 0.9))
                 .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
                 .set(self.ids.server_frame_bg, ui_widgets);
             Image::new(self.imgs.server_frame)
@@ -422,7 +483,10 @@ impl CharSelectionUi {
                 .with_tooltip(tooltip_manager, "Delete Character", "", &tooltip_human)
                 .set(self.ids.char_delete, ui_widgets)
                 .was_clicked()
-            {}
+            {
+                self.info_content = InfoContent::Deletion;
+                self.info_window = true;
+            }
             Text::new("Human Default")
                 .top_left_with_margins_on(self.ids.character_box_1, 6.0, 9.0)
                 .font_size(19)
@@ -538,7 +602,6 @@ impl CharSelectionUi {
             }
 
             // Window
-
             Rectangle::fill_with([386.0, 988.0], color::rgba(0.0, 0.0, 0.0, 0.8))
                 .top_left_with_margins_on(ui_widgets.window, 30.0, 30.0)
                 .set(self.ids.creation_bg, ui_widgets);
@@ -548,7 +611,6 @@ impl CharSelectionUi {
                 .set(self.ids.charlist_frame, ui_widgets);
             Rectangle::fill_with([386.0, 983.0], color::TRANSPARENT)
                 .middle_of(self.ids.creation_bg)
-                .scroll_kids()
                 .scroll_kids_vertically()
                 .set(self.ids.creation_alignment, ui_widgets);
             Scrollbar::y_axis(self.ids.creation_alignment)
@@ -558,7 +620,6 @@ impl CharSelectionUi {
                 .set(self.ids.selection_scrollbar, ui_widgets);
 
             // Male/Female/Race Icons
-
             Text::new("Character Creation")
                 .mid_top_with_margin_on(self.ids.creation_alignment, 10.0)
                 .font_size(24)
