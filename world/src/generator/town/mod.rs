@@ -70,6 +70,7 @@ impl<'a> Sampler<'a> for TownGen {
                 CellKind::Park => None,
                 CellKind::Rock => Some(Block::new(BlockKind::Normal, Rgb::broadcast(100))),
                 CellKind::Wall => Some(Block::new(BlockKind::Normal, Rgb::broadcast(175))),
+                CellKind::Well => Some(Block::new(BlockKind::Normal, Rgb::broadcast(0))),
                 CellKind::Road => {
                     if (wpos.z as f32) < height - 1.0 {
                         Some(Block::new(
@@ -154,6 +155,7 @@ impl TownState {
         vol.gen_parks(rng, 3);
         vol.emplace_columns();
         let houses = vol.gen_houses(rng, 50);
+        vol.gen_wells(rng, 5);
         vol.gen_walls(rng);
         vol.resolve_modules(rng);
         vol.cull_unused();
@@ -301,10 +303,7 @@ impl TownVol {
                     self.set_col_kind(cell, Some(ColumnKind::Internal));
                     let col = self.col(cell).unwrap();
                     let ground = col.ground;
-                    for z in 0..2 {
-                        let _ =
-                            self.set(Vec3::new(cell.x, cell.y, ground + z), CellKind::Park.into());
-                    }
+                    let _ = self.set(Vec3::new(cell.x, cell.y, ground), CellKind::Park.into());
                 }
 
                 break;
@@ -394,6 +393,20 @@ impl TownVol {
         }
     }
 
+    fn gen_wells(&mut self, rng: &mut impl Rng, n: usize) {
+        for _ in 0..n {
+            if let Some(cell) = self.choose_cell(rng, |_, cell| {
+                if let CellKind::Park = cell.kind {
+                    true
+                } else {
+                    false
+                }
+            }) {
+                self.set(cell, CellKind::Well.into());
+            }
+        }
+    }
+
     fn gen_houses(&mut self, rng: &mut impl Rng, n: usize) -> Vec<House> {
         const ATTEMPTS: usize = 10;
 
@@ -421,7 +434,7 @@ impl TownVol {
 
                 let mut cells: HashSet<_> = Some(entrance).into_iter().collect();
 
-                let mut energy = 3000;
+                let mut energy = 2300;
                 while energy > 0 {
                     energy -= 1;
 
@@ -604,6 +617,7 @@ fn modules_from_kind(kind: &CellKind) -> Option<&'static [(Arc<Structure>, [Modu
     match kind {
         CellKind::House(_) => Some(&HOUSE_MODULES),
         CellKind::Wall => Some(&WALL_MODULES),
+        CellKind::Well => Some(&WELL_MODULES),
         _ => None,
     }
 }
@@ -659,4 +673,26 @@ lazy_static! {
             module("wall.single_top", [That, That, That, That, That, This]),
         ]
     };
+    pub static ref WELL_MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
+        use ModuleKind::*;
+        vec![module("misc.well", [That; 6])]
+    };
+}
+
+struct ModuleModel {
+    near: u64,
+    mask: u64,
+    vol: Arc<Structure>,
+}
+
+#[derive(Copy, Clone)]
+pub enum NearKind {
+    This,
+    That,
+}
+
+impl ModuleModel {
+    pub fn generate_list(details: &[(&str, &[([i32; 3], NearKind)])]) -> Vec<Self> {
+        unimplemented!()
+    }
 }
