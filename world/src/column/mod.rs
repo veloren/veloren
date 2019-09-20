@@ -171,7 +171,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .get((wposf_turb.div(200.0)).into_array()) as f32)
                 .abs()
                 .mul(chaos.max(0.025))
-                .mul(50.0)
+                .mul(75.0)
             + (sim
                 .gen_ctx
                 .small_nz
@@ -179,7 +179,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .abs()
                 .mul(1.0 - chaos)
                 .mul(1.0 - humidity)
-                .mul(75.0);
+                .mul(85.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
         let near_cliffs = sim_chunk.near_cliffs;
