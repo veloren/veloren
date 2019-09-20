@@ -421,7 +421,7 @@ impl TownVol {
 
                 let mut cells: HashSet<_> = Some(entrance).into_iter().collect();
 
-                let mut energy = 1000;
+                let mut energy = 3000;
                 while energy > 0 {
                     energy -= 1;
 
@@ -441,6 +441,8 @@ impl TownVol {
                                     || cells.contains(&(parent + dir - Vec3::unit_z()))
                             })
                             .unwrap_or(false)
+                        && parent.z + dir.z <= entrance.z + 3
+                    // Maximum house height
                     {
                         cells.insert(parent + dir);
                         energy -= 10;
@@ -613,6 +615,10 @@ lazy_static! {
             module("human.floor_ground", [This, This, This, This, This, That]),
             module("human.stair_ground", [This, This, This, This, This, That]),
             module("human.corner_ground", [This, This, That, That, This, That]),
+            module(
+                "human.window_corner_ground",
+                [This, This, That, That, This, That],
+            ),
             module("human.wall_ground", [This, This, This, That, This, That]),
             module("human.door_ground", [This, This, This, That, This, That]),
             module("human.window_ground", [This, This, This, That, This, That]),
@@ -627,6 +633,10 @@ lazy_static! {
             ),
             module(
                 "human.corner_upstairs",
+                [This, This, That, That, This, This],
+            ),
+            module(
+                "human.window_corner_upstairs",
                 [This, This, That, That, This, This],
             ),
             module("human.wall_upstairs", [This, This, This, That, This, This]),

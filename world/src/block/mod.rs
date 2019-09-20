@@ -178,12 +178,13 @@ impl<'a> BlockGen<'a> {
                     (true, alt, CONFIG.sea_level /*water_level*/)
                 } else {
                     // Apply warping
-                    let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
-                        .mul((chaos - 0.1).max(0.0))
-                        .mul(48.0)
-                        + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
-                            .mul((chaos - 0.1).max(0.0))
-                            .mul(24.0);
+                    let warp = world
+                        .sim()
+                        .gen_ctx
+                        .warp_nz
+                        .get(wposf.div(24.0))
+                        .mul((chaos - 0.1).max(0.0).powf(2.0))
+                        .mul(48.0);
 
                     let height = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs
