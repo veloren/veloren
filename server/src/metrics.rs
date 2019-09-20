@@ -1,6 +1,3 @@
-extern crate prometheus;
-extern crate prometheus_static_metric;
-extern crate rouille;
 use prometheus::{Encoder, Gauge, IntGauge, IntGaugeVec, Opts, Registry, TextEncoder};
 use rouille::{router, Server};
 use std::{
@@ -11,7 +8,7 @@ use std::{
         Arc,
     },
     thread,
-    time::{SystemTime, UNIX_EPOCH},
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 pub struct ServerMetrics {
@@ -24,7 +21,7 @@ pub struct ServerMetrics {
     pub start_time: IntGauge,
     pub time_of_day: Gauge,
     pub light_count: IntGauge,
-    pub thread_running: Arc<AtomicBool>,
+    running: Arc<AtomicBool>,
     pub handle: Option<thread::JoinHandle<()>>,
     pub every_100th: i8,
 }
@@ -91,8 +88,8 @@ impl ServerMetrics {
         registry.register(Box::new(chunks_count.clone())).unwrap();
         registry.register(Box::new(tick_time.clone())).unwrap();
 
-        let thread_running = Arc::new(AtomicBool::new(true));
-        let thread_running2 = thread_running.clone();
+        let running = Arc::new(AtomicBool::new(true));
+        let running2 = running.clone();
 
         //TODO: make this a job
         let handle = Some(thread::spawn(move || {
@@ -110,8 +107,10 @@ impl ServerMetrics {
                 )
             })
             .expect("Failed to start server");
-            while thread_running2.load(Ordering::Relaxed) {
+            while running2.load(Ordering::Relaxed) {
                 server.poll();
+                // Poll at 10Hz
+                thread::sleep(Duration::from_millis(100));
             }
         }));
 
@@ -125,7 +124,7 @@ impl ServerMetrics {
             start_time,
             time_of_day,
             light_count,
-            thread_running,
+            running,
             handle,
             every_100th: 0,
         }
@@ -144,7 +143,7 @@ impl ServerMetrics {
 
 impl Drop for ServerMetrics {
     fn drop(&mut self) {
-        self.thread_running.store(false, Ordering::Relaxed);
+        self.running.store(false, Ordering::Relaxed);
         let handle = self.handle.take();
         handle
             .unwrap()
