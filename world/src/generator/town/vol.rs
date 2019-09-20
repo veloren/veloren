@@ -48,6 +48,7 @@ pub enum CellKind {
     Road,
     Wall,
     House(usize),
+    Well,
 }
 
 #[derive(Clone, PartialEq)]
