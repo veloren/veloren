@@ -38,9 +38,9 @@ use log::{self, debug, error, info};
 use simplelog::{CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
 use std::{fs::File, mem, panic, str::FromStr};
 
-#[cfg(feature = "heaptracking")]
+#[cfg(feature = "heaptrack")]
 use heaptrack::track_mem;
-#[cfg(feature = "heaptracking")]
+#[cfg(feature = "heaptrack")]
 track_mem!();
 
 /// A type used to store state that is shared between all play states.
@@ -196,7 +196,7 @@ fn main() {
             backtrace::Backtrace::new(),
         );
 
-        #[cfg(feature = "errorbox")]
+        #[cfg(feature = "msgbox")]
         msgbox::create("Voxygen has panicked", &msg, msgbox::IconType::ERROR);
 
         default_hook(panic_info);
