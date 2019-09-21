@@ -13,18 +13,14 @@ fn cast_u32x8_u8x32(a: [u32; 8]) -> [u8; 32] {
 }
 
 /// Simple non-cryptographic diffusion function.
-pub fn diffuse(mut x: u32) -> u32 {
-    x = x.wrapping_add(0x7ed55d16).wrapping_add(x << 12);
-    x = (x ^ 0xc761c23c) ^ (x >> 19);
-    x = x.wrapping_add(0x165667b1).wrapping_add(x << 5);
-    x = x.wrapping_add(0xd3a2646c) ^ (x << 9);
-    x = x.wrapping_add(0xfd7046c5).wrapping_add(x << 3);
-    x = (x ^ 0xb55a4f09) ^ (x >> 16);
-    x = x.wrapping_add((1 << 31) - 13) ^ (x << 13);
-    x
+#[inline(always)]
+pub fn diffuse(mut a: u32) -> u32 {
+    a ^= a.rotate_right(23);
+    a.wrapping_mul(2654435761)
 }
 
 /// Diffuse but takes multiple values as input.
+#[inline(always)]
 pub fn diffuse_mult(v: &[u32]) -> u32 {
     let mut state = (1 << 31) - 1;
     for e in v {
