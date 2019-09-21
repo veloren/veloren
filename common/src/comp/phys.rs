@@ -1,3 +1,4 @@
+use crate::state::Uid;
 use specs::{Component, FlaggedStorage, NullStorage};
 use specs_idvs::IDVStorage;
 use vek::*;
@@ -47,6 +48,7 @@ impl Component for Mass {
 pub struct PhysicsState {
     pub on_ground: bool,
     pub on_wall: Option<Vec3<f32>>,
+    pub touch_entity: Option<Uid>,
     pub in_fluid: bool,
 }
 
