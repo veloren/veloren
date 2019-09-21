@@ -170,14 +170,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .small_nz
                 .get((wposf_turb.div(200.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.025))
-                .mul(75.0)
+                .mul(chaos.max(0.05))
+                .mul(55.0)
             + (sim
                 .gen_ctx
                 .small_nz
-                .get((wposf_turb.div(450.0)).into_array()) as f32)
+                .get((wposf_turb.div(600.0)).into_array()) as f32)
                 .abs()
-                .mul(1.0 - chaos)
+                .mul((1.0 - chaos).max(0.3))
                 .mul(1.0 - humidity)
                 .mul(85.0);
 
