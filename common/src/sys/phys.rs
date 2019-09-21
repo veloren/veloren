@@ -7,6 +7,7 @@ use {
         vol::ReadVol,
     },
     specs::{Entities, Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+    sphynx::Uid,
     vek::*,
 };
 
@@ -41,6 +42,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        ReadStorage<'a, Uid>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, DeltaTime>,
         Read<'a, EventBus<LocalEvent>>,
@@ -58,6 +60,7 @@ impl<'a> System<'a> for Sys {
         &mut self,
         (
             entities,
+            uids,
             terrain,
             dt,
             event_bus,
@@ -322,19 +325,21 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, mass, vel, _, _) in (
+        for (pos, scale, mass, vel, _, _, physics) in (
             &positions,
             scales.maybe(),
             masses.maybe(),
             &mut velocities,
             &bodies,
             !&mountings,
+            &mut physics_states,
         )
             .join()
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let mass = mass.map(|m| m.0).unwrap_or(scale);
-            for (pos_other, scale_other, mass_other, _, _) in (
+            for (other, pos_other, scale_other, mass_other, _, _) in (
+                &uids,
                 &positions,
                 scales.maybe(),
                 masses.maybe(),
@@ -357,6 +362,7 @@ impl<'a> System<'a> for Sys {
                     let force = (collision_dist - diff.magnitude()) * 2.0 * mass_other
                         / (mass + mass_other);
                     vel.0 += Vec3::from(diff.normalized()) * force;
+                    physics.touch_entity = Some(*other);
                 }
             }
         }
