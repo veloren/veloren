@@ -19,9 +19,9 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, Pos>,
-        ReadStorage<'a, Ori>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
+        WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
         WriteStorage<'a, Stats>,
     );
@@ -35,8 +35,8 @@ impl<'a> System<'a> for Sys {
             server_bus,
             positions,
             velocities,
-            orientations,
             physics_states,
+            mut orientations,
             mut projectiles,
             mut stats,
         ): Self::SystemData,
@@ -44,17 +44,19 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, uid, pos, velocity, ori, physics, projectile) in (
+        for (entity, uid, pos, vel, physics, ori, projectile) in (
             &entities,
             &uids,
             &positions,
             &velocities,
-            &orientations,
             &physics_states,
+            &mut orientations,
             &mut projectiles,
         )
             .join()
         {
+            ori.0 = vel.0.normalized();
+
             // Hit ground
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
@@ -67,10 +69,17 @@ impl<'a> System<'a> for Sys {
                     }
                 }
             }
-            // TODO: Check entity hit
-            if false {
+            // Hit entity
+            if let Some(other) = physics.touch_entity {
                 for effect in projectile.hit_entity.drain(..) {
                     match effect {
+                        projectile::Effect::Damage(power) => {
+                            server_emitter.emit(ServerEvent::Damage {
+                                uid: other,
+                                power,
+                                cause: HealthSource::Projectile,
+                            })
+                        }
                         projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
                             entity,
                             cause: HealthSource::World,
