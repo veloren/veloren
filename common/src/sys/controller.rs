@@ -5,7 +5,7 @@ use super::{
 use crate::{
     comp::{
         item, ActionState::*, Body, CharacterState, Controller, Item, MovementState::*,
-        PhysicsState, Stats, Vel,
+        PhysicsState, Stats, Vel, Ori,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -24,6 +24,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Stats>,
         ReadStorage<'a, Body>,
         ReadStorage<'a, Vel>,
+        ReadStorage<'a, Ori>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, CharacterState>,
     );
@@ -38,6 +39,7 @@ impl<'a> System<'a> for Sys {
             stats,
             bodies,
             velocities,
+            orientations,
             physics_states,
             mut character_states,
         ): Self::SystemData,
@@ -45,12 +47,13 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
         let mut local_emitter = local_bus.emitter();
 
-        for (entity, controller, stats, body, vel, physics, mut character) in (
+        for (entity, controller, stats, body, vel, ori, physics, mut character) in (
             &entities,
             &mut controllers,
             &stats,
             &bodies,
             &velocities,
+            &orientations,
             &physics_states,
             &mut character_states,
         )
@@ -91,8 +94,8 @@ impl<'a> System<'a> for Sys {
                 && character.movement == Jump
                 && body.is_humanoid()
             {
-                character.movement = Glide;
-            } else if !controller.glide && character.movement == Glide {
+                character.movement.start_glide(ori.0);
+            } else if !controller.glide && character.movement.is_glide() {
                 character.movement = Jump;
             }
 

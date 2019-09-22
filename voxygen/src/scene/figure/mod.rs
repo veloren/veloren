@@ -148,6 +148,8 @@ impl FigureMgr {
                         state.last_movement_change.elapsed().as_secs_f64();
                     let time_since_action_change = state.last_action_change.elapsed().as_secs_f64();
 
+                    let mut quat_out = None;
+
                     let target_base = match &character.movement {
                         Stand => anim::character::StandAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
@@ -173,12 +175,15 @@ impl FigureMgr {
                             time_since_movement_change,
                             skeleton_attr,
                         ),
-                        Glide => anim::character::GlidingAnimation::update_skeleton(
-                            &CharacterSkeleton::new(),
-                            (vel.0.magnitude(), time),
-                            time_since_movement_change,
-                            skeleton_attr,
-                        ),
+                        Glide { oriq: q } => {
+                            quat_out = Some(q.val());
+                            anim::character::GlidingAnimation::update_skeleton(
+                                &CharacterSkeleton::new(),
+                                (vel.0.magnitude(), time),
+                                time_since_movement_change,
+                                skeleton_attr,
+                            )
+                        }
                     };
 
                     let target_bones = match (&character.movement, &character.action) {
@@ -218,7 +223,7 @@ impl FigureMgr {
                     };
                     state.skeleton.interpolate(&target_bones, dt);
 
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(renderer, pos.0, ori.0, quat_out, scale, col, dt);
                 }
                 Body::Quadruped(_) => {
                     let state = self
@@ -263,7 +268,7 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_base, dt);
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(renderer, pos.0, ori.0, None, scale, col, dt);
                 }
                 Body::QuadrupedMedium(_) => {
                     let state = self
@@ -310,7 +315,7 @@ impl FigureMgr {
                     };
 
                     state.skeleton.interpolate(&target_base, dt);
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(renderer, pos.0, ori.0, None, scale, col, dt);
                 }
                 Body::Object(_) => {
                     let state = self
@@ -319,7 +324,7 @@ impl FigureMgr {
                         .or_insert_with(|| FigureState::new(renderer, ObjectSkeleton::new()));
 
                     state.skeleton = state.skeleton_mut().clone();
-                    state.update(renderer, pos.0, ori.0, scale, col, dt);
+                    state.update(renderer, pos.0, ori.0, None, scale, col, dt);
                 }
             }
         }
@@ -451,6 +456,7 @@ impl<S: Skeleton> FigureState<S> {
         renderer: &mut Renderer,
         pos: Vec3<f32>,
         ori: Vec3<f32>,
+        oriq: Option<Quaternion<f32>>,
         scale: f32,
         col: Rgba<f32>,
         dt: f32,
@@ -466,7 +472,7 @@ impl<S: Skeleton> FigureState<S> {
 
         let mat = Mat4::<f32>::identity()
             * Mat4::translation_3d(self.pos)
-            * Mat4::rotation_z(-ori.x.atan2(ori.y))
+            * if let Some(quat) = oriq { Mat4::from(quat) } else { Mat4::rotation_z(-ori.x.atan2(ori.y)) }
             * Mat4::scaling_3d(Vec3::from(0.8 * scale));
 
         let locals = FigureLocals::new(mat, col);

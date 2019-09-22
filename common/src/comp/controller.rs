@@ -6,6 +6,7 @@ use vek::*;
 pub struct Controller {
     pub primary: bool,
     pub secondary: bool,
+    pub control_dir: Vec2<f32>,
     pub move_dir: Vec2<f32>,
     pub look_dir: Vec3<f32>,
     pub jump: bool,

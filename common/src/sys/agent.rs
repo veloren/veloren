@@ -1,4 +1,4 @@
-use crate::comp::{Agent, CharacterState, Controller, MovementState::Glide, Pos, Stats};
+use crate::comp::{Agent, CharacterState, Controller, Pos, Stats};
 use rand::{seq::SliceRandom, thread_rng};
 use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 use vek::*;
@@ -99,7 +99,7 @@ impl<'a> System<'a> for Sys {
                                 controller.roll = true;
                             }
 
-                            if target_character.movement == Glide && target_pos.0.z > pos.0.z + 5.0
+                            if target_character.movement.is_glide() && target_pos.0.z > pos.0.z + 5.0
                             {
                                 controller.glide = true;
                                 controller.jump = true;
