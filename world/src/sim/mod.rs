@@ -219,7 +219,8 @@ impl WorldSim {
                         .mul(alt_main.max(0.25))
                         .mul(0.3)
                         .add(1.0)
-                        .mul(0.5))
+                        .mul(0.5)
+                    + alt_main.mul(100.0).sin().mul(0.025))
             };
 
             // Now we can compute the final altitude using chaos.

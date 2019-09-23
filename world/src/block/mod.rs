@@ -382,16 +382,6 @@ impl<'a> BlockGen<'a> {
             })
             .or(block);
 
-        // Water
-        let block = block.or_else(|| {
-            if (wposf.z as f32) < water_height {
-                // Ocean
-                Some(water)
-            } else {
-                None
-            }
-        });
-
         Some(block.unwrap_or(Block::empty()))
     }
 }

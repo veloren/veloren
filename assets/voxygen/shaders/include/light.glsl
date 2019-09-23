@@ -10,6 +10,11 @@ uniform u_lights {
 
 #include <srgb.glsl>
 
+vec3 illuminate(vec3 color, vec3 diffuse, vec3 ambience) {
+	float avg_col = (color.r + color.g + color.b) / 3.0;
+	return ((color - avg_col) * ambience * 2.0 + (diffuse + ambience) * avg_col) * (diffuse + ambience);
+}
+
 float attenuation_strength(vec3 rpos) {
 	return 1.0 / (rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z);
 }
