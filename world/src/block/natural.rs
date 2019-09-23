@@ -2,7 +2,7 @@ use super::{BlockGen, StructureInfo, StructureMeta};
 use crate::{
     all::ForestKind,
     column::{ColumnGen, ColumnSample},
-    util::{HashCache, RandomPerm, Sampler, UnitChooser},
+    util::{RandomPerm, Sampler, SmallCache, UnitChooser},
     CONFIG,
 };
 use common::{assets, terrain::Structure};
@@ -17,7 +17,7 @@ static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 pub fn structure_gen<'a>(
     column_gen: &ColumnGen<'a>,
-    column_cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+    column_cache: &mut SmallCache<Option<ColumnSample<'a>>>,
     idx: usize,
     st_pos: Vec2<i32>,
     st_seed: u32,
@@ -41,6 +41,7 @@ pub fn structure_gen<'a>(
         st_pos.map(|e| e as f32),
         &st_sample.close_cliffs,
         st_sample.cliff_hill,
+        0.0,
     );
 
     let wheight = st_sample.alt.max(cliff_height);
