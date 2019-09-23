@@ -1,5 +1,5 @@
 use super::{RandomField, Sampler};
-use std::f32;
+use std::{f32, ops::Add};
 use vek::*;
 
 pub struct FastNoise {
@@ -34,16 +34,19 @@ impl Sampler<'static> for FastNoise {
         let v011 = self.noise_at(near_pos + Vec3::new(0, 1, 1));
         let v111 = self.noise_at(near_pos + Vec3::new(1, 1, 1));
 
-        let factor = pos.map(|e| 0.5 - (e.fract() as f32 * f32::consts::PI).cos() * 0.5);
+        let factor = pos.map(|e| {
+            let f = e.fract().add(1.0).fract() as f32;
+            f.powf(2.0) * (3.0 - 2.0 * f)
+        });
 
-        let x00 = Lerp::lerp(v000, v100, factor.x);
-        let x10 = Lerp::lerp(v010, v110, factor.x);
-        let x01 = Lerp::lerp(v001, v101, factor.x);
-        let x11 = Lerp::lerp(v011, v111, factor.x);
+        let x00 = v000 + factor.x * (v100 - v000);
+        let x10 = v010 + factor.x * (v110 - v010);
+        let x01 = v001 + factor.x * (v101 - v001);
+        let x11 = v011 + factor.x * (v111 - v011);
 
-        let y0 = Lerp::lerp(x00, x10, factor.y);
-        let y1 = Lerp::lerp(x01, x11, factor.y);
+        let y0 = x00 + factor.y * (x10 - x00);
+        let y1 = x01 + factor.y * (x11 - x01);
 
-        Lerp::lerp(y0, y1, factor.z) * 2.0 - 1.0
+        (y0 + factor.z * (y1 - y0)) * 2.0 - 1.0
     }
 }
