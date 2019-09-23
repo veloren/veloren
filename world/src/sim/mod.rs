@@ -18,7 +18,7 @@ use crate::{
 };
 use common::{
     terrain::{BiomeKind, TerrainChunkSize},
-    vol::VolSize,
+    vol::RectVolSize,
 };
 use noise::{
     BasicMulti, Billow, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable, SuperSimplex,
@@ -103,50 +103,46 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    pub fn generate(mut seed: u32) -> Self {
-        let seed = &mut seed;
-        let mut gen_seed = || {
-            *seed = seed_expan::diffuse(*seed);
-            *seed
-        };
+    pub fn generate(seed: u32) -> Self {
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
         let mut gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new().set_seed(gen_seed()),
-            turb_y_nz: SuperSimplex::new().set_seed(gen_seed()),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed()),
-            hill_nz: SuperSimplex::new().set_seed(gen_seed()),
+            turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
+            turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
+            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
+            hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
                 .set_persistence(0.1)
-                .set_seed(gen_seed()),
-            temp_nz: SuperSimplex::new().set_seed(gen_seed()),
-            dry_nz: BasicMulti::new().set_seed(gen_seed()),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            warp_nz: FastNoise::new(gen_seed()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            temp_nz: SuperSimplex::new().set_seed(rng.gen()),
+            dry_nz: BasicMulti::new().set_seed(rng.gen()),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
+            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
-                .set_seed(gen_seed()),
-            cave_0_nz: SuperSimplex::new().set_seed(gen_seed()),
-            cave_1_nz: SuperSimplex::new().set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
+            cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(gen_seed(), 32, 24),
-            region_gen: StructureGen2d::new(gen_seed(), 400, 96),
-            cliff_gen: StructureGen2d::new(gen_seed(), 80, 56),
+            structure_gen: StructureGen2d::new(rng.gen(), 32, 24),
+            region_gen: StructureGen2d::new(rng.gen(), 400, 96),
+            cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(12)
                 .set_persistence(0.125)
                 .set_frequency(1.0)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
-                .set_seed(gen_seed()),
+                .set_seed(rng.gen()),
 
-            fast_turb_x_nz: FastNoise::new(gen_seed()),
-            fast_turb_y_nz: FastNoise::new(gen_seed()),
+            fast_turb_x_nz: FastNoise::new(rng.gen()),
+            fast_turb_y_nz: FastNoise::new(rng.gen()),
 
-            town_gen: StructureGen2d::new(gen_seed(), 2048, 1024),
+            town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
         };
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
@@ -298,11 +294,11 @@ impl WorldSim {
         }
 
         let mut this = Self {
-            seed: *seed,
+            seed: seed,
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: ChaChaRng::from_seed(seed_expan::rng_state(*seed)),
+            rng,
         };
 
         this.seed_elements();
@@ -328,7 +324,7 @@ impl WorldSim {
                 self.rng.gen::<usize>() % grid_size.y,
             );
             let wpos = (cell_pos * cell_size + cell_size / 2)
-                .map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
                     e as i32 * sz as i32 + sz as i32 / 2
                 });
 
@@ -378,8 +374,8 @@ impl WorldSim {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
                 let block_pos = Vec2::new(
-                    chunk_pos.x * TerrainChunkSize::SIZE.x as i32,
-                    chunk_pos.y * TerrainChunkSize::SIZE.y as i32,
+                    chunk_pos.x * TerrainChunkSize::RECT_SIZE.x as i32,
+                    chunk_pos.y * TerrainChunkSize::RECT_SIZE.y as i32,
                 );
                 let _cell_pos = Vec2::new(i / cell_size, j / cell_size);
 
@@ -389,9 +385,8 @@ impl WorldSim {
                     .iter()
                     .map(|(pos, seed)| RegionInfo {
                         chunk_pos: *pos,
-                        block_pos: pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-                            e * sz as i32
-                        }),
+                        block_pos: pos
+                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e * sz as i32),
                         dist: (pos - chunk_pos).map(|e| e as f32).magnitude(),
                         seed: *seed,
                     })
@@ -429,7 +424,7 @@ impl WorldSim {
         for i in 0..WORLD_SIZE.x {
             for j in 0..WORLD_SIZE.y {
                 let chunk_pos = Vec2::new(i as i32, j as i32);
-                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
+                let wpos = chunk_pos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
                     e * sz as i32 + sz as i32 / 2
                 });
 
@@ -474,9 +469,11 @@ impl WorldSim {
     }
 
     pub fn get_wpos(&self, wpos: Vec2<i32>) -> Option<&SimChunk> {
-        self.get(wpos.map2(Vec2::from(TerrainChunkSize::SIZE), |e, sz: u32| {
-            e / sz as i32
-        }))
+        self.get(
+            wpos.map2(Vec2::from(TerrainChunkSize::RECT_SIZE), |e, sz: u32| {
+                e / sz as i32
+            }),
+        )
     }
 
     pub fn get_mut(&mut self, chunk_pos: Vec2<i32>) -> Option<&mut SimChunk> {
@@ -509,7 +506,7 @@ impl WorldSim {
         T: Copy + Default + Add<Output = T> + Mul<f32, Output = T>,
         F: FnMut(&SimChunk) -> T,
     {
-        let pos = pos.map2(TerrainChunkSize::SIZE.into(), |e, sz: u32| {
+        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
             e as f64 / sz as f64
         });
 
@@ -579,7 +576,7 @@ pub struct Structures {
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {
         let pos = uniform_idx_as_vec2(posi);
-        let wposf = (pos * TerrainChunkSize::SIZE.map(|e| e as i32)).map(|e| e as f64);
+        let wposf = (pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)).map(|e| e as f64);
 
         let (_, alt_base) = gen_cdf.alt_base[posi];
         let map_edge_factor = map_edge_factor(posi);

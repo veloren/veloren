@@ -3,7 +3,7 @@ use crate::{
     ui::{
         self,
         img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic},
-        ImageFrame, Tooltip, Tooltipable, Ui,
+        ImageFrame, Tooltip, Ui, /*Tooltipable,*/
     },
     GlobalState,
 };
@@ -70,10 +70,10 @@ image_ids! {
         button_hover: "voxygen.element.buttons.button_hover",
         button_press: "voxygen.element.buttons.button_press",
         disclaimer: "voxygen.element.frames.disclaimer",
+        info_frame: "voxygen.element.frames.info_frame_2",
 
         <ImageGraphic>
         bg: "voxygen.background.bg_main",
-        error_frame: "voxygen.element.frames.window_2",
 
         <BlankGraphic>
         nothing: (),
@@ -103,6 +103,7 @@ pub enum Event {
         password: String,
         server_address: String,
     },
+    #[cfg(feature = "singleplayer")]
     StartSingleplayer,
     Quit,
     Settings,
@@ -158,13 +159,13 @@ impl MainMenuUi {
 
     fn update_layout(&mut self, global_state: &mut GlobalState) -> Vec<Event> {
         let mut events = Vec::new();
-        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
+        let (ref mut ui_widgets, ref mut _tooltip_manager) = self.ui.set_widgets();
         let version = env!("CARGO_PKG_VERSION");
         const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
         const TEXT_COLOR_2: Color = Color::Rgba(1.0, 1.0, 1.0, 0.2);
 
         // Tooltip
-        let tooltip = Tooltip::new({
+        let _tooltip = Tooltip::new({
             // Edge images [t, b, r, l]
             // Corner images [tr, tl, br, bl]
             let edge = &self.rot_imgs.tt_side;
@@ -274,6 +275,7 @@ impl MainMenuUi {
 
             // Singleplayer
             // Used when the singleplayer button is pressed
+            #[cfg(feature = "singleplayer")]
             macro_rules! singleplayer {
                 () => {
                     self.login_error = None;
@@ -355,7 +357,7 @@ impl MainMenuUi {
                     .parent(ui_widgets.window)
                     .mid_top_with_margin_on(self.ids.username_bg, -35.0)
                     .set(self.ids.login_error_bg, ui_widgets);
-                Image::new(self.imgs.error_frame)
+                Image::new(self.imgs.info_frame)
                     .w_h(400.0, 100.0)
                     .middle_of(self.ids.login_error_bg)
                     .set(self.ids.error_frame, ui_widgets);
@@ -377,7 +379,7 @@ impl MainMenuUi {
                 };
             }
             if self.show_servers {
-                Image::new(self.imgs.error_frame)
+                Image::new(self.imgs.info_frame)
                     .mid_top_with_margin_on(self.ids.username_bg, -320.0)
                     .w_h(400.0, 300.0)
                     .set(self.ids.servers_frame, ui_widgets);
@@ -497,13 +499,13 @@ impl MainMenuUi {
                     .label_color(TEXT_COLOR)
                     .label_font_size(24)
                     .label_y(Relative::Scalar(5.0))
-                    .with_tooltip(
+                    /*.with_tooltip(
                         tooltip_manager,
                         "Login",
                         "Click to login with the entered details",
                         &tooltip,
                     )
-                    .tooltip_image(self.imgs.v_logo)
+                    .tooltip_image(self.imgs.v_logo)*/
                     .set(self.ids.login_button, ui_widgets)
                     .was_clicked()
                 {
@@ -512,21 +514,24 @@ impl MainMenuUi {
             };
 
             // Singleplayer button
-            if Button::image(self.imgs.button)
-                .hover_image(self.imgs.button_hover)
-                .press_image(self.imgs.button_press)
-                .w_h(258.0, 55.0)
-                .down_from(self.ids.login_button, 20.0)
-                .align_middle_x_of(self.ids.address_bg)
-                .label("Singleplayer")
-                .label_color(TEXT_COLOR)
-                .label_font_size(22)
-                .label_y(Relative::Scalar(5.0))
-                .label_x(Relative::Scalar(2.0))
-                .set(self.ids.singleplayer_button, ui_widgets)
-                .was_clicked()
+            #[cfg(feature = "singleplayer")]
             {
-                singleplayer!();
+                if Button::image(self.imgs.button)
+                    .hover_image(self.imgs.button_hover)
+                    .press_image(self.imgs.button_press)
+                    .w_h(258.0, 55.0)
+                    .down_from(self.ids.login_button, 20.0)
+                    .align_middle_x_of(self.ids.address_bg)
+                    .label("Singleplayer")
+                    .label_color(TEXT_COLOR)
+                    .label_font_size(22)
+                    .label_y(Relative::Scalar(5.0))
+                    .label_x(Relative::Scalar(2.0))
+                    .set(self.ids.singleplayer_button, ui_widgets)
+                    .was_clicked()
+                {
+                    singleplayer!();
+                }
             }
             // Quit
             if Button::image(self.imgs.button)

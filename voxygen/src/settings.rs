@@ -24,7 +24,12 @@ pub struct ControlSettings {
     pub move_back: KeyMouse,
     pub move_right: KeyMouse,
     pub jump: KeyMouse,
+    pub sit: KeyMouse,
     pub glide: KeyMouse,
+    pub climb: KeyMouse,
+    pub climb_down: KeyMouse,
+    pub wall_leap: KeyMouse,
+    pub mount: KeyMouse,
     pub map: KeyMouse,
     pub bag: KeyMouse,
     pub quest_log: KeyMouse,
@@ -57,7 +62,12 @@ impl Default for ControlSettings {
             move_back: KeyMouse::Key(VirtualKeyCode::S),
             move_right: KeyMouse::Key(VirtualKeyCode::D),
             jump: KeyMouse::Key(VirtualKeyCode::Space),
+            sit: KeyMouse::Key(VirtualKeyCode::K),
             glide: KeyMouse::Key(VirtualKeyCode::LShift),
+            climb: KeyMouse::Key(VirtualKeyCode::Space),
+            climb_down: KeyMouse::Key(VirtualKeyCode::LShift),
+            wall_leap: KeyMouse::Mouse(MouseButton::Middle),
+            mount: KeyMouse::Key(VirtualKeyCode::F),
             map: KeyMouse::Key(VirtualKeyCode::M),
             bag: KeyMouse::Key(VirtualKeyCode::B),
             quest_log: KeyMouse::Key(VirtualKeyCode::L),
@@ -224,12 +234,27 @@ impl Settings {
     pub fn load() -> Self {
         let path = Settings::get_settings_path();
 
-        // If file doesn't exist, use the default settings.
-        if let Ok(file) = fs::File::open(path) {
-            ron::de::from_reader(file).expect("Error parsing settings")
-        } else {
-            Self::default()
+        if let Ok(file) = fs::File::open(&path) {
+            match ron::de::from_reader(file) {
+                Ok(s) => return s,
+                Err(e) => {
+                    log::warn!("Failed to parse setting file! Fallback to default. {}", e);
+                    // Rename the corrupted settings file
+                    let mut new_path = path.to_owned();
+                    new_path.pop();
+                    new_path.push("settings.invalid.ron");
+                    if let Err(err) = std::fs::rename(path, new_path) {
+                        log::warn!("Failed to rename settings file. {}", err);
+                    }
+                }
+            }
         }
+        // This is reached if either:
+        // - The file can't be opened (presumably it doesn't exist)
+        // - Or there was an error parsing the file
+        let default_settings = Self::default();
+        default_settings.save_to_file_warn();
+        default_settings
     }
 
     pub fn save_to_file_warn(&self) {

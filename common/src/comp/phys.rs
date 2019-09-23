@@ -38,6 +38,8 @@ impl Component for Scale {
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
     pub on_ground: bool,
+    pub on_wall: Option<Vec3<f32>>,
+    pub in_fluid: bool,
 }
 
 impl Component for PhysicsState {

@@ -10,7 +10,7 @@ pub use self::{
     structure::Structure,
 };
 
-use crate::{vol::VolSize, volumes::vol_map_2d::VolMap2d};
+use crate::{vol::RectVolSize, volumes::vol_grid_2d::VolGrid2d};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
@@ -19,12 +19,8 @@ use vek::*;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TerrainChunkSize;
 
-impl VolSize for TerrainChunkSize {
-    const SIZE: Vec3<u32> = Vec3 {
-        x: 32,
-        y: 32,
-        z: 32,
-    };
+impl RectVolSize for TerrainChunkSize {
+    const RECT_SIZE: Vec2<u32> = Vec2 { x: 32, y: 32 };
 }
 
 // TerrainChunkMeta
@@ -61,5 +57,5 @@ impl TerrainChunkMeta {
 
 // Terrain type aliases
 
-pub type TerrainChunk = chonk::Chonk; //Chunk<Block, TerrainChunkSize, TerrainChunkMeta>;
-pub type TerrainMap = VolMap2d<TerrainChunk, TerrainChunkSize>;
+pub type TerrainChunk = chonk::Chonk<Block, TerrainChunkSize, TerrainChunkMeta>;
+pub type TerrainGrid = VolGrid2d<TerrainChunk>;

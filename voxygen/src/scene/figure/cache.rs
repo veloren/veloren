@@ -6,14 +6,35 @@ use crate::{
 };
 use common::{
     assets::watch::ReloadIndicator,
-    comp::{Body, CharacterState, Equipment},
+    comp::{ActionState, Body, CharacterState, Equipment, MovementState},
 };
 use hashbrown::HashMap;
+use std::mem::{discriminant, Discriminant};
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 enum FigureKey {
     Simple(Body),
-    Complex(Body, Option<Equipment>, CameraMode, Option<CharacterState>),
+    Complex(
+        Body,
+        Option<Equipment>,
+        CameraMode,
+        Option<CharacterStateCacheKey>,
+    ),
+}
+
+#[derive(PartialEq, Eq, Hash, Clone)]
+struct CharacterStateCacheKey {
+    movement: Discriminant<MovementState>,
+    action: Discriminant<ActionState>,
+}
+
+impl From<&CharacterState> for CharacterStateCacheKey {
+    fn from(cs: &CharacterState) -> Self {
+        Self {
+            movement: discriminant(&cs.movement),
+            action: discriminant(&cs.action),
+        }
+    }
 }
 
 pub struct FigureModelCache {
@@ -43,7 +64,7 @@ impl FigureModelCache {
                 body,
                 equipment.cloned(),
                 camera_mode,
-                character_state.cloned(),
+                character_state.map(|cs| CharacterStateCacheKey::from(cs)),
             )
         } else {
             FigureKey::Simple(body)
@@ -79,7 +100,13 @@ impl FigureModelCache {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_chest(body.chest)),
+                                        CameraMode::ThirdPerson => Some(mesh_chest(
+                                            body.chest,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
@@ -87,7 +114,13 @@ impl FigureModelCache {
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_pants(body.pants)),
+                                        CameraMode::ThirdPerson => Some(mesh_pants(
+                                            body.pants,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode == CameraMode::FirstPerson
@@ -97,7 +130,13 @@ impl FigureModelCache {
                                     {
                                         None
                                     } else {
-                                        Some(mesh_left_hand(body.hand))
+                                        Some(mesh_left_hand(
+                                            body.hand,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        ))
                                     },
                                     if character_state
                                         .map(|cs| cs.movement.is_roll())
@@ -105,14 +144,32 @@ impl FigureModelCache {
                                     {
                                         None
                                     } else {
-                                        Some(mesh_right_hand(body.hand))
+                                        Some(mesh_right_hand(
+                                            body.hand,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        ))
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_left_foot(body.foot)),
+                                        CameraMode::ThirdPerson => Some(mesh_left_foot(
+                                            body.foot,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => Some(mesh_right_foot(body.foot)),
+                                        CameraMode::ThirdPerson => Some(mesh_right_foot(
+                                            body.foot,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     if camera_mode != CameraMode::FirstPerson
@@ -129,15 +186,23 @@ impl FigureModelCache {
                                         None
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(mesh_left_shoulder(body.shoulder))
-                                        }
+                                        CameraMode::ThirdPerson => Some(mesh_left_shoulder(
+                                            body.shoulder,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     match camera_mode {
-                                        CameraMode::ThirdPerson => {
-                                            Some(mesh_right_shoulder(body.shoulder))
-                                        }
+                                        CameraMode::ThirdPerson => Some(mesh_right_shoulder(
+                                            body.shoulder,
+                                            body.race,
+                                            body.skin,
+                                            body.hair_color,
+                                            body.eye_color,
+                                        )),
                                         CameraMode::FirstPerson => None,
                                     },
                                     Some(mesh_draw()),

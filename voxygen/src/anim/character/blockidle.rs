@@ -19,6 +19,7 @@ impl Animation for BlockIdleAnimation {
         skeleton: &Self::Skeleton,
         global_time: f64,
         anim_time: f64,
+        _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();

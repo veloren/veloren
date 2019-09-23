@@ -6,8 +6,18 @@ use vek::*;
 
 pub enum LocalEvent {
     Jump(EcsEntity),
-    Boost { entity: EcsEntity, vel: Vec3<f32> },
-    LandOnGround { entity: EcsEntity, vel: Vec3<f32> },
+    WallLeap {
+        entity: EcsEntity,
+        wall_dir: Vec3<f32>,
+    },
+    Boost {
+        entity: EcsEntity,
+        vel: Vec3<f32>,
+    },
+    LandOnGround {
+        entity: EcsEntity,
+        vel: Vec3<f32>,
+    },
 }
 
 pub enum ServerEvent {
@@ -21,6 +31,8 @@ pub enum ServerEvent {
     },
     Respawn(EcsEntity),
     Shoot(EcsEntity),
+    Mount(EcsEntity, EcsEntity),
+    Unmount(EcsEntity),
 }
 
 pub struct EventBus<E> {

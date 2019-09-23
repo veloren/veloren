@@ -17,6 +17,7 @@ impl Animation for WieldAnimation {
         skeleton: &Self::Skeleton,
         (velocity, global_time): Self::Dependency,
         anim_time: f64,
+        rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
@@ -39,7 +40,6 @@ impl Animation for WieldAnimation {
                 .sin()
                 * 0.1,
         );
-
 
         match Tool::Hammer {
             //TODO: Inventory

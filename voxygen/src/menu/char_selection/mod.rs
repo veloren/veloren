@@ -2,7 +2,8 @@ mod scene;
 mod ui;
 
 use crate::{
-    session::SessionState, window::Event, Direction, GlobalState, PlayState, PlayStateResult,
+    session::SessionState, window::Event as WinEvent, Direction, GlobalState, PlayState,
+    PlayStateResult,
 };
 use client::{self, Client};
 use common::{clock::Clock, comp, msg::ClientState};
@@ -35,15 +36,14 @@ impl PlayState for CharSelectionState {
 
         let mut current_client_state = self.client.borrow().get_client_state();
         while let ClientState::Pending | ClientState::Registered = current_client_state {
-            // Handle window events.
+            // Handle window events
             for event in global_state.window.fetch_events() {
+                if self.char_selection_ui.handle_event(event.clone()) {
+                    continue;
+                }
                 match event {
-                    Event::Close => {
+                    WinEvent::Close => {
                         return PlayStateResult::Shutdown;
-                    }
-                    // Pass events to ui.
-                    Event::Ui(event) => {
-                        self.char_selection_ui.handle_event(event);
                     }
                     // Pass all other events to the scene
                     event => {

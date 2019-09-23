@@ -10,8 +10,7 @@ use client::{self, Client};
 use common::{
     clock::Clock,
     comp,
-    comp::Pos,
-    comp::Vel,
+    comp::{Pos, Vel},
     msg::ClientState,
     terrain::{Block, BlockKind},
     vol::ReadVol,
@@ -118,6 +117,9 @@ impl PlayState for SessionState {
                 .compute_dependents(&self.client.borrow());
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
+            // Reset controller events
+            self.controller.clear_events();
+
             // Handle window events.
             for event in global_state.window.fetch_events() {
                 // Pass all events to the ui first.
@@ -208,12 +210,63 @@ impl PlayState for SessionState {
                     Event::InputUpdate(GameInput::Jump, state) => {
                         self.controller.jump = state;
                     }
+                    Event::InputUpdate(GameInput::Sit, state) => {
+                        self.controller.sit = state;
+                    }
                     Event::InputUpdate(GameInput::MoveForward, state) => self.key_state.up = state,
                     Event::InputUpdate(GameInput::MoveBack, state) => self.key_state.down = state,
                     Event::InputUpdate(GameInput::MoveLeft, state) => self.key_state.left = state,
                     Event::InputUpdate(GameInput::MoveRight, state) => self.key_state.right = state,
                     Event::InputUpdate(GameInput::Glide, state) => {
                         self.controller.glide = state;
+                    }
+                    Event::InputUpdate(GameInput::Climb, state) => self.controller.climb = state,
+                    Event::InputUpdate(GameInput::ClimbDown, state) => {
+                        self.controller.climb_down = state
+                    }
+                    Event::InputUpdate(GameInput::WallLeap, state) => {
+                        self.controller.wall_leap = state
+                    }
+                    Event::InputUpdate(GameInput::Mount, true) => {
+                        let client = self.client.borrow();
+                        if client.is_mounted() {
+                            self.controller.push_event(comp::ControlEvent::Unmount);
+                        } else {
+                            let player_pos = client
+                                .state()
+                                .read_storage::<comp::Pos>()
+                                .get(client.entity())
+                                .copied();
+                            if let Some(player_pos) = player_pos {
+                                // Find closest mountable entity
+                                let closest_mountable = (
+                                    &client.state().ecs().entities(),
+                                    &client.state().ecs().read_storage::<comp::Pos>(),
+                                    &client.state().ecs().read_storage::<comp::MountState>(),
+                                )
+                                    .join()
+                                    .filter(|(_, _, ms)| {
+                                        if let comp::MountState::Unmounted = ms {
+                                            true
+                                        } else {
+                                            false
+                                        }
+                                    })
+                                    .min_by_key(|(_, pos, _)| {
+                                        (player_pos.0.distance_squared(pos.0) * 1000.0) as i32
+                                    })
+                                    .map(|(entity, _, _)| entity);
+
+                                if let Some(mountee_uid) =
+                                    closest_mountable.and_then(|mountee_entity| {
+                                        client.state().ecs().uid_from_entity(mountee_entity)
+                                    })
+                                {
+                                    self.controller
+                                        .push_event(comp::ControlEvent::Mount(mountee_uid.into()));
+                                }
+                            }
+                        }
                     }
                     Event::InputUpdate(GameInput::Interact, state) => {
                         let mut client = self.client.borrow_mut();

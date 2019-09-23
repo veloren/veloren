@@ -60,7 +60,7 @@ impl AudioFrontend {
     pub fn no_audio() -> Self {
         Self {
             device: "none".to_string(),
-            device_list: list_devices(),
+            device_list: Vec::new(),
             audio_device: None,
             sound_cache: SoundCache::new(),
             channels: Vec::new(),
@@ -93,6 +93,8 @@ impl AudioFrontend {
         let id = self.next_channel_id;
         self.next_channel_id += 1;
 
+        let volume = self.music_volume;
+
         if let Some(_) = &self.audio_device {
             let calc_pos = ((pos - self.listener_pos) * FALLOFF).into_array();
 
@@ -103,6 +105,7 @@ impl AudioFrontend {
 
             if let Some(channel) = self.get_channel() {
                 channel.set_id(id);
+                channel.set_volume(volume);
                 channel.set_emitter_position(calc_pos);
                 channel.set_left_ear_position(left_ear);
                 channel.set_right_ear_position(right_ear);

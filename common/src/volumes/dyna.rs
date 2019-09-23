@@ -1,9 +1,12 @@
-use crate::vol::{BaseVol, ReadVol, SizedVol, Vox, WriteVol};
+use crate::vol::{
+    BaseVol, DefaultPosIterator, DefaultVolIterator, IntoPosIterator, IntoVolIterator, ReadVol,
+    SizedVol, Vox, WriteVol,
+};
 use serde_derive::{Deserialize, Serialize};
 use vek::*;
 
 #[derive(Debug, Clone)]
-pub enum DynaErr {
+pub enum DynaError {
     OutOfBounds,
 }
 
@@ -40,32 +43,53 @@ impl<V: Vox, M> Dyna<V, M> {
 
 impl<V: Vox, M> BaseVol for Dyna<V, M> {
     type Vox = V;
-    type Err = DynaErr;
+    type Error = DynaError;
 }
 
 impl<V: Vox, M> SizedVol for Dyna<V, M> {
     #[inline(always)]
-    fn get_size(&self) -> Vec3<u32> {
-        self.sz
+    fn lower_bound(&self) -> Vec3<i32> {
+        Vec3::zero()
+    }
+
+    #[inline(always)]
+    fn upper_bound(&self) -> Vec3<i32> {
+        self.sz.map(|e| e as i32)
     }
 }
 
 impl<V: Vox, M> ReadVol for Dyna<V, M> {
     #[inline(always)]
-    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaErr> {
+    fn get(&self, pos: Vec3<i32>) -> Result<&V, DynaError> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get(idx))
-            .ok_or(DynaErr::OutOfBounds)
+            .ok_or(DynaError::OutOfBounds)
     }
 }
 
 impl<V: Vox, M> WriteVol for Dyna<V, M> {
     #[inline(always)]
-    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaErr> {
+    fn set(&mut self, pos: Vec3<i32>, vox: Self::Vox) -> Result<(), DynaError> {
         Self::idx_for(self.sz, pos)
             .and_then(|idx| self.vox.get_mut(idx))
             .map(|old_vox| *old_vox = vox)
-            .ok_or(DynaErr::OutOfBounds)
+            .ok_or(DynaError::OutOfBounds)
+    }
+}
+
+impl<'a, V: Vox, M> IntoPosIterator for &'a Dyna<V, M> {
+    type IntoIter = DefaultPosIterator;
+
+    fn pos_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter::new(lower_bound, upper_bound)
+    }
+}
+
+impl<'a, V: Vox, M> IntoVolIterator<'a> for &'a Dyna<V, M> {
+    type IntoIter = DefaultVolIterator<'a, Dyna<V, M>>;
+
+    fn vol_iter(self, lower_bound: Vec3<i32>, upper_bound: Vec3<i32>) -> Self::IntoIter {
+        Self::IntoIter::new(self, lower_bound, upper_bound)
     }
 }
 

@@ -6,6 +6,7 @@ pub mod client;
 pub mod cmd;
 pub mod error;
 pub mod input;
+pub mod metrics;
 pub mod settings;
 
 // Reexports
@@ -22,16 +23,24 @@ use common::{
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
     state::{BlockChange, State, TimeOfDay, Uid},
-    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainMap},
-    vol::Vox,
-    vol::{ReadVol, VolSize},
+    terrain::{block::Block, TerrainChunk, TerrainChunkSize, TerrainGrid},
+    vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
-use hashbrown::HashSet;
+use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
+use metrics::ServerMetrics;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
-use std::{i32, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    i32,
+    net::SocketAddr,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::{Duration, Instant},
+};
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
@@ -62,12 +71,19 @@ pub struct Server {
     clients: Clients,
 
     thread_pool: ThreadPool,
-    chunk_tx: channel::Sender<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
-    chunk_rx: channel::Receiver<(Vec2<i32>, (TerrainChunk, ChunkSupplement))>,
-    pending_chunks: HashSet<Vec2<i32>>,
+    chunk_tx: channel::Sender<(
+        Vec2<i32>,
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
+    )>,
+    chunk_rx: channel::Receiver<(
+        Vec2<i32>,
+        Result<(TerrainChunk, ChunkSupplement), EcsEntity>,
+    )>,
+    pending_chunks: HashMap<Vec2<i32>, Arc<AtomicBool>>,
 
     server_settings: ServerSettings,
     server_info: ServerInfo,
+    metrics: ServerMetrics,
 
     // TODO: anything but this
     accounts: AuthProvider,
@@ -106,13 +122,14 @@ impl Server {
                 .build(),
             chunk_tx,
             chunk_rx,
-            pending_chunks: HashSet::new(),
+            pending_chunks: HashMap::new(),
 
             server_info: ServerInfo {
                 name: settings.server_name.clone(),
                 description: settings.server_description.clone(),
                 git_hash: common::util::GIT_HASH.to_string(),
             },
+            metrics: ServerMetrics::new(),
             accounts: AuthProvider::new(),
             server_settings: settings,
         };
@@ -261,7 +278,7 @@ impl Server {
                         let mut block_change = ecs.write_resource::<BlockChange>();
 
                         let _ = ecs
-                            .read_resource::<TerrainMap>()
+                            .read_resource::<TerrainGrid>()
                             .ray(pos, pos + dir * radius)
                             .until(|_| rand::random::<f32>() < 0.05)
                             .for_each(|pos| block_change.set(pos, Block::empty()))
@@ -355,6 +372,53 @@ impl Server {
                             .insert(entity, comp::ForceUpdate);
                     }
                 }
+                ServerEvent::Mount(mounter, mountee) => {
+                    if state
+                        .ecs()
+                        .read_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .is_none()
+                    {
+                        let not_mounting_yet = if let Some(comp::MountState::Unmounted) = state
+                            .ecs()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee)
+                            .cloned()
+                        {
+                            true
+                        } else {
+                            false
+                        };
+
+                        if not_mounting_yet {
+                            if let (Some(mounter_uid), Some(mountee_uid)) = (
+                                state.ecs().uid_from_entity(mounter),
+                                state.ecs().uid_from_entity(mountee),
+                            ) {
+                                state.write_component(
+                                    mountee,
+                                    comp::MountState::MountedBy(mounter_uid.into()),
+                                );
+                                state.write_component(mounter, comp::Mounting(mountee_uid.into()));
+                            }
+                        }
+                    }
+                }
+                ServerEvent::Unmount(mounter) => {
+                    let mountee_entity = state
+                        .ecs()
+                        .write_storage::<comp::Mounting>()
+                        .get(mounter)
+                        .and_then(|mountee| state.ecs().entity_from_uid(mountee.0.into()));
+                    if let Some(mountee_entity) = mountee_entity {
+                        state
+                            .ecs_mut()
+                            .write_storage::<comp::MountState>()
+                            .get_mut(mountee_entity)
+                            .map(|ms| *ms = comp::MountState::Unmounted);
+                    }
+                    state.delete_component::<comp::Mounting>(mounter);
+                }
             }
 
             if let Some(entity) = todo_remove {
@@ -377,8 +441,10 @@ impl Server {
         // 4) Perform a single LocalState tick (i.e: update the world and entities in the world)
         // 5) Go through the terrain update queue and apply all changes to the terrain
         // 6) Send relevant state updates to all clients
-        // 7) Finish the tick, passing control of the main thread back to the frontend
+        // 7) Update Metrics with current data
+        // 8) Finish the tick, passing control of the main thread back to the frontend
 
+        let before_tick_1 = Instant::now();
         // 1) Build up a list of events for this frame, to be passed to the frontend.
         let mut frontend_events = Vec::new();
 
@@ -396,15 +462,30 @@ impl Server {
         // Handle game events
         self.handle_events();
 
+        let before_tick_4 = Instant::now();
         // 4) Tick the client's LocalState.
         self.state.tick(dt);
 
         // Tick the world
         self.world.tick(dt);
 
+        let before_tick_5 = Instant::now();
         // 5) Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.
-        if let Ok((key, (chunk, supplement))) = self.chunk_rx.try_recv() {
+        'insert_terrain_chunks: while let Ok((key, res)) = self.chunk_rx.try_recv() {
+            let (chunk, supplement) = match res {
+                Ok((chunk, supplement)) => (chunk, supplement),
+                Err(entity) => {
+                    self.clients.notify(
+                        entity,
+                        ServerMsg::TerrainChunkUpdate {
+                            key,
+                            chunk: Err(()),
+                        },
+                    );
+                    continue 'insert_terrain_chunks;
+                }
+            };
             // Send the chunk to all nearby players.
             for (entity, view_distance, pos) in (
                 &self.state.ecs().entities(),
@@ -426,7 +507,7 @@ impl Server {
                         entity,
                         ServerMsg::TerrainChunkUpdate {
                             key,
-                            chunk: Box::new(chunk.clone()),
+                            chunk: Ok(Box::new(chunk.clone())),
                         },
                     );
                 }
@@ -479,7 +560,7 @@ impl Server {
         fn chunk_in_vd(
             player_pos: Vec3<f32>,
             chunk_pos: Vec2<i32>,
-            terrain: &TerrainMap,
+            terrain: &TerrainGrid,
             vd: u32,
         ) -> bool {
             let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
@@ -493,34 +574,43 @@ impl Server {
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();
-        self.state.terrain().iter().for_each(|(chunk_key, _)| {
-            let mut should_drop = true;
+        self.state
+            .terrain()
+            .iter()
+            .map(|(k, _)| k)
+            .chain(self.pending_chunks.keys().cloned())
+            .for_each(|chunk_key| {
+                let mut should_drop = true;
 
-            // For each player with a position, calculate the distance.
-            for (player, pos) in (
-                &self.state.ecs().read_storage::<comp::Player>(),
-                &self.state.ecs().read_storage::<comp::Pos>(),
-            )
-                .join()
-            {
-                if player
-                    .view_distance
-                    .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
-                    .unwrap_or(false)
+                // For each player with a position, calculate the distance.
+                for (player, pos) in (
+                    &self.state.ecs().read_storage::<comp::Player>(),
+                    &self.state.ecs().read_storage::<comp::Pos>(),
+                )
+                    .join()
                 {
-                    should_drop = false;
-                    break;
+                    if player
+                        .view_distance
+                        .map(|vd| chunk_in_vd(pos.0, chunk_key, &self.state.terrain(), vd))
+                        .unwrap_or(false)
+                    {
+                        should_drop = false;
+                        break;
+                    }
                 }
-            }
 
-            if should_drop {
-                chunks_to_remove.push(chunk_key);
-            }
-        });
+                if should_drop {
+                    chunks_to_remove.push(chunk_key);
+                }
+            });
         for key in chunks_to_remove {
             self.state.remove_chunk(key);
+            if let Some(cancel) = self.pending_chunks.remove(&key) {
+                cancel.store(true, Ordering::Relaxed);
+            }
         }
 
+        let before_tick_6 = Instant::now();
         // 6) Synchronise clients with the new state of the world.
         self.sync_clients();
 
@@ -544,10 +634,10 @@ impl Server {
                         entity,
                         ServerMsg::TerrainChunkUpdate {
                             key: *chunk_key,
-                            chunk: Box::new(match self.state.terrain().get_key(*chunk_key) {
+                            chunk: Ok(Box::new(match self.state.terrain().get_key(*chunk_key) {
                                 Some(chunk) => chunk.clone(),
                                 None => break 'chunk,
-                            }),
+                            })),
                         },
                     );
                 }
@@ -585,7 +675,44 @@ impl Server {
             let _ = self.state.ecs_mut().delete_entity(entity);
         }
 
-        // 7) Finish the tick, pass control back to the frontend.
+        let before_tick_7 = Instant::now();
+        // 7) Update Metrics
+        self.metrics
+            .tick_time
+            .with_label_values(&["input"])
+            .set((before_tick_4 - before_tick_1).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["world"])
+            .set((before_tick_5 - before_tick_4).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["terrain"])
+            .set((before_tick_6 - before_tick_5).as_nanos() as i64);
+        self.metrics
+            .tick_time
+            .with_label_values(&["sync"])
+            .set((before_tick_7 - before_tick_6).as_nanos() as i64);
+        self.metrics.player_online.set(self.clients.len() as i64);
+        self.metrics
+            .time_of_day
+            .set(self.state.ecs().read_resource::<TimeOfDay>().0);
+        if self.metrics.is_100th_tick() {
+            let mut chonk_cnt = 0;
+            let chunk_cnt = self.state.terrain().iter().fold(0, |a, (_, c)| {
+                chonk_cnt += 1;
+                a + c.sub_chunks_len()
+            });
+            self.metrics.chonks_count.set(chonk_cnt as i64);
+            self.metrics.chunks_count.set(chunk_cnt as i64);
+        }
+        //self.metrics.entity_count.set(self.state.);
+        self.metrics
+            .tick_time
+            .with_label_values(&["metrics"])
+            .set(before_tick_7.elapsed().as_nanos() as i64);
+
+        // 8) Finish the tick, pass control back to the frontend.
 
         Ok(frontend_events)
     }
@@ -900,10 +1027,10 @@ impl Server {
                                     Some(chunk) => {
                                         client.postbox.send_message(ServerMsg::TerrainChunkUpdate {
                                             key,
-                                            chunk: Box::new(chunk.clone()),
+                                            chunk: Ok(Box::new(chunk.clone())),
                                         })
                                     }
-                                    None => requested_chunks.push(key),
+                                    None => requested_chunks.push((entity, key)),
                                 }
                             }
                             ClientState::Pending => {}
@@ -986,8 +1113,8 @@ impl Server {
         }
 
         // Generate requested chunks.
-        for key in requested_chunks {
-            self.generate_chunk(key);
+        for (entity, key) in requested_chunks {
+            self.generate_chunk(entity, key);
         }
 
         for (pos, block) in modified_blocks {
@@ -1085,8 +1212,8 @@ impl Server {
                 ) {
                     {
                         // Check if the entity is in the client's range
-                        (pos.0 - client_pos.0)
-                            .map2(TerrainChunkSize::SIZE, |d, sz| {
+                        Vec2::from(pos.0 - client_pos.0)
+                            .map2(TerrainChunkSize::RECT_SIZE, |d: f32, sz| {
                                 (d.abs() as u32 / sz).checked_sub(2).unwrap_or(0)
                             })
                             .magnitude_squared()
@@ -1201,14 +1328,22 @@ impl Server {
             .clear();
     }
 
-    pub fn generate_chunk(&mut self, key: Vec2<i32>) {
-        if self.pending_chunks.insert(key) {
-            let chunk_tx = self.chunk_tx.clone();
-            let world = self.world.clone();
-            self.thread_pool.execute(move || {
-                let _ = chunk_tx.send((key, world.generate_chunk(key)));
-            });
-        }
+    pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
+        let v = if let Entry::Vacant(v) = self.pending_chunks.entry(key) {
+            v
+        } else {
+            return;
+        };
+        let cancel = Arc::new(AtomicBool::new(false));
+        v.insert(Arc::clone(&cancel));
+        let chunk_tx = self.chunk_tx.clone();
+        let world = self.world.clone();
+        self.thread_pool.execute(move || {
+            let payload = world
+                .generate_chunk(key, || cancel.load(Ordering::Relaxed))
+                .map_err(|_| entity);
+            let _ = chunk_tx.send((key, payload));
+        });
     }
 
     fn process_chat_cmd(&mut self, entity: EcsEntity, cmd: String) {

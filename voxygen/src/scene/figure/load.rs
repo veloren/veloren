@@ -6,8 +6,7 @@ use common::{
     assets::{self, watch::ReloadIndicator, Asset},
     comp::{
         humanoid::{
-            Accessory, Beard, Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, HairStyle, Hand,
-            Pants, Race, Shoulder,
+            Belt, BodyType, Chest, EyeColor, Eyebrows, Foot, Hand, Pants, Race, Shoulder, Skin,
         },
         item::Tool,
         object, quadruped, quadruped_medium, Item,
@@ -42,19 +41,25 @@ fn graceful_load_mat_segment(mesh_name: &str) -> MatSegment {
     MatSegment::from(graceful_load_vox(mesh_name).as_ref())
 }
 
+fn generate_mesh(segment: &Segment, offset: Vec3<f32>) -> Mesh<FigurePipeline> {
+    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(segment, offset).0
+}
+
 pub fn load_mesh(mesh_name: &str, position: Vec3<f32>) -> Mesh<FigurePipeline> {
-    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&load_segment(mesh_name), position).0
+    generate_mesh(&load_segment(mesh_name), position)
 }
 
 fn color_segment(
     mat_segment: MatSegment,
-    skin: Rgb<u8>,
+    skin: Skin,
     hair_color: Rgb<u8>,
     eye_color: EyeColor,
 ) -> Segment {
     // TODO move some of the colors to common
     mat_segment.to_segment(|mat| match mat {
-        Material::Skin => skin,
+        Material::Skin => skin.rgb(),
+        Material::SkinDark => skin.light_rgb(),
+        Material::SkinLight => skin.dark_rgb(),
         Material::Hair => hair_color,
         // TODO add back multiple colors
         Material::EyeLight => eye_color.light_rgb(),
@@ -63,33 +68,32 @@ fn color_segment(
     })
 }
 
-fn recolor_greys(segment: Segment, color: Rgb<u8>) -> Segment {
+fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
     use common::util::{linear_to_srgb, srgb_to_linear};
 
-    segment.map_rgb(|rgb| {
-        const BASE_GREY: f32 = 178.0;
-        if rgb.r == rgb.g && rgb.g == rgb.b {
-            let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
-            let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
+    const BASE_GREY: f32 = 178.0;
+    if rgb.r == rgb.g && rgb.g == rgb.b {
+        let c1 = srgb_to_linear(rgb.map(|e| e as f32 / BASE_GREY));
+        let c2 = srgb_to_linear(color.map(|e| e as f32 / 255.0));
 
-            linear_to_srgb(c1 * c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
-        } else {
-            rgb
-        }
-    })
+        linear_to_srgb(c1 * c2).map(|e| (e.min(1.0).max(0.0) * 255.0) as u8)
+    } else {
+        rgb
+    }
 }
 
+// All offsets should be relative to an initial origin that doesn't change when combining segments
 #[derive(Serialize, Deserialize)]
-struct VoxSpec(String, [i32; 3]); // All offsets should be relative to an initial origin that doesn't change when combining segments
-                                  // All reliant on humanoid::Race and humanoid::BodyType
+struct VoxSpec(String, [i32; 3]);
+// All reliant on humanoid::Race and humanoid::BodyType
 #[derive(Serialize, Deserialize)]
 struct HumHeadSubSpec {
     offset: [f32; 3], // Should be relative to initial origin
     head: VoxSpec,
     eyes: VoxSpec,
-    hair: HashMap<HairStyle, Option<VoxSpec>>,
-    beard: HashMap<Beard, Option<VoxSpec>>,
-    accessory: HashMap<Accessory, Option<VoxSpec>>,
+    hair: Vec<Option<VoxSpec>>,
+    beard: Vec<Option<VoxSpec>>,
+    accessory: Vec<Option<VoxSpec>>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct HumHeadSpec(HashMap<(Race, BodyType), HumHeadSubSpec>);
@@ -110,12 +114,12 @@ impl HumHeadSpec {
         race: Race,
         body_type: BodyType,
         hair_color: u8,
-        hair_style: HairStyle,
-        beard: Beard,
+        hair_style: u8,
+        beard: u8,
         eye_color: u8,
         skin: u8,
         _eyebrows: Eyebrows,
-        accessory: Accessory,
+        accessory: u8,
     ) -> Mesh<FigurePipeline> {
         let spec = match self.0.get(&(race, body_type)) {
             Some(spec) => spec,
@@ -129,26 +133,31 @@ impl HumHeadSpec {
         };
 
         let hair_rgb = race.hair_color(hair_color);
-        let skin_rgb = race.skin_color(skin);
-        let eye_color = race.eye_color(eye_color);
+        let skin = race.skin_color(skin);
+        let eye_rgb = race.eye_color(eye_color);
 
         // Load segment pieces
         let bare_head = graceful_load_mat_segment(&spec.head.0);
-        let eyes = graceful_load_mat_segment(&spec.eyes.0);
-        let hair = match spec.hair.get(&hair_style) {
+        let eyes = color_segment(
+            graceful_load_mat_segment(&spec.eyes.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
+            skin,
+            hair_rgb,
+            eye_rgb,
+        );
+        let hair = match spec.hair.get(hair_style as usize) {
             Some(Some(spec)) => Some((
-                recolor_greys(graceful_load_segment(&spec.0), hair_rgb),
+                graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
             None => {
-                warn!("No specification for this hair style: {:?}", hair_style);
+                warn!("No specification for hair style {}", hair_style);
                 None
             }
         };
-        let beard = match spec.beard.get(&beard) {
+        let beard = match spec.beard.get(beard as usize) {
             Some(Some(spec)) => Some((
-                recolor_greys(graceful_load_segment(&spec.0), hair_rgb),
+                graceful_load_segment(&spec.0).map_rgb(|rgb| recolor_grey(rgb, hair_rgb)),
                 Vec3::from(spec.1),
             )),
             Some(None) => None,
@@ -157,7 +166,7 @@ impl HumHeadSpec {
                 None
             }
         };
-        let accessory = match spec.accessory.get(&accessory) {
+        let accessory = match spec.accessory.get(accessory as usize) {
             Some(Some(spec)) => Some((graceful_load_segment(&spec.0), Vec3::from(spec.1))),
             Some(None) => None,
             None => {
@@ -168,28 +177,30 @@ impl HumHeadSpec {
 
         let (head, origin_offset) = DynaUnionizer::new()
             .add(
-                color_segment(bare_head, skin_rgb, hair_rgb, eye_color),
+                color_segment(bare_head, skin, hair_rgb, eye_rgb),
                 spec.head.1.into(),
             )
-            .add(
-                color_segment(eyes, skin_rgb, hair_rgb, eye_color),
-                spec.eyes.1.into(),
-            )
+            .add(eyes, spec.eyes.1.into())
             .maybe_add(hair)
             .maybe_add(beard)
             .maybe_add(accessory)
             .unify();
 
-        Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(
+        generate_mesh(
             &head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),
         )
-        .0
     }
 }
 
-pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
-    let color = match chest {
+pub fn mesh_chest(
+    chest: Chest,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let chest_color = match chest {
         Chest::Blue => (28, 66, 109),
         Chest::Brown => (54, 30, 26),
         Chest::Dark => (24, 19, 17),
@@ -197,18 +208,27 @@ pub fn mesh_chest(chest: Chest) -> Mesh<FigurePipeline> {
         Chest::Orange => (148, 52, 33),
     };
 
-    let bare_chest = graceful_load_segment("figure.body.chest");
-    let chest_armor = graceful_load_segment("armor.chest.grayscale");
+    let color = |mat_segment| {
+        color_segment(
+            mat_segment,
+            race.skin_color(skin),
+            race.hair_color(hair_color),
+            race.eye_color(eye_color),
+        )
+    };
+
+    let bare_chest = graceful_load_mat_segment("figure.body.chest");
+    let chest_armor = graceful_load_mat_segment("armor.chest.grayscale");
     let chest = DynaUnionizer::new()
-        .add(bare_chest, Vec3::new(0, 0, 0))
+        .add(color(bare_chest), Vec3::new(0, 0, 0))
         .add(
-            recolor_greys(chest_armor, Rgb::from(color)),
+            color(chest_armor.map_rgb(|rgb| recolor_grey(rgb, Rgb::from(chest_color)))),
             Vec3::new(0, 0, 0),
         )
         .unify()
         .0;
 
-    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(&chest, Vec3::new(-6.0, -3.5, 0.0)).0
+    generate_mesh(&chest, Vec3::new(-6.0, -3.5, 0.0))
 }
 
 pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
@@ -221,7 +241,13 @@ pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
     )
 }
 
-pub fn mesh_pants(pants: Pants) -> Mesh<FigurePipeline> {
+pub fn mesh_pants(
+    pants: Pants,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
     let color = match pants {
         Pants::Blue => (28, 66, 109),
         Pants::Brown => (54, 30, 26),
@@ -230,52 +256,95 @@ pub fn mesh_pants(pants: Pants) -> Mesh<FigurePipeline> {
         Pants::Orange => (148, 52, 33),
     };
 
-    let pants_segment = recolor_greys(
-        graceful_load_segment("armor.pants.grayscale"),
-        Rgb::from(color),
+    let pants_segment = color_segment(
+        graceful_load_mat_segment("armor.pants.grayscale")
+            .map_rgb(|rgb| recolor_grey(rgb, Rgb::from(color))),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
     );
 
-    Meshable::<FigurePipeline, FigurePipeline>::generate_mesh(
-        &pants_segment,
-        Vec3::new(-5.0, -3.5, 0.0),
-    )
-    .0
+    generate_mesh(&pants_segment, Vec3::new(-5.0, -3.5, 0.0))
 }
 
-pub fn mesh_left_hand(hand: Hand) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match hand {
-            Hand::Default => "figure.body.hand",
-        },
-        Vec3::new(-2.0, -2.5, -2.0),
-    )
+pub fn mesh_left_hand(
+    hand: Hand,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let hand_segment = color_segment(
+        graceful_load_mat_segment(match hand {
+            Hand::Bare => "figure.body.hand",
+            Hand::Dark => "armor.hand.dark-0",
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&hand_segment, Vec3::new(-2.0, -2.5, -2.0))
 }
 
-pub fn mesh_right_hand(hand: Hand) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match hand {
-            Hand::Default => "figure.body.hand",
-        },
-        Vec3::new(-2.0, -2.5, -2.0),
-    )
+pub fn mesh_right_hand(
+    hand: Hand,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let hand_segment = color_segment(
+        graceful_load_mat_segment(match hand {
+            Hand::Bare => "figure.body.hand",
+            Hand::Dark => "armor.hand.dark-0",
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&hand_segment, Vec3::new(-2.0, -2.5, -2.0))
 }
 
-pub fn mesh_left_foot(foot: Foot) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot {
-            Foot::Dark => "armor.foot.foot_dark",
-        },
-        Vec3::new(-2.5, -3.5, -9.0),
-    )
+pub fn mesh_left_foot(
+    foot: Foot,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let foot_segment = color_segment(
+        graceful_load_mat_segment(match foot {
+            Foot::Bare => "figure.body.foot",
+            Foot::Dark => "armor.foot.dark-0",
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
 }
 
-pub fn mesh_right_foot(foot: Foot) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match foot {
-            Foot::Dark => "armor.foot.foot_dark",
-        },
-        Vec3::new(-2.5, -3.5, -9.0),
-    )
+pub fn mesh_right_foot(
+    foot: Foot,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let foot_segment = color_segment(
+        graceful_load_mat_segment(match foot {
+            Foot::Bare => "figure.body.foot",
+            Foot::Dark => "armor.foot.dark-0",
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&foot_segment, Vec3::new(-2.5, -3.5, -9.0))
 }
 
 pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
@@ -299,24 +368,44 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
     }
 }
 
-pub fn mesh_left_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match shoulder {
+pub fn mesh_left_shoulder(
+    shoulder: Shoulder,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let shoulder_segment = color_segment(
+        graceful_load_mat_segment(match shoulder {
             Shoulder::None => return Mesh::new(),
             Shoulder::Brown1 => "armor.shoulder.shoulder_l_brown",
-        },
-        Vec3::new(-2.5, -3.5, -1.5),
-    )
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&shoulder_segment, Vec3::new(-2.5, -3.5, -1.5))
 }
 
-pub fn mesh_right_shoulder(shoulder: Shoulder) -> Mesh<FigurePipeline> {
-    load_mesh(
-        match shoulder {
+pub fn mesh_right_shoulder(
+    shoulder: Shoulder,
+    race: Race,
+    skin: u8,
+    hair_color: u8,
+    eye_color: u8,
+) -> Mesh<FigurePipeline> {
+    let shoulder_segment = color_segment(
+        graceful_load_mat_segment(match shoulder {
             Shoulder::None => return Mesh::new(),
             Shoulder::Brown1 => "armor.shoulder.shoulder_r_brown",
-        },
-        Vec3::new(-2.5, -3.5, -1.5),
-    )
+        }),
+        race.skin_color(skin),
+        race.hair_color(hair_color),
+        race.eye_color(eye_color),
+    );
+
+    generate_mesh(&shoulder_segment, Vec3::new(-2.5, -3.5, -1.5))
 }
 
 // TODO: Inventory

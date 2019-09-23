@@ -10,11 +10,13 @@ use vek::*;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum MovementState {
     Stand,
+    Sit,
     Run,
     Jump,
     Glide { oriq: OriQ },
     Roll { time_left: Duration },
-    //Swim,
+    Swim,
+    Climb,
 }
 
 impl MovementState {
