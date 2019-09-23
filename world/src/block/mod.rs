@@ -84,7 +84,7 @@ impl<'a> BlockGen<'a> {
         } = self;
 
         // Main sample
-        let sample = Self::sample_column(column_gen, column_cache, wpos)?;
+        let sample = column_gen.get(wpos)?;
 
         // Tree samples
         let mut structure_samples = [None, None, None, None, None, None, None, None, None];
