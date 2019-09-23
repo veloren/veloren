@@ -3,7 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
-    util::{HashCache, RandomField, Sampler, SamplerMut},
+    util::{RandomField, Sampler, SamplerMut, SmallCache},
     World, CONFIG,
 };
 use common::{
@@ -16,7 +16,7 @@ use vek::*;
 
 pub struct BlockGen<'a> {
     world: &'a World,
-    column_cache: HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+    column_cache: SmallCache<Option<ColumnSample<'a>>>,
     column_gen: ColumnGen<'a>,
 }
 
@@ -24,14 +24,14 @@ impl<'a> BlockGen<'a> {
     pub fn new(world: &'a World, column_gen: ColumnGen<'a>) -> Self {
         Self {
             world,
-            column_cache: HashCache::with_capacity(64),
+            column_cache: SmallCache::default(),
             column_gen,
         }
     }
 
     fn sample_column(
         column_gen: &ColumnGen<'a>,
-        cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+        cache: &mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
     ) -> Option<ColumnSample<'a>> {
         cache
@@ -41,7 +41,7 @@ impl<'a> BlockGen<'a> {
 
     fn get_cliff_height(
         column_gen: &ColumnGen<'a>,
-        cache: &mut HashCache<Vec2<i32>, Option<ColumnSample<'a>>>,
+        cache: &mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<f32>,
         close_cliffs: &[(Vec2<i32>, u32); 9],
         cliff_hill: f32,
