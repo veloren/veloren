@@ -116,7 +116,7 @@ impl World {
                     None => continue,
                 };
 
-                let (min_z, max_z) = z_cache.get_z_limits();
+                let (min_z, only_structures_min_z, max_z) = z_cache.get_z_limits(&mut sampler);
 
                 for z in base_z..min_z as i32 {
                     let _ = chunk.set(Vec3::new(x, y, z), stone);
@@ -125,8 +125,11 @@ impl World {
                 for z in min_z as i32..max_z as i32 {
                     let lpos = Vec3::new(x, y, z);
                     let wpos = chunk_block_pos + lpos;
+                    let only_structures = lpos.z >= only_structures_min_z as i32;
 
-                    if let Some(block) = sampler.get_with_z_cache(wpos, Some(&z_cache)) {
+                    if let Some(block) =
+                        sampler.get_with_z_cache(wpos, Some(&z_cache), only_structures)
+                    {
                         let _ = chunk.set(lpos, block);
                     }
                 }

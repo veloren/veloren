@@ -41,6 +41,7 @@ pub fn structure_gen<'a>(
         st_pos.map(|e| e as f32),
         &st_sample.close_cliffs,
         st_sample.cliff_hill,
+        0.0,
     );
 
     let wheight = st_sample.alt.max(cliff_height);
