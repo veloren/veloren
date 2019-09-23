@@ -380,8 +380,17 @@ impl<'a> BlockGen<'a> {
                 let (st, st_sample) = st.as_ref()?;
                 st.get(wpos, st_sample)
             })
-            .or(block)
-            .unwrap_or(Block::empty());
+            .or(block);
+
+        // Water
+        let block = block.or_else(|| {
+            if (wposf.z as f32) < water_height {
+                // Ocean
+                Some(water)
+            } else {
+                None
+            }
+        });
 
         Some(block)
     }
