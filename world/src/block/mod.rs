@@ -423,7 +423,8 @@ impl<'a> ZCache<'a> {
 
         let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
 
-        let warp = self.sample.chaos * 24.0;
+        let warp = self.sample.chaos * 32.0;
+
         let (structure_min, structure_max) = self
             .structures
             .iter()
