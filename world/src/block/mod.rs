@@ -3,7 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
-    util::{RandomField, Sampler, SamplerMut, SmallCache},
+    util::{RandomField, Sampler, SmallCache},
     World, CONFIG,
 };
 use common::{
@@ -45,6 +45,7 @@ impl<'a> BlockGen<'a> {
         wpos: Vec2<f32>,
         close_cliffs: &[(Vec2<i32>, u32); 9],
         cliff_hill: f32,
+        tolerance: f32,
     ) -> f32 {
         close_cliffs.iter().fold(
             0.0f32,
@@ -61,7 +62,7 @@ impl<'a> BlockGen<'a> {
 
                     max_height.max(
                         if cliff_pos.map(|e| e as f32).distance_squared(wpos)
-                            < (radius * radius) as f32
+                            < (radius as f32 + tolerance).powf(2.0)
                         {
                             cliff_sample.alt
                                 + height as f32 * (1.0 - cliff_sample.chaos)
@@ -129,7 +130,12 @@ impl<'a> BlockGen<'a> {
         })
     }
 
-    pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
+    pub fn get_with_z_cache(
+        &mut self,
+        wpos: Vec3<i32>,
+        z_cache: Option<&ZCache>,
+        only_structures: bool,
+    ) -> Option<Block> {
         let BlockGen {
             world,
             column_cache,
@@ -165,195 +171,199 @@ impl<'a> BlockGen<'a> {
 
         let wposf = wpos.map(|e| e as f64);
 
-        let (_definitely_underground, height, water_height) =
-            if (wposf.z as f32) < alt - 64.0 * chaos {
-                // Shortcut warping
-                (true, alt, CONFIG.sea_level /*water_level*/)
-            } else {
-                // Apply warping
-                let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
-                    .mul((chaos - 0.1).max(0.0))
-                    .mul(48.0)
-                    + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
-                        .mul((chaos - 0.1).max(0.0))
-                        .mul(24.0);
-
-                let height = if (wposf.z as f32) < alt + warp - 10.0 {
-                    // Shortcut cliffs
-                    alt + warp
+        let (block, height) = if !only_structures {
+            let (_definitely_underground, height, water_height) =
+                if (wposf.z as f32) < alt - 64.0 * chaos {
+                    // Shortcut warping
+                    (true, alt, CONFIG.sea_level /*water_level*/)
                 } else {
-                    let turb = Vec2::new(
-                        world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
-                        world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
-                    ) * 8.0;
+                    // Apply warping
+                    let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
+                        .mul((chaos - 0.1).max(0.0))
+                        .mul(48.0)
+                        + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
+                            .mul((chaos - 0.1).max(0.0))
+                            .mul(24.0);
 
-                    let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
-                    let cliff_height = Self::get_cliff_height(
-                        column_gen,
-                        column_cache,
-                        wpos_turb,
-                        &close_cliffs,
-                        cliff_hill,
-                    );
+                    let height = if (wposf.z as f32) < alt + warp - 10.0 {
+                        // Shortcut cliffs
+                        alt + warp
+                    } else {
+                        let turb = Vec2::new(
+                            world.sim().gen_ctx.fast_turb_x_nz.get(wposf.div(25.0)) as f32,
+                            world.sim().gen_ctx.fast_turb_y_nz.get(wposf.div(25.0)) as f32,
+                        ) * 8.0;
 
-                    (alt + warp).max(cliff_height)
+                        let wpos_turb = Vec2::from(wpos).map(|e: i32| e as f32) + turb;
+                        let cliff_height = Self::get_cliff_height(
+                            column_gen,
+                            column_cache,
+                            wpos_turb,
+                            &close_cliffs,
+                            cliff_hill,
+                            0.0,
+                        );
+
+                        (alt + warp).max(cliff_height)
+                    };
+
+                    (
+                        false,
+                        height,
+                        /*(water_level + warp).max(*/ CONFIG.sea_level, /*)*/
+                    )
                 };
 
-                (
-                    false,
-                    height,
-                    /*(water_level + warp).max(*/ CONFIG.sea_level, /*)*/
-                )
-            };
+            // Sample blocks
 
-        // Sample blocks
+            // let stone_col = Rgb::new(240, 230, 220);
+            let stone_col = Rgb::new(195, 187, 201);
 
-        // let stone_col = Rgb::new(240, 230, 220);
-        let stone_col = Rgb::new(195, 187, 201);
+            // let dirt_col = Rgb::new(79, 67, 60);
 
-        // let dirt_col = Rgb::new(79, 67, 60);
+            let _air = Block::empty();
+            // let stone = Block::new(2, stone_col);
+            // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
+            // let dirt = Block::new(1, dirt_col);
+            // let sand = Block::new(1, Rgb::new(180, 150, 50));
+            // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
 
-        let _air = Block::empty();
-        // let stone = Block::new(2, stone_col);
-        // let surface_stone = Block::new(1, Rgb::new(200, 220, 255));
-        // let dirt = Block::new(1, dirt_col);
-        // let sand = Block::new(1, Rgb::new(180, 150, 50));
-        // let warm_stone = Block::new(1, Rgb::new(165, 165, 130));
+            let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-        let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
+            let grass_depth = 1.5 + 2.0 * chaos;
+            let block = if (wposf.z as f32) < height - grass_depth {
+                let col = Lerp::lerp(
+                    saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
+                    stone_col,
+                    (height - grass_depth - wposf.z as f32) * 0.15,
+                );
 
-        let grass_depth = 1.5 + 2.0 * chaos;
-        let block = if (wposf.z as f32) < height - grass_depth {
-            let col = Lerp::lerp(
-                saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
-                stone_col,
-                (height - grass_depth - wposf.z as f32) * 0.15,
-            );
-
-            // Underground
-            if (wposf.z as f32) > alt - 32.0 * chaos {
-                Some(Block::new(BlockKind::Normal, col))
-            } else {
-                Some(Block::new(BlockKind::Dense, col))
-            }
-        } else if (wposf.z as f32) < height {
-            let col = Lerp::lerp(
-                sub_surface_color,
-                surface_color,
-                (wposf.z as f32 - (height - grass_depth))
-                    .div(grass_depth)
-                    .powf(0.5),
-            );
-            // Surface
-            Some(Block::new(
-                BlockKind::Normal,
-                saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
-            ))
-        } else if (wposf.z as f32) < height + 0.9
-            && temp < CONFIG.desert_temp
-            && (wposf.z as f32 > water_height + 3.0)
-            && marble > 0.68
-            && marble_small > 0.65
-            && (marble * 3173.7).fract() < 0.5
-        {
-            let flowers = [
-                BlockKind::BlueFlower,
-                BlockKind::PinkFlower,
-                BlockKind::PurpleFlower,
-                BlockKind::RedFlower,
-                BlockKind::WhiteFlower,
-                BlockKind::YellowFlower,
-                BlockKind::Sunflower,
-                BlockKind::Mushroom,
-            ];
-
-            let grasses = [
-                BlockKind::LongGrass,
-                BlockKind::MediumGrass,
-                BlockKind::ShortGrass,
-            ];
-
-            Some(Block::new(
-                if (height * 1271.0).fract() < 0.15 {
-                    flowers[(height * 0.2) as usize % flowers.len()]
+                // Underground
+                if (wposf.z as f32) > alt - 32.0 * chaos {
+                    Some(Block::new(BlockKind::Normal, col))
                 } else {
-                    grasses[(height * 0.3) as usize % grasses.len()]
-                },
-                Rgb::broadcast(0),
-            ))
-        } else if (wposf.z as f32) < height + 0.9
-            && temp > CONFIG.desert_temp
-            && (marble * 4423.5).fract() < 0.0005
-        {
-            let large_cacti = [BlockKind::LargeCactus, BlockKind::MedFlatCactus];
-
-            let small_cacti = [
-                BlockKind::BarrelCactus,
-                BlockKind::RoundCactus,
-                BlockKind::ShortCactus,
-                BlockKind::ShortFlatCactus,
-            ];
-
-            Some(Block::new(
-                if (height * 1271.0).fract() < 0.5 {
-                    large_cacti[(height * 0.2) as usize % large_cacti.len()]
-                } else {
-                    small_cacti[(height * 0.3) as usize % small_cacti.len()]
-                },
-                Rgb::broadcast(0),
-            ))
-        } else {
-            None
-        };
-
-        // Caves
-        let block = block.and_then(|block| {
-            // Underground
-            let cave = cave_xy.powf(2.0)
-                * (wposf.z as f32 - cave_alt)
-                    .div(40.0)
-                    .powf(4.0)
-                    .neg()
-                    .add(1.0)
-                > 0.9993;
-
-            if cave {
-                None
-            } else {
-                Some(block)
-            }
-        });
-
-        // Rocks
-        let block = block.or_else(|| {
-            if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
-                let field0 = RandomField::new(world.sim().seed + 0);
-                let field1 = RandomField::new(world.sim().seed + 1);
-                let field2 = RandomField::new(world.sim().seed + 2);
-
+                    Some(Block::new(BlockKind::Dense, col))
+                }
+            } else if (wposf.z as f32) < height {
+                let col = Lerp::lerp(
+                    sub_surface_color,
+                    surface_color,
+                    (wposf.z as f32 - (height - grass_depth))
+                        .div(grass_depth)
+                        .powf(0.5),
+                );
+                // Surface
                 Some(Block::new(
                     BlockKind::Normal,
-                    stone_col
-                        - Rgb::new(
-                            field0.get(wpos) as u8 % 16,
-                            field1.get(wpos) as u8 % 16,
-                            field2.get(wpos) as u8 % 16,
-                        ),
+                    saturate_srgb(col, 0.45).map(|e| (e * 255.0) as u8),
+                ))
+            } else if (wposf.z as f32) < height + 0.9
+                && temp < CONFIG.desert_temp
+                && (wposf.z as f32 > water_height + 3.0)
+                && marble > 0.68
+                && marble_small > 0.65
+                && (marble * 3173.7).fract() < 0.5
+            {
+                let flowers = [
+                    BlockKind::BlueFlower,
+                    BlockKind::PinkFlower,
+                    BlockKind::PurpleFlower,
+                    BlockKind::RedFlower,
+                    BlockKind::WhiteFlower,
+                    BlockKind::YellowFlower,
+                    BlockKind::Sunflower,
+                    BlockKind::Mushroom,
+                ];
+
+                let grasses = [
+                    BlockKind::LongGrass,
+                    BlockKind::MediumGrass,
+                    BlockKind::ShortGrass,
+                ];
+
+                Some(Block::new(
+                    if (height * 1271.0).fract() < 0.15 {
+                        flowers[(height * 0.2) as usize % flowers.len()]
+                    } else {
+                        grasses[(height * 0.3) as usize % grasses.len()]
+                    },
+                    Rgb::broadcast(0),
+                ))
+            } else if (wposf.z as f32) < height + 0.9
+                && temp > CONFIG.desert_temp
+                && (marble * 4423.5).fract() < 0.0005
+            {
+                let large_cacti = [BlockKind::LargeCactus, BlockKind::MedFlatCactus];
+
+                let small_cacti = [
+                    BlockKind::BarrelCactus,
+                    BlockKind::RoundCactus,
+                    BlockKind::ShortCactus,
+                    BlockKind::ShortFlatCactus,
+                ];
+
+                Some(Block::new(
+                    if (height * 1271.0).fract() < 0.5 {
+                        large_cacti[(height * 0.2) as usize % large_cacti.len()]
+                    } else {
+                        small_cacti[(height * 0.3) as usize % small_cacti.len()]
+                    },
+                    Rgb::broadcast(0),
                 ))
             } else {
                 None
             }
-        });
+            .or_else(|| {
+                // Rocks
+                if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
+                    let field0 = RandomField::new(world.sim().seed + 0);
+                    let field1 = RandomField::new(world.sim().seed + 1);
+                    let field2 = RandomField::new(world.sim().seed + 2);
 
-        // Water
-        let block = block.or_else(|| {
-            if (wposf.z as f32) < water_height {
-                // Ocean
-                Some(water)
-            } else {
-                None
-            }
-        });
+                    Some(Block::new(
+                        BlockKind::Normal,
+                        stone_col
+                            - Rgb::new(
+                                field0.get(wpos) as u8 % 16,
+                                field1.get(wpos) as u8 % 16,
+                                field2.get(wpos) as u8 % 16,
+                            ),
+                    ))
+                } else {
+                    None
+                }
+            })
+            .and_then(|block| {
+                // Caves
+                // Underground
+                let cave = cave_xy.powf(2.0)
+                    * (wposf.z as f32 - cave_alt)
+                        .div(40.0)
+                        .powf(4.0)
+                        .neg()
+                        .add(1.0)
+                    > 0.9993;
+
+                if cave {
+                    None
+                } else {
+                    Some(block)
+                }
+            })
+            .or_else(|| {
+                // Water
+                if (wposf.z as f32) < water_height {
+                    // Ocean
+                    Some(water)
+                } else {
+                    None
+                }
+            });
+
+            (block, height)
+        } else {
+            (None, sample.alt)
+        };
 
         // Structures (like towns)
         let block = chunk
@@ -383,7 +393,7 @@ pub struct ZCache<'a> {
 }
 
 impl<'a> ZCache<'a> {
-    pub fn get_z_limits(&self) -> (f32, f32) {
+    pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
         let cave_depth = if self.sample.cave_xy.abs() > 0.9 {
             (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
         } else {
@@ -392,8 +402,18 @@ impl<'a> ZCache<'a> {
 
         let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth) - 4.0;
 
-        let cliff = if self.sample.near_cliffs { 48.0 } else { 0.0 };
-        let warp = self.sample.chaos * 48.0;
+        let cliff = BlockGen::get_cliff_height(
+            &mut block_gen.column_gen,
+            &mut block_gen.column_cache,
+            self.wpos.map(|e| e as f32),
+            &self.sample.close_cliffs,
+            self.sample.cliff_hill,
+            32.0,
+        );
+
+        let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
+
+        let warp = self.sample.chaos * 24.0;
         let (structure_min, structure_max) = self
             .structures
             .iter()
@@ -412,8 +432,10 @@ impl<'a> ZCache<'a> {
                 }
             });
 
+        let ground_max = (self.sample.alt + 2.0 + warp + rocks).max(cliff);
+
         let min = min + structure_min;
-        let max = (self.sample.alt + cliff + structure_max + warp + 8.0)
+        let max = (ground_max + structure_max)
             .max(self.sample.water_level)
             .max(CONFIG.sea_level + 2.0);
 
@@ -430,17 +452,11 @@ impl<'a> ZCache<'a> {
             })
             .unwrap_or((min, max));
 
-        (min, max)
-    }
-}
+        let structures_only_min_z = ground_max
+            .max(self.sample.water_level)
+            .max(CONFIG.sea_level + 2.0);
 
-impl<'a> SamplerMut<'static> for BlockGen<'a> {
-    type Index = Vec3<i32>;
-    type Sample = Option<Block>;
-
-    fn get(&mut self, wpos: Vec3<i32>) -> Option<Block> {
-        let z_cache = self.get_z_cache(wpos.into());
-        self.get_with_z_cache(wpos, z_cache.as_ref())
+        (min, structures_only_min_z, max)
     }
 }
 
