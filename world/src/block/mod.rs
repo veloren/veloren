@@ -392,7 +392,7 @@ impl<'a> BlockGen<'a> {
             }
         });
 
-        Some(block)
+        Some(block.unwrap_or(Block::empty()))
     }
 }
 

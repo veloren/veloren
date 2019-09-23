@@ -6,6 +6,7 @@ use crate::{
     block::block_from_structure,
     column::{ColumnGen, ColumnSample},
     util::Sampler,
+    CONFIG,
 };
 use common::{
     assets,
@@ -123,7 +124,9 @@ impl TownState {
         let radius = rng.gen_range(18, 20) * 9;
         let size = Vec2::broadcast(radius * 2 / 9 - 2);
 
-        if gen.get(center).map(|sample| sample.chaos).unwrap_or(0.0) > 0.35 {
+        if gen.get(center).map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
+            || gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
+        {
             return None;
         }
 
