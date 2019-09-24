@@ -178,22 +178,22 @@ impl AudioFrontend {
         self.music_volume
     }
 
-    pub fn set_sfx_volume(&mut self, volume: f32) {
-        self.sfx_volume = volume;
+    pub fn set_sfx_volume(&mut self, sfx_volume: f32) {
+        self.sfx_volume = sfx_volume;
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Sfx {
-                channel.set_volume(volume);
+                channel.set_volume(sfx_volume);
             }
         }
     }
 
-    pub fn set_music_volume(&mut self, volume: f32) {
-        self.music_volume = volume;
+    pub fn set_music_volume(&mut self, music_volume: f32) {
+        self.music_volume = music_volume;
 
         for channel in self.channels.iter_mut() {
             if channel.get_audio_type() == AudioType::Music {
-                channel.set_volume(volume);
+                channel.set_volume(music_volume);
             }
         }
     }
