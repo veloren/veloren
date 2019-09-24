@@ -5,7 +5,7 @@ use crate::{
 use common::{
     terrain::{Block, BlockKind},
     vol::{ReadVol, RectRasterableVol, Vox},
-    volumes::{dyna::Dyna, vol_grid_2d::VolGrid2d},
+    volumes::vol_grid_2d::VolGrid2d,
 };
 use hashbrown::{HashMap, HashSet};
 use std::fmt::Debug;
@@ -137,7 +137,7 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
         let mut opaque_mesh = Mesh::new();
         let mut fluid_mesh = Mesh::new();
 
-        let mut light = calc_light(range, self);
+        let light = calc_light(range, self);
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
@@ -152,14 +152,30 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         .filter(|vox| vox.is_opaque())
                         .and_then(|vox| vox.get_color())
                     {
-                        let col = col.map(|e| e as f32 / 255.0);
-
                         vol::push_vox_verts(
                             &mut opaque_mesh,
                             self,
                             pos,
                             offs,
-                            col,
+                            &{
+                                let mut cols = [[[None; 3]; 3]; 3];
+                                for x in 0..3 {
+                                    for y in 0..3 {
+                                        for z in 0..3 {
+                                            cols[x][y][z] = self
+                                                .get(
+                                                    pos + Vec3::new(x as i32, y as i32, z as i32)
+                                                        - 1,
+                                                )
+                                                .ok()
+                                                .filter(|vox| vox.is_opaque())
+                                                .and_then(|vox| vox.get_color())
+                                                .map(|col| col.map(|e| e as f32 / 255.0));
+                                        }
+                                    }
+                                }
+                                cols
+                            },
                             |pos, norm, col, ao, light| {
                                 TerrainVertex::new(pos, norm, col, light * ao)
                             },
@@ -191,7 +207,25 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             self,
                             pos,
                             offs,
-                            col,
+                            &{
+                                let mut cols = [[[None; 3]; 3]; 3];
+                                for x in 0..3 {
+                                    for y in 0..3 {
+                                        for z in 0..3 {
+                                            cols[x][y][z] = self
+                                                .get(
+                                                    pos + Vec3::new(x as i32, y as i32, z as i32)
+                                                        - 1,
+                                                )
+                                                .ok()
+                                                .filter(|vox| vox.is_fluid())
+                                                .and_then(|vox| vox.get_color())
+                                                .map(|col| col.map(|e| e as f32 / 255.0));
+                                        }
+                                    }
+                                }
+                                cols
+                            },
                             |pos, norm, col, ao, light| {
                                 FluidVertex::new(pos, norm, col, light * ao, 0.3)
                             },

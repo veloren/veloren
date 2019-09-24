@@ -35,13 +35,48 @@ fn get_ao_quad<V: ReadVol>(
         .collect::<Vec4<(f32, f32)>>()
 }
 
+fn get_col_quad<V: ReadVol>(
+    vol: &V,
+    pos: Vec3<i32>,
+    shift: Vec3<i32>,
+    dirs: &[Vec3<i32>],
+    cols: &[[[Option<Rgb<f32>>; 3]; 3]; 3],
+    is_opaque: impl Fn(&V::Vox) -> bool,
+) -> Vec4<Rgb<f32>> {
+    dirs.windows(2)
+        .map(|offs| {
+            let mut color = Rgb::zero();
+            let mut total = 0.0;
+            for x in 0..2 {
+                for y in 0..2 {
+                    for z in 0..2 {
+                        let col_pos = shift * z + offs[0] * x + offs[1] * y + 1;
+                        if let Some(col) =
+                            cols[col_pos.x as usize][col_pos.y as usize][col_pos.z as usize]
+                        {
+                            color += col;
+                            total += 1.0;
+                        }
+                    }
+                }
+            }
+
+            if total == 0.0 {
+                Rgb::zero()
+            } else {
+                color / total
+            }
+        })
+        .collect()
+}
+
 // Utility function
 fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex>(
     origin: Vec3<f32>,
     unit_x: Vec3<f32>,
     unit_y: Vec3<f32>,
     norm: Vec3<f32>,
-    col: Rgb<f32>,
+    cols: Vec4<Rgb<f32>>,
     darkness_ao: Vec4<(f32, f32)>,
     vcons: &F,
 ) -> Quad<P> {
@@ -52,17 +87,29 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
 
     if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(
-            vcons(origin + unit_y, norm, col, darkness[3], ao_map[3]),
-            vcons(origin, norm, col, darkness[0], ao_map[0]),
-            vcons(origin + unit_x, norm, col, darkness[1], ao_map[1]),
-            vcons(origin + unit_x + unit_y, norm, col, darkness[2], ao_map[2]),
+            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
+            vcons(origin, norm, cols[0], darkness[0], ao_map[0]),
+            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1]),
+            vcons(
+                origin + unit_x + unit_y,
+                norm,
+                cols[2],
+                darkness[2],
+                ao_map[2],
+            ),
         )
     } else {
         Quad::new(
-            vcons(origin, norm, col, darkness[0], ao_map[0]),
-            vcons(origin + unit_x, norm, col, darkness[1], ao_map[1]),
-            vcons(origin + unit_x + unit_y, norm, col, darkness[2], ao_map[2]),
-            vcons(origin + unit_y, norm, col, darkness[3], ao_map[3]),
+            vcons(origin, norm, cols[0], darkness[0], ao_map[0]),
+            vcons(origin + unit_x, norm, cols[1], darkness[1], ao_map[1]),
+            vcons(
+                origin + unit_x + unit_y,
+                norm,
+                cols[2],
+                darkness[2],
+                ao_map[2],
+            ),
+            vcons(origin + unit_y, norm, cols[3], darkness[3], ao_map[3]),
         )
     }
 }
@@ -72,7 +119,7 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
     vol: &V,
     pos: Vec3<i32>,
     offs: Vec3<f32>,
-    col: Rgb<f32>,
+    cols: &[[[Option<Rgb<f32>>; 3]; 3]; 3],
     vcons: impl Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P::Vertex,
     error_makes_face: bool,
     darknesses: &[[[f32; 3]; 3]; 3],
@@ -92,7 +139,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             Vec3::unit_y(),
             -Vec3::unit_x(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                -Vec3::unit_x(),
+                &[-z, -y, z, y, -z],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
@@ -115,7 +169,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             Vec3::unit_z(),
             Vec3::unit_x(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                Vec3::unit_x(),
+                &[-y, -z, y, z, -y],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
@@ -138,7 +199,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             Vec3::unit_z(),
             -Vec3::unit_y(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                -Vec3::unit_y(),
+                &[-x, -z, x, z, -x],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
@@ -161,7 +229,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             Vec3::unit_x(),
             Vec3::unit_y(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                Vec3::unit_y(),
+                &[-z, -x, z, x, -z],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
@@ -184,7 +259,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             Vec3::unit_x(),
             -Vec3::unit_z(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                -Vec3::unit_z(),
+                &[-y, -x, y, x, -y],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
@@ -207,7 +289,14 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             Vec3::unit_y(),
             Vec3::unit_z(),
-            col,
+            get_col_quad(
+                vol,
+                pos,
+                Vec3::unit_z(),
+                &[-x, -y, x, y, -x],
+                cols,
+                &is_opaque,
+            ),
             get_ao_quad(
                 vol,
                 pos,
