@@ -12,6 +12,7 @@ hashbrown = { version = "0.6.0", features = ["serde"] }
 lazy_static = "1.4.0"
 rand = "0.7.2"
 rand_chacha = "0.2.1"
+arr_macro = "0.1.2"
 
 [dev-dependencies]
 minifb = { git = "https://github.com/emoon/rust_minifb.git" }

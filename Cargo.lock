@@ -94,6 +94,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "arr_macro"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "arr_macro_impl 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro-hack 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "arr_macro_impl"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "proc-macro-hack 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.15.44 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3733,6 +3752,7 @@ dependencies = [
 name = "veloren-world"
 version = "0.3.0"
 dependencies = [
+ "arr_macro 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "hashbrown 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "minifb 0.12.0 (git+https://github.com/emoon/rust_minifb.git)",
@@ -3943,6 +3963,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum anymap 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)" = "33954243bd79057c2de7338850b85983a44588021f8a5fee574a8888c6de4344"
 "checksum approx 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "08abcc3b4e9339e33a3d0a5ed15d84a687350c05689d825e0f6655eef9e76a94"
 "checksum approx 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f0e60b75072ecd4168020818c0107f2857bb6c4e64252d8d3983f6263b40a5c3"
+"checksum arr_macro 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d262b83f2f573121554ad6e764cd444303df85d86e5fcebc81903ddcf8dd3a97"
+"checksum arr_macro_impl 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "8decbe97ffec939e44228d91e5d0829ceb1616c6ed0984c09df164b1e7ebaafc"
 "checksum arrayref 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0d382e583f07208808f6b1249e60848879ba3543f57c32277bf52d69c2f0f0ee"
 "checksum arrayvec 0.4.11 (registry+https://github.com/rust-lang/crates.io-index)" = "b8d73f9beda665eaa98ab9e4f7442bd4e7de6652587de55b2525e52e29c1b0ba"
 "checksum ascii 0.8.7 (registry+https://github.com/rust-lang/crates.io-index)" = "97be891acc47ca214468e09425d02cef3af2c94d0d82081cd02061f996802f14"
