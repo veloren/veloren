@@ -28,7 +28,7 @@ mod approx_powf_tests {
 
     #[test]
     fn accuracy_1() {
-        let test_values: Vec<f32> = vec!(3.0, 2.5, 1.5, 2.2);
+        let test_values: Vec<f32> = vec![3.0, 2.5, 1.5, 2.2];
         test_values.windows(2).for_each(|a| {
             assert!(close_ei(a[0].powf(a[1]), super::approx_powf(a[0], a[1])));
         });
