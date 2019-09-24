@@ -700,6 +700,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                             },
                         );
                     }
+
+                    // TODO: Remesh all neighbours because we have complex lighting now
+                    /*self.mesh_todo.insert(
+                        neighbour_chunk_pos,
+                        ChunkMeshState {
+                            pos: chunk_pos + Vec2::new(x, y),
+                            started_tick: current_tick,
+                            active_worker: None,
+                        },
+                    );
+                    */
                 }
             }
         }
