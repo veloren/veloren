@@ -2,9 +2,10 @@ pub const GIT_HASH: &str = include_str!(concat!(env!("OUT_DIR"), "/githash"));
 
 use vek::{Mat3, Rgb, Rgba, Vec3};
 
+/// This is a fast approximation of powf. This should only be used when minor accuracy loss is acceptable.
 #[inline(always)]
 #[allow(unsafe_code)]
-fn fast_powf(b: f32, e: f32) -> f32 {
+fn approx_powf(b: f32, e: f32) -> f32 {
     unsafe {
         let b = b as f64;
         let e = e as f64;
@@ -19,6 +20,21 @@ fn fast_powf(b: f32, e: f32) -> f32 {
     }
 }
 
+#[cfg(test)]
+mod approx_powf_tests {
+    fn close_ei(a: f32, b: f32) -> bool {
+        (a - b < 1.0 && a - b > 0.0) || (b - a < 1.0 && b - a > 0.0)
+    }
+
+    #[test]
+    fn accuracy_1() {
+        let test_values: Vec<f32> = vec!(3.0, 2.5, 1.5, 2.2);
+        test_values.windows(2).for_each(|a| {
+            assert!(close_ei(a[0].powf(a[1]), super::approx_powf(a[0], a[1])));
+        });
+    }
+}
+
 #[inline(always)]
 pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
     #[inline(always)]
@@ -26,7 +42,7 @@ pub fn srgb_to_linear(col: Rgb<f32>) -> Rgb<f32> {
         if x <= 0.04045 {
             x / 12.92
         } else {
-            fast_powf((x + 0.055) / 1.055, 2.4)
+            approx_powf((x + 0.055) / 1.055, 2.4)
         }
     }
     col.map(to_linear)
@@ -38,7 +54,7 @@ pub fn linear_to_srgb(col: Rgb<f32>) -> Rgb<f32> {
         if x <= 0.0031308 {
             x * 12.92
         } else {
-            fast_powf(x, 1.0 / 2.4) * 1.055 - 0.055
+            approx_powf(x, 1.0 / 2.4) * 1.055 - 0.055
         }
     }
     col.map(to_srgb)
