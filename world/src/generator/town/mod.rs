@@ -393,7 +393,7 @@ impl TownVol {
                     Some(ColumnKind::Internal) => {}
                     //Some(ColumnKind::External) => {}
                     Some(ColumnKind::Road) => {
-                        for z in -1..1 {
+                        for z in -1..2 {
                             let _ = self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
                         }
                     }
@@ -423,7 +423,12 @@ impl TownVol {
         for _ in 0..n {
             for _ in 0..ATTEMPTS {
                 let entrance = {
-                    let start = self.choose_cell(rng, |_, cell| cell.is_road()).unwrap();
+                    let start_col = self.choose_column(rng, |_, col| col.is_road()).unwrap();;
+                    let start = Vec3::new(
+                        start_col.x,
+                        start_col.y,
+                        self.col(start_col).unwrap().ground,
+                    );
                     let dir = Vec3::from(util::gen_dir(rng));
 
                     if self
@@ -441,13 +446,13 @@ impl TownVol {
                     }
                 };
 
-                let mut cells: HashSet<_> = Some(entrance).into_iter().collect();
+                let mut cells = HashSet::new();
 
                 let mut energy = 2300;
                 while energy > 0 {
                     energy -= 1;
 
-                    let parent = *cells.iter().choose(rng).unwrap();
+                    let parent = *cells.iter().choose(rng).unwrap_or(&entrance);
                     let dir = util::UNITS_3D
                         .choose_weighted(rng, |pos| 1 + pos.z.max(0))
                         .unwrap();
