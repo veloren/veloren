@@ -152,8 +152,8 @@ pub enum Event {
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
-    AdjustSfxVolume(f32),
     AdjustMusicVolume(f32),
+    AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
@@ -789,11 +789,11 @@ impl Hud {
                     settings_window::Event::CrosshairTransp(crosshair_transp) => {
                         events.push(Event::CrosshairTransp(crosshair_transp));
                     }
-                    settings_window::Event::AdjustMusicVolume(volume) => {
-                        events.push(Event::AdjustMusicVolume(volume));
+                    settings_window::Event::AdjustMusicVolume(music_volume) => {
+                        events.push(Event::AdjustMusicVolume(music_volume));
                     }
-                    settings_window::Event::AdjustSfxVolume(volume) => {
-                        events.push(Event::AdjustSfxVolume(volume));
+                    settings_window::Event::AdjustSfxVolume(sfx_volume) => {
+                        events.push(Event::AdjustSfxVolume(sfx_volume));
                     }
                     settings_window::Event::MaximumFPS(max_fps) => {
                         events.push(Event::ChangeMaxFPS(max_fps));
