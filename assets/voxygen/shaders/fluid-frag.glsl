@@ -11,6 +11,7 @@ in float f_light;
 layout (std140)
 uniform u_locals {
     vec3 model_offs;
+	float load_time;
 };
 
 out vec4 tgt_color;

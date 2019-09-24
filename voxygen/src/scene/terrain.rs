@@ -23,6 +23,7 @@ use vek::*;
 
 struct TerrainChunk {
     // GPU data
+    load_time: f32,
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
     sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
@@ -613,6 +614,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         proj_mat: Mat4<f32>,
     ) {
         let current_tick = client.get_tick();
+        let current_time = client.state().get_time();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed.
         for (modified, pos) in client
@@ -796,9 +798,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).
                 Some(todo) if response.started_tick <= todo.started_tick => {
+                    let load_time = self
+                        .chunks
+                        .get(&response.pos)
+                        .map(|chunk| chunk.load_time)
+                        .unwrap_or(current_time as f32);
                     self.chunks.insert(
                         response.pos,
                         TerrainChunk {
+                            load_time,
                             opaque_model: renderer
                                 .create_model(&response.opaque_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
@@ -825,6 +833,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                         }),
                                     )
                                     .into_array(),
+                                    load_time,
                                 }])
                                 .expect("Failed to upload chunk locals to the GPU!"),
                             visible: false,
