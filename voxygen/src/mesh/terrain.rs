@@ -181,13 +181,14 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
                     lights[0] = lights[1];
                     lights[1] = lights[2];
+                    colors[0] = colors[1];
+                    colors[1] = colors[2];
+
                     for i in 0..3 {
                         for j in 0..3 {
                             lights[2][j][i] = light(pos + Vec3::new(i as i32, j as i32, 2) - 1);
                         }
                     }
-                    colors[0] = colors[1];
-                    colors[1] = colors[2];
                     for i in 0..3 {
                         for j in 0..3 {
                             colors[2][j][i] = get_color(pos + Vec3::new(i as i32, j as i32, 2) - 1);
