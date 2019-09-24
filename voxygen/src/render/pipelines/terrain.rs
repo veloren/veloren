@@ -23,6 +23,7 @@ gfx_defines! {
 
     constant Locals {
         model_offs: [f32; 3] = "model_offs",
+        load_time: f32 = "load_time",
     }
 
     pipeline pipe {
@@ -66,6 +67,7 @@ impl Locals {
     pub fn default() -> Self {
         Self {
             model_offs: [0.0; 3],
+            load_time: 0.0,
         }
     }
 }
