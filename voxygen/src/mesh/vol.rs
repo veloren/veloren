@@ -29,12 +29,15 @@ fn get_ao_quad<V: ReadVol>(
                     .unwrap_or(false),
             );
 
-            let darkness = darknesses
-                .iter()
-                .map(|x| x.iter().map(|y| y.iter()))
-                .flatten()
-                .flatten()
-                .fold(0.0, |a: f32, x| a.max(*x));
+            let mut darkness = 0.0;
+            for x in 0..2 {
+                for y in 0..2 {
+                    let dark_pos = shift + offs[0] * x + offs[1] * y + 1;
+                    darkness += darknesses[dark_pos.x as usize][dark_pos.y as usize]
+                        [dark_pos.z as usize]
+                        / 4.0;
+                }
+            }
 
             (
                 darkness,
