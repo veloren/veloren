@@ -57,16 +57,15 @@ impl<'a> BlockGen<'a> {
                 Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
-                    let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
+                    let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
+                        / (1.0 + 3.0 * cliff_sample.chaos);
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
                         if cliff_pos.map(|e| e as f32).distance_squared(wpos)
                             < (radius as f32 + tolerance).powf(2.0)
                         {
-                            cliff_sample.alt
-                                + height as f32 * (1.0 - cliff_sample.chaos)
-                                + cliff_hill
+                            cliff_sample.alt + height * (1.0 - cliff_sample.chaos) + cliff_hill
                         } else {
                             0.0
                         },
