@@ -20,15 +20,6 @@ fn get_ao_quad<V: ReadVol>(
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .map(|offs| {
-            let (s1, s2) = (
-                vol.get(pos + shift + offs[0])
-                    .map(&is_opaque)
-                    .unwrap_or(false),
-                vol.get(pos + shift + offs[1])
-                    .map(&is_opaque)
-                    .unwrap_or(false),
-            );
-
             let mut darkness = 0.0;
             for x in 0..2 {
                 for y in 0..2 {
@@ -39,23 +30,7 @@ fn get_ao_quad<V: ReadVol>(
                 }
             }
 
-            (
-                darkness,
-                if s1 && s2 {
-                    0.0
-                } else {
-                    let corner = vol
-                        .get(pos + shift + offs[0] + offs[1])
-                        .map(&is_opaque)
-                        .unwrap_or(false);
-                    // Map both 1 and 2 neighbors to 0.5 occlusion.
-                    if s1 || s2 || corner {
-                        0.5
-                    } else {
-                        1.0
-                    }
-                },
-            )
+            (darkness, 1.0)
         })
         .collect::<Vec4<(f32, f32)>>()
 }
