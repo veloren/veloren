@@ -78,7 +78,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         }
     }
 
-    for _ in 0..20 {
+    while opens.len() > 0 {
         let mut new_opens = HashSet::new();
         for open in &opens {
             let parent_l = voids[open].unwrap_or(0);
