@@ -160,6 +160,8 @@ vec3 hsv2rgb(vec3 c) {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+const float FXAA_SCALE = 1.5;
+
 void main() {
 	vec2 uv = (f_pos + 1.0) * 0.5;
 
@@ -167,7 +169,7 @@ void main() {
 		uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
 	}
 
-	vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy, screen_res.xy);
+	vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy * FXAA_SCALE, screen_res.xy * FXAA_SCALE);
 	//vec4 fxaa_color = texture(src_color, uv);
 
 	vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
