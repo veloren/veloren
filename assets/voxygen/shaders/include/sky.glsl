@@ -27,13 +27,13 @@ vec3 get_sun_dir(float time_of_day) {
 }
 
 float get_sun_brightness(vec3 sun_dir) {
-	return max(-sun_dir.z + 0.6, 0.0) * 1.0;
+	return max(-sun_dir.z + 0.6, 0.0);
 }
 
 const float PERSISTENT_AMBIANCE = 0.008;
 
-void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 diffuse_light, out vec3 ambient_light) {
-	const float SUN_AMBIANCE = 0.2;
+void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light) {
+	const float SUN_AMBIANCE = 0.1;
 
 	vec3 sun_dir = get_sun_dir(time_of_day);
 
@@ -51,7 +51,8 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 diffuse_light, out v
 		max(-sun_dir.z, 0)
 	);
 
-	diffuse_light = vec3(max(dot(-norm, sun_dir), 0.0) * sun_color * sun_light);
+	light = vec3(sun_color * sun_light);
+	diffuse_light = light * (dot(-norm, sun_dir) * 0.5 + 0.5);
 	ambient_light = vec3((SUN_AMBIANCE + PERSISTENT_AMBIANCE) * sun_light);
 }
 
