@@ -30,7 +30,7 @@ fn get_ao_quad<V: ReadVol>(
                 }
             }
 
-            (darkness, 1.0)
+            (darkness.powf(2.0), 1.0)
         })
         .collect::<Vec4<(f32, f32)>>()
 }
@@ -64,7 +64,13 @@ fn get_col_quad<V: ReadVol>(
             if total == 0.0 {
                 Rgb::zero()
             } else {
-                color / total
+                let primary_col = cols[1][1][1].unwrap_or(Rgb::zero());
+                let blended_col = color / total;
+                if (primary_col - blended_col).map(|e| e.abs()).average() > 0.15 {
+                    primary_col
+                } else {
+                    blended_col
+                }
             }
         })
         .collect()
