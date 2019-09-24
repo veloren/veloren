@@ -58,7 +58,8 @@ impl<'a> BlockGen<'a> {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
-                        / (1.0 + 3.0 * cliff_sample.chaos);
+                        / (1.0 + 3.0 * cliff_sample.chaos)
+                        + 3.0;
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
