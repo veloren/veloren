@@ -393,7 +393,7 @@ impl TownVol {
                     Some(ColumnKind::Internal) => {}
                     //Some(ColumnKind::External) => {}
                     Some(ColumnKind::Road) => {
-                        for z in -1..2 {
+                        for z in -1..1 {
                             let _ = self.set(Vec3::new(i, j, ground + z), CellKind::Road.into());
                         }
                     }
@@ -463,7 +463,7 @@ impl TownVol {
                                     || cells.contains(&(parent + dir - Vec3::unit_z()))
                             })
                             .unwrap_or(false)
-                        && parent.z + dir.z <= entrance.z + 3
+                        && parent.z + dir.z <= entrance.z + 2
                     // Maximum house height
                     {
                         cells.insert(parent + dir);
