@@ -30,7 +30,7 @@ float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0);
 }
 
-const float PERSISTENT_AMBIANCE = 0.008;
+const float PERSISTENT_AMBIANCE = 0.1;
 
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light) {
 	const float SUN_AMBIANCE = 0.1;
@@ -51,9 +51,11 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 		max(-sun_dir.z, 0)
 	);
 
-	light = vec3(sun_color * sun_light);
-	diffuse_light = light * (dot(-norm, sun_dir) * 0.5 + 0.5);
-	ambient_light = vec3((SUN_AMBIANCE + PERSISTENT_AMBIANCE) * sun_light);
+	vec3 sun_chroma = sun_color * sun_light;
+
+	light = vec3(sun_chroma + PERSISTENT_AMBIANCE);
+	diffuse_light = sun_chroma * (dot(-norm, sun_dir) * 0.5 + 0.5);
+	ambient_light = vec3(SUN_AMBIANCE * sun_light + PERSISTENT_AMBIANCE);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
