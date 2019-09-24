@@ -32,7 +32,7 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    col,
+                    &[[[Some(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         FigureVertex::new(
                             origin,
@@ -91,7 +91,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    col,
+                    &[[[Some(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         SpriteVertex::new(
                             origin,
