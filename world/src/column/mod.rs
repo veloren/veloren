@@ -230,8 +230,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let snow = Rgb::new(0.8, 0.85, 1.0);
 
         let dirt = Lerp::lerp(
-            Rgb::new(0.085, 0.075, 0.25),
-            Rgb::new(0.75, 0.45, 0.1),
+            Rgb::new(0.075, 0.07, 0.3),
+            Rgb::new(0.75, 0.55, 0.1),
             marble,
         );
         let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);

@@ -20,17 +20,42 @@ fn get_ao_quad<V: ReadVol>(
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .map(|offs| {
+            let (s1, s2) = (
+                vol.get(pos + shift + offs[0])
+                    .map(&is_opaque)
+                    .unwrap_or(false),
+                vol.get(pos + shift + offs[1])
+                    .map(&is_opaque)
+                    .unwrap_or(false),
+            );
+
             let mut darkness = 0.0;
             for x in 0..2 {
                 for y in 0..2 {
                     let dark_pos = shift + offs[0] * x + offs[1] * y + 1;
-                    darkness += darknesses[dark_pos.x as usize][dark_pos.y as usize]
-                        [dark_pos.z as usize]
+                    darkness += darknesses[dark_pos.z as usize][dark_pos.y as usize]
+                        [dark_pos.x as usize]
                         / 4.0;
                 }
             }
 
-            (darkness.powf(2.0), 1.0)
+            (
+                darkness,
+                if s1 && s2 {
+                    0.0
+                } else {
+                    let corner = vol
+                        .get(pos + shift + offs[0] + offs[1])
+                        .map(&is_opaque)
+                        .unwrap_or(false);
+                    // Map both 1 and 2 neighbors to 0.5 occlusion.
+                    if s1 || s2 || corner {
+                        0.5
+                    } else {
+                        1.0
+                    }
+                },
+            )
         })
         .collect::<Vec4<(f32, f32)>>()
 }
@@ -45,6 +70,7 @@ fn get_col_quad<V: ReadVol>(
 ) -> Vec4<Rgb<f32>> {
     dirs.windows(2)
         .map(|offs| {
+            let primary_col = cols[1][1][1].unwrap_or(Rgb::zero());
             let mut color = Rgb::zero();
             let mut total = 0.0;
             for x in 0..2 {
@@ -52,10 +78,14 @@ fn get_col_quad<V: ReadVol>(
                     for z in 0..2 {
                         let col_pos = shift * z + offs[0] * x + offs[1] * y + 1;
                         if let Some(col) =
-                            cols[col_pos.x as usize][col_pos.y as usize][col_pos.z as usize]
+                            cols[col_pos.z as usize][col_pos.y as usize][col_pos.x as usize]
                         {
-                            color += col;
-                            total += 1.0;
+                            if Vec3::<f32>::from(primary_col).distance_squared(Vec3::from(col))
+                                < 0.25 * 0.25
+                            {
+                                color += col;
+                                total += 1.0;
+                            }
                         }
                     }
                 }
@@ -64,13 +94,7 @@ fn get_col_quad<V: ReadVol>(
             if total == 0.0 {
                 Rgb::zero()
             } else {
-                let primary_col = cols[1][1][1].unwrap_or(Rgb::zero());
-                let blended_col = color / total;
-                if (primary_col - blended_col).map(|e| e.abs()).average() > 0.15 {
-                    primary_col
-                } else {
-                    blended_col
-                }
+                color / total
             }
         })
         .collect()
@@ -89,7 +113,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     let darkness = darkness_ao.map(|e| e.0);
     let ao = darkness_ao.map(|e| e.1);
 
-    let ao_map = ao.map(|e| 0.05 + e.powf(1.6) * 0.95);
+    let ao_map = ao.map(|e| e); //0.05 + e.powf(1.2) * 0.95);
 
     if ao[0].min(ao[2]) < ao[1].min(ao[3]) {
         Quad::new(

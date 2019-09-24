@@ -141,108 +141,89 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
-                for z in (range.min.z..range.max.z).rev() {
+                let mut lights = [[[0.0; 3]; 3]; 3];
+                for i in 0..3 {
+                    for j in 0..3 {
+                        for k in 0..3 {
+                            lights[k][j][i] = light(
+                                Vec3::new(x, y, range.min.z)
+                                    + Vec3::new(i as i32, j as i32, k as i32)
+                                    - 1,
+                            );
+                        }
+                    }
+                }
+
+                let get_color = |pos| {
+                    self.get(pos)
+                        .ok()
+                        .filter(|vox| vox.is_opaque())
+                        .and_then(|vox| vox.get_color())
+                        .map(|col| col.map(|e| e as f32 / 255.0))
+                };
+
+                let mut colors = [[[None; 3]; 3]; 3];
+                for i in 0..3 {
+                    for j in 0..3 {
+                        for k in 0..3 {
+                            colors[k][j][i] = get_color(
+                                Vec3::new(x, y, range.min.z)
+                                    + Vec3::new(i as i32, j as i32, k as i32)
+                                    - 1,
+                            );
+                        }
+                    }
+                }
+
+                for z in range.min.z..range.max.z {
                     let pos = Vec3::new(x, y, z);
                     let offs = (pos - (range.min + 1) * Vec3::new(1, 1, 0)).map(|e| e as f32);
+
+                    lights[0] = lights[1];
+                    lights[1] = lights[2];
+                    for i in 0..3 {
+                        for j in 0..3 {
+                            lights[2][j][i] = light(pos + Vec3::new(i as i32, j as i32, 2) - 1);
+                        }
+                    }
+                    colors[0] = colors[1];
+                    colors[1] = colors[2];
+                    for i in 0..3 {
+                        for j in 0..3 {
+                            colors[2][j][i] = get_color(pos + Vec3::new(i as i32, j as i32, 2) - 1);
+                        }
+                    }
 
                     let block = self.get(pos).ok();
 
                     // Create mesh polygons
-                    if let Some(col) = block
-                        .filter(|vox| vox.is_opaque())
-                        .and_then(|vox| vox.get_color())
-                    {
+                    if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
                         vol::push_vox_verts(
                             &mut opaque_mesh,
                             self,
                             pos,
                             offs,
-                            &{
-                                let mut cols = [[[None; 3]; 3]; 3];
-                                for x in 0..3 {
-                                    for y in 0..3 {
-                                        for z in 0..3 {
-                                            cols[x][y][z] = self
-                                                .get(
-                                                    pos + Vec3::new(x as i32, y as i32, z as i32)
-                                                        - 1,
-                                                )
-                                                .ok()
-                                                .filter(|vox| vox.is_opaque())
-                                                .and_then(|vox| vox.get_color())
-                                                .map(|col| col.map(|e| e as f32 / 255.0));
-                                        }
-                                    }
-                                }
-                                cols
-                            },
+                            &colors,
                             |pos, norm, col, ao, light| {
-                                TerrainVertex::new(pos, norm, col, light * ao)
+                                TerrainVertex::new(pos, norm, col, light.min(ao))
                             },
                             false,
-                            &{
-                                let mut ls = [[[0.0; 3]; 3]; 3];
-                                for x in 0..3 {
-                                    for y in 0..3 {
-                                        for z in 0..3 {
-                                            ls[x][y][z] = light(
-                                                pos + Vec3::new(x as i32, y as i32, z as i32) - 1,
-                                            );
-                                        }
-                                    }
-                                }
-                                ls
-                            },
+                            &lights,
                             |vox| !vox.is_opaque(),
                             |vox| vox.is_opaque(),
                         );
-                    } else if let Some(col) = block
-                        .filter(|vox| vox.is_fluid())
-                        .and_then(|vox| vox.get_color())
-                    {
-                        let col = col.map(|e| e as f32 / 255.0);
-
+                    } else if block.map(|vox| vox.is_fluid()).unwrap_or(false) {
                         vol::push_vox_verts(
                             &mut fluid_mesh,
                             self,
                             pos,
                             offs,
-                            &{
-                                let mut cols = [[[None; 3]; 3]; 3];
-                                for x in 0..3 {
-                                    for y in 0..3 {
-                                        for z in 0..3 {
-                                            cols[x][y][z] = self
-                                                .get(
-                                                    pos + Vec3::new(x as i32, y as i32, z as i32)
-                                                        - 1,
-                                                )
-                                                .ok()
-                                                .filter(|vox| vox.is_fluid())
-                                                .and_then(|vox| vox.get_color())
-                                                .map(|col| col.map(|e| e as f32 / 255.0));
-                                        }
-                                    }
-                                }
-                                cols
-                            },
+                            &colors,
                             |pos, norm, col, ao, light| {
-                                FluidVertex::new(pos, norm, col, light * ao, 0.3)
+                                FluidVertex::new(pos, norm, col, light.min(ao), 0.3)
                             },
                             false,
-                            &{
-                                let mut ls = [[[0.0; 3]; 3]; 3];
-                                for x in 0..3 {
-                                    for y in 0..3 {
-                                        for z in 0..3 {
-                                            ls[x][y][z] = light(
-                                                pos + Vec3::new(x as i32, y as i32, z as i32) - 1,
-                                            );
-                                        }
-                                    }
-                                }
-                                ls
-                            },
+                            &lights,
                             |vox| vox.is_air(),
                             |vox| vox.is_opaque(),
                         );
