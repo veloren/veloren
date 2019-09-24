@@ -60,6 +60,7 @@ fn get_ao_quad<V: ReadVol>(
         .collect::<Vec4<(f32, f32)>>()
 }
 
+#[allow(unsafe_code)]
 fn get_col_quad<V: ReadVol>(
     vol: &V,
     pos: Vec3<i32>,
@@ -75,27 +76,23 @@ fn get_col_quad<V: ReadVol>(
             let mut total = 0.0;
             for x in 0..2 {
                 for y in 0..2 {
-                    for z in 0..2 {
-                        let col_pos = shift * z + offs[0] * x + offs[1] * y + 1;
-                        if let Some(col) =
-                            cols[col_pos.z as usize][col_pos.y as usize][col_pos.x as usize]
+                    let col_pos = offs[0] * x + offs[1] * y + 1;
+                    if let Some(col) = unsafe {
+                        cols.get_unchecked(col_pos.z as usize)
+                            .get_unchecked(col_pos.y as usize)
+                            .get_unchecked(col_pos.x as usize)
+                    } {
+                        if Vec3::<f32>::from(primary_col).distance_squared(Vec3::from(*col))
+                            < 0.25 * 0.25
                         {
-                            if Vec3::<f32>::from(primary_col).distance_squared(Vec3::from(col))
-                                < 0.25 * 0.25
-                            {
-                                color += col;
-                                total += 1.0;
-                            }
+                            color += *col;
+                            total += 1.0;
                         }
                     }
                 }
             }
 
-            if total == 0.0 {
-                Rgb::zero()
-            } else {
-                color / total
-            }
+            color / total
         })
         .collect()
 }
