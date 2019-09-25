@@ -43,7 +43,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 		// Pre-calculate difference between light and fragment
 		vec3 difference = light_pos - wpos;
 
-		float strength = attenuation_strength(difference);
+		float strength = pow(attenuation_strength(difference), 0.6);
 
 		// Multiply the vec3 only once
 		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
