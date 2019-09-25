@@ -1011,13 +1011,7 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                let block = state.terrain().get(pos).ok().copied();
-
-                                if state.try_set_block(pos, Block::empty()).is_some() {
-                                    block
-                                        .and_then(|block| comp::Item::try_reclaim_from_block(block))
-                                        .map(|item| state.give_item(entity, item));
-                                }
+                                state.set_block(pos, Block::empty());
                             }
                         }
                         ClientMsg::PlaceBlock(pos, block) => {
@@ -1028,6 +1022,17 @@ impl Server {
                                 .is_some()
                             {
                                 state.try_set_block(pos, block);
+                            }
+                        }
+                        ClientMsg::CollectBlock(pos) => {
+                            let block = state.terrain().get(pos).ok().copied();
+                            if let Some(block) = block {
+                                if block.is_collectible() {
+                                    if state.try_set_block(pos, Block::empty()).is_some() {
+                                        comp::Item::try_reclaim_from_block(block)
+                                            .map(|item| state.give_item(entity, item));
+                                    }
+                                }
                             }
                         }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {

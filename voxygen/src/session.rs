@@ -162,7 +162,25 @@ impl PlayState for SessionState {
                     }
 
                     Event::InputUpdate(GameInput::Secondary, state) => {
+                        self.controller.secondary = false; // To be changed later on
+
                         let mut client = self.client.borrow_mut();
+
+                        let hit_pos = {
+                            let terrain = client.state().terrain();
+                            let ray = terrain
+                                .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                .until(|block| block.is_tangeable())
+                                .cast();
+                            let dist = ray.0;
+                            if let Ok(Some(_)) = ray.1 {
+                                // Hit something!
+                                Some((cam_pos + cam_dir * dist).map(|e| e.floor() as i32))
+                            } else {
+                                None
+                            }
+                        };
+
                         if state
                             && client
                                 .state()
@@ -170,21 +188,21 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            let (d, b) = {
-                                let terrain = client.state().terrain();
-                                let ray = terrain
-                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
-                                    .until(|block| block.is_tangeable())
-                                    .cast();
-                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                            };
-
-                            if b {
-                                let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                client.remove_block(pos);
+                            if let Some(hit_pos) = hit_pos {
+                                client.remove_block(hit_pos);
                             }
-                        } else {
+                        } else if client
+                            .state()
+                            .read_storage::<comp::CharacterState>()
+                            .get(client.entity())
+                            .map(|cs| cs.action.is_wield())
+                            .unwrap_or(false)
+                        {
                             self.controller.secondary = state;
+                        } else {
+                            if let Some(hit_pos) = hit_pos {
+                                client.collect_block(hit_pos);
+                            }
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
