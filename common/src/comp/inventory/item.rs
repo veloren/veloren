@@ -80,6 +80,7 @@ pub enum Consumable {
     Apple,
     Potion,
     Mushroom,
+    Velorite,
 }
 
 impl Consumable {
@@ -88,6 +89,7 @@ impl Consumable {
             Consumable::Apple => "apple",
             Consumable::Potion => "potion",
             Consumable::Mushroom => "mushroom",
+            Consumable::Velorite => "velorite",
         }
     }
 }
@@ -145,6 +147,7 @@ impl Item {
         match block.kind() {
             BlockKind::Apple => Some(Self::apple()),
             BlockKind::Mushroom => Some(Self::mushroom()),
+            BlockKind::Velorite => Some(Self::velorite()),
             _ => None,
         }
     }
@@ -162,6 +165,13 @@ impl Item {
         Item::Consumable {
             kind: Consumable::Mushroom,
             effect: Effect::Health(10, comp::HealthSource::Item),
+        }
+    }
+
+    pub fn velorite() -> Self {
+        Item::Consumable {
+            kind: Consumable::Mushroom,
+            effect: Effect::Xp(250),
         }
     }
 }
