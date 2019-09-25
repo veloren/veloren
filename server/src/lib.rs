@@ -765,7 +765,6 @@ impl Server {
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
         let mut requested_chunks = Vec::new();
-        let mut modified_blocks = Vec::new();
         let mut dropped_items = Vec::new();
 
         self.clients.remove_if(|entity, client| {
@@ -1003,7 +1002,13 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                modified_blocks.push((pos, Block::empty()));
+                                let block = state.terrain().get(pos).ok().copied();
+
+                                if state.try_set_block(pos, Block::empty()).is_some() {
+                                    block
+                                        .and_then(|block| comp::Item::try_reclaim_from_block(block))
+                                        .map(|item| state.give_item(entity, item));
+                                }
                             }
                         }
                         ClientMsg::PlaceBlock(pos, block) => {
@@ -1013,7 +1018,7 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                modified_blocks.push((pos, block));
+                                state.try_set_block(pos, block);
                             }
                         }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
@@ -1115,10 +1120,6 @@ impl Server {
         // Generate requested chunks.
         for (entity, key) in requested_chunks {
             self.generate_chunk(entity, key);
-        }
-
-        for (pos, block) in modified_blocks {
-            self.state.set_block(pos, block);
         }
 
         for (pos, ori, item) in dropped_items {
@@ -1382,5 +1383,19 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.clients.notify_registered(ServerMsg::Shutdown);
+    }
+}
+
+trait StateExt {
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item);
+}
+
+impl StateExt for State {
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) {
+        self.ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(entity)
+            .map(|inv| inv.push(item));
+        self.write_component(entity, comp::InventoryUpdate);
     }
 }
