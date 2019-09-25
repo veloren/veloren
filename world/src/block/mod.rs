@@ -319,7 +319,7 @@ impl<'a> BlockGen<'a> {
                 && chaos > 0.6
                 && (wposf.z as f32 > water_height + 3.0)
                 && marble > 0.75
-                && marble_small > 0.5
+                && marble_small > 0.3
                 && (marble * 7323.07).fract() < 0.75
             {
                 Some(Block::new(BlockKind::Velorite, Rgb::broadcast(0)))
