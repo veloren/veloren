@@ -49,7 +49,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             for z in (0..outer.size().d).rev() {
                 if vol
                     .get(outer.min + Vec3::new(x, y, z))
-                    .map(|vox| vox.is_air())
+                    .map(|vox| vox.is_air() || vox.is_fluid())
                     .unwrap_or(true)
                 {
                     if !outside {

@@ -12,7 +12,7 @@ uniform u_lights {
 
 vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
 	float avg_col = (color.r + color.g + color.b) / 3.0;
-	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse + ambience);
+	return ((color - avg_col) * light + (diffuse + ambience) * avg_col) * (diffuse);
 }
 
 float attenuation_strength(vec3 rpos) {

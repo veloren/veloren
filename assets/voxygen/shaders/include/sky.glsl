@@ -26,11 +26,11 @@ vec3 get_sun_dir(float time_of_day) {
 	return sun_dir;
 }
 
+const float PERSISTENT_AMBIANCE = 0.1;
+
 float get_sun_brightness(vec3 sun_dir) {
 	return max(-sun_dir.z + 0.6, 0.0);
 }
-
-const float PERSISTENT_AMBIANCE = 0.1;
 
 void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diffuse_light, out vec3 ambient_light) {
 	const float SUN_AMBIANCE = 0.1;
@@ -53,9 +53,9 @@ void get_sun_diffuse(vec3 norm, float time_of_day, out vec3 light, out vec3 diff
 
 	vec3 sun_chroma = sun_color * sun_light;
 
-	light = vec3(sun_chroma + PERSISTENT_AMBIANCE);
-	diffuse_light = sun_chroma * (dot(-norm, sun_dir) * 0.5 + 0.5);
-	ambient_light = vec3(SUN_AMBIANCE * sun_light + PERSISTENT_AMBIANCE);
+	light = sun_chroma + PERSISTENT_AMBIANCE;
+	diffuse_light = sun_chroma * (dot(-norm, sun_dir) * 0.5 + 0.6) + PERSISTENT_AMBIANCE;
+	ambient_light = vec3(SUN_AMBIANCE * sun_light);
 }
 
 // This has been extracted into a function to allow quick exit when detecting a star.
@@ -101,7 +101,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 		mix(
 			SKY_DUSK_TOP + star,
 			SKY_NIGHT_TOP + star,
-			max(sun_dir.z, 0)
+			max(pow(sun_dir.z, 0.2), 0)
 		),
 		SKY_DAY_TOP,
 		max(-sun_dir.z, 0)
@@ -111,7 +111,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 		mix(
 			SKY_DUSK_MID,
 			SKY_NIGHT_MID,
-			max(sun_dir.z, 0)
+			max(pow(sun_dir.z, 0.2), 0)
 		),
 		SKY_DAY_MID,
 		max(-sun_dir.z, 0)
@@ -121,7 +121,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, bool with_stars) {
 		mix(
 			SKY_DUSK_BOT,
 			SKY_NIGHT_BOT,
-			max(sun_dir.z, 0)
+			max(pow(sun_dir.z, 0.2), 0)
 		),
 		SKY_DAY_BOT,
 		max(-sun_dir.z, 0)
