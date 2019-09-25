@@ -25,6 +25,7 @@ widget_ids! {
         map_title,
         inv_slots[],
         items[],
+        tooltip[],
     }
 }
 
@@ -178,6 +179,7 @@ impl<'a> Widget for Bag<'a> {
                     color::DARK_YELLOW
                 })
                 .floating(true)
+                .with_tooltip(self.tooltip_manager, "Test", "", &item_tooltip)
                 .set(state.ids.inv_slots[i], ui)
                 .was_clicked()
             {
@@ -208,8 +210,7 @@ impl<'a> Widget for Bag<'a> {
                     .label_y(Relative::Scalar(-10.0))
                     .label_color(TEXT_COLOR)
                     .parent(state.ids.inv_slots[i])
-                    .graphics_for(state.ids.inv_slots[i])
-                    .with_tooltip(self.tooltip_manager, "Test", "", &item_tooltip)
+                    .graphics_for(state.ids.inv_slots[i])                   
                     .set(state.ids.items[i], ui);
             }
         }
