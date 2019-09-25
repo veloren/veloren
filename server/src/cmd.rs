@@ -699,7 +699,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 .write_storage::<comp::LightEmitter>()
                 .get_mut(entity)
             {
-                light.strength = s.max(0.1).min(20.0);
+                light.strength = s.max(0.1).min(10.0);
                 server.clients.notify(
                     entity,
                     ServerMsg::private(String::from("You played with flame strength.")),
@@ -727,9 +727,9 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                     offset: Vec3::new(0.5, 0.2, 0.8),
                     col: Rgb::new(1.0, 0.75, 0.3),
                     strength: if let Some(s) = opt_s {
-                        s.max(0.0).min(20.0)
+                        s.max(0.0).min(10.0)
                     } else {
-                        6.0
+                        3.0
                     },
                 },
             );
