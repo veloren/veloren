@@ -875,6 +875,14 @@ impl Server {
                                 Some(comp::Item::Consumable { effect, .. }) => {
                                     state.apply_effect(entity, effect);
                                 }
+                                Some(item) => {
+                                    // Re-insert it if unused
+                                    let _ = state
+                                        .ecs()
+                                        .write_storage::<comp::Inventory>()
+                                        .get_mut(entity)
+                                        .map(|inv| inv.insert(x, item));
+                                }
                                 _ => {}
                             }
                             state.write_component(entity, comp::InventoryUpdate);
