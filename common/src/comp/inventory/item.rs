@@ -94,6 +94,21 @@ impl Consumable {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Ingredient {
+    Flower,
+    Grass,
+}
+
+impl Ingredient {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Ingredient::Flower => "flower",
+            Ingredient::Grass => "grass",
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Debug {
     Boost,
@@ -114,7 +129,9 @@ pub enum Item {
         kind: Consumable,
         effect: Effect,
     },
-    Ingredient,
+    Ingredient {
+        kind: Ingredient,
+    },
     Debug(Debug),
 }
 
@@ -123,8 +140,8 @@ impl Item {
         match self {
             Item::Tool { kind, .. } => kind.name(),
             Item::Armor { kind, .. } => kind.name(),
-            Item::Consumable { .. } => "<consumable>",
-            Item::Ingredient => "<ingredient>",
+            Item::Consumable { kind, .. } => kind.name(),
+            Item::Ingredient { kind } => kind.name(),
             Item::Debug(_) => "Debugging item",
         }
     }
@@ -134,7 +151,7 @@ impl Item {
             Item::Tool { .. } => "tool",
             Item::Armor { .. } => "armour",
             Item::Consumable { .. } => "consumable",
-            Item::Ingredient => "ingredient",
+            Item::Ingredient { .. } => "ingredient",
             Item::Debug(_) => "debug",
         }
     }
@@ -148,6 +165,16 @@ impl Item {
             BlockKind::Apple => Some(Self::apple()),
             BlockKind::Mushroom => Some(Self::mushroom()),
             BlockKind::Velorite => Some(Self::velorite()),
+            BlockKind::BlueFlower => Some(Self::flower()),
+            BlockKind::PinkFlower => Some(Self::flower()),
+            BlockKind::PurpleFlower => Some(Self::flower()),
+            BlockKind::RedFlower => Some(Self::flower()),
+            BlockKind::WhiteFlower => Some(Self::flower()),
+            BlockKind::YellowFlower => Some(Self::flower()),
+            BlockKind::Sunflower => Some(Self::flower()),
+            BlockKind::LongGrass => Some(Self::grass()),
+            BlockKind::MediumGrass => Some(Self::grass()),
+            BlockKind::ShortGrass => Some(Self::grass()),
             _ => None,
         }
     }
@@ -172,6 +199,18 @@ impl Item {
         Item::Consumable {
             kind: Consumable::Mushroom,
             effect: Effect::Xp(250),
+        }
+    }
+
+    pub fn flower() -> Self {
+        Item::Ingredient {
+            kind: Ingredient::Flower,
+        }
+    }
+
+    pub fn grass() -> Self {
+        Item::Ingredient {
+            kind: Ingredient::Grass,
         }
     }
 }

@@ -131,6 +131,16 @@ impl BlockKind {
 
     pub fn is_collectible(&self) -> bool {
         match self {
+            BlockKind::BlueFlower => true,
+            BlockKind::PinkFlower => true,
+            BlockKind::PurpleFlower => true,
+            BlockKind::RedFlower => true,
+            BlockKind::WhiteFlower => true,
+            BlockKind::YellowFlower => true,
+            BlockKind::Sunflower => true,
+            BlockKind::LongGrass => true,
+            BlockKind::MediumGrass => true,
+            BlockKind::ShortGrass => true,
             BlockKind::Apple => true,
             BlockKind::Mushroom => true,
             BlockKind::Velorite => true,
