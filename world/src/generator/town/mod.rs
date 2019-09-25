@@ -106,6 +106,7 @@ impl<'a> Generator<'a, TownState> for TownGen {
     fn spawn_rules(&self, town: &'a TownState, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: wpos.distance_squared(town.center.into()) > (town.radius + 32).pow(2),
+            cliffs: false,
         }
     }
 }

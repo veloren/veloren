@@ -21,8 +21,9 @@ out vec4 tgt_color;
 void main() {
 	vec3 light, diffuse_light, ambient_light;
 	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light);
-	diffuse_light *= f_light;
-	ambient_light *= f_light;
+	float point_shadow = shadow_at(f_pos, f_norm);
+	diffuse_light *= f_light * point_shadow;
+	ambient_light *= f_light * point_shadow;
 	vec3 point_light = light_at(f_pos, f_norm);
 	light += point_light;
 	diffuse_light += point_light;

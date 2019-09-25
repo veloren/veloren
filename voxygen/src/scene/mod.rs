@@ -13,7 +13,7 @@ use crate::{
     audio::AudioFrontend,
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, Globals, Light, Model, PostProcessLocals,
-        PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
+        PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
     window::Event,
 };
@@ -30,7 +30,10 @@ use vek::*;
 const CURSOR_PAN_SCALE: f32 = 0.005;
 
 const MAX_LIGHT_COUNT: usize = 32;
-const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not be visible
+const MAX_SHADOW_COUNT: usize = 24;
+const LIGHT_DIST_RADIUS: f32 = 64.0; // The distance beyond which lights may not emit light from their origin
+const SHADOW_DIST_RADIUS: f32 = 8.0;
+const SHADOW_MAX_DIST: f32 = 96.0; // The distance beyond which shadows may not be visible
 
 struct Skybox {
     model: Model<SkyboxPipeline>,
@@ -45,6 +48,7 @@ struct PostProcess {
 pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
+    shadows: Consts<Shadow>,
     camera: Camera,
 
     skybox: Skybox,
@@ -63,7 +67,12 @@ impl Scene {
 
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
-            lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+            lights: renderer
+                .create_consts(&[Light::default(); MAX_LIGHT_COUNT])
+                .unwrap(),
+            shadows: renderer
+                .create_consts(&[Shadow::default(); MAX_SHADOW_COUNT])
+                .unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             skybox: Skybox {
@@ -200,12 +209,28 @@ impl Scene {
                 )
             })
             .collect::<Vec<_>>();
-        lights.sort_by_key(|light| {
-            Vec3::from(Vec4::from(light.pos)).distance_squared(player_pos) as i32
-        });
+        lights.sort_by_key(|light| light.get_pos().distance_squared(player_pos) as i32);
         lights.truncate(MAX_LIGHT_COUNT);
         renderer
             .update_consts(&mut self.lights, &lights)
+            .expect("Failed to update light constants");
+
+        // Update shadow constants
+        let mut shadows = (
+            &client.state().ecs().read_storage::<comp::Pos>(),
+            client.state().ecs().read_storage::<comp::Scale>().maybe(),
+        )
+            .join()
+            .filter(|(pos, _)| {
+                (pos.0.distance_squared(player_pos) as f32)
+                    < self.loaded_distance.powf(2.0).min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS
+            })
+            .map(|(pos, scale)| Shadow::new(pos.0, scale.map(|s| s.0).unwrap_or(1.0)))
+            .collect::<Vec<_>>();
+        shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
+        shadows.truncate(MAX_SHADOW_COUNT);
+        renderer
+            .update_consts(&mut self.shadows, &shadows)
             .expect("Failed to update light constants");
 
         // Update global constants.
@@ -222,6 +247,7 @@ impl Scene {
                     client.state().get_time(),
                     renderer.get_resolution(),
                     lights.len(),
+                    shadows.len(),
                     client
                         .state()
                         .terrain()
@@ -258,12 +284,19 @@ impl Scene {
         renderer.render_skybox(&self.skybox.model, &self.globals, &self.skybox.locals);
 
         // Render terrain and figures.
-        self.figure_mgr
-            .render(renderer, client, &self.globals, &self.lights, &self.camera);
+        self.figure_mgr.render(
+            renderer,
+            client,
+            &self.globals,
+            &self.lights,
+            &self.shadows,
+            &self.camera,
+        );
         self.terrain.render(
             renderer,
             &self.globals,
             &self.lights,
+            &self.shadows,
             self.camera.get_focus_pos(),
         );
 

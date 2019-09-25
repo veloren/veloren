@@ -1,6 +1,6 @@
 use super::{
     super::{Pipeline, TgtColorFmt, TgtDepthFmt},
-    Globals, Light,
+    Globals, Light, Shadow,
 };
 use gfx::{
     self,
@@ -32,6 +32,7 @@ gfx_defines! {
         locals: gfx::ConstantBuffer<Locals> = "u_locals",
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
+        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
         tgt_color: gfx::RenderTarget<TgtColorFmt> = "tgt_color",
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,

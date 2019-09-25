@@ -8,6 +8,15 @@ uniform u_lights {
 	Light lights[32];
 };
 
+struct Shadow {
+	vec4 shadow_pos_radius;
+};
+
+layout (std140)
+uniform u_shadows {
+	Shadow shadows[24];
+};
+
 #include <srgb.glsl>
 
 vec3 illuminate(vec3 color, vec3 light, vec3 diffuse, vec3 ambience) {
@@ -24,7 +33,7 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 
 	vec3 light = vec3(0);
 
-	for (uint i = 0u; i < light_count.x; i++) {
+	for (uint i = 0u; i < light_shadow_count.x; i ++) {
 
 		// Only access the array once
 		Light L = lights[i];
@@ -39,16 +48,30 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 		// Multiply the vec3 only once
 		vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
 
-		// This is commented out to avoid conditional branching. See here: https://community.khronos.org/t/glsl-float-multiply-by-zero/104391
-		// if (max(max(color.r, color.g), color.b) < 0.002) {
-		// 	continue;
-		// }
-
-		// Old: light += color * clamp(dot(normalize(difference), wnorm), LIGHT_AMBIENCE, 1.0);
-
-		// The dot product cannot be greater than one, so no need to clamp max value
-		// Also, rather than checking if it is smaller than LIGHT_AMBIENCE, add LIGHT_AMBIENCE instead
 		light += color * (max(0, dot(normalize(difference), wnorm)) + LIGHT_AMBIENCE);
 	}
 	return light;
+}
+
+float shadow_at(vec3 wpos, vec3 wnorm) {
+	float shadow = 1.0;
+
+	for (uint i = 0u; i < light_shadow_count.y; i ++) {
+
+		// Only access the array once
+		Shadow S = shadows[i];
+
+		vec3 shadow_pos = S.shadow_pos_radius.xyz;
+		float radius = S.shadow_pos_radius.w;
+
+		vec3 diff = shadow_pos - wpos;
+		if (diff.z >= 0.0) {
+			diff.z = diff.z * 0.1;
+		}
+
+		float shade = max(pow(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z, 0.25) / pow(radius * radius * 0.5, 0.25), 0.5);
+
+		shadow = min(shadow, shade);
+	}
+	return min(shadow, 1.0);
 }
