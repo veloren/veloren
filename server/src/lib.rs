@@ -1035,7 +1035,14 @@ impl Server {
                         ClientMsg::CollectBlock(pos) => {
                             let block = state.terrain().get(pos).ok().copied();
                             if let Some(block) = block {
-                                if block.is_collectible() {
+                                if block.is_collectible()
+                                    && state
+                                        .ecs()
+                                        .read_storage::<comp::Inventory>()
+                                        .get(entity)
+                                        .map(|inv| !inv.is_full())
+                                        .unwrap_or(false)
+                                {
                                     if state.try_set_block(pos, Block::empty()).is_some() {
                                         comp::Item::try_reclaim_from_block(block)
                                             .map(|item| state.give_item(entity, item));
@@ -1409,17 +1416,22 @@ impl Drop for Server {
 }
 
 trait StateExt {
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item);
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
 }
 
 impl StateExt for State {
-    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) {
-        self.ecs()
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool {
+        let success = self
+            .ecs()
             .write_storage::<comp::Inventory>()
             .get_mut(entity)
-            .map(|inv| inv.push(item));
-        self.write_component(entity, comp::InventoryUpdate);
+            .map(|inv| inv.push(item).is_none())
+            .unwrap_or(false);
+        if success {
+            self.write_component(entity, comp::InventoryUpdate);
+        }
+        success
     }
 
     fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
