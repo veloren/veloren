@@ -706,7 +706,7 @@ pub enum NearKind {
 }
 
 impl ModuleModel {
-    pub fn generate_list(details: &[(&str, &[([i32; 3], NearKind)])]) -> Vec<Self> {
+    pub fn generate_list(_details: &[(&str, &[([i32; 3], NearKind)])]) -> Vec<Self> {
         unimplemented!()
     }
 }
