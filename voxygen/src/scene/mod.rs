@@ -219,13 +219,16 @@ impl Scene {
         let mut shadows = (
             &client.state().ecs().read_storage::<comp::Pos>(),
             client.state().ecs().read_storage::<comp::Scale>().maybe(),
+            &client.state().ecs().read_storage::<comp::Body>(),
+            &client.state().ecs().read_storage::<comp::Stats>(),
         )
             .join()
-            .filter(|(pos, _)| {
+            .filter(|(_, _, _, stats)| !stats.is_dead)
+            .filter(|(pos, _, _, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
                     < (self.loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powf(2.0)
             })
-            .map(|(pos, scale)| Shadow::new(pos.0, scale.map(|s| s.0).unwrap_or(1.0)))
+            .map(|(pos, scale, _, _)| Shadow::new(pos.0, scale.map(|s| s.0).unwrap_or(1.0)))
             .collect::<Vec<_>>();
         shadows.sort_by_key(|shadow| shadow.get_pos().distance_squared(player_pos) as i32);
         shadows.truncate(MAX_SHADOW_COUNT);
