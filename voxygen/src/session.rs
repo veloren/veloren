@@ -408,11 +408,16 @@ impl PlayState for SessionState {
                             self.hud.scale_change(scale_change);
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::AdjustMusicVolume(music_volume) => {
+                        global_state.audio.set_music_volume(music_volume);
 
-                    HudEvent::AdjustVolume(volume) => {
-                        global_state.audio.set_music_volume(volume);
+                        global_state.settings.audio.music_volume = music_volume;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::AdjustSfxVolume(sfx_volume) => {
+                        global_state.audio.set_sfx_volume(sfx_volume);
 
-                        global_state.settings.audio.music_volume = volume;
+                        global_state.settings.audio.sfx_volume = sfx_volume;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ChangeAudioDevice(name) => {
