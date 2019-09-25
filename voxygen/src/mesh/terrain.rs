@@ -47,24 +47,26 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         for y in 0..outer.size().h {
             let mut outside = true;
             for z in (0..outer.size().d).rev() {
-                if vol
+                let block = vol
                     .get(outer.min + Vec3::new(x, y, z))
-                    .map(|vox| vox.is_air() || vox.is_fluid())
-                    .unwrap_or(true)
-                {
-                    if !outside {
-                        voids.insert(Vec3::new(x, y, z), None);
-                    }
-                } else if outside {
+                    .ok()
+                    .copied()
+                    .unwrap_or(Block::empty());
+
+                if !block.is_air() && outside {
                     rays[(outer.size().w * y + x) as usize] = z;
                     outside = false;
+                }
+
+                if (block.is_air() || block.is_fluid()) && !outside {
+                    voids.insert(Vec3::new(x, y, z), None);
                 }
             }
         }
     }
 
     let mut opens = HashSet::new();
-    for (pos, l) in &mut voids {
+    'voids: for (pos, l) in &mut voids {
         for dir in &DIRS {
             let col = Vec2::<i32>::from(*pos) + dir;
             if pos.z
@@ -74,7 +76,17 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
             {
                 *l = Some(sunlight - 1);
                 opens.insert(*pos);
+                continue 'voids;
             }
+        }
+
+        if pos.z
+            >= *rays
+                .get(((outer.size().w * pos.y) + pos.x) as usize)
+                .unwrap_or(&0)
+        {
+            *l = Some(sunlight - 1);
+            opens.insert(*pos);
         }
     }
 
