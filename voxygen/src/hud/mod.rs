@@ -35,7 +35,7 @@ use crate::{
     render::{Consts, Globals, Renderer},
     scene::camera::Camera,
     settings::ControlSettings,
-    ui::{Ingameable, ScaleMode, Ui, TooltipManager},
+    ui::{Ingameable, ScaleMode, TooltipManager, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
@@ -361,13 +361,12 @@ impl Show {
     }
 }
 
-pub struct Hud<'a> {
+pub struct Hud {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
-    tooltip_manager: &'a mut TooltipManager,
     new_messages: VecDeque<ClientEvent>,
     inventory_space: usize,
     show: Show,
@@ -377,7 +376,7 @@ pub struct Hud<'a> {
     force_chat_cursor: Option<Index>,
 }
 
-impl Hud<'_> {
+impl Hud {
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let settings = &global_state.settings;
@@ -388,6 +387,8 @@ impl Hud<'_> {
         let ids = Ids::new(ui.id_generator());
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
+        // Load rotation images.
+        let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load fonts.
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
@@ -399,7 +400,6 @@ impl Hud<'_> {
             ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
-            tooltip_manager,
             show: Show {
                 help: false,
                 debug: true,
@@ -728,7 +728,15 @@ impl Hud<'_> {
 
         // Bag contents
         if self.show.bag {
-            match Bag::new(client, &self.imgs, &self.rot_imgs, &self.fonts, &self.tooltip_manager).set(self.ids.bag, ui_widgets) {
+            match Bag::new(
+                client,
+                &self.imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+            )
+            .set(self.ids.bag, ui_widgets)
+            {
                 Some(bag::Event::HudEvent(event)) => events.push(event),
                 Some(bag::Event::Close) => {
                     self.show.bag(false);

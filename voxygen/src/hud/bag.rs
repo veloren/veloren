@@ -1,4 +1,8 @@
-use super::{img_ids::{Imgs, ImgsRot}, Event as HudEvent, Fonts, TEXT_COLOR, TEXT_COLOR_2};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Event as HudEvent, Fonts, TEXT_COLOR, TEXT_COLOR_2,
+};
+use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color,
@@ -6,12 +10,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
     widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-use crate::{
-    ui::{
-    ImageFrame, Tooltip, Tooltipable, TooltipManager
-    }
-};
-
 
 widget_ids! {
     struct Ids {
@@ -38,11 +36,17 @@ pub struct Bag<'a> {
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
     rot_imgs: &'a ImgsRot,
-    tooltip_manager: &'a TooltipManager,
+    tooltip_manager: &'a mut TooltipManager,
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts, tooltip_manager: &'a TooltipManager, rot_imgs: &'a ImgsRot,) -> Self {
+    pub fn new(
+        client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
+    ) -> Self {
         Self {
             client,
             imgs,
@@ -85,7 +89,7 @@ impl<'a> Widget for Bag<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { state, ui, .. } = args;
 
-        let mut event = None;       
+        let mut event = None;
 
         let invs = self.client.inventories();
         let inventory = match invs.get(self.client.entity()) {
@@ -205,7 +209,7 @@ impl<'a> Widget for Bag<'a> {
                     .label_color(TEXT_COLOR)
                     .parent(state.ids.inv_slots[i])
                     .graphics_for(state.ids.inv_slots[i])
-                    .with_tooltip(&mut self.tooltip_manager, "Test", "", &item_tooltip)
+                    .with_tooltip(self.tooltip_manager, "Test", "", &item_tooltip)
                     .set(state.ids.items[i], ui);
             }
         }
