@@ -120,7 +120,8 @@ impl Scene {
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        const CHAR_SELECT_TIME_OF_DAY: f32 = 80000.0; // 12*3600 seconds
+        const VD: f32 = 115.0; //View Distance
+        const TIME: f64 = 36000.0; // hours*3600 seconds
         if let Err(err) = renderer.update_consts(
             &mut self.globals,
             &[Globals::new(
@@ -128,8 +129,8 @@ impl Scene {
                 proj_mat,
                 cam_pos,
                 self.camera.get_focus_pos(),
-                CHAR_SELECT_TIME_OF_DAY,
-                55800.0,
+                VD,
+                TIME,
                 client.state().get_time(),
                 renderer.get_resolution(),
                 0,
