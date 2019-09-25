@@ -19,6 +19,7 @@ use crate::{
 };
 use common::{
     comp,
+    effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
@@ -866,6 +867,9 @@ impl Server {
                                         stats.equipment.main = item;
                                     }
                                 }
+                                Some(comp::Item::Consumable { effect, .. }) => {
+                                    state.apply_effect(entity, effect);
+                                }
                                 _ => {}
                             }
                             state.write_component(entity, comp::InventoryUpdate);
@@ -1388,6 +1392,7 @@ impl Drop for Server {
 
 trait StateExt {
     fn give_item(&mut self, entity: EcsEntity, item: comp::Item);
+    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
 }
 
 impl StateExt for State {
@@ -1397,5 +1402,22 @@ impl StateExt for State {
             .get_mut(entity)
             .map(|inv| inv.push(item));
         self.write_component(entity, comp::InventoryUpdate);
+    }
+
+    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
+        match effect {
+            Effect::Health(hp, source) => {
+                self.ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(entity)
+                    .map(|stats| stats.health.change_by(hp, source));
+            }
+            Effect::Xp(xp) => {
+                self.ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(entity)
+                    .map(|stats| stats.exp.change_by(xp));
+            }
+        }
     }
 }
