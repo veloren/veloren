@@ -207,6 +207,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
         let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
+            .powf(3.0)
             .add(1.0)
             .mul(0.5);
         let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
