@@ -1,8 +1,8 @@
 use crate::{
     mesh::Meshable,
     render::{
-        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, SpriteInstance,
-        SpritePipeline, TerrainLocals, TerrainPipeline,
+        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
+        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline,
     },
 };
 
@@ -894,12 +894,19 @@ impl<V: RectRasterableVol> Terrain<V> {
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
         focus_pos: Vec3<f32>,
     ) {
         // Opaque
         for (_, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+                renderer.render_terrain_chunk(
+                    &chunk.opaque_model,
+                    globals,
+                    &chunk.locals,
+                    lights,
+                    shadows,
+                );
             }
         }
 
@@ -919,6 +926,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             globals,
                             &instances,
                             lights,
+                            shadows,
                         );
                     }
                 }
@@ -928,7 +936,13 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Translucent
         for (_, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
+                renderer.render_fluid_chunk(
+                    &chunk.fluid_model,
+                    globals,
+                    &chunk.locals,
+                    lights,
+                    shadows,
+                );
             }
         }
     }
