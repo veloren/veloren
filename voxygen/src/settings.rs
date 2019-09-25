@@ -193,7 +193,7 @@ impl Default for AudioSettings {
             music_volume: 0.4,
             sfx_volume: 0.6,
             audio_device: None,
-            audio_on: false,
+            audio_on: true,
         }
     }
 }
