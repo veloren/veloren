@@ -28,7 +28,7 @@ pub enum ServerEvent {
     },
     Damage {
         uid: Uid,
-        power: u32,
+        dmg: u32,
         cause: comp::HealthSource,
     },
     Destroy {
