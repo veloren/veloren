@@ -356,6 +356,11 @@ impl Server {
                 ServerEvent::Respawn(entity) => {
                     // Only clients can respawn
                     if let Some(client) = clients.get_mut(&entity) {
+                        let respawn_point = state
+                            .read_component_cloned::<comp::Waypoint>(entity)
+                            .map(|wp| wp.get_pos())
+                            .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
+
                         client.allow_state(ClientState::Character);
                         state
                             .ecs_mut()
@@ -366,7 +371,7 @@ impl Server {
                             .ecs_mut()
                             .write_storage::<comp::Pos>()
                             .get_mut(entity)
-                            .map(|pos| pos.0.z += 20.0);
+                            .map(|pos| pos.0 = respawn_point);
                         let _ = state
                             .ecs_mut()
                             .write_storage()

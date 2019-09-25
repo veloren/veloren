@@ -131,6 +131,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             variations: 2,
             wind_sway: 0.05,
         }),
+        BlockKind::Velorite => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
+        }),
         _ => None,
     }
 }
@@ -594,6 +598,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     make_model(
                         "voxygen.voxel.sprite.lianas.liana-1",
                         Vec3::new(-1.0, -0.5, -55.0),
+                    ),
+                ),
+                (
+                    (BlockKind::Velorite, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite",
+                        Vec3::new(-5.0, -5.0, -0.0),
                     ),
                 ),
             ]
