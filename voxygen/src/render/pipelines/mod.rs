@@ -28,13 +28,17 @@ gfx_defines! {
         time_of_day: [f32; 4] = "time_of_day", // TODO: Make this f64.
         tick: [f32; 4] = "tick",
         screen_res: [f32; 4] = "screen_res",
-        light_count: [u32; 4] = "light_count",
+        light_shadow_count: [u32; 4] = "light_shadow_count",
         medium: [u32; 4] = "medium",
     }
 
     constant Light {
         pos: [f32; 4] = "light_pos",
         col: [f32; 4] = "light_col",
+    }
+
+    constant Shadow {
+        pos_radius: [f32; 4] = "shadow_pos_radius",
     }
 }
 
@@ -50,6 +54,7 @@ impl Globals {
         tick: f64,
         screen_res: Vec2<u16>,
         light_count: usize,
+        shadow_count: usize,
         medium: BlockKind,
     ) -> Self {
         Self {
@@ -61,7 +66,7 @@ impl Globals {
             time_of_day: [time_of_day as f32; 4],
             tick: [tick as f32; 4],
             screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
-            light_count: [light_count as u32; 4],
+            light_shadow_count: [light_count as u32, shadow_count as u32, 0, 0],
             medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
         }
     }
@@ -79,6 +84,7 @@ impl Default for Globals {
             0.0,
             Vec2::new(800, 500),
             0,
+            0,
             BlockKind::Air,
         )
     }
@@ -91,10 +97,32 @@ impl Light {
             col: Rgba::new(col.r, col.g, col.b, strength).into_array(),
         }
     }
+
+    pub fn get_pos(&self) -> Vec3<f32> {
+        Vec3::new(self.pos[0], self.pos[1], self.pos[2])
+    }
 }
 
 impl Default for Light {
     fn default() -> Self {
         Self::new(Vec3::zero(), Rgb::zero(), 0.0)
+    }
+}
+
+impl Shadow {
+    pub fn new(pos: Vec3<f32>, radius: f32) -> Self {
+        Self {
+            pos_radius: [pos.x, pos.y, pos.z, radius],
+        }
+    }
+
+    pub fn get_pos(&self) -> Vec3<f32> {
+        Vec3::new(self.pos_radius[0], self.pos_radius[1], self.pos_radius[2])
+    }
+}
+
+impl Default for Shadow {
+    fn default() -> Self {
+        Self::new(Vec3::zero(), 0.0)
     }
 }

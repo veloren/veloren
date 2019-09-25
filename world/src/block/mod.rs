@@ -54,7 +54,11 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
+                Some(cliff_sample)
+                    if cliff_sample.is_cliffs
+                        && cliff_sample.spawn_rate > 0.5
+                        && cliff_sample.spawn_rules.cliffs =>
+                {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
                     let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
