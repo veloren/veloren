@@ -313,11 +313,11 @@ impl Server {
                     .build();
                 }
 
-                ServerEvent::Damage { uid, power, cause } => {
+                ServerEvent::Damage { uid, dmg, cause } => {
                     let ecs = state.ecs_mut();
                     if let Some(entity) = ecs.entity_from_uid(uid.into()) {
                         if let Some(stats) = ecs.write_storage::<comp::Stats>().get_mut(entity) {
-                            stats.health.change_by(-(power as i32), cause);
+                            stats.health.change_by(-(dmg as i32), cause);
                         }
                     }
                 }
