@@ -128,6 +128,15 @@ impl BlockKind {
             _ => true,
         }
     }
+
+    pub fn is_collectible(&self) -> bool {
+        match self {
+            BlockKind::Apple => true,
+            BlockKind::Mushroom => true,
+            BlockKind::Velorite => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -19,6 +19,7 @@ pub enum ClientMsg {
     SetViewDistance(u32),
     BreakBlock(Vec3<i32>),
     PlaceBlock(Vec3<i32>, Block),
+    CollectBlock(Vec3<i32>),
     Ping,
     Pong,
     ChatMsg {
