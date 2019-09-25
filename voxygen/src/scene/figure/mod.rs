@@ -108,7 +108,7 @@ impl FigureMgr {
                 .and_then(|stats| stats.health.last_change)
                 .map(|(_, time, _)| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(0.0, -1.0, -1.0, 0.0)
+                        + Rgba::new(1.0, 1.0, 1.0, 0.0)
                             .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
                 })
                 .unwrap_or(Rgba::broadcast(1.0));

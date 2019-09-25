@@ -1,4 +1,8 @@
-use crate::terrain::{Block, BlockKind};
+use crate::{
+    comp,
+    effect::Effect,
+    terrain::{Block, BlockKind},
+};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -89,12 +93,6 @@ impl Consumable {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ConsumptionEffect {
-    Health(i32),
-    Xp(i32),
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Debug {
     Boost,
 }
@@ -112,7 +110,7 @@ pub enum Item {
     },
     Consumable {
         kind: Consumable,
-        effect: ConsumptionEffect,
+        effect: Effect,
     },
     Ingredient,
     Debug(Debug),
@@ -156,14 +154,14 @@ impl Item {
     pub fn apple() -> Self {
         Item::Consumable {
             kind: Consumable::Apple,
-            effect: ConsumptionEffect::Health(3),
+            effect: Effect::Health(20, comp::HealthSource::Item),
         }
     }
 
     pub fn mushroom() -> Self {
         Item::Consumable {
             kind: Consumable::Mushroom,
-            effect: ConsumptionEffect::Health(1),
+            effect: Effect::Health(10, comp::HealthSource::Item),
         }
     }
 }
