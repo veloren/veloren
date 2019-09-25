@@ -223,7 +223,7 @@ impl Scene {
             .join()
             .filter(|(pos, _)| {
                 (pos.0.distance_squared(player_pos) as f32)
-                    < self.loaded_distance.powf(2.0).min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS
+                    < (self.loaded_distance.min(SHADOW_MAX_DIST) + SHADOW_DIST_RADIUS).powf(2.0)
             })
             .map(|(pos, scale)| Shadow::new(pos.0, scale.map(|s| s.0).unwrap_or(1.0)))
             .collect::<Vec<_>>();
