@@ -128,7 +128,7 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(rng.gen(), 32, 24),
+            structure_gen: StructureGen2d::new(rng.gen(), 32, 16),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()

@@ -45,6 +45,10 @@ impl Inventory {
         }
     }
 
+    pub fn is_full(&self) -> bool {
+        self.slots.iter().all(|slot| slot.is_some())
+    }
+
     /// Get content of a slot
     pub fn get(&self, cell: usize) -> Option<&Item> {
         self.slots.get(cell).and_then(Option::as_ref)
