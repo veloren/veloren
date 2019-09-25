@@ -55,6 +55,15 @@ impl BlockChange {
         self.blocks.insert(pos, block);
     }
 
+    pub fn try_set(&mut self, pos: Vec3<i32>, block: Block) -> Option<()> {
+        if !self.blocks.contains_key(&pos) {
+            self.blocks.insert(pos, block);
+            Some(())
+        } else {
+            None
+        }
+    }
+
     pub fn clear(&mut self) {
         self.blocks.clear();
     }
@@ -234,9 +243,14 @@ impl State {
         self.ecs.write_resource()
     }
 
-    /// Get a writable reference to this state's terrain.
+    /// Set a block in this state's terrain.
     pub fn set_block(&mut self, pos: Vec3<i32>, block: Block) {
         self.ecs.write_resource::<BlockChange>().set(pos, block);
+    }
+
+    /// Set a block in this state's terrain. Will return `None` if the block has already been modified this tick.
+    pub fn try_set_block(&mut self, pos: Vec3<i32>, block: Block) -> Option<()> {
+        self.ecs.write_resource::<BlockChange>().try_set(pos, block)
     }
 
     /// Removes every chunk of the terrain.

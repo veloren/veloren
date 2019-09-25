@@ -5,7 +5,6 @@ pub mod item;
 pub use self::item::{Debug, Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
-//use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {

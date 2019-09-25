@@ -144,7 +144,10 @@ impl PlayState for SessionState {
                         {
                             let (d, b) = {
                                 let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                let ray = terrain
+                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                    .until(|block| !block.is_air())
+                                    .cast();
                                 (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                             };
 
@@ -169,7 +172,10 @@ impl PlayState for SessionState {
                         {
                             let (d, b) = {
                                 let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
+                                let ray = terrain
+                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                                    .until(|block| block.is_tangeable())
+                                    .cast();
                                 (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
                             };
 
