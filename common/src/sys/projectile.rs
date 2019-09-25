@@ -76,7 +76,7 @@ impl<'a> System<'a> for Sys {
                         projectile::Effect::Damage(power) => {
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: other,
-                                power,
+                                dmg: power,
                                 cause: HealthSource::Projectile,
                             })
                         }
