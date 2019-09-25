@@ -12,6 +12,7 @@ mod skillbar;
 mod social;
 mod spell;
 
+use crate::hud::img_ids::ImgsRot;
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
@@ -34,7 +35,7 @@ use crate::{
     render::{Consts, Globals, Renderer},
     scene::camera::Camera,
     settings::ControlSettings,
-    ui::{Ingameable, ScaleMode, Ui},
+    ui::{Ingameable, ScaleMode, Ui, TooltipManager},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
@@ -360,11 +361,13 @@ impl Show {
     }
 }
 
-pub struct Hud {
+pub struct Hud<'a> {
     ui: Ui,
     ids: Ids,
     imgs: Imgs,
     fonts: Fonts,
+    rot_imgs: ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
     new_messages: VecDeque<ClientEvent>,
     inventory_space: usize,
     show: Show,
@@ -374,7 +377,7 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
 }
 
-impl Hud {
+impl Hud<'_> {
     pub fn new(global_state: &mut GlobalState) -> Self {
         let window = &mut global_state.window;
         let settings = &global_state.settings;
@@ -391,10 +394,12 @@ impl Hud {
         Self {
             ui,
             imgs,
+            rot_imgs,
             fonts,
             ids,
             new_messages: VecDeque::new(),
             inventory_space: 8,
+            tooltip_manager,
             show: Show {
                 help: false,
                 debug: true,
@@ -428,7 +433,7 @@ impl Hud {
         debug_info: DebugInfo,
     ) -> Vec<Event> {
         let mut events = Vec::new();
-        let ref mut ui_widgets = self.ui.set_widgets().0;
+        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
 
         let version = format!("{}-{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH);
 
@@ -723,7 +728,7 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
-            match Bag::new(client, &self.imgs, &self.fonts).set(self.ids.bag, ui_widgets) {
+            match Bag::new(client, &self.imgs, &self.rot_imgs, &self.fonts, &self.tooltip_manager).set(self.ids.bag, ui_widgets) {
                 Some(bag::Event::HudEvent(event)) => events.push(event),
                 Some(bag::Event::Close) => {
                     self.show.bag(false);
