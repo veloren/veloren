@@ -1,3 +1,4 @@
+use crate::terrain::{Block, BlockKind};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -70,6 +71,23 @@ impl Armor {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Consumable {
+    Apple,
+    Potion,
+    Mushroom,
+}
+
+impl Consumable {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Consumable::Apple => "apple",
+            Consumable::Potion => "potion",
+            Consumable::Mushroom => "mushroom",
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConsumptionEffect {
     Health(i32),
@@ -93,6 +111,7 @@ pub enum Item {
         health_bonus: i32,
     },
     Consumable {
+        kind: Consumable,
         effect: ConsumptionEffect,
     },
     Ingredient,
@@ -122,6 +141,30 @@ impl Item {
 
     pub fn description(&self) -> String {
         format!("{} ({})", self.name(), self.category())
+    }
+
+    pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
+        match block.kind() {
+            BlockKind::Apple => Some(Self::apple()),
+            BlockKind::Mushroom => Some(Self::mushroom()),
+            _ => None,
+        }
+    }
+
+    // General item constructors
+
+    pub fn apple() -> Self {
+        Item::Consumable {
+            kind: Consumable::Apple,
+            effect: ConsumptionEffect::Health(3),
+        }
+    }
+
+    pub fn mushroom() -> Self {
+        Item::Consumable {
+            kind: Consumable::Mushroom,
+            effect: ConsumptionEffect::Health(1),
+        }
     }
 }
 
