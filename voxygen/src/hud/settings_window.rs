@@ -79,10 +79,12 @@ widget_ids! {
         fov_value,
         aa_radio_buttons,
         aa_mode_text,
-        audio_volume_slider,
-        audio_volume_text,
+        music_volume_slider,
+        music_volume_text,
+        music_volume_value,
         sfx_volume_slider,
         sfx_volume_text,
+        sfx_volume_value,
         audio_device_list,
         audio_device_text,
         hotbar_title,
@@ -1266,46 +1268,55 @@ impl<'a> Widget for SettingsWindow<'a> {
         // Contents
         if let SettingsTab::Sound = self.show.settings_tab {
             // Music Volume -----------------------------------------------------
+            let music_volume = self.global_state.settings.audio.music_volume;
+            let sfx_volume = self.global_state.settings.audio.sfx_volume;
             Text::new("Music Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
-                .set(state.ids.audio_volume_text, ui);
+                .set(state.ids.music_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
-                self.global_state.settings.audio.music_volume,
+                music_volume,
                 0.0,
                 1.0,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
-            .w_h(104.0, 22.0)
-            .down_from(state.ids.audio_volume_text, 10.0)
-            .track_breadth(12.0)
+            .w_h(550.0, 22.0)
+            .down_from(state.ids.music_volume_text, 10.0)
+            .track_breadth(30.0)
             .slider_length(10.0)
             .pad_track((5.0, 5.0))
-            .set(state.ids.audio_volume_slider, ui)
+            .set(state.ids.music_volume_slider, ui)
             {
                 events.push(Event::AdjustMusicVolume(new_val));
             }
 
+            Text::new(&format!("{:.0}", music_volume * 100.00))
+                .right_from(state.ids.music_volume_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.music_volume_value, ui);
+
             // SFX Volume -------------------------------------------------------
             Text::new("Sound Effects Volume")
-                .down_from(state.ids.audio_volume_slider, 10.0)
+                .down_from(state.ids.music_volume_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.sfx_volume_text, ui);
 
             if let Some(new_val) = ImageSlider::continuous(
-                self.global_state.settings.audio.sfx_volume,
+                sfx_volume,
                 0.0,
                 1.0,
                 self.imgs.slider_indicator,
                 self.imgs.slider,
             )
-            .w_h(104.0, 22.0)
+            .w_h(550.0, 22.0)
             .down_from(state.ids.sfx_volume_text, 10.0)
             .track_breadth(12.0)
             .slider_length(10.0)
@@ -1314,6 +1325,13 @@ impl<'a> Widget for SettingsWindow<'a> {
             {
                 events.push(Event::AdjustSfxVolume(new_val));
             }
+
+            Text::new(&format!("{:.0}", sfx_volume * 100.00))
+                .right_from(state.ids.sfx_volume_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.sfx_volume_value, ui);
 
             // Audio Device Selector --------------------------------------------
             let device = &self.global_state.audio.device;
