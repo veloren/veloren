@@ -1,4 +1,6 @@
 use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic};
+
+// TODO: Combine with image_ids, see macro definition
 rotation_image_ids! {
     pub struct ImgsRot {
         <VoxelGraphic>
