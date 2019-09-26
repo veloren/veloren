@@ -138,6 +138,7 @@ impl Scene {
                 0,
                 0,
                 BlockKind::Air,
+                None,
             )],
         ) {
             error!("Renderer failed to update: {:?}", err);

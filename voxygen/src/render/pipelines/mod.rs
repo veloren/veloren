@@ -30,6 +30,7 @@ gfx_defines! {
         screen_res: [f32; 4] = "screen_res",
         light_shadow_count: [u32; 4] = "light_shadow_count",
         medium: [u32; 4] = "medium",
+        select_pos: [i32; 4] = "select_pos",
     }
 
     constant Light {
@@ -56,6 +57,7 @@ impl Globals {
         light_count: usize,
         shadow_count: usize,
         medium: BlockKind,
+        select_pos: Option<Vec3<i32>>,
     ) -> Self {
         Self {
             view_mat: arr_to_mat(view_mat.into_col_array()),
@@ -68,6 +70,10 @@ impl Globals {
             screen_res: Vec4::from(screen_res.map(|e| e as f32)).into_array(),
             light_shadow_count: [light_count as u32, shadow_count as u32, 0, 0],
             medium: [if medium.is_fluid() { 1 } else { 0 }; 4],
+            select_pos: select_pos
+                .map(|sp| Vec4::from(sp) + Vec4::unit_w())
+                .unwrap_or(Vec4::zero())
+                .into_array(),
         }
     }
 }
@@ -86,6 +92,7 @@ impl Default for Globals {
             0,
             0,
             BlockKind::Air,
+            None,
         )
     }
 }
