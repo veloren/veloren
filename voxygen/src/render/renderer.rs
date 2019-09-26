@@ -169,12 +169,35 @@ impl Renderer {
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
     ) -> Result<(TgtColorView, TgtDepthView, TgtColorRes), RenderError> {
-        let (_, tgt_color_res, tgt_color_view) = factory
-            .create_render_target::<TgtColorFmt>(size.0, size.1)
-            .map_err(RenderError::CombinedError)?;;
-        let tgt_depth_view = factory
-            .create_depth_stencil_view_only::<TgtDepthFmt>(size.0, size.1)
-            .map_err(RenderError::CombinedError)?;;
+        let kind = gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(4));
+        let levels = 1;
+
+        let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
+                >::get_channel_type();
+        let tgt_color_tex = factory.create_texture(
+            kind,
+            levels,
+            gfx::memory::Bind::SHADER_RESOURCE | gfx::memory::Bind::RENDER_TARGET,
+            gfx::memory::Usage::Data,
+            Some(color_cty),
+        )?;
+        let tgt_color_res = factory.view_texture_as_shader_resource::<TgtColorFmt>(
+            &tgt_color_tex,
+            (0, levels - 1),
+            gfx::format::Swizzle::new(),
+        )?;
+        let tgt_color_view = factory.view_texture_as_render_target(&tgt_color_tex, 0, None)?;
+
+        let depth_cty = <<TgtDepthFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped>::get_channel_type();
+        let tgt_depth_tex = factory.create_texture(
+            kind,
+            levels,
+            gfx::memory::Bind::DEPTH_STENCIL,
+            gfx::memory::Usage::Data,
+            Some(depth_cty),
+        )?;
+        let tgt_depth_view = factory.view_texture_as_depth_stencil_trivial(&tgt_depth_tex)?;
+
         Ok((tgt_color_view, tgt_depth_view, tgt_color_res))
     }
 
@@ -319,33 +342,29 @@ impl Renderer {
         type WinSurfaceData = <<WinColorFmt as Formatted>::Surface as SurfaceTyped>::DataType;
         let download = self
             .factory
-            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)
-            .map_err(|err| RenderError::BufferCreationError(err))?;
-        self.encoder
-            .copy_texture_to_buffer_raw(
-                self.win_color_view.raw().get_texture(),
-                None,
-                gfx::texture::RawImageInfo {
-                    xoffset: 0,
-                    yoffset: 0,
-                    zoffset: 0,
-                    width,
-                    height,
-                    depth: 0,
-                    format: WinColorFmt::get_format(),
-                    mipmap: 0,
-                },
-                download.raw(),
-                0,
-            )
-            .map_err(|err| RenderError::CopyError(err))?;
+            .create_download_buffer::<WinSurfaceData>(width as usize * height as usize)?;
+        self.encoder.copy_texture_to_buffer_raw(
+            self.win_color_view.raw().get_texture(),
+            None,
+            gfx::texture::RawImageInfo {
+                xoffset: 0,
+                yoffset: 0,
+                zoffset: 0,
+                width,
+                height,
+                depth: 0,
+                format: WinColorFmt::get_format(),
+                mipmap: 0,
+            },
+            download.raw(),
+            0,
+        )?;
         self.flush();
 
         // Assumes that the format is Rgba8.
         let raw_data = self
             .factory
-            .read_mapping(&download)
-            .map_err(|err| RenderError::MappingError(err))?
+            .read_mapping(&download)?
             .chunks_exact(width as usize)
             .rev()
             .flatten()
@@ -722,38 +741,23 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
     ctx: &IncludeContext,
     cull_face: gfx::state::CullFace,
 ) -> Result<GfxPipeline<P>, RenderError> {
-    let vs = ctx.expand(vs).map_err(RenderError::IncludeError)?;
-    let fs = ctx.expand(fs).map_err(RenderError::IncludeError)?;
+    let vs = ctx.expand(vs)?;
+    let fs = ctx.expand(fs)?;
 
-    let program = factory
-        .link_program(vs.as_bytes(), fs.as_bytes())
-        .map_err(|err| RenderError::PipelineError(gfx::PipelineStateError::Program(err)))?;
+    let program = factory.link_program(vs.as_bytes(), fs.as_bytes())?;
 
     Ok(GfxPipeline {
-        pso: factory
-            .create_pipeline_from_program(
-                &program,
-                gfx::Primitive::TriangleList,
-                gfx::state::Rasterizer {
-                    front_face: gfx::state::FrontFace::CounterClockwise,
-                    cull_face,
-                    method: gfx::state::RasterMethod::Fill,
-                    offset: None,
-                    samples: Some(gfx::state::MultiSample),
-                },
-                pipe,
-            )
-            // Do some funky things to work around an oddity in gfx's error ownership rules.
-            .map_err(|err| {
-                RenderError::PipelineError(match err {
-                    gfx::PipelineStateError::Program(err) => gfx::PipelineStateError::Program(err),
-                    gfx::PipelineStateError::DescriptorInit(err) => {
-                        gfx::PipelineStateError::DescriptorInit(err.into())
-                    }
-                    gfx::PipelineStateError::DeviceCreate(err) => {
-                        gfx::PipelineStateError::DeviceCreate(err)
-                    }
-                })
-            })?,
+        pso: factory.create_pipeline_from_program(
+            &program,
+            gfx::Primitive::TriangleList,
+            gfx::state::Rasterizer {
+                front_face: gfx::state::FrontFace::CounterClockwise,
+                cull_face,
+                method: gfx::state::RasterMethod::Fill,
+                offset: None,
+                samples: Some(gfx::state::MultiSample),
+            },
+            pipe,
+        )?, // Do some funky things to work around an oddity in gfx's error ownership rules.
     })
 }
