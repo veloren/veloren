@@ -26,7 +26,7 @@ pub use self::{
             create_quad as create_ui_quad, create_tri as create_ui_tri, Locals as UiLocals,
             Mode as UiMode, UiPipeline,
         },
-        Globals, Light,
+        Globals, Light, Shadow,
     },
     renderer::{Renderer, TgtColorFmt, TgtDepthFmt, WinColorFmt, WinDepthFmt},
     texture::Texture,

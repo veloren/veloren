@@ -1,10 +1,14 @@
-use super::{img_ids::Imgs, Event as HudEvent, Fonts, TEXT_COLOR};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Event as HudEvent, Fonts, TEXT_COLOR,
+};
+use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color,
     position::Relative,
     widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
-    widget_ids, /*Color, Colorable,*/ Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -21,6 +25,7 @@ widget_ids! {
         map_title,
         inv_slots[],
         items[],
+        tooltip[],
     }
 }
 
@@ -31,15 +36,25 @@ pub struct Bag<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
+    ) -> Self {
         Self {
             client,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            rot_imgs,
+            tooltip_manager,
         }
     }
 }
@@ -82,6 +97,23 @@ impl<'a> Widget for Bag<'a> {
             Some(inv) => inv,
             None => return None,
         };
+        // Tooltips
+        let item_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(15)
+        .desc_font_size(10)
+        .title_text_color(TEXT_COLOR)
+        .desc_text_color(TEXT_COLOR);
 
         // Bag parts
         Image::new(self.imgs.bag_bot)
@@ -133,7 +165,7 @@ impl<'a> Widget for Bag<'a> {
             let is_selected = Some(i) == state.selected_slot;
 
             // Slot
-            if Button::image(self.imgs.inv_slot)
+            let slot_widget = Button::image(self.imgs.inv_slot)
                 .top_left_with_margins_on(
                     state.ids.inv_alignment,
                     4.0 + y as f64 * (40.0 + 4.0),
@@ -146,10 +178,23 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     color::DARK_YELLOW
                 })
-                .floating(true)
-                .set(state.ids.inv_slots[i], ui)
-                .was_clicked()
-            {
+                .floating(true);
+
+            let slot_widget = if let Some(item) = item {
+                slot_widget
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &item.description(),
+                        &item.category(),
+                        &item_tooltip,
+                    )
+                    .set(state.ids.inv_slots[i], ui)
+            } else {
+                slot_widget.set(state.ids.inv_slots[i], ui)
+            };
+
+            // Item
+            if slot_widget.was_clicked() {
                 let selected_slot = match state.selected_slot {
                     Some(a) => {
                         if a == i {
@@ -164,7 +209,6 @@ impl<'a> Widget for Bag<'a> {
                 };
                 state.update(|s| s.selected_slot = selected_slot);
             }
-
             // Item
             if item.is_some() {
                 Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot

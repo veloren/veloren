@@ -6,6 +6,7 @@ use crate::{
     block::block_from_structure,
     column::{ColumnGen, ColumnSample},
     util::Sampler,
+    CONFIG,
 };
 use common::{
     assets,
@@ -70,6 +71,7 @@ impl<'a> Sampler<'a> for TownGen {
                 CellKind::Park => None,
                 CellKind::Rock => Some(Block::new(BlockKind::Normal, Rgb::broadcast(100))),
                 CellKind::Wall => Some(Block::new(BlockKind::Normal, Rgb::broadcast(175))),
+                CellKind::Well => Some(Block::new(BlockKind::Normal, Rgb::broadcast(0))),
                 CellKind::Road => {
                     if (wpos.z as f32) < height - 1.0 {
                         Some(Block::new(
@@ -101,8 +103,11 @@ impl<'a> Generator<'a, TownState> for TownGen {
         (sample.alt - 32.0, sample.alt + 75.0)
     }
 
-    fn spawn_rules(&self, _town: &'a TownState, _wpos: Vec2<i32>) -> SpawnRules {
-        SpawnRules { trees: false }
+    fn spawn_rules(&self, town: &'a TownState, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: wpos.distance_squared(town.center.into()) > (town.radius + 32).pow(2),
+            cliffs: false,
+        }
     }
 }
 
@@ -121,6 +126,12 @@ impl TownState {
     pub fn generate(center: Vec2<i32>, gen: &mut ColumnGen, rng: &mut impl Rng) -> Option<Self> {
         let radius = rng.gen_range(18, 20) * 9;
         let size = Vec2::broadcast(radius * 2 / 9 - 2);
+
+        if gen.get(center).map(|sample| sample.chaos).unwrap_or(0.0) > 0.35
+            || gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) < CONFIG.sea_level + 10.0
+        {
+            return None;
+        }
 
         let alt = gen.get(center).map(|sample| sample.alt).unwrap_or(0.0) as i32;
 
@@ -154,6 +165,7 @@ impl TownState {
         vol.gen_parks(rng, 3);
         vol.emplace_columns();
         let houses = vol.gen_houses(rng, 50);
+        vol.gen_wells(rng, 5);
         vol.gen_walls(rng);
         vol.resolve_modules(rng);
         vol.cull_unused();
@@ -301,10 +313,7 @@ impl TownVol {
                     self.set_col_kind(cell, Some(ColumnKind::Internal));
                     let col = self.col(cell).unwrap();
                     let ground = col.ground;
-                    for z in 0..2 {
-                        let _ =
-                            self.set(Vec3::new(cell.x, cell.y, ground + z), CellKind::Park.into());
-                    }
+                    let _ = self.set(Vec3::new(cell.x, cell.y, ground), CellKind::Park.into());
                 }
 
                 break;
@@ -394,6 +403,20 @@ impl TownVol {
         }
     }
 
+    fn gen_wells(&mut self, rng: &mut impl Rng, n: usize) {
+        for _ in 0..n {
+            if let Some(cell) = self.choose_cell(rng, |_, cell| {
+                if let CellKind::Park = cell.kind {
+                    true
+                } else {
+                    false
+                }
+            }) {
+                let _ = self.set(cell, CellKind::Well.into());
+            }
+        }
+    }
+
     fn gen_houses(&mut self, rng: &mut impl Rng, n: usize) -> Vec<House> {
         const ATTEMPTS: usize = 10;
 
@@ -401,7 +424,12 @@ impl TownVol {
         for _ in 0..n {
             for _ in 0..ATTEMPTS {
                 let entrance = {
-                    let start = self.choose_cell(rng, |_, cell| cell.is_road()).unwrap();
+                    let start_col = self.choose_column(rng, |_, col| col.is_road()).unwrap();;
+                    let start = Vec3::new(
+                        start_col.x,
+                        start_col.y,
+                        self.col(start_col).unwrap().ground,
+                    );
                     let dir = Vec3::from(util::gen_dir(rng));
 
                     if self
@@ -419,13 +447,13 @@ impl TownVol {
                     }
                 };
 
-                let mut cells: HashSet<_> = Some(entrance).into_iter().collect();
+                let mut cells = HashSet::new();
 
-                let mut energy = 1000;
+                let mut energy = 2300;
                 while energy > 0 {
                     energy -= 1;
 
-                    let parent = *cells.iter().choose(rng).unwrap();
+                    let parent = *cells.iter().choose(rng).unwrap_or(&entrance);
                     let dir = util::UNITS_3D
                         .choose_weighted(rng, |pos| 1 + pos.z.max(0))
                         .unwrap();
@@ -441,6 +469,8 @@ impl TownVol {
                                     || cells.contains(&(parent + dir - Vec3::unit_z()))
                             })
                             .unwrap_or(false)
+                        && parent.z + dir.z <= entrance.z + 2
+                    // Maximum house height
                     {
                         cells.insert(parent + dir);
                         energy -= 10;
@@ -602,6 +632,7 @@ fn modules_from_kind(kind: &CellKind) -> Option<&'static [(Arc<Structure>, [Modu
     match kind {
         CellKind::House(_) => Some(&HOUSE_MODULES),
         CellKind::Wall => Some(&WALL_MODULES),
+        CellKind::Well => Some(&WELL_MODULES),
         _ => None,
     }
 }
@@ -613,6 +644,10 @@ lazy_static! {
             module("human.floor_ground", [This, This, This, This, This, That]),
             module("human.stair_ground", [This, This, This, This, This, That]),
             module("human.corner_ground", [This, This, That, That, This, That]),
+            module(
+                "human.window_corner_ground",
+                [This, This, That, That, This, That],
+            ),
             module("human.wall_ground", [This, This, This, That, This, That]),
             module("human.door_ground", [This, This, This, That, This, That]),
             module("human.window_ground", [This, This, This, That, This, That]),
@@ -627,6 +662,10 @@ lazy_static! {
             ),
             module(
                 "human.corner_upstairs",
+                [This, This, That, That, This, This],
+            ),
+            module(
+                "human.window_corner_upstairs",
                 [This, This, That, That, This, This],
             ),
             module("human.wall_upstairs", [This, This, This, That, This, This]),
@@ -649,4 +688,29 @@ lazy_static! {
             module("wall.single_top", [That, That, That, That, That, This]),
         ]
     };
+    pub static ref WELL_MODULES: Vec<(Arc<Structure>, [ModuleKind; 6])> = {
+        use ModuleKind::*;
+        vec![module("misc.well", [That; 6])]
+    };
 }
+
+/*
+// TODO
+struct ModuleModel {
+    near: u64,
+    mask: u64,
+    vol: Arc<Structure>,
+}
+
+#[derive(Copy, Clone)]
+pub enum NearKind {
+    This,
+    That,
+}
+
+impl ModuleModel {
+    pub fn generate_list(_details: &[(&str, &[([i32; 3], NearKind)])]) -> Vec<Self> {
+        unimplemented!()
+    }
+}
+*/

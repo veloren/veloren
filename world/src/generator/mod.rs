@@ -10,11 +10,15 @@ use vek::*;
 #[derive(Copy, Clone, Debug)]
 pub struct SpawnRules {
     pub trees: bool,
+    pub cliffs: bool,
 }
 
 impl Default for SpawnRules {
     fn default() -> Self {
-        Self { trees: true }
+        Self {
+            trees: true,
+            cliffs: true,
+        }
     }
 }
 
@@ -22,6 +26,7 @@ impl SpawnRules {
     pub fn and(self, other: Self) -> Self {
         Self {
             trees: self.trees && other.trees,
+            cliffs: self.cliffs && other.cliffs,
         }
     }
 }

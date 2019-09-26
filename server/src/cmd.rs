@@ -189,14 +189,21 @@ lazy_static! {
             "explosion",
             "{}",
             "/explosion <radius> : Explodes the ground around you",
-            false,
+            true,
             handle_explosion,
+        ),
+        ChatCommand::new(
+            "waypoint",
+            "{}",
+            "/waypoint : Set your waypoint to your current position",
+            true,
+            handle_waypoint,
         ),
         ChatCommand::new(
             "adminify",
             "{}",
             "/adminify <playername> : Temporarily gives a player admin permissions or removes them",
-            true,
+            false, // TODO: NO
             handle_adminify,
         ),
         ChatCommand::new(
@@ -699,7 +706,7 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                 .write_storage::<comp::LightEmitter>()
                 .get_mut(entity)
             {
-                light.strength = s.max(0.1).min(20.0);
+                light.strength = s.max(0.1).min(10.0);
                 server.clients.notify(
                     entity,
                     ServerMsg::private(String::from("You played with flame strength.")),
@@ -727,9 +734,9 @@ fn handle_lantern(server: &mut Server, entity: EcsEntity, args: String, action: 
                     offset: Vec3::new(0.5, 0.2, 0.8),
                     col: Rgb::new(1.0, 0.75, 0.3),
                     strength: if let Some(s) = opt_s {
-                        s.max(0.0).min(20.0)
+                        s.max(0.0).min(10.0)
                     } else {
-                        6.0
+                        3.0
                     },
                 },
             );
@@ -750,6 +757,25 @@ fn handle_explosion(server: &mut Server, entity: EcsEntity, args: String, action
             .ecs()
             .read_resource::<EventBus<ServerEvent>>()
             .emit(ServerEvent::Explosion { pos: pos.0, radius }),
+        None => server.clients.notify(
+            entity,
+            ServerMsg::private(String::from("You have no position!")),
+        ),
+    }
+}
+
+fn handle_waypoint(server: &mut Server, entity: EcsEntity, _args: String, _action: &ChatCommand) {
+    match server.state.read_component_cloned::<comp::Pos>(entity) {
+        Some(pos) => {
+            let _ = server
+                .state
+                .ecs()
+                .write_storage::<comp::Waypoint>()
+                .insert(entity, comp::Waypoint::new(pos.0));
+            server
+                .clients
+                .notify(entity, ServerMsg::private(String::from("Waypoint set!")));
+        }
         None => server.clients.notify(
             entity,
             ServerMsg::private(String::from("You have no position!")),

@@ -9,7 +9,7 @@ use crate::{
         self, character::CharacterSkeleton, object::ObjectSkeleton, quadruped::QuadrupedSkeleton,
         quadrupedmedium::QuadrupedMediumSkeleton, Animation, Skeleton,
     },
-    render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer},
+    render::{Consts, FigureBoneData, FigureLocals, Globals, Light, Renderer, Shadow},
     scene::camera::{Camera, CameraMode},
 };
 use client::Client;
@@ -108,7 +108,7 @@ impl FigureMgr {
                 .and_then(|stats| stats.health.last_change)
                 .map(|(_, time, _)| {
                     Rgba::broadcast(1.0)
-                        + Rgba::new(0.0, -1.0, -1.0, 0.0)
+                        + Rgba::new(2.0, 2.0, 2.0, 0.0)
                             .map(|c| (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time)) as f32)
                 })
                 .unwrap_or(Rgba::broadcast(1.0));
@@ -408,6 +408,7 @@ impl FigureMgr {
         client: &mut Client,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
         camera: &Camera,
     ) {
         let tick = client.get_tick();
@@ -480,7 +481,7 @@ impl FigureMgr {
                     )
                     .0;
 
-                renderer.render_figure(model, globals, locals, bone_consts, lights);
+                renderer.render_figure(model, globals, locals, bone_consts, lights, shadows);
             } else {
                 debug!("Body has no saved figure");
             }
