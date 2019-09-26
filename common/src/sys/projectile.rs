@@ -1,53 +1,37 @@
 use crate::{
-    comp::{
-        projectile, ActionState::*, CharacterState, Controller, ForceUpdate, HealthSource, Ori,
-        PhysicsState, Pos, Projectile, Stats, Vel,
-    },
+    comp::{projectile, HealthSource, Ori, PhysicsState, Projectile, Vel},
     event::{EventBus, ServerEvent},
-    state::{DeltaTime, Uid},
 };
 use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
-use std::time::Duration;
-use vek::*;
 
 /// This system is responsible for handling projectile effect triggers
 pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, Uid>,
-        Read<'a, DeltaTime>,
         Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
-        WriteStorage<'a, Stats>,
     );
 
     fn run(
         &mut self,
         (
             entities,
-            uids,
-            dt,
             server_bus,
-            positions,
             velocities,
             physics_states,
             mut orientations,
             mut projectiles,
-            mut stats,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, uid, pos, vel, physics, ori, projectile) in (
+        for (entity, vel, physics, ori, projectile) in (
             &entities,
-            &uids,
-            &positions,
             &velocities,
             &physics_states,
             &mut orientations,
@@ -84,7 +68,6 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
-                        _ => {}
                     }
                 }
             }
