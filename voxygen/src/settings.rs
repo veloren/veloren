@@ -64,7 +64,7 @@ impl Default for ControlSettings {
             jump: KeyMouse::Key(VirtualKeyCode::Space),
             sit: KeyMouse::Key(VirtualKeyCode::K),
             glide: KeyMouse::Key(VirtualKeyCode::LShift),
-            climb: KeyMouse::Key(VirtualKeyCode::Space),
+            climb: KeyMouse::Key(VirtualKeyCode::LControl),
             climb_down: KeyMouse::Key(VirtualKeyCode::LShift),
             wall_leap: KeyMouse::Mouse(MouseButton::Middle),
             mount: KeyMouse::Key(VirtualKeyCode::F),
