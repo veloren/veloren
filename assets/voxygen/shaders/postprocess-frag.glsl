@@ -2,7 +2,7 @@
 
 #include <globals.glsl>
 
-uniform sampler2D src_color;
+uniform sampler2DMS src_color;
 
 in vec2 f_pos;
 
@@ -169,8 +169,15 @@ void main() {
 		uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
 	}
 
-	vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy * FXAA_SCALE, screen_res.xy * FXAA_SCALE);
+
+	//vec4 fxaa_color = fxaa_apply(src_color, uv * screen_res.xy * FXAA_SCALE, screen_res.xy * FXAA_SCALE);
 	//vec4 fxaa_color = texture(src_color, uv);
+	ivec2 uv_int = ivec2(uv.x * screen_res.x, uv.y * screen_res.y);
+        vec4 sample1 = texelFetch(src_color, uv_int, 0);
+        vec4 sample2 = texelFetch(src_color, uv_int, 1);
+        vec4 sample3 = texelFetch(src_color, uv_int, 2);
+        vec4 sample4 = texelFetch(src_color, uv_int, 3);
+	vec4 fxaa_color = (sample1 + sample2 + sample3 + sample4) / 4.0;
 
 	vec4 hsva_color = vec4(rgb2hsv(fxaa_color.rgb), fxaa_color.a);
 	hsva_color.y *= 1.45;

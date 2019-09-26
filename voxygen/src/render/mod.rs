@@ -1,4 +1,5 @@
 pub mod consts;
+mod error;
 pub mod instances;
 pub mod mesh;
 pub mod model;
@@ -10,6 +11,7 @@ mod util;
 // Reexports
 pub use self::{
     consts::Consts,
+    error::RenderError,
     instances::Instances,
     mesh::{Mesh, Quad, Tri},
     model::{DynamicModel, Model},
@@ -36,19 +38,6 @@ pub use self::{
 use gfx_device_gl as gfx_backend;
 
 use gfx;
-
-/// Used to represent one of many possible errors that may be omitted by the rendering subsystem.
-#[derive(Debug)]
-pub enum RenderError {
-    PipelineError(gfx::PipelineStateError<String>),
-    UpdateError(gfx::UpdateError<usize>),
-    TexUpdateError(gfx::UpdateError<[u16; 3]>),
-    CombinedError(gfx::CombinedError),
-    BufferCreationError(gfx::buffer::CreationError),
-    IncludeError(glsl_include::Error),
-    MappingError(gfx::mapping::Error),
-    CopyError(gfx::CopyError<[u16; 3], usize>),
-}
 
 /// Used to represent a specific rendering configuration.
 ///
