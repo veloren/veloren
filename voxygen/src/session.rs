@@ -129,7 +129,7 @@ impl PlayState for SessionState {
                 if let Ok(Some(_)) = ray.1 {
                     // Hit something!
                     (
-                        Some((cam_pos + cam_dir * (dist - 0.001)).map(|e| e.floor() as i32)),
+                        Some((cam_pos + cam_dir * (dist - 0.01)).map(|e| e.floor() as i32)),
                         Some((cam_pos + cam_dir * dist).map(|e| e.floor() as i32)),
                     )
                 } else {
