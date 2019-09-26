@@ -6,7 +6,7 @@ use super::{
     model::{DynamicModel, Model},
     pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow},
     texture::Texture,
-    Pipeline, RenderError,
+    AaMode, Pipeline, RenderError,
 };
 use common::assets::{self, watch::ReloadIndicator};
 use gfx::{
@@ -71,6 +71,8 @@ pub struct Renderer {
     postprocess_pipeline: GfxPipeline<postprocess::pipe::Init<'static>>,
 
     shader_reload_indicator: ReloadIndicator,
+
+    aa_mode: AaMode,
 }
 
 impl Renderer {
@@ -80,6 +82,7 @@ impl Renderer {
         mut factory: gfx_backend::Factory,
         win_color_view: WinColorView,
         win_depth_view: WinDepthView,
+        aa_mode: AaMode,
     ) -> Result<Self, RenderError> {
         let mut shader_reload_indicator = ReloadIndicator::new();
 
@@ -91,11 +94,11 @@ impl Renderer {
             sprite_pipeline,
             ui_pipeline,
             postprocess_pipeline,
-        ) = create_pipelines(&mut factory, &mut shader_reload_indicator)?;
+        ) = create_pipelines(&mut factory, aa_mode, &mut shader_reload_indicator)?;
 
         let dims = win_color_view.get_dimensions();
         let (tgt_color_view, tgt_depth_view, tgt_color_res) =
-            Self::create_rt_views(&mut factory, (dims.0, dims.1))?;
+            Self::create_rt_views(&mut factory, (dims.0, dims.1), aa_mode)?;
 
         let sampler = factory.create_sampler_linear();
 
@@ -122,6 +125,8 @@ impl Renderer {
             postprocess_pipeline,
 
             shader_reload_indicator,
+
+            aa_mode,
         })
     }
 
@@ -149,6 +154,19 @@ impl Renderer {
         (&mut self.win_color_view, &mut self.win_depth_view)
     }
 
+    /// Change the anti-aliasing mode
+    pub fn set_aa_mode(&mut self, aa_mode: AaMode) -> Result<(), RenderError> {
+        self.aa_mode = aa_mode;
+
+        // Recreate render target
+        self.on_resize()?;
+
+        // Recreate pipelines with the new AA mode
+        self.recreate_pipelines();
+
+        Ok(())
+    }
+
     /// Resize internal render targets to match window render target dimensions.
     pub fn on_resize(&mut self) -> Result<(), RenderError> {
         let dims = self.win_color_view.get_dimensions();
@@ -156,7 +174,7 @@ impl Renderer {
         // Avoid panics when creating texture with w,h of 0,0.
         if dims.0 != 0 && dims.1 != 0 {
             let (tgt_color_view, tgt_depth_view, tgt_color_res) =
-                Self::create_rt_views(&mut self.factory, (dims.0, dims.1))?;
+                Self::create_rt_views(&mut self.factory, (dims.0, dims.1), self.aa_mode)?;
             self.tgt_color_res = tgt_color_res;
             self.tgt_color_view = tgt_color_view;
             self.tgt_depth_view = tgt_depth_view;
@@ -168,8 +186,26 @@ impl Renderer {
     fn create_rt_views(
         factory: &mut gfx_device_gl::Factory,
         size: (u16, u16),
+        aa_mode: AaMode,
     ) -> Result<(TgtColorView, TgtDepthView, TgtColorRes), RenderError> {
-        let kind = gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(4));
+        let kind = match aa_mode {
+            AaMode::None | AaMode::Fxaa => {
+                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Single)
+            }
+            // TODO: Ensure sampling in the shader is exactly between the 4 texels
+            AaMode::SsaaX4 => {
+                gfx::texture::Kind::D2(size.0 * 2, size.1 * 2, gfx::texture::AaMode::Single)
+            }
+            AaMode::MsaaX4 => {
+                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(4))
+            }
+            AaMode::MsaaX8 => {
+                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(8))
+            }
+            AaMode::MsaaX16 => {
+                gfx::texture::Kind::D2(size.0, size.1, gfx::texture::AaMode::Multi(16))
+            }
+        };
         let levels = 1;
 
         let color_cty = <<TgtColorFmt as gfx::format::Formatted>::Channel as gfx::format::ChannelTyped
@@ -222,29 +258,38 @@ impl Renderer {
 
         // If the shaders files were changed attempt to recreate the shaders
         if self.shader_reload_indicator.reloaded() {
-            match create_pipelines(&mut self.factory, &mut self.shader_reload_indicator) {
-                Ok((
-                    skybox_pipeline,
-                    figure_pipeline,
-                    terrain_pipeline,
-                    fluid_pipeline,
-                    sprite_pipeline,
-                    ui_pipeline,
-                    postprocess_pipeline,
-                )) => {
-                    self.skybox_pipeline = skybox_pipeline;
-                    self.figure_pipeline = figure_pipeline;
-                    self.terrain_pipeline = terrain_pipeline;
-                    self.fluid_pipeline = fluid_pipeline;
-                    self.sprite_pipeline = sprite_pipeline;
-                    self.ui_pipeline = ui_pipeline;
-                    self.postprocess_pipeline = postprocess_pipeline;
-                }
-                Err(e) => error!(
-                    "Could not recreate shaders from assets due to an error: {:#?}",
-                    e
-                ),
+            self.recreate_pipelines();
+        }
+    }
+
+    /// Recreate the pipelines
+    fn recreate_pipelines(&mut self) {
+        match create_pipelines(
+            &mut self.factory,
+            self.aa_mode,
+            &mut self.shader_reload_indicator,
+        ) {
+            Ok((
+                skybox_pipeline,
+                figure_pipeline,
+                terrain_pipeline,
+                fluid_pipeline,
+                sprite_pipeline,
+                ui_pipeline,
+                postprocess_pipeline,
+            )) => {
+                self.skybox_pipeline = skybox_pipeline;
+                self.figure_pipeline = figure_pipeline;
+                self.terrain_pipeline = terrain_pipeline;
+                self.fluid_pipeline = fluid_pipeline;
+                self.sprite_pipeline = sprite_pipeline;
+                self.ui_pipeline = ui_pipeline;
+                self.postprocess_pipeline = postprocess_pipeline;
             }
+            Err(e) => error!(
+                "Could not recreate shaders from assets due to an error: {:#?}",
+                e
+            ),
         }
     }
 
@@ -595,6 +640,7 @@ struct GfxPipeline<P: gfx::pso::PipelineInit> {
 /// Creates all the pipelines used to render.
 fn create_pipelines(
     factory: &mut gfx_backend::Factory,
+    aa_mode: AaMode,
     shader_reload_indicator: &mut ReloadIndicator,
 ) -> Result<
     (
@@ -624,12 +670,29 @@ fn create_pipelines(
         assets::load_watched::<String>("voxygen.shaders.include.random", shader_reload_indicator)
             .unwrap();
 
+    let anti_alias = assets::load_watched::<String>(
+        &[
+            "voxygen.shaders.antialias.",
+            match aa_mode {
+                AaMode::None | AaMode::SsaaX4 => "none",
+                AaMode::Fxaa => "fxaa",
+                AaMode::MsaaX4 => "msaa-x4",
+                AaMode::MsaaX8 => "msaa-x8",
+                AaMode::MsaaX16 => "msaa-x16",
+            },
+        ]
+        .concat(),
+        shader_reload_indicator,
+    )
+    .unwrap();
+
     let mut include_ctx = IncludeContext::new();
     include_ctx.include("globals.glsl", &globals);
     include_ctx.include("sky.glsl", &sky);
     include_ctx.include("light.glsl", &light);
     include_ctx.include("srgb.glsl", &srgb);
     include_ctx.include("random.glsl", &random);
+    include_ctx.include("anti-aliasing.glsl", &anti_alias);
 
     // Construct a pipeline for rendering skyboxes
     let skybox_pipeline = create_pipeline(

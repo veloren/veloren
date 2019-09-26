@@ -2,7 +2,8 @@ use super::{
     img_ids::Imgs, BarNumbers, CrosshairType, Fonts, ShortcutNumbers, Show, XpBar, TEXT_COLOR,
 };
 use crate::{
-    ui::{ImageSlider, ScaleMode, ToggleButton},
+    render::AaMode,
+    ui::{ImageSlider, RadioList, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -76,6 +77,8 @@ widget_ids! {
         fov_slider,
         fov_text,
         fov_value,
+        aa_radio_buttons,
+        aa_mode_text,
         audio_volume_slider,
         audio_volume_text,
         sfx_volume_slider,
@@ -153,6 +156,7 @@ pub enum Event {
     AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
+    ChangeAaMode(AaMode),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
@@ -1196,6 +1200,37 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
+
+            // AaMode
+            Text::new("AntiAliasing Mode")
+                .down_from(state.ids.fov_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.aa_mode_text, ui);
+            let mode_label_list = [
+                (&AaMode::None, "No AA"),
+                (&AaMode::Fxaa, "FXAA"),
+                (&AaMode::MsaaX4, "MSAA x4"),
+                (&AaMode::MsaaX8, "MSAA x8"),
+                (&AaMode::MsaaX16, "MSAA x16 (experimental)"),
+                (&AaMode::SsaaX4, "SSAA x4"),
+            ];
+            if let Some((_, mode)) = RadioList::new(
+                (0..mode_label_list.len())
+                    .find(|i| *mode_label_list[*i].0 == self.global_state.settings.graphics.aa_mode)
+                    .unwrap_or(0),
+                self.imgs.check,
+                self.imgs.check_checked,
+                &mode_label_list,
+            )
+            .down_from(state.ids.aa_mode_text, 8.0)
+            .text_color(TEXT_COLOR)
+            .font_size(12)
+            .set(state.ids.aa_radio_buttons, ui)
+            {
+                events.push(Event::ChangeAaMode(*mode))
+            }
         }
 
         // 5) Sound Tab -----------------------------------

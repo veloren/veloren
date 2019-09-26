@@ -32,7 +32,7 @@ use social::{Social, SocialTab};
 use spell::Spell;
 
 use crate::{
-    render::{Consts, Globals, Renderer},
+    render::{AaMode, Consts, Globals, Renderer},
     scene::camera::Camera,
     settings::ControlSettings,
     ui::{Ingameable, ScaleMode, Ui},
@@ -158,6 +158,7 @@ pub enum Event {
     ChangeAudioDevice(String),
     ChangeMaxFPS(u32),
     ChangeFOV(u16),
+    ChangeAaMode(AaMode),
     CrosshairTransp(f32),
     CrosshairType(CrosshairType),
     ToggleXpBar(XpBar),
@@ -831,6 +832,9 @@ impl Hud {
                     }
                     settings_window::Event::AdjustFOV(new_fov) => {
                         events.push(Event::ChangeFOV(new_fov));
+                    }
+                    settings_window::Event::ChangeAaMode(new_aa_mode) => {
+                        events.push(Event::ChangeAaMode(new_aa_mode));
                     }
                 }
             }
