@@ -225,7 +225,13 @@ impl Window {
 
         Ok(Self {
             events_loop,
-            renderer: Renderer::new(device, factory, win_color_view, win_depth_view)?,
+            renderer: Renderer::new(
+                device,
+                factory,
+                win_color_view,
+                win_depth_view,
+                settings.graphics.aa_mode,
+            )?,
             window,
             cursor_grabbed: false,
             pan_sensitivity: settings.gameplay.pan_sensitivity,
