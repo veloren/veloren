@@ -445,7 +445,7 @@ impl<'a> ZCache<'a> {
                 }
             });
 
-        let ground_max = (self.sample.alt + 4.0 + warp + rocks).max(cliff);
+        let ground_max = (self.sample.alt + warp + rocks).max(cliff) + 2.0;
 
         let min = min + structure_min;
         let max = (ground_max + structure_max)
