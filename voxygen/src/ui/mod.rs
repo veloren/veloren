@@ -16,7 +16,7 @@ pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
     toggle_button::ToggleButton,
-    tooltip::{Tooltip, Tooltipable, TooltipManager},
+    tooltip::{Tooltip, TooltipManager, Tooltipable},
 };
 
 use crate::{
