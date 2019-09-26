@@ -2,7 +2,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     Event as HudEvent, Fonts, TEXT_COLOR, TEXT_COLOR_2,
 };
-use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
+use crate::ui::{ImageFrame, Tooltip, Tooltipable};
 use client::Client;
 use conrod_core::{
     color,
@@ -178,19 +178,23 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     color::DARK_YELLOW
                 })
-                .floating(true);                
+                .floating(true);
+
+            let slot_widget = if let Some(item) = item {
+                slot_widget
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &item.description(),
+                        &item.category(),
+                        &item_tooltip,
+                    )
+                    .set(state.ids.inv_slots[i], ui)
+            } else {
+                slot_widget.set(state.ids.inv_slots[i], ui)
+            };
 
             // Item
-            if if item.is_some() {
-    slot_widget
-                .with_tooltip(self.tooltip_manager, "Test Item", "Use: Restores 10 Health.", &item_tooltip)                
-                .set(state.ids.inv_slots[i], ui)
-} else { 
-        slot_widget
-        .set(state.ids.inv_slots[i], ui)
-}               
-                .was_clicked()
-            {
+            if slot_widget.was_clicked() {
                 let selected_slot = match state.selected_slot {
                     Some(a) => {
                         if a == i {
@@ -205,7 +209,7 @@ impl<'a> Widget for Bag<'a> {
                 };
                 state.update(|s| s.selected_slot = selected_slot);
             }
-        // Item
+            // Item
             if item.is_some() {
                 Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
                     .w_h(4.0 * 4.4, 7.0 * 4.4) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
@@ -217,7 +221,7 @@ impl<'a> Widget for Bag<'a> {
                     .label_y(Relative::Scalar(-10.0))
                     .label_color(TEXT_COLOR)
                     .parent(state.ids.inv_slots[i])
-                    .graphics_for(state.ids.inv_slots[i])                   
+                    .graphics_for(state.ids.inv_slots[i])
                     .set(state.ids.items[i], ui);
             }
         }
