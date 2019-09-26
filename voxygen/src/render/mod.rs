@@ -52,3 +52,15 @@ use gfx;
 pub trait Pipeline {
     type Vertex: Clone + gfx::traits::Pod + gfx::pso::buffer::Structure<gfx::format::Format>;
 }
+
+use serde_derive::{Deserialize, Serialize};
+/// Anti-aliasing modes
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum AaMode {
+    None,
+    Fxaa,
+    MsaaX4,
+    MsaaX8,
+    MsaaX16,
+    SsaaX4,
+}
