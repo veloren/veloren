@@ -165,7 +165,7 @@ impl<'a> Widget for Bag<'a> {
             let is_selected = Some(i) == state.selected_slot;
 
             // Slot
-            if Button::image(self.imgs.inv_slot)
+            let slot_widget = Button::image(self.imgs.inv_slot)
                 .top_left_with_margins_on(
                     state.ids.inv_alignment,
                     4.0 + y as f64 * (40.0 + 4.0),
@@ -178,9 +178,17 @@ impl<'a> Widget for Bag<'a> {
                 } else {
                     color::DARK_YELLOW
                 })
-                .floating(true)
-                .with_tooltip(self.tooltip_manager, "Test", "", &item_tooltip)
+                .floating(true);                
+
+            // Item
+            if if item.is_some() {
+    slot_widget
+                .with_tooltip(self.tooltip_manager, "Test Item", "Use: Restores 10 Health.", &item_tooltip)                
                 .set(state.ids.inv_slots[i], ui)
+} else { 
+        slot_widget
+        .set(state.ids.inv_slots[i], ui)
+}               
                 .was_clicked()
             {
                 let selected_slot = match state.selected_slot {
@@ -197,8 +205,7 @@ impl<'a> Widget for Bag<'a> {
                 };
                 state.update(|s| s.selected_slot = selected_slot);
             }
-
-            // Item
+        // Item
             if item.is_some() {
                 Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
                     .w_h(4.0 * 4.4, 7.0 * 4.4) // TODO: Fix height and scale width correctly to that to avoid a stretched item image
