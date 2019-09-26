@@ -62,12 +62,12 @@ fn get_ao_quad<V: ReadVol>(
 
 #[allow(unsafe_code)]
 fn get_col_quad<V: ReadVol>(
-    vol: &V,
-    pos: Vec3<i32>,
-    shift: Vec3<i32>,
+    _vol: &V,
+    _pos: Vec3<i32>,
+    _shift: Vec3<i32>,
     dirs: &[Vec3<i32>],
     cols: &[[[Option<Rgb<f32>>; 3]; 3]; 3],
-    is_opaque: impl Fn(&V::Vox) -> bool,
+    _is_opaque: impl Fn(&V::Vox) -> bool,
 ) -> Vec4<Rgb<f32>> {
     dirs.windows(2)
         .map(|offs| {
