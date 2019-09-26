@@ -35,7 +35,7 @@ use crate::{
     render::{Consts, Globals, Renderer},
     scene::camera::Camera,
     settings::ControlSettings,
-    ui::{Ingameable, ScaleMode, TooltipManager, Ui},
+    ui::{Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
