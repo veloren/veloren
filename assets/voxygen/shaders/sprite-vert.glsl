@@ -27,6 +27,8 @@ void main() {
 	inst_mat[2] = inst_mat2;
 	inst_mat[3] = inst_mat3;
 
+	vec3 sprite_pos = (inst_mat * vec4(0, 0, 0, 1)).xyz;
+
 	f_pos = (inst_mat * vec4(v_pos * SCALE, 1)).xyz;
 
 	// Wind waving
@@ -39,6 +41,11 @@ void main() {
 	f_norm = (inst_mat * vec4(v_norm, 0)).xyz;
 
 	f_col = srgb_to_linear(v_col) * srgb_to_linear(inst_col);
+
+	// Select glowing
+	if (select_pos.w > 0 && select_pos.xyz == floor(sprite_pos)) {
+		f_col *= 4.0;
+	}
 
 	f_light = 1.0;
 
