@@ -31,16 +31,16 @@ void main() {
 	mat4 combined_mat = model_mat * bones[v_bone_idx].bone_mat;
 
 	f_pos = (
-		combined_mat * 
+		combined_mat *
 		vec4(v_pos, 1)).xyz;
 
 	f_col = v_col;
 
 	// Calculate normal here rather than for each pixel in the fragment shader
-	f_norm = (
-		combined_mat * 
+	f_norm = normalize((
+		combined_mat *
 		vec4(v_norm, 0.0)
-	).xyz;
+	).xyz);
 
 	gl_Position = proj_mat * view_mat * vec4(f_pos, 1);
 }

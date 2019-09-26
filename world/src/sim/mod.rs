@@ -128,7 +128,7 @@ impl WorldSim {
             cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
             cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(rng.gen(), 32, 24),
+            structure_gen: StructureGen2d::new(rng.gen(), 32, 16),
             region_gen: StructureGen2d::new(rng.gen(), 400, 96),
             cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
@@ -150,9 +150,9 @@ impl WorldSim {
         // but value here is from -0.275 to 0.225).
         let alt_base = uniform_noise(|_, wposf| {
             Some(
-                (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-                    .sub(0.1)
-                    .mul(0.25),
+                (gen_ctx.alt_nz.get((wposf.div(10_000.0)).into_array()) as f32)
+                    .sub(0.05)
+                    .mul(0.35),
             )
         });
 
@@ -174,14 +174,14 @@ impl WorldSim {
                 .max(0.0);
 
             Some(
-                (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
+                (gen_ctx.chaos_nz.get((wposf.div(3_500.0)).into_array()) as f32)
                     .add(1.0)
                     .mul(0.5)
                     // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
                     .mul(
                         (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
                             .abs()
-                            .max(0.25)
+                            .max(0.4)
                             .min(1.0),
                     )
                     // Chaos is always increased by a little when we're on a hill (but remember that
@@ -189,7 +189,7 @@ impl WorldSim {
                     // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
                     .add(0.2 * hill)
                     // We can't have *no* chaos!
-                    .max(0.1),
+                    .max(0.12),
             )
         });
 
@@ -214,12 +214,17 @@ impl WorldSim {
                     .abs()
                     .powf(1.35);
 
+                fn spring(x: f32, pow: f32) -> f32 {
+                    x.abs().powf(pow) * x.signum()
+                }
+
                 (0.0 + alt_main
                     + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
-                        .mul(alt_main.max(0.25))
+                        .mul(alt_main.powf(0.8).max(0.15))
                         .mul(0.3)
                         .add(1.0)
-                        .mul(0.5))
+                        .mul(0.4)
+                    + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045))
             };
 
             // Now we can compute the final altitude using chaos.
@@ -227,7 +232,10 @@ impl WorldSim {
             // alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea level to
             // get an adjusted value, then multiply the whole thing by map_edge_factor
             // (TODO: compute final bounds).
-            Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
+            Some(
+                (alt_base[posi].1 + alt_main.mul(chaos[posi].1.powf(1.2)))
+                    .mul(map_edge_factor(posi)),
+            )
         });
 
         // Check whether any tiles around this tile are not water (since Lerp will ensure that they
@@ -704,7 +712,7 @@ impl SimChunk {
             } else {
                 // For now we don't take humidity into account for cold climates (but we really
                 // should!) except that we make sure we only have snow pines when there is snow.
-                if temp <= CONFIG.snow_temp && humidity > CONFIG.forest_hum {
+                if temp <= CONFIG.snow_temp {
                     ForestKind::SnowPine
                 } else if humidity > CONFIG.desert_hum {
                     ForestKind::Pine
