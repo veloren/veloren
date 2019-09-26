@@ -412,7 +412,7 @@ impl TownVol {
                     false
                 }
             }) {
-                self.set(cell, CellKind::Well.into());
+                let _ = self.set(cell, CellKind::Well.into());
             }
         }
     }
@@ -694,6 +694,8 @@ lazy_static! {
     };
 }
 
+/*
+// TODO
 struct ModuleModel {
     near: u64,
     mask: u64,
@@ -711,3 +713,4 @@ impl ModuleModel {
         unimplemented!()
     }
 }
+*/
