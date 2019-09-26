@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Event as HudEvent, Fonts, TEXT_COLOR, TEXT_COLOR_2,
+    Event as HudEvent, Fonts, TEXT_COLOR,
 };
 use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
@@ -187,7 +187,7 @@ impl<'a> Widget for Bag<'a> {
                         &item.description(),
                         &item.category(),
                         &item_tooltip,
-                    )                    
+                    )
                     .set(state.ids.inv_slots[i], ui)
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui)
