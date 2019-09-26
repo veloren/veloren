@@ -33,7 +33,7 @@ pub enum BlockKind {
 }
 
 impl BlockKind {
-    pub fn is_tangeable(&self) -> bool {
+    pub fn is_tangible(&self) -> bool {
         match self {
             BlockKind::Air => false,
             kind => !kind.is_fluid(),
