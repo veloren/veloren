@@ -2,7 +2,7 @@ use super::{
     img_ids::{Imgs, ImgsRot},
     Event as HudEvent, Fonts, TEXT_COLOR, TEXT_COLOR_2,
 };
-use crate::ui::{ImageFrame, Tooltip, Tooltipable};
+use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color,
@@ -113,7 +113,7 @@ impl<'a> Widget for Bag<'a> {
         .title_font_size(15)
         .desc_font_size(10)
         .title_text_color(TEXT_COLOR)
-        .desc_text_color(TEXT_COLOR_2);
+        .desc_text_color(TEXT_COLOR);
 
         // Bag parts
         Image::new(self.imgs.bag_bot)
@@ -187,7 +187,7 @@ impl<'a> Widget for Bag<'a> {
                         &item.description(),
                         &item.category(),
                         &item_tooltip,
-                    )
+                    )                    
                     .set(state.ids.inv_slots[i], ui)
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui)
