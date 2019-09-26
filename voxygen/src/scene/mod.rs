@@ -55,6 +55,7 @@ pub struct Scene {
     postprocess: PostProcess,
     terrain: Terrain<TerrainChunk>,
     loaded_distance: f32,
+    select_pos: Option<Vec3<i32>>,
 
     figure_mgr: FigureMgr,
     sound_mgr: SoundMgr,
@@ -87,6 +88,8 @@ impl Scene {
             },
             terrain: Terrain::new(renderer),
             loaded_distance: 0.0,
+            select_pos: None,
+
             figure_mgr: FigureMgr::new(),
             sound_mgr: SoundMgr::new(),
         }
@@ -105,6 +108,11 @@ impl Scene {
     /// Get a mutable reference to the scene's camera.
     pub fn camera_mut(&mut self) -> &mut Camera {
         &mut self.camera
+    }
+
+    /// Set the block position that the player is interacting with
+    pub fn set_select_pos(&mut self, pos: Option<Vec3<i32>>) {
+        self.select_pos = pos;
     }
 
     /// Handle an incoming user input event (e.g.: cursor moved, key pressed, window closed).
@@ -257,6 +265,7 @@ impl Scene {
                         .get(cam_pos.map(|e| e.floor() as i32))
                         .map(|b| b.kind())
                         .unwrap_or(BlockKind::Air),
+                    self.select_pos,
                 )],
             )
             .expect("Failed to update global constants");
