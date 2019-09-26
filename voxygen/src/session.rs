@@ -123,7 +123,7 @@ impl PlayState for SessionState {
                 let terrain = client.state().terrain();
                 let ray = terrain
                     .ray(cam_pos, cam_pos + cam_dir * 100.0)
-                    .until(|block| block.is_tangeable())
+                    .until(|block| block.is_tangible())
                     .cast();
                 let dist = ray.0;
                 if let Ok(Some(_)) = ray.1 {
