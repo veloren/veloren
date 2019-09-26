@@ -1,7 +1,5 @@
 use crate::{
-    comp::{
-        ActionState::*, CharacterState, Controller, ForceUpdate, HealthSource, Ori, Pos, Stats, Vel,
-    },
+    comp::{ActionState::*, CharacterState, Controller, HealthSource, Ori, Pos, Stats},
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
 };
@@ -21,9 +19,6 @@ const BLOCK_EFFICIENCY: f32 = 0.9;
 const ATTACK_RANGE: f32 = 4.0;
 const BLOCK_ANGLE: f32 = 180.0;
 
-const KNOCKBACK_XY: f32 = 2.0;
-const KNOCKBACK_Z: f32 = 2.0;
-
 /// This system is responsible for handling accepted inputs like moving or attacking
 pub struct Sys;
 impl<'a> System<'a> for Sys {
@@ -36,10 +31,8 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Controller>,
-        WriteStorage<'a, Vel>,
         WriteStorage<'a, CharacterState>,
         WriteStorage<'a, Stats>,
-        WriteStorage<'a, ForceUpdate>,
     );
 
     fn run(
@@ -53,14 +46,12 @@ impl<'a> System<'a> for Sys {
             positions,
             orientations,
             controllers,
-            mut velocities,
             mut character_states,
-            mut stats,
-            mut force_updates,
+            stats,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
-        let mut local_emitter = local_bus.emitter();
+        let mut _local_emitter = local_bus.emitter();
 
         // Attacks
         for (entity, uid, pos, ori, _) in
@@ -87,14 +78,13 @@ impl<'a> System<'a> for Sys {
             if deal_damage {
                 if let Some(Attack { .. }) = &character_states.get(entity).map(|c| c.action) {
                     // Go through all other entities
-                    for (b, uid_b, pos_b, ori_b, character_b, mut vel_b, stat_b) in (
+                    for (b, uid_b, pos_b, ori_b, character_b, stat_b) in (
                         &entities,
                         &uids,
                         &positions,
                         &orientations,
                         &character_states,
-                        &mut velocities,
-                        &mut stats,
+                        &stats,
                     )
                         .join()
                     {
