@@ -58,13 +58,6 @@ pub struct TownCell {
 }
 
 impl TownCell {
-    pub fn is_road(&self) -> bool {
-        match self.kind {
-            CellKind::Road => true,
-            _ => false,
-        }
-    }
-
     pub fn is_space(&self) -> bool {
         match self.kind {
             CellKind::Empty => true,

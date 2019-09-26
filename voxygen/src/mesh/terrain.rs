@@ -3,7 +3,7 @@ use crate::{
     render::{self, FluidPipeline, Mesh, TerrainPipeline},
 };
 use common::{
-    terrain::{Block, BlockKind},
+    terrain::Block,
     vol::{ReadVol, RectRasterableVol, Vox},
     volumes::vol_grid_2d::VolGrid2d,
 };
@@ -121,17 +121,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 }
             })
             .unwrap_or(0.0)
-    }
-}
-
-fn block_shadow_density(kind: BlockKind) -> (f32, f32) {
-    // (density, cap)
-    match kind {
-        BlockKind::Normal => (0.085, 0.3),
-        BlockKind::Dense => (0.3, 0.0),
-        BlockKind::Water => (0.15, 0.0),
-        kind if kind.is_air() => (0.0, 0.0),
-        _ => (1.0, 0.0),
     }
 }
 
