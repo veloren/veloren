@@ -1,8 +1,8 @@
 use crate::{
     mesh::Meshable,
     render::{
-        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, SpriteInstance,
-        SpritePipeline, TerrainLocals, TerrainPipeline,
+        Consts, FluidPipeline, Globals, Instances, Light, Mesh, Model, Renderer, Shadow,
+        SpriteInstance, SpritePipeline, TerrainLocals, TerrainPipeline,
     },
 };
 
@@ -23,6 +23,7 @@ use vek::*;
 
 struct TerrainChunk {
     // GPU data
+    load_time: f32,
     opaque_model: Model<TerrainPipeline>,
     fluid_model: Model<FluidPipeline>,
     sprite_instances: HashMap<(BlockKind, usize), Instances<SpriteInstance>>,
@@ -129,6 +130,10 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
         BlockKind::Liana => Some(SpriteConfig {
             variations: 2,
             wind_sway: 0.05,
+        }),
+        BlockKind::Velorite => Some(SpriteConfig {
+            variations: 1,
+            wind_sway: 0.0,
         }),
         _ => None,
     }
@@ -595,6 +600,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                         Vec3::new(-1.0, -0.5, -55.0),
                     ),
                 ),
+                (
+                    (BlockKind::Velorite, 0),
+                    make_model(
+                        "voxygen.voxel.sprite.velorite.velorite",
+                        Vec3::new(-5.0, -5.0, -0.0),
+                    ),
+                ),
             ]
             .into_iter()
             .collect(),
@@ -613,6 +625,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         proj_mat: Mat4<f32>,
     ) {
         let current_tick = client.get_tick();
+        let current_time = client.state().get_time();
 
         // Add any recently created or changed chunks to the list of chunks to be meshed.
         for (modified, pos) in client
@@ -700,6 +713,17 @@ impl<V: RectRasterableVol> Terrain<V> {
                             },
                         );
                     }
+
+                    // TODO: Remesh all neighbours because we have complex lighting now
+                    /*self.mesh_todo.insert(
+                        neighbour_chunk_pos,
+                        ChunkMeshState {
+                            pos: chunk_pos + Vec2::new(x, y),
+                            started_tick: current_tick,
+                            active_worker: None,
+                        },
+                    );
+                    */
                 }
             }
         }
@@ -785,9 +809,15 @@ impl<V: RectRasterableVol> Terrain<V> {
                 // It's the mesh we want, insert the newly finished model into the terrain model
                 // data structure (convert the mesh to a model first of course).
                 Some(todo) if response.started_tick <= todo.started_tick => {
+                    let load_time = self
+                        .chunks
+                        .get(&response.pos)
+                        .map(|chunk| chunk.load_time)
+                        .unwrap_or(current_time as f32);
                     self.chunks.insert(
                         response.pos,
                         TerrainChunk {
+                            load_time,
                             opaque_model: renderer
                                 .create_model(&response.opaque_mesh)
                                 .expect("Failed to upload chunk mesh to the GPU!"),
@@ -814,6 +844,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                                         }),
                                     )
                                     .into_array(),
+                                    load_time,
                                 }])
                                 .expect("Failed to upload chunk locals to the GPU!"),
                             visible: false,
@@ -874,12 +905,19 @@ impl<V: RectRasterableVol> Terrain<V> {
         renderer: &mut Renderer,
         globals: &Consts<Globals>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
         focus_pos: Vec3<f32>,
     ) {
         // Opaque
         for (_, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_terrain_chunk(&chunk.opaque_model, globals, &chunk.locals, lights);
+                renderer.render_terrain_chunk(
+                    &chunk.opaque_model,
+                    globals,
+                    &chunk.locals,
+                    lights,
+                    shadows,
+                );
             }
         }
 
@@ -899,6 +937,7 @@ impl<V: RectRasterableVol> Terrain<V> {
                             globals,
                             &instances,
                             lights,
+                            shadows,
                         );
                     }
                 }
@@ -908,7 +947,13 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Translucent
         for (_, chunk) in &self.chunks {
             if chunk.visible {
-                renderer.render_fluid_chunk(&chunk.fluid_model, globals, &chunk.locals, lights);
+                renderer.render_fluid_chunk(
+                    &chunk.fluid_model,
+                    globals,
+                    &chunk.locals,
+                    lights,
+                    shadows,
+                );
             }
         }
     }

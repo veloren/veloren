@@ -34,6 +34,14 @@ impl Component for Scale {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
+// Mass
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Mass(pub f32);
+
+impl Component for Mass {
+    type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
+}
+
 // PhysicsState
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {

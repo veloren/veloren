@@ -5,7 +5,7 @@ use crate::{
 use common::{
     figure::Segment,
     util::{linear_to_srgb, srgb_to_linear},
-    vol::{IntoFullVolIterator, Vox},
+    vol::{IntoFullVolIterator, ReadVol, Vox},
 };
 use vek::*;
 
@@ -32,17 +32,35 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    col,
+                    &[[[Some(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         FigureVertex::new(
                             origin,
                             norm,
-                            linear_to_srgb(srgb_to_linear(col) * ao * light),
+                            linear_to_srgb(srgb_to_linear(col) * light.min(ao)),
                             0,
                         )
                     },
                     true,
-                    &[[[1.0; 3]; 3]; 3],
+                    &{
+                        let mut ls = [[[0.0; 3]; 3]; 3];
+                        for x in 0..3 {
+                            for y in 0..3 {
+                                for z in 0..3 {
+                                    ls[z][y][x] = if self
+                                        .get(pos + Vec3::new(x as i32, y as i32, z as i32) - 1)
+                                        .map(|v| v.is_empty())
+                                        .unwrap_or(true)
+                                    {
+                                        1.0
+                                    } else {
+                                        0.0
+                                    };
+                                }
+                            }
+                        }
+                        ls
+                    },
                     |vox| vox.is_empty(),
                     |vox| !vox.is_empty(),
                 );
@@ -73,7 +91,7 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    col,
+                    &[[[Some(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         SpriteVertex::new(
                             origin,

@@ -6,7 +6,7 @@ use crate::{
     },
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,
-        PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
+        PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
         camera::{Camera, CameraMode},
@@ -36,6 +36,7 @@ struct PostProcess {
 pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
+    shadows: Consts<Shadow>,
     camera: Camera,
 
     skybox: Skybox,
@@ -57,6 +58,7 @@ impl Scene {
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+            shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             skybox: Skybox {
@@ -120,7 +122,8 @@ impl Scene {
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        const CHAR_SELECT_TIME_OF_DAY: f32 = 80000.0; // 12*3600 seconds
+        const VD: f32 = 115.0; //View Distance
+        const TIME: f64 = 36000.0; // hours*3600 seconds
         if let Err(err) = renderer.update_consts(
             &mut self.globals,
             &[Globals::new(
@@ -128,12 +131,14 @@ impl Scene {
                 proj_mat,
                 cam_pos,
                 self.camera.get_focus_pos(),
-                CHAR_SELECT_TIME_OF_DAY,
-                55800.0,
+                VD,
+                TIME,
                 client.state().get_time(),
                 renderer.get_resolution(),
                 0,
+                0,
                 BlockKind::Air,
+                None,
             )],
         ) {
             error!("Renderer failed to update: {:?}", err);
@@ -192,6 +197,7 @@ impl Scene {
             self.figure_state.locals(),
             self.figure_state.bone_consts(),
             &self.lights,
+            &self.shadows,
         );
 
         renderer.render_figure(
@@ -200,6 +206,7 @@ impl Scene {
             self.backdrop_state.locals(),
             self.backdrop_state.bone_consts(),
             &self.lights,
+            &self.shadows,
         );
 
         renderer.render_post_process(

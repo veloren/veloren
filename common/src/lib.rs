@@ -16,6 +16,7 @@ extern crate log;
 pub mod assets;
 pub mod clock;
 pub mod comp;
+pub mod effect;
 pub mod event;
 pub mod figure;
 pub mod msg;

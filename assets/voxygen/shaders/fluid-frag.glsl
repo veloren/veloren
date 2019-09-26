@@ -11,6 +11,7 @@ in float f_light;
 layout (std140)
 uniform u_locals {
     vec3 model_offs;
+	float load_time;
 };
 
 out vec4 tgt_color;
@@ -37,8 +38,15 @@ void main() {
 
 	vec3 norm = warp_normal(f_norm, f_pos, tick.x);
 
-	vec3 light = get_sun_diffuse(norm, time_of_day.x) * f_light + light_at(f_pos, norm);
-	vec3 surf_color = f_col * light;
+	vec3 light, diffuse_light, ambient_light;
+	get_sun_diffuse(f_norm, time_of_day.x, light, diffuse_light, ambient_light);
+	float point_shadow = shadow_at(f_pos, f_norm);
+	diffuse_light *= f_light * point_shadow;
+	ambient_light *= f_light, point_shadow;
+	vec3 point_light = light_at(f_pos, f_norm);
+	light += point_light;
+	diffuse_light += point_light;
+	vec3 surf_color = illuminate(f_col, light, diffuse_light, ambient_light);
 
 	float fog_level = fog(f_pos.xyz, focus_pos.xyz, medium.x);
     vec3 fog_color = get_sky_color(normalize(f_pos - cam_pos.xyz), time_of_day.x, true);
@@ -52,7 +60,7 @@ void main() {
 	// 0 = 100% reflection, 1 = translucent water
 	float passthrough = pow(dot(faceforward(norm, norm, cam_to_frag), -cam_to_frag), 1.0);
 
-	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 0.5 / (1.0 + light * 2.0)), passthrough);
+	vec4 color = mix(vec4(reflect_color, 1.0), vec4(surf_color, 0.5 / (1.0 + diffuse_light * 2.0)), passthrough);
 
     tgt_color = mix(color, vec4(fog_color, 0.0), fog_level);
 }
