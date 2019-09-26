@@ -1,4 +1,4 @@
-use specs::{Component, FlaggedStorage, NullStorage};
+use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
