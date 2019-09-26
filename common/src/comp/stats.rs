@@ -2,7 +2,7 @@ use crate::{comp, state::Uid};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HealthSource {
     Attack { by: Uid }, // TODO: Implement weapon
     Suicide,
@@ -10,6 +10,7 @@ pub enum HealthSource {
     Revive,
     Command,
     LevelUp,
+    Item,
     Unknown,
 }
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

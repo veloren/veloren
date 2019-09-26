@@ -16,7 +16,7 @@ pub use widgets::{
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
     toggle_button::ToggleButton,
-    tooltip::{Tooltip, Tooltipable},
+    tooltip::{Tooltip, TooltipManager, Tooltipable},
 };
 
 use crate::{
@@ -49,7 +49,6 @@ use std::{
     time::Duration,
 };
 use vek::*;
-use widgets::tooltip::TooltipManager;
 
 #[derive(Debug)]
 pub enum UiError {

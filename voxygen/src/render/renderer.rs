@@ -4,7 +4,7 @@ use super::{
     instances::Instances,
     mesh::Mesh,
     model::{DynamicModel, Model},
-    pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light},
+    pipelines::{figure, fluid, postprocess, skybox, sprite, terrain, ui, Globals, Light, Shadow},
     texture::Texture,
     Pipeline, RenderError,
 };
@@ -392,6 +392,7 @@ impl Renderer {
         locals: &Consts<figure::Locals>,
         bones: &Consts<figure::BoneData>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -408,6 +409,7 @@ impl Renderer {
                 globals: globals.buf.clone(),
                 bones: bones.buf.clone(),
                 lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -421,6 +423,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -436,6 +439,7 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -449,6 +453,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         locals: &Consts<terrain::Locals>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -464,6 +469,7 @@ impl Renderer {
                 locals: locals.buf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },
@@ -477,6 +483,7 @@ impl Renderer {
         globals: &Consts<Globals>,
         instances: &Instances<sprite::Instance>,
         lights: &Consts<Light>,
+        shadows: &Consts<Shadow>,
     ) {
         self.encoder.draw(
             &gfx::Slice {
@@ -492,6 +499,7 @@ impl Renderer {
                 ibuf: instances.ibuf.clone(),
                 globals: globals.buf.clone(),
                 lights: lights.buf.clone(),
+                shadows: shadows.buf.clone(),
                 tgt_color: self.tgt_color_view.clone(),
                 tgt_depth: self.tgt_depth_view.clone(),
             },

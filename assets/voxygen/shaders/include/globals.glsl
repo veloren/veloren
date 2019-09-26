@@ -8,6 +8,7 @@ uniform u_globals {
 	vec4 time_of_day;
 	vec4 tick;
 	vec4 screen_res;
-	uvec4 light_count;
+	uvec4 light_shadow_count;
 	uvec4 medium;
+	ivec4 select_pos;
 };

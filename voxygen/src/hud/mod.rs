@@ -12,6 +12,7 @@ mod skillbar;
 mod social;
 mod spell;
 
+use crate::hud::img_ids::ImgsRot;
 pub use settings_window::ScaleChange;
 
 use bag::Bag;
@@ -365,6 +366,7 @@ pub struct Hud {
     ids: Ids,
     imgs: Imgs,
     fonts: Fonts,
+    rot_imgs: ImgsRot,
     new_messages: VecDeque<ClientEvent>,
     inventory_space: usize,
     show: Show,
@@ -385,12 +387,15 @@ impl Hud {
         let ids = Ids::new(ui.id_generator());
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
+        // Load rotation images.
+        let rot_imgs = ImgsRot::load(&mut ui).expect("Failed to load rot images!");
         // Load fonts.
         let fonts = Fonts::load(&mut ui).expect("Failed to load fonts!");
 
         Self {
             ui,
             imgs,
+            rot_imgs,
             fonts,
             ids,
             new_messages: VecDeque::new(),
@@ -428,7 +433,7 @@ impl Hud {
         debug_info: DebugInfo,
     ) -> Vec<Event> {
         let mut events = Vec::new();
-        let ref mut ui_widgets = self.ui.set_widgets().0;
+        let (ref mut ui_widgets, ref mut tooltip_manager) = self.ui.set_widgets();
 
         let version = format!("{}-{}", env!("CARGO_PKG_VERSION"), common::util::GIT_HASH);
 
@@ -723,7 +728,15 @@ impl Hud {
 
         // Bag contents
         if self.show.bag {
-            match Bag::new(client, &self.imgs, &self.fonts).set(self.ids.bag, ui_widgets) {
+            match Bag::new(
+                client,
+                &self.imgs,
+                &self.fonts,
+                &self.rot_imgs,
+                tooltip_manager,
+            )
+            .set(self.ids.bag, ui_widgets)
+            {
                 Some(bag::Event::HudEvent(event)) => events.push(event),
                 Some(bag::Event::Close) => {
                     self.show.bag(false);

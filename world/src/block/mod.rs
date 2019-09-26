@@ -54,19 +54,23 @@ impl<'a> BlockGen<'a> {
                 cache,
                 Vec2::from(*cliff_pos),
             ) {
-                Some(cliff_sample) if cliff_sample.is_cliffs && cliff_sample.spawn_rate > 0.5 => {
+                Some(cliff_sample)
+                    if cliff_sample.is_cliffs
+                        && cliff_sample.spawn_rate > 0.5
+                        && cliff_sample.spawn_rules.cliffs =>
+                {
                     let cliff_pos3d = Vec3::from(*cliff_pos);
 
-                    let height = RandomField::new(seed + 1).get(cliff_pos3d) % 48;
+                    let height = (RandomField::new(seed + 1).get(cliff_pos3d) % 64) as f32
+                        / (1.0 + 3.0 * cliff_sample.chaos)
+                        + 3.0;
                     let radius = RandomField::new(seed + 2).get(cliff_pos3d) % 48 + 8;
 
                     max_height.max(
                         if cliff_pos.map(|e| e as f32).distance_squared(wpos)
                             < (radius as f32 + tolerance).powf(2.0)
                         {
-                            cliff_sample.alt
-                                + height as f32 * (1.0 - cliff_sample.chaos)
-                                + cliff_hill
+                            cliff_sample.alt + height * (1.0 - cliff_sample.chaos) + cliff_hill
                         } else {
                             0.0
                         },
@@ -178,12 +182,13 @@ impl<'a> BlockGen<'a> {
                     (true, alt, CONFIG.sea_level /*water_level*/)
                 } else {
                     // Apply warping
-                    let warp = (world.sim().gen_ctx.warp_nz.get(wposf.div(48.0)) as f32)
-                        .mul((chaos - 0.1).max(0.0))
-                        .mul(48.0)
-                        + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
-                            .mul((chaos - 0.1).max(0.0))
-                            .mul(24.0);
+                    let warp = world
+                        .sim()
+                        .gen_ctx
+                        .warp_nz
+                        .get(wposf.div(24.0))
+                        .mul((chaos - 0.1).max(0.0).powf(2.0))
+                        .mul(48.0);
 
                     let height = if (wposf.z as f32) < alt + warp - 10.0 {
                         // Shortcut cliffs
@@ -310,6 +315,14 @@ impl<'a> BlockGen<'a> {
                     },
                     Rgb::broadcast(0),
                 ))
+            } else if (wposf.z as f32) < height + 0.9
+                && chaos > 0.6
+                && (wposf.z as f32 > water_height + 3.0)
+                && marble > 0.75
+                && marble_small > 0.3
+                && (marble * 7323.07).fract() < 0.75
+            {
+                Some(Block::new(BlockKind::Velorite, Rgb::broadcast(0)))
             } else {
                 None
             }
@@ -379,10 +392,9 @@ impl<'a> BlockGen<'a> {
                 let (st, st_sample) = st.as_ref()?;
                 st.get(wpos, st_sample)
             })
-            .or(block)
-            .unwrap_or(Block::empty());
+            .or(block);
 
-        Some(block)
+        Some(block.unwrap_or(Block::empty()))
     }
 }
 
@@ -413,7 +425,8 @@ impl<'a> ZCache<'a> {
 
         let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
 
-        let warp = self.sample.chaos * 24.0;
+        let warp = self.sample.chaos * 32.0;
+
         let (structure_min, structure_max) = self
             .structures
             .iter()
@@ -432,7 +445,7 @@ impl<'a> ZCache<'a> {
                 }
             });
 
-        let ground_max = (self.sample.alt + 2.0 + warp + rocks).max(cliff);
+        let ground_max = (self.sample.alt + warp + rocks).max(cliff) + 2.0;
 
         let min = min + structure_min;
         let max = (ground_max + structure_max)
