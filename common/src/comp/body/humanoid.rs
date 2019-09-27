@@ -77,7 +77,7 @@ pub const ALL_RACES: [Race; 6] = [
 ];
 
 // Hair Colors
-pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 17] = [
+pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 16] = [
     (198, 169, 113), // Philosopher's Grey
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
@@ -91,12 +91,11 @@ pub const DANARI_HAIR_COLORS: [(u8, u8, u8); 17] = [
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
     (107, 32, 60),   // Grape Purple
-    (168, 45, 47),   // Lobster Red
     (135, 38, 39),   // Dark Red
     (88, 26, 29),    // Wine Red
     (146, 32, 32),   // Autumn Red
 ];
-pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
+pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 20] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -108,7 +107,6 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
-    (168, 45, 47),   // Lobster Red
     (135, 38, 39),   // Dark Red
     (88, 26, 29),    // Wine Red
     (191, 228, 254), // Ice NobleBlue
@@ -119,7 +117,7 @@ pub const DWARF_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
 ];
-pub const ELF_HAIR_COLORS: [(u8, u8, u8); 24] = [
+pub const ELF_HAIR_COLORS: [(u8, u8, u8); 23] = [
     (66, 83, 113),   // Mysterious Blue
     (13, 76, 41),    // Rainforest Green
     (245, 232, 175), // Cream Blonde
@@ -133,7 +131,6 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
-    (168, 45, 47),   // Lobster Red
     (135, 38, 39),   // Dark Red
     (88, 26, 29),    // Wine Red
     (191, 228, 254), // Ice Blue
@@ -145,7 +142,7 @@ pub const ELF_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
 ];
-pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 22] = [
+pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 21] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -157,7 +154,6 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 22] = [
     (57, 56, 61),    // Raven Black
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
-    (168, 45, 47),   // Lobster Red
     (135, 38, 39),   // Dark Red
     (88, 26, 29),    // Wine Red
     (191, 228, 254), // Ice Blue
@@ -169,7 +165,7 @@ pub const HUMAN_HAIR_COLORS: [(u8, u8, u8); 22] = [
     (84, 139, 107),  // Grass Green
     (48, 61, 52),    // Dark Green
 ];
-pub const ORC_HAIR_COLORS: [(u8, u8, u8); 15] = [
+pub const ORC_HAIR_COLORS: [(u8, u8, u8); 14] = [
     (66, 66, 59),   // Wise Grey
     (125, 111, 51), // Muddy Blonde
     (199, 131, 58), // Summer Blonde
@@ -181,12 +177,11 @@ pub const ORC_HAIR_COLORS: [(u8, u8, u8); 15] = [
     (57, 56, 61),   // Raven Black
     (101, 83, 95),  // Matte Purple
     (101, 57, 90),  // Witch Purple
-    (168, 45, 47),  // Lobster Red
     (135, 38, 39),  // Dark Red
     (88, 26, 29),   // Wine Red
     (66, 83, 113),  // Mysterious Blue
 ];
-pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 25] = [
+pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 24] = [
     (245, 232, 175), // Cream Blonde
     (228, 208, 147), // Gold Blonde
     (228, 223, 141), // Platinum Blonde
@@ -199,7 +194,6 @@ pub const UNDEAD_HAIR_COLORS: [(u8, u8, u8); 25] = [
     (101, 83, 95),   // Matte Purple
     (101, 57, 90),   // Witch Purple
     (111, 54, 117),  // Punky Purple
-    (168, 45, 47),   // Lobster Red
     (135, 38, 39),   // Dark Red
     (88, 26, 29),    // Wine Red
     (191, 228, 254), // Ice Blue
