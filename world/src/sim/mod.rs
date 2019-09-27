@@ -246,7 +246,8 @@ impl WorldSim {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if alt[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
+                        if alt[posi].1.mul(CONFIG.mountain_scale) > -8.0 {
+                            // Account for warping in later stages
                             return false;
                         }
                     }
