@@ -213,7 +213,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             false,
                             &lights,
                             |vox| !vox.is_opaque(),
-                            |vox| vox.is_opaque(),
                         );
                     } else if block.map(|vox| vox.is_fluid()).unwrap_or(false) {
                         vol::push_vox_verts(
@@ -228,7 +227,6 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                             false,
                             &lights,
                             |vox| vox.is_air(),
-                            |vox| vox.is_opaque(),
                         );
                     }
                 }

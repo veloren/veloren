@@ -60,7 +60,6 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                         ls
                     },
                     |vox| vox.is_empty(),
-                    |vox| !vox.is_empty(),
                 );
             }
         }
@@ -98,7 +97,6 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     true,
                     &[[[1.0; 3]; 3]; 3],
                     |vox| vox.is_empty(),
-                    |vox| !vox.is_empty(),
                 );
             }
         }
