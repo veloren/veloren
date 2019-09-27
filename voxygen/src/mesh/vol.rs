@@ -63,10 +63,7 @@ fn get_ao_quad<V: ReadVol>(
                 if s1 && s2 {
                     0.0
                 } else {
-                    let corner = vol
-                        .get(pos + shift + offs[0] + offs[1])
-                        .map(&is_opaque)
-                        .unwrap_or(false);
+                    let corner = vox_opaque(shift + offs[0] + offs[1]);
                     // Map both 1 and 2 neighbors to 0.5 occlusion.
                     if s1 || s2 || corner {
                         0.5
@@ -131,7 +128,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     let darkness = darkness_ao.map(|e| e.0);
     let ao = darkness_ao.map(|e| e.1);
 
-    let ao_map = ao.map(|e| e); //0.05 + e.powf(1.2) * 0.95);
+    let ao_map = ao.map(|e| 0.05 + e.powf(1.2) * 0.95);
 
     if ao[0].min(ao[2]).min(darkness[0]).min(darkness[2])
         < ao[1].min(ao[3]).min(darkness[1]).min(darkness[3])
