@@ -1224,6 +1224,8 @@ impl<'a> Widget for SettingsWindow<'a> {
                 self.imgs.check_checked,
                 &mode_label_list,
             )
+            .hover_images(self.imgs.check_mo, self.imgs.check_checked_mo)
+            .press_images(self.imgs.check_press, self.imgs.check_press)
             .down_from(state.ids.aa_mode_text, 8.0)
             .text_color(TEXT_COLOR)
             .font_size(12)
