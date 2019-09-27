@@ -821,6 +821,6 @@ fn create_pipeline<'a, P: gfx::pso::PipelineInit>(
                 samples: Some(gfx::state::MultiSample),
             },
             pipe,
-        )?, // Do some funky things to work around an oddity in gfx's error ownership rules.
+        )?,
     })
 }
