@@ -15,6 +15,7 @@ pub use widgets::{
     image_frame::ImageFrame,
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
+    radio_list::RadioList,
     toggle_button::ToggleButton,
     tooltip::{Tooltip, TooltipManager, Tooltipable},
 };

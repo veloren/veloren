@@ -1,5 +1,6 @@
 use crate::{
     hud::{BarNumbers, CrosshairType, ShortcutNumbers, XpBar},
+    render::AaMode,
     ui::ScaleMode,
     window::KeyMouse,
 };
@@ -160,6 +161,7 @@ pub struct GraphicsSettings {
     pub view_distance: u32,
     pub max_fps: u32,
     pub fov: u16,
+    pub aa_mode: AaMode,
 }
 
 impl Default for GraphicsSettings {
@@ -168,6 +170,7 @@ impl Default for GraphicsSettings {
             view_distance: 5,
             max_fps: 60,
             fov: 75,
+            aa_mode: AaMode::Fxaa,
         }
     }
 }
