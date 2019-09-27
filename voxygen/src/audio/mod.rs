@@ -221,7 +221,7 @@ pub fn get_default_device() -> String {
 
 /// Load the audio file directory selected by genre.
 pub fn load_soundtracks() -> Vec<String> {
-    let assets = assets::read_dir("voxygen.audio.soundtrack").unwrap();
+    let assets = assets::read_dir("voxygen.audio.soundtrack.regional").unwrap();
     let soundtracks = assets
         .filter_map(|entry| {
             entry.ok().map(|f| {
