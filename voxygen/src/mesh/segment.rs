@@ -25,14 +25,12 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
 
         for (pos, vox) in self.full_vol_iter() {
             if let Some(col) = vox.get_color() {
-                let col = col.map(|e| e as f32 / 255.0);
-
                 vol::push_vox_verts(
                     &mut mesh,
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    &[[[Some(col); 3]; 3]; 3],
+                    &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         FigureVertex::new(
                             origin,
@@ -62,7 +60,6 @@ impl Meshable<FigurePipeline, FigurePipeline> for Segment {
                         ls
                     },
                     |vox| vox.is_empty(),
-                    |vox| !vox.is_empty(),
                 );
             }
         }
@@ -84,14 +81,12 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
 
         for (pos, vox) in self.full_vol_iter() {
             if let Some(col) = vox.get_color() {
-                let col = col.map(|e| e as f32 / 255.0);
-
                 vol::push_vox_verts(
                     &mut mesh,
                     self,
                     pos,
                     offs + pos.map(|e| e as f32),
-                    &[[[Some(col); 3]; 3]; 3],
+                    &[[[Rgba::from_opaque(col); 3]; 3]; 3],
                     |origin, norm, col, ao, light| {
                         SpriteVertex::new(
                             origin,
@@ -102,7 +97,6 @@ impl Meshable<SpritePipeline, SpritePipeline> for Segment {
                     true,
                     &[[[1.0; 3]; 3]; 3],
                     |vox| vox.is_empty(),
-                    |vox| !vox.is_empty(),
                 );
             }
         }
