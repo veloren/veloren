@@ -22,7 +22,7 @@ impl SoundMgr {
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
-        const SFX_DIST_LIMIT: f32 = 150.0;
+        const SFX_DIST_LIMIT: f32 = 22500.0;
 
         let ecs = client.state().ecs();
         // Get player position.
@@ -46,7 +46,7 @@ impl SoundMgr {
         )
             .join()
             .filter(|(_, e_pos, _, _)| {
-                (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT.powf(2.0)
+                (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT
             })
         {
             if let (Body::Humanoid(_), Some(character)) = (body, character) {
