@@ -183,7 +183,7 @@ impl FigureMgr {
                             quat_out = Some(q.val());
                             anim::character::GlidingAnimation::update_skeleton(
                             &CharacterSkeleton::new(),
-                            (vel.0, ori.0, state.last_ori, time),
+                            (vel.0, time),
                             state.movement_time,
                             &mut movement_animation_rate,
                             skeleton_attr,
@@ -556,7 +556,6 @@ impl<S: Skeleton> FigureState<S> {
             * Mat4::translation_3d(self.pos)
             * if let Some(quat) = oriq { Mat4::from(quat) } else { Mat4::rotation_z(-ori.x.atan2(ori.y)) }
             * Mat4::scaling_3d(Vec3::from(0.8 * scale));
-
         let locals = FigureLocals::new(mat, col);
         renderer.update_consts(&mut self.locals, &[locals]).unwrap();
 

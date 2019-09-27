@@ -9,11 +9,11 @@ pub struct GlidingAnimation;
 
 impl Animation for GlidingAnimation {
     type Skeleton = CharacterSkeleton;
-    type Dependency = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f64);
+    type Dependency = (Vec3<f32>, f64);
 
     fn update_skeleton(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, global_time): Self::Dependency,
+        (velocity, global_time): Self::Dependency,
         anim_time: f64,
         _rate: &mut f32,
         skeleton_attr: &SkeletonAttr,
@@ -41,21 +41,6 @@ impl Animation for GlidingAnimation {
                 .sin()
                 * 0.25,
         );
-
-        let ori = Vec2::from(orientation);
-        let last_ori = Vec2::from(last_ori);
-
-        let tilt = if Vec2::new(ori, last_ori)
-            .map(|o| Vec2::<f32>::from(o).magnitude_squared())
-            .map(|m| m > 0.001 && m.is_finite())
-            .reduce_and()
-            && ori.angle_between(last_ori).is_finite()
-        {
-            ori.angle_between(last_ori).min(0.15)
-                * last_ori.determine_side(Vec2::zero(), ori).signum()
-        } else {
-            0.0
-        } * 0.8;
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
@@ -129,8 +114,7 @@ impl Animation for GlidingAnimation {
         next.draw.scale = Vec3::one();
 
         next.torso.offset = Vec3::new(0.0, 6.0, 15.0) / 11.0 * skeleton_attr.scaler;
-        next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + wave_very_slow * 0.10)
-            * Quaternion::rotation_y(tilt * 16.0);
+        next.torso.ori = Quaternion::rotation_x(-0.05 * speed.max(12.0) + wave_very_slow * 0.10);
         next.torso.scale = Vec3::one() / 11.0 * skeleton_attr.scaler;
 
         next

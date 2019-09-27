@@ -117,9 +117,8 @@ pub struct OriQ {
 impl OriQ {
     pub fn new(q: Quaternion<f32>) -> Self {
         let l = q.magnitude_squared();
-        let flag = l.is_nan() || l.is_infinite() || l == 0.0; 
         Self {
-            oriq: if flag { Quaternion::identity() } else { q.normalized() }
+            oriq: if !l.is_finite() || l == 0.0 { Quaternion::identity() } else { q.normalized() }
         }
     }
     
