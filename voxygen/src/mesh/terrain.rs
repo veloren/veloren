@@ -160,10 +160,11 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                         .ok()
                         .filter(|vox| vox.is_opaque())
                         .and_then(|vox| vox.get_color())
-                        .map(|col| col.map(|e| e as f32 / 255.0))
+                        .map(|col| Rgba::from_opaque(col))
+                        .unwrap_or(Rgba::zero())
                 };
 
-                let mut colors = [[[None; 3]; 3]; 3];
+                let mut colors = [[[Rgba::zero(); 3]; 3]; 3];
                 for i in 0..3 {
                     for j in 0..3 {
                         for k in 0..3 {
