@@ -123,7 +123,7 @@ impl Scene {
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
         const VD: f32 = 115.0; //View Distance
-        const TIME: f64 = 36000.0; // hours*3600 seconds
+        const TIME: f64 = 43200.0; // hours*3600 seconds
         if let Err(err) = renderer.update_consts(
             &mut self.globals,
             &[Globals::new(
