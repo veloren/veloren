@@ -120,26 +120,23 @@ impl<'a> Widget for Bag<'a> {
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
+        let mid_height = ((inventory.len() + 4) / 5) as f64 * 44.0;
+        Image::new(self.imgs.bag_mid)
+            .w_h(61.0 * BAG_SCALE, mid_height)
+            .up_from(state.ids.bag_bot, 0.0)
+            .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
             .set(state.ids.bag_top, ui);
-        Image::new(self.imgs.bag_mid)
-            .w_h(61.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0)
-            .up_from(state.ids.bag_bot, 0.0)
-            .set(state.ids.bag_mid, ui);
 
         // Alignment for Grid
-        Rectangle::fill_with(
-            [54.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0],
-            color::TRANSPARENT,
-        )
-        .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
-        .scroll_kids()
-        .scroll_kids_vertically()
-        .set(state.ids.inv_alignment, ui);
-        // Create available inventory slot widgets
+        Rectangle::fill_with([54.0 * BAG_SCALE, mid_height], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.bag_mid, 0.0, 3.0 * BAG_SCALE)
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment, ui);
 
+        // Create available inventory slot widgets
         if state.ids.inv_slots.len() < inventory.len() {
             state.update(|s| {
                 s.ids
@@ -147,7 +144,6 @@ impl<'a> Widget for Bag<'a> {
                     .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
-
         if state.ids.items.len() < inventory.len() {
             state.update(|s| {
                 s.ids
@@ -157,7 +153,6 @@ impl<'a> Widget for Bag<'a> {
         }
 
         // Display inventory contents
-
         for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 5;
             let y = i / 5;
@@ -171,16 +166,15 @@ impl<'a> Widget for Bag<'a> {
                     4.0 + y as f64 * (40.0 + 4.0),
                     4.0 + x as f64 * (40.0 + 4.0),
                 ) // conrod uses a (y,x) format for placing...
-                .parent(state.ids.inv_alignment) // Avoids the background overlapping available slots
+                // (the margin placement functions do this because that is the same order as "top left")
                 .w_h(40.0, 40.0)
                 .image_color(if is_selected {
                     color::WHITE
                 } else {
                     color::DARK_YELLOW
-                })
-                .floating(true);
+                });
 
-            let slot_widget = if let Some(item) = item {
+            let slot_widget_clicked = if let Some(item) = item {
                 slot_widget
                     .with_tooltip(
                         self.tooltip_manager,
@@ -191,10 +185,11 @@ impl<'a> Widget for Bag<'a> {
                     .set(state.ids.inv_slots[i], ui)
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui)
-            };
+            }
+            .was_clicked();
 
             // Item
-            if slot_widget.was_clicked() {
+            if slot_widget_clicked {
                 let selected_slot = match state.selected_slot {
                     Some(a) => {
                         if a == i {
@@ -227,7 +222,6 @@ impl<'a> Widget for Bag<'a> {
         }
 
         // Close button
-
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)
