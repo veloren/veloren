@@ -11,13 +11,10 @@ use crate::render::{
 /// `dirs` should be a slice of length 5 so that the sliding window of size 2 over the slice
 /// yields each vertex' adjacent positions.
 #[allow(unsafe_code)]
-fn get_ao_quad<V: ReadVol>(
-    _vol: &V,
-    pos: Vec3<i32>,
+fn get_ao_quad(
     shift: Vec3<i32>,
     dirs: &[Vec3<i32>],
     darknesses: &[[[f32; 3]; 3]; 3],
-    is_opaque: impl Fn(&V::Vox) -> bool,
 ) -> Vec4<(f32, f32)> {
     dirs.windows(2)
         .map(|offs| {
@@ -77,14 +74,7 @@ fn get_ao_quad<V: ReadVol>(
 }
 
 #[allow(unsafe_code)]
-fn get_col_quad<V: ReadVol>(
-    _vol: &V,
-    _pos: Vec3<i32>,
-    _shift: Vec3<i32>,
-    dirs: &[Vec3<i32>],
-    cols: &[[[Rgba<u8>; 3]; 3]; 3],
-    _is_opaque: impl Fn(&V::Vox) -> bool,
-) -> Vec4<Rgb<f32>> {
+fn get_col_quad(dirs: &[Vec3<i32>], cols: &[[[Rgba<u8>; 3]; 3]; 3]) -> Vec4<Rgb<f32>> {
     dirs.windows(2)
         .map(|offs| {
             let primary_col = Rgb::from(cols[1][1][1]).map(|e: u8| e as f32);
@@ -128,7 +118,7 @@ fn create_quad<P: Pipeline, F: Fn(Vec3<f32>, Vec3<f32>, Rgb<f32>, f32, f32) -> P
     let darkness = darkness_ao.map(|e| e.0);
     let ao = darkness_ao.map(|e| e.1);
 
-    let ao_map = ao.map(|e| 0.05 + e.powf(1.2) * 0.95);
+    let ao_map = ao;
 
     if ao[0].min(ao[2]).min(darkness[0]).min(darkness[2])
         < ao[1].min(ao[3]).min(darkness[1]).min(darkness[3])
@@ -171,7 +161,6 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
     error_makes_face: bool,
     darknesses: &[[[f32; 3]; 3]; 3],
     should_add: impl Fn(&V::Vox) -> bool,
-    is_opaque: impl Fn(&V::Vox) -> bool,
 ) {
     let (x, y, z) = (Vec3::unit_x(), Vec3::unit_y(), Vec3::unit_z());
 
@@ -186,22 +175,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             Vec3::unit_y(),
             -Vec3::unit_x(),
-            get_col_quad(
-                vol,
-                pos,
-                -Vec3::unit_x(),
-                &[-z, -y, z, y, -z],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_x(),
-                &[-z, -y, z, y, -z],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-z, -y, z, y, -z], cols),
+            get_ao_quad(-Vec3::unit_x(), &[-z, -y, z, y, -z], darknesses),
             &vcons,
         ));
     }
@@ -216,22 +191,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             Vec3::unit_z(),
             Vec3::unit_x(),
-            get_col_quad(
-                vol,
-                pos,
-                Vec3::unit_x(),
-                &[-y, -z, y, z, -y],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_x(),
-                &[-y, -z, y, z, -y],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-y, -z, y, z, -y], cols),
+            get_ao_quad(Vec3::unit_x(), &[-y, -z, y, z, -y], darknesses),
             &vcons,
         ));
     }
@@ -246,22 +207,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             Vec3::unit_z(),
             -Vec3::unit_y(),
-            get_col_quad(
-                vol,
-                pos,
-                -Vec3::unit_y(),
-                &[-x, -z, x, z, -x],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_y(),
-                &[-x, -z, x, z, -x],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-x, -z, x, z, -x], cols),
+            get_ao_quad(-Vec3::unit_y(), &[-x, -z, x, z, -x], darknesses),
             &vcons,
         ));
     }
@@ -276,22 +223,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_z(),
             Vec3::unit_x(),
             Vec3::unit_y(),
-            get_col_quad(
-                vol,
-                pos,
-                Vec3::unit_y(),
-                &[-z, -x, z, x, -z],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_y(),
-                &[-z, -x, z, x, -z],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-z, -x, z, x, -z], cols),
+            get_ao_quad(Vec3::unit_y(), &[-z, -x, z, x, -z], darknesses),
             &vcons,
         ));
     }
@@ -306,22 +239,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_y(),
             Vec3::unit_x(),
             -Vec3::unit_z(),
-            get_col_quad(
-                vol,
-                pos,
-                -Vec3::unit_z(),
-                &[-y, -x, y, x, -y],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                -Vec3::unit_z(),
-                &[-y, -x, y, x, -y],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-y, -x, y, x, -y], cols),
+            get_ao_quad(-Vec3::unit_z(), &[-y, -x, y, x, -y], darknesses),
             &vcons,
         ));
     }
@@ -336,22 +255,8 @@ pub fn push_vox_verts<V: ReadVol, P: Pipeline>(
             Vec3::unit_x(),
             Vec3::unit_y(),
             Vec3::unit_z(),
-            get_col_quad(
-                vol,
-                pos,
-                Vec3::unit_z(),
-                &[-x, -y, x, y, -x],
-                cols,
-                &is_opaque,
-            ),
-            get_ao_quad(
-                vol,
-                pos,
-                Vec3::unit_z(),
-                &[-x, -y, x, y, -x],
-                darknesses,
-                &is_opaque,
-            ),
+            get_col_quad(&[-x, -y, x, y, -x], cols),
+            get_ao_quad(Vec3::unit_z(), &[-x, -y, x, y, -x], darknesses),
             &vcons,
         ));
     }
