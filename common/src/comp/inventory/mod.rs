@@ -5,7 +5,6 @@ pub mod item;
 pub use self::item::{Debug, Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
-//use specs_idvs::IDVStorage;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Inventory {
@@ -44,6 +43,10 @@ impl Inventory {
             }
             None => Err(item),
         }
+    }
+
+    pub fn is_full(&self) -> bool {
+        self.slots.iter().all(|slot| slot.is_some())
     }
 
     /// Get content of a slot

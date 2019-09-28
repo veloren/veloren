@@ -117,6 +117,27 @@ impl PlayState for SessionState {
                 .compute_dependents(&self.client.borrow());
             let cam_dir: Vec3<f32> = Vec3::from(view_mat.inverted() * -Vec4::unit_z());
 
+            // Check to see whether we're aiming at anything
+            let (build_pos, select_pos) = {
+                let client = self.client.borrow();
+                let terrain = client.state().terrain();
+                let ray = terrain
+                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
+                    .until(|block| block.is_tangible())
+                    .cast();
+                let dist = ray.0;
+                if let Ok(Some(_)) = ray.1 {
+                    // Hit something!
+                    (
+                        Some((cam_pos + cam_dir * (dist - 0.01)).map(|e| e.floor() as i32)),
+                        Some((cam_pos + cam_dir * dist).map(|e| e.floor() as i32)),
+                    )
+                } else {
+                    (None, None)
+                }
+            };
+            self.scene.set_select_pos(select_pos);
+
             // Reset controller events
             self.controller.clear_events();
 
@@ -142,16 +163,8 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            let (d, b) = {
-                                let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                            };
-
-                            if b {
-                                let pos =
-                                    (cam_pos + cam_dir * (d - 0.01)).map(|e| e.floor() as i32);
-                                client.place_block(pos, self.selected_block);
+                            if let Some(build_pos) = build_pos {
+                                client.place_block(build_pos, self.selected_block);
                             }
                         } else {
                             self.controller.primary = state
@@ -159,7 +172,10 @@ impl PlayState for SessionState {
                     }
 
                     Event::InputUpdate(GameInput::Secondary, state) => {
+                        self.controller.secondary = false; // To be changed later on
+
                         let mut client = self.client.borrow_mut();
+
                         if state
                             && client
                                 .state()
@@ -167,18 +183,21 @@ impl PlayState for SessionState {
                                 .get(client.entity())
                                 .is_some()
                         {
-                            let (d, b) = {
-                                let terrain = client.state().terrain();
-                                let ray = terrain.ray(cam_pos, cam_pos + cam_dir * 100.0).cast();
-                                (ray.0, if let Ok(Some(_)) = ray.1 { true } else { false })
-                            };
-
-                            if b {
-                                let pos = (cam_pos + cam_dir * d).map(|e| e.floor() as i32);
-                                client.remove_block(pos);
+                            if let Some(select_pos) = select_pos {
+                                client.remove_block(select_pos);
                             }
-                        } else {
+                        } else if client
+                            .state()
+                            .read_storage::<comp::CharacterState>()
+                            .get(client.entity())
+                            .map(|cs| cs.action.is_wield())
+                            .unwrap_or(false)
+                        {
                             self.controller.secondary = state;
+                        } else {
+                            if let Some(select_pos) = select_pos {
+                                client.collect_block(select_pos);
+                            }
                         }
                     }
                     Event::InputUpdate(GameInput::Roll, state) => {
@@ -190,14 +209,10 @@ impl PlayState for SessionState {
                             .is_some()
                         {
                             if state {
-                                if let Ok(Some(block)) = client
-                                    .state()
-                                    .terrain()
-                                    .ray(cam_pos, cam_pos + cam_dir * 100.0)
-                                    .cast()
-                                    .1
+                                if let Some(block) = select_pos
+                                    .and_then(|sp| client.state().terrain().get(sp).ok().copied())
                                 {
-                                    self.selected_block = *block;
+                                    self.selected_block = block;
                                 }
                             }
                         } else {
@@ -409,11 +424,16 @@ impl PlayState for SessionState {
                             self.hud.scale_change(scale_change);
                         global_state.settings.save_to_file_warn();
                     }
+                    HudEvent::AdjustMusicVolume(music_volume) => {
+                        global_state.audio.set_music_volume(music_volume);
 
-                    HudEvent::AdjustVolume(volume) => {
-                        global_state.audio.set_music_volume(volume);
+                        global_state.settings.audio.music_volume = music_volume;
+                        global_state.settings.save_to_file_warn();
+                    }
+                    HudEvent::AdjustSfxVolume(sfx_volume) => {
+                        global_state.audio.set_sfx_volume(sfx_volume);
 
-                        global_state.settings.audio.music_volume = volume;
+                        global_state.settings.audio.sfx_volume = sfx_volume;
                         global_state.settings.save_to_file_warn();
                     }
                     HudEvent::ChangeAudioDevice(name) => {
@@ -436,7 +456,17 @@ impl PlayState for SessionState {
                     HudEvent::ChangeFOV(new_fov) => {
                         global_state.settings.graphics.fov = new_fov;
                         global_state.settings.save_to_file_warn();
-                        &self.scene.camera_mut().set_fov_deg(new_fov);
+                        self.scene.camera_mut().set_fov_deg(new_fov);
+                    }
+                    HudEvent::ChangeAaMode(new_aa_mode) => {
+                        // Do this first so if it crashes the setting isn't saved :)
+                        global_state
+                            .window
+                            .renderer_mut()
+                            .set_aa_mode(new_aa_mode)
+                            .unwrap();
+                        global_state.settings.graphics.aa_mode = new_aa_mode;
+                        global_state.settings.save_to_file_warn();
                     }
                 }
             }

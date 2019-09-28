@@ -29,9 +29,17 @@ pub enum BlockKind {
     Apple,
     Mushroom,
     Liana,
+    Velorite,
 }
 
 impl BlockKind {
+    pub fn is_tangible(&self) -> bool {
+        match self {
+            BlockKind::Air => false,
+            kind => !kind.is_fluid(),
+        }
+    }
+
     pub fn is_air(&self) -> bool {
         match self {
             BlockKind::Air => true,
@@ -54,6 +62,7 @@ impl BlockKind {
             BlockKind::Apple => true,
             BlockKind::Mushroom => true,
             BlockKind::Liana => true,
+            BlockKind::Velorite => true,
             _ => false,
         }
     }
@@ -88,6 +97,7 @@ impl BlockKind {
             BlockKind::Apple => false,
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
+            BlockKind::Velorite => false,
             _ => true,
         }
     }
@@ -116,6 +126,25 @@ impl BlockKind {
             BlockKind::Mushroom => false,
             BlockKind::Liana => false,
             _ => true,
+        }
+    }
+
+    pub fn is_collectible(&self) -> bool {
+        match self {
+            BlockKind::BlueFlower => true,
+            BlockKind::PinkFlower => true,
+            BlockKind::PurpleFlower => true,
+            BlockKind::RedFlower => true,
+            BlockKind::WhiteFlower => true,
+            BlockKind::YellowFlower => true,
+            BlockKind::Sunflower => true,
+            BlockKind::LongGrass => true,
+            BlockKind::MediumGrass => true,
+            BlockKind::ShortGrass => true,
+            BlockKind::Apple => true,
+            BlockKind::Mushroom => true,
+            BlockKind::Velorite => true,
+            _ => false,
         }
     }
 }

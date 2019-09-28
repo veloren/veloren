@@ -19,6 +19,7 @@ use crate::{
 };
 use common::{
     comp,
+    effect::Effect,
     event::{EventBus, ServerEvent},
     msg::{ClientMsg, ClientState, RequestStateError, ServerError, ServerInfo, ServerMsg},
     net::PostOffice,
@@ -355,6 +356,11 @@ impl Server {
                 ServerEvent::Respawn(entity) => {
                     // Only clients can respawn
                     if let Some(client) = clients.get_mut(&entity) {
+                        let respawn_point = state
+                            .read_component_cloned::<comp::Waypoint>(entity)
+                            .map(|wp| wp.get_pos())
+                            .unwrap_or(state.ecs().read_resource::<SpawnPoint>().0);
+
                         client.allow_state(ClientState::Character);
                         state
                             .ecs_mut()
@@ -365,7 +371,7 @@ impl Server {
                             .ecs_mut()
                             .write_storage::<comp::Pos>()
                             .get_mut(entity)
-                            .map(|pos| pos.0.z += 20.0);
+                            .map(|pos| pos.0 = respawn_point);
                         let _ = state
                             .ecs_mut()
                             .write_storage()
@@ -765,7 +771,6 @@ impl Server {
         let mut new_chat_msgs = Vec::new();
         let mut disconnected_clients = Vec::new();
         let mut requested_chunks = Vec::new();
-        let mut modified_blocks = Vec::new();
         let mut dropped_items = Vec::new();
 
         self.clients.remove_if(|entity, client| {
@@ -866,6 +871,17 @@ impl Server {
 
                                         stats.equipment.main = item;
                                     }
+                                }
+                                Some(comp::Item::Consumable { effect, .. }) => {
+                                    state.apply_effect(entity, effect);
+                                }
+                                Some(item) => {
+                                    // Re-insert it if unused
+                                    let _ = state
+                                        .ecs()
+                                        .write_storage::<comp::Inventory>()
+                                        .get_mut(entity)
+                                        .map(|inv| inv.insert(x, item));
                                 }
                                 _ => {}
                             }
@@ -1003,7 +1019,7 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                modified_blocks.push((pos, Block::empty()));
+                                state.set_block(pos, Block::empty());
                             }
                         }
                         ClientMsg::PlaceBlock(pos, block) => {
@@ -1013,7 +1029,25 @@ impl Server {
                                 .get(entity)
                                 .is_some()
                             {
-                                modified_blocks.push((pos, block));
+                                state.try_set_block(pos, block);
+                            }
+                        }
+                        ClientMsg::CollectBlock(pos) => {
+                            let block = state.terrain().get(pos).ok().copied();
+                            if let Some(block) = block {
+                                if block.is_collectible()
+                                    && state
+                                        .ecs()
+                                        .read_storage::<comp::Inventory>()
+                                        .get(entity)
+                                        .map(|inv| !inv.is_full())
+                                        .unwrap_or(false)
+                                {
+                                    if state.try_set_block(pos, Block::empty()).is_some() {
+                                        comp::Item::try_reclaim_from_block(block)
+                                            .map(|item| state.give_item(entity, item));
+                                    }
+                                }
                             }
                         }
                         ClientMsg::TerrainChunkRequest { key } => match client.client_state {
@@ -1115,10 +1149,6 @@ impl Server {
         // Generate requested chunks.
         for (entity, key) in requested_chunks {
             self.generate_chunk(entity, key);
-        }
-
-        for (pos, block) in modified_blocks {
-            self.state.set_block(pos, block);
         }
 
         for (pos, ori, item) in dropped_items {
@@ -1382,5 +1412,42 @@ impl Server {
 impl Drop for Server {
     fn drop(&mut self) {
         self.clients.notify_registered(ServerMsg::Shutdown);
+    }
+}
+
+trait StateExt {
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool;
+    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect);
+}
+
+impl StateExt for State {
+    fn give_item(&mut self, entity: EcsEntity, item: comp::Item) -> bool {
+        let success = self
+            .ecs()
+            .write_storage::<comp::Inventory>()
+            .get_mut(entity)
+            .map(|inv| inv.push(item).is_none())
+            .unwrap_or(false);
+        if success {
+            self.write_component(entity, comp::InventoryUpdate);
+        }
+        success
+    }
+
+    fn apply_effect(&mut self, entity: EcsEntity, effect: Effect) {
+        match effect {
+            Effect::Health(hp, source) => {
+                self.ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(entity)
+                    .map(|stats| stats.health.change_by(hp, source));
+            }
+            Effect::Xp(xp) => {
+                self.ecs_mut()
+                    .write_storage::<comp::Stats>()
+                    .get_mut(entity)
+                    .map(|stats| stats.exp.change_by(xp));
+            }
+        }
     }
 }

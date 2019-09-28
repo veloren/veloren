@@ -168,18 +168,18 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             + (sim
                 .gen_ctx
                 .small_nz
-                .get((wposf_turb.div(150.0)).into_array()) as f32)
+                .get((wposf_turb.div(200.0)).into_array()) as f32)
                 .abs()
-                .mul(chaos.max(0.025))
-                .mul(64.0)
+                .mul(chaos.max(0.05))
+                .mul(55.0)
             + (sim
                 .gen_ctx
                 .small_nz
-                .get((wposf_turb.div(450.0)).into_array()) as f32)
+                .get((wposf_turb.div(400.0)).into_array()) as f32)
                 .abs()
-                .mul(1.0 - chaos)
+                .mul((1.0 - chaos).max(0.3))
                 .mul(1.0 - humidity)
-                .mul(96.0);
+                .mul(65.0);
 
         let is_cliffs = sim_chunk.is_cliffs;
         let near_cliffs = sim_chunk.near_cliffs;
@@ -207,6 +207,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
 
         let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
+            .powf(3.0)
             .add(1.0)
             .mul(0.5);
         let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
@@ -225,13 +226,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let wet_grass = Rgb::new(0.1, 0.8, 0.2);
         let cold_stone = Rgb::new(0.57, 0.67, 0.8);
         let warm_stone = Rgb::new(0.77, 0.77, 0.64);
-        let beach_sand = Rgb::new(0.89, 0.87, 0.64);
-        let desert_sand = Rgb::new(0.93, 0.80, 0.54);
+        let beach_sand = Rgb::new(0.9, 0.82, 0.6);
+        let desert_sand = Rgb::new(0.95, 0.75, 0.5);
         let snow = Rgb::new(0.8, 0.85, 1.0);
 
         let dirt = Lerp::lerp(
-            Rgb::new(0.078, 0.078, 0.20),
-            Rgb::new(0.61, 0.49, 0.0),
+            Rgb::new(0.075, 0.07, 0.3),
+            Rgb::new(0.75, 0.55, 0.1),
             marble,
         );
         let tundra = Lerp::lerp(snow, Rgb::new(0.01, 0.3, 0.0), 0.4 + marble * 0.6);

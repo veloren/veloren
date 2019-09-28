@@ -1,3 +1,8 @@
+use crate::{
+    comp,
+    effect::Effect,
+    terrain::{Block, BlockKind},
+};
 use specs::{Component, FlaggedStorage};
 use specs_idvs::IDVStorage;
 
@@ -70,10 +75,38 @@ impl Armor {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ConsumptionEffect {
-    Health(i32),
-    Xp(i32),
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Consumable {
+    Apple,
+    Potion,
+    Mushroom,
+    Velorite,
+}
+
+impl Consumable {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Consumable::Apple => "apple",
+            Consumable::Potion => "potion",
+            Consumable::Mushroom => "mushroom",
+            Consumable::Velorite => "velorite",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Ingredient {
+    Flower,
+    Grass,
+}
+
+impl Ingredient {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Ingredient::Flower => "flower",
+            Ingredient::Grass => "grass",
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -93,9 +126,12 @@ pub enum Item {
         health_bonus: i32,
     },
     Consumable {
-        effect: ConsumptionEffect,
+        kind: Consumable,
+        effect: Effect,
     },
-    Ingredient,
+    Ingredient {
+        kind: Ingredient,
+    },
     Debug(Debug),
 }
 
@@ -104,8 +140,8 @@ impl Item {
         match self {
             Item::Tool { kind, .. } => kind.name(),
             Item::Armor { kind, .. } => kind.name(),
-            Item::Consumable { .. } => "<consumable>",
-            Item::Ingredient => "<ingredient>",
+            Item::Consumable { kind, .. } => kind.name(),
+            Item::Ingredient { kind } => kind.name(),
             Item::Debug(_) => "Debugging item",
         }
     }
@@ -115,13 +151,67 @@ impl Item {
             Item::Tool { .. } => "tool",
             Item::Armor { .. } => "armour",
             Item::Consumable { .. } => "consumable",
-            Item::Ingredient => "ingredient",
+            Item::Ingredient { .. } => "ingredient",
             Item::Debug(_) => "debug",
         }
     }
 
     pub fn description(&self) -> String {
         format!("{} ({})", self.name(), self.category())
+    }
+
+    pub fn try_reclaim_from_block(block: Block) -> Option<Self> {
+        match block.kind() {
+            BlockKind::Apple => Some(Self::apple()),
+            BlockKind::Mushroom => Some(Self::mushroom()),
+            BlockKind::Velorite => Some(Self::velorite()),
+            BlockKind::BlueFlower => Some(Self::flower()),
+            BlockKind::PinkFlower => Some(Self::flower()),
+            BlockKind::PurpleFlower => Some(Self::flower()),
+            BlockKind::RedFlower => Some(Self::flower()),
+            BlockKind::WhiteFlower => Some(Self::flower()),
+            BlockKind::YellowFlower => Some(Self::flower()),
+            BlockKind::Sunflower => Some(Self::flower()),
+            BlockKind::LongGrass => Some(Self::grass()),
+            BlockKind::MediumGrass => Some(Self::grass()),
+            BlockKind::ShortGrass => Some(Self::grass()),
+            _ => None,
+        }
+    }
+
+    // General item constructors
+
+    pub fn apple() -> Self {
+        Item::Consumable {
+            kind: Consumable::Apple,
+            effect: Effect::Health(20, comp::HealthSource::Item),
+        }
+    }
+
+    pub fn mushroom() -> Self {
+        Item::Consumable {
+            kind: Consumable::Mushroom,
+            effect: Effect::Health(10, comp::HealthSource::Item),
+        }
+    }
+
+    pub fn velorite() -> Self {
+        Item::Consumable {
+            kind: Consumable::Mushroom,
+            effect: Effect::Xp(250),
+        }
+    }
+
+    pub fn flower() -> Self {
+        Item::Ingredient {
+            kind: Ingredient::Flower,
+        }
+    }
+
+    pub fn grass() -> Self {
+        Item::Ingredient {
+            kind: Ingredient::Grass,
+        }
     }
 }
 
