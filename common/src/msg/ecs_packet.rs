@@ -30,6 +30,7 @@ sphynx::sum_type! {
         MountState(comp::MountState),
         Mounting(comp::Mounting),
         Mass(comp::Mass),
+        Projectile(comp::Projectile),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -50,6 +51,7 @@ sphynx::sum_type! {
         MountState(PhantomData<comp::MountState>),
         Mounting(PhantomData<comp::Mounting>),
         Mass(PhantomData<comp::Mass>),
+        Projectile(PhantomData<comp::Projectile>),
     }
 }
 impl sphynx::CompPacket for EcsCompPacket {

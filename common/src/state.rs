@@ -132,6 +132,7 @@ impl State {
         ecs.register_synced::<comp::Mounting>();
         ecs.register_synced::<comp::MountState>();
         ecs.register_synced::<comp::Mass>();
+        ecs.register_synced::<comp::Projectile>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -157,7 +158,6 @@ impl State {
         ecs.register::<comp::Inventory>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
-        ecs.register::<comp::Projectile>();
 
         // Register synced resources used by the ECS.
         ecs.insert_synced(TimeOfDay(0.0));
