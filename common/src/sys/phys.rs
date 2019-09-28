@@ -27,9 +27,8 @@ const FRIC_FLUID: f32 = 0.2;
 // damp = linear damping
 // Friction is a type of damping.
 fn integrate_forces(dt: f32, mut lv: Vec3<f32>, grav: f32, damp: f32) -> Vec3<f32> {
-    // this is not linear damping, because it is proportional to the original
-    // velocity this "linear" damping in in fact, quite exponential. and thus
-    // must be interpolated accordingly
+    // this is linear damping as it is proportional to the original velocity
+    // (and hence exponential as a function of time)
     let linear_damp = (1.0 - damp.min(1.0)).powf(dt * 60.0);
 
     lv.z = (lv.z - grav * dt).max(-50.0);

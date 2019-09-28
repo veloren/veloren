@@ -13,7 +13,7 @@ pub enum MovementState {
     Sit,
     Run,
     Jump,
-    Glide { oriq: OriQ },
+    Glide { oriq: OriQ, rotq: OriQ },
     Roll { time_left: Duration },
     Swim,
     Climb,
@@ -37,7 +37,7 @@ impl MovementState {
     }
     
     pub fn start_glide(&mut self, ori: Vec3<f32>) {
-        *self = Self::Glide { oriq: OriQ::from(ori) }
+        *self = Self::Glide { oriq: OriQ::from(ori), rotq: OriQ::new() }
     }
 }
 
@@ -115,10 +115,9 @@ pub struct OriQ {
 }
 
 impl OriQ {
-    pub fn new(q: Quaternion<f32>) -> Self {
-        let l = q.magnitude_squared();
+    pub fn new() -> Self {
         Self {
-            oriq: if !l.is_finite() || l == 0.0 { Quaternion::identity() } else { q.normalized() }
+            oriq: Quaternion::identity()
         }
     }
     
@@ -132,6 +131,10 @@ impl OriQ {
     
     pub fn left(&self) -> Vec3<f32> {
         self.oriq * -Vec3::unit_x()
+    }
+    
+    pub fn set(&mut self, q: Quaternion<f32>) {
+        self.oriq = q
     }
 }
 
@@ -147,6 +150,15 @@ impl From<Vec3<f32>> for OriQ {
     fn from(v: Vec3<f32>) -> Self {
         Self {
             oriq: Quaternion::rotation_from_to_3d(Vec3::unit_y(), v)
+        }
+    }
+}
+
+impl From<Quaternion<f32>> for OriQ {
+    fn from(q: Quaternion<f32>) -> Self {
+        let l = q.magnitude_squared();
+        Self {
+            oriq: if !l.is_finite() || l == 0.0 { Quaternion::identity() } else { q.normalized() }
         }
     }
 }

@@ -179,7 +179,7 @@ impl FigureMgr {
                             &mut movement_animation_rate,
                             skeleton_attr,
                         ),
-                        Glide { oriq: q } => {
+                        Glide { oriq: q, rotq: _ } => {
                             quat_out = Some(q.val());
                             anim::character::GlidingAnimation::update_skeleton(
                             &CharacterSkeleton::new(),

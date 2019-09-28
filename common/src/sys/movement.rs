@@ -27,7 +27,9 @@ const BLOCK_SPEED: f32 = 75.0;
 const MASS: f32 = 10.0;
 const LIFT: f32 = 4.0; // This must be less than 3DRAG[2]^(1/3)(DRAG[0]/2)^(2/3) to conserve energy
 const DRAG: [f32; 3] = [1.0, 1.5, 10.0]; // Drag coefficients (forwards/back, left/right, up/down)
-const ANG_INP: [f32; 2] = [2.0, 3.0]; // Angle changes from user input in a unit time step (pitch and roll)
+const ANG_INP: [f32; 2] = [0.5, 0.8]; // Angle changes from user input in a unit time step (pitch and roll)
+const ANG_DRAG: f32 = 10.0; // The interpolation factor for angular drag in a time step (will be multiplied by dt)
+const ANG_SPRING_K: f32 = 0.2; // "" for the glider tending to return to facing forwards
 const CLIMB_SPEED: f32 = 5.0;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;
@@ -166,25 +168,29 @@ impl<'a> System<'a> for Sys {
             }
 
             // Glide
-            if let Glide { oriq: q } = &mut character.movement {
+            if let Glide { oriq: q, rotq: dq } = &mut character.movement {
                 character.action = Idle;
                 // --- Calculate forces on the glider and apply the velocity change in this time step
-                let rot = q.val(); // Rotation quaternion to change reference frames
-                let rot_inv = rot.conjugate(); // The inverse rotation
-                let vf = rot_inv * vel.0; // The character's velocity in the stationary reference frame that has the front of the glider aligned with +y
+                let frame = q.val(); // Rotation quaternion to change reference frames
+                let frame_inv = frame.conjugate(); // The inverse rotation
+                let frame_v = Quaternion::rotation_from_to_3d(Vec3::unit_y(), vel.0); // Rotation to the direction of the velocity
+                let vf = frame_inv * vel.0; // The character's velocity in the stationary reference frame that has the front of the glider aligned with +y
                 let lift = Vec3::new(0.0, 0.0, LIFT * vf.y * vf.y.abs()); // Calculate lift force from the forwards-velocity
                 let drag = Vec3::from(DRAG) * vf.map(|v| -v * v.abs()); // Quadratic drag along each axis
-                let acc = rot * (lift + drag) / MASS; // Acceleration rotated back into the space frame
+                let acc = frame * (lift + drag) / MASS; // Acceleration rotated back into the space frame
                 vel.0 += dt.0 * acc;
                 // --- Handle rotation changes from user input
                 let (mx, my) = controller.control_dir.into_tuple();
-                let deltatheta = my * ANG_INP[0] * dt.0; // Pitch change in this time step, forward = pitch down
-                let deltachi = mx * ANG_INP[1] * dt.0; // Roll change in this time step
-                *q *= Quaternion::rotation_3d(deltachi, q.ori()); // Apply roll change
+                let deltatheta = my * ANG_INP[0] * dt.0; // Pitch change in this time step, forward = positive = pitch down
+                let deltachi = mx * ANG_INP[1] * dt.0; // Roll change in this time step, positive = roll right
+                dq.set(Slerp::slerp(dq.val(), Quaternion::identity(), ANG_DRAG * dt.0)); // Angular velocity decay
+                *dq *= Quaternion::rotation_3d(deltachi, q.ori()); // Apply roll change
                 if deltatheta != 0.0 {
                     let v2 = q.left(); // Axis of rotation for pitch changes
-                    *q *= Quaternion::rotation_3d(deltatheta, v2); // Apply pitch change
+                    *dq *= Quaternion::rotation_3d(deltatheta, v2); // Apply pitch change
                 }
+                *q *= dq.val();
+                q.set(Slerp::slerp(q.val(), frame_v, ANG_SPRING_K * dt.0));
                 ori.0 = q.val() * ori.0; // Update the orientation vector so we are facing the right way when we land
             }
 
