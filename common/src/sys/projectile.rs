@@ -10,8 +10,8 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        ReadStorage<'a, Vel>,
         ReadStorage<'a, PhysicsState>,
+        WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
     );
@@ -21,8 +21,8 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_bus,
-            velocities,
             physics_states,
+            mut velocities,
             mut orientations,
             mut projectiles,
         ): Self::SystemData,
@@ -30,25 +30,25 @@ impl<'a> System<'a> for Sys {
         let mut server_emitter = server_bus.emitter();
 
         // Attacks
-        for (entity, vel, physics, ori, projectile) in (
+        for (entity, physics, ori, projectile) in (
             &entities,
-            &velocities,
             &physics_states,
             &mut orientations,
             &mut projectiles,
         )
             .join()
         {
-            ori.0 = vel.0.normalized();
+            if let Some(vel) = velocities.get(entity) {
+                ori.0 = vel.0.normalized();
+            }
 
             // Hit ground
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
                     match effect {
-                        projectile::Effect::Vanish => server_emitter.emit(ServerEvent::Destroy {
-                            entity,
-                            cause: HealthSource::World,
-                        }),
+                        projectile::Effect::Stick => {
+                            velocities.remove(entity);
+                        }
                         _ => {}
                     }
                 }
@@ -68,6 +68,7 @@ impl<'a> System<'a> for Sys {
                             entity,
                             cause: HealthSource::World,
                         }),
+                        _ => {}
                     }
                 }
             }
