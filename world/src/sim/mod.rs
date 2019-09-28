@@ -32,6 +32,8 @@ use std::{
     sync::Arc,
 };
 use serde_derive::{Deserialize, Serialize};
+use serde::ser::{Serialize, Serializer};
+use serde::de::{Deserialize, Deserializer};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -94,21 +96,15 @@ pub struct GenCtx {
     pub town_gen: StructureGen2d,
 }
 
-pub struct WorldSim {
-    pub seed: u32,
-    pub chunks: Vec<SimChunk>,
-    pub locations: Vec<Location>,
-
-    pub gen_ctx: GenCtx,
-    pub rng: ChaChaRng,
-}
-
-
-impl WorldSim {
-    pub fn generate(seed: u32) -> Self {
+impl GenCtx {
+    pub fn from_seed(seed: u32) -> (Self, ChaChaRng) {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
-        let mut gen_ctx = GenCtx {
+        (Self::from_rng(&mut rng), rng)
+    }
+
+    pub fn from_rng(rng: &mut ChaChaRng) -> Self {
+        Self {
             turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
             turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
             chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
@@ -145,7 +141,25 @@ impl WorldSim {
             fast_turb_y_nz: FastNoise::new(rng.gen()),
 
             town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
-        };
+        }
+    }
+}
+
+pub struct WorldSim {
+    pub seed: u32,
+    pub chunks: Vec<SimChunk>,
+    pub locations: Vec<Location>,
+
+    pub gen_ctx: GenCtx,
+    pub rng: ChaChaRng,
+}
+
+
+impl WorldSim {
+    pub fn generate(seed: u32) -> Self {
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+
+        let mut gen_ctx = GenCtx::from_rng(&mut rng);
 
         // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value is
         // from -0.25 * (CONFIG.mountain_scale * 1.1) to 0.25 * (CONFIG.mountain_scale * 0.9),
@@ -580,10 +594,29 @@ pub struct LocationInfo {
     pub near: Vec<RegionInfo>,
 }
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Structures {
     pub town: Option<Arc<TownState>>,
 }
+
+/*impl Serialize for Structures {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self.town {
+            Some(t) => {
+                let mut state = serializer.serialize_struct("town_state", 4)?;
+                t.houses.serialize(serializer)
+            }
+            None => {
+                serializer.serialize_none()
+            }
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Structures {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
+    }
+}*/
 
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {

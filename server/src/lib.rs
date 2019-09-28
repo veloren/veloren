@@ -48,6 +48,7 @@ use std::{
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
+use hashbrown::HashSet;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -482,7 +483,7 @@ impl Server {
         {
             let mut ecs = self.state.ecs_mut();
             if Instant::now() > self.next_save {
-                let map = ecs.read_resource::<TerrainMap>();
+                let map = ecs.read_resource::<TerrainGrid>();
                 let dirtied = self.dirtied_chunks.drain();
                 for i in dirtied {
                     self.world_provider
@@ -1185,9 +1186,10 @@ impl Server {
             self.generate_chunk(entity, key);
         }
 
+        let modified_blocks = &self.state().terrain_changes().modified_blocks.clone();
         for (pos, block) in modified_blocks {
-            self.state.set_block(pos, block);
-            self.dirtied_chunks.insert(TerrainMap::chunk_key(pos));
+            self.state.set_block(*pos, *block);
+            self.dirtied_chunks.insert(TerrainGrid::chunk_key(*pos));
         }
 
         for (pos, ori, item) in dropped_items {
@@ -1409,7 +1411,7 @@ impl Server {
         let world_provider = self.world_provider.clone();
         self.thread_pool.execute(move || {
             let payload = world_provider
-                .generate_chunk(key, || cancel.load(Ordering::Relaxed))
+                .fetch_chunk(key, cancel)
                 .map_err(|_| entity);
             let _ = chunk_tx.send((key, payload));
         });

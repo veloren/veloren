@@ -3,8 +3,9 @@ use common::vol::{BaseVol, ReadVol, Vox, WriteVol};
 use rand::prelude::*;
 use std::ops::Range;
 use vek::*;
+use serde_derive::{Serialize, Deserialize};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum ColumnKind {
     Road,
     //Wall,
@@ -12,7 +13,7 @@ pub enum ColumnKind {
     //External, // Outside the boundary wall
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Serialize, Deserialize)]
 pub struct TownColumn {
     pub ground: i32,
     pub kind: Option<ColumnKind>,
@@ -34,13 +35,13 @@ impl TownColumn {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Module {
     pub vol_idx: usize,
     pub dir: usize,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub enum CellKind {
     Empty,
     Park,
@@ -51,7 +52,7 @@ pub enum CellKind {
     Well,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct TownCell {
     pub kind: CellKind,
     pub module: Option<Module>,
@@ -107,6 +108,7 @@ const UNDERGROUND_DEPTH: i32 = 5;
 
 type GridItem = (i32, TownColumn, Vec<TownCell>);
 
+#[derive(Serialize, Deserialize)]
 pub struct TownVol {
     grid: Grid<GridItem>,
 }

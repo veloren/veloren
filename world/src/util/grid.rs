@@ -1,5 +1,7 @@
 use vek::*;
+use serde_derive::{Serialize, Deserialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Grid<T> {
     cells: Vec<T>,
     size: Vec2<i32>,

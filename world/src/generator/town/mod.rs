@@ -21,6 +21,8 @@ use vek::*;
 
 use self::vol::{CellKind, ColumnKind, Module, TownCell, TownColumn, TownVol};
 
+use serde_derive::{Serialize, Deserialize};
+
 const CELL_SIZE: i32 = 9;
 const CELL_HEIGHT: i32 = 9;
 
@@ -111,10 +113,12 @@ impl<'a> Generator<'a, TownState> for TownGen {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 struct House {
     color: Rgb<u8>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct TownState {
     center: Vec3<i32>,
     radius: i32,

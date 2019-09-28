@@ -14,7 +14,7 @@ rand = "0.7.2"
 rand_chacha = "0.2.1"
 arr_macro = "0.1.2"
 
-serde = "1.0.98"
+serde = { version = "1.0.98", features = ["rc"] }
 serde_derive = "1.0.98"
 
 [dev-dependencies]

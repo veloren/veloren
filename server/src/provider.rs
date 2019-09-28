@@ -1,4 +1,4 @@
-use common::terrain::{TerrainChunk, TerrainMap};
+use common::terrain::{TerrainChunk, TerrainGrid};
 //use std::collections::HashMap;
 use crossbeam::channel;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
@@ -8,10 +8,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use std::sync::{mpsc, Mutex};
+use std::sync::{mpsc, Mutex, Arc, atomic::AtomicBool, atomic::Ordering};
 use std::thread;
 use vek::*;
 use world::{sim, ChunkSupplement, World};
+
 
 fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
     let out = DeflateEncoder::new(BufWriter::new(File::create(t)?), Compression::default());
@@ -122,7 +123,7 @@ impl Provider {
         let chunks = qdeser(t("chunks"))?;
         let locations = qdeser(t("locations"))?;
         let mut seed = qdeser(t("seed"))?;
-        let gen_ctx = sim::GenCtx::from_seed(&mut seed);
+        let (gen_ctx, rng) = sim::GenCtx::from_seed(seed);
 
         Ok(World {
             sim: sim::WorldSim {
@@ -130,7 +131,7 @@ impl Provider {
                 locations,
                 seed,
                 gen_ctx,
-                rng: sim::get_rng(seed),
+                rng,
             },
         })
     }
