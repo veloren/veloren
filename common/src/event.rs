@@ -36,7 +36,11 @@ pub enum ServerEvent {
         cause: comp::HealthSource,
     },
     Respawn(EcsEntity),
-    Shoot(EcsEntity, Vec3<f32>),
+    Shoot {
+        entity: EcsEntity,
+        dir: Vec3<f32>,
+        projectile: comp::Projectile,
+    },
     Mount(EcsEntity, EcsEntity),
     Unmount(EcsEntity),
 }

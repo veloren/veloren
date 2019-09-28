@@ -290,7 +290,11 @@ impl Server {
                     }
                 }
 
-                ServerEvent::Shoot(entity, dir /*, projectile*/) => {
+                ServerEvent::Shoot {
+                    entity,
+                    dir,
+                    projectile,
+                } => {
                     let pos = state
                         .ecs()
                         .read_storage::<comp::Pos>()
@@ -302,13 +306,7 @@ impl Server {
                         comp::Pos(pos),
                         comp::Vel(dir * 100.0),
                         comp::Body::Object(comp::object::Body::Arrow),
-                        comp::Projectile {
-                            hit_ground: vec![comp::projectile::Effect::Vanish],
-                            hit_entity: vec![
-                                comp::projectile::Effect::Damage(10),
-                                comp::projectile::Effect::Vanish,
-                            ],
-                        },
+                        projectile,
                     )
                     .build();
                 }

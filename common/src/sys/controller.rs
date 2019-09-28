@@ -4,8 +4,8 @@ use super::{
 };
 use crate::{
     comp::{
-        item, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
-        MovementState::*, PhysicsState, Stats, Vel,
+        item, projectile, ActionState::*, Body, CharacterState, ControlEvent, Controller, Item,
+        MovementState::*, PhysicsState, Projectile, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
 };
@@ -140,8 +140,17 @@ impl<'a> System<'a> for Sys {
                             if time_left == Duration::default() {
                                 // Immediately end the wield
                                 character.action = Idle;
-                                server_emitter
-                                    .emit(ServerEvent::Shoot(entity, controller.look_dir));
+                                server_emitter.emit(ServerEvent::Shoot {
+                                    entity,
+                                    dir: controller.look_dir,
+                                    projectile: Projectile {
+                                        hit_ground: vec![projectile::Effect::Stick],
+                                        hit_entity: vec![
+                                            projectile::Effect::Damage(10),
+                                            projectile::Effect::Vanish,
+                                        ],
+                                    },
+                                });
                             }
                         }
                     }
