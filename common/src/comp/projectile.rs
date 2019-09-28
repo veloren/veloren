@@ -5,6 +5,7 @@ use specs_idvs::IDVStorage;
 pub enum Effect {
     Damage(u32),
     Vanish,
+    Stick,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
