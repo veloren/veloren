@@ -210,7 +210,7 @@ impl Server {
             .create_entity_synced()
             .with(pos)
             .with(vel)
-            .with(comp::Ori(Vec3::unit_y()))
+            .with(comp::Ori(vel.0.normalized()))
             .with(body)
             .with(projectile)
     }
