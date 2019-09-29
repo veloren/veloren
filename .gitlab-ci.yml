@@ -49,40 +49,28 @@ before_script:
   except:
     - schedules
   when: manual
+  artifacts:
+    paths:
+      - ./
+    expire_in: 1 week
 
 optional:linux-debug:
   <<: *optional
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
-    - rm -r -f optional-build
-    - mkdir optional-build
-    - cp target/debug/veloren-server-cli optional-build
-    - cp target/debug/veloren-voxygen optional-build
-    - cp -r assets optional-build/
-    - tar -cvjSf bin/optional-linux-debug.tar.bz2 optional-build
-    - cp bin/optional-linux-debug.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - optional-linux-debug.tar.bz2
-    expire_in: 1 week
+    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
+    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
 
 optional:windows-debug:
   <<: *optional
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - rm -r -f optional-build
-    - mkdir optional-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe optional-build
-    - cp -r assets optional-build/
-    - zip -r bin/optional-windows-debug.zip optional-build
-    - cp bin/optional-windows-debug.zip $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - optional-windows-debug.zip
-    expire_in: 1 week
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
 
 #############
 # Optional release build
@@ -96,40 +84,28 @@ optional:windows-debug:
   except:
     - schedules
   when: manual
+  artifacts:
+    paths:
+      - ./
+    expire_in: 1 month
 
 optional-release:linux-debug:
   <<: *optional-release
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
-    - rm -r -f optional-release-build
-    - mkdir optional-release-build
-    - cp target/debug/veloren-server-cli optional-release-build
-    - cp target/debug/veloren-voxygen optional-release-build
-    - cp -r assets optional-release-build/
-    - tar -cvjSf bin/optional-release-linux-debug.tar.bz2 optional-release-build
-    - cp bin/optional-release-linux-debug.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - optional-release-linux-debug.tar.bz2
-    expire_in: 1 month
+    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
+    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
 
 optional-release:windows-debug:
   <<: *optional-release
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - rm -r -f optional-release-build
-    - mkdir optional-release-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe optional-release-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe optional-release-build
-    - cp -r assets optional-release-build/
-    - zip -r bin/optional-release-windows-debug.zip optional-release-build
-    - cp bin/optional-release-windows-debug.zip $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - optional-release-windows-debug.zip
-    expire_in: 1 month
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
 
 #############
 # CHECK
@@ -212,83 +188,25 @@ clippy:
   only:
     refs:
       - master
+  artifacts:
+    paths:
+      - ./
+    expire_in: 1 week
 
 commit:linux-debug:
   <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build)
-    - rm -r -f commit-build
-    - mkdir commit-build
-    - cp target/debug/veloren-server-cli commit-build
-    - cp target/debug/veloren-voxygen commit-build
-    - cp -r assets commit-build/
-    - tar -cvjSf bin/commit-linux-debug.tar.bz2 commit-build
-    - cp bin/commit-linux-debug.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - commit-linux-debug.tar.bz2
-    expire_in: 1 week
+    - cp target/debug/veloren-server-cli $CI_PROJECT_DIR
+    - cp target/debug/veloren-voxygen $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
 
 commit:windows-debug:
   <<: *commit
   script:
     - (cd voxygen && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
     - (cd server-cli && VELOREN_ASSETS=assets cargo build --target=x86_64-pc-windows-gnu)
-    - rm -r -f commit-build
-    - mkdir commit-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe commit-build
-    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe commit-build
-    - cp -r assets commit-build/
-    - zip -r bin/commit-windows-debug.zip commit-build
-    - cp bin/commit-windows-debug.zip $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - commit-windows-debug.zip
-    expire_in: 1 week
-
-#############
-# NIGHTLY
-#############
-
-.nightly: &nightly
-  stage: post-build
-  image: registry.gitlab.com/veloren/veloren-docker-ci
-  tags:
-    - veloren-docker
-  only:
-    - schedules
-
-nightly:linux-optimized:
-  <<: *nightly
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release)
-    - rm -r -f nightly-build
-    - mkdir nightly-build
-    - cp target/release/veloren-server-cli nightly-build
-    - cp target/release/veloren-voxygen nightly-build
-    - cp -r assets nightly-build/
-    - tar -cvjSf bin/nightly-linux-optimized.tar.bz2 nightly-build
-    - cp bin/nightly-linux-optimized.tar.bz2 $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - nightly-linux-optimized.tar.bz2
-    expire_in: 2 days
-
-nightly:windows-optimized:
-  <<: *nightly
-  script:
-    - (cd voxygen && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - (cd server-cli && VELOREN_ASSETS=assets cargo build --release --target=x86_64-pc-windows-gnu)
-    - rm -r -f nightly-build
-    - mkdir nightly-build
-    - cp target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe nightly-build
-    - cp target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe nightly-build
-    - cp -r assets nightly-build/
-    - zip -r bin/nightly-windows-optimized.zip nightly-build
-    - cp bin/nightly-windows-optimized.zip $CI_PROJECT_DIR
-  artifacts:
-    paths:
-      - nightly-windows-optimized.zip
-    expire_in: 2 days
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-server-cli.exe $CI_PROJECT_DIR
+    - cp target/x86_64-pc-windows-gnu/debug/veloren-voxygen.exe $CI_PROJECT_DIR
+    - cp -r assets $CI_PROJECT_DIR
