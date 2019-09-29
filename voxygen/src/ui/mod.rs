@@ -15,8 +15,9 @@ pub use widgets::{
     image_frame::ImageFrame,
     image_slider::ImageSlider,
     ingame::{Ingame, IngameAnchor, Ingameable},
+    radio_list::RadioList,
     toggle_button::ToggleButton,
-    tooltip::{Tooltip, Tooltipable},
+    tooltip::{Tooltip, TooltipManager, Tooltipable},
 };
 
 use crate::{
@@ -49,7 +50,6 @@ use std::{
     time::Duration,
 };
 use vek::*;
-use widgets::tooltip::TooltipManager;
 
 #[derive(Debug)]
 pub enum UiError {
@@ -124,8 +124,8 @@ impl Ui {
         let mut ui = UiBuilder::new(win_dims).build();
         let tooltip_manager = TooltipManager::new(
             ui.widget_id_generator(),
-            Duration::from_millis(1000),
-            Duration::from_millis(1000),
+            Duration::from_millis(1),
+            Duration::from_millis(100),
             scale.scale_factor_logical(),
         );
 

@@ -110,66 +110,63 @@ pub struct WorldSim {
 }
 
 impl WorldSim {
-    pub fn generate(mut seed: u32) -> Self {
-        let seed = &mut seed;
-        let mut gen_seed = || {
-            *seed = seed_expan::diffuse(*seed);
-            *seed
-        };
+    pub fn generate(seed: u32) -> Self {
+        let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
 
-        let gen_ctx = GenCtx {
-            turb_x_nz: SuperSimplex::new().set_seed(gen_seed()),
-            turb_y_nz: SuperSimplex::new().set_seed(gen_seed()),
-            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(gen_seed()),
-            hill_nz: SuperSimplex::new().set_seed(gen_seed()),
+        let mut gen_ctx = GenCtx {
+            turb_x_nz: SuperSimplex::new().set_seed(rng.gen()),
+            turb_y_nz: SuperSimplex::new().set_seed(rng.gen()),
+            chaos_nz: RidgedMulti::new().set_octaves(7).set_seed(rng.gen()),
+            hill_nz: SuperSimplex::new().set_seed(rng.gen()),
             alt_nz: HybridMulti::new()
                 .set_octaves(8)
                 .set_persistence(0.1)
-                .set_seed(gen_seed()),
-            temp_nz: SuperSimplex::new().set_seed(gen_seed()),
-            dry_nz: BasicMulti::new().set_seed(gen_seed()),
-            small_nz: BasicMulti::new().set_octaves(2).set_seed(gen_seed()),
-            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(gen_seed()),
-            warp_nz: FastNoise::new(gen_seed()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            temp_nz: SuperSimplex::new().set_seed(rng.gen()),
+            dry_nz: BasicMulti::new().set_seed(rng.gen()),
+            small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
+            rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            cliff_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
+            warp_nz: FastNoise::new(rng.gen()), //BasicMulti::new().set_octaves(3).set_seed(gen_seed()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
-                .set_seed(gen_seed()),
-            cave_0_nz: SuperSimplex::new().set_seed(gen_seed()),
-            cave_1_nz: SuperSimplex::new().set_seed(gen_seed()),
+                .set_seed(rng.gen()),
+            cave_0_nz: SuperSimplex::new().set_seed(rng.gen()),
+            cave_1_nz: SuperSimplex::new().set_seed(rng.gen()),
 
-            structure_gen: StructureGen2d::new(gen_seed(), 32, 24),
-            region_gen: StructureGen2d::new(gen_seed(), 400, 96),
-            cliff_gen: StructureGen2d::new(gen_seed(), 80, 56),
+            structure_gen: StructureGen2d::new(rng.gen(), 32, 16),
+            region_gen: StructureGen2d::new(rng.gen(), 400, 96),
+            cliff_gen: StructureGen2d::new(rng.gen(), 80, 56),
             humid_nz: Billow::new()
                 .set_octaves(12)
                 .set_persistence(0.125)
                 .set_frequency(1.0)
                 // .set_octaves(6)
                 // .set_persistence(0.5)
-                .set_seed(gen_seed()),
+                .set_seed(rng.gen()),
 
-            fast_turb_x_nz: FastNoise::new(gen_seed()),
-            fast_turb_y_nz: FastNoise::new(gen_seed()),
+            fast_turb_x_nz: FastNoise::new(rng.gen()),
+            fast_turb_y_nz: FastNoise::new(rng.gen()),
 
-            town_gen: StructureGen2d::new(gen_seed(), 2048, 1024),
+            town_gen: StructureGen2d::new(rng.gen(), 2048, 1024),
         };
-        let river_seed = RandomField::new(gen_seed());
+
+        let river_seed = RandomField::new(rng.gen());
         let rock_strength_nz = Fbm::new()
                 .set_octaves(8)
                 .set_persistence(0.9)
-                .set_seed(gen_seed());
+                .set_seed(rng.gen());
 
         let (alt_base, chaos) = rayon::join(
             || uniform_noise(|_, wposf| {
                 // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value
-                // is from -0.25 * (CONFIG.mountain_scale * 1.1) to
-                // 0.25 * (CONFIG.mountain_scale * 0.9), but value here is from -0.275 to 0.225).
+                // is from -0.35 * (CONFIG.mountain_scale * 1.05) to
+                // 0.35 * (CONFIG.mountain_scale * 0.95), but value here is from -0.3675 to 0.3325).
                 Some(
-                    (gen_ctx.alt_nz.get((wposf.div(12_000.0)).into_array()) as f32)
-                        .sub(0.1)
-                        .mul(0.25),
+                    (gen_ctx.alt_nz.get((wposf.div(/*12_000.0*/10_000.0)).into_array()) as f32)
+                        .sub(/*0.1*/0.05)
+                        .mul(/*0.25*/0.35),
                 )
             }),
             || uniform_noise(|_, wposf| {
@@ -187,18 +184,18 @@ impl WorldSim {
                     .add(0.3)
                     .max(0.0);
 
-                // chaos produces a value in [0.1, 1.24].  It is a meta-level factor intended to
+                // chaos produces a value in [0.12, 1.24].  It is a meta-level factor intended to
                 // reflect how "chaotic" the region is--how much weird stuff is going on on this
                 // terrain.
                 Some(
                     (gen_ctx.chaos_nz.get((wposf.div(3_000.0)).into_array()) as f32)
                         .add(1.0)
                         .mul(0.5)
-                        // [0, 1] * [0.25, 1] = [0, 1] (but probably towards the lower end)
+                        // [0, 1] * [0.4, 1] = [0, 1] (but probably towards the lower end)
                         .mul(
                             (gen_ctx.chaos_nz.get((wposf.div(6_000.0)).into_array()) as f32)
                                 .abs()
-                                .max(0.25)
+                                .max(0.4)
                                 .min(1.0),
                         )
                         // Chaos is always increased by a little when we're on a hill (but remember
@@ -206,7 +203,7 @@ impl WorldSim {
                         // [0, 1] + 0.15 * [0, 1.6] = [0, 1.24]
                         .add(0.2 * hill)
                         // We can't have *no* chaos!
-                        .max(0.1),
+                        .max(0.12),
                 )
             }),
         );
@@ -219,17 +216,21 @@ impl WorldSim {
             || */uniform_noise(|posi, wposf| {
                 // This is the extension upwards from the base added to some extra noise from -1 to
                 // 1.
-                // The extra noise is multiplied by alt_main (the mountain part of the extension)
-                // clamped to [0.25, 1], and made 60% larger (so the extra noise is between
-                // [-1.6, 1.6],
-                // and the final noise is never more than 160% or less than 40% of the original
-                // noise, depending on altitude).
-                // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
-                // gen_ctx = -1) and 2.6 (if alt_main = 1 and gen_ctx = 1).  When the generated
-                // small_nz
-                // value hits -0.625 the value crosses 0, so most of the points are above 0.
                 //
-                // Then, we add 1 and divide by 2 to get a value between 0.3 and 1.8.
+                // The extra noise is multiplied by alt_main (the mountain part of the extension)
+                // powered to 0.8 and clamped to [0.15, 1], to get a value between [-1, 1] again.
+                //
+                // The sides then receive the sequence (y * 0.3 + 1.0) * 0.4, so we have
+                // [-1*1*(1*0.3+1)*0.4, 1*(1*0.3+1)*0.4] = [-0.52, 0.52].
+                //
+                // Adding this to alt_main thus yields a value between -0.4 (if alt_main = 0 and
+                // gen_ctx = -1, 0+-1*(0*.3+1)*0.4) and 1.52 (if alt_main = 1 and gen_ctx = 1).
+                // Most of the points are above 0.
+                //
+                // Next, we add again by a sin of alt_main (between [-1, 1])^pow, getting
+                // us (after adjusting for sign) another value between [-1, 1], and then this is
+                // multiplied by 0.045 to get [-0.045, 0.045], which is added to [-0.4, 0.52] to get
+                // [-0.445, 0.565].
                 let alt_main = {
                     // Extension upwards from the base.  A positive number from 0 to 1 curved to be
                     // maximal at 0.  Also to be multiplied by CONFIG.mountain_scale.
@@ -237,12 +238,17 @@ impl WorldSim {
                         .abs()
                         .powf(1.35);
 
+                    fn spring(x: f32, pow: f32) -> f32 {
+                        x.abs().powf(pow) * x.signum()
+                    }
+
                     (0.0 + alt_main
                         + (gen_ctx.small_nz.get((wposf.div(300.0)).into_array()) as f32)
-                            .mul(alt_main.max(0.25))
+                        .mul(alt_main.powf(0.8).max(/*0.25*/0.15))
                             .mul(0.3)
                             .add(1.0)
-                            .mul(0.5))
+                            .mul(0.4)
+                        + spring(alt_main.abs().powf(0.5).min(0.75).mul(60.0).sin(), 4.0).mul(0.045))
                 };
 
                 // Now we can compute the final altitude using chaos.
@@ -251,12 +257,12 @@ impl WorldSim {
                 // level to get an adjusted value, then multiply the whole thing by map_edge_factor
                 // (TODO: compute final bounds).
                 //
-                // [-.275, .225] + ([0, 1] + ([-1, 1] * [0, 0.25] * 0.3 + 1.0) * 0.5) * [0.1, 1.24]
-                // = [-.275, .225] + ([0, 1] + ([-0.075, 0.075] * 0.5 + 0.5)) * [0.1, 1.24]
-                // = [-.275, .225] + ([0.4625, 1.5375]) * [0.1, 1.24]
-                // = [-.275, .225] + ([0.04625, 1.9065])
-                // = [-0.22875, 2.1315]
-                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi))
+                // [-.3675, .3325] + [-0.445, 0.565] * [0.12, 1.24]^1.2
+                // ~ [-.3675, .3325] + [-0.445, 0.565] * [_, 1.30]
+                // = [-.3675, .3325] + ([-0.5785, 0.7345])
+                // = [-0.946, 1.067]
+                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1.powf(1.2)))
+                     .mul(map_edge_factor(posi))
                      .add((CONFIG.sea_level.div(CONFIG.mountain_scale).mul(map_edge_factor(posi))))
                      .sub(CONFIG.sea_level.div(CONFIG.mountain_scale)))
             })/*,
@@ -285,7 +291,7 @@ impl WorldSim {
         // let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         // Clean up streams / lakes a little, make sure we have reasonable drainage.
         // 5.010e-4*2.5e5 ~ 125 ~ 128 / CONFIG.mountain_scale
-        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*/128.0 / CONFIG.mountain_scale,
+        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*/32.0 / CONFIG.mountain_scale,
                              50, &river_seed, &rock_strength_nz,
                              //|posi| v[posi].1,
                              // |posi| alt[posi],
@@ -301,11 +307,11 @@ impl WorldSim {
                              // 128/2048 ~ 0.0625
                              // 512/2048 ~ 0.25
                              // 0.22875/2.36025 ~ 0.97...
-                             |posi| (((old_height(posi) + 0.22875) / 2.36025/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                             |posi| (((old_height(posi) + 0.946) / 2.013/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
                                      // .min(1.0)
                                      // .max(1.0 / CONFIG.mountain_scale)
-                                     /*.powf(1.0)*/ * /*0.05*//*0.0625*/(/*128.0*/128.0 / CONFIG.mountain_scale))
-                                     .min(128.0 / CONFIG.mountain_scale)
+                                     /*.powf(1.0)*/ * /*0.05*//*0.0625*/(/*128.0*/32.0 / CONFIG.mountain_scale))
+                                     .min(32.0 / CONFIG.mountain_scale)
                                      .max(1.0 / CONFIG.mountain_scale)
                                      /*.min(96.0 / CONFIG.mountain_scale)*/);
         let is_ocean = get_oceans(|posi| alt[posi]);
@@ -483,8 +489,10 @@ impl WorldSim {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
+                        // if alt[posi].1.mul(CONFIG.mountain_scale) > -8.0 {
                         if /*flux_old[posi] * water_factor < 1.0 && water_alt[posi] < alt[posi] ||
                            /*alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0*/is_ocean_fn(posi)*/!is_underwater(posi) {
+                            // Account for warping in later stages
                             return false;
                         }
                     }
@@ -590,11 +598,11 @@ impl WorldSim {
             .collect::<Vec<_>>();
 
         let mut this = Self {
-            seed: *seed,
+            seed: seed,
             chunks,
             locations: Vec::new(),
             gen_ctx,
-            rng: ChaChaRng::from_seed(seed_expan::rng_state(*seed)),
+            rng,
         };
 
         this.seed_elements();
@@ -802,8 +810,15 @@ impl WorldSim {
         // neighbors(chunk_idx).chain(iter::once(chunk_pos))
         local_cells(chunk_idx)
             .flat_map(|neighbor_idx| {
-                let chunk_pos = uniform_idx_as_vec2(neighbor_idx);
-                self.get(chunk_pos).map(|c| c.get_base_z())
+                let neighbor_pos = uniform_idx_as_vec2(neighbor_idx);
+                let has_river = self
+                    .get(neighbor_pos)
+                    .and_then(|c| c.river.river_kind) == Some(RiverKind::River);
+                if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_river {
+                    self.get(neighbor_pos).map(|c| c.get_base_z())
+                } else {
+                    Some(f32::INFINITY)
+                }
             })
             .fold(None, |a: Option<f32>, x| a.map(|a| a.min(x)).or(Some(x)))
         /* self.get(chunk_pos).and_then(|_| {
@@ -1274,7 +1289,7 @@ impl SimChunk {
             } else {
                 // For now we don't take humidity into account for cold climates (but we really
                 // should!) except that we make sure we only have snow pines when there is snow.
-                if temp <= CONFIG.snow_temp && humidity > CONFIG.forest_hum {
+                if temp <= CONFIG.snow_temp {
                     ForestKind::SnowPine
                 } else if humidity > CONFIG.desert_hum {
                     ForestKind::Pine

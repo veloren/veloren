@@ -54,9 +54,9 @@ impl SoundMgr {
 
                 if character.movement == Run && state.last_step_sound.elapsed().as_secs_f64() > 0.25
                 {
-                    let rand_step = (rand::random::<usize>() % 7) + 1;
+                    let rand_step = (rand::random::<usize>() % 5) + 1;
                     audio.play_sound(
-                        &format!("voxygen.audio.footsteps.stepdirt_{}", rand_step),
+                        &format!("voxygen.audio.sfx.steps.step_{}", rand_step),
                         pos.0,
                     );
                     state.last_step_sound = Instant::now();

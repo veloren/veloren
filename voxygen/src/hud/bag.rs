@@ -1,10 +1,14 @@
-use super::{img_ids::Imgs, Event as HudEvent, Fonts, TEXT_COLOR};
+use super::{
+    img_ids::{Imgs, ImgsRot},
+    Event as HudEvent, Fonts, TEXT_COLOR,
+};
+use crate::ui::{ImageFrame, Tooltip, TooltipManager, Tooltipable};
 use client::Client;
 use conrod_core::{
     color,
     position::Relative,
     widget::{self, Button, Image, Rectangle /*, Scrollbar*/},
-    widget_ids, /*Color, Colorable,*/ Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 
 widget_ids! {
@@ -21,6 +25,7 @@ widget_ids! {
         map_title,
         inv_slots[],
         items[],
+        tooltip[],
     }
 }
 
@@ -31,15 +36,25 @@ pub struct Bag<'a> {
     fonts: &'a Fonts,
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
+    rot_imgs: &'a ImgsRot,
+    tooltip_manager: &'a mut TooltipManager,
 }
 
 impl<'a> Bag<'a> {
-    pub fn new(client: &'a Client, imgs: &'a Imgs, fonts: &'a Fonts) -> Self {
+    pub fn new(
+        client: &'a Client,
+        imgs: &'a Imgs,
+        fonts: &'a Fonts,
+        rot_imgs: &'a ImgsRot,
+        tooltip_manager: &'a mut TooltipManager,
+    ) -> Self {
         Self {
             client,
             imgs,
             fonts,
             common: widget::CommonBuilder::default(),
+            rot_imgs,
+            tooltip_manager,
         }
     }
 }
@@ -82,32 +97,46 @@ impl<'a> Widget for Bag<'a> {
             Some(inv) => inv,
             None => return None,
         };
+        // Tooltips
+        let item_tooltip = Tooltip::new({
+            // Edge images [t, b, r, l]
+            // Corner images [tr, tl, br, bl]
+            let edge = &self.rot_imgs.tt_side;
+            let corner = &self.rot_imgs.tt_corner;
+            ImageFrame::new(
+                [edge.cw180, edge.none, edge.cw270, edge.cw90],
+                [corner.none, corner.cw270, corner.cw90, corner.cw180],
+                Color::Rgba(0.08, 0.07, 0.04, 1.0),
+                5.0,
+            )
+        })
+        .title_font_size(15)
+        .desc_font_size(10)
+        .title_text_color(TEXT_COLOR)
+        .desc_text_color(TEXT_COLOR);
 
         // Bag parts
         Image::new(self.imgs.bag_bot)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .bottom_right_with_margins_on(ui.window, 60.0, 5.0)
             .set(state.ids.bag_bot, ui);
+        let mid_height = ((inventory.len() + 4) / 5) as f64 * 44.0;
+        Image::new(self.imgs.bag_mid)
+            .w_h(61.0 * BAG_SCALE, mid_height)
+            .up_from(state.ids.bag_bot, 0.0)
+            .set(state.ids.bag_mid, ui);
         Image::new(self.imgs.bag_top)
             .w_h(61.0 * BAG_SCALE, 9.0 * BAG_SCALE)
             .up_from(state.ids.bag_mid, 0.0)
             .set(state.ids.bag_top, ui);
-        Image::new(self.imgs.bag_mid)
-            .w_h(61.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0)
-            .up_from(state.ids.bag_bot, 0.0)
-            .set(state.ids.bag_mid, ui);
 
         // Alignment for Grid
-        Rectangle::fill_with(
-            [54.0 * BAG_SCALE, ((inventory.len() + 4) / 5) as f64 * 44.0],
-            color::TRANSPARENT,
-        )
-        .top_left_with_margins_on(state.ids.bag_top, 9.0 * BAG_SCALE, 3.0 * BAG_SCALE)
-        .scroll_kids()
-        .scroll_kids_vertically()
-        .set(state.ids.inv_alignment, ui);
-        // Create available inventory slot widgets
+        Rectangle::fill_with([54.0 * BAG_SCALE, mid_height], color::TRANSPARENT)
+            .top_left_with_margins_on(state.ids.bag_mid, 0.0, 3.0 * BAG_SCALE)
+            .scroll_kids_vertically()
+            .set(state.ids.inv_alignment, ui);
 
+        // Create available inventory slot widgets
         if state.ids.inv_slots.len() < inventory.len() {
             state.update(|s| {
                 s.ids
@@ -115,7 +144,6 @@ impl<'a> Widget for Bag<'a> {
                     .resize(inventory.len(), &mut ui.widget_id_generator());
             });
         }
-
         if state.ids.items.len() < inventory.len() {
             state.update(|s| {
                 s.ids
@@ -125,7 +153,6 @@ impl<'a> Widget for Bag<'a> {
         }
 
         // Display inventory contents
-
         for (i, item) in inventory.slots().iter().enumerate() {
             let x = i % 5;
             let y = i / 5;
@@ -133,23 +160,36 @@ impl<'a> Widget for Bag<'a> {
             let is_selected = Some(i) == state.selected_slot;
 
             // Slot
-            if Button::image(self.imgs.inv_slot)
+            let slot_widget = Button::image(self.imgs.inv_slot)
                 .top_left_with_margins_on(
                     state.ids.inv_alignment,
                     4.0 + y as f64 * (40.0 + 4.0),
                     4.0 + x as f64 * (40.0 + 4.0),
                 ) // conrod uses a (y,x) format for placing...
-                .parent(state.ids.inv_alignment) // Avoids the background overlapping available slots
+                // (the margin placement functions do this because that is the same order as "top left")
                 .w_h(40.0, 40.0)
                 .image_color(if is_selected {
                     color::WHITE
                 } else {
                     color::DARK_YELLOW
-                })
-                .floating(true)
-                .set(state.ids.inv_slots[i], ui)
-                .was_clicked()
-            {
+                });
+
+            let slot_widget_clicked = if let Some(item) = item {
+                slot_widget
+                    .with_tooltip(
+                        self.tooltip_manager,
+                        &item.description(),
+                        &item.category(),
+                        &item_tooltip,
+                    )
+                    .set(state.ids.inv_slots[i], ui)
+            } else {
+                slot_widget.set(state.ids.inv_slots[i], ui)
+            }
+            .was_clicked();
+
+            // Item
+            if slot_widget_clicked {
                 let selected_slot = match state.selected_slot {
                     Some(a) => {
                         if a == i {
@@ -164,7 +204,6 @@ impl<'a> Widget for Bag<'a> {
                 };
                 state.update(|s| s.selected_slot = selected_slot);
             }
-
             // Item
             if item.is_some() {
                 Button::image(self.imgs.potion_red) // TODO: Insert variable image depending on the item displayed in that slot
@@ -183,7 +222,6 @@ impl<'a> Widget for Bag<'a> {
         }
 
         // Close button
-
         if Button::image(self.imgs.close_button)
             .w_h(28.0, 28.0)
             .hover_image(self.imgs.close_button_hover)

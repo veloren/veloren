@@ -1,6 +1,6 @@
 use super::{
     super::{util::arr_to_mat, Pipeline, TgtColorFmt, TgtDepthFmt},
-    Globals, Light,
+    Globals, Light, Shadow,
 };
 use gfx::{
     self,
@@ -36,6 +36,7 @@ gfx_defines! {
 
         globals: gfx::ConstantBuffer<Globals> = "u_globals",
         lights: gfx::ConstantBuffer<Light> = "u_lights",
+        shadows: gfx::ConstantBuffer<Shadow> = "u_shadows",
 
         tgt_color: gfx::BlendTarget<TgtColorFmt> = ("tgt_color", ColorMask::all(), gfx::preset::blend::ALPHA),
         tgt_depth: gfx::DepthTarget<TgtDepthFmt> = gfx::preset::depth::LESS_EQUAL_WRITE,

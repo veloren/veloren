@@ -250,6 +250,10 @@ impl Client {
         self.postbox.send_message(ClientMsg::BreakBlock(pos));
     }
 
+    pub fn collect_block(&mut self, pos: Vec3<i32>) {
+        self.postbox.send_message(ClientMsg::CollectBlock(pos));
+    }
+
     /// Execute a single client tick, handle input and update the game state by the given duration.
     #[allow(dead_code)]
     pub fn tick(

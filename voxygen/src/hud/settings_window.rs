@@ -2,7 +2,8 @@ use super::{
     img_ids::Imgs, BarNumbers, CrosshairType, Fonts, ShortcutNumbers, Show, XpBar, TEXT_COLOR,
 };
 use crate::{
-    ui::{ImageSlider, ScaleMode, ToggleButton},
+    render::AaMode,
+    ui::{ImageSlider, RadioList, ScaleMode, ToggleButton},
     GlobalState,
 };
 use conrod_core::{
@@ -76,8 +77,12 @@ widget_ids! {
         fov_slider,
         fov_text,
         fov_value,
+        aa_radio_buttons,
+        aa_mode_text,
         audio_volume_slider,
         audio_volume_text,
+        sfx_volume_slider,
+        sfx_volume_text,
         audio_device_list,
         audio_device_text,
         hotbar_title,
@@ -151,7 +156,9 @@ pub enum Event {
     AdjustMouseZoom(u32),
     AdjustViewDistance(u32),
     AdjustFOV(u16),
-    AdjustVolume(f32),
+    ChangeAaMode(AaMode),
+    AdjustMusicVolume(f32),
+    AdjustSfxVolume(f32),
     ChangeAudioDevice(String),
     MaximumFPS(u32),
     CrosshairTransp(f32),
@@ -1193,6 +1200,39 @@ impl<'a> Widget for SettingsWindow<'a> {
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)
                 .set(state.ids.fov_value, ui);
+
+            // AaMode
+            Text::new("AntiAliasing Mode")
+                .down_from(state.ids.fov_slider, 8.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.aa_mode_text, ui);
+            let mode_label_list = [
+                (&AaMode::None, "No AA"),
+                (&AaMode::Fxaa, "FXAA"),
+                (&AaMode::MsaaX4, "MSAA x4"),
+                (&AaMode::MsaaX8, "MSAA x8"),
+                (&AaMode::MsaaX16, "MSAA x16 (experimental)"),
+                (&AaMode::SsaaX4, "SSAA x4"),
+            ];
+            if let Some((_, mode)) = RadioList::new(
+                (0..mode_label_list.len())
+                    .find(|i| *mode_label_list[*i].0 == self.global_state.settings.graphics.aa_mode)
+                    .unwrap_or(0),
+                self.imgs.check,
+                self.imgs.check_checked,
+                &mode_label_list,
+            )
+            .hover_images(self.imgs.check_mo, self.imgs.check_checked_mo)
+            .press_images(self.imgs.check_press, self.imgs.check_press)
+            .down_from(state.ids.aa_mode_text, 8.0)
+            .text_color(TEXT_COLOR)
+            .font_size(12)
+            .set(state.ids.aa_radio_buttons, ui)
+            {
+                events.push(Event::ChangeAaMode(*mode))
+            }
         }
 
         // 5) Sound Tab -----------------------------------
@@ -1225,7 +1265,8 @@ impl<'a> Widget for SettingsWindow<'a> {
 
         // Contents
         if let SettingsTab::Sound = self.show.settings_tab {
-            Text::new("Volume")
+            // Music Volume -----------------------------------------------------
+            Text::new("Music Volume")
                 .top_left_with_margins_on(state.ids.settings_content, 10.0, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
@@ -1246,14 +1287,39 @@ impl<'a> Widget for SettingsWindow<'a> {
             .pad_track((5.0, 5.0))
             .set(state.ids.audio_volume_slider, ui)
             {
-                events.push(Event::AdjustVolume(new_val));
+                events.push(Event::AdjustMusicVolume(new_val));
+            }
+
+            // SFX Volume -------------------------------------------------------
+            Text::new("Sound Effects Volume")
+                .down_from(state.ids.audio_volume_slider, 10.0)
+                .font_size(14)
+                .font_id(self.fonts.opensans)
+                .color(TEXT_COLOR)
+                .set(state.ids.sfx_volume_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                self.global_state.settings.audio.sfx_volume,
+                0.0,
+                1.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.sfx_volume_text, 10.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.sfx_volume_slider, ui)
+            {
+                events.push(Event::AdjustSfxVolume(new_val));
             }
 
             // Audio Device Selector --------------------------------------------
             let device = &self.global_state.audio.device;
             let device_list = &self.global_state.audio.device_list;
-            Text::new("Volume")
-                .down_from(state.ids.audio_volume_slider, 10.0)
+            Text::new("Audio Device")
+                .down_from(state.ids.sfx_volume_slider, 10.0)
                 .font_size(14)
                 .font_id(self.fonts.opensans)
                 .color(TEXT_COLOR)

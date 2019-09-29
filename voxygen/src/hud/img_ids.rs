@@ -1,5 +1,16 @@
 use crate::ui::img_ids::{BlankGraphic, ImageGraphic, VoxelGraphic, VoxelMs9Graphic};
 
+// TODO: Combine with image_ids, see macro definition
+rotation_image_ids! {
+    pub struct ImgsRot {
+        <VoxelGraphic>
+
+        // Tooltip Test
+        tt_side: "voxygen/element/frames/tt_test_edge",
+        tt_corner: "voxygen/element/frames/tt_test_corner_tr",
+    }
+}
+
 image_ids! {
     pub struct Imgs {
         <VoxelGraphic>

@@ -6,13 +6,13 @@ use crate::{
     },
     render::{
         create_pp_mesh, create_skybox_mesh, Consts, FigurePipeline, Globals, Light, Model,
-        PostProcessLocals, PostProcessPipeline, Renderer, SkyboxLocals, SkyboxPipeline,
+        PostProcessLocals, PostProcessPipeline, Renderer, Shadow, SkyboxLocals, SkyboxPipeline,
     },
     scene::{
         camera::{Camera, CameraMode},
         figure::{load_mesh, FigureModelCache, FigureState},
     },
-    window::Event,
+    window::{Event, PressState},
 };
 use client::Client;
 use common::{
@@ -36,6 +36,7 @@ struct PostProcess {
 pub struct Scene {
     globals: Consts<Globals>,
     lights: Consts<Light>,
+    shadows: Consts<Shadow>,
     camera: Camera,
 
     skybox: Skybox,
@@ -45,6 +46,9 @@ pub struct Scene {
 
     figure_model_cache: FigureModelCache,
     figure_state: FigureState<CharacterSkeleton>,
+
+    turning: bool,
+    char_ori: f32,
 }
 
 impl Scene {
@@ -54,6 +58,7 @@ impl Scene {
         Self {
             globals: renderer.create_consts(&[Globals::default()]).unwrap(),
             lights: renderer.create_consts(&[Light::default(); 32]).unwrap(),
+            shadows: renderer.create_consts(&[Shadow::default(); 32]).unwrap(),
             camera: Camera::new(resolution.x / resolution.y, CameraMode::ThirdPerson),
 
             skybox: Skybox {
@@ -76,6 +81,9 @@ impl Scene {
                 ))
                 .unwrap(),
             backdrop_state: FigureState::new(renderer, FixtureSkeleton::new()),
+
+            turning: false,
+            char_ori: 0.0,
         }
     }
 
@@ -93,20 +101,29 @@ impl Scene {
                 self.camera.set_aspect_ratio(dims.x as f32 / dims.y as f32);
                 true
             }
+            Event::MouseButton(_, state) => {
+                self.turning = state == PressState::Pressed;
+                true
+            }
+            Event::CursorMove(delta) if self.turning => {
+                self.char_ori += delta.x * 0.01;
+                true
+            }
             // All other events are unhandled
             _ => false,
         }
     }
 
     pub fn maintain(&mut self, renderer: &mut Renderer, client: &Client, body: humanoid::Body) {
-        self.camera.set_focus_pos(Vec3::unit_z() * 2.0);
+        self.camera.set_focus_pos(Vec3::unit_z() * 1.5);
         self.camera.update(client.state().get_time());
-        self.camera.set_distance(4.2);
+        self.camera.set_distance(3.0); // 4.2
         self.camera
             .set_orientation(Vec3::new(client.state().get_time() as f32 * 0.0, 0.0, 0.0));
 
         let (view_mat, proj_mat, cam_pos) = self.camera.compute_dependents(client);
-        const CHAR_SELECT_TIME_OF_DAY: f32 = 80000.0; // 12*3600 seconds
+        const VD: f32 = 115.0; //View Distance
+        const TIME: f64 = 43200.0; // hours*3600 seconds
         if let Err(err) = renderer.update_consts(
             &mut self.globals,
             &[Globals::new(
@@ -114,12 +131,14 @@ impl Scene {
                 proj_mat,
                 cam_pos,
                 self.camera.get_focus_pos(),
-                CHAR_SELECT_TIME_OF_DAY,
-                55800.0,
+                VD,
+                TIME,
                 client.state().get_time(),
                 renderer.get_resolution(),
                 0,
+                0,
                 BlockKind::Air,
+                None,
             )],
         ) {
             error!("Renderer failed to update: {:?}", err);
@@ -142,7 +161,7 @@ impl Scene {
         self.figure_state.update(
             renderer,
             Vec3::zero(),
-            -Vec3::unit_y(),
+            Vec3::new(self.char_ori.sin(), -self.char_ori.cos(), 0.0),
             1.0,
             Rgba::broadcast(1.0),
             1.0 / 60.0, // TODO: Use actual deltatime here?
@@ -178,6 +197,7 @@ impl Scene {
             self.figure_state.locals(),
             self.figure_state.bone_consts(),
             &self.lights,
+            &self.shadows,
         );
 
         renderer.render_figure(
@@ -186,6 +206,7 @@ impl Scene {
             self.backdrop_state.locals(),
             self.backdrop_state.bone_consts(),
             &self.lights,
+            &self.shadows,
         );
 
         renderer.render_post_process(

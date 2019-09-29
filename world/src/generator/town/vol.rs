@@ -48,6 +48,7 @@ pub enum CellKind {
     Road,
     Wall,
     House(usize),
+    Well,
 }
 
 #[derive(Clone, PartialEq)]
@@ -57,13 +58,6 @@ pub struct TownCell {
 }
 
 impl TownCell {
-    pub fn is_road(&self) -> bool {
-        match self.kind {
-            CellKind::Road => true,
-            _ => false,
-        }
-    }
-
     pub fn is_space(&self) -> bool {
         match self.kind {
             CellKind::Empty => true,

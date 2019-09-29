@@ -1,6 +1,6 @@
 use {
     crate::{
-        comp::{Body, Mounting, Ori, PhysicsState, Pos, Scale, Vel},
+        comp::{Body, Mass, Mounting, Ori, PhysicsState, Pos, Scale, Vel},
         event::{EventBus, LocalEvent},
         state::DeltaTime,
         terrain::{Block, TerrainGrid},
@@ -45,6 +45,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, DeltaTime>,
         Read<'a, EventBus<LocalEvent>>,
         ReadStorage<'a, Scale>,
+        ReadStorage<'a, Mass>,
         ReadStorage<'a, Body>,
         WriteStorage<'a, PhysicsState>,
         WriteStorage<'a, Pos>,
@@ -61,6 +62,7 @@ impl<'a> System<'a> for Sys {
             dt,
             event_bus,
             scales,
+            masses,
             bodies,
             mut physics_states,
             mut positions,
@@ -320,9 +322,10 @@ impl<'a> System<'a> for Sys {
         }
 
         // Apply pushback
-        for (pos, scale, vel, _, _) in (
+        for (pos, scale, mass, vel, _, _) in (
             &positions,
             scales.maybe(),
+            masses.maybe(),
             &mut velocities,
             &bodies,
             !&mountings,
@@ -330,10 +333,18 @@ impl<'a> System<'a> for Sys {
             .join()
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            for (pos_other, scale_other, _, _) in
-                (&positions, scales.maybe(), &bodies, !&mountings).join()
+            let mass = mass.map(|m| m.0).unwrap_or(scale);
+            for (pos_other, scale_other, mass_other, _, _) in (
+                &positions,
+                scales.maybe(),
+                masses.maybe(),
+                &bodies,
+                !&mountings,
+            )
+                .join()
             {
                 let scale_other = scale_other.map(|s| s.0).unwrap_or(1.0);
+                let mass_other = mass_other.map(|m| m.0).unwrap_or(scale_other);
                 let diff = Vec2::<f32>::from(pos.0 - pos_other.0);
 
                 let collision_dist = 0.95 * (scale + scale_other);
@@ -343,8 +354,9 @@ impl<'a> System<'a> for Sys {
                     && pos.0.z + 1.6 * scale > pos_other.0.z
                     && pos.0.z < pos_other.0.z + 1.6 * scale_other
                 {
-                    vel.0 +=
-                        Vec3::from(diff.normalized()) * (collision_dist - diff.magnitude()) * 1.0;
+                    let force = (collision_dist - diff.magnitude()) * 2.0 * mass_other
+                        / (mass + mass_other);
+                    vel.0 += Vec3::from(diff.normalized()) * force;
                 }
             }
         }
