@@ -11,6 +11,7 @@ pub enum Effect {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Projectile {
     pub hit_ground: Vec<Effect>,
+    pub hit_wall: Vec<Effect>,
     pub hit_entity: Vec<Effect>,
 }
 
