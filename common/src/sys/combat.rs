@@ -1,5 +1,5 @@
 use crate::{
-    comp::{ActionState::*, CharacterState, Controller, HealthSource, Ori, Pos, Stats},
+    comp::{item::Item, ActionState::*, CharacterState, Controller, HealthSource, Ori, Pos, Stats},
     event::{EventBus, LocalEvent, ServerEvent},
     state::{DeltaTime, Uid},
 };
@@ -13,7 +13,6 @@ pub const ATTACK_DURATION: Duration = Duration::from_millis(500);
 // Delay before hit
 const PREPARE_DURATION: Duration = Duration::from_millis(100);
 
-const BASE_DMG: u32 = 10;
 const BLOCK_EFFICIENCY: f32 = 0.9;
 
 const ATTACK_RANGE: f32 = 4.0;
@@ -54,8 +53,15 @@ impl<'a> System<'a> for Sys {
         let mut _local_emitter = local_bus.emitter();
 
         // Attacks
-        for (entity, uid, pos, ori, _) in
-            (&entities, &uids, &positions, &orientations, &controllers).join()
+        for (entity, uid, pos, ori, _, stat) in (
+            &entities,
+            &uids,
+            &positions,
+            &orientations,
+            &controllers,
+            &stats,
+        )
+            .join()
         {
             let (deal_damage, should_end) = if let Some(Attack { time_left, applied }) =
                 &mut character_states.get_mut(entity).map(|c| &mut c.action)
@@ -100,20 +106,27 @@ impl<'a> System<'a> for Sys {
                             // TODO: Use size instead of 1.0
                             && ori2.angle_between(pos_b2 - pos2) < (1.0 / pos2.distance(pos_b2)).atan()
                         {
-                            let dmg = if character_b.action.is_block()
+                            // Weapon gives base damage
+                            let mut dmg =
+                                if let Some(Item::Tool { power, .. }) = stat.equipment.main {
+                                    power
+                                } else {
+                                    1
+                                };
+
+                            // Block
+                            if character_b.action.is_block()
                                 && ori_b.0.angle_between(pos.0 - pos_b.0).to_degrees()
                                     < BLOCK_ANGLE / 2.0
                             {
-                                (BASE_DMG as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
-                            } else {
-                                BASE_DMG
-                            };
+                                dmg = (dmg as f32 * (1.0 - BLOCK_EFFICIENCY)) as u32
+                            }
 
                             server_emitter.emit(ServerEvent::Damage {
                                 uid: *uid_b,
                                 dmg,
                                 cause: HealthSource::Attack { by: *uid },
-                            }); // TODO: Variable damage
+                            });
                         }
                     }
                 }

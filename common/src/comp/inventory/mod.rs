@@ -2,7 +2,7 @@
 pub mod item;
 
 // Reexports
-pub use self::item::{Debug, Item, Tool};
+pub use item::{Debug, Item, Tool};
 
 use specs::{Component, HashMapStorage, NullStorage};
 
