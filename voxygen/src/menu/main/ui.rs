@@ -103,11 +103,23 @@ pub enum Event {
         password: String,
         server_address: String,
     },
+    CancelLoginAttempt,
     #[cfg(feature = "singleplayer")]
     StartSingleplayer,
     Quit,
     Settings,
     DisclaimerClosed,
+}
+
+pub enum PopupType {
+    Error,
+    ConnectionInfo,
+}
+
+pub struct PopupData {
+    msg: String,
+    button_text: String,
+    popup_type: PopupType,
 }
 
 pub struct MainMenuUi {
@@ -119,7 +131,7 @@ pub struct MainMenuUi {
     username: String,
     password: String,
     server_address: String,
-    login_error: Option<String>,
+    popup: Option<PopupData>,
     connecting: Option<std::time::Instant>,
     show_servers: bool,
     show_disclaimer: bool,
@@ -150,7 +162,7 @@ impl MainMenuUi {
             username: networking.username.clone(),
             password: "".to_owned(),
             server_address: networking.servers[networking.default_server].clone(),
-            login_error: None,
+            popup: None,
             connecting: None,
             show_servers: false,
             show_disclaimer: global_state.settings.show_disclaimer,
@@ -263,8 +275,12 @@ impl MainMenuUi {
             // Used when the login button is pressed, or enter is pressed within input field
             macro_rules! login {
                 () => {
-                    self.login_error = None;
                     self.connecting = Some(std::time::Instant::now());
+                    self.popup = Some(PopupData {
+                        msg: "Connecting...".to_string(),
+                        button_text: "Cancel".to_string(),
+                        popup_type: PopupType::ConnectionInfo,
+                    });
                     events.push(Event::LoginAttempt {
                         username: self.username.clone(),
                         password: self.password.clone(),
@@ -278,7 +294,6 @@ impl MainMenuUi {
             #[cfg(feature = "singleplayer")]
             macro_rules! singleplayer {
                 () => {
-                    self.login_error = None;
                     events.push(Event::StartSingleplayer);
                     events.push(Event::LoginAttempt {
                         username: "singleplayer".to_string(),
@@ -346,9 +361,9 @@ impl MainMenuUi {
                     }
                 }
             }
-            // Login error
-            if let Some(msg) = &self.login_error {
-                let text = Text::new(&msg)
+            // Popup (Error/Info)
+            if let Some(popup_data) = &self.popup {
+                let text = Text::new(&popup_data.msg)
                     .rgba(1.0, 1.0, 1.0, 1.0)
                     .font_size(30)
                     .font_id(self.fonts.opensans);
@@ -369,13 +384,19 @@ impl MainMenuUi {
                     .hover_image(self.imgs.button_hover)
                     .press_image(self.imgs.button_press)
                     .label_y(Relative::Scalar(2.0))
-                    .label("Okay")
+                    .label(&popup_data.button_text)
                     .label_font_size(10)
                     .label_color(TEXT_COLOR)
                     .set(self.ids.button_ok, ui_widgets)
                     .was_clicked()
                 {
-                    self.login_error = None
+                    match popup_data.popup_type {
+                        PopupType::ConnectionInfo => {
+                            events.push(Event::CancelLoginAttempt);
+                        }
+                        _ => (),
+                    };
+                    self.popup = None;
                 };
             }
             if self.show_servers {
@@ -468,50 +489,28 @@ impl MainMenuUi {
                 }
             }
             // Login button
-            // Change button text and remove hover/press images if a connection is in progress
-            if let Some(start) = self.connecting {
-                Button::image(self.imgs.button)
-                    .w_h(258.0, 55.0)
-                    .down_from(self.ids.address_bg, 20.0)
-                    .align_middle_x_of(self.ids.address_bg)
-                    .label("Connecting...")
-                    .label_color({
-                        let pulse =
-                            ((start.elapsed().as_millis() as f32 * 0.008).sin() + 1.0) / 2.0;
-                        Color::Rgba(
-                            TEXT_COLOR.red() * (pulse / 2.0 + 0.5),
-                            TEXT_COLOR.green() * (pulse / 2.0 + 0.5),
-                            TEXT_COLOR.blue() * (pulse / 2.0 + 0.5),
-                            pulse / 4.0 + 0.75,
-                        )
-                    })
-                    .label_font_size(22)
-                    .label_y(Relative::Scalar(5.0))
-                    .set(self.ids.login_button, ui_widgets);
-            } else {
-                if Button::image(self.imgs.button)
-                    .hover_image(self.imgs.button_hover)
-                    .press_image(self.imgs.button_press)
-                    .w_h(258.0, 55.0)
-                    .down_from(self.ids.address_bg, 20.0)
-                    .align_middle_x_of(self.ids.address_bg)
-                    .label("Login")
-                    .label_color(TEXT_COLOR)
-                    .label_font_size(24)
-                    .label_y(Relative::Scalar(5.0))
-                    /*.with_tooltip(
-                        tooltip_manager,
-                        "Login",
-                        "Click to login with the entered details",
-                        &tooltip,
-                    )
-                    .tooltip_image(self.imgs.v_logo)*/
-                    .set(self.ids.login_button, ui_widgets)
-                    .was_clicked()
-                {
-                    login!();
-                }
-            };
+            if Button::image(self.imgs.button)
+                .hover_image(self.imgs.button_hover)
+                .press_image(self.imgs.button_press)
+                .w_h(258.0, 55.0)
+                .down_from(self.ids.address_bg, 20.0)
+                .align_middle_x_of(self.ids.address_bg)
+                .label("Login")
+                .label_color(TEXT_COLOR)
+                .label_font_size(24)
+                .label_y(Relative::Scalar(5.0))
+                /*.with_tooltip(
+                    tooltip_manager,
+                    "Login",
+                    "Click to login with the entered details",
+                    &tooltip,
+                )
+                .tooltip_image(self.imgs.v_logo)*/
+                .set(self.ids.login_button, ui_widgets)
+                .was_clicked()
+            {
+                login!();
+            }
 
             // Singleplayer button
             #[cfg(feature = "singleplayer")]
@@ -586,11 +585,21 @@ impl MainMenuUi {
     }
 
     pub fn login_error(&mut self, msg: String) {
-        self.login_error = Some(msg);
+        self.popup = Some(PopupData {
+            msg,
+            button_text: "Okay".to_string(),
+            popup_type: PopupType::Error,
+        });
         self.connecting = None;
     }
 
     pub fn connected(&mut self) {
+        self.popup = None;
+        self.connecting = None;
+    }
+
+    pub fn cancel_connection(&mut self) {
+        self.popup = None;
         self.connecting = None;
     }
 
