@@ -1425,8 +1425,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             5.0
         };
 
+        let alt_min = max_river
+            .and_then(|(_, _, _, max_border_river_dist)| max_border_river_dist)
+            .map(|(_, _, _, (_, _, downhill_river_chunk))| alt.min(downhill_river_chunk.alt.max(downhill_river_chunk.water_alt)))
+            .unwrap_or(alt);
+
         Some(ColumnSample {
             alt,
+            alt_min,
             alt_old,
             chaos,
             sea_level: if water_level.max(water_alt) >= alt/*_*/ { alt } else { downhill_water_alt },/*/*water_alt.sub(5.0),/**/ */water_alt_orig.sub(/*wdelta*/5.0)*//*downhill_water_alt*//*water_alt_orig.sub(5.0),*/
@@ -1490,6 +1496,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 #[derive(Clone)]
 pub struct ColumnSample<'a> {
     pub alt: f32,
+    pub alt_min: f32,
     pub alt_old: f32,
     pub chaos: f32,
     pub sea_level: f32,
