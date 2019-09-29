@@ -474,7 +474,7 @@ impl Server {
                             chunk: Err(()),
                         },
                     );
-                    break 'insert_terrain_chunks;
+                    continue 'insert_terrain_chunks;
                 }
             };
             // Send the chunk to all nearby players.

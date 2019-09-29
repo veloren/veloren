@@ -869,6 +869,7 @@ fn handle_debug_column(server: &mut Server, entity: EcsEntity, args: String, act
             let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
             let chunk = sim.get(chunk_pos)?;
             let downhill = chunk.downhill;
+            let river = &chunk.river;
 
             Some(format!(
                 r#"wpos: {:?}
@@ -876,6 +877,7 @@ alt_base {:?}
 alt_old {:?}
 alt {:?}
 water_alt {:?}
+river {:?}
 downhill {:?}
 chaos {:?}
 flux {:?}
@@ -884,7 +886,7 @@ humidity {:?}
 rockiness {:?}
 tree_density {:?}
 spawn_rate {:?} "#,
-                wpos, alt_base, alt_old, alt, water_alt, downhill, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
+                wpos, alt_base, alt_old, alt, water_alt, river, downhill, chaos, flux, temp, humidity, rockiness, tree_density, spawn_rate
             ))
         };
         if let Some(s) = foo() {

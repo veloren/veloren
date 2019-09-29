@@ -3,6 +3,7 @@ mod natural;
 use crate::{
     column::{ColumnGen, ColumnSample},
     generator::{Generator, TownGen},
+    sim::WORLD_SIZE,
     util::{HashCache, RandomField, Sampler, SamplerMut},
     World, CONFIG,
 };
@@ -142,6 +143,8 @@ impl<'a> BlockGen<'a> {
             chaos,
             sea_level,
             water_level,
+            flux,
+            warp_factor,
             //river,
             surface_color,
             sub_surface_color,
@@ -184,11 +187,17 @@ impl<'a> BlockGen<'a> {
                     + (world.sim().gen_ctx.warp_nz.get(wposf.div(15.0)) as f32)
                         .mul((chaos - 0.1).max(0.0))
                         .mul(24.0);
+                let water_factor = 1.0 / (1024.0 * 1.0) as f32;
+                //let water_factor = ((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32;
+                let wdelta = /*flux * water_factor*//*5.0f32*//*0.01f32*/16.0f32;
+                /* let alt_sub = alt.sub(water_level/* - 1.0*/).powi(2).max(1e-7)
+                    .min(wdelta.powi(2) - 1e-7).div(wdelta.powi(2))
+                    .mul(alt.sub(water_level/* - 1.0*/).signum()); */
                 let warp = Lerp::lerp(
                     0.0,
                     warp,
-                    alt.sub(water_level).max(0.1).min(4.9).div(5.0).powi(2)
-                        .div(1.0.sub(5.0f32.powi(2))).tanh()
+                    /*(alt.sub(water_level).powi(2).max(1e-7) + */warp_factor,
+                    // alt_sub.div(1.0.sub(alt_sub)).tanh()
                 );
 
                 let height = if (wposf.z as f32) < alt + warp - 10.0 {
@@ -361,7 +370,7 @@ impl<'a> BlockGen<'a> {
 
         // Water
         let block = block.or_else(|| {
-            if (wposf.z as f32) < water_height {
+            if (wposf.z as f32) <= water_height {
                 // Ocean
                 Some(water)
             } else {
@@ -404,7 +413,8 @@ impl<'a> ZCache<'a> {
             0.0
         };
 
-        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth) - 4.0;
+        let min = self.sample.alt - (self.sample.chaos * 48.0 + cave_depth);
+        let min = min.min(self.sample.sea_level) - 4.0;
 
         let cliff = if self.sample.near_cliffs { 48.0 } else { 0.0 };
         let warp = self.sample.chaos * 48.0;
@@ -433,9 +443,10 @@ impl<'a> ZCache<'a> {
         }*/self.sample.sea_level;
 
         let min = min + structure_min;
-        let max = (self.sample.alt + cliff + structure_max + warp + 8.0)
-            .max(self.sample.water_level)
-            .max(/*CONFIG.sea_level + 2.0*/sea_level + 2.0);
+        let max = self.sample.alt + cliff + structure_max + warp + 8.0;
+        let max = max
+            .max(self.sample.water_level + 2.0);
+            // .max(/*CONFIG.sea_level + 2.0*/sea_level + 2.0);
 
         // Structures
         let (min, max) = self

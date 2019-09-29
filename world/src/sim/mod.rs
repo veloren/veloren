@@ -5,13 +5,15 @@ mod util;
 // Reexports
 pub use self::location::Location;
 pub use self::settlement::Settlement;
-use self::util::{
-    cdf_irwin_hall, do_erosion, downhill, neighbors, fill_sinks,
-    get_flux, get_lakes, map_edge_factor, /*sort_by_height, */
+pub use self::util::{
+    cdf_irwin_hall, do_erosion, downhill, fill_sinks,
+    get_drainage, get_lakes, get_oceans, get_rivers, local_cells,
+    map_edge_factor, neighbors, /*sort_by_height, */
     uniform_idx_as_vec2, uniform_noise, vec2_as_uniform_idx,
-    InverseCdf,
+    RiverData, RiverKind, InverseCdf,
 };
 
+use bitvec::prelude::{bitbox, BitBox, Bits, BitsMut, BitSlice, BitStore, Cursor, LittleEndian};
 use crate::{
     all::ForestKind,
     column::ColumnGen,
@@ -27,17 +29,25 @@ use noise::{
     BasicMulti, Billow, Fbm, HybridMulti, MultiFractal, NoiseFn, RidgedMulti, Seedable,
     SuperSimplex,
 };
+use num::{Float, Signed};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
 use rayon::prelude::*;
 use std::{
     collections::HashMap,
+    iter,
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
 use vek::*;
 
+// NOTE: I suspect this is too small (1024 * 16 * 1024 * 16 * 8 doesn't fit in an i32), but we'll see
+// what happens, I guess!  We could always store sizes >> 3.  I think 32 or 64 is the absolute
+// limit though, and would require substantial changes.  Also, 1024 * 16 * 1024 * 16 is no longer
+// cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
+// but I think that is probably less important since I don't think we actually cast a chunk id to
+// float, just coordinates... could be wrong though!
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
@@ -49,11 +59,14 @@ struct GenCdf {
     alt_base: InverseCdf,
     chaos: InverseCdf,
     alt_old: InverseCdf,
+    is_ocean: BitBox,
     alt: Box<[f32]>,
     water_alt: Box<[f32]>,
     dh: Box<[isize]>,
-    flux: InverseCdf,
+    flux: Box<[f32]>,
+    pure_flux: InverseCdf,
     alt_no_water: InverseCdf,
+    rivers: Box<[RiverData]>,
 }
 
 pub(crate) struct GenCtx {
@@ -237,13 +250,26 @@ impl WorldSim {
                 // for alt_pre, then multiply by CONFIG.mountain_scale and add to the base and sea
                 // level to get an adjusted value, then multiply the whole thing by map_edge_factor
                 // (TODO: compute final bounds).
-                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi)))
+                //
+                // [-.275, .225] + ([0, 1] + ([-1, 1] * [0, 0.25] * 0.3 + 1.0) * 0.5) * [0.1, 1.24]
+                // = [-.275, .225] + ([0, 1] + ([-0.075, 0.075] * 0.5 + 0.5)) * [0.1, 1.24]
+                // = [-.275, .225] + ([0.4625, 1.5375]) * [0.1, 1.24]
+                // = [-.275, .225] + ([0.04625, 1.9065])
+                // = [-0.22875, 2.1315]
+                Some((alt_base[posi].1 + alt_main.mul(chaos[posi].1)).mul(map_edge_factor(posi))
+                     .add((CONFIG.sea_level.div(CONFIG.mountain_scale).mul(map_edge_factor(posi))))
+                     .sub(CONFIG.sea_level.div(CONFIG.mountain_scale)))
             })/*,
             alt_positions,
         )*/;
 
-        // Perform some erosion (maybe not needed)
+        // Calculate oceans.
         let old_height = |posi: usize| alt_old[posi].1;
+        let is_ocean = get_oceans(old_height);
+        let is_ocean_fn = |posi: usize| is_ocean[posi]/* || alt_old[posi].1 < 0.0*/;
+
+
+        // Perform some erosion (maybe not needed)
         // let v = vec![(5.0, 5.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
         // let v = vec![(0.0, 0.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
         /* let v = alt_old.iter()
@@ -256,16 +282,36 @@ impl WorldSim {
                  }))
             .collect::<Vec<_>>().into_boxed_slice(); */
         // let v = &alt_old;
-        let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*/ old_height);
+        // let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         // Clean up streams / lakes a little, make sure we have reasonable drainage.
-        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, 50, &river_seed, &rock_strength_nz,
+        // 5.010e-4*2.5e5 ~ 125 ~ 128 / CONFIG.mountain_scale
+        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*/128.0 / CONFIG.mountain_scale,
+                             50, &river_seed, &rock_strength_nz,
                              //|posi| v[posi].1,
-                             |posi| alt[posi],
+                             // |posi| alt[posi],
+                             |posi| if is_ocean_fn(posi) { old_height(posi) } else { /*(5.0 + v[posi].1) / CONFIG.mountain_scale*/5.0 / CONFIG.mountain_scale },
                              /*|posi| {
             alt_old[posi].1 * 0.05/*0.05//0.05*/
-        }*/|posi| alt_old[posi].1 * 0.05);
-        let water_alt = alt.clone();
-        // let water_alt = fill_sinks(|posi| alt[posi], /*|posi| alt_old[posi].1 * 0.05*/ old_height);
+        }*/
+                             is_ocean_fn,
+                             // 2.5*10^5*5.010e-4/2000
+                             // |posi| ((old_height(posi) + 0.22875) / 2.36025 * /*0.05*//*0.0625*/(128.0 / CONFIG.mountain_scale))/*.max(1.0 / CONFIG.mountain_scale)*/);
+                             // 2.36025/0.22875 ~ 0.10
+                             // 140/2000 ~ 0.07
+                             // 128/2048 ~ 0.0625
+                             // 512/2048 ~ 0.25
+                             // 0.22875/2.36025 ~ 0.97...
+                             |posi| (((old_height(posi) + 0.22875) / 2.36025/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                                     // .min(1.0)
+                                     // .max(1.0 / CONFIG.mountain_scale)
+                                     /*.powf(1.0)*/ * /*0.05*//*0.0625*/(/*128.0*/128.0 / CONFIG.mountain_scale))
+                                     .min(128.0 / CONFIG.mountain_scale)
+                                     .max(1.0 / CONFIG.mountain_scale)
+                                     /*.min(96.0 / CONFIG.mountain_scale)*/);
+        let is_ocean = get_oceans(|posi| alt[posi]);
+        let is_ocean_fn = |posi: usize| is_ocean[posi]/* || alt_old[posi].1 < 0.0*/;
+        // let water_alt = alt.clone();
+        let water_alt = fill_sinks(|posi| if is_ocean_fn(posi) { 0.0 } else { alt[posi] }, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         // let alt = fill_sinks(&alt, |posi| alt_old[posi].1 * 0.05);
         // let alt_old_ = alt_old.par_iter().map(|&(_, h)| h).collect::<Vec<_>>().into_boxed_slice();
         // let alt = do_erosion(&alt, &mut *alt_pos, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
@@ -275,11 +321,90 @@ impl WorldSim {
             || downhill(&alt),
             || sort_by_height(&alt, &mut *alt_pos),
         ); */
-        let mut dh = downhill(&water_alt, old_height);
-        let (boundary_len, indirection, water_alt_pos) = get_lakes(&water_alt, &mut dh);
-        let flux_old = get_flux(&water_alt_pos, &dh, boundary_len);
+        /* let mut dh = downhill(&water_alt, /*old_height*/is_ocean_fn);
+        let dh2 = downhill(&alt, /*old_height*/is_ocean_fn); */
+        let mut dh = downhill(&alt, /*old_height*/is_ocean_fn);
+        /* for (chunk_idx, (&chunk_dh, &chunk_dh2)) in dh.iter().zip(dh2.iter()).enumerate() {
+            if chunk_dh != chunk_dh2 {
+                let dh_pos = make_pos(chunk_dh);
+                let dh2_pos = make_pos(chunk_dh2);
+                if let Ok(chunk_dh)
+                match && !(is_ocean_fn(chunk_dh) && is_ocean_fn(chunk_dh2)) {
+                p
+                let make_pos = |idx: isize| if idx < 0 { Err(idx) } else { Ok(uniform_idx_as_vec2(idx as usize)) };
+                println!("At position {:?}, {:?} vs. {:?}", make_pos(chunk_idx as isize), );
+                unreachable!();
+            }
+        } */
 
-        let water_factor = (1024.0 * 1024.0) / 50.0;
+        // assert_eq!(dh, downhill(&alt, /*old_height*/is_ocean_fn));
+        let (boundary_len, indirection, water_alt_pos) = get_lakes(&/*water_alt*/alt, &mut dh);
+        let flux_old = get_drainage(&water_alt_pos, &dh, boundary_len);
+
+        let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
+
+        /* let water_alt = indirection.par_iter()
+            .enumerate()
+            .map(|(chunk_idx, &indirection_idx)| {
+                // Find the lake this point is flowing into.
+                let lake_idx = if indirection_idx < 0 {
+                    chunk_idx
+                } else {
+                    indirection_idx as usize
+                };
+                // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+                // pushed towards the point identified by pass_idx).
+                let pass_idx = dh[lake_idx];
+                // Find our own height.
+                // let height = alt[chunk_idx];
+                // let water_height = water_alt[chunk_idx];
+                if pass_idx < 0 {
+                } else {
+                }
+            })
+            .collect::<Vec<_>>().into_boxed_slice(); */
+
+
+        // Start at a node x.  Find x's lake bottom, lake_i, then its pass pass_i,j on the
+        // downhill side (flowing into lake j), then its height on the
+        // downhill side, in_height_i,j.  Then find the lake height of lake_j, lake_height_j.
+        //
+        // If out_height_i >= in_height_i,j (really lake_height_i >= lake_height_j), nothing
+        // should change.
+        //
+        // If out_height_i < in_height_i,j (or lake_height_i < lake_height_j), we have a
+        // problem--a stream is flowing into a lake that is taller than the stream.
+        // To solve this problem, we must raise the water level of lake i, lake_height_i, to
+        // compensate.  Fortunately, we know that the flow is "minimal" in the sense that each pass
+        // is the minimum distance from the bottom.  So if we have such a situation, lake j still
+        // must be part of the minimal path to the bottom, which means that raising lake i's height
+        // to j should not create new paths with a faster route downhill (at least, not in
+        // isolation).
+        //
+        // Start at lake roots, which already have determined water heights.
+        //
+        // Find incoming lakes that have (lake side) pass heights lower than that of their downhill lake.
+        // Fix these heights (increase them to match the height of their downhill lake).
+        // Increasing the height may expose new candidate passes
+        // For any incoming lakes that have passes to each other less than or equal to their
+        // heights, we must now equalize them.
+        //
+        // Now this may have opened up new channels between
+        //
+        // Now, there may still be passes out of lake i to other lakes.  If we modify the height of
+        // lake i such that lake_height_i > pass_height_i,k for some j ≠ k, then
+        //
+        // Once every lake i flowing into lake j (with no incoming flows) has been processed in this
+        // way, all the lake i's are at a minimal pass height.  This means that all neighboring
+        // nodes out of the lake i's that are below the pass height, should extend outwards.
+        //
+        // Otherwise,
+        //
+        // If out_height_i < in_height_i,j, we need to fix it by pulling up in_height_i,j
+        // to match in_height_i.
+
+        let water_factor = (1.0 / 1024.0) as f32;
+        let wdelta = /*flux * water_factor*/5.0;
         let water_alt = indirection.par_iter()
             .enumerate()
             .map(|(chunk_idx, &indirection_idx)| {
@@ -330,14 +455,25 @@ impl WorldSim {
                     // river (stay at our surface), while if we are below it we should form a lake
                     // (stay at the height of the pass).
                     let water_height = /*water_height.max(*/pass_height/*)*/;// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
+                    // let water_height = /*water_height.max(*/pass_height_i/*)*/;// * ((flux_old[lake_idx] * water_factor).max(0.0).min(1.0));
                     // println!("Water at {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), water_height);
-                    water_height
-                    // water_alt[chunk_idx]
+                    // water_height
+                    water_alt[chunk_idx]
+                    // water_height
                 }
                 /* if flux_old[posi] * water_factor < 0.25 {
                 } */
             })
             .collect::<Vec<_>>().into_boxed_slice();
+
+        // let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
+
+        let is_underwater = |chunk_idx: usize| match rivers[chunk_idx].river_kind {
+            Some(RiverKind::Ocean) | Some(RiverKind::Lake) => true,
+            Some(RiverKind::River) => false, // TODO: inspect width
+            None => false,
+        };
+
 
         // Check whether any tiles around this tile are not seawater (since Lerp will ensure that they
         // are included).
@@ -347,8 +483,8 @@ impl WorldSim {
                 for y in pos.y - 1..=pos.y + 1 {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
-                        if flux_old[posi] * water_factor < 1.0 ||
-                           alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
+                        if /*flux_old[posi] * water_factor < 1.0 && water_alt[posi] < alt[posi] ||
+                           /*alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0*/is_ocean_fn(posi)*/!is_underwater(posi) {
                             return false;
                         }
                     }
@@ -356,13 +492,13 @@ impl WorldSim {
             }
             true
         };
-        let flux = uniform_noise(|posi, _| {
+        /* let flux = uniform_noise(|posi, _| {
             if sea_water(posi) {
                 None
             } else {
                 Some(flux_old[posi])
             }
-        });
+        }); */
 
         // Check whether any tiles around this tile are not water (since Lerp will ensure that they
         // are included).
@@ -374,8 +510,9 @@ impl WorldSim {
                     if x >= 0 && y >= 0 && x < WORLD_SIZE.x as i32 && y < WORLD_SIZE.y as i32 {
                         let posi = vec2_as_uniform_idx(Vec2::new(x, y));
                         if /*flux[posi].0 > 0.99 || *//*flux[posi].1 * water_factor < 1.0 ||*/
-                            flux_old[posi] * water_factor < 1.0 ||
-                            alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0 {
+                            /*flux_old[posi] * water_factor < 1.0 && water_alt[posi] < alt[posi] ||
+                            /*alt_old[posi].1.mul(CONFIG.mountain_scale) > 0.0*//*is_ocean_fn(posi)*/*/
+                            !is_underwater(posi) {
                             return false;
                         }
                     }
@@ -383,6 +520,14 @@ impl WorldSim {
             }
             true
         };
+
+        let pure_flux = uniform_noise(|posi, _| {
+            if pure_water(posi) {
+                None
+            } else {
+                Some(flux_old[posi])
+            }
+        });
 
         let (alt_no_water, (temp_base, humid_base)) = rayon::join(
             || uniform_noise(|posi, _| {
@@ -425,11 +570,14 @@ impl WorldSim {
             alt_base,
             chaos,
             alt_old,
+            is_ocean,
             alt,
             water_alt,
             dh,
-            flux,
+            flux: flux_old,
+            pure_flux,
             alt_no_water,
+            rivers,
         };
 
         /* let mut chunks = Vec::new();
@@ -488,9 +636,9 @@ impl WorldSim {
             .enumerate()
             .collect::<Vec<_>>();
         for i in 0..locations.len() {
-            let pos = locations[i].center;
+            let pos = locations[i].center.map(|e| e as i64);
 
-            loc_clone.sort_by_key(|(_, l)| l.distance_squared(pos));
+            loc_clone.sort_by_key(|(_, l)| l.map(|e| e as i64).distance_squared(pos));
 
             loc_clone.iter().skip(1).take(2).for_each(|(j, _)| {
                 locations[i].neighbours.insert(*j);
@@ -506,11 +654,13 @@ impl WorldSim {
                     if loc_grid[j * grid_size.x + i].is_none() {
                         const R_COORDS: [i32; 5] = [-1, 0, 1, 0, -1];
                         let idx = self.rng.gen::<usize>() % 4;
-                        let loc = Vec2::new(i as i32 + R_COORDS[idx], j as i32 + R_COORDS[idx + 1])
-                            .map(|e| e as usize);
-
-                        loc_grid[j * grid_size.x + i] =
-                            loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
+                        let new_i = i as i32 + R_COORDS[idx];
+                        let new_j = j as i32 + R_COORDS[idx + 1];
+                        if new_i >= 0 && new_j >= 0 {
+                            let loc = Vec2::new(new_i as usize, new_j as usize);
+                            loc_grid[j * grid_size.x + i] =
+                                loc_grid.get(loc.y * grid_size.x + loc.x).cloned().flatten();
+                        }
                     }
                 }
             }
@@ -543,26 +693,31 @@ impl WorldSim {
                 // Sort regions based on distance
                 near.sort_by(|a, b| a.dist.partial_cmp(&b.dist).unwrap());
 
-                let nearest_cell_pos = near[0].chunk_pos.map(|e| e as usize) / cell_size;
-                self.get_mut(chunk_pos).unwrap().location = loc_grid
-                    .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
-                    .cloned()
-                    .unwrap_or(None)
-                    .map(|loc_idx| LocationInfo { loc_idx, near });
+                let nearest_cell_pos = near[0].chunk_pos;
+                if nearest_cell_pos.x >= 0 && nearest_cell_pos.y >= 0 {
+                    let nearest_cell_pos = nearest_cell_pos.map(|e| e as usize) / cell_size;
+                    self.get_mut(chunk_pos).unwrap().location = loc_grid
+                        .get(nearest_cell_pos.y * grid_size.x + nearest_cell_pos.x)
+                        .cloned()
+                        .unwrap_or(None)
+                        .map(|loc_idx| LocationInfo { loc_idx, near });
 
-                let town_size = 200;
-                let in_town = self
-                    .get(chunk_pos)
-                    .unwrap()
-                    .location
-                    .as_ref()
-                    .map(|l| {
-                        locations[l.loc_idx].center.distance_squared(block_pos)
-                            < town_size * town_size
-                    })
-                    .unwrap_or(false);
-                if in_town {
-                    self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
+                    let town_size = 200;
+                    let in_town = self
+                        .get(chunk_pos)
+                        .unwrap()
+                        .location
+                        .as_ref()
+                        .map(|l| {
+                            locations[l.loc_idx].center
+                                .map(|e| e as i64)
+                                .distance_squared(block_pos.map(|e| e as i64))
+                                < town_size * town_size
+                        })
+                        .unwrap_or(false);
+                    if in_town {
+                        self.get_mut(chunk_pos).unwrap().spawn_rate = 0.0;
+                    }
                 }
             }
         }
@@ -636,7 +791,22 @@ impl WorldSim {
     }
 
     pub fn get_base_z(&self, chunk_pos: Vec2<i32>) -> Option<f32> {
-        self.get(chunk_pos).and_then(|_| {
+        if !chunk_pos
+            .map2(WORLD_SIZE, |e, sz| e >= 0 && e < sz as i32)
+            .reduce_and()
+        {
+            return None;
+        }
+
+        let chunk_idx = vec2_as_uniform_idx(chunk_pos);
+        // neighbors(chunk_idx).chain(iter::once(chunk_pos))
+        local_cells(chunk_idx)
+            .flat_map(|neighbor_idx| {
+                let chunk_pos = uniform_idx_as_vec2(neighbor_idx);
+                self.get(chunk_pos).map(|c| c.get_base_z())
+            })
+            .fold(None, |a: Option<f32>, x| a.map(|a| a.min(x)).or(Some(x)))
+        /* self.get(chunk_pos).and_then(|_| {
             (0..2)
                 .map(|i| (0..2).map(move |j| (i, j)))
                 .flatten()
@@ -646,7 +816,7 @@ impl WorldSim {
                 })
                 .flatten()
                 .fold(None, |a: Option<f32>, x| a.map(|a| a.min(x)).or(Some(x)))
-        })
+        }) */
     }
 
     pub fn get_interpolated<T, F>(&self, pos: Vec2<i32>, mut f: F) -> Option<T>
@@ -683,6 +853,180 @@ impl WorldSim {
 
         Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
     }
+
+    /// M. Steffen splines.
+    ///
+    /// A more expensive cubic interpolation function that can preserve monotonicity between
+    /// points.  This is useful if you rely on relative differences between endpoints being
+    /// preserved at all interior points.  For example, we use this with riverbeds (and water
+    /// height on along rivers) to maintain the invariant that the rivers always flow downhill at
+    /// interior points (not just endpoints), without needing to flatten out the river.
+    pub fn get_interpolated_monotone<T, F>(&self, pos: Vec2<i32>, mut f: F) -> Option<T>
+    where
+        T: Copy + Default + Signed + Float + Add<Output = T> + Mul<f32, Output = T>,
+        F: FnMut(&SimChunk) -> T,
+    {
+        // See http://articles.adsabs.harvard.edu/cgi-bin/nph-iarticle_query?1990A%26A...239..443S&defaultprint=YES&page_ind=0&filetype=.pdf
+        //
+        // Note that these are only guaranteed monotone in one dimension; fortunately, that is
+        // sufficient for our purposes.
+        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+            e as f64 / sz as f64
+        });
+
+        let secant = |b: T, c: T| c - b;
+
+        let parabola = |a: T, c: T| -a * 0.5 + c * 0.5;
+
+        let slope = |a: T, b: T, c: T, s_a: T, s_b: T, p_b: T| {
+            // let s1 = b - a;
+            // let s2 = c - b;
+            (s_a.signum() + s_b.signum()) * (s_a.abs().min(s_b.abs()).min(p_b.abs() * 0.5))
+            // ((b - a).signum() + (c - b).signum()) * s
+        };
+
+        let cubic = |a: T, b: T, c: T, d: T, x: f32| -> T {
+            // Compute secants.
+            let s_a = secant(a, b);
+            let s_b = secant(b, c);
+            let s_c = secant(c, d);
+            // Computing slopes from parabolas.
+            let p_b = parabola(a, c);
+            let p_c = parabola(b, d);
+            // Get slopes (setting distance between neighbors to 1.0).
+            let slope_b = slope(a, b, c, s_a, s_b, p_b);
+            let slope_c = slope(b, c, d, s_b, s_c, p_c);
+            /* // let b_slope = (c - b);
+            let b_slope = a * -0.5 + c * 0.5;
+            // let c_slope = (d - b);
+            let c_slope = b * -0.5 + d * 0.5; */
+            let x2 = x * x;
+
+            // Interpolating splines.
+            let co0 = (slope_b + slope_c - s_b * 2.0);
+                    // = a * -0.5 + c * 0.5 + b * -0.5 + d * 0.5 - 2 * (c - b)
+                    // = a * -0.5 + b * 1.5 - c * 1.5 + d * 0.5;
+            let co1 = (s_b * 3.0 - slope_b * 2.0 - slope_c);
+                    // = (3.0 * (c - b) - 2.0 * (a * -0.5 + c * 0.5) - (b * -0.5 + d * 0.5))
+                    // = a + b * -2.5 + c * 2.0 + d * -0.5;
+            let co2 = slope_b;
+                    // = a * -0.5 + c * 0.5;
+            let co3 = b;
+
+            co0 * x2 * x + co1 * x2 + co2 * x + co3
+        };
+
+        let mut x = [T::default(); 4];
+
+        for (x_idx, j) in (-1..3).enumerate() {
+            let y0 = f(self.get(pos.map2(Vec2::new(j, -1), |e, q| e.max(0.0) as i32 + q))?);
+            let y1 = f(self.get(pos.map2(Vec2::new(j, 0), |e, q| e.max(0.0) as i32 + q))?);
+            let y2 = f(self.get(pos.map2(Vec2::new(j, 1), |e, q| e.max(0.0) as i32 + q))?);
+            let y3 = f(self.get(pos.map2(Vec2::new(j, 2), |e, q| e.max(0.0) as i32 + q))?);
+
+            x[x_idx] = cubic(y0, y1, y2, y3, pos.y.fract() as f32);
+        }
+
+        Some(cubic(x[0], x[1], x[2], x[3], pos.x.fract() as f32))
+    }
+
+    /// Bilinear interpolation.
+    ///
+    /// Linear interpolation in both directions (i.e. quadratic interpolation).
+    pub fn get_interpolated_bilinear<T, F>(&self, pos: Vec2<i32>, mut f: F) -> Option<T>
+    where
+        T: Copy + Default + Signed + Float + Add<Output = T> + Mul<f32, Output = T>,
+        F: FnMut(&SimChunk) -> T,
+    {
+        // (i) Find downhill for all four points.
+        // (ii) Compute distance from each downhill point and do linear interpolation on their heights.
+        // (iii) Compute distance between each neighboring point and do linear interpolation on
+        //       their distance-interpolated heights.
+
+        // See http://articles.adsabs.harvard.edu/cgi-bin/nph-iarticle_query?1990A%26A...239..443S&defaultprint=YES&page_ind=0&filetype=.pdf
+        //
+        // Note that these are only guaranteed monotone in one dimension; fortunately, that is
+        // sufficient for our purposes.
+        let pos = pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+            e as f64 / sz as f64
+        });
+
+        // Orient the chunk in the direction of the most downhill point of the four.  If there is
+        // no "most downhill" point, then we don't care.
+        let x0 = pos.map2(Vec2::new(0, 0), |e, q| e.max(0.0) as i32 + q);
+        let p0 = self.get(x0)?;
+        let y0 = f(p0);
+
+        let x1 = pos.map2(Vec2::new(1, 0), |e, q| e.max(0.0) as i32 + q);
+        let p1 = self.get(x1)?;
+        let y1 = f(p1);
+
+        let x2 = pos.map2(Vec2::new(0, 1), |e, q| e.max(0.0) as i32 + q);
+        let p2 = self.get(x2)?;
+        let y2 = f(p2);
+
+        let x3 = pos.map2(Vec2::new(1, 1), |e, q| e.max(0.0) as i32 + q);
+        let p3 = self.get(x3)?;
+        let y3 = f(p3);
+
+        /* let xys = [(x0, x3, p0, y0), (x1, x2, p1, y1), (x2, x1, p2, y2), (x3, x0, p3, y3)];
+        let (xmin, _, pmin, ymin) = xys
+            .into_iter()
+            .min_by(|(_, _, _, yi), (_, _, _, yj)| yi.partial_cmp(yj).unwrap())
+            .unwrap();
+
+        let (xmax, _, pmin, ymin) = xys
+            .into_iter()
+            .max_by(|(_, _, _, yi), (_, _, _, yj)| yi.partial_cmp(yj).unwrap())
+            .unwrap();
+
+        // Rotate around the center in the direction of xmin.
+        // let rect_center = xmax.map(|e| e as f32);
+        let rect_center = x0.map(|e| e as f32).add(Vec2::new(0.5, 0.5));
+        let rot_vec = (xmin - xmax).map(|e| e as f32);
+        // let rot_vec = xmin.map(|e| e as f32) - rect_center;
+        let rot_mat = Mat2::<f32>::new(rot_vec.x, -rot_vec.y, rot_vec.y, rot_vec.x);
+        let rot_mat = rot_mat.mul(Mat2::<f32>::new(-1.0, 0.0, 0.0, 1.0));
+        // Rotate the point around the origin.
+        let vox_rot = |vox: Vec2<f32>| vox
+            .sub(rect_center)
+            .mul(rot_mat)
+            .add(rect_center);
+
+        let x0 = vox_rot(x0.map(|e| e as f32)).map(|e| e.max(0.0) as i32);
+        let p0 = self.get(x0)?;
+        let y0 = f(p0);
+
+        let x1 = vox_rot(x1.map(|e| e as f32)).map(|e| e.max(0.0) as i32);
+        let p1 = self.get(x1)?;
+        let y1 = f(p1);
+
+        let x2 = vox_rot(x2.map(|e| e as f32)).map(|e| e.max(0.0) as i32);
+        let p2 = self.get(x2)?;
+        let y2 = f(p2);
+
+        let x3 = vox_rot(x3.map(|e| e as f32)).map(|e| e.max(0.0) as i32);
+        let p3 = self.get(x3)?;
+        let y3 = f(p3);
+
+        let pos = vox_rot(pos.map(|e| e as f32)); */
+
+        let z0 = y0
+            .mul(1.0 - pos.x.fract() as f32)
+            .mul(1.0 - pos.y.fract() as f32);
+        let z1 = y1
+            .mul(pos.x.fract() as f32)
+            .mul(1.0 - pos.y.fract() as f32);
+        let z2 = y2
+            .mul(1.0 - pos.x.fract() as f32)
+            .mul(pos.y.fract() as f32);
+        let z3 = y3
+            .mul(pos.x.fract() as f32)
+            .mul(pos.y.fract() as f32);
+
+        Some(z0 + z1 + z2 + z3)
+    }
+
 }
 
 pub struct SimChunk {
@@ -702,6 +1046,7 @@ pub struct SimChunk {
     pub forest_kind: ForestKind,
     pub spawn_rate: f32,
     pub location: Option<LocationInfo>,
+    pub river: RiverData,
 
     pub structures: Structures,
 }
@@ -738,9 +1083,12 @@ impl SimChunk {
         let alt_pre = gen_cdf.alt[posi];
         let water_alt_pre = gen_cdf.water_alt[posi];
         let downhill_pre = gen_cdf.dh[posi];
-        let (flux_uniform, flux) = gen_cdf.flux[posi];
+        let (flux_uniform, _) = gen_cdf.pure_flux[posi];
+        let flux = gen_cdf.flux[posi];
+        // let (flux_uniform, flux) = gen_cdf.flux[posi];
         let (alt_uniform, _) = gen_cdf.alt_no_water[posi];
         let (temp_uniform, _) = gen_cdf.temp_base[posi];
+        let river = gen_cdf.rivers[posi].clone();
 
         /* // Flux is just flux_uniform, currently.
         let flux = flux_uniform; */
@@ -776,25 +1124,27 @@ impl SimChunk {
         let alt_base = alt_base.mul(CONFIG.mountain_scale);
         let alt = CONFIG
             .sea_level
-            .mul(map_edge_factor)
+            // .mul(map_edge_factor)
             .add(alt_pre.mul(CONFIG.mountain_scale));
         let water_alt = CONFIG
             .sea_level
-            .mul(map_edge_factor)
+            // .mul(map_edge_factor)
             .add(water_alt_pre.mul(CONFIG.mountain_scale));
         let alt_old = CONFIG
             .sea_level
-            .mul(map_edge_factor)
+            // .mul(map_edge_factor)
             .add(alt_old.mul(CONFIG.mountain_scale));
         let downhill = if downhill_pre == -2 {
             None
+        } else if downhill_pre < 0 {
+            panic!("Uh... shouldn't this never, ever happen?");
         } else {
             Some(uniform_idx_as_vec2(downhill_pre as usize) *
                  TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
         };
 
-        let water_factor = (1024.0 * 1024.0) / 50.0;
-        let cliff = gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;
+        let water_factor = /*((WORLD_SIZE.x * WORLD_SIZE.y) / 1024) as f32;*/(1.0 / 1024.0) as f32;
+        let cliff = /*gen_ctx.cliff_nz.get((wposf.div(2048.0)).into_array()) as f32 + chaos * 0.2;*/0.0;
 
         // Logistic regression.  Make sure x ∈ (0, 1).
         let logit = |x: f32| x.ln() - x.neg().ln_1p();
@@ -803,8 +1153,29 @@ impl SimChunk {
         // Assumes μ = 0, σ = 1
         let logistic_cdf = |x: f32| x.div(logistic_2_base).tanh().mul(0.5).add(0.5);
 
+        let is_underwater = match river.river_kind {
+            Some(RiverKind::Ocean) | Some(RiverKind::Lake) => true,
+            Some(RiverKind::River) => false, // TODO: inspect width
+            None => false,
+        };
+        if flux * water_factor >= 1.0 {
+            println!("Big flux: {:?}, flux: {:?}", wposf, flux / 1024.0 as f32);
+        }
+        let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
+        let river_slope = river.velocity.z / river_xy;
+        if river.cross_section.x >= 0.25 ||
+            river.river_kind == Some(RiverKind::River) && river_slope.abs() >= 1.0 {
+            println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
+                     river_slope);
+            if river_slope.abs() >= 1.0 && river.cross_section.x >= 0.25 {
+                println!("Big waterfall! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river, river_slope);
+            }
+        }
+
         // No trees in the ocean or with zero humidity (currently)
-        let tree_density = if alt_old <= CONFIG.sea_level + 5.0 || flux * water_factor >= /*0.25*/1.0 {
+        let wdelta = /*flux * water_factor*/5.0;
+        let tree_density = if /*alt_old <= CONFIG.sea_level + wdelta ||*/
+            /*flux * water_factor >= /*0.25*/1.0*/is_underwater {
             0.0
         } else {
             let tree_density = (gen_ctx.tree_nz.get((wposf.div(1024.0)).into_array()) as f32)
@@ -848,7 +1219,7 @@ impl SimChunk {
             } else {
                 0.0
             },
-            is_cliffs: cliff > 0.5 && alt_old > CONFIG.sea_level + 5.0,
+            is_cliffs: cliff > 0.5 && alt_old > CONFIG.sea_level + wdelta,
             near_cliffs: cliff > 0.2,
             tree_density,
             forest_kind: if temp > 0.0 {
@@ -870,7 +1241,7 @@ impl SimChunk {
                 } else if temp > CONFIG.tropical_temp {
                     if humidity > CONFIG.jungle_hum {
                         if tree_density > 0.0 {
-                            println!("Mangrove: {:?}", wposf);
+                            // println!("Mangrove: {:?}", wposf);
                         }
                         ForestKind::Mangrove
                     } else if humidity > CONFIG.forest_hum {
@@ -914,7 +1285,7 @@ impl SimChunk {
             },
             spawn_rate: 1.0,
             location: None,
-
+            river,
             structures: Structures { town: None },
         }
     }

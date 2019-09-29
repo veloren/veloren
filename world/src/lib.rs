@@ -28,7 +28,10 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
-use std::time::Duration;
+use std::{
+    sync::atomic::{AtomicBool, Ordering},
+    time::Duration,
+};
 use vek::*;
 
 #[derive(Debug)]
@@ -65,7 +68,8 @@ impl World {
         BlockGen::new(self, ColumnGen::new(&self.sim))
     }
 
-    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>) -> (TerrainChunk, ChunkSupplement) {
+    pub fn generate_chunk(&self, chunk_pos: Vec2<i32>,
+                          flag: &AtomicBool) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let air = Block::empty();
         let stone = Block::new(BlockKind::Dense, Rgb::new(200, 220, 255));
         let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
@@ -73,15 +77,16 @@ impl World {
         let chunk_size2d = TerrainChunkSize::RECT_SIZE;
         let (base_z, sim_chunk) = match self
             .sim
-            .get_interpolated(
+            /*.get_interpolated(
                 chunk_pos.map2(chunk_size2d, |e, sz: u32| e * sz as i32 + sz as i32 / 2),
                 |chunk| chunk.get_base_z(),
             )
-            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk)))
+            .and_then(|base_z| self.sim.get(chunk_pos).map(|sim_chunk| (base_z, sim_chunk))) */
+            .get_base_z(chunk_pos)
         {
-            Some((base_z, sim_chunk)) => (base_z as i32, sim_chunk),
+            Some(base_z) => (base_z as i32, self.sim.get(chunk_pos).unwrap()),
             None => {
-                return (
+                return Ok((
                     TerrainChunk::new(
                         CONFIG.sea_level as i32,
                         water,
@@ -89,7 +94,7 @@ impl World {
                         TerrainChunkMeta::void(),
                     ),
                     ChunkSupplement::default(),
-                )
+                ))
             }
         };
 
@@ -101,6 +106,7 @@ impl World {
         let mut chunk = TerrainChunk::new(base_z, stone, air, meta);
         for x in 0..TerrainChunkSize::RECT_SIZE.x as i32 {
             for y in 0..TerrainChunkSize::RECT_SIZE.y as i32 {
+                if flag.load(Ordering::Relaxed) { return Err(()) };
                 let wpos2d = Vec2::new(x, y)
                     + Vec2::from(chunk_pos) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
 
@@ -151,7 +157,7 @@ impl World {
             },
         };
 
-        (chunk, supplement)
+        Ok((chunk, supplement))
     }
 }
 

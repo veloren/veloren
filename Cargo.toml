@@ -17,6 +17,8 @@ debug = false
 
 
 [profile.release]
-debug = true
+# debug = true
+debug = false
+panic="abort"
 codegen-units = 1
 lto = true

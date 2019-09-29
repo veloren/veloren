@@ -1,3 +1,5 @@
+use bitvec::prelude::{bitbox, bitvec, BitBox, Bits, BitsMut, BitSlice, BitStore, BitVec,
+                      Cursor, LittleEndian};
 use crate::{
     config::CONFIG,
     util::RandomField,
@@ -195,6 +197,41 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) -> Inve
     uniform_noise
 }
 
+/// Iterate through all cells adjacent and including four chunks whose top-left point is posi.
+/// This isn't just the immediate neighbors of a chunk plus the center, because it is designed
+/// to cover neighbors of a point in the chunk's "interior."
+///
+/// This is what's used during cubic interpolation, for example, as it guarantees that for any
+/// point between the given chunk (on the top left) and its top-right/down-right/down neighbors,
+/// the twelve chunks surrounding this box (its "perimeter") are also inspected.
+pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item=usize> {
+    let pos = uniform_idx_as_vec2(posi);
+    // NOTE: want to keep this such that the chunk index is in ascending order!
+    /* [(-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2),
+     (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1),
+     (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0),
+     (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
+     (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)] */
+    [(-3, -3), (-2, -3), (-1, -3), (0, -3), (1, -3), (2, -3), (3, -3),
+     (-3, -2), (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2), (3, -2),
+     (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1), (3, -1),
+     (-3, 0), (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (3, 0),
+     (-3, 1), (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1), (3, 1),
+     (-3, 2), (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2), (3, 2),
+     (-3, 3), (-2, 3), (-1, 3), (0, 3), (1, 3), (2, 3), (3, 3)]
+
+
+    /* [(-1,-1), (0,-1), (1, -1), (2, -1),
+     (-1, 0), (0, 0), (1, 0), (2, 0),
+     (-1, 1), (0, 1), (1, 1), (2, 1),
+     (-1, 2), (0, 2), (1, 2), (2, 2)] */
+        .into_iter()
+        .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
+        .filter(|pos| pos.x >= 0 && pos.y >= 0 &&
+                      pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32)
+        .map(vec2_as_uniform_idx)
+}
+
 /// Iterate through all cells adjacent to a chunk.
 pub fn neighbors(posi: usize) -> impl Clone + Iterator<Item=usize> {
     let pos = uniform_idx_as_vec2(posi);
@@ -215,11 +252,16 @@ pub fn uphill<'a>(dh: &'a [isize], posi: usize) -> impl Clone + Iterator<Item=us
 /// Compute the neighbor "most downhill" from all chunks.
 ///
 /// TODO: See if allocating in advance is worthwhile.
-pub fn downhill(h: &[f32], oh: impl Fn(usize) -> f32 + Sync) -> Box<[isize]> {
+pub fn downhill(h: &[f32], /*oh: impl Fn(usize) -> f32 + Sync*/
+                is_ocean: impl Fn(usize) -> bool + Sync) -> Box<[isize]> {
     // Constructs not only the list of downhill nodes, but also computes an ordering (visiting
     // nodes in order from roots to leaves).
     h.par_iter().enumerate().map(|(posi, &nh)| {
-        if map_edge_factor(posi) == 0.0 || oh(posi) <= 0.0 {
+        let pos = uniform_idx_as_vec2(posi);
+        /* if pos.x < 16 || pos.y < 16 {
+            println!("ocean {:?}: {:?}", pos, is_ocean(posi));
+        } */
+        if /*map_edge_factor(posi) == 0.0 || *//*oh*/is_ocean(posi) {
             -2
         } else {
             let mut best = -1;
@@ -256,7 +298,7 @@ pub fn sort_by_height(h: &[f32], newh: &mut [u32]) {
 
 /// Compute the water flux at all chunks, given a list of chunk indices sorted by increasing
 /// height.
-pub fn get_flux(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[f32]> {
+pub fn get_drainage(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[f32]> {
     /* let mut newh = h.iter().enumerate().collect::<Vec<_>>();
 
     // Sort by altitude
@@ -269,7 +311,8 @@ pub fn get_flux(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[
     // chunk is, we use its logit.
     // NOTE: If there are no non-boundary chunks, we just set base_flux to 1.0; this should still
     // work fine because in that case there's no erosion anyway.
-    let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
+    // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
+    let base_flux = 1.0;
     // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y - boundary_len).max(1) as f32);
     let mut flux = vec![base_flux ; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     for &chunk_idx in newh.into_iter().rev() {
@@ -280,6 +323,371 @@ pub fn get_flux(newh: &[u32], downhill: &[isize], _boundary_len: usize) -> Box<[
         }
     }
     flux
+    /* var dh = downhill(h);
+    var idxs = [];
+    var flux = zero(h.mesh);
+    for (var i = 0; i < h.length; i++) {
+        idxs[i] = i;
+        flux[i] = 1/h.length;
+    }
+    idxs.sort(function (a, b) {
+        return h[b] - h[a];
+    });
+    for (var i = 0; i < h.length; i++) {
+        var j = idxs[i];
+        if (dh[j] >= 0) {
+            flux[dh[j]] += flux[j];
+        }
+    }
+    return flux; */
+}
+
+/// Kind of water on this tile.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum RiverKind {
+    Ocean,
+    Lake,
+    /// River should be maximal.
+    River,
+}
+
+/// From velocity and cross_section we can calculate the volumetric flow rate, as the
+/// cross-sectional area times the velocity.
+///
+/// TODO: we might choose to include a curve for the river, as long as it didn't allow it to
+/// cross more than one neighboring chunk away.  For now we defer this to rendering time.
+///
+/// NOTE: This structure is 57 (or more likely 64) bytes, which is kind of big.
+#[derive(Clone, Debug, Default)]
+pub struct RiverData {
+    /// A velocity vector (in m / minute, i.e. voxels / second from a game perspective).
+    ///
+    /// TODO: To represent this in a better-packed way, use u8s instead (as "f8s").
+    pub(crate) velocity: Vec3<f32>,
+    /// Dimensions of the river's cross-sectional area, as m × m (the river is approximated
+    /// as an open rectangular prism in the direction of the velocity vector).
+    pub(crate) cross_section: Vec2<f32>,
+    /// The computed derivative for the segment of river starting at this chunk (and flowing
+    /// downhill).  Should be 0 at endpoints.  For rivers with more than one incoming segment, we
+    /// weight the derivatives by flux (cross-sectional area times velocity) which is correlated
+    /// with mass / second; treating the derivative as "velocity" with respect to length along the
+    /// river, we treat the weighted sum of incoming splines as the "momentum", and can divide it
+    /// by the total incoming mass as a way to find the velocity of the center of mass.  We can
+    /// then use this derivative to find a "tangent" for the incoming river segment at this point,
+    /// and as the linear part of the interpolating spline at this point.
+    ///
+    /// Note that we aren't going to have completely smooth curves here anyway, so we will probably
+    /// end up applying a dampening factor as well (maybe based on the length?) to prevent
+    /// extremely wild oscillations.
+    pub(crate) spline_derivative: Vec2<f32>,
+    /// If this chunk is part of a river, this should be true.  We can't just compute this from the
+    /// cross section because once a river becomes visible, we want it to stay visible until it
+    /// reaches its sink.
+    pub river_kind: Option<RiverKind>,
+    /// We also have a second record for recording any rivers in nearby chunks that manage to
+    /// intersect this chunk, though this is unlikely to happen in current gameplay.  This is
+    /// because river areas are allowed to cross arbitrarily many chunk boundaries, if they are
+    /// wide enough.  In such cases we may choose to render the rivers as particularly deep in
+    /// those places.
+    pub(crate) neighbor_rivers: Vec<u32>,
+}
+
+/// Draw rivers and assign them heights, widths, and velocities.  Take some liberties with the
+/// constant factors etc. in order to make it more likely that we draw rivers at all.
+pub fn get_rivers(newh: &[u32], water_alt: &[f32],
+                  downhill: &[isize],
+                  indirection: &[i32], drainage: &[f32]) -> Box<[RiverData]> {
+    // For continuity-preserving quadratic spline interpolation, we (appear to) need to build
+    // up the derivatives from the top down.  Fortunately this computation seems tractable.
+    /* let mut newh = h.iter().enumerate().collect::<Vec<_>>();
+
+    // Sort by altitude
+    newh.sort_unstable_by(|f, g| (f.1, f.0).partial_cmp(&(g.1, g.0)).unwrap()); */
+
+    // FIXME: Make the below work.  For now, we just use constant flux.
+    // Initially, flux is determined by rainfall.  We currently treat this as the same as humidity,
+    // so we just use humidity as a proxy.  The total flux across the whole map is normalize to
+    // 1.0, and we expect the average flux to be 0.5.  To figure out how far from normal any given
+    // chunk is, we use its logit.
+    // NOTE: If there are no non-boundary chunks, we just set base_flux to 1.0; this should still
+    // work fine because in that case there's no erosion anyway.
+    // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y) as f32);
+    // let base_flux = 1.0;
+    // let base_flux = 1.0 / ((WORLD_SIZE.x * WORLD_SIZE.y - boundary_len).max(1) as f32);
+    let mut rivers = vec![RiverData::default() ; WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
+    let neighbor_coef =
+        Vec2::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32);
+    // NOTE: This technically makes us discontinuous, so we should be cautious about using this.
+    let derivative_divisor = 1.03125;
+    for &chunk_idx in newh.into_iter().rev() {
+        let chunk_idx = chunk_idx as usize;
+        let downhill_idx = downhill[chunk_idx];
+        if downhill_idx < 0 {
+            // We are in the ocean.
+            debug_assert!(downhill_idx == -2);
+            rivers[chunk_idx].river_kind = Some(RiverKind::Ocean);
+            continue;
+        }
+        let downhill_idx = downhill_idx as usize;
+        let indirection_idx = indirection[chunk_idx];
+        // Find the lake we are flowing into.
+        let lake_idx = if indirection_idx < 0 {
+            // If we're a lake bottom, our own indirection is negative.
+            let mut lake = &mut rivers[chunk_idx];
+            lake.river_kind = Some(RiverKind::Lake);
+            /* let pass_idx = downhill[chunk_idx];
+            // Lakes should never (in our current model) be right next to the ocean.
+            debug_assert!(pass_idx >= 0); */
+            let pass_idx = downhill_idx/* as usize*/;
+            // Mass flow from this lake is treated as a weighting factor (this is currently
+            // considered proportional to drainage, but in the direction of "lake side of pass to
+            // pass.").
+            //
+            // NOTE: could/should probably actually do this for the "lake side of the pass."
+            // NOTE: Find the *minimal* neighboring node connected to this lake, not just the
+            // neighboring node.
+            let pass_pos = uniform_idx_as_vec2(pass_idx);
+            let lake_pos = uniform_idx_as_vec2(chunk_idx);
+            let mut lake_direction = /* neighbor_coeff * */(pass_pos - lake_pos).map(|e| e as f32);
+            // Normally we want to not normalize, but for the lake we don't want to generate a
+            // super long edge since it could lead to a lot of oscillation... this is another
+            // reason why we shouldn't use the lake bottom.
+            lake_direction.normalize();
+            let lake_drainage = drainage[chunk_idx];
+            let weighted_flow = lake_direction * 2.0 / derivative_divisor * lake_drainage;
+            // We want to assign the drained node from any lake to be a river.
+            let mut lake_pass = &mut rivers[pass_idx];
+            // We definitely shouldn't have encountered this yet!
+            debug_assert!(lake_pass.velocity == Vec3::zero());
+            lake_pass.river_kind = Some(RiverKind::River);
+            // We also want to add to the out-flow side of the pass a (flux-weighted)
+            // derivative coming from the lake center.
+            //
+            // NOTE: Maybe consider utilizing 3D component of spline somehow?  Currently this is
+            // basically a flat vector, but that might be okay from lake to other side of pass.
+            lake_pass.spline_derivative +=
+                Vec2::new(weighted_flow.x, weighted_flow.y);
+            continue;
+            // chunk_idx
+        } else {
+            indirection_idx as usize
+        };
+        // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+        // pushed towards the point identified by pass_idx).
+        let pass_idx = downhill[lake_idx];
+        // Find our own water height.
+        let chunk_water_alt = water_alt[chunk_idx];
+        if pass_idx >= 0 {
+            // We may be a river.  But we're not sure yet, since we still could be
+            // underwater.  Check the lake height and see if our own water height is within ε of
+            // it.
+            let epsilon = 1e-7f32 / CONFIG.mountain_scale;
+            let lake_water_alt = water_alt[lake_idx];
+            if (chunk_water_alt - lake_water_alt).abs() <= epsilon {
+                // Not a river.
+                rivers[chunk_idx].river_kind = Some(RiverKind::Lake);
+                continue;
+            }
+            // Otherwise, we must be a river.
+        } else {
+            // We are flowing into the ocean.
+            debug_assert!(pass_idx == -2);
+            // But we are not the ocean, so we must be a river.
+        }
+        // Now, we know we are a river *candidate*.  We still don't know whether we are actually a
+        // river, though.  There are two ways for that to happen:
+        // (i) We are already a river.
+        // (ii) Using the Gauckler–Manning–Strickler formula for cross-sectional average velocity
+        //      of water, we establish that the river can be "big enough" to appear on the Veloren
+        //      map.
+        //
+        // This is very imprecise, of course, and (ii) may (and almost certainly will) change over
+        // time.
+        //
+        // In both cases, we preemptively set our child to be a river, to make sure we have an
+        // unbroken stream.  Also in both cases, we go to the effort of computing an effective
+        // water velocity vector and cross-sectional dimensions, as well as figuring out the
+        // derivative of our interpolating spline (since this percolates through the whole river
+        // network).
+
+        // First, we calculate the river's volumetric flow rate.
+        let chunk_drainage = drainage[chunk_idx];
+        // Volumetric flow rate is just the total drainage area to this chunk, times rainfall
+        // height per chunk per minute (needed in order to use this as a m³ volume).
+        // TODO: consider having different rainfall rates (and including this information in the
+        // computation of drainage).
+        let volumetric_flow_rate = chunk_drainage * CONFIG.rainfall_chunk_rate;
+        // Next, we compute the slope from this chunk to its downhill chunk.
+        let downhill_water_alt = water_alt[downhill_idx];
+        let dxy = (uniform_idx_as_vec2(downhill_idx) - uniform_idx_as_vec2(chunk_idx))
+            .map(|e| e as f32);
+        let neighbor_dim = neighbor_coef * dxy;
+        let neighbor_distance = neighbor_dim.magnitude();
+        let dz = (downhill_water_alt - chunk_water_alt) * CONFIG.mountain_scale;
+        let slope = dz.abs() / neighbor_distance;
+        if slope == 0.0 {
+            // This is not a river--how did this even happen?
+            rivers[chunk_idx].river_kind = Some(RiverKind::Lake);
+            panic!("Should this happen at all?");
+            // continue;
+        }
+        let slope_sqrt = slope.sqrt();
+        // Now, we compute a quantity that is proportional to the velocity of the chunk, derived
+        // from the Manning formula, equal to
+        // volumetric_flow_rate / slope_sqrt * CONFIG.river_roughness.
+        let almost_velocity = volumetric_flow_rate / slope_sqrt * CONFIG.river_roughness;
+        // From this, we can figure out the width of the chunk if we know the height.  For now, we
+        // hardcode the height to 0.5, but it should almost certainly be much more complicated than
+        // this.
+        let mut height = 0.5f32;
+        // We approximate the river as a rectangular prism.  Theoretically, we need to solve the
+        // following quintic equation to determine its width from its height:
+        //
+        // h^5 * w^5 = almost_velocity^3 * (w + 2 * h)^2.
+        //
+        // This is because one of the quantities in the Manning formula (the unknown) is R_h =
+        // (area of cross-section / h)^(2/3).
+        //
+        // Unfortunately, quintic equations do not in general have algebraic solutions, and it's
+        // not clear (to me anyway) that this one does in all cases.
+        //
+        // In practice, for high ratios of width to height, we can approximate the rectangular
+        // prism's perimeter as equal to its width, so R_h as equal to height.  This greatly
+        // simplifies the calculation.  For simplicity, we do this even for low ratios of width to
+        // height--I found that for most real rivers, at least big ones, this approximation is
+        // "good enough."  We don't need to be *that* realistic :P
+        let mut width = almost_velocity / height.powf(5.0/3.0);
+
+        // We can now weight the river's drainage by its direction, which we use to help improve
+        // the slope of the downhill node.
+        let river_direction = Vec3::new(neighbor_dim.x, neighbor_dim.y, dz.signum() * dz);
+
+        let river = &rivers[chunk_idx];
+
+        // We know the drainage to this node is just chunk_drainage - 1.0 (the amount of
+        // rainfall this chunk is said to get), so we don't need to explicitly remember the
+        // incoming mass.  How do we find a slope for endpoints where there is no incoming data?
+        // Currently, we just assume it's set to 0.0.
+        // TODO: Fix this when we add differing amounts of rainfall.
+        let incoming_drainage = chunk_drainage - 1.0;
+        let river_spline_derivative = if incoming_drainage == 0.0 {
+            Vec2::zero()
+        } else {
+            // "Velocity of center of mass" of splines of incoming flows.
+            let river_prev_slope = river.spline_derivative / incoming_drainage;
+            // Set up the river's spline derivative.  For each incoming river at pos with
+            // river_spline_derivative bx, we can compute our interpolated slope as:
+            //   d_x = 2 * (chunk_pos - pos - bx) + bx
+            //       = 2 * (chunk_pos - pos) - bx
+            //
+            // which is exactly twice what was weighted by uphill nodes to get our
+            // river_spline_derivative in the first place.
+            //
+            // NOTE: this probably implies that the distance shouldn't be normalized, since the
+            // distances aren't actually equal between x and y... we'll see what happens.
+            river_prev_slope
+        };
+
+
+        // Now, we can check whether this is "really" a river.
+        // Currently, we just check that width and height are at least 0.5.
+        let is_river =
+            river.river_kind == Some(RiverKind::River) ||
+            width >= 0.5 && height >= 0.5;
+        let mut downhill_river = &mut rivers[downhill_idx];
+        // Add the chunk's river direction minus its initial slope (weighted by the
+        // chunk's drainage).
+        //
+        // TODO: consider utilizing height difference component of flux as well; currently we
+        // just discard it in figuring out the spline's slope.
+        downhill_river.spline_derivative +=
+            (river_direction * 2.0 - river_spline_derivative) / derivative_divisor * chunk_drainage;
+
+        if is_river {
+            // Provisionally make the downhill chunk a river as well.
+            downhill_river.river_kind = Some(RiverKind::River);
+
+            // Additionally, if the cross-sectional area for this river exceeds the diameter of the
+            // chunk (ideally in the direction orthogonal to channel flow, but for now we just
+            // approximate as neighbor_distance), the river is overflowing its
+            // chunk.  Solving this properly most likely requires modifying the erosion model to
+            // take channel width into account, which is a formidable task that likely requires
+            // rethinking the current grid-based erosion model (or at least, requires tracking some
+            // edges that aren't implied by the grid graph).  For now, we will solve this problem
+            // by making the river deeper when it hits the chunk width, until it consumes all the
+            // available energy in this part of the river.
+            /*    /* let neighbor_pos = posj.map(|e| e as f32) * neighbor_coef;
+                /* let downhill_pos = if downhill_idx <= -2 { return false } else {
+                    uniform_idx_as_vec2(downhill_idx)
+                }.map(|e| e as f32) * neighbor_coef; */
+                let direction = neighbor_pos - downhill_pos;
+                /* let dxy = wposf - neighbor_pos;
+                let neighbor_distance = dxy.magnitude(); */
+                /* if river.cross_section.x > 0.5 {
+                    println!("Pos: {:?}, Direction: {:?}, river: {:?}", wposf, direction, river.cross_section);
+                } */
+                /* let (min_y, max_y) = if direction.y < 0.0 {
+                    (-direction.magnitude(), 0.0)
+                } else {
+                    (0.0, direction.magnitude())
+                }; */
+                // let (min_x, max_y) = (0.0, direction.magnitude()); */
+                let rot_vec =-neighbor_dim;
+                let river_width = river.cross_section.x/*.max(1.0)*/;//.max(if river.is_river { 2.0 } else { 0.0 });
+                let res = intersecting_rect(Aabr {
+                    min: Vec2::new(/*min_y*/0.0, -river_width.mul(0.5)).add(neighbor_pos),
+                    max: Vec2::new(/*max_y*/direction.magnitude(), river_width.mul(0.5)).add(neighbor_pos),
+                }, direction, wposf.map(|e| e as f32));
+            rot_vec.normalize();
+            let rot_mat = Mat2::<f32>::new(rot_vec.x, -rot_vec.y, rot_vec.y, rot_vec.x);
+            let rect_center = Vec2::new(rect.min.x, (rect.max.y + rect.min.y) * 0.5);
+            let rot_mat = rot_mat.mul(Mat2::<f32>::new(-1.0, 0.0, 0.0, 1.0));
+            let vox_rot : Vec2<f32> = vox.sub(rect_center);
+            let vox_rot : Vec2<f32>  = vox_rot.mul(rot_mat);
+            let vox_rot = vox_rot.add(rect_center);
+            let half_size = rect.half_size();
+            let center_rect = rect.center();
+            let dx = ((vox_rot.x - center_rect.x).abs() - half_size.w).max(0.0);
+            let dy = ((vox_rot.y - center_rect.y).abs() - half_size.h).max(0.0);
+            Vec2::new(dx, dy)*/
+            let max_width = TerrainChunkSize::RECT_SIZE.x as f32;//neighbor_distance;
+            //
+            // We use the approximation:
+            // h = (almost_velocity / w).powf(3/5)
+            //
+            // (In the future, we will still want wide rivers and should take advantage of this).
+            if width > max_width {
+                width = max_width;
+                height = (almost_velocity / width).powf(3.0/5.0);
+            }
+        }
+        // Now we can compute the river's approximate velocity magnitude as well, as
+        //
+        // 1 / (roughness coefficient) * (height)^(2/3) *
+        // (slope from chunk_water_alt to downhill water_alt)^(1/2)
+        let velocity_magnitude =
+            1.0 / CONFIG.river_roughness * height.powf(2.0/3.0) * slope_sqrt;
+
+        // Set up the river's cross-sectional area.
+        let cross_section = Vec2::new(width, height);
+        // Set up the river's velocity vector.
+        let mut velocity = river_direction;
+        velocity.normalize();
+        velocity *= velocity_magnitude;
+
+        let mut river = &mut rivers[chunk_idx];
+        // NOTE: Not trying to do this more cleverly because we want to keep the river's neighbors.
+        // TODO: Actually put something in the neighbors.
+        river.velocity = velocity;
+        river.cross_section = cross_section;
+        river.spline_derivative = river_spline_derivative;
+        river.river_kind = if is_river {
+            Some(RiverKind::River)
+        } else {
+            None
+        };
+    }
+    rivers
     /* var dh = downhill(h);
     var idxs = [];
     var flux = zero(h.mesh);
@@ -461,16 +869,21 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
     const MAX_MAX_ANGLE : f32 = 54.0 / 360.0 * 2.0 * f32::consts::PI;
     const MAX_ANGLE_RANGE : f32 = MAX_MAX_ANGLE - MIN_MAX_ANGLE;
     h.par_iter().enumerate().map(|(posi, &z)| {
-        let wposf = (uniform_idx_as_vec2(posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32))
+        // f32::INFINITY
+        let wposf = (uniform_idx_as_vec2(posi)/* * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)*/)
             .map(|e| e as f64);
         // let wposf = uniform_idx_as_vec2(posi)
         //     .map(|e| e as f64) / WORLD_SIZE.map(|e| e as f64);
         let wposz = (z * CONFIG.mountain_scale) as f64;
         // let wposz = h[posi] as f64;
         // Normalized to be between 6 and and 54 degrees.
-        let rock_strength = (rock_strength_nz.get([wposf.x, wposf.y, wposz]) * 0.5 + 0.5)
-            .min(1.0)
-            .max(0.0) as f32;
+        let div_factor = /*CONFIG.mountain_scale as f64*/32.0/*WORLD_SIZE.x as f64*/;
+        let rock_strength = (rock_strength_nz.get([wposf.x / div_factor/* / WORLD_SIZE.x as f64*/,
+                                                   wposf.y / div_factor/* / WORLD_SIZE.y as f64*/,
+                                                   wposz/* / div_factor*/])
+                             .max(-1.0)
+                             .min(1.0) * 0.5 + 0.5) as f32;
+        // For rock strength from 0-10%, do normal-ish around 0.5
         /* if rock_strength < 0.0 || rock_strength > 1.0 {
             println!("Huh strength?: {:?}", rock_strength);
         } */
@@ -546,6 +959,18 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         //
         // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.5) - 1)) + 2 * (ln(1 / (1 - 0.15) - 1) - ln(1 / (1 - 0.1) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
         //
+        // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.5) - 1)) + 4 * (ln(1 / (1 - 0.2) - 1) - ln(1 / (1 - 0.25) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
+        // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.5) - 1)) + 4 * (ln(1 / (1 - 0.1) - 1) - ln(1 / (1 - 0.25) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
+        // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.9) - 1)) + 4 * (ln(1 / (1 - 0.2) - 1) - ln(1 / (1 - 0.25) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
+        // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.5) - 1)) + 4 * (ln(1 / (1 - 0.025) - 1) - ln(1 / (1 - 0.075) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
+        // (0.5 + 0.5 * tanh((0.5 * (ln(1 / (1 - 0.5) - 1)) + 1 * (ln(1 / (1 - 0.025) - 1) - ln(1 / (1 - 0.075) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
+        // (0.5 + 0.5 * tanh((1.0 * (ln(1 / (1 - 0.5) - 1)) + 1 * (ln(1 / (1 - 0.125) - 1) - ln(1 / (1 - 0.075) - 1))) / (2 * (sqrt(3)/pi)))) * (56 - 6) + 6
+        //
         // tanh(3.29/(2*sqrt(3)/pi))
         //
         //
@@ -558,7 +983,11 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
 
         // We do log-odds against 0.1, so that our log odds are 0 when x = 0.1, lower when x is
         // lower, and higher when x is higher.
-        let log_odds = |x: f32| logit(x) - logit(/*0.10*/0.25);
+        let center = 0.075/*0.0625*/;
+        let delta = 0.05/*0.0625*/;
+        let dmin = center - delta;
+        let dmax = center + delta;
+        let log_odds = |x: f32| logit(x) - logit(/*0.10*//*0.4*/center);
         //
         // 0.9^((1.25-0.0)*4)*(56-6)+6
         //
@@ -574,11 +1003,13 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         //
         // (z / (1 - 0.5)) / (0.25 / (1 - 0.25)) gives us a good z estimate since it will be
         //
+        // ln(0.1)-ln(-0.1+1)
+        //
         // 0.25 / (1 - 0.25)
         // plausible cliffs effect.  Taking the square root makes it increase more rapidly than it
         // would otherwise, so that at height 0.4 we are already looking at 0.8 of the maximum.
-        let rock_strength = logistic_cdf(/*0.25*/0.5 * logit(rock_strength.min(0.95).max(0.05)) +
-                                         /*3.0*/4.0 * log_odds(z.min(/*0.15*/0.3).max(0.2)));
+        let rock_strength = logistic_cdf(/*0.25*//*0.5*/1.0 * logit(rock_strength.min(1.0 - 1e-7).max(1e-7)) +
+                                         /*3.0*/1.0 * log_odds(z.min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*/dmin))/*0.0*/);
         // let height_factor = z.min(1.0).max(0.0).powf(0.25);
         let max_slope = (rock_strength * MAX_ANGLE_RANGE/* * height_factor*/ + MIN_MAX_ANGLE).tan();
         /* if max_slope > 1.48 || max_slope < 0.0 {
@@ -752,11 +1183,13 @@ fn erosion_rate(k: f32, h: &[f32], downhill: &[isize], seed: &RandomField,
 ///
 fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
          rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
-         uplift: impl Fn(usize) -> f32, oldh: impl Fn(usize) -> f32 + Sync) {
+         uplift: impl Fn(usize) -> f32,
+         /*oldh: impl Fn(usize) -> f32 + Sync*/
+         is_ocean: impl Fn(usize) -> bool + Sync) {
     println!("Done draining...");
     let mmaxh = 1.0;
     let k = erosion_base + 2.244 / mmaxh * max_uplift;
-    let ((dh, newh, area), max_slope) = rayon::join(
+    let ((dh, indirection, newh, area), max_slope) = rayon::join(
         || {
             /* let (dh, ()) = rayon::join(
                 || {
@@ -772,11 +1205,11 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
                              newh.last().map(|&posi| h[posi as usize]));
                 },
             ); */
-            let mut dh = downhill(h, |posi| oldh(posi));
+            let mut dh = downhill(h, |posi| is_ocean(posi));
             println!("Computed downhill...");
-            let (boundary_len, _, newh) = get_lakes(&h, &mut dh);
+            let (boundary_len, indirection, newh) = get_lakes(&h, &mut dh);
             println!("Got lakes...");
-            let area = get_flux(&newh, &dh, boundary_len);
+            let area = get_drainage(&newh, &dh, boundary_len);
             println!("Got flux...");
             /*let (area, _) = rayon::join(
                 || {
@@ -787,7 +1220,7 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
                 || {
                 },
             );*/
-            (dh, newh, area)
+            (dh, indirection, newh, area)
         },
         || {
             let max_slope = get_max_slope(h, rock_strength_nz);
@@ -844,13 +1277,20 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
     let max_angle_range = max_max_angle - min_max_angle; */
     let neighbor_coef =
         Vec2::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32);
+    let chunk_area = neighbor_coef.x * neighbor_coef.y;
     // let neighbor_distance = TerrainChunkSize::RECT_SIZE.map(|e| e as f32).magnitude();
     // let mut rate = vec![0.0; h.len()].into_boxed_slice();
     // Iterate in ascending height order.
     let mut maxh = 0.0;
+    let mut nland = 0usize;
+    let mut sums = 0.0;
+    let mut sumh = 0.0;
+    // let mut is_done = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
     for &posi in &*newh {
         let posi = posi as usize;
         let posj = dh[posi];
+        // assert!(*is_done.at(posi) == false);
+        // *is_done.at(posi) = true;
         if posj < 0 {
             if posj == -1 {
                 panic!("Disconnected lake!");
@@ -859,6 +1299,7 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
             // println!("Shouldn't happen often: {:?}", uniform_idx_as_vec2(posi));
             // 0.0 // Egress with no outgoing flows.
         } else {
+            nland += 1;
             let posj = posj as usize;
             let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f32);
             // let dist = Vec3::new(TerrainChunkSize::RECT_SIZE.x as f32, TerrainChunkSize::RECT_SIZE.y as f32, zdist);
@@ -867,35 +1308,86 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
             // Has an outgoing flow edge (posi, posj).
             // flux(i) = k * A[i]^m / ((p(i) - p(j)).magnitude()), and δt = 1
             let neighbor_distance = (neighbor_coef * dxy).magnitude();
-            let flux = k * area[posi].sqrt() / neighbor_distance;
+            // Since the area is in meters^(2m) and neighbor_distance is in m, so long as m = 0.5,
+            // we have meters^(1) / meters^(1), so they should cancel out.  Otherwise, we would
+            // want to divide neighbor_distance by CONFIG.mountain_scale and area[posi] by
+            // CONFIG.mountain_scale^2, to make sure we were working in the correct units for dz
+            // (which has 1.0 height unit = CONFIG.mountain_scale meters).
+            let flux = k * (chunk_area * area[posi]).sqrt() / neighbor_distance;
+            // let flux = flux * (CONFIG.mountain_scale * CONFIG.mountain_scale);
             // h[i](t + dt) = (h[i](t) + δt * (uplift[i] + flux(i) * h[j](t + δt))) / (1 + flux(i) * δt).
             // NOTE: posj has already been computed since it's downhill from us.
             let h_j = h[posj];
             let old_h_i = h[posi];
-            let new_h_i = (old_h_i + (uplift(posi) + flux * h_j)) / (1.0 + flux);
+            let mut new_h_i = (old_h_i + (uplift(posi) + flux * h_j)) / (1.0 + flux);
+            // Find out if this is a lake bottom.
+            let indirection_idx = indirection[posi];
+            let is_lake_bottom = indirection_idx < 0;
             // Test the slope.
-            let dz = (new_h_i - h_j) * CONFIG.mountain_scale;
-            /* if dz < 0.0 {
-                println!("Huh?: {:?}", dz);
-            } */
-            // let max_slope = get_max_slope(posi, old_h_i/*new_h_i*/, rock_strength_nz);
             let max_slope = max_slope[posi];
-            /*rate[posi] =*/
-            h[posi] = if dz.abs() / neighbor_distance > max_slope {
-                // println!("{:?}", max_slope);
-                // Thermal erosion says this can't happen, so we reduce dh_i to make the slope
-                // exactly max_slope.
-                // max_slope = (old_h_i + dh - h_j) * CONFIG.mountain_scale / NEIGHBOR_DISTANCE
-                // dh = max_slope * NEIGHBOR_DISTANCE / CONFIG.mountain_scale + h_j - old_h_i.
-                dz.signum() * max_slope * neighbor_distance / CONFIG.mountain_scale + h_j/* - old_h_i*/
-            } else {
-                // Just use the computed rate.
-                new_h_i
+            // Make sure our slope doesn't exceed the maximum legal angle in any direction.
+            /* // NOTE: for each complete neighbor, posi was originally not far enough downhill to be
+            // the lowest neighbor for that point.  Etc.
+            for posj in neighbors(posi).filter(|&posj| *is_done.at(posj)) {
+                let dxy = (uniform_idx_as_vec2(posi) - uniform_idx_as_vec2(posj)).map(|e| e as f32);
+                let neighbor_distance = (neighbor_coef * dxy).magnitude();
+                let h_j = h[posj];
+                let dz = (new_h_i - h_j) * CONFIG.mountain_scale;
+                /* if dz < 0.0 {
+                    println!("Huh?: {:?}", dz);
+                } */
+                // let max_slope = get_max_slope(posi, old_h_i/*new_h_i*/, rock_strength_nz);
+                /*rate[posi] =*/
+                let mag_slope = dz.abs() / neighbor_distance;
+                if mag_slope > max_slope {
+                    // println!("old slope: {:?}, new slope: {:?}, dz: {:?}, h_j: {:?}, new_h_i: {:?}", mag_slope, max_slope, dz, h_j, new_h_i);
+                    // Thermal erosion says this can't happen, so we reduce dh_i to make the slope
+                    // exactly max_slope.
+                    // max_slope = (old_h_i + dh - h_j) * CONFIG.mountain_scale / NEIGHBOR_DISTANCE
+                    // dh = max_slope * NEIGHBOR_DISTANCE / CONFIG.mountain_scale + h_j - old_h_i.
+                    let slope = dz.signum() * max_slope;
+                    // sums += slope;
+                    // sums += max_slope;
+                    new_h_i = slope * neighbor_distance / CONFIG.mountain_scale + h_j/* - old_h_i*/;
+                }/* else {
+                    /* let slope = dz.signum() * mag_slope;
+                    sums += slope; */
+                    sums += mag_slope;
+                    // Just use the computed rate.
+                    new_h_i
+                };*/
+            } */
+            let dz = (new_h_i - h_j) * CONFIG.mountain_scale;
+            let mag_slope = dz.abs() / neighbor_distance;
+            let fake_neighbor = is_lake_bottom && dxy.x.abs() > 1.0 && dxy.y.abs() > 1.0;
+            // If you're on the lake bottom and not right next to your neighbor, don't compute a
+            // slope.
+            if /* !is_lake_bottom */ /* !fake_neighbor */true {
+                if /* !is_lake_bottom && */mag_slope > max_slope {
+                    // println!("old slope: {:?}, new slope: {:?}, dz: {:?}, h_j: {:?}, new_h_i: {:?}", mag_slope, max_slope, dz, h_j, new_h_i);
+                    // Thermal erosion says this can't happen, so we reduce dh_i to make the slope
+                    // exactly max_slope.
+                    // max_slope = (old_h_i + dh - h_j) * CONFIG.mountain_scale / NEIGHBOR_DISTANCE
+                    // dh = max_slope * NEIGHBOR_DISTANCE / CONFIG.mountain_scale + h_j - old_h_i.
+                    let slope = dz.signum() * max_slope;
+                    // sums += slope;
+                    sums += max_slope;
+                    new_h_i = slope * neighbor_distance / CONFIG.mountain_scale + h_j/* - old_h_i*/;
+                } else {
+                    sums += mag_slope;
+                    // Just use the computed rate.
+                }
+                h[posi] = new_h_i;
+                sumh += new_h_i;
             }
         }
         maxh = h[posi].max(maxh);
     }
-    println!("Done eroding (max height: {:?})", maxh);
+    println!("Done eroding (max height: {:?}) (avg height: {:?}) (avg slope: {:?})",
+        maxh,
+        if nland == 0 { f32::INFINITY } else { sumh / nland as f32 },
+        if nland == 0 { f32::INFINITY } else { sums / nland as f32 },
+        );
 }
 
 /// The Planchon-Darboux algorithm for extracting drainage networks.
@@ -904,15 +1396,16 @@ fn erode(h: &mut [f32], erosion_base: f32, max_uplift: f32, _seed: &RandomField,
 ///
 /// See https://github.com/mewo2/terrain/blob/master/terrain.js
 pub fn fill_sinks(h: impl Fn(usize) -> f32 + Sync,
-                  oh: impl Fn(usize) -> f32 + Sync/*, epsilon: f64*/) -> Box<[f32]> {
+                  is_ocean: impl Fn(usize) -> bool + Sync,
+                  /*oh: impl Fn(usize) -> f32 + Sync*//*, epsilon: f64*/) -> Box<[f32]> {
     //let epsilon = 1e-5f32;
     let epsilon = 1e-7f32 / CONFIG.mountain_scale;
     let infinity = f32::INFINITY;
     let range = 0..WORLD_SIZE.x * WORLD_SIZE.y;
     let mut newh = range.into_par_iter().map(|posi| {
         let h = h(posi);
-        let is_near_edge = map_edge_factor(posi) /*< 1.0*/== 0.0 ||
-            oh(posi) /*< 5.0 / CONFIG.mountain_scale*/<= 0.0 / CONFIG.mountain_scale;
+        let is_near_edge = is_ocean(posi); /*map_edge_factor(posi) /*< 1.0*/== 0.0 ||
+            oh(posi) /*< 5.0 / CONFIG.mountain_scale*/<= 0.0 / CONFIG.mountain_scale;*/
         if is_near_edge {
             h
         } else {
@@ -999,6 +1492,8 @@ pub fn fill_sinks(h: impl Fn(usize) -> f32 + Sync,
         if (!changed) return newh;
     } */
 }
+
+/// Computes which tiles are ocean tiles by
 
 /* #[derive(Clone,Copy,Debug)]
 /// A set of lakes, such that you can find the chunk representing the bottom of a lake for any
@@ -1799,23 +2294,63 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
 
 /// Perform erosion n times.
 pub fn do_erosion(/*oldh: &InverseCdf, *//*, epsilon: f64*//*newh: &mut [u32],*/
-                  erosion_base: f32, /*amount: f32, */n: usize,
+                  erosion_base: f32, max_uplift: f32, /*amount: f32, */n: usize,
                   seed: &RandomField, rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync),
                   oldh: impl Fn(usize) -> f32 + Sync,
+                  is_ocean: impl Fn(usize) -> bool + Sync,
                   uplift: impl Fn(usize) -> f32 + Sync) -> Box<[f32]> {
     let oldh_ = (0..WORLD_SIZE.x * WORLD_SIZE.y).into_par_iter()
         .map(|posi| oldh(posi)).collect::<Vec<_>>().into_boxed_slice();
-    let max_uplift = (0..oldh_.len())
+    // TODO: Don't do this, maybe?
+    let uplift = (0..oldh_.len()).into_par_iter()
+        .map( |posi| uplift(posi)).collect::<Vec<_>>().into_boxed_slice();
+    /* let max_uplift = (0..oldh_.len())
         .into_par_iter()
         .map( |posi| uplift(posi))
+        .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap(); */
+    let max_uplift = uplift
+        .into_par_iter()
+        .cloned()
         .max_by( |a, b| a.partial_cmp(&b).unwrap()).unwrap();
+    println!("Max uplift: {:?}", max_uplift);
     // Start by filling in deep depressions, to make for a more realistic initial river network.
     // let mut h = fill_sinks(&oldh_, |posi| oldh[posi].1 );
     let mut h = oldh_;
-    for _ in 0..n {
+    for i in 0..n {
+        println!("Erosion iteration #{:?}", i);
         erode(&mut h, /*newh*//*&h, *//*amount*/erosion_base, max_uplift, seed,
-              rock_strength_nz, |posi| uplift(posi), |posi| oldh(posi));
+              rock_strength_nz, |posi| /*uplift(posi)*/uplift[posi], |posi| is_ocean(posi));
         // h = fill_sinks(&h);
     }
     h
+}
+
+/// Find all ocean tiles from a height map, using an inductive definition of ocean as one of:
+/// - posi is at the side of the world (map_edge_factor(posi) == 0.0)
+/// - posi has a neighboring ocean tile, and has a height below sea level (oldh(posi) <= 0.0).
+pub fn get_oceans(oldh: impl Fn(usize) -> f32 + Sync) -> BitBox {
+    // We can mark tiles as ocean candidates by scanning row by row, since the top edge is ocean,
+    // the sides are connected to it, and any subsequent ocean tiles must be connected to it.
+    let mut is_ocean = bitbox![0; WORLD_SIZE.x * WORLD_SIZE.y];
+    let mut stack = Vec::new();
+    for x in 0..WORLD_SIZE.x as i32 {
+        stack.push(vec2_as_uniform_idx(Vec2::new(x, 0)));
+        stack.push(vec2_as_uniform_idx(Vec2::new(x, WORLD_SIZE.y as i32 - 1)));
+    }
+    for y in 1..WORLD_SIZE.y as i32 - 1 {
+        stack.push(vec2_as_uniform_idx(Vec2::new(0, y)));
+        stack.push(vec2_as_uniform_idx(Vec2::new(WORLD_SIZE.x as i32 - 1, y)));
+    }
+    while let Some(chunk_idx) = stack.pop() {
+        // println!("Ocean chunk {:?}: {:?}", uniform_idx_as_vec2(chunk_idx), oldh(chunk_idx));
+        if *is_ocean.at(chunk_idx) {
+            continue;
+        }
+        *is_ocean.at(chunk_idx) = true;
+        stack.extend(neighbors(chunk_idx).filter(|&neighbor_idx| {
+            // println!("Ocean neighbor: {:?}: {:?}", uniform_idx_as_vec2(neighbor_idx), oldh(neighbor_idx));
+            oldh(neighbor_idx) <= 0.0
+        }));
+    }
+    is_ocean
 }

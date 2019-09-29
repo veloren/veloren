@@ -169,7 +169,7 @@ impl Client {
     }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
-        self.view_distance = Some(view_distance.max(1).min(25));
+        self.view_distance = Some(view_distance.max(1).min(65));
         self.postbox
             .send_message(ClientMsg::SetViewDistance(self.view_distance.unwrap()));
         // Can't fail
