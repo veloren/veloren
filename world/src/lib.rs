@@ -24,16 +24,10 @@ use crate::{
     util::Sampler,
 };
 use common::{
-    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid},
+    terrain::{Block, BlockKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     vol::{ReadVol, RectVolSize, Vox, WriteVol},
 };
 use rand::Rng;
-use rand_chacha::ChaChaRng;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
-use std::thread;
 use std::time::Duration;
 use vek::*;
 

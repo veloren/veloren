@@ -25,8 +25,6 @@ use noise::{
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
-use serde::de::{Deserialize, Deserializer};
-use serde::ser::{Serialize, Serializer};
 use serde_derive::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
