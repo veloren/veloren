@@ -546,7 +546,7 @@ impl Server {
                         "Humanoid".to_string(),
                         Some(comp::Item::Tool {
                             kind: comp::item::Tool::Sword,
-                            power: 10,
+                            power: 5,
                         }),
                     );
                     let body = comp::Body::Humanoid(comp::humanoid::Body::random());
