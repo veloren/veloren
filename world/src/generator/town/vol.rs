@@ -1,9 +1,9 @@
 use crate::util::Grid;
 use common::vol::{BaseVol, ReadVol, Vox, WriteVol};
 use rand::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 use std::ops::Range;
 use vek::*;
-use serde_derive::{Serialize, Deserialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum ColumnKind {

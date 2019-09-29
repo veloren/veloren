@@ -21,7 +21,7 @@ use vek::*;
 
 use self::vol::{CellKind, ColumnKind, Module, TownCell, TownColumn, TownVol};
 
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 const CELL_SIZE: i32 = 9;
 const CELL_HEIGHT: i32 = 9;

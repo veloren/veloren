@@ -8,11 +8,10 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use std::sync::{mpsc, Mutex, Arc, atomic::AtomicBool, atomic::Ordering};
+use std::sync::{atomic::AtomicBool, atomic::Ordering, mpsc, Arc, Mutex};
 use std::thread;
 use vek::*;
 use world::{sim, ChunkSupplement, World};
-
 
 fn qser<T: serde::Serialize>(t: PathBuf, obj: &T) -> std::io::Result<()> {
     let out = DeflateEncoder::new(BufWriter::new(File::create(t)?), Compression::default());
@@ -136,10 +135,16 @@ impl Provider {
         })
     }
 
-    pub fn fetch_chunk(&self, chunk_pos: Vec2<i32>, cancel: Arc<AtomicBool>) -> Result<(TerrainChunk, ChunkSupplement), ()> {
+    pub fn fetch_chunk(
+        &self,
+        chunk_pos: Vec2<i32>,
+        cancel: Arc<AtomicBool>,
+    ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         match qdeser(self.chunk_path(chunk_pos)) {
             Ok(chunk) => Ok((chunk, ChunkSupplement::default())),
-            Err(_) => self.world.generate_chunk(chunk_pos, || cancel.load(Ordering::Relaxed)),
+            Err(_) => self
+                .world
+                .generate_chunk(chunk_pos, || cancel.load(Ordering::Relaxed)),
         }
     }
 }

@@ -25,15 +25,15 @@ use noise::{
 };
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaChaRng;
+use serde::de::{Deserialize, Deserializer};
+use serde::ser::{Serialize, Serializer};
+use serde_derive::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     f32,
     ops::{Add, Div, Mul, Neg, Sub},
     sync::Arc,
 };
-use serde_derive::{Deserialize, Serialize};
-use serde::ser::{Serialize, Serializer};
-use serde::de::{Deserialize, Deserializer};
 use vek::*;
 
 pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
@@ -153,7 +153,6 @@ pub struct WorldSim {
     pub gen_ctx: GenCtx,
     pub rng: ChaChaRng,
 }
-
 
 impl WorldSim {
     pub fn generate(seed: u32) -> Self {
@@ -598,25 +597,6 @@ pub struct LocationInfo {
 pub struct Structures {
     pub town: Option<Arc<TownState>>,
 }
-
-/*impl Serialize for Structures {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        match self.town {
-            Some(t) => {
-                let mut state = serializer.serialize_struct("town_state", 4)?;
-                t.houses.serialize(serializer)
-            }
-            None => {
-                serializer.serialize_none()
-            }
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Structures {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: Deserializer<'de> {
-    }
-}*/
 
 impl SimChunk {
     fn generate(posi: usize, gen_ctx: &mut GenCtx, gen_cdf: &GenCdf) -> Self {

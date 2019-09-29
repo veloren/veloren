@@ -29,6 +29,7 @@ use common::{
     vol::{ReadVol, RectVolSize, Vox},
 };
 use crossbeam::channel;
+use hashbrown::HashSet;
 use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
 use metrics::ServerMetrics;
@@ -48,7 +49,6 @@ use std::{
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
 use world::{ChunkSupplement, World};
-use hashbrown::HashSet;
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -572,7 +572,8 @@ impl Server {
                         (stats, body)
                     } else {
                         let stats = comp::Stats::new("Wolf".to_string(), None);
-                        let body = comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
+                        let body =
+                            comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
                         (stats, body)
                     };
                     let mut scale = 1.0;
@@ -1410,9 +1411,7 @@ impl Server {
         let chunk_tx = self.chunk_tx.clone();
         let world_provider = self.world_provider.clone();
         self.thread_pool.execute(move || {
-            let payload = world_provider
-                .fetch_chunk(key, cancel)
-                .map_err(|_| entity);
+            let payload = world_provider.fetch_chunk(key, cancel).map_err(|_| entity);
             let _ = chunk_tx.send((key, payload));
         });
     }

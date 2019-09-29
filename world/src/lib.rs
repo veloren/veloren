@@ -70,7 +70,7 @@ impl World {
     pub fn sample_blocks(&self) -> BlockGen {
         BlockGen::new(self, ColumnGen::new(&self.sim))
     }
-    
+
     pub fn generate_chunk(
         &self,
         chunk_pos: Vec2<i32>,
