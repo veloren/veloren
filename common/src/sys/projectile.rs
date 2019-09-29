@@ -38,13 +38,20 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            if let Some(vel) = velocities.get(entity) {
-                ori.0 = vel.0.normalized();
-            }
-
             // Hit ground
             if physics.on_ground {
                 for effect in projectile.hit_ground.drain(..) {
+                    match effect {
+                        projectile::Effect::Stick => {
+                            velocities.remove(entity);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            // Hit wall
+            if physics.on_wall.is_some() {
+                for effect in projectile.hit_wall.drain(..) {
                     match effect {
                         projectile::Effect::Stick => {
                             velocities.remove(entity);
@@ -71,6 +78,10 @@ impl<'a> System<'a> for Sys {
                         _ => {}
                     }
                 }
+            }
+
+            if let Some(vel) = velocities.get(entity) {
+                ori.0 = vel.0.normalized();
             }
         }
     }

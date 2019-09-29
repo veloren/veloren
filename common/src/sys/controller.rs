@@ -145,6 +145,7 @@ impl<'a> System<'a> for Sys {
                                     dir: controller.look_dir,
                                     projectile: Projectile {
                                         hit_ground: vec![projectile::Effect::Stick],
+                                        hit_wall: vec![projectile::Effect::Stick],
                                         hit_entity: vec![
                                             projectile::Effect::Damage(10),
                                             projectile::Effect::Vanish,
