@@ -33,10 +33,9 @@ use hashbrown::HashSet;
 use hashbrown::{hash_map::Entry, HashMap};
 use log::debug;
 use metrics::ServerMetrics;
-use provider::{Provider, SaveMsg};
+use provider::Provider;
 use rand::Rng;
 use specs::{join::Join, world::EntityBuilder as EcsEntityBuilder, Builder, Entity as EcsEntity};
-use std::ops::Deref;
 use std::{
     i32,
     net::SocketAddr,
@@ -118,7 +117,7 @@ impl Server {
         // Set starting time for the server.
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
-        let mut provider = Provider::new(settings.world_seed, settings.world_folder.clone());
+        let provider = Provider::new(settings.world_seed, settings.world_folder.clone());
         let next_save = Instant::now() + settings.save_time;
 
         let this = Self {
@@ -481,7 +480,7 @@ impl Server {
 
         // 2) Save the world if necessary
         {
-            let mut ecs = self.state.ecs_mut();
+            let ecs = self.state.ecs_mut();
             if Instant::now() > self.next_save {
                 let map = ecs.read_resource::<TerrainGrid>();
                 let dirtied = self.dirtied_chunks.drain();
@@ -576,7 +575,7 @@ impl Server {
                             comp::Body::QuadrupedMedium(comp::quadruped_medium::Body::random());
                         (stats, body)
                     };
-                    let mut scale = 1.0;
+                    let scale = 1.0;
 
                     if npc.boss {
                         if rand::random::<f32>() < 0.8 {

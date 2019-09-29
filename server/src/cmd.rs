@@ -2,7 +2,7 @@
 //! To implement a new command, add an instance of `ChatCommand` to `CHAT_COMMANDS`
 //! and provide a handler function.
 
-use crate::{SaveMsg, Server};
+use crate::Server;
 use chrono::{NaiveTime, Timelike};
 use common::{
     comp,
@@ -931,7 +931,7 @@ spawn_rate {:?} "#,
     }
 }
 
-fn handle_peaceful(server: &mut Server, entity: EcsEntity, args: String, _action: &ChatCommand) {
+fn handle_peaceful(server: &mut Server, _entity: EcsEntity, _args: String, _action: &ChatCommand) {
     //let b: bool = scan_fmt!(&args, action.arg_fmt, bool).unwrap_or(!server.server_settings.peaceful);
     server.server_settings.peaceful = !server.server_settings.peaceful;
 

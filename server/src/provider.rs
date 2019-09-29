@@ -1,14 +1,12 @@
-use common::terrain::{TerrainChunk, TerrainGrid};
+use common::terrain::TerrainChunk;
 //use std::collections::HashMap;
 use crossbeam::channel;
 use flate2::{bufread::DeflateDecoder, write::DeflateEncoder, Compression};
-use hashbrown::HashSet;
 use log;
 use std::fs::File;
-use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
-use std::path::{Path, PathBuf};
-use std::sync::{atomic::AtomicBool, atomic::Ordering, mpsc, Arc, Mutex};
+use std::path::PathBuf;
+use std::sync::{atomic::AtomicBool, atomic::Ordering, Arc};
 use std::thread;
 use vek::*;
 use world::{sim, ChunkSupplement, World};
@@ -100,7 +98,9 @@ impl Provider {
                         break 'yeet;
                     }
                     SaveMsg::SAVE(pos, chunk) => {
-                        qser(t(pos), &chunk).unwrap();
+                        qser(t(pos), &chunk).unwrap_or_else(|err| {
+                            log::warn!("Failed to save chunk {}: {:?}", pos, err)
+                        });
                     }
                 }
             }
@@ -121,7 +121,7 @@ impl Provider {
         let t = |val: &str| target.join(val);
         let chunks = qdeser(t("chunks"))?;
         let locations = qdeser(t("locations"))?;
-        let mut seed = qdeser(t("seed"))?;
+        let seed = qdeser(t("seed"))?;
         let (gen_ctx, rng) = sim::GenCtx::from_seed(seed);
 
         Ok(World {
