@@ -161,6 +161,27 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     }
 }
 
+impl<V: RectRasterableVol + ReadVol> VolGrid2d<V> {
+    // Note: this may be invalidated by mutations of the chunks hashmap
+    #[inline(always)]
+    pub fn get_vox_cached<'a>(
+        &'a self,
+        pos: Vec3<i32>,
+        cache: &'a mut Option<(Vec2<i32>, Arc<V>)>,
+    ) -> Result<&V::Vox, VolGrid2dError<V>> {
+        let ck = Self::chunk_key(pos);
+        let chunk = if cache.as_ref().map(|(key, _)| *key == ck).unwrap_or(false) {
+            &cache.as_ref().unwrap().1
+        } else {
+            let chunk = self.chunks.get(&ck).ok_or(VolGrid2dError::NoSuchChunk)?;
+            *cache = Some((ck, chunk.clone()));
+            chunk
+        };
+        let co = Self::chunk_offs(pos);
+        chunk.get(co).map_err(VolGrid2dError::ChunkError)
+    }
+}
+
 pub struct ChunkIter<'a, V: RectRasterableVol> {
     iter: hash_map::Iter<'a, Vec2<i32>, Arc<V>>,
 }
