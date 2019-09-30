@@ -1,6 +1,6 @@
 use crate::audio::AudioFrontend;
 use client::Client;
-use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos};
+use common::comp::{ActionState::*, Body, CharacterState, MovementState::*, Ori, Pos};
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
@@ -8,6 +8,7 @@ use vek::*;
 
 pub struct AnimState {
     last_step_sound: Instant,
+    last_jump_sound: Instant,
 }
 
 pub struct SoundMgr {
@@ -23,6 +24,7 @@ impl SoundMgr {
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
         let ecs = client.state().ecs();
+
         // Get player position.
         let player_pos = ecs
             .read_storage::<Pos>()
@@ -50,7 +52,17 @@ impl SoundMgr {
                     .entry(entity)
                     .or_insert_with(|| AnimState {
                         last_step_sound: Instant::now(),
+                        last_jump_sound: Instant::now(),
                     });
+
+                if entity == client.entity()
+                    && character.movement == Jump
+                    && state.last_jump_sound.elapsed().as_secs_f64() > 0.5
+                {
+                    audio.play_sound("voxygen.audio.sfx.jump", pos.0);
+
+                    state.last_jump_sound = Instant::now();
+                }
 
                 if character.movement == Run && state.last_step_sound.elapsed().as_secs_f64() > 0.25
                 {
