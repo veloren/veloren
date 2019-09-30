@@ -101,6 +101,7 @@ impl<'a> System<'a> for Sys {
                 && body.is_humanoid()
             {
                 character.movement.start_glide(ori.0);
+                
             } else if !controller.glide && character.movement.is_glide() {
                 character.movement = Jump;
             }
