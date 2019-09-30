@@ -58,23 +58,30 @@ impl SoundMgr {
                         last_attack_sound: Instant::now(),
                     });
 
-                // Constrain to our hero for now
+                // Constrain to our player for testing
                 if entity == client.entity() {
                     // Attack
                     if character.action.is_attack()
                         && state.last_attack_sound.elapsed().as_secs_f64() > 0.25
                     {
                         let rand_item = (rand::random::<usize>() % 2) + 1;
-                        audio.play_sound(&format!("voxygen.audio.sfx.attack_{}", rand_item), pos.0);
+                        audio.play_sound(
+                            &format!("voxygen.audio.sfx.attack.attack_{}", rand_item),
+                            pos.0,
+                        );
                         state.last_attack_sound = Instant::now();
                     }
 
-                    // Jumps
+                    // Jump
                     if character.movement == Jump
                         && vel.0.z > 0.0
                         && state.last_jump_sound.elapsed().as_secs_f64() > 0.25
                     {
-                        audio.play_sound("voxygen.audio.sfx.jump", pos.0);
+                        let rand_item = (rand::random::<usize>() % 2) + 1;
+                        audio.play_sound(
+                            &format!("voxygen.audio.sfx.jump.jump_{}", rand_item),
+                            pos.0,
+                        );
                         state.last_jump_sound = Instant::now();
                     }
                 }
