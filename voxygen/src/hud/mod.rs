@@ -907,7 +907,7 @@ impl Hud {
             {
                 Some(map::Event::Close) => {
                     self.show.map(false);
-                    self.force_ungrab = true;
+                    self.force_ungrab = false;
                 }
                 None => {}
             }

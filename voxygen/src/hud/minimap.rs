@@ -1,13 +1,13 @@
+use super::{img_ids::Imgs, Fonts, Show, HP_COLOR, TEXT_COLOR};
+use client::{self, Client};
+use common::comp;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
 use std::time::{Duration, Instant};
-
-use super::{img_ids::Imgs, Fonts, Show, HP_COLOR, TEXT_COLOR};
-use client::{self, Client};
+use vek::*;
 
 widget_ids! {
     struct Ids {
@@ -17,6 +17,8 @@ widget_ids! {
         mmap_button,
         zone_display_bg,
         zone_display,
+        grid,
+        indicator
     }
 }
 
@@ -85,6 +87,31 @@ impl<'a> Widget for MiniMap<'a> {
             Rectangle::fill_with([92.0 * 2.0, 82.0 * 2.0], color::TRANSPARENT)
                 .mid_top_with_margin_on(state.ids.mmap_frame, 13.0 * 2.0 + 2.0)
                 .set(state.ids.mmap_frame_bg, ui);
+            // Map Image
+            Image::new(self.imgs.map_placeholder)
+                .middle_of(state.ids.mmap_frame_bg)
+                .w_h(92.0 * 2.0, 82.0 * 2.0)
+                .parent(state.ids.mmap_frame_bg)
+                .set(state.ids.grid, ui);
+            // Coordinates
+            let player_pos = self
+                .client
+                .state()
+                .ecs()
+                .read_storage::<comp::Pos>()
+                .get(self.client.entity())
+                .map_or(Vec3::zero(), |pos| pos.0);
+
+            let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
+            let x = player_pos.x as f64 / worldsize * 92.0 * 2.0;
+            let y = player_pos.y as f64 / worldsize * 82.0 * 2.0;
+            // Indicator
+            Image::new(self.imgs.indicator_mmap)
+                .bottom_left_with_margins_on(state.ids.grid, y, x - 2.5)
+                .w_h(5.0, 5.0)
+                .floating(true)
+                .parent(ui.window)
+                .set(state.ids.indicator, ui);
         } else {
             Image::new(self.imgs.mmap_frame_closed)
                 .w_h(100.0 * 2.0, 11.0 * 2.0)
