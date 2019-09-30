@@ -62,7 +62,7 @@ impl Animation for CidleAnimation {
         next.shorts.ori = Quaternion::rotation_x(0.0);
         next.shorts.scale = Vec3::one();
 
-        match Tool::Hammer {
+        match Tool::Bow {
             //TODO: Inventory
             Tool::Sword => {
                 next.l_hand.offset = Vec3::new(
@@ -187,27 +187,31 @@ impl Animation for CidleAnimation {
             }
             Tool::Bow => {
                 next.l_hand.offset = Vec3::new(
-                    -6.0 + wave_ultra_slow_cos * 1.0,
-                    3.5 + wave_ultra_slow_cos * 0.5,
+                    -4.0 + wave_ultra_slow_cos * 1.0,
+                    5.0 + wave_ultra_slow_cos * 0.5,
                     0.0 + wave_ultra_slow * 1.0,
                 );
-                next.l_hand.ori = Quaternion::rotation_x(-0.3);
+                next.l_hand.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.9)
+                    * Quaternion::rotation_z(0.85);
                 next.l_hand.scale = Vec3::one() * 1.01;
                 next.r_hand.offset = Vec3::new(
-                    -6.0 + wave_ultra_slow_cos * 1.0,
-                    3.0 + wave_ultra_slow_cos * 0.5,
-                    -2.0 + wave_ultra_slow * 1.0,
+                    2.0 + wave_ultra_slow_cos * 1.0,
+                    8.0 + wave_ultra_slow_cos * 0.5,
+                    -3.5 + wave_ultra_slow * 1.0,
                 );
-                next.r_hand.ori = Quaternion::rotation_x(-0.3);
+                next.r_hand.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(0.85);
                 next.r_hand.scale = Vec3::one() * 1.01;
                 next.weapon.offset = Vec3::new(
-                    -6.0 + skeleton_attr.weapon_x + wave_ultra_slow_cos * 1.0,
-                    4.5 + skeleton_attr.weapon_y + wave_ultra_slow_cos * 0.5,
-                    0.0 + wave_ultra_slow * 1.0,
+                    9.0 + skeleton_attr.weapon_x + wave_ultra_slow_cos * 1.0,
+                    10.0 + skeleton_attr.weapon_y + wave_ultra_slow_cos * 0.5,
+                    -3.0 + wave_ultra_slow * 1.0,
                 );
-                next.weapon.ori = Quaternion::rotation_x(-0.3)
-                    * Quaternion::rotation_y(0.0)
-                    * Quaternion::rotation_z(0.0);
+                next.weapon.ori = Quaternion::rotation_x(0.0)
+                    * Quaternion::rotation_y(-1.7)
+                    * Quaternion::rotation_z(0.85);
                 next.weapon.scale = Vec3::one();
             }
             Tool::Daggers => {
