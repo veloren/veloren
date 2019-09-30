@@ -1,6 +1,6 @@
 use crate::audio::AudioFrontend;
 use client::Client;
-use common::comp::{ActionState::*, Body, CharacterState, MovementState::*, Ori, Pos};
+use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos, Vel};
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
@@ -38,15 +38,16 @@ impl SoundMgr {
 
         audio.set_listener_pos(&player_pos, &player_ori);
 
-        for (entity, pos, body, character) in (
+        for (entity, pos, body, vel, character) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
+            &ecs.read_storage::<Vel>(),
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
         {
-            if let (Body::Humanoid(_), Some(character)) = (body, character) {
+            if let (Body::Humanoid(_), Some(character), vel) = (body, character, vel) {
                 let state = self
                     .character_states
                     .entry(entity)
@@ -57,10 +58,10 @@ impl SoundMgr {
 
                 if entity == client.entity()
                     && character.movement == Jump
-                    && state.last_jump_sound.elapsed().as_secs_f64() > 0.5
+                    && vel.0.z > 0.0
+                    && state.last_jump_sound.elapsed().as_secs_f64() > 0.25
                 {
                     audio.play_sound("voxygen.audio.sfx.jump", pos.0);
-
                     state.last_jump_sound = Instant::now();
                 }
 
