@@ -29,7 +29,7 @@ const LIFT: f32 = 4.0; // This must be less than 3DRAG[2]^(1/3)(DRAG[0]/2)^(2/3)
 const DRAG: [f32; 3] = [1.0, 3.5, 10.0]; // Drag coefficients (forwards/back, left/right, up/down)
 const ANG_INP: [f32; 2] = [0.75, 1.0]; // Angle changes from user input in a unit time step (pitch and roll)
 const ANG_DRAG: f32 = 10.0; // The interpolation factor for angular drag in a time step (will be multiplied by dt)
-const ANG_SPRING_K: f32 = 1.25; // "" for the glider tending to return to facing forwards
+const ANG_SPRING_K: f32 = 1.1; // "" for the glider tending to return to facing forwards
 const CLIMB_SPEED: f32 = 5.0;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;

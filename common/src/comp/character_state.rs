@@ -1,12 +1,9 @@
 use specs::{Component, FlaggedStorage, HashMapStorage};
 //use specs_idvs::IDVStorage;
-use std::{
-    time::Duration,
-    hash::{Hash, Hasher},
-};
+use std::time::Duration;
 use vek::*;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum MovementState {
     Stand,
     Sit,
@@ -43,21 +40,6 @@ impl MovementState {
     }
 }
 
-impl PartialEq for MovementState {
-    fn eq(&self, other: &Self) -> bool {
-        // Check if enum item is the same without looking at the inner data
-        std::mem::discriminant(&self) == std::mem::discriminant(&other)
-    }
-}
-
-impl Hash for MovementState {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        std::mem::discriminant(&self).hash(state);
-    }
-}
-
-impl Eq for MovementState {}
-
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub enum ActionState {
     Idle,
@@ -93,7 +75,7 @@ impl ActionState {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CharacterState {
     pub movement: MovementState,
     pub action: ActionState,
@@ -101,7 +83,8 @@ pub struct CharacterState {
 
 impl CharacterState {
     pub fn is_same_movement(&self, other: &Self) -> bool {
-        self.movement == other.movement
+        // Check if enum item is the same without looking at the inner data
+        std::mem::discriminant(&self.movement) == std::mem::discriminant(&other.movement)
     }
     pub fn is_same_action(&self, other: &Self) -> bool {
         // Check if enum item is the same without looking at the inner data
