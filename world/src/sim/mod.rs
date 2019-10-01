@@ -686,6 +686,30 @@ impl WorldSim {
         this
     }
 
+    /// Draw a map of the world based on chunk information.  Returns a buffer of u32s.
+    pub fn get_map(&self) -> Vec<u32> {
+        (0.. WORLD_SIZE.x * WORLD_SIZE.y).into_par_iter().map(|chunk_idx| {
+            let pos = uniform_idx_as_vec2(chunk_idx);
+
+            let (alt, water_alt, river_kind) = self
+                .get(pos)
+                .map(|sample| {
+                    (sample.alt,
+                     sample.water_alt,
+                     sample.river.river_kind)
+                })
+                .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, None));
+            let alt = ((alt - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
+            let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
+            match river_kind {
+                Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
+                Some(RiverKind::Lake) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
+                Some(RiverKind::River) => u32::from_le_bytes([64 + (alt * 191.0) as u8, 32 + (alt * 95.0) as u8, 0, 255]),
+                None => u32::from_le_bytes([0, (alt * 255.0) as u8, 0, 255]),
+            }
+        }).collect()
+    }
+
     /// Prepare the world for simulation
     pub fn seed_elements(&mut self) {
         let mut rng = self.rng.clone();

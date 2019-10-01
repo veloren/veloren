@@ -35,13 +35,14 @@ use crate::{
     render::{AaMode, Consts, Globals, Renderer},
     scene::camera::Camera,
     settings::ControlSettings,
-    ui::{Ingameable, ScaleMode, Ui},
+    ui::{Graphic, Ingameable, ScaleMode, Ui},
     window::{Event as WinEvent, GameInput},
     GlobalState,
 };
 use client::{Client, Event as ClientEvent};
 use common::{comp, terrain::TerrainChunk, vol::RectRasterableVol};
 use conrod_core::{
+    image::Id,
     text::cursor::Index,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
@@ -119,6 +120,7 @@ widget_ids! {
         // External
         chat,
         map,
+        world_map,
         character_window,
         minimap,
         bag,
@@ -365,6 +367,7 @@ impl Show {
 pub struct Hud {
     ui: Ui,
     ids: Ids,
+    world_map: Id,
     imgs: Imgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
@@ -378,7 +381,7 @@ pub struct Hud {
 }
 
 impl Hud {
-    pub fn new(global_state: &mut GlobalState) -> Self {
+    pub fn new(global_state: &mut GlobalState, client: &Client) -> Self {
         let window = &mut global_state.window;
         let settings = &global_state.settings;
 
@@ -386,6 +389,8 @@ impl Hud {
         ui.set_scaling_mode(settings.gameplay.ui_scale);
         // Generate ids.
         let ids = Ids::new(ui.id_generator());
+        // Load world map
+        let world_map = ui.add_graphic(Graphic::Image(client.world_map.clone()));
         // Load images.
         let imgs = Imgs::load(&mut ui).expect("Failed to load images!");
         // Load rotation images.
@@ -396,6 +401,7 @@ impl Hud {
         Self {
             ui,
             imgs,
+            world_map,
             rot_imgs,
             fonts,
             ids,
@@ -720,7 +726,7 @@ impl Hud {
         }
 
         // MiniMap
-        match MiniMap::new(&self.show, client, &self.imgs, &self.fonts)
+        match MiniMap::new(&self.show, client, &self.imgs, self.world_map, &self.fonts)
             .set(self.ids.minimap, ui_widgets)
         {
             Some(minimap::Event::Toggle) => self.show.toggle_mini_map(),
@@ -902,7 +908,7 @@ impl Hud {
         }
         // Map
         if self.show.map {
-            match Map::new(&self.show, client, &self.imgs, &self.fonts)
+            match Map::new(&self.show, client, &self.imgs, self.world_map, &self.fonts)
                 .set(self.ids.map, ui_widgets)
             {
                 Some(map::Event::Close) => {

@@ -44,7 +44,7 @@ use std::{
 };
 use uvth::{ThreadPool, ThreadPoolBuilder};
 use vek::*;
-use world::{ChunkSupplement, World};
+use world::{ChunkSupplement, sim::WORLD_SIZE, World};
 
 const CLIENT_TIMEOUT: f64 = 20.0; // Seconds
 
@@ -745,11 +745,14 @@ impl Server {
                 client.notify(ServerMsg::Error(ServerError::TooManyPlayers));
             } else {
                 // Return the state of the current world (all of the components that Sphynx tracks).
+                println!("Starting sync.");
                 client.notify(ServerMsg::InitialSync {
                     ecs_state: self.state.ecs().gen_state_package(),
                     entity_uid: self.state.ecs().uid_from_entity(entity).unwrap().into(), // Can't fail.
                     server_info: self.server_info.clone(),
+                    world_map: (WORLD_SIZE/*, self.world.sim().get_map()*/),
                 });
+                println!("Done sync.");
 
                 frontend_events.push(Event::ClientConnected { entity });
             }

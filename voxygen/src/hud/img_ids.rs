@@ -87,7 +87,7 @@ image_ids! {
         map_frame_r: "voxygen.element.frames.map_r",
         map_frame_bl: "voxygen.element.frames.map_bl",
         map_frame_br: "voxygen.element.frames.map_br",
-        pos_indicator: "voxygen.element.buttons.qlog",       
+        pos_indicator: "voxygen.element.buttons.qlog",
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
@@ -211,7 +211,6 @@ image_ids! {
         <ImageGraphic>
 
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
-        map_placeholder: "voxygen.background.map",
 
         // Spell Book Window
         spellbook_icon: "voxygen.element.icons.spellbook",

@@ -40,7 +40,7 @@ impl ClientInit {
             // Sleep the thread to wait for the single-player server to start up.
             if wait {
                 info!("Waiting for server to come up...");
-                thread::sleep(Duration::from_millis(500));
+                thread::sleep(Duration::from_millis(1500));
             }
             // Parse ip address or resolves hostname.
             // Note: if you use an ipv6 address, the number after the last colon will be used
