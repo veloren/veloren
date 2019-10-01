@@ -55,7 +55,9 @@ impl SoundMgr {
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
-            .filter(|(_, e_pos, _, _)| (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT_SQR)
+            .filter(|(_, e_pos, _, _, _)| {
+                (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT_SQR
+            })
         {
             if let (Body::Humanoid(_), Some(character), vel) = (body, character, vel) {
                 let state = self
