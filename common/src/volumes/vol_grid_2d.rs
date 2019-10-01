@@ -3,7 +3,7 @@ use crate::{
     volumes::dyna::DynaError,
 };
 use hashbrown::{hash_map, HashMap};
-use std::{fmt::Debug, sync::Arc};
+use std::{fmt::Debug, ops::Deref, sync::Arc};
 use vek::*;
 
 #[derive(Debug, Clone)]
@@ -158,6 +158,56 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }
+    }
+
+    pub fn cached<'a>(&'a self) -> CachedVolGrid2d<'a, V> {
+        CachedVolGrid2d::new(self)
+    }
+}
+
+pub struct CachedVolGrid2d<'a, V: RectRasterableVol> {
+    vol_grid_2d: &'a VolGrid2d<V>,
+    cache: Option<(Vec2<i32>, Arc<V>)>,
+}
+impl<'a, V: RectRasterableVol> CachedVolGrid2d<'a, V> {
+    pub fn new(vol_grid_2d: &'a VolGrid2d<V>) -> Self {
+        Self {
+            vol_grid_2d,
+            cache: None,
+        }
+    }
+}
+impl<'a, V: RectRasterableVol + ReadVol> CachedVolGrid2d<'a, V> {
+    // Note: this may be invalidated by mutations of the chunks hashmap
+    #[inline(always)]
+    pub fn get(&mut self, pos: Vec3<i32>) -> Result<&V::Vox, VolGrid2dError<V>> {
+        let ck = VolGrid2d::<V>::chunk_key(pos);
+        let chunk = if self
+            .cache
+            .as_ref()
+            .map(|(key, _)| *key == ck)
+            .unwrap_or(false)
+        {
+            &self.cache.as_ref().unwrap().1
+        } else {
+            let chunk = self
+                .vol_grid_2d
+                .chunks
+                .get(&ck)
+                .ok_or(VolGrid2dError::NoSuchChunk)?;
+            self.cache = Some((ck, chunk.clone()));
+            chunk
+        };
+        let co = VolGrid2d::<V>::chunk_offs(pos);
+        chunk.get(co).map_err(VolGrid2dError::ChunkError)
+    }
+}
+
+impl<'a, V: RectRasterableVol> Deref for CachedVolGrid2d<'a, V> {
+    type Target = VolGrid2d<V>;
+
+    fn deref(&self) -> &Self::Target {
+        self.vol_grid_2d
     }
 }
 
