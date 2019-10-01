@@ -116,6 +116,13 @@ impl PlayState for MainMenuState {
                                 .login_error("Invalid username or password".to_string());
                         }
                     }
+                    MainMenuEvent::CancelLoginAttempt => {
+                        // client_init contains Some(ClientInit), which spawns a thread which contains a TcpStream::connect() call
+                        // This call is blocking
+                        // TODO fix when the network rework happens
+                        client_init = None;
+                        self.main_menu_ui.cancel_connection();
+                    }
                     #[cfg(feature = "singleplayer")]
                     MainMenuEvent::StartSingleplayer => {
                         return PlayStateResult::Push(Box::new(StartSingleplayerState::new()));
