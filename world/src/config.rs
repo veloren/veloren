@@ -36,7 +36,10 @@ pub struct Config {
     /// Currently, not known whether setting this above 1.0 will work properly.  Please use with
     /// care!
     pub river_max_width: f32,
-    /// Rough desired river width-to-depth ratio.  Not exact.
+    /// Minimum height at which rivers display.
+    pub river_min_height: f32,
+    /// Rough desired river width-to-depth ratio (in terms of horizontal chunk width / m, for some
+    /// reason).  Not exact.
     pub river_width_to_depth: f32,
 }
 
@@ -52,5 +55,6 @@ pub const CONFIG: Config = Config {
     rainfall_chunk_rate: 1.0 / 512.0,
     river_roughness: 0.06125,
     river_max_width: /*1.0*/2.0,
-    river_width_to_depth: 2.0,
+    river_min_height: 0.25,
+    river_width_to_depth: 1.0,
 };

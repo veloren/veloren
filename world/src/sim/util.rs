@@ -576,7 +576,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
 
         // let mut width = almost_velocity / height.powf(5.0/3.0);
         let mut height = if width == 0.0 {
-            0.5f32
+            CONFIG.river_min_height
         } else {
             (almost_velocity / width).powf(3.0/5.0)
         };
@@ -621,10 +621,11 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
 
 
         // Now, we can check whether this is "really" a river.
-        // Currently, we just check that width and height are at least 0.5.
+        // Currently, we just check that width and height are at least 0.5 and
+        // CONFIG.river_min_height.
         let is_river =
             river.river_kind == Some(RiverKind::River) ||
-            width >= 0.5 && height >= 0.5;
+            width >= 0.5 && height >= CONFIG.river_min_height;
         let mut downhill_river = &mut rivers[downhill_idx];
         // Add the chunk's river direction minus its initial slope (weighted by the
         // chunk's drainage).

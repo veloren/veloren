@@ -1278,7 +1278,7 @@ impl SimChunk {
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
         let river_slope = river.velocity.z / river_xy;
-        if river.cross_section.x >= 0.5 && river.cross_section.y >= 0.5 ||
+        if river.cross_section.x >= 0.5 && river.cross_section.y >= CONFIG.river_min_height ||
             river.river_kind == Some(RiverKind::River) && river_slope.abs() >= 1.0 {
             println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
                      river_slope);
