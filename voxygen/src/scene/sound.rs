@@ -1,15 +1,20 @@
 use crate::audio::AudioFrontend;
 use client::Client;
-use common::comp::{Body, CharacterState, MovementState::*, Ori, Pos, Vel};
+use common::comp::{Body, CharacterState, MovementState, MovementState::*, Ori, Pos, Vel};
 use hashbrown::HashMap;
 use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
 use vek::*;
 
+// TODO put these in a hashmap::last_trigger_times: HashMap<Trigger, Instant>
 pub struct AnimState {
+    last_character_movement: MovementState,
     last_step_sound: Instant,
     last_jump_sound: Instant,
     last_attack_sound: Instant,
+    last_environment_sound: Instant,
+    last_glider_open_sound: Instant,
+    last_glide_sound: Instant,
 }
 
 pub struct SoundMgr {
@@ -53,13 +58,31 @@ impl SoundMgr {
                     .character_states
                     .entry(entity)
                     .or_insert_with(|| AnimState {
+                        last_character_movement: Stand,
                         last_step_sound: Instant::now(),
                         last_jump_sound: Instant::now(),
                         last_attack_sound: Instant::now(),
+                        last_environment_sound: Instant::now(),
+                        last_glider_open_sound: Instant::now(),
+                        last_glide_sound: Instant::now(),
                     });
 
                 // Constrain to our player for testing
                 if entity == client.entity() {
+                    // Ambient sounds
+                    if state.last_environment_sound.elapsed().as_secs_f64() > 60.0 {
+                        let chunk = client.current_chunk();
+
+                        if let Some(chunk) = chunk {
+                            let biome = chunk.meta().biome();
+                            let time_of_day = client.state().get_time_of_day();
+
+                            log::warn!("{}", format!("Biome: {:?}", biome));
+                            log::warn!("{}", format!("Time of Day: {:#?}", time_of_day));
+                            state.last_environment_sound = Instant::now();
+                        }
+                    }
+
                     // Attack
                     if character.action.is_attack()
                         && state.last_attack_sound.elapsed().as_secs_f64() > 0.25
@@ -70,10 +93,42 @@ impl SoundMgr {
                             pos.0,
                         );
                         state.last_attack_sound = Instant::now();
+                        state.last_character_movement = MovementState::Stand;
+                    }
+
+                    // Glider Open
+                    if character.movement == MovementState::Glide
+                        && state.last_glider_open_sound.elapsed().as_secs_f64() > 1.0
+                        && state.last_character_movement != MovementState::Glide
+                    {
+                        audio.play_sound("voxygen.audio.sfx.glider.open", pos.0);
+
+                        state.last_character_movement = Glide;
+                    }
+
+                    // Gliding
+                    if character.movement == MovementState::Glide
+                        && state.last_glide_sound.elapsed().as_secs_f64() > 2.5
+                        && state.last_character_movement == MovementState::Glide
+                    {
+                        audio.play_sound("voxygen.audio.sfx.glider.gliding", pos.0);
+
+                        state.last_character_movement = Glide;
+                        state.last_glide_sound = Instant::now();
+                    }
+
+                    // Glider Close
+                    if state.last_character_movement == MovementState::Glide
+                        && character.movement != MovementState::Glide
+                        && state.last_glider_open_sound.elapsed().as_secs_f64() > 1.0
+                    {
+                        audio.play_sound("voxygen.audio.sfx.glider.open", pos.0);
+
+                        state.last_character_movement = Stand;
                     }
 
                     // Jump
-                    if character.movement == Jump
+                    if character.movement == MovementState::Jump
                         && vel.0.z > 0.0
                         && state.last_jump_sound.elapsed().as_secs_f64() > 0.25
                     {
@@ -83,6 +138,7 @@ impl SoundMgr {
                             pos.0,
                         );
                         state.last_jump_sound = Instant::now();
+                        state.last_character_movement = MovementState::Jump;
                     }
                 }
 
