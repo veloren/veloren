@@ -41,13 +41,15 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
         max: bounds.max + sunlight,
     };
 
+    let mut vol_cached = vol.cached();
+
     let mut voids = HashMap::new();
     let mut rays = vec![outer.size().d; outer.size().product() as usize];
     for x in 0..outer.size().w {
         for y in 0..outer.size().h {
             let mut outside = true;
             for z in (0..outer.size().d).rev() {
-                let block = vol
+                let block = vol_cached
                     .get(outer.min + Vec3::new(x, y, z))
                     .ok()
                     .copied()
@@ -140,6 +142,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
 
         let light = calc_light(range, self);
 
+        let mut vol_cached = self.cached();
+
         for x in range.min.x + 1..range.max.x - 1 {
             for y in range.min.y + 1..range.max.y - 1 {
                 let mut lights = [[[0.0; 3]; 3]; 3];
@@ -155,9 +159,8 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     }
                 }
 
-                let get_color = |pos| {
-                    self.get(pos)
-                        .ok()
+                let get_color = |maybe_block: Option<&Block>| {
+                    maybe_block
                         .filter(|vox| vox.is_opaque())
                         .and_then(|vox| vox.get_color())
                         .map(|col| Rgba::from_opaque(col))
@@ -169,9 +172,13 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     for j in 0..3 {
                         for k in 0..3 {
                             colors[k][j][i] = get_color(
-                                Vec3::new(x, y, range.min.z)
-                                    + Vec3::new(i as i32, j as i32, k as i32)
-                                    - 1,
+                                vol_cached
+                                    .get(
+                                        Vec3::new(x, y, range.min.z)
+                                            + Vec3::new(i as i32, j as i32, k as i32)
+                                            - 1,
+                                    )
+                                    .ok(),
                             );
                         }
                     }
@@ -193,11 +200,15 @@ impl<V: RectRasterableVol<Vox = Block> + ReadVol + Debug> Meshable<TerrainPipeli
                     }
                     for i in 0..3 {
                         for j in 0..3 {
-                            colors[2][j][i] = get_color(pos + Vec3::new(i as i32, j as i32, 2) - 1);
+                            colors[2][j][i] = get_color(
+                                vol_cached
+                                    .get(pos + Vec3::new(i as i32, j as i32, 2) - 1)
+                                    .ok(),
+                            );
                         }
                     }
 
-                    let block = self.get(pos).ok();
+                    let block = vol_cached.get(pos).ok();
 
                     // Create mesh polygons
                     if block.map(|vox| vox.is_opaque()).unwrap_or(false) {
