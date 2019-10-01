@@ -1,3 +1,4 @@
+use crate::audio::fader::Fader;
 use crate::audio::AudioFrontend;
 use client::Client;
 use common::comp::{Body, CharacterState, MovementState, MovementState::*, Ori, Pos, Vel};
@@ -6,7 +7,7 @@ use specs::{Entity as EcsEntity, Join};
 use std::time::Instant;
 use vek::*;
 
-// TODO put these in a hashmap::last_trigger_times: HashMap<Trigger, Instant>
+// TODO this is going to get very large...
 pub struct AnimState {
     last_character_movement: MovementState,
     last_step_sound: Instant,
@@ -15,6 +16,7 @@ pub struct AnimState {
     last_environment_sound: Instant,
     last_glider_open_sound: Instant,
     last_glide_sound: Instant,
+    gliding_channel: usize,
 }
 
 pub struct SoundMgr {
@@ -29,6 +31,7 @@ impl SoundMgr {
     }
 
     pub fn maintain(&mut self, audio: &mut AudioFrontend, client: &Client) {
+        const SFX_DIST_LIMIT_SQR: f32 = 22500.0;
         let ecs = client.state().ecs();
 
         // Get player position.
@@ -52,6 +55,7 @@ impl SoundMgr {
             ecs.read_storage::<CharacterState>().maybe(),
         )
             .join()
+            .filter(|(_, e_pos, _, _)| (e_pos.0.distance_squared(player_pos)) < SFX_DIST_LIMIT_SQR)
         {
             if let (Body::Humanoid(_), Some(character), vel) = (body, character, vel) {
                 let state = self
@@ -65,6 +69,7 @@ impl SoundMgr {
                         last_environment_sound: Instant::now(),
                         last_glider_open_sound: Instant::now(),
                         last_glide_sound: Instant::now(),
+                        gliding_channel: 0,
                     });
 
                 // Constrain to our player for testing
@@ -79,6 +84,7 @@ impl SoundMgr {
 
                             log::warn!("{}", format!("Biome: {:?}", biome));
                             log::warn!("{}", format!("Time of Day: {:#?}", time_of_day));
+
                             state.last_environment_sound = Instant::now();
                         }
                     }
@@ -101,8 +107,8 @@ impl SoundMgr {
                         && state.last_glider_open_sound.elapsed().as_secs_f64() > 1.0
                         && state.last_character_movement != MovementState::Glide
                     {
-                        audio.play_sound("voxygen.audio.sfx.glider.open", pos.0);
-
+                        state.gliding_channel =
+                            audio.play_sound("voxygen.audio.sfx.glider.open", pos.0);
                         state.last_character_movement = Glide;
                     }
 
@@ -111,7 +117,8 @@ impl SoundMgr {
                         && state.last_glide_sound.elapsed().as_secs_f64() > 2.5
                         && state.last_character_movement == MovementState::Glide
                     {
-                        audio.play_sound("voxygen.audio.sfx.glider.gliding", pos.0);
+                        state.gliding_channel =
+                            audio.play_sound("voxygen.audio.sfx.glider.gliding", pos.0);
 
                         state.last_character_movement = Glide;
                         state.last_glide_sound = Instant::now();
@@ -123,6 +130,7 @@ impl SoundMgr {
                         && state.last_glider_open_sound.elapsed().as_secs_f64() > 1.0
                     {
                         audio.play_sound("voxygen.audio.sfx.glider.open", pos.0);
+                        audio.stop_channel(state.gliding_channel, Fader::fade_out(0.5));
 
                         state.last_character_movement = Stand;
                     }
