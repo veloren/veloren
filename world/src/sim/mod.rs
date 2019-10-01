@@ -48,7 +48,7 @@ use vek::*;
 // cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
 // but I think that is probably less important since I don't think we actually cast a chunk id to
 // float, just coordinates... could be wrong though!
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
+pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024 * 2, y: 1024 * 2 };
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
@@ -158,7 +158,7 @@ impl WorldSim {
                 .set_persistence(0.9)
                 .set_seed(rng.gen());
 
-        let (alt_base, chaos) = rayon::join(
+        let ((alt_base, _), (chaos, _)) = rayon::join(
             || uniform_noise(|_, wposf| {
                 // "Base" of the chunk, to be multiplied by CONFIG.mountain_scale (multiplied value
                 // is from -0.35 * (CONFIG.mountain_scale * 1.05) to
@@ -211,7 +211,7 @@ impl WorldSim {
         // We ignore sea level because we actually want to be relative to sea level here and want
         // things in CONFIG.mountain_scale units, but otherwise this is a correct altitude
         // calculation.  Note that this is using the "unadjusted" temperature.
-        let alt_old =
+        let (alt_old, alt_old_inverse) =
         /*let (alt_old, mut alt_pos) = rayon::join(
             || */uniform_noise(|posi, wposf| {
                 // This is the extension upwards from the base added to some extra noise from -1 to
@@ -269,11 +269,19 @@ impl WorldSim {
             alt_positions,
         )*/;
 
+        // Find the minimum and maximum original altitudes.
+        // NOTE: Will panic if there is no land, and will not work properly if the minimum and
+        // maximum land altitude are identical (will most likely panic later).
+        let (alt_old_min_index, alt_old_min) = alt_old_inverse.iter().copied().find(|&(_, h)| h > 0.0).unwrap();
+        let &(alt_old_max_index, alt_old_max) = alt_old_inverse.last().unwrap();
+        let alt_old_min_uniform = alt_old[alt_old_min_index].0;
+        let alt_old_max_uniform = alt_old[alt_old_max_index].0;
+
         // Calculate oceans.
         let old_height = |posi: usize| alt_old[posi].1;
+        let old_height_uniform = |posi: usize| alt_old[posi].0;
         let is_ocean = get_oceans(old_height);
         let is_ocean_fn = |posi: usize| is_ocean[posi]/* || alt_old[posi].1 < 0.0*/;
-
 
         // Perform some erosion (maybe not needed)
         // let v = vec![(5.0, 5.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
@@ -291,8 +299,22 @@ impl WorldSim {
         // let alt = fill_sinks(old_height, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         // Clean up streams / lakes a little, make sure we have reasonable drainage.
         // 5.010e-4*2.5e5 ~ 125 ~ 128 / CONFIG.mountain_scale
-        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*/32.0 / CONFIG.mountain_scale,
-                             50, &river_seed, &rock_strength_nz,
+        /* let alt_old_min = -0.946;
+        let alt_old_max = 1.067; */
+        let max_erosion_per_delta_t = 64.0 / CONFIG.mountain_scale;
+
+        // Logistic regression.  Make sure x ∈ (0, 1).
+        let logit = |x: f32| x.ln() - (-x).ln_1p();
+        // 0.5 + 0.5 * tanh(ln(1 / (1 - 0.1) - 1) / (2 * (sqrt(3)/pi)))
+        let logistic_2_base = 3.0f32.sqrt() * f32::consts::FRAC_2_PI;
+        // Assumes μ = 0, σ = 1
+        let logistic_cdf = |x: f32| (x / logistic_2_base).tanh() * 0.5 + 0.5;
+
+        let erosion_pow = 2.0;//0.6/*0.5*//*1.0*/;//1.0;
+        let n_steps = 100;//50;
+        let erosion_factor = |x: f32| logistic_cdf(erosion_pow * logit(x))/*x.powf(erosion_pow)*/;
+        let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*//*32.0 / CONFIG.mountain_scale*/max_erosion_per_delta_t,
+                             n_steps, &river_seed, &rock_strength_nz,
                              //|posi| v[posi].1,
                              // |posi| alt[posi],
                              |posi| if is_ocean_fn(posi) { old_height(posi) } else { /*(5.0 + v[posi].1) / CONFIG.mountain_scale*/5.0 / CONFIG.mountain_scale },
@@ -307,17 +329,29 @@ impl WorldSim {
                              // 128/2048 ~ 0.0625
                              // 512/2048 ~ 0.25
                              // 0.22875/2.36025 ~ 0.97...
-                             |posi| (((old_height(posi) + 0.946) / 2.013/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                             |posi| {
+                                 let height =
+                                     (((old_height_uniform(posi) /*+ 0.946*/- alt_old_min_uniform) / /*2.013*/(alt_old_max_uniform - alt_old_min_uniform)/* - CONFIG.sea_level / CONFIG.mountain_scale*/)
+                                     // .max(1.0 / CONFIG.mountain_scale)
                                      // .min(1.0)
                                      // .max(1.0 / CONFIG.mountain_scale)
-                                     /*.powf(1.0)*/ * /*0.05*//*0.0625*/(/*128.0*/32.0 / CONFIG.mountain_scale))
-                                     .min(32.0 / CONFIG.mountain_scale)
-                                     .max(1.0 / CONFIG.mountain_scale)
-                                     /*.min(96.0 / CONFIG.mountain_scale)*/);
+                                     .max(1e-7 / CONFIG.mountain_scale)
+                                     .min(1.0 - 1e-7));
+                                 let height = erosion_factor(height);
+                                 height
+                                      // .powf(erosion_pow)
+                                      /*.powf(1.0)*//* * /*0.05*//*0.0625*/(/*128.0*/32.0 / CONFIG.mountain_scale))*/
+                                      // .mul(max_erosion_per_delta_t)
+                                      .mul(max_erosion_per_delta_t * 7.0 / 8.0)
+                                      .add(max_erosion_per_delta_t / 8.0)
+                                      // .max(1.0 / CONFIG.mountain_scale)
+                                      // .max(0.5 / CONFIG.mountain_scale)
+                                      /*.min(96.0 / CONFIG.mountain_scale)*/
+                             });
         let is_ocean = get_oceans(|posi| alt[posi]);
         let is_ocean_fn = |posi: usize| is_ocean[posi]/* || alt_old[posi].1 < 0.0*/;
         // let water_alt = alt.clone();
-        let water_alt = fill_sinks(|posi| if is_ocean_fn(posi) { 0.0 } else { alt[posi] }, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
+        // let water_alt = fill_sinks(|posi| if is_ocean_fn(posi) { 0.0 } else { alt[posi] }, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         // let alt = fill_sinks(&alt, |posi| alt_old[posi].1 * 0.05);
         // let alt_old_ = alt_old.par_iter().map(|&(_, h)| h).collect::<Vec<_>>().into_boxed_slice();
         // let alt = do_erosion(&alt, &mut *alt_pos, 0.05, 8, &river_seed, &rock_strength_nz, |_| 0.0);
@@ -347,6 +381,48 @@ impl WorldSim {
         let (boundary_len, indirection, water_alt_pos) = get_lakes(&/*water_alt*/alt, &mut dh);
         let flux_old = get_drainage(&water_alt_pos, &dh, boundary_len);
 
+        let water_height_initial = |chunk_idx| {
+            let indirection_idx = indirection[chunk_idx];
+            // Find the lake this point is flowing into.
+            let lake_idx = if indirection_idx < 0 {
+                chunk_idx
+            } else {
+                indirection_idx as usize
+            };
+            // Find the pass this lake is flowing into (i.e. water at the lake bottom gets
+            // pushed towards the point identified by pass_idx).
+            let neighbor_pass_idx = dh[lake_idx];
+            let chunk_water_alt = if neighbor_pass_idx < 0 {
+                // This is either a boundary node (dh[chunk_idx] == -2, i.e. water is at sea level)
+                // or part of a lake that flows directly into the ocean.  In the former case, water
+                // is at sea level so we just return 0.0.  In the latter case, the lake bottom must
+                // have been a boundary node in the first place--meaning this node flows directly
+                // into the ocean.  In that case, its lake bottom is ocean, meaning its water is
+                // also at sea level.  Thus, we return 0.0 in both cases.
+                0.0
+            } else {
+                // This chunk is draining into a body of water that isn't the ocean (i.e., a lake).
+                // Then we just need to find the pass height of the surrounding lake in order to
+                // figure out the initial water height (which fill_sinks will then extend to make
+                // sure it fills the entire basin).
+
+                // Find the height of the pass into which our lake is flowing.
+                let pass_height_j = alt[neighbor_pass_idx as usize];
+                // Find the height of "our" side of the pass (the part of it that drains into this
+                // chunk's lake).
+                let pass_idx = -indirection[lake_idx];
+                let pass_height_i = alt[pass_idx as usize];
+                // Find the maximum of these two heights.
+                let pass_height = pass_height_i.max(pass_height_j);
+                // Use the pass height as the initial water altitude.
+                pass_height
+            };
+            // Use the maximum of the pass height and chunk height as the parameter to fill_sinks.
+            let chunk_alt = alt[chunk_idx];
+            chunk_alt.max(chunk_water_alt)
+        };
+
+        let water_alt = fill_sinks(water_height_initial, /*|posi| alt_old[posi].1 * 0.05*//* old_height*/is_ocean_fn);
         let rivers = get_rivers(&water_alt_pos, &water_alt, &dh, &indirection, &flux_old);
 
         /* let water_alt = indirection.par_iter()
@@ -529,7 +605,7 @@ impl WorldSim {
             true
         };
 
-        let pure_flux = uniform_noise(|posi, _| {
+        let (pure_flux, _) = uniform_noise(|posi, _| {
             if pure_water(posi) {
                 None
             } else {
@@ -537,7 +613,7 @@ impl WorldSim {
             }
         });
 
-        let (alt_no_water, (temp_base, humid_base)) = rayon::join(
+        let ((alt_no_water, _), ((temp_base, _), (humid_base, _))) = rayon::join(
             || uniform_noise(|posi, _| {
                 if pure_water(posi) {
                     None
@@ -817,7 +893,7 @@ impl WorldSim {
                 if (neighbor_pos - chunk_pos).reduce_partial_max() <= 1 || has_river {
                     self.get(neighbor_pos).map(|c| c.get_base_z())
                 } else {
-                    Some(f32::INFINITY)
+                    None
                 }
             })
             .fold(None, |a: Option<f32>, x| a.map(|a| a.min(x)).or(Some(x)))

@@ -166,8 +166,10 @@ pub fn vec2_as_uniform_idx(idx: Vec2<i32>) -> usize {
 /// Returns a vec of (f32, f32) pairs consisting of the percentage of chunks with a value lower than
 /// this one, and the actual noise value (we don't need to cache it, but it makes ensuring that
 /// subsequent code that needs the noise value actually uses the same one we were using here
-/// easier).
-pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) -> InverseCdf {
+/// easier).  Also returns the "inverted index" pointing from a position to a noise.
+pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) ->
+    (InverseCdf, Box<[(usize, f32)]>)
+{
     let mut noise = (0..WORLD_SIZE.x * WORLD_SIZE.y)
         .into_par_iter()
         .filter_map(|i| {
@@ -191,10 +193,10 @@ pub fn uniform_noise(f: impl Fn(usize, Vec2<f64>) -> Option<f32> + Sync) -> Inve
     // None, which will remain at zero).
     let mut uniform_noise = vec![(0.0, 0.0); WORLD_SIZE.x * WORLD_SIZE.y].into_boxed_slice();
     let total = noise.len() as f32;
-    for (noise_idx, (chunk_idx, noise_val)) in noise.into_iter().enumerate() {
+    for (noise_idx, &(chunk_idx, noise_val)) in noise.iter().enumerate() {
         uniform_noise[chunk_idx] = ((1 + noise_idx) as f32 / total, noise_val);
     }
-    uniform_noise
+    (uniform_noise, noise.into_boxed_slice())
 }
 
 /// Iterate through all cells adjacent and including four chunks whose top-left point is posi.
@@ -364,7 +366,7 @@ pub struct RiverData {
     ///
     /// TODO: To represent this in a better-packed way, use u8s instead (as "f8s").
     pub(crate) velocity: Vec3<f32>,
-    /// Dimensions of the river's cross-sectional area, as m × m (the river is approximated
+    /// Dimensions of the river's cross-sectional area, as m × m (rivers are approximated
     /// as an open rectangular prism in the direction of the velocity vector).
     pub(crate) cross_section: Vec2<f32>,
     /// The computed derivative for the segment of river starting at this chunk (and flowing
@@ -983,7 +985,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
 
         // We do log-odds against 0.1, so that our log odds are 0 when x = 0.1, lower when x is
         // lower, and higher when x is higher.
-        let center = 0.075/*0.0625*/;
+        let center = 0.25;//0.075/*0.0625*/;
         let delta = 0.05/*0.0625*/;
         let dmin = center - delta;
         let dmax = center + delta;
@@ -1009,7 +1011,7 @@ fn get_max_slope(h: &[f32], rock_strength_nz: &(impl NoiseFn<Point3<f64>> + Sync
         // plausible cliffs effect.  Taking the square root makes it increase more rapidly than it
         // would otherwise, so that at height 0.4 we are already looking at 0.8 of the maximum.
         let rock_strength = logistic_cdf(/*0.25*//*0.5*/1.0 * logit(rock_strength.min(1.0 - 1e-7).max(1e-7)) +
-                                         /*3.0*/1.0 * log_odds(z.min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*/center))/*0.0*/);
+                                         /*3.0*/1.0 * log_odds(z.min(/*0.15*//*0.45*//*0.2*/dmax).max(/*0.35*//*0.1*//*center*/dmin))/*0.0*/);
         // let height_factor = z.min(1.0).max(0.0).powf(0.25);
         let max_slope = (rock_strength * MAX_ANGLE_RANGE/* * height_factor*/ + MIN_MAX_ANGLE).tan();
         /* if max_slope > 1.48 || max_slope < 0.0 {
@@ -1946,6 +1948,10 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
 
     // Now all passes pointing to the boundary are in candidates.
     // As long as there are still candidates, we continue...
+    // NOTE: After a lake is added to the stream tree, the lake bottom's indirection entry no
+    // longer negates its maximum number of passes, but the lake side of the chosen pass.  As such,
+    // we should make sure not to rely on using it this way afterwards.
+    // provides information about the number of candidate passes in a lake.
     'outer_final_pass: while let Some(Reverse((_, (chunk_idx, neighbor_idx)))) = candidates.pop() {
         // We have the smallest candidate.
         let lake_idx = indirection_[chunk_idx as usize] as usize;
@@ -1969,10 +1975,14 @@ pub fn get_lakes(/*newh: &[u32], */h: &[f32], downhill: &mut [isize]) -> /*(Box<
             indirection[indirection_idx as usize]
         } as usize;
         // Add this chunk to the tree.
-        downhill[lake_chunk_idx as usize] = neighbor_idx as isize;
+        downhill[lake_chunk_idx] = neighbor_idx as isize;
+        // Also set the indirection of the lake bottom to the negation of the
+        // lake side of the chosen pass (chunk_idx).
+        // NOTE: This can't overflow i32 because WORLD_SIZE.x * WORLD_SIZE.y should fit in an i32.
+        indirection[lake_chunk_idx] = -(chunk_idx as i32);
         // pass_flows[chunk_idx as usize] = neighbor_idx as i32;
         // Add this edge to the sorted list.
-        pass_flows_sorted.push(lake_chunk_idx as usize);
+        pass_flows_sorted.push(lake_chunk_idx);
         // pass_flows_sorted.push((chunk_idx as u32, neighbor_idx as u32));
         for edge in &mut lakes[lake_idx..lake_idx + max_len] {
         // for edge in lakes[lake_idx..].iter_mut().take(max_len) {

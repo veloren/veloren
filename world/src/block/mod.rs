@@ -255,7 +255,7 @@ impl<'a> BlockGen<'a> {
 
             let water = Block::new(BlockKind::Water, Rgb::new(60, 90, 190));
 
-            let grass_depth = 1.5 + 2.0 * chaos;
+            let grass_depth = 1.5 + 2.0 * chaos;//.min((height - water_height).max(0.0));
             let block = if (wposf.z as f32) < height - grass_depth {
                 let col = Lerp::lerp(
                     saturate_srgb(sub_surface_color, 0.45).map(|e| (e * 255.0) as u8),
@@ -348,7 +348,9 @@ impl<'a> BlockGen<'a> {
             }
             .or_else(|| {
                 // Rocks
-                if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock {
+                if (height + 2.5 - wposf.z as f32).div(7.5).abs().powf(2.0) < rock/* &&
+                   (wposf.z as f32) > water_height + 3.0*/
+                {
                     let field0 = RandomField::new(world.sim().seed + 0);
                     let field1 = RandomField::new(world.sim().seed + 1);
                     let field2 = RandomField::new(world.sim().seed + 2);
@@ -377,7 +379,7 @@ impl<'a> BlockGen<'a> {
                         .add(1.0)
                     > 0.9993;
 
-                if cave {
+                if cave/* && wposf.z as f32 > water_height + 3.0*/ {
                     None
                 } else {
                     Some(block)
@@ -426,14 +428,16 @@ pub struct ZCache<'a> {
 
 impl<'a> ZCache<'a> {
     pub fn get_z_limits(&self, block_gen: &mut BlockGen) -> (f32, f32, f32) {
-        let cave_depth = if self.sample.cave_xy.abs() > 0.9 {
+        let cave_depth = if self.sample.cave_xy.abs() > 0.9/* &&
+            self.sample.water_level < self.sample.alt*/
+        {
             (self.sample.alt - self.sample.cave_alt + 8.0).max(0.0)
         } else {
             0.0
         };
 
-        let min = self.sample.alt_min - (self.sample.chaos * 48.0 + cave_depth);
-        //let min = min.min(self.sample.sea_level) - 4.0;
+        let min = self.sample./*alt*/alt_min - (self.sample.chaos * 48.0 + cave_depth);
+        // let min = min.min(self.sample.sea_level) - 4.0;
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(
@@ -488,8 +492,8 @@ impl<'a> ZCache<'a> {
             .unwrap_or((min, max));
 
         let structures_only_min_z = ground_max
-            .max(self.sample.water_level)
-            .max(CONFIG.sea_level + 2.0);
+            .max(self.sample.water_level + 2.0);
+            // .max(/*CONFIG.sea_level*/self.sample.sea_level + 2.0);
 
         (min, structures_only_min_z, max)
     }

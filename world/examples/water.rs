@@ -1,9 +1,9 @@
 use std::ops::{Add, Mul, Sub};
 use vek::*;
-use veloren_world::{util::Sampler, sim::RiverKind, CONFIG, World};
+use veloren_world::{util::Sampler, sim::{WORLD_SIZE, RiverKind}, CONFIG, World};
 
-const W: usize = 1024;
-const H: usize = 1024;
+const W: usize = /*WORLD_SIZE.x*/1024;
+const H: usize = /*WORLD_SIZE.y*/1024;
 
 fn main() {
     let world = World::generate(1337);
@@ -15,7 +15,7 @@ fn main() {
 
     let mut focus = Vec2::zero();
     let mut gain = 1.0;
-    let mut scale = 1;
+    let mut scale = (WORLD_SIZE.x / W) as i32;
 
     while win.is_open() {
         let mut buf = vec![0; W * H];
@@ -33,7 +33,7 @@ fn main() {
                     })
                     .unwrap_or((CONFIG.sea_level, CONFIG.sea_level, None));
                 let alt = ((alt - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
-                let water_alt = ((water_alt - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
+                let water_alt = ((alt.max(water_alt) - CONFIG.sea_level) / CONFIG.mountain_scale).min(1.0).max(0.0);
                 buf[j * W + i] = match river_kind {
                     Some(RiverKind::Ocean) => u32::from_le_bytes([64, 32, 0, 255]),
                     Some(RiverKind::Lake) => u32::from_le_bytes([64 + (water_alt * 191.0) as u8, 32 + (water_alt * 95.0) as u8, 0, 255]),
