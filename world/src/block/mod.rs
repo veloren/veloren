@@ -437,7 +437,7 @@ impl<'a> ZCache<'a> {
         };
 
         let min = self.sample./*alt*/alt_min - (self.sample.chaos * 48.0 + cave_depth);
-        // let min = min.min(self.sample.sea_level) - 4.0;
+        let min = min.min(self.sample.sea_level) - 4.0;
         let min = min - 4.0;
 
         let cliff = BlockGen::get_cliff_height(

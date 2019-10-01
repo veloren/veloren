@@ -48,7 +48,7 @@ use vek::*;
 // cleanly representable in f32 (that stops around 1024 * 4 * 1024 * 4, for signed floats anyway)
 // but I think that is probably less important since I don't think we actually cast a chunk id to
 // float, just coordinates... could be wrong though!
-pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024 * 2, y: 1024 * 2 };
+pub const WORLD_SIZE: Vec2<usize> = Vec2 { x: 1024, y: 1024 };
 
 /// A structure that holds cached noise values and cumulative distribution functions for the input
 /// that led to those values.  See the definition of InverseCdf for a description of how to
@@ -311,7 +311,7 @@ impl WorldSim {
         let logistic_cdf = |x: f32| (x / logistic_2_base).tanh() * 0.5 + 0.5;
 
         let erosion_pow = 2.0;//0.6/*0.5*//*1.0*/;//1.0;
-        let n_steps = 100;//50;
+        let n_steps = 50;//100;//50;
         let erosion_factor = |x: f32| logistic_cdf(erosion_pow * logit(x))/*x.powf(erosion_pow)*/;
         let alt = do_erosion(/*&alt_old*//*v, *//*&mut *alt_pos, */0.0, /*96.0 / CONFIG.mountain_scale*//*32.0 / CONFIG.mountain_scale*/max_erosion_per_delta_t,
                              n_steps, &river_seed, &rock_strength_nz,
@@ -1278,7 +1278,7 @@ impl SimChunk {
         }
         let river_xy = Vec2::new(river.velocity.x, river.velocity.y).magnitude();
         let river_slope = river.velocity.z / river_xy;
-        if river.cross_section.x >= 0.25 ||
+        if river.cross_section.x >= 0.5 && river.cross_section.y >= 0.5 ||
             river.river_kind == Some(RiverKind::River) && river_slope.abs() >= 1.0 {
             println!("Big area! Pos area: {:?}, River data: {:?}, slope: {:?}", wposf, river,
                      river_slope);

@@ -214,21 +214,28 @@ pub fn local_cells(posi: usize) -> impl Clone + Iterator<Item=usize> {
      (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0),
      (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1),
      (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2)] */
-    [(-3, -3), (-2, -3), (-1, -3), (0, -3), (1, -3), (2, -3), (3, -3),
-     (-3, -2), (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2), (3, -2),
-     (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1), (3, -1),
-     (-3, 0), (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (3, 0),
-     (-3, 1), (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1), (3, 1),
-     (-3, 2), (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2), (3, 2),
-     (-3, 3), (-2, 3), (-1, 3), (0, 3), (1, 3), (2, 3), (3, 3)]
+    /* [(-4, -4), (-4, -4), (-2, -4), (-1, -4), (0, -4), (1, -4), (2, -4), (3, -4), (4, -4), (5, -4),
+     (-4, -3), (-3, -3), (-2, -3), (-1, -3), (0, -3), (1, -3), (2, -3), (3, -3), (4, -3), (5, -3),
+     (-4, -2), (-3, -2), (-2, -2), (-1, -2), (0, -2), (1, -2), (2, -2), (3, -2), (4, -2), (5, -2),
+     (-4, -1), (-3, -1), (-2, -1), (-1, -1), (0, -1), (1, -1), (2, -1), (3, -1), (4, -1), (5, -1),
+     (-4, 0), (-3, 0), (-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0),
+     (-4, 1), (-3, 1), (-2, 1), (-1, 1), (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1),
+     (-4, 2), (-3, 2), (-2, 2), (-1, 2), (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2),
+     (-4, 3), (-3, 3), (-2, 3), (-1, 3), (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3),
+     (-4, 4), (-3, 4), (-2, 4), (-1, 4), (0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4),
+     (-4, 5), (-3, 5), (-2, 5), (-1, 5), (0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5),
+    ] */
 
-
+    let grid_size = 3i32;
     /* [(-1,-1), (0,-1), (1, -1), (2, -1),
      (-1, 0), (0, 0), (1, 0), (2, 0),
      (-1, 1), (0, 1), (1, 1), (2, 1),
      (-1, 2), (0, 2), (1, 2), (2, 2)] */
+    let grid_bounds = 2 * grid_size + 1;
+    (0..grid_bounds * grid_bounds)
         .into_iter()
-        .map(move |&(x, y)| Vec2::new(pos.x + x, pos.y + y))
+        .map(move |/*&(x, y)*/index| Vec2::new(pos.x + /*x*/(index % grid_bounds) - grid_size,
+                                               pos.y + /*y*/(index / grid_bounds) - grid_size))
         .filter(|pos| pos.x >= 0 && pos.y >= 0 &&
                       pos.x < WORLD_SIZE.x as i32 && pos.y < WORLD_SIZE.y as i32)
         .map(vec2_as_uniform_idx)
@@ -541,7 +548,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // From this, we can figure out the width of the chunk if we know the height.  For now, we
         // hardcode the height to 0.5, but it should almost certainly be much more complicated than
         // this.
-        let mut height = 0.5f32;
+        // let mut height = 0.5f32;
         // We approximate the river as a rectangular prism.  Theoretically, we need to solve the
         // following quintic equation to determine its width from its height:
         //
@@ -558,7 +565,21 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         // simplifies the calculation.  For simplicity, we do this even for low ratios of width to
         // height--I found that for most real rivers, at least big ones, this approximation is
         // "good enough."  We don't need to be *that* realistic :P
-        let mut width = almost_velocity / height.powf(5.0/3.0);
+        //
+        // NOTE: Derived from a paper on estimating river width.
+        let mut width  = 5.0 * (CONFIG.river_width_to_depth *
+                               (CONFIG.river_width_to_depth + 2.0).powf(2.0/3.0)).powf(3.0/8.0) *
+                         volumetric_flow_rate.powf(3.0/8.0) *
+                         slope.powf(-3.0/16.0) *
+                         CONFIG.river_roughness.powf(3.0/8.0);
+        width = width.max(0.0);
+
+        // let mut width = almost_velocity / height.powf(5.0/3.0);
+        let mut height = if width == 0.0 {
+            0.5f32
+        } else {
+            (almost_velocity / width).powf(3.0/5.0)
+        };
 
         // We can now weight the river's drainage by its direction, which we use to help improve
         // the slope of the downhill node.
@@ -577,6 +598,10 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
         } else {
             // "Velocity of center of mass" of splines of incoming flows.
             let river_prev_slope = river.spline_derivative / incoming_drainage;
+            // NOTE: We need to make sure the slope doesn't get *too* crazy.
+            let extra_divisor = river_prev_slope
+                .map(|e| e.abs())
+                .reduce_partial_max() / (TerrainChunkSize::RECT_SIZE.x as f32 * 2.0);
             // Set up the river's spline derivative.  For each incoming river at pos with
             // river_spline_derivative bx, we can compute our interpolated slope as:
             //   d_x = 2 * (chunk_pos - pos - bx) + bx
@@ -587,7 +612,11 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             //
             // NOTE: this probably implies that the distance shouldn't be normalized, since the
             // distances aren't actually equal between x and y... we'll see what happens.
-            river_prev_slope
+            if extra_divisor > 1.0 {
+                river_prev_slope / extra_divisor
+            } else {
+                river_prev_slope
+            }
         };
 
 
@@ -652,7 +681,7 @@ pub fn get_rivers(newh: &[u32], water_alt: &[f32],
             let dx = ((vox_rot.x - center_rect.x).abs() - half_size.w).max(0.0);
             let dy = ((vox_rot.y - center_rect.y).abs() - half_size.h).max(0.0);
             Vec2::new(dx, dy)*/
-            let max_width = TerrainChunkSize::RECT_SIZE.x as f32;//neighbor_distance;
+            let max_width = TerrainChunkSize::RECT_SIZE.x as f32 * CONFIG.river_max_width;//neighbor_distance;
             //
             // We use the approximation:
             // h = (almost_velocity / w).powf(3/5)

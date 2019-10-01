@@ -383,7 +383,7 @@ fn quadratic_nearest_point(spline: &Vec3<Vec2<f32>>, point: Vec2<f32>) -> Option
     let min_root = roots
         .into_iter()
         .copied()
-        .filter(|&root| root >= 0.0 && root < 1.0)
+        .filter(|&root| root >= 0.0 && root <= 1.0)
         .map(|root| {
             let river_point = spline.x * root * root + spline.y * root + spline.z;
             let river_distance = river_point.distance_squared(point);
@@ -524,7 +524,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             });
 
         // Find the average distance to each neighboring body of water.
-        let mut river_count = 0;
+        let mut river_count = 0.0f32;
         let mut river_distance_product = 1.0f32;
         let mut min_river_distance = f32::INFINITY;
         let mut max_river = None;
@@ -577,11 +577,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         let max_distance = TerrainChunkSize::RECT_SIZE.x as f32;//river_width;//direction.magnitude();
                         let scale_factor =
                             1.0 * /*TerrainChunkSize::RECT_SIZE.x*/max_distance
-                            - river_width * 0.5;
+                            /*- river_width * 0.5*/;
                         /* if kind != RiverKind::River {
                             continue;
                         } */
 
+                        if dist.x == 0.0 && dist.y < 1.0 * scale_factor {
+                            river_count += 1.0 - scale_factor;
+                        };
                         let river_dist = if /*dist.y > 0.0 && */dist.x == 0.0 && dist.y < scale_factor /*|| dist.x == 0.0 */{
                             /* if dist.y == 0.0 {
                                 // We are actually on a river, so compute an average.
@@ -598,7 +601,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         // point.  We *don't* want to deal with closer chunks because they
 
                         // let river_dist = dist.y;
-                        river_count += 1;
                         // NOTE: river_width <= 2 * max terrain chunk size width, so this should not
                         // lead to division by zero.
                         // NOTE: If distance = 0.0 this goes to zero, which is desired since it
@@ -611,7 +613,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                         // chunk that this column is in.
                         // let river_chunk = river_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
                         // let chunk_dist = river_chunk.map(|e| e.abs()).reduce_partial_min();
-                        if true/*river_chunk >= 1.0 &&*/
+                        if /*true*//*river_chunk >= 1.0 &&*/ /*river_scale < 1.0*/true
                             /*river_dist*//*river_scale*//*river_dist < min_river_distance*/ {
                             // min_river_distance = /*river_dist*/river_scale;
                             river_distance_product *= river_scale;
@@ -622,7 +624,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             }
         }
         // Geometric mean.
-        let river_scale_factor = river_distance_product.powf(1.0 / (river_count.max(1) as f32));
+        let river_scale_factor = river_distance_product.powf(1.0 / (river_count.max(1.0)));
 
         /* // For every neighbor at 0,0 or to the right or front of us, we need to compute its river
         // prism, and then figure out whether this column intersects its river line.  If it does,
@@ -1005,7 +1007,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                       .min(river_chunk.water_alt)
                                       .max(river_chunk.alt/* - wdelta*/) */
 
-                                      /*river_chunk.water_alt*//*downhill_water_alt*/water_alt.min(river_chunk.water_alt),
+                                      /*river_chunk.water_alt*//*downhill_water_alt*//*water_alt.min(*/river_chunk.water_alt/*)*/,
                                       // water_alt.min(river_chunk.water_alt),
                                       river_scale_factor))
                             },
