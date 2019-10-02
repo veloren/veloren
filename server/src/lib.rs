@@ -211,8 +211,10 @@ impl Server {
             .with(pos)
             .with(vel)
             .with(comp::Ori(vel.0.normalized()))
+            .with(comp::Mass(0.0))
             .with(body)
             .with(projectile)
+            .with(comp::Sticky)
     }
 
     pub fn create_player_character(

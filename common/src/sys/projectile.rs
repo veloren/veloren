@@ -11,7 +11,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadStorage<'a, PhysicsState>,
-        WriteStorage<'a, Vel>,
+        ReadStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
     );
@@ -22,12 +22,14 @@ impl<'a> System<'a> for Sys {
             entities,
             server_bus,
             physics_states,
-            mut velocities,
+            velocities,
             mut orientations,
             mut projectiles,
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_bus.emitter();
+
+        let mut todo = Vec::new();
 
         // Attacks
         for (entity, physics, ori, projectile) in (
@@ -38,28 +40,6 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            // Hit ground
-            if physics.on_ground {
-                for effect in projectile.hit_ground.drain(..) {
-                    match effect {
-                        projectile::Effect::Stick => {
-                            velocities.remove(entity);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            // Hit wall
-            if physics.on_wall.is_some() {
-                for effect in projectile.hit_wall.drain(..) {
-                    match effect {
-                        projectile::Effect::Stick => {
-                            velocities.remove(entity);
-                        }
-                        _ => {}
-                    }
-                }
-            }
             // Hit entity
             if let Some(other) = physics.touch_entity {
                 for effect in projectile.hit_entity.drain(..) {
@@ -78,11 +58,34 @@ impl<'a> System<'a> for Sys {
                         _ => {}
                     }
                 }
+                todo.push(entity);
             }
+            // Hit ground
+            else if physics.on_ground {
+                for effect in projectile.hit_ground.drain(..) {
+                    match effect {
+                        _ => {}
+                    }
+                }
+                todo.push(entity);
+            }
+            // Hit wall
+            else if physics.on_wall.is_some() {
+                for effect in projectile.hit_wall.drain(..) {
+                    match effect {
+                        _ => {}
+                    }
+                }
+                todo.push(entity);
+            } else {
+                if let Some(vel) = velocities.get(entity) {
+                    ori.0 = vel.0.normalized();
+                }
+            }
+        }
 
-            if let Some(vel) = velocities.get(entity) {
-                ori.0 = vel.0.normalized();
-            }
+        for entity in todo {
+            projectiles.remove(entity);
         }
     }
 }
