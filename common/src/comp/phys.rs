@@ -43,6 +43,13 @@ impl Component for Mass {
     type Storage = FlaggedStorage<Self, IDVStorage<Self>>;
 }
 
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Sticky;
+
+impl Component for Sticky {
+    type Storage = FlaggedStorage<Self, NullStorage<Self>>;
+}
+
 // PhysicsState
 #[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {
