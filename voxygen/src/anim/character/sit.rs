@@ -41,8 +41,8 @@ impl Animation for SitAnimation {
         );
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            wave_stop * -1.6 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 15.0 + wave_slow * 0.1 + wave_stop * -0.8,
+            wave_stop * -3.6 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 21.0 + wave_slow * 0.1 + wave_stop * -0.8,
         );
         next.head.ori =
             Quaternion::rotation_z(head_look.x + wave_ultra_slow * 0.2 - wave_slow * 0.1)
@@ -68,9 +68,9 @@ impl Animation for SitAnimation {
         next.shorts.scale = Vec3::one();
 
         next.l_hand.offset = Vec3::new(
-            -7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            wave_ultra_slow * 0.7 + wave_stop * -2.0,
+            -6.0,
+            -0.25 + wave_ultra_slow_cos * 0.15,
+            7.0 + wave_ultra_slow * 0.7 + wave_stop * -2.0,
         );
 
         next.l_hand.ori =
@@ -78,9 +78,9 @@ impl Animation for SitAnimation {
         next.l_hand.scale = Vec3::one() + wave_slow_abs * -0.05;
 
         next.r_hand.offset = Vec3::new(
-            7.5,
-            0.0 + wave_ultra_slow_cos * 0.15,
-            wave_ultra_slow * 0.7 + wave_stop * -2.0,
+            6.0,
+            -0.25 + wave_ultra_slow_cos * 0.15,
+            7.0 + wave_ultra_slow * 0.7 + wave_stop * -2.0,
         );
         next.r_hand.ori =
             Quaternion::rotation_x(0.0 + wave_slow * -0.1 + wave_ultra_slow_cos * 0.1);

@@ -58,6 +58,7 @@ image_ids! {
         // MiniMap
         mmap_frame: "voxygen.element.frames.mmap",
         mmap_frame_closed: "voxygen.element.frames.mmap_closed",
+        indicator_mmap: "voxygen.voxel.figure.accessory.human.earring",
 
         // Missing: Buff Frame Animation .gif ?! we could do animation in ui.maintain, or in shader?
         window_frame: "voxygen.element.frames.window2",
@@ -86,6 +87,7 @@ image_ids! {
         map_frame_r: "voxygen.element.frames.map_r",
         map_frame_bl: "voxygen.element.frames.map_bl",
         map_frame_br: "voxygen.element.frames.map_br",
+        pos_indicator: "voxygen.element.buttons.qlog",
 
         // Chat-Arrows
         chat_arrow: "voxygen.element.buttons.arrow_down",
@@ -106,6 +108,10 @@ image_ids! {
         flyingrod_m2: "voxygen.element.icons.debug_wand_m2",
 ////////////////////////////////////////////////////////////////////////
         <VoxelMs9Graphic>
+        // Map
+        map_indicator: "voxygen.element.buttons.map_indicator",
+
+        // Crosshair
 
         crosshair_outer_round: "voxygen.element.misc_bg.crosshair_outer_1",
         crosshair_outer_round_edges: "voxygen.element.misc_bg.crosshair_outer_2",
@@ -209,6 +215,7 @@ image_ids! {
         <ImageGraphic>
 
         charwindow_gradient:"voxygen.element.misc_bg.charwindow",
+        map_placeholder: "voxygen.background.map",
 
         // Spell Book Window
         spellbook_icon: "voxygen.element.icons.spellbook",
