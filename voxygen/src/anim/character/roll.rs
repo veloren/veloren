@@ -28,8 +28,8 @@ impl Animation for RollAnimation {
 
         next.head.offset = Vec3::new(
             0.0 + skeleton_attr.neck_right,
-            0.0 + skeleton_attr.neck_forward,
-            skeleton_attr.neck_height + 15.0 + wave_dub * -8.0,
+            -2.0 + skeleton_attr.neck_forward,
+            skeleton_attr.neck_height + 21.0 + wave_dub * -8.0,
         );
         next.head.ori = Quaternion::rotation_x(wave_dub * 0.4);
         next.head.scale = Vec3::one();
