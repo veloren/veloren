@@ -152,6 +152,7 @@ pub enum Event {
     SendMessage(String),
     AdjustMousePan(u32),
     AdjustMouseZoom(u32),
+    ToggleZoomInvert(bool),
     AdjustViewDistance(u32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
@@ -796,6 +797,9 @@ impl Hud {
                     }
                     settings_window::Event::AdjustMouseZoom(sensitivity) => {
                         events.push(Event::AdjustMouseZoom(sensitivity));
+                    }
+                    settings_window::Event::ToggleZoomInvert(zoom_inverted) => {
+                        events.push(Event::ToggleZoomInvert(zoom_inverted));
                     }
                     settings_window::Event::AdjustViewDistance(view_distance) => {
                         events.push(Event::AdjustViewDistance(view_distance));
