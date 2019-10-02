@@ -217,7 +217,7 @@ pub fn mesh_chest(
         )
     };
 
-    let bare_chest = graceful_load_mat_segment("figure.body.chest");
+    let bare_chest = graceful_load_mat_segment("armor.chest.grayscale");
     let chest_armor = graceful_load_mat_segment("armor.chest.grayscale");
     let chest = DynaUnionizer::new()
         .add(color(bare_chest), Vec3::new(0, 0, 0))
@@ -228,7 +228,7 @@ pub fn mesh_chest(
         .unify()
         .0;
 
-    generate_mesh(&chest, Vec3::new(-6.0, -3.5, 0.0))
+    generate_mesh(&chest, Vec3::new(-7.0, -3.5, 2.0))
 }
 
 pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
@@ -237,7 +237,7 @@ pub fn mesh_belt(belt: Belt) -> Mesh<FigurePipeline> {
             //Belt::Default => "figure/body/belt_male",
             Belt::Dark => "armor.belt.belt_dark",
         },
-        Vec3::new(-5.0, -3.5, 0.0),
+        Vec3::new(-4.0, -3.5, 2.0),
     )
 }
 
@@ -264,7 +264,7 @@ pub fn mesh_pants(
         race.eye_color(eye_color),
     );
 
-    generate_mesh(&pants_segment, Vec3::new(-5.0, -3.5, 0.0))
+    generate_mesh(&pants_segment, Vec3::new(-5.0, -3.5, 1.0))
 }
 
 pub fn mesh_left_hand(
@@ -276,15 +276,15 @@ pub fn mesh_left_hand(
 ) -> Mesh<FigurePipeline> {
     let hand_segment = color_segment(
         graceful_load_mat_segment(match hand {
-            Hand::Bare => "figure.body.hand",
-            Hand::Dark => "armor.hand.dark-0",
+            Hand::Bare => "armor.hand.hand_left",
+            Hand::Dark => "armor.hand.hand_left",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
         race.eye_color(eye_color),
     );
 
-    generate_mesh(&hand_segment, Vec3::new(-2.0, -2.5, -2.0))
+    generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
 }
 
 pub fn mesh_right_hand(
@@ -296,15 +296,15 @@ pub fn mesh_right_hand(
 ) -> Mesh<FigurePipeline> {
     let hand_segment = color_segment(
         graceful_load_mat_segment(match hand {
-            Hand::Bare => "figure.body.hand",
-            Hand::Dark => "armor.hand.dark-0",
+            Hand::Bare => "armor.hand.hand_right",
+            Hand::Dark => "armor.hand.hand_right",
         }),
         race.skin_color(skin),
         race.hair_color(hair_color),
         race.eye_color(eye_color),
     );
 
-    generate_mesh(&hand_segment, Vec3::new(-2.0, -2.5, -2.0))
+    generate_mesh(&hand_segment, Vec3::new(-1.5, -1.5, -7.0))
 }
 
 pub fn mesh_left_foot(
@@ -316,7 +316,7 @@ pub fn mesh_left_foot(
 ) -> Mesh<FigurePipeline> {
     let foot_segment = color_segment(
         graceful_load_mat_segment(match foot {
-            Foot::Bare => "figure.body.foot",
+            Foot::Bare => "armor.foot.dark-0",
             Foot::Dark => "armor.foot.dark-0",
         }),
         race.skin_color(skin),
@@ -336,7 +336,7 @@ pub fn mesh_right_foot(
 ) -> Mesh<FigurePipeline> {
     let foot_segment = color_segment(
         graceful_load_mat_segment(match foot {
-            Foot::Bare => "figure.body.foot",
+            Foot::Bare => "armor.foot.dark-0",
             Foot::Dark => "armor.foot.dark-0",
         }),
         race.skin_color(skin),
@@ -357,7 +357,7 @@ pub fn mesh_main(item: Option<&Item>) -> Mesh<FigurePipeline> {
                 Tool::Daggers => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
                 Tool::SwordShield => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
                 Tool::Bow => ("weapon.hammer.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
-                Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -6.5, -2.0)),
+                Tool::Staff => ("weapon.axe.rusty_2h", Vec3::new(-2.5, -5.5, -4.0)),
             },
             Item::Debug(_) => ("weapon.debug_wand", Vec3::new(-1.5, -9.5, -4.0)),
             _ => return Mesh::new(),
@@ -385,7 +385,7 @@ pub fn mesh_left_shoulder(
         race.eye_color(eye_color),
     );
 
-    generate_mesh(&shoulder_segment, Vec3::new(-2.5, -3.5, -1.5))
+    generate_mesh(&shoulder_segment, Vec3::new(-3.0, -3.5, 0.1))
 }
 
 pub fn mesh_right_shoulder(
@@ -405,7 +405,7 @@ pub fn mesh_right_shoulder(
         race.eye_color(eye_color),
     );
 
-    generate_mesh(&shoulder_segment, Vec3::new(-2.5, -3.5, -1.5))
+    generate_mesh(&shoulder_segment, Vec3::new(-2.0, -3.5, 0.1))
 }
 
 // TODO: Inventory
@@ -633,6 +633,7 @@ pub fn mesh_object(obj: object::Body) -> Mesh<FigurePipeline> {
             Vec3::new(-21.0, -21.0, -0.5),
         ),
         Body::Pouch => ("object.pouch", Vec3::new(-5.5, -4.5, 0.0)),
+        Body::CraftingBench => ("object.crafting_bench", Vec3::new(-9.5, -7.0, 0.0)),
     };
     load_mesh(name, offset)
 }
