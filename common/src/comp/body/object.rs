@@ -60,7 +60,7 @@ impl Body {
     }
 }
 
-const ALL_OBJECTS: [Body; 47] = [
+const ALL_OBJECTS: [Body; 48] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
