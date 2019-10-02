@@ -94,7 +94,7 @@ fn sprite_config_for(kind: BlockKind) -> Option<SpriteConfig> {
             wind_sway: 0.1,
         }),
         BlockKind::WhiteFlower => Some(SpriteConfig {
-            variations: 1,
+            variations: 2,
             wind_sway: 0.1,
         }),
         BlockKind::YellowFlower => Some(SpriteConfig {
@@ -376,6 +376,13 @@ impl<V: RectRasterableVol> Terrain<V> {
                     ),
                 ),
                 (
+                    (BlockKind::WhiteFlower, 1),
+                    make_model(
+                        "voxygen.voxel.sprite.flowers.flower_white_2",
+                        Vec3::new(-6.0, -6.0, 0.0),
+                    ),
+                ),
+                (
                     (BlockKind::YellowFlower, 0),
                     make_model(
                         "voxygen.voxel.sprite.flowers.flower_purple_1",
@@ -603,8 +610,8 @@ impl<V: RectRasterableVol> Terrain<V> {
                 (
                     (BlockKind::Velorite, 0),
                     make_model(
-                        "voxygen.voxel.sprite.velorite.velorite",
-                        Vec3::new(-5.0, -5.0, -0.0),
+                        "voxygen.voxel.sprite.velorite.velorite_ore",
+                        Vec3::new(-5.0, -5.0, -5.0),
                     ),
                 ),
             ]

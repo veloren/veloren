@@ -1,11 +1,12 @@
+use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR_2};
+use client::{self, Client};
+use common::comp;
 use conrod_core::{
     color,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
-
-use super::{img_ids::Imgs, Fonts, Show, TEXT_COLOR_2};
-use client::{self, Client};
+use vek::*;
 
 widget_ids! {
     struct Ids {
@@ -19,6 +20,8 @@ widget_ids! {
         map_frame_bl,
         map_frame_br,
         location_name,
+        indicator,
+        grid,
     }
 }
 
@@ -127,6 +130,31 @@ impl<'a> Widget for Map<'a> {
                 .color(TEXT_COLOR_2)
                 .set(state.ids.location_name, ui),
         }
+        // Map Image
+        Image::new(self.imgs.map_placeholder)
+            .middle_of(state.ids.map_bg)
+            .w_h(700.0, 700.0)
+            .parent(state.ids.map_bg)
+            .set(state.ids.grid, ui);
+        // Coordinates
+        let player_pos = self
+            .client
+            .state()
+            .ecs()
+            .read_storage::<comp::Pos>()
+            .get(self.client.entity())
+            .map_or(Vec3::zero(), |pos| pos.0);
+
+        let worldsize = 32768.0; // TODO This has to get the actual world size and not be hardcoded
+        let x = player_pos.x as f64 / worldsize * 700.0;
+        let y = player_pos.y as f64 / worldsize * 700.0;
+        // Indicator
+        Image::new(self.imgs.map_indicator)
+            .bottom_left_with_margins_on(state.ids.grid, y, x - 11.5)
+            .w_h(23.0, 25.0)
+            .floating(true)
+            .parent(ui.window)
+            .set(state.ids.indicator, ui);
 
         None
     }
