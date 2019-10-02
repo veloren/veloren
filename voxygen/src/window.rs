@@ -91,6 +91,7 @@ pub struct Window {
     cursor_grabbed: bool,
     pub pan_sensitivity: u32,
     pub zoom_sensitivity: u32,
+    pub zoom_inversion: bool,
     fullscreen: bool,
     needs_refresh_resize: bool,
     key_map: HashMap<KeyMouse, Vec<GameInput>>,
@@ -236,6 +237,7 @@ impl Window {
             cursor_grabbed: false,
             pan_sensitivity: settings.gameplay.pan_sensitivity,
             zoom_sensitivity: settings.gameplay.zoom_sensitivity,
+            zoom_inversion: settings.gameplay.zoom_inversion,
             fullscreen: false,
             needs_refresh_resize: false,
             key_map: map,
@@ -271,6 +273,10 @@ impl Window {
         let keypress_map = &mut self.keypress_map;
         let pan_sensitivity = self.pan_sensitivity;
         let zoom_sensitivity = self.zoom_sensitivity;
+        let zoom_inversion = match self.zoom_inversion {
+            true => -1.0,
+            false => 1.0,
+        };
         let mut toggle_fullscreen = false;
         let mut take_screenshot = false;
 
@@ -373,7 +379,7 @@ impl Window {
                         delta: glutin::MouseScrollDelta::LineDelta(_x, y),
                         ..
                     } if cursor_grabbed && *focused => {
-                        events.push(Event::Zoom(y * (zoom_sensitivity as f32 / 100.0)))
+                        events.push(Event::Zoom(y * (zoom_sensitivity as f32 / 100.0) * zoom_inversion))
                     }
                     _ => {}
                 },
