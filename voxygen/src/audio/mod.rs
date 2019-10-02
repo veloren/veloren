@@ -78,6 +78,9 @@ impl AudioFrontend {
     pub fn maintain(&mut self, dt: f32) {
         for channel in self.channels.iter_mut() {
             channel.update(dt);
+            // if channel.is_done() {
+            //     channel.clear();
+            // }
         }
     }
 

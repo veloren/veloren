@@ -187,6 +187,7 @@ pub struct AudioSettings {
     /// Audio Device that Voxygen will use to play audio.
     pub audio_device: Option<String>,
     pub audio_on: bool,
+    pub channels: usize,
 }
 
 impl Default for AudioSettings {
@@ -197,6 +198,7 @@ impl Default for AudioSettings {
             sfx_volume: 0.6,
             audio_device: None,
             audio_on: true,
+            channels: 64,
         }
     }
 }
